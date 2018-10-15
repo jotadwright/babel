@@ -6,7 +6,7 @@
                         :type "lisp")))
 
 (defun load-frames ()
-  (dolist (filename (cl-fad:list-directory (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" ))  )) ;"causation"
+  (dolist (filename (cl-fad:list-directory (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" "causation" ))  )) ;"causation"
     (ignore-errors (load filename))))
 
 

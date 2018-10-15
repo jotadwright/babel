@@ -13,6 +13,7 @@
         :monitors
         :meta-layer-learning
         :cl-json
-        :tasks-and-processes)
+        :tasks-and-processes
+        :snooze)
   (:shadow "PROTOTYPE" "PP")
   )
