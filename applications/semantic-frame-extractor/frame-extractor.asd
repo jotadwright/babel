@@ -5,10 +5,10 @@
                :pie
                :xmls
                :nlp-tools
-               :type-hierarchies
+               ;;:type-hierarchies
                :tasks-and-processes
-               :fcg-hybrids
-               :corpus-processing
+              ;; :fcg-hybrids
+               :corpus-processing 
                :cl-json
                )
   :version "3.2.0"

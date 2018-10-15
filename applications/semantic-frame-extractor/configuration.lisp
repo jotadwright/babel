@@ -1,12 +1,12 @@
 (in-package :frame-extractor)
 
 (defun load-grammar ()
-  (load (babel-pathname :directory '("applications" "frame-extractor")
+  (load (babel-pathname :directory '("applications" "semantic-frame-extractor")
                         :name "grammar"
                         :type "lisp")))
 
 (defun load-frames ()
-  (dolist (filename (cl-fad:list-directory (babel-pathname :directory '("applications" "frame-extractor" "lexical-units" ))  )) ;"causation"
+  (dolist (filename (cl-fad:list-directory (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" ))  )) ;"causation"
     (ignore-errors (load filename))))
 
 
