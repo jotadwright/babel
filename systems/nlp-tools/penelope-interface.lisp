@@ -212,7 +212,7 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the word embeddings of a single sentence."
   (unless (stringp sentence)
     (error "The function <run-penelope-sentence-word-embeddings> expects a string as input"))
-  (curl-json "http:/127.0.0.1:5000/spacy-api/embeddings"
+  (curl-json "/embeddings"
              (encode-json-to-string-for-shell `((:sentence . ,sentence)
                                                 (:model . ,model)))))
 
