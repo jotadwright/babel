@@ -26,7 +26,7 @@
       (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
     (let ((frame-set (pie-comprehend utterance :silent silent)))
       (encode-json-alist-to-string `((:frames . ,(loop for frame in (pie::entities frame-set)
-                                                 collect (encode-json-to-string frame))))
+                                                       collect frame)))
                                ))))
 
 ;;; Use hunchentoot

@@ -5,12 +5,12 @@
                :pie
                :xmls
                :nlp-tools
-               :type-hierarchies
+               ;;:type-hierarchies
                :tasks-and-processes
-               :fcg-hybrids
-               :corpus-processing
+              ;; :fcg-hybrids
+               :corpus-processing 
                :cl-json
-               )
+               :snooze)
   :version "3.2.0"
   :author "Katrien Beuls"
   :description "A hybrid English grammar with frames"
@@ -22,5 +22,6 @@
                (:file "cxn-processing")
                (:file "dependencies")
                (:file "configuration")
+               
               ; (:file "tests")
                ))

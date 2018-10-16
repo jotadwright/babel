@@ -1,6 +1,23 @@
 (in-package :frame-extractor)
 
 
+
+;;copied from Babel2/sharing/fcg-hybrids (15/10/2018)
+(defstruct word-dependency-spec string syn-role unit-name pos-tag node-id head-id)
+
+(defun make-word-specs-for-boundaries (boundaries dependency-tree)
+  "A useful function to have for customizing the translate-dependency-tree method."
+  (loop for boundary in boundaries
+        for dependency in dependency-tree
+        collect (make-word-dependency-spec :string (dp-get-token dependency)
+                                           :unit-name (first boundary)
+                                           :syn-role (dp-get-dependency dependency)
+                                           :pos-tag (dp-get-tag dependency)
+                                           :node-id (parse-integer (dp-get-node-id dependency))
+                                           :head-id (dp-get-head-id dependency))))
+
+
+;;copied from Babel2/applications/frame-extractor (10/10/2018)
 (defmethod de-render ((utterance string) (mode (eql :raw-dependency-translation))
                       &key cxn-inventory &allow-other-keys)
   (declare (ignorable mode))
@@ -9,14 +26,9 @@
          (base-transient-structure (de-render list-utterance
                                              :de-render-with-scope :cxn-inventory cxn-inventory)))
     (set-data base-transient-structure :utterance (list (list-of-strings->string list-utterance)))
-    (translate-dependency-tree base-transient-structure
-                               dependency-tree
-                               'without-conversion-table)))
+    (translate-dependency-tree base-transient-structure dependency-tree)))
 
-(defmethod translate-dependency-tree ((base-transient-structure coupled-feature-structure)
-                                      (dependency-tree list)
-                                      (conversion-table (eql 'without-conversion-table))
-                                      &key cxn-inventory &allow-other-keys)
+(defun translate-dependency-tree (base-transient-structure dependency-tree)
   (declare (ignore cxn-inventory))
   (let* ((boundaries (fcg-get-boundaries base-transient-structure))
          (word-specs (make-word-specs-for-boundaries boundaries dependency-tree))

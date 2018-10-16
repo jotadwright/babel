@@ -21,16 +21,24 @@
           guardian-data
           glove))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Running spacy services locally              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Intefacing with using http request and json ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;By default, the NLP tools use the Spacy API that is running on the VUB AI Lab server:
+ (defparameter *penelope-host* "https://penelope.vub.be/spacy-api")
+
+;;You can run the services also locally, if you clone the spacy-api repository (gitlab ehai) and follow the readme file there. Once your python server is running, please evaluate this line:
+;;(defparameter *penelope-host* "http://localhost:5000")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Interfacing with using http request and json ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; This used curl, but we're using DEX now directly from lisp (for using curl, you need to encode-json-as-string-for-shell!!)
 ;; update: using it again with lispworks until the boringssl bug is fixed   
-
-;;(defparameter *penelope-host* "http://localhost:5000/spacy-api")
- (defparameter *penelope-host* "https://penelope.vub.be/spacy-api")
 
 #+lispworks
 (defun curl-json (route json &key (host *penelope-host*))
@@ -212,7 +220,7 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the word embeddings of a single sentence."
   (unless (stringp sentence)
     (error "The function <run-penelope-sentence-word-embeddings> expects a string as input"))
-  (curl-json "http:/127.0.0.1:5000/spacy-api/embeddings"
+  (curl-json "/embeddings"
              (encode-json-to-string-for-shell `((:sentence . ,sentence)
                                                 (:model . ,model)))))
 

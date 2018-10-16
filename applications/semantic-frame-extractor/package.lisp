@@ -12,9 +12,8 @@
         #+:hunchentoot-available-on-this-platform :web-interface
         :monitors
         :meta-layer-learning
-       ; :experiment-framework ;;needed for data monitors
-        :type-hierarchies
         :cl-json
-        :tasks-and-processes)
+        :tasks-and-processes
+        :snooze)
   (:shadow "PROTOTYPE" "PP")
   )
