@@ -10,7 +10,8 @@
               ;; :fcg-hybrids
                :corpus-processing 
                :cl-json
-               :snooze)
+               :snooze
+               :cl-mop)
   :version "3.2.0"
   :author "Katrien Beuls"
   :description "A hybrid English grammar with frames"
@@ -22,6 +23,8 @@
                (:file "cxn-processing")
                (:file "dependencies")
                (:file "configuration")
-               
+               (:module "web-service"
+                :serial t
+                :components ((:file "web-service")))
               ; (:file "tests")
                ))

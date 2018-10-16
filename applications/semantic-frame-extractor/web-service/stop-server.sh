@@ -1,2 +1,2 @@
 #!/bin/bash
-screen -X -S clevr-api quit
+screen -X -S frame-extractor-api quit

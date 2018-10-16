@@ -1,8 +1,11 @@
 ;;;; start-server.lisp
 
-(ql:quickload :clevr-irl)
-(in-package :clevr-irl)
+(ql:quickload :frame-extractor)
+(in-package :frame-extractor)
 
-(hunchentoot:start *clevr-acceptor*)
+(defvar *frame-extractor-app* (snooze:make-hunchentoot-app))
+(push *frame-extractor-app* hunchentoot:*dispatch-table*)
+(defvar *frame-extractor-acceptor* (make-instance 'hunchentoot:easy-acceptor :port 9003))
+(hunchentoot:start *frame-extractor-acceptor*)
 
-;; (hunchentoot:stop *clevr-acceptor*)
+;(hunchentoot:stop *frame-extractor-acceptor*)
