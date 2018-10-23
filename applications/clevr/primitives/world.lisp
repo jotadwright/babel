@@ -3,9 +3,9 @@
 (in-package :clevr)
 
 ;; ----------------------------------------------------------------;;
-;; This file contains class definitions for objects and properties ;;
-;; of the CLEVR world. Additionally, it contains functions to read ;;
-;; the world from a file                                           ;;
+;; This file contains class definitions for objects, properties    ;;
+;; and questions of the CLEVR world. It also contains functions    ;;
+;; for reading and parsing these from files.                       ;;
 ;; ----------------------------------------------------------------;;
 
 ;; CATEGORIES
@@ -94,8 +94,11 @@
    (relationships :type list :initarg :relationships :accessor relationships))
   (:documentation "An object in the CLEVR world"))
 
+;; OBJECT SET
 (defclass clevr-object-set (entity)
-  ((objects :type list :initarg :objects :accessor objects :initform nil))
+  ((objects :type list :initarg :objects :accessor objects :initform nil)
+   (image-index :type (or null number) :initarg :image-index :accessor image-index :initform nil)
+   (image-filename :type (or null string) :initarg :image-filename :accessor image-filename :initform nil))
   (:documentation "A set of objects in the CLEVR world"))
 
 (defmethod initialize-instance :around ((set clevr-object-set) &rest initargs &key id)
@@ -109,6 +112,95 @@
 
 (defmethod find-entity-by-id ((set clevr-object-set) (id symbol))
   (find id (objects set) :key #'id))
+
+;; QUESTION
+(defclass clevr-question (entity)
+  ((question :type string :initarg :question :initform "" :accessor question)
+   (image-index :type (or null number) :initarg :image-index :accessor image-index :initform nil)
+   (image-filename :type (or nill string) :initarg :image-filename :accessor image-filename :initform nil)
+   (answer :initarg :answer :initform nil :accessor answer))
+  (:documentation "A question from the clevr dataset"))
+
+(defmethod initialize-instance :around ((q clevr-question) &rest initargs &key id)
+  (apply #'call-next-method q :id (or id (make-id 'question)) initargs))
+  
+
+;; READING OBJECTS FROM FILE
+(defun json-key->symbol (json-object key)
+  (internal-symb (upcase (mkstr (rest (assoc key json-object))))))
+
+(defun make-clevr-object (json-object relationships &key id)
+  "Process a single object from JSON"
+  (make-instance 'clevr-object
+                 :id (or id (make-id 'obj))
+                 :shape (json-key->symbol json-object :shape)
+                 :size (json-key->symbol json-object :size)
+                 :color (json-key->symbol json-object :color)
+                 :material (json-key->symbol json-object :material)
+                 :relationships relationships))
+
+(defun collect-relations-for-object (list-of-json-relationships index)
+  "Collect the spatial relationships for a single object"
+  (loop for (relationship-key . list-of-lists) in list-of-json-relationships
+        for relationship = (internal-symb (upcase (mkstr relationship-key)))
+        collect (cons relationship (nth index list-of-lists))))
+
+(defun process-object (json-object id-relations id-map id-mappings)
+  (let* ((relationships (loop for (relation . list-of-ids) in id-relations
+                              collect (cons relation
+                                            (loop for id in list-of-ids
+                                                  collect (rest (assoc id id-mappings)))))))
+    (make-clevr-object json-object relationships :id (cdr id-map))))
+
+(defun process-json-context (json-context)
+  "Process the json context into a clevr-object-set object."
+  (let* ((list-of-json-objects (rest (assoc :objects json-context)))
+         (list-of-json-relationships (rest (assoc :relationships json-context)))
+         (id-mappings (loop for i from 0 below (length list-of-json-objects)
+                            collect (cons i (make-id 'obj)))))
+    (make-instance 'clevr-object-set
+                   :id 'clevr-context
+                   :image-index (rest (assoc :image--index json-context))
+                   :image-filename (rest (assoc :image--filename json-context))
+                   :objects (loop for json-object in list-of-json-objects
+                                  for id-map in id-mappings
+                                  for id-relations = (collect-relations-for-object
+                                                      list-of-json-relationships
+                                                      (first id-map))
+                                  collect (process-object json-object
+                                                          id-relations
+                                                          id-map
+                                                          id-mappings)))))
+
+(defun read-contexts-from-file (contexts-file)
+  "Read the clevr scenes from a file. This functions expects a file
+   where each line contains a json object of a context. If this is
+   not the case, you can use json->lines in json-utils.lisp.
+   Returns a list of 'clevr-object-set objects."
+  (let ((contexts 
+         (with-open-file (stream contexts-file :direction :input)
+           (mapcar #'decode-json-from-string
+                   (stream->list stream)))))
+    (mapcar #'process-json-context contexts)))
+
+;; READ QUESTIONS FROM FILE
+(defun process-json-question (json-question)
+  (make-instance 'clevr-question
+                 :question (downcase (rest (assoc :question json-question)))
+                 :image-index (rest (assoc :image--index json-question))
+                 :image-filename (rest (assoc :image--filename json-question))
+                 :answer (rest (assoc :answer json-question))))
+  
+(defun read-questions-from-file (questions-file)
+  "Read the clevr questions from a file. This functions expects a file
+   where each line contains a json object of a question. If this is
+   not the case, you can use json->lines in json-utils.lisp.
+   Returns a list of 'clevr-question objects."
+  (let ((questions
+         (with-open-file (stream questions-file :direction :input)
+           (mapcar #'decode-json-from-string
+                   (stream->list stream)))))
+    (mapcar #'process-json-question questions)))
 
 ;; COPY OBJECT
 (defmethod copy-object ((shape-cat shape-category))
@@ -158,4 +250,15 @@
 (defmethod copy-object ((obj-set clevr-object-set))
   (make-instance 'clevr-object-set
                  :id (id obj-set)
+                 :image-index (image-index obj-set)
+                 :image-filename (image-filename obj-set)
                  :objects (mapcar #'copy-object (objects obj-set))))
+
+(defmethod copy-object ((q clevr-question))
+  (make-instance 'clevr-question
+                 :id (id q)
+                 :question (question q)
+                 :image-index (image-index q)
+                 :image-filename (image-filename q)
+                 :answer (answer q)))
+                 
