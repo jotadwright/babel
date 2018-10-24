@@ -120,27 +120,28 @@
       ((td) ,(make-html top-node
                         :expand/collapse-all-id expand/collapse-all-id)))))
 
-(defun make-tr-for-irl-evaluation-search-process (caption top-node)
-  (labels ((all-leaves (node)
-             (if (children node)
+(defun make-tr-for-irl-evaluation-search-process (caption node-evaluation-tree)
+  (let ((top-node (top node-evaluation-tree)))
+    (labels ((all-leaves (node)
+               (if (children node)
                  (mappend #'all-leaves (children node))
                  (list node))))
-    (let ((tree-id-1 (make-id 'evaluation-tree))
-          (tree-id-2 (make-id 'evaluation-tree))
-          (best-leaf
-           (the-highest (all-leaves top-node)
-                        #'(lambda (x) (or (length (primitives-evaluated x)) 0)))))
-      `((tr)
-        ((td) ,(make-expandable/collapsable-element 
-                (make-id) tree-id-1
-                `((a ,@(make-expand/collapse-all-link-parameters
+      (let ((tree-id-1 (make-id 'evaluation-tree))
+            (tree-id-2 (make-id 'evaluation-tree))
+            (best-leaf
+             (the-highest (leafs node-evaluation-tree)
+                          #'(lambda (x) (or (length (primitives-evaluated x)) 0)))))
+        `((tr)
+          ((td) ,(make-expandable/collapsable-element 
+                  (make-id) tree-id-1
+                  `((a ,@(make-expand/collapse-all-link-parameters
                         tree-id-1 "show evaluation process"))
-                  ,caption)
-                (make-expand/collapse-all-link tree-id-2 caption)))
-        ((td) ,(make-expandable/collapsable-element
-                (make-id) tree-id-1
-                `((a ,@(make-expand/collapse-all-link-parameters
-                        tree-id-1 "show evaluation process"))
+                    ,caption)
+                  (make-expand/collapse-all-link tree-id-2 caption)))
+          ((td) ,(make-expandable/collapsable-element
+                  (make-id) tree-id-1
+                  `((a ,@(make-expand/collapse-all-link-parameters
+                          tree-id-1 "show evaluation process"))
                   ((i) ,(format 
                          nil "initial~{ - ~(~a~)~}" 
                          (reverse 
@@ -151,7 +152,7 @@
                             (primitives-evaluated-w/o-result best-leaf)))))))
                 (lambda ()
                   `((div :style "margin-top:-6px")
-                    ,(make-html top-node :expand/collapse-all-id tree-id-2)))))))))
+                    ,(make-html top-node :expand/collapse-all-id tree-id-2))))))))))
 
 ;; #########################################################
 ;; entity - make-html
