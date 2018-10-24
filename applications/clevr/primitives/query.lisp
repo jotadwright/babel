@@ -21,7 +21,7 @@
     (color (find-entity-by-id ontology (color object)))
     (material (find-entity-by-id ontology (material object)))))
 
-(defprimitive query ((target-category category)
+(defprimitive query ((target-category attribute)
                      (source-object clevr-object)
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category

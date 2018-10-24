@@ -12,19 +12,22 @@
 (defclass category (entity) ()
   (:documentation "Abstract base class for all categories"))
 
-(defclass shape-category (category)
+(defclass attribute (category) ()
+  (:documentation "Abtract base class for object attributes"))
+
+(defclass shape-category (attribute)
   ((shape :type symbol :initarg :shape :reader shape))
   (:documentation "A shape category"))
 
-(defclass size-category (category)
+(defclass size-category (attribute)
   ((size :type symbol :initarg :size :reader size))
   (:documentation "A size category"))
 
-(defclass color-category (category)
+(defclass color-category (attribute)
   ((color :type symbol :initarg :color :reader color))
   (:documentation "A color category"))
 
-(defclass material-category (category)
+(defclass material-category (attribute)
   ((material :type symbol :initarg :material :reader material))
   (:documentation "A material category"))
 

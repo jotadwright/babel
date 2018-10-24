@@ -50,7 +50,7 @@
 
 (defprimitive filter ((target-set clevr-object-set)
                       (source-set clevr-object-set)
-                      (category category))
+                      (category attribute))
   ;; first case: if given source-set and category, compute target-set
   ((source-set category => target-set)
    (let ((computed-set (filter-by-category source-set category)))
