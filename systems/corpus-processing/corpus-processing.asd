@@ -4,8 +4,6 @@
   :depends-on (:utils :cl-fad :cl-json :trivial-timeout)
   :components 
   (#+LISPWORKS7+(:file "corpus-processing")
-   ;;(:file "json-corpus-processing")
-   #+LISPWORKS7+(:file "json-stream-processing")
-   ))
+   #+LISPWORKS7+(:file "json-stream-processing")))
 	
 
