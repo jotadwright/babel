@@ -181,7 +181,7 @@
 	(push unit result)))
     (nreverse result)))
 
-(export '(all-subunits))
+(export '(all-subunits all-subunits-until-specified))
 
 (defun all-subunits (unit structure &optional (cxn-inventory *fcg-constructions*))
   (loop for subunit-name in (remove-special-operators (feature-value (get-subunits-feature unit (get-configuration (visualization-configuration cxn-inventory) :selected-hierarchy)))
@@ -189,6 +189,16 @@
         for subunit = (structure-unit structure subunit-name)
         collect subunit
         append (all-subunits subunit structure)))
+
+(defun all-subunits-until-specified (unit other-units structure &optional (cxn-inventory *fcg-constructions*))
+ (let ((last-skipped nil))
+  (loop for subunit in (all-subunits unit structure)
+        do (format t "this is one subunit: ~S~%" (unit-name subunit))
+        if (find subunit other-units)
+        do (setq last-skipped t)
+        if (and (or (not last-skipped) (eq (feature-value (unit-feature subunit 'head)) (unit-name unit))) (not (find subunit other-units)))
+        collect subunit
+        and do (setq last-skipped nil))))
 
 (export '(get-parent-unit))
 
