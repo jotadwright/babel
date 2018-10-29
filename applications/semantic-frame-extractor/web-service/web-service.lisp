@@ -10,7 +10,7 @@
           unless (assoc key json)
           do (push key missing-keys))
     missing-keys))
-
+#|
 (defmethod encode-json ((frame frame)
                         &optional (stream *json-output*))
   "Overwrite of encode-json for a frame"
@@ -21,6 +21,7 @@
                          (when value (mkstr value))
                          stream))
                       frame)))
+|#
 
 (defmethod snooze:explain-condition ((condition snooze:http-condition)
                                      resource
