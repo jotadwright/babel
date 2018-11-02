@@ -184,21 +184,33 @@
 (export '(all-subunits all-subunits-until-specified))
 
 (defun all-subunits (unit structure &optional (cxn-inventory *fcg-constructions*))
-  (loop for subunit-name in (remove-special-operators (feature-value (get-subunits-feature unit (get-configuration (visualization-configuration cxn-inventory) :selected-hierarchy)))
-                                                      +no-bindings+)
+  (loop for subunit-name in (remove-special-operators
+                             (feature-value (get-subunits-feature unit (get-configuration (visualization-configuration cxn-inventory) :selected-hierarchy)))
+                             +no-bindings+)
         for subunit = (structure-unit structure subunit-name)
         collect subunit
         append (all-subunits subunit structure)))
 
-(defun all-subunits-until-specified (unit other-units structure &optional (cxn-inventory *fcg-constructions*))
+(defun all-subunits-until-specified (unit forbidden-units structure &optional (cxn-inventory *fcg-constructions*))
+  "Returns the unit itself and all of its subunits, except for those that are not in, or subunits of, forbidden-units."
  (let ((last-skipped nil))
   (loop for subunit in (all-subunits unit structure)
-        do (format t "this is one subunit: ~S~%" (unit-name subunit))
-        if (find subunit other-units)
+        if (find subunit forbidden-units)
         do (setq last-skipped t)
-        if (and (or (not last-skipped) (eq (feature-value (unit-feature subunit 'head)) (unit-name unit))) (not (find subunit other-units)))
+        if (and
+            (or (not last-skipped) (eq (unit-name (get-direct-superunit subunit structure cxn-inventory)) (unit-name unit)))
+            (not (find subunit forbidden-units)))
         collect subunit
         and do (setq last-skipped nil))))
+
+(defun get-direct-superunit (unit structure &optional (cxn-inventory *fcg-constructions*))
+  "For given 'unit', returns corresponding direct super-unit, i.e. the unit whose subunits include 'unit'."
+  (find-if #'(lambda (potential-unit)
+               (find (unit-name unit)
+                     (feature-value
+                      (get-subunits-feature potential-unit
+                                            (get-configuration (visualization-configuration cxn-inventory) :selected-hierarchy)))))
+           structure))
 
 (export '(get-parent-unit))
 
