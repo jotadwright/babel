@@ -523,46 +523,6 @@ element for which the sought value satisfies the test"
 ;; (sublist-position '(c d) '(a b c d))
 ;; ==> 2
 
-;; ############################################################################
-;; list creation utilities:
-;; ----------------------------------------------------------------------------
-
-(export '(full-list
-          zeros-list
-          ones-list
-          nil-list
-          randint))
-
-(defun _full-list (&key (dimensions nil) fill-value)
-  "Returns a list in the given dimensions, filled with fill-value.
-   fill-value needs to be a lambda, since it is evaluated every time.
-   This is useful when generating random numbers."
-  (if (null dimensions)
-    (funcall fill-value)
-    (loop as i below (first dimensions)
-          collect (_full-list :dimensions (rest dimensions) :fill-value fill-value))))
-
-(defun full-list (&key (dimensions nil) (fill-value nil))
-  "Returns a list in given dimensions, filled with fill-value."
-  (_full-list :dimensions dimensions :fill-value (lambda () fill-value)))
-
-(defun zeros-list (&key (dimensions nil))
-  "Returns a list in given dimensions, filled with 0."
-  (full-list :dimensions dimensions :fill-value 0))
-
-(defun ones-list (&key (dimensions nil))
-  "Returns a list in given dimensions, filled with 1."
-  (full-list :dimensions dimensions :fill-value 1))
-
-(defun nil-list (&key (dimensions nil))
-  "Returns a list in given dimensions, filled with nil."
-  (full-list :dimensions dimensions :fill-value nil))
-
-(defun randint (&key (start 0) (end (1+ start)) (dimensions nil))
-  "Returns a list in given dimensions, filled with random integers in [start, end["
-  (_full-list :dimensions dimensions :fill-value (lambda () (+ start (random (- end start))))))
-
-
    
 ;; ############################################################################
 ;; list randomize utilities:
@@ -978,16 +938,11 @@ element for which the sought value satisfies the test"
 ;; boolean utilities:
 ;; ----------------------------------------------------------------------------
 
-(export '(always always-list))
+(export '(always))
 
 (defun always (&rest elements)
   "Returns true if all elements evaluate to true."
   (loop for element in elements
-        always element))
-
-(defun always-list (sequence)
-  "Returns true if all elements of a sequence evaluate to true"
-  (loop for element in sequence
         always element))
 
 ;; ############################################################################

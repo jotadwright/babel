@@ -16,7 +16,8 @@
           euclidean
           iota
           log-transform-vector
-          sum-list-of-vectors))
+          sum-list-of-vectors
+          random-from-range))
 
 (declaim (inline sum))
 (defun sum (values)
@@ -207,18 +208,22 @@ coefficient equal to r**2."
   (* pi (/ deg 180.0)))
 
 (defun euclidean (a b)
-  "Compute Euclidean distance between a and b"
+  "Compute Euclidean distance between lists a and b"
   (let ((diff (mapcar #'- a b)))
     (float (sqrt (reduce #'+ (mapcar #'* diff diff))))))
 
 (defun iota (max &key (min 0) (step 1))
-  (loop for n from min below max by step
-        collect n))
+  "Generate a list of numbers from min
+   (default 0) to max by step (default 1)"
+  (loop for n from min below max by step collect n))
 
 (defun log-transform-vector (vector)
   "Take the log of all elements in the vector. Cannot contain zeros!"
-  (mapcar #'log vector)
-  )
+  (mapcar #'log vector))
+
+(defun random-from-range (start end)
+  "Generate a random integer/float in the range [start,end]"
+  (+ start (random (+ 1 (- end start)))))
 
 ;;;
 ;;; stuff not used
