@@ -15,6 +15,7 @@
   (:documentation "Analyze the scene using opencv"))
 
 (defmethod nao-analyze-scene ((nao nao) filename)
+  (sleep 1.0)
   (nao-send-http nao (make-json 'vision :data `((action . "analyze")
                                                 (filename . ,filename)))))
 
