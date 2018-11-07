@@ -79,7 +79,7 @@
     (append sentence-structure
             (list
              (cons
-              :frame-similiarity
+              :frame-similarity
               frame-similarity)
              (cons
               :slot-similarity
@@ -90,17 +90,22 @@
    over a set of sentences."
   (reduce (lambda (a v) (mapcar #'+ a v)) (mapcar (lambda (v) (cdr (assoc :slot-similarity v))) sentences) :initial-value (list 0 0)))
 
+(defun total-correct-sentences (sentences)
+  "Calculates the total number of sentences that were parsed correctly over a given set of sentences."
+  (length
+   (remove-if-not (lambda (slot-sim) (equal (first slot-sim) (second slot-sim))) sentences :key (lambda (sent) (cdr (assoc :slot-similarity sent))))))
+
 (defun evaluate-grammar-output-for-evoking-elem (evoking-elems)
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
    Writes resulting output, annotations and correctness into json-file.
-   Returns the total number of frame-slots and the number of correct slot-fillers."
+   Returns the total number of frame-slots and the number of correct slot-fillers as well as the number of correctly parsed sentences."
   (let ((print-result (mapcar #'evaluate-sentence
                               (mapcar (lambda (s) (filter-frames (lambda (s) (find (cdr (assoc :frame-evoking-element s)) evoking-elems :test #'string=)) s))
                                       (load-parsings-with-annotations
                                        (babel-pathname :directory '(:up "corpora" "Guardian") :name "frame-extractor-output" :type "json")
                                        (babel-pathname :directory '(:up "corpora" "Guardian") :name "100-causation-frame-annotations" :type "json"))))))
     (spit-json (babel-pathname :directory '(:up "corpora" "Guardian") :name "frame-extractor-output-with-annotations" :type "json") print-result)
-    (total-slot-similarity print-result)))
+    (values (total-slot-similarity print-result) (total-correct-sentences print-result))))
 
 (defmacro spit-json (file-name output-list)
   "Encodes given list into json and writes resulting json-objects into file of given name."
