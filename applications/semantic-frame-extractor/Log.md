@@ -17,6 +17,9 @@ For grammar engineering and general evaluation purposes, the annotations are div
 
 ## Incremental evaluation results for sentences with "cause"
 
+#### 2018-11-07
+Cleaning up annotations (i.e. downcasing, removing punctuation) before measuring the similarity results in ~88 correct slot fillers and 19 correctly parsed sentences.
+
 #### 2018-10-29
 The adapted <span style="font-variant:small-caps;">X-caused-by-Y-cxn</span> now restricts the dependency-features of the "caused"-unit. Consequently, the sentence "It deleted references to studies showing that global warming is caused by manmade emissions" works without interference, while four other sentences now need other cxns to fill their frame slots. The change results in ~77 correct slot fillers and 12 correct sentences.
 
