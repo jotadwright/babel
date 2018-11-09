@@ -267,7 +267,7 @@
                         agent)
   "Parse the utterance received through speech recognition."
   (let* ((prev-process-input (input process))
-         (utterance (first (find-data prev-process-input 'utterance)))
+         (utterance (find-data prev-process-input 'utterance))
          (applied-cxn (find-cxn-by-form utterance agent :highest-score)))
     (if applied-cxn
       (notify parse-succeeded applied-cxn)
@@ -338,7 +338,7 @@
                      when (= (length this-utterance) 0)
                      do (speak agent "I did not understand. Could you repeat please?")
                      finally
-                     do (push this-utterance utterance))))
+                     do (setf utterance this-utterance))))
     (:text (loop while (null utterance)
                  for input-utterance = (list (prompt))
                  if (not (= (length input-utterance) 1))
@@ -482,7 +482,7 @@
     ;; only apply hearer-learning when parsing failed
     (if (not topic-id)
       (let ((observed-topic-cat (hearer-conceptualise-or-create agent process))
-            (utterance (first (find-data prev-process-input 'utterance)))
+            (utterance (find-data prev-process-input 'utterance))
             new-lex-cxn)
         (setf new-lex-cxn (add-lex-cxn agent utterance observed-topic-cat :score 0.5))
         (notify hearer-learning-finished new-lex-cxn)

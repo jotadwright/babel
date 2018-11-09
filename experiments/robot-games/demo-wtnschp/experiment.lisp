@@ -9,7 +9,7 @@
 ;; Robot stuff
 (define-configuration-default-value :robot-ip "192.168.1.2")
 (define-configuration-default-value :robot-port "7850")
-(define-configuration-default-value :dutch-vocabulary '("groen" "roze" "geel" "rood" "blauw" "grijs"))
+(define-configuration-default-value :dutch-vocabulary '("green" "yellow" "blue"))
 (define-configuration-default-value :input-form :speech) ; :speech or :text
 
 ;; Interacting agents modes
