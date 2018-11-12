@@ -242,6 +242,8 @@
 
 (define-event new-word-repair-triggered (utterance string))
 
+(defvar *used-dutch-nonsense-words* nil)
+
 (defmethod repair ((repair new-word-repair)
                    (problem production-problem)
                    (object process-result)
@@ -251,7 +253,15 @@
   (declare (ignorable trigger))
   (let* ((agent (owner (task (process object))))
          (meaning (first (find-data (process object) 'topic-cat)))
-         (form (make-new-word)))
+         (form (case (get-configuration agent :input-lang)
+                 (:en (make-new-word))
+                 (:nl (loop with chosen-word = nil
+                            while (null chosen-word)
+                            for maybe-word = (random-elt (get-configuration agent :dutch-nonsense))
+                            unless (member maybe-word *used-dutch-nonsense-words*)
+                            do (progn (push maybe-word *used-dutch-nonsense-words*)
+                                 (setf chosen-word maybe-word))
+                            finally (return chosen-word))))))
     (add-lex-cxn agent form meaning)
     (notify new-word-repair-triggered form)
     (restart-object object nil)

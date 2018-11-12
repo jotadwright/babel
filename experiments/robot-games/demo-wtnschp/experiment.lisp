@@ -11,6 +11,15 @@
 (define-configuration-default-value :robot-port "7850")
 (define-configuration-default-value :robot-vocabulary '((:en "green" "yellow" "blue" "red" "grey" "black" "pink")
                                                         (:nl "groen" "geel" "blauw" "rood" "grijs" "zwart" "roze")))
+(define-configuration-default-value :dutch-nonsense '("tozo" "baga" "lose" "huma" "tado"
+                                                      "sela" "muga" "basa" "zabi" "peza"
+                                                      "futa" "tili" "rabi" "faru" "moxa"
+                                                      "foda" "pawa" "gugo" "liru" "mago"
+                                                      "toso" "levi" "dada" "subi" "pira"
+                                                      "pulu" "zala" "neto" "paru" "pulu"
+                                                      "rika" "raso" "puwa" "savi" "vono"
+                                                      "tawa" "gogi" "nipi" "niki" "sero"
+                                                      "zago"))
 (define-configuration-default-value :input-form :text) ; :speech or :text
 (define-configuration-default-value :input-lang :nl) 
 
@@ -39,7 +48,11 @@
   "Initialize the experiment"
   ;; set the population to a single robot
   (setf (population experiment)
-        (list (make-embodied-agent experiment))))
+        (list (make-embodied-agent experiment)))
+  (setf *used-dutch-nonsense-words* nil)
+  (case (get-configuration experiment :input-lang)
+    (:en (speaker (first (population experiment)) "Do you want to play a language game?"))
+    (:nl (speak (first (population experiment)) "Wil je een taalspelletje spelen?" :speed 75))))
 
 (defmethod destroy ((experiment demo-experiment))
   "Some cleanup when manually running an experiment"
