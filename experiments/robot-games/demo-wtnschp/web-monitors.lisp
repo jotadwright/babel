@@ -56,8 +56,8 @@
     (let* ((all-words (loop for cxn in (constructions (grammar agent))
                             collect (attr-val cxn :form) into forms
                             finally (remove nil (remove-duplicates forms :test #'string=))))
-           (all-categories (loop for color-categories = (find-data (ontology agent) 'color-categories)
-                                 collect (mapcar #'id color-categories) into meanings
+           (all-categories (loop for color-category in (find-data (ontology agent) 'color-categories)
+                                 collect (id color-category) into meanings
                                  finally (remove nil (remove-duplicates meanings))))
            (all-links (loop for cxn in (constructions (grammar agent))
                             for form = (attr-val cxn :form)

@@ -25,6 +25,6 @@
     (setf (communicated-successfully agent) success)
     (setf (communicated-successfully interaction) success)))
 
-(defmethod interact :after ((experiment demo-experiment) interaction &key)
-  "Do some things after every interaction"
-  nil)
+;(defmethod interact :after ((experiment demo-experiment) interaction &key)
+;  "Do some things after every interaction"
+;  nil)

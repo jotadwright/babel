@@ -9,11 +9,13 @@
 ;; Robot stuff
 (define-configuration-default-value :robot-ip "192.168.1.2")
 (define-configuration-default-value :robot-port "7850")
-(define-configuration-default-value :dutch-vocabulary '("green" "yellow" "blue"))
-(define-configuration-default-value :input-form :speech) ; :speech or :text
+(define-configuration-default-value :robot-vocabulary '((:en "green" "yellow" "blue" "red" "grey" "black" "pink")
+                                                        (:nl "groen" "geel" "blauw" "rood" "grijs" "zwart" "roze")))
+(define-configuration-default-value :input-form :text) ; :speech or :text
+(define-configuration-default-value :input-lang :nl) 
 
 ;; Interacting agents modes
-(define-configuration-default-value :determine-interacting-agents-mode :robot-hearer-often) ; :robot-speaker-often
+(define-configuration-default-value :determine-interacting-agents-mode :random-role-for-single-agent) ; :robot-speaker-often
 (define-configuration-default-value :robot-hearer-prob 0.7)
 (define-configuration-default-value :robot-speaker-prob 0.7)
 (define-configuration-default-value :context-size 3)

@@ -26,18 +26,18 @@
 (defvar *exp* (make-instance 'demo-experiment))
 (setf *exp* (make-instance 'demo-experiment))
 
-;; input as :text or :speech
-;; (set-configuration *exp* :input-form :text)
-;; (set-configuration *exp* :input-form :speech)
-
-(run-interaction *exp*)
-
-(run-series *exp* 10)
+(set-configuration *exp* :input-form :text)
+(set-configuration *exp* :input-form :speech)
 
 (set-configuration *exp* :determine-interacting-agents-mode :robot-speaker-often)
 (set-configuration *exp* :determine-interacting-agents-mode :always-hearer)
+(set-configuration *exp* :determine-interacting-agents-mode :always-speaker)
 (set-configuration *exp* :determine-interacting-agents-mode :robot-hearer-often)
 (set-configuration *exp* :determine-interacting-agents-mode :random-role-for-single-agent)
+
+(run-interaction *exp*)
+
+(run-series *exp* 5)
 
 (destroy *exp*)
 

@@ -55,9 +55,13 @@
 
 (defun point (robot left-or-right)
   "Raise left or right arm."
-  #+nao (if (> left-or-right 0.0)
-          (nao-raise-arm robot :left)
-          (nao-raise-arm robot :right)))
+  #+nao (cond
+         ((< left-or-right 0.0)
+          (nao-raise-arm robot :left))
+         ((> left-or-right 0.0)
+          (nao-raise-arm robot :right))
+         ((= left-or-right 0.0)
+          (nao-raise-arm robot :both))))
 
 ;; These methods are hacked together
 (defun point-and-speak (robot left-or-right speech)

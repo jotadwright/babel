@@ -13,8 +13,14 @@
   "Dummy process for restart situations. Use this to make the
    robot say whether it is speaker or hearer."
   (declare (ignorable process task agent process-label))
-  (speak agent (format nil "I am the ~a"
-                       (discourse-role agent)))
+  (case (get-configuration agent :input-lang)
+    (:en (speak agent (format nil "I am the ~a"
+                              (discourse-role agent))))
+    (:nl (speak agent (format nil "Ik ben de ~a"
+                              (case (discourse-role agent)
+                                (speaker "spreker")
+                                (hearer "luisteraar")))
+                :speed 75)))
   (make-process-result 1 nil :process process))
 
 ;; -----------------
@@ -71,7 +77,9 @@
                                                         (cons 'required-size context-size))
                                                 :process process))
       (unless (notify-learning process-result :trigger 'detection)
-        (speak agent (format nil "I detected ~a objects" context-size))
+        (case (get-configuration agent :input-lang)
+          (:en (speak agent (format nil "I detected ~a objects" context-size)))
+          (:nl (speak agent (format nil "Ik zie ~a objecten" context-size) :speed 75)))
         (when img-path
           (notify observe-scene-finished img-path scene))
         process-result))))
@@ -91,7 +99,9 @@
          (scene (find-data prev-process-input 'scene))
          (all-ids (mapcar #'id (entities scene)))
          (topic-id (random-elt all-ids)))
-    (speak agent "I chose the topic.")
+    (case (get-configuration agent :input-lang)
+      (:en (speak agent "I chose the topic."))
+      (:nl (speak agent "Ik heb een onderwerp gekozen" :speed 75)))
     (notify choose-topic-finished topic-id)
     (make-process-result 1 (list (cons 'topic-id topic-id))
                          :process process)))
@@ -106,6 +116,16 @@
                       (distance object cat))
                     categories)
     (cons category (abs distance))))
+
+(defun discriminatingp (topic-cat others-cat)
+  (let ((topic-category (first topic-cat))
+        (topic-distance (rest topic-cat))
+        (success t))
+    (loop for (cat . dist) in others-cat
+          when (and (eql cat topic-category)
+                    (< dist topic-distance))
+          do (progn (setf success nil) (return)))
+    success))
 
 (defclass conceptualisation-problem (problem)
   ()
@@ -128,9 +148,11 @@
   "Diagnose if categorisation succeeded and is discriminating"
   (declare (ignorable trigger))
   (let ((topic-cat (find-data process-result 'topic-cat))
+        (others-cat (find-data process-result 'others-cat))
         (problem (make-instance 'conceptualisation-problem)))
     (when topic-cat
-      (setf problem nil))
+      (when (discriminatingp topic-cat others-cat)
+        (setf problem nil)))
     problem))
 
 (define-event new-category-repair-triggered (new-category category))
@@ -173,12 +195,17 @@
                      (find-data prev-process-input 'observed-topic-id)))
          (scene (find-data prev-process-input 'scene))
          (topic (find-entity-by-id scene topic-id))
+         (others (remove topic (entities scene)))
          (color-categories (find-data (ontology agent) 'color-categories))
          topic-cat
+         others-cat
          process-result)
     (when color-categories
-      (setf topic-cat (categorise topic color-categories)))
-    (setf process-result (make-process-result 1 (list (cons 'topic-cat topic-cat))
+      (setf topic-cat (categorise topic color-categories))
+      (setf others-cat (loop for obj in others
+                             collect (categorise obj color-categories))))
+    (setf process-result (make-process-result 1 (list (cons 'topic-cat topic-cat)
+                                                      (cons 'others-cat others-cat))
                                               :process process))
     (unless (notify-learning process-result :trigger 'conceptualisation)
       (notify conceptualise-finished topic-cat)
@@ -249,7 +276,9 @@
                                                     (cons 'utterance utterance))
                                             :process process))
   (unless (notify-learning process-result :trigger 'production)
-    (speak agent (format nil "I call the topic ~a" utterance))
+    (case (get-configuration agent :input-lang)
+      (:en (speak agent (format nil "I call the topic ~a" utterance)))
+      (:nl (speak agent (format nil "Ik noem het onderwerp ~a" utterance) :speed 75)))
     (notify produce-finished utterance applied-cxn)
     process-result)))
 
@@ -273,7 +302,9 @@
       (notify parse-succeeded applied-cxn)
       (notify parse-failed))
     (unless applied-cxn
-      (speak agent (format nil "I do not know the word ~a" utterance)))
+      (case (get-configuration agent :input-lang)
+        (:en (speak agent (format nil "I do not know the word ~a" utterance)))
+        (:nl (speak agent (format nil "Ik ken het woord ~a niet" utterance) :speed 75))))
     (make-process-result 1 (list (cons 'applied-cxn applied-cxn))
                          :process process)))
 
@@ -289,6 +320,14 @@
 
 (define-event interpret-finished (topic-id symbol))
 
+(defun robot-point-to-topic (agent topic scene)
+  (let* ((sorted-on-x-axis (sort (entities scene) #'< :key #'xpos))
+         (topic-position (position topic sorted-on-x-axis)))
+    (case topic-position
+      (0 (point agent -1))
+      (1 (point agent 0.0))
+      (2 (point agent 1)))))
+
 (defmethod run-process (process
                         (process-label (eql 'interpret))
                         task
@@ -303,6 +342,7 @@
                              :key #'id))
              (scene (find-data prev-process-input 'scene)))
          (setf topic (interpret (entities scene) category))
+         (robot-point-to-topic agent topic scene)
          (notify interpret-finished (id topic))))
     (make-process-result 1 (list (cons 'topic-id (when topic (id topic))))
                          :process process)))
@@ -322,32 +362,38 @@
                         task
                         agent)
   "Get an utterance from the human using speech processing"
-  (let* ((dutch (get-configuration agent :dutch-vocabulary))
+  (let* ((vocab (rest (assoc (get-configuration agent :input-lang)
+                       (get-configuration agent :robot-vocabulary))))
          (input-form (get-configuration agent :input-form))
          (words (mapcar (lambda (cxn)
                           (attr-val cxn :form))
                         (constructions (grammar agent))))
-         (vocab (remove-duplicates (append dutch words) :test #'string=))
          utterance)
-    (speak agent "Choose a word for the topic")
-  (case input-form
-    (:speech (when (head-touch-middle agent)
-               (loop with this-utterance = ""
-                     while (= (length this-utterance) 0)
-                     do (setf this-utterance (first (recognise-words agent vocab)))
-                     when (= (length this-utterance) 0)
-                     do (speak agent "I did not understand. Could you repeat please?")
-                     finally
-                     do (setf utterance this-utterance))))
-    (:text (loop while (null utterance)
-                 for input-utterance = (list (prompt))
-                 if (not (= (length input-utterance) 1))
-                 do (capi:popup-confirmer nil "Please enter one word")
-                 else
-                 do (setf utterance (first input-utterance)))))
-  (notify speech-input-finished utterance)
-  (make-process-result 1 (list (cons 'utterance utterance))
-                       :process process)))
+    (setf vocab
+          (remove-duplicates (append vocab words) :test #'string=))
+    (case (get-configuration agent :input-lang)
+      (:en (speak agent "Choose a word for the topic"))
+      (:nl (speak agent "Kies een woord voor het onderwerp" :speed 75)))
+    (case input-form
+      (:speech (when (head-touch-middle agent)
+                 (loop with this-utterance = ""
+                       while (= (length this-utterance) 0)
+                       do (setf this-utterance (first (recognise-words agent vocab)))
+                       when (= (length this-utterance) 0)
+                       do (case (get-configuration agent :input-lang)
+                            (:en (speak agent "I did not understand. Could you repeat please?"))
+                            (:nl (speak agent "Dat heb ik niet begrepen. Kan je dat herhalen alsjeblief?" :speed 75)))
+                       finally
+                       do (setf utterance this-utterance))))
+      (:text (loop while (null utterance)
+                   for input-utterance = (list (prompt))
+                   if (not (= (length input-utterance) 1))
+                   do (capi:popup-confirmer nil "Please enter one word")
+                   else
+                   do (setf utterance (first input-utterance)))))
+    (notify speech-input-finished utterance)
+    (make-process-result 1 (list (cons 'utterance utterance))
+                         :process process)))
 
 ;; ----------------
 ;; + Visual Input +
@@ -364,20 +410,23 @@
   (let* ((prev-process-input (input process))
          (utterance (find-data prev-process-input 'utterance))
          observedp observed-topic)
-  (speak agent "Please show me the object you would call")
-  (speak agent (format nil "~a" utterance) :speed 75)
-  (loop while (null observedp)
-        when (head-touch-middle agent)
-        do (multiple-value-bind (data img) (observe-scene agent :open nil)
-             (declare (ignorable img))
-             (let ((object-set (json->object-set data)))
-               (when (= (length (entities object-set)) 1)
-                 (setf observedp t)
-                 (setf observed-topic (first (entities object-set))))
-               (unless (= (length (entities object-set)) 1)
-                 (speak agent (format nil "Sorry, I detected ~a objects." (length (entities object-set))))))))
-  (make-process-result 1 (list (cons 'observed-topic observed-topic))
-                       :process process)))
+    (case (get-configuration agent :input-lang)
+      (:en (speak agent (format nil "Please show me the object you would call ~a" utterance)))
+      (:nl (speak agent (format nil "Toon mij het monster dat jij ~a zou noemen" utterance) :speed 75)))
+    (loop while (null observedp)
+          when (head-touch-middle agent)
+          do (multiple-value-bind (data img) (observe-scene agent :open nil)
+               (declare (ignorable img))
+               (let ((object-set (json->object-set data)))
+                 (when (= (length (entities object-set)) 1)
+                   (setf observedp t)
+                   (setf observed-topic (first (entities object-set))))
+                 (unless (= (length (entities object-set)) 1)
+                   (case (get-configuration agent :input-lang)
+                     (:en (speak agent (format nil "Sorry, I detected ~a objects." (length (entities object-set)))))
+                     (:nl (speak agent (format nil "Sorry, ik zie ~a objecten" (length (entities object-set))) :speed 75)))))))
+    (make-process-result 1 (list (cons 'observed-topic observed-topic))
+                         :process process)))
 
 ;; ----------------------
 ;; + Match Visual Input +
@@ -419,11 +468,19 @@
     (setf success (eql topic-id observed-topic-id))
     (if (speaker? agent)
       (if success
-        (speak agent "You are correct!")
-        (speak agent "You are wrong!"))
+        (case (get-configuration agent :input-lang)
+          (:en (speak agent "You are correct!"))
+          (:nl (speak agent "Proficiat! Je hebt het juist." :speed 75)))
+        (case (get-configuration agent :input-lang)
+          (:en (speak agent "You are wrong!"))
+          (:nl (speak agent "Jammer! Je hebt het fout." :speed 75))))
       (if success
-        (speak agent "I am correct!")
-        (speak agent "I am learning!")))
+        (case (get-configuration agent :input-lang)
+          (:en (speak agent "I am correct!"))
+          (:nl (speak agent "Ik heb het juist!" :speed 75)))
+        (case (get-configuration agent :input-lang)
+          (:en (speak agent "I am learning!"))
+          (:nl (speak agent "Dankje! Ik ben aan het leren" :speed 75)))))
     (make-process-result 1 (list (cons 'communicated-successfully success))
                          :process process)))
 
@@ -433,16 +490,6 @@
 
 (define-event hearer-conceptualise-finished (topic-cat category))
 (define-event hearer-create-finished (topic-cat category))
-
-(defun discriminating? (topic-cat others-cat)
-  (let ((topic-category (first topic-cat))
-        (topic-distance (rest topic-cat))
-        (success t))
-    (loop for (cat . dist) in others-cat
-          when (and (eql cat topic-category)
-                    (< dist topic-distance))
-          do (progn (setf success nil) (return)))
-    success))
 
 (defun hearer-conceptualise-or-create (agent process)
   (let* ((prev-process-input (input process))
@@ -455,7 +502,7 @@
     (if color-categories
       (let ((topic-cat/dist (categorise observed-topic color-categories))
             (others-cat/dist (mapcar (lambda (obj) (categorise obj color-categories)) scene-w/o-topic)))
-        (if (discriminating? topic-cat/dist others-cat/dist)
+        (if (discriminatingp topic-cat/dist others-cat/dist)
           (progn
             (notify hearer-conceptualise-finished (first topic-cat/dist))
             (first topic-cat/dist))
