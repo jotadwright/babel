@@ -121,7 +121,11 @@
           (values
            total-slot-similarity
            total-correct-sentences)))
-  
+      
+  ;;  (values (total-slot-similarity print-result)
+  ;;          (list (total-correct-sentences print-result)
+  ;;                (length print-result)))))
+
 (defun spit-json (path-name output-list)
   "Encodes given alist into json and writes resulting json-objects into file of given name."
   (with-open-file (out path-name
