@@ -14,8 +14,7 @@
                :cl-mop)
   :version "3.2.0"
   :author "Katrien Beuls"
-  :description "A hybrid English grammar with frames"
-  :long-description "New version of the BENG for Odycceus project, includes PIE testing and hybrids"
+  :description "A tool for extracting semantic frames from text."
   :serial t
   :components ((:file "package")
                (:file "utilities")
