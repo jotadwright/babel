@@ -27,7 +27,7 @@
 
 (defun clean-slot-filler (frame-elem)
   "Cleans up the slot filler of given frame element by downcasing and replacing punctuation."
-  (downcase (cl-ppcre:regex-replace-all "'" (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "[,|\.|\"]" (cdr frame-elem) "") " ") " '")))
+  (downcase (cl-ppcre:regex-replace-all "'" (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "[,|\.|\"|:]" (cdr frame-elem) "") " ") " '")))
 
 (defun frame-similarity (this-frame other-frame)
   "Returns similarity between given frames via string matching."
@@ -108,7 +108,7 @@
     (values (total-slot-similarity print-result) (total-correct-sentences print-result))))
 
 (defmacro spit-json (file-name output-list)
-  "Encodes given list into json and writes resulting json-objects into file of given name."
+  "Encodes given nested a-lists into json and writes resulting json-objects into file of given name."
   `(with-open-file (out ,file-name
                        :direction :output
                        :if-exists :supersede
