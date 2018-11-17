@@ -91,9 +91,10 @@
   (reduce (lambda (a v) (mapcar #'+ a v)) (mapcar (lambda (v) (cdr (assoc :slot-similarity v))) sentences) :initial-value (list 0 0)))
 
 (defun total-correct-sentences (sentences)
-  "Calculates the total number of sentences that were parsed correctly over a given set of sentences."
-  (length
-   (remove-if-not (lambda (slot-sim) (equal (first slot-sim) (second slot-sim))) sentences :key (lambda (sent) (cdr (assoc :slot-similarity sent))))))
+  "Calculates the total number of sentences and the number of correct ones over a given set of sentences."
+  (list (length
+         (remove-if-not (lambda (slot-sim) (equal (first slot-sim) (second slot-sim))) sentences :key (lambda (sent) (cdr (assoc :slot-similarity sent)))))
+        (length sentences)))
 
 (defun evaluate-grammar-output-for-evoking-elem (evoking-elems)
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
@@ -117,7 +118,7 @@
             (total-correct-sentences print-result))))
 
 (defun spit-json (path-name output-list)
-  "Encodes given list into json and writes resulting json-objects into file of given name."
+  "Encodes given alist into json and writes resulting json-objects into file of given name."
   (with-open-file (out path-name
                        :direction :output
                        :if-exists :supersede
