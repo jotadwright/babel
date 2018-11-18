@@ -1,5 +1,3 @@
-(defpackage :amr-parser
+(defpackage :amr
   (:use :cl)
-  ;(:import-from )
-  ;(:export )
-  )
+  (:export :penman->object :object->predicates :predicates->object :object->penman :penman->predicates :predicates->penman))
