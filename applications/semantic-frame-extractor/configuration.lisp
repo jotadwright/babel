@@ -2,7 +2,7 @@
 
 (defun load-grammar ()
   (load (babel-pathname :directory '("applications" "semantic-frame-extractor")
-                        :name "grammar"
+                        :name "causation-grammar"
                         :type "lisp")))
 
 (defun load-frames ()

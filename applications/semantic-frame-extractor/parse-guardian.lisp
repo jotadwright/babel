@@ -16,7 +16,7 @@
 (defun log-parsing-output-into-json-file (frame-evoking-elem-list)
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
    Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
-  (let* ((sentence-objs (get-sentences-from-json (babel-pathname :directory '(:up "corpora" "Guardian") :name "100-causation-frame-annotations" :type "json")))
+  (let* ((sentence-objs (get-sentences-from-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "100-causation-frame-annotations" :type "json")))
          (sentences (loop for sent in sentence-objs
                           when (intersection
                                 (mapcar #'cdr (mapcar (lambda (x) (assoc :frame-evoking-element x)) (cdr (assoc :frame-elements sent))))
