@@ -120,37 +120,68 @@
              :cxn-set unhashed
              :description "Example sentence: X is caused by Y")
 
+
+(def-fcg-cxn causative-to-cxn
+             ((?vp-unit
+               (syn-cat (voice active)
+                        (phrase-type vp))
+               (footprints (arg-structure)))
+              <-
+              (?subject-unit
+               (referent ?y)
+               --
+               (dependency (edge nsubj))
+               (head ?vp-unit))
+              (?vp-unit
+               --
+               (sem-cat (frame causation))
+               (referent ?ev)
+               (sem-valence (actor ?y)
+                            (theme ?x))
+               (syn-cat (lex-class verb))
+               (syn-valence (subject ?subject-unit))
+               (footprints (not arg-structure)))
+              (?effect-unit
+               (referent ?x)
+                --
+               (dependency (pos-tag vb)
+                           (edge ccomp))
+               (head ?vp-unit)))
+             :disable-automatic-footprints t
+             :cxn-set unhashed
+             :description "Example sentence: X causes Y to Z")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Frame specific constructions for linking frame slots to units
 ;;-----------------------------------------------------------------
 
-(def-fcg-cxn meta-causation=cause-cxn
-             ((?vp
-               (footprints (frame-cause)))
-              (?cause
-               (footprints (frame-cause)))
-              <-
-              (?vp
-               --
-               (referent ?ev)
-               (meaning ((slot cause ?frame ?x)))
-               (syn-cat (phrase-type vp))
-               (footprints (arg-structure)))
-              (?to
-               --
-               (head ?vp)
-               (dependency (pos-tag in))
-               (dependents (?cause))
-               )
-              (?cause
-               (referent ?x)
-               --
-               (footprints (not frame-cause))
-               (head ?to)
-               (dependency (pos-tag nn))))
-             :disable-automatic-footprints t
-             :cxn-set unhashed
-             )
+;; too lenient
+;(def-fcg-cxn meta-causation=cause-cxn
+;             ((?vp
+;               (footprints (frame-cause)))
+;              (?cause
+;               (footprints (frame-cause)))
+;              <-
+;              (?vp
+;               --
+;               (referent ?ev)
+;               (meaning ((slot cause ?frame ?x)))
+;               (syn-cat (phrase-type vp))
+;               (footprints (arg-structure)))
+;              (?to
+;               --
+;               (head ?vp)
+;               (dependency (pos-tag in))
+;               (dependents (?cause))
+;               )
+;              (?cause
+;               (referent ?x)
+;               --
+;               (footprints (not frame-cause))
+;               (head ?to)
+;               (dependency (pos-tag nn))))
+;             :disable-automatic-footprints t
+;             :cxn-set unhashed)
 
 (def-fcg-cxn X-caused-by-Y
              (

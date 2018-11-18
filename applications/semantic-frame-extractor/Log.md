@@ -17,6 +17,12 @@ For grammar engineering and general evaluation purposes, the annotations are div
 
 ## Incremental evaluation results for sentences with "cause"
 
+#### 2018-11-18
+Uncommenting the too lenient <span style="font-variant:small-caps;">meta-causation=cause-cxn</span> and introducing the <span style="font-variant:small-caps;">causative-to-cxn</span>, which covers structures such as "X causes Y to Z", results in two more correct slot fillers and 23 correct sentences.
+
+#### 2018-11-16
+A minor improvement of the slot-filler clean-up leads to 21 out of 36 correctly parsed sentences.
+
 #### 2018-11-07
 Cleaning up annotations (i.e. downcasing, removing punctuation) before measuring the similarity results in ~88 correct slot fillers and 19 correctly parsed sentences.
 
