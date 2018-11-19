@@ -9,8 +9,11 @@
 (defmethod interact :before ((experiment demo-experiment) interaction &key)
   "Reset the agent, set the context-size and nr-of-topics and
    generate a scene before every interaction"
-  (let ((agent (first (interacting-agents interaction)))
-    (reset agent))))
+  (let ((agent (first (interacting-agents interaction))))
+    (reset agent)
+    ;(when (find-data (ontology agent) 'color-categories)
+    ;  (display-category-set (get-data (ontology agent) 'color-categories)))
+    ))
 
 (defmethod interact ((experiment demo-experiment) interaction &key)
   "Run a single interaction"

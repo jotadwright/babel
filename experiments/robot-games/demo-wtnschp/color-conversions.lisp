@@ -75,6 +75,57 @@
 		(* z-_r z_r)))))))
 
 ;; ---------------
+;; + XYZ <-> LUV +
+;; ---------------
+
+;; based on http://www.brucelindbloom.com/index.html?Eqn_Luv_to_XYZ.html
+(defun luv->xyz (luv reference-white)
+  "Converts values from CIEL*u*v* colour space to XYZ [0,1]."
+  (let ((l (first luv))
+	(u (second luv))
+	(v (third luv))
+	(x_r (first reference-white))
+	(y_r (second reference-white))
+	(z_r (third reference-white))
+	(epsilon (/ 216 24389))
+	(kappa (/ 24389 27)))
+    (let* ((y (if (> l (* kappa epsilon))
+		  (expt (/ (+ l 16) 116) 3)
+		  (/ l kappa)))
+	   (den_0 (+ x_r (* 15 y_r) (* 3 z_r)))
+	   (u_0 (/ (* 4 x_r) den_0))
+	   (v_0 (/ (* 9 y_r) den_0)))
+      (let ((a (/ (- (/ (* 52 l) (+ u (* 13 l u_0))) 1) 3))
+	    (b (- (* 5 y)))
+	    (c (- (/ 1 3)))
+	    (d (* y (- (/ (* 39 l) (+ v (* 13 l v_0))) 5))))
+	(let ((x (/ (- d b) (- a c))))
+	  (list x y (+ (* x a) b)))))))
+
+;; based on http://www.brucelindbloom.com/Eqn_XYZ_to_Luv.html
+(defun xyz->luv (xyz reference-white)
+  "Converts values from XYZ [0,1] to CIEL*u*v* colour space."
+  (let ((x (first xyz))
+	(y (second xyz))
+	(z (third xyz))
+	(x_r (first reference-white))
+	(y_r (second reference-white))
+	(z_r (third reference-white))
+	(epsilon (/ 216 24389))
+	(kappa (/ 24389 27)))
+    (let ((den (+ x (* 15 y) (* 3 z)))
+	  (den_r (+ x_r (* 15 y_r) (* 3 z_r)))
+	  (y-_r (/ y y_r)))
+      (let ((uq (/ (* 4 x) den))
+	    (vq (/ (* 9 y) den))
+	    (uq_r (/ (* 4 x_r) den_r))
+	    (vq_r (/ (* 9 y_r) den_r))
+	    (l (if (> y-_r epsilon)
+		   (- (* 116 (expt y-_r (/ 1 3))) 16)
+		   (* kappa y-_r))))
+	(list l (* 13 l (- uq uq_r)) (* 13 l (- vq vq_r)))))))
+
+;; ---------------
 ;; + RGB <-> XYZ +
 ;; ---------------
 
@@ -122,7 +173,7 @@
     (mapcar (lambda (x) (* x 255.0)) scaled-rgb)))
 
 ;; -----------------
-;; + LAB -> RGBHEX +
+;; + _ -> RGBHEX +
 ;; -----------------
 
 (defun rgb->rgbhex (rgb)
@@ -131,6 +182,9 @@
 	  (mapcar #'(lambda (x)
 		      (round (* 255 x)))
 		  rgb)))
+
+(defun normalize-rgb (rgb)
+  (mapcar #'(lambda (x) (float (/ x 255.0))) rgb))
 
 (defun lab->rgbhex (lab reference-white)
   "Convert from CIEL*a*b* coordinates to rgbhex"

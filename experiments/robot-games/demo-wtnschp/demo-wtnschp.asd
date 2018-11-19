@@ -21,6 +21,7 @@
   :components ((:file "package")
                (:file "utils")
                (:file "color-conversions")
+               (:file "colours")
                (:file "world")
                (:file "categories")
                (:file "lexicon")

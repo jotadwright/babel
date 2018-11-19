@@ -152,3 +152,29 @@
     (loop for cxn in meaning-competitors
           do (dec-score cxn agent :delta li-dec))
     (append form-competitors meaning-competitors)))
+
+;; + Lex Item +
+;; used for web interface
+
+(defclass color-lex-item (entity)
+  ((word :accessor word :initarg :word :initform "" :type string
+         :documentation "the word of the color-lex")
+   (category :accessor category :initarg :category :initform nil
+             :documentation "the category of the color-lex")
+   (score :accessor score :initarg :score :initform 0 :type number
+          :documentation "The score of the lex item"))
+  (:documentation "An item in the color-lex, used for web interface"))
+
+(defclass color-lex (entity)
+  ((entities :accessor entities :initarg :entities :initform nil :type list)))
+
+(defun grammar->mappings (agent)
+  (let ((lex-items
+         (loop for cxn in (constructions (grammar agent))
+               collect (make-instance 'color-lex-item
+                                      :word (attr-val cxn :form) :score (attr-val cxn :score)
+                                      :category (find (attr-val cxn :meaning)
+                                                      (find-data (ontology agent) 'color-categories)
+                                                      :key #'id)))))
+    (make-instance 'color-lex
+                   :entities lex-items)))

@@ -55,10 +55,15 @@
                    &key trigger)
   "Repair by prompting the user of a problem and asking for a new picture"
   (declare (ignorable trigger))
-  (break (format nil "Could not detect ~a objects. Please rearange the scene."
-                 (required-context-size problem)))
-  (restart-object object nil)
-  (make-instance 'fix))
+  (let ((agent (owner (task (process object)))))
+    (case (get-configuration agent :input-lang)
+      (:en (speak agent (format nil "I could not detect ~a objects"
+                                (required-context-size problem))))
+      (:nl (speak agent (format nil "Ik kan geen ~a objecten vinden"
+                                (required-context-size problem)))))
+    (head-touch-middle agent)
+    (restart-object object nil)
+    (make-instance 'fix)))
 
 (define-event observe-scene-finished (img-path string) (scene object-set))
 
@@ -592,6 +597,7 @@
         (notify lexicon-alignment (list applied-cxn) punished-cxns)
         (notify category-alignment (list applied-category)))
       (unless (= (attr-val applied-cxn :added) i-number)
+        ; don't do something when the speaker just invented
         (notify alignment-started)
         (dec-score applied-cxn agent :delta li-dec)
         (notify lexicon-alignment nil (list applied-cxn))))))
