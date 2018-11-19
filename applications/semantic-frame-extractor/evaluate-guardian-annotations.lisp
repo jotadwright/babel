@@ -27,7 +27,7 @@
 
 (defun clean-slot-filler (frame-elem)
   "Cleans up the slot filler of given frame element by downcasing and replacing punctuation."
-  (downcase (cl-ppcre:regex-replace-all "'" (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "[,|\.|\"]" (cdr frame-elem) "") " ") " '")))
+  (downcase (cl-ppcre:regex-replace-all "  " (cl-ppcre:regex-replace-all "[0-9]|'" (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "[,|\.|\"|:]" (cdr frame-elem) "") " ") #'(lambda (match &rest registers) (format nil " ~A" match)) :simple-calls t) " ")))
 
 (defun frame-similarity (this-frame other-frame)
   "Returns similarity between given frames via string matching."
@@ -91,30 +91,41 @@
   (reduce (lambda (a v) (mapcar #'+ a v)) (mapcar (lambda (v) (cdr (assoc :slot-similarity v))) sentences) :initial-value (list 0 0)))
 
 (defun total-correct-sentences (sentences)
-  "Calculates the total number of sentences that were parsed correctly over a given set of sentences."
-  (length
-   (remove-if-not (lambda (slot-sim) (equal (first slot-sim) (second slot-sim))) sentences :key (lambda (sent) (cdr (assoc :slot-similarity sent))))))
+  "Calculates the total number of sentences and the number of correct ones over a given set of sentences."
+  (list (length
+         (remove-if-not (lambda (slot-sim) (equal (first slot-sim) (second slot-sim))) sentences :key (lambda (sent) (cdr (assoc :slot-similarity sent)))))
+        (length sentences)))
 
 (defun evaluate-grammar-output-for-evoking-elem (evoking-elems)
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
    Writes resulting output, annotations and correctness into json-file.
    Returns the total number of frame-slots and the number of correct slot-fillers as well as the number of correctly parsed sentences."
-  (let ((print-result (mapcar #'evaluate-sentence
-                              (mapcar (lambda (s) (filter-frames (lambda (s) (find (cdr (assoc :frame-evoking-element s)) evoking-elems :test #'string=)) s))
-                                      (load-parsings-with-annotations
-                                       (babel-pathname :directory '(:up "corpora" "Guardian") :name "frame-extractor-output" :type "json")
-                                       (babel-pathname :directory '(:up "corpora" "Guardian") :name "100-causation-frame-annotations" :type "json"))))))
-    (spit-json (babel-pathname :directory '(:up "corpora" "Guardian") :name "frame-extractor-output-with-annotations" :type "json") print-result)
-    (values (total-slot-similarity print-result) (total-correct-sentences print-result))))
+  
+  (let* ((path-to-parse-results (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output" :type "json"))
+         (path-to-annotations (babel-pathname :directory '(:up "Corpora" "Guardian") :name "100-causation-frame-annotations" :type "json"))
+         (parsing-with-annotations (load-parsings-with-annotations path-to-parse-results path-to-annotations))
+         (filtered-parsings (mapcar (lambda (s)
+                                      (filter-frames (lambda (s)
+                                                       (find (cdr (assoc :frame-evoking-element s)) evoking-elems :test #'string=))
+                                                     s))
+                                    parsing-with-annotations))
+         (print-result (mapcar #'evaluate-sentence filtered-parsings)))
+    
+    (spit-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output-with-annotations" :type "json")
+               print-result)
+    
+    (values (total-slot-similarity print-result)
+            (total-correct-sentences print-result))))
 
-(defmacro spit-json (file-name output-list)
-  "Encodes given list into json and writes resulting json-objects into file of given name."
-  `(with-open-file (out ,file-name
+(defun spit-json (path-name output-list)
+  "Encodes given alist into json and writes resulting json-objects into file of given name."
+  (with-open-file (out path-name
                        :direction :output
                        :if-exists :supersede
                        :if-does-not-exist :create)
-     (loop for elem in ,output-list
-           do (write-line (json:encode-json-alist-to-string elem) out))))
+     (write-line (encode-json-alist-to-string `((:evaluations ,@output-list)))
+                 out)))
+
 
 
 ;(evaluate-grammar-output-for-evoking-elem '("cause"))

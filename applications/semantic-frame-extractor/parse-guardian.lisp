@@ -16,7 +16,7 @@
 (defun log-parsing-output-into-json-file (frame-evoking-elem-list)
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
    Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
-  (let* ((sentence-objs (get-sentences-from-json (babel-pathname :directory '(:up "corpora" "Guardian") :name "100-causation-frame-annotations" :type "json")))
+  (let* ((sentence-objs (get-sentences-from-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "100-causation-frame-annotations" :type "json")))
          (sentences (loop for sent in sentence-objs
                           when (intersection
                                 (mapcar #'cdr (mapcar (lambda (x) (assoc :frame-evoking-element x)) (cdr (assoc :frame-elements sent))))
@@ -43,16 +43,26 @@
 ;(activate-monitor trace-fcg)
 ;(log-parsing-output-into-json-file '("cause"))
 
-;(pie-comprehend "It deleted references to studies showing that global warming is caused by manmade emissions.") ;only working randomly since lenient XcausedbyY might interfere, working with stricter XcausedbyY
 
-;(pie-comprehend-log "This includes the extinction of the dinosaurs 65m years ago , thought to have been caused by the impact of a large asteroid on the Yucatan peninsula and beneath the Gulf of Mexico.") ;NOT working with stricter XcausedbyY
 
-;(pie-comprehend "Global warming is very likely to have been caused by human activity, the most authoritative global scientific body studying climate change said in a report today") ;NOT working with stricter XcausedbyY
+;(pie-comprehend "Because the phenomenon causes less rain to fall in many areas of the tropics, forests become especially vulnerable to man-made fires, which accelerate carbon dioxide buildup in the atmosphere and reduce air quality.") ;working with new causative-to-cxn
 
-;(pie-comprehend "In 2001, the body - which brings together 2,500 scientists from more than 30 countries - said global warming was only \"likely\", or 66% probable, to have been caused by humans.") ;NOT working with stricter XcausedbyY
+;(pie-comprehend "The new study is led by Professor Stephan Lewandowsky, chair of cognitive psychology at the University of Bristol, and follows his previous study which caused the metaphorical head of the climate science denial blogosphere to explode.") ;working with new causative-to-cxn
 
-;(pie-comprehend "As so many other polls have shown consistently, the majority of Australians believe climate change is happening and is caused by human activity.") ;NOT working with stricter XcausedbyY
 
-; --> need for other/adapted cxns covering these sentences
+
+;(pie-comprehend "This includes the extinction of the dinosaurs 65m years ago , thought to have been caused by the impact of a large asteroid on the Yucatan peninsula and beneath the Gulf of Mexico.") ;NOT working with stricter XcausedbyY
+
+;(pie-comprehend "Global warming is very likely to have been caused by human activity, the most authoritative global scientific body studying climate change said in a report today.") ;NOT working with stricter XcausedbyY
+
+;(pie-comprehend "In 2001, the body - which brings together 2,500 scientists from more than 30 countries - said global warming was only likely, or 66% probable, to have been caused by humans.") ;NOT working with stricter XcausedbyY
+
+
+
+;(pie-comprehend "As so many other polls have shown consistently, the majority of Australians believe climate change is happening and is caused by human activity.") ;NOT working, ellipsis not resoluted by spacy...
+
+;(pie-comprehend "On top of the upheaval caused by the drive to boost productivity, mountain biodiversity must now withstand climate change.") ;NOT working, spacy does not recognise whole NP...
+
+;(pie-comprehend "Back in 1984, journalists reported from Ethiopia about a famine of biblical proportions caused by widespread drought.") ;NOT working but maybe should be like this?
 
 

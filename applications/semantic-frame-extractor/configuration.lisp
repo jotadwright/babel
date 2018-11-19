@@ -2,11 +2,12 @@
 
 (defun load-grammar ()
   (load (babel-pathname :directory '("applications" "semantic-frame-extractor")
-                        :name "grammar"
+                        :name "causation-grammar"
                         :type "lisp")))
 
 (defun load-frames ()
-  (dolist (filename (cl-fad:list-directory (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" "causation" ))  )) ;"causation"
+  (dolist (filename (cl-fad:list-directory
+                     (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" "causation" ))))
     (ignore-errors (load filename))))
 
 

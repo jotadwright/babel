@@ -24,11 +24,12 @@
 		     (valid-component-list-p v1 bs))
 		 (unify v1 v2 bsl :cxn-inventory cxn-inventory)))
 
-(defun remove-cons-cell (dotted-list)
+#|(defun remove-cons-cell (dotted-list)
   "Turns '(a b . c) into '(a b)"
   (if (symbolp (rest dotted-list))
     (list (first dotted-list))
     (cons (first dotted-list) (remove-cons-cell (rest dotted-list)))))
+|#
 
 (defun unify-features (f1 f2 bsl &key cxn-inventory)
   (cond ((eq 'TAG (unit-name f1))
