@@ -17,8 +17,8 @@
   (let ((agent (first (interacting-agents interaction))))
     (add-element `((h2) "The agent is the "
                    ((b) ,(discourse-role agent))))
-    ;(when (find-data (ontology agent) 'color-categories)
-    ;  (add-element (draw-3D-colour-set (mapcar #'prototype (find-data (ontology agent) 'color-categories)))))
+    (when (find-data (ontology agent) 'color-categories)
+      (add-element (draw-3D-colour-set (mapcar #'prototype (find-data (ontology agent) 'color-categories)))))
     (when (constructions (grammar agent))
       (let ((mappings (grammar->mappings agent)))
         (add-element '((h2) "The agent's lexicon:"))

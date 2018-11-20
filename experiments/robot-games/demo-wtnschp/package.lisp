@@ -15,5 +15,6 @@
         :fcg
         #+:hunchentoot-available-on-this-platform :web-interface
         :nao-interface
-        :robot-interface)
+        :robot-interface
+        :printer-interface)
   (:documentation "Demo with the Nao robot for Science Festival"))
