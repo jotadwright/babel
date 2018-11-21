@@ -9,8 +9,8 @@
                :chip2 '((0 1 0) ((a 0.7) (b 0.4)))
                :chip3 '((0 0 1) ((c 0.7) (d 0.4)))
                :chip4 '((1 1 0) ((e 1) (f 0.4)))
-               :chip5 '((0 1 1) ((g 0.7) (h 0.4)))
-               :chip6 '((1 0 1) ((i 0.7) (j 0.4)))
+              ; :chip5 '((0 1 1) ((g 0.7) (h 0.4)))
+              ; :chip6 '((1 0 1) ((i 0.7) (j 0.4)))
                )
 |#
 
@@ -118,10 +118,10 @@
 		\\begin{center}
 		\\begin{tikzpicture}
 			\\draw  [rounded corners,fill=color#2]  rectangle(2.5,2.5);
-			\\draw [color=black,font=\\ttfamily\\scriptsize,align=left] (1.25,1.25) node {
-			\\large R:\\pgfmathparse{int(round(255 * #3))}\\pgfmathprintnumber{\\pgfmathresult} \\\\\\\\
-			\\large G:\\pgfmathparse{int(round(255 * #4))}\\pgfmathprintnumber{\\pgfmathresult}\\\\\\\\
-			\\large B:\\pgfmathparse{int(round(255 * #5))}\\pgfmathprintnumber{\\pgfmathresult}}; 
+			\\draw [color=white,font=\\bf\\scriptsize,align=left] (1.25,1.25) node {
+			\\normalsize R: \\pgfmathparse{int(round(255 * #3))}\\pgfmathprintnumber[assume math mode=true]{\\pgfmathresult} \\\\\\\\
+			\\normalsize G: \\pgfmathparse{int(round(255 * #4))}\\pgfmathprintnumber[assume math mode=true]{\\pgfmathresult}\\\\\\\\
+			\\normalsize B: \\pgfmathparse{int(round(255 * #5))}\\pgfmathprintnumber[assume math mode=true]{\\pgfmathresult}}; 
 		\\end{tikzpicture}
 		\\end{center}
 	}
@@ -317,10 +317,10 @@
 		\\begin{center}
 		\\begin{tikzpicture}
 			\\draw  [rounded corners,fill=color#2]  rectangle(1.5,1.5);
-			\\draw [color=white,font=\\ttfamily\\scriptsize,align=left] (0.75,0.75) node {
-			R:\\pgfmathparse{int(round(255 * #3))}\\pgfmathprintnumber{\\pgfmathresult} \\\\
-			G:\\pgfmathparse{int(round(255 * #4))}\\pgfmathprintnumber{\\pgfmathresult}\\\\
-			B:\\pgfmathparse{int(round(255 * #5))}\\pgfmathprintnumber{\\pgfmathresult}}; 
+			\\draw [color=white,font=\\bf\\scriptsize,align=left] (0.75,0.75) node {
+			\\footnotesize R: \\pgfmathparse{int(round(255 * #3))}\\pgfmathprintnumber[assume math mode=true]{\\pgfmathresult} \\\\
+			\\footnotesize G: \\pgfmathparse{int(round(255 * #4))}\\pgfmathprintnumber[assume math mode=true]{\\pgfmathresult}\\\\
+			\\footnotesize B: \\pgfmathparse{int(round(255 * #5))}\\pgfmathprintnumber[assume math mode=true]{\\pgfmathresult}}; 
 		\\end{tikzpicture}
 		\\end{center}
 	}
