@@ -149,7 +149,8 @@
                (head ?vp-unit)))
              :disable-automatic-footprints t
              :cxn-set unhashed
-             :description "Example sentence: X causes Y to Z")
+             :description "Example sentence: X causes [Y to Zverb]")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Frame specific constructions for linking frame slots to units

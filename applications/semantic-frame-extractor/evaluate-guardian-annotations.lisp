@@ -100,7 +100,6 @@
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
    Writes resulting output, annotations and correctness into json-file.
    Returns the total number of frame-slots and the number of correct slot-fillers as well as the number of correctly parsed sentences."
-  
   (let* ((path-to-parse-results (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output" :type "json"))
          (path-to-annotations (babel-pathname :directory '(:up "Corpora" "Guardian") :name "100-causation-frame-annotations" :type "json"))
          (parsing-with-annotations (load-parsings-with-annotations path-to-parse-results path-to-annotations))
@@ -109,14 +108,20 @@
                                                        (find (cdr (assoc :frame-evoking-element s)) evoking-elems :test #'string=))
                                                      s))
                                     parsing-with-annotations))
-         (print-result (mapcar #'evaluate-sentence filtered-parsings)))
-    
+         (print-result (mapcar #'evaluate-sentence filtered-parsings))
+         (total-correct-sentences (total-correct-sentences print-result))
+         (total-slot-similarity (total-slot-similarity print-result)))
     (spit-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output-with-annotations" :type "json")
                print-result)
-    
-    (values (total-slot-similarity print-result)
-            (total-correct-sentences print-result))))
-
+    (loop for parsing in print-result
+          and result = (cdr (assoc :slot-similarity parsing))
+          when (not (equal (first result) (second result)))
+          do (format t "~s: ~s~%~%" (cdr (assoc :sentence parsing)) result)
+          finally (format t "~s ~s~%~%~%" total-slot-similarity total-correct-sentences))
+          (values
+           total-slot-similarity
+           total-correct-sentences)))
+  
 (defun spit-json (path-name output-list)
   "Encodes given alist into json and writes resulting json-objects into file of given name."
   (with-open-file (out path-name
