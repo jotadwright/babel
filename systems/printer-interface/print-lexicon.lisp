@@ -3,13 +3,16 @@
 
 (in-package :utils)
 
-;(print-lexicon "Canon_SELPHY_CP1300"
-;               :chip1 '((.8 .67 .34) ((bolima 0.7) (wabadu 0.1)))
-;               :chip2 '((0 1 0) ((a 0.7) (b 0.4)))
-;               :chip3 '((0 0 1) ((c 0.7) (d 0.4)))
-;               :chip4 '((1 1 0) ((e 1) (f 0.4)))
-;               :chip5 '((0 1 1) ((g 0.7) (h 0.4)))
-;               :chip6 '((1 0 1) ((i 0.7) (j 0.4))))
+#|
+(print-lexicon "Canon_SELPHY_CP1300"
+               :chip1 '((.8 .67 .34) ((bolima 0.7) (wabadu 0.1)))
+               :chip2 '((0 1 0) ((a 0.7) (b 0.4)))
+               :chip3 '((0 0 1) ((c 0.7) (d 0.4)))
+               :chip4 '((1 1 0) ((e 1) (f 0.4)))
+              ; :chip5 '((0 1 1) ((g 0.7) (h 0.4)))
+              ; :chip6 '((1 0 1) ((i 0.7) (j 0.4)))
+               )
+|#
 
 (defun print-lexicon (printer &key chip1 chip2 chip3 chip4 chip5 chip6)
        (if chip5
@@ -82,13 +85,14 @@
 % Document Class
 \\documentclass[final]{article}
 % Paper size, orientation and margins
-\\usepackage[a6paper, landscape, top=0.5cm,left=0.5cm,right=0.5cm,bottom=0.3cm]{geometry}
+\\usepackage[a6paper, landscape, top=0.5cm,left=0.5cm,right=0.5cm,bottom=0.1cm]{geometry}
 % No page numbers
 \\pagestyle{empty}
 % No indentation of paragraphs
 \\usepackage{parskip}
 % Font
-\\usepackage{tgheros}
+\\usepackage[sfdefault]{roboto} 
+\\usepackage[T1]{fontenc}
 % Drawing
 \\usepackage{tikz}
 %url
@@ -113,11 +117,11 @@
 		\\definecolor{color#2}{rgb}{#3,#4,#5}
 		\\begin{center}
 		\\begin{tikzpicture}
-			\\draw  [rounded corners,fill=color#2]  rectangle(1.5,1.5);
-			\\draw [color=black,font=\\ttfamily\\scriptsize,align=left] (0.75,0.75) node {
-			R:\\pgfmathparse{int(round(256 * #3))}\\pgfmathprintnumber{\\pgfmathresult} \\\\
-			G:\\pgfmathparse{int(round(256 * #4))}\\pgfmathprintnumber{\\pgfmathresult}\\\\
-			B:\\pgfmathparse{int(round(256 * #5))}\\pgfmathprintnumber{\\pgfmathresult}}; 
+			\\draw  [rounded corners,fill=color#2]  rectangle(2.5,2.5);
+			\\draw [color=black,font=\\ttfamily\\scriptsize,align=left] (1.25,1.25) node {
+			\\large R:\\pgfmathparse{int(round(255 * #3))}\\pgfmathprintnumber{\\pgfmathresult} \\\\\\\\
+			\\large G:\\pgfmathparse{int(round(255 * #4))}\\pgfmathprintnumber{\\pgfmathresult}\\\\\\\\
+			\\large B:\\pgfmathparse{int(round(255 * #5))}\\pgfmathprintnumber{\\pgfmathresult}}; 
 		\\end{tikzpicture}
 		\\end{center}
 	}
@@ -125,7 +129,7 @@
 \\newcommand{\\colorword[4]}{
 	\\pgfmathparse{1-#4} 
 	\\definecolor{textcolor#2}{rgb}{\\pgfmathresult,\\pgfmathresult,\\pgfmathresult}
-	\\begin{center}\\textbf{ \\textcolor{textcolor#2}{#3}}\\end{center}}
+	\\begin{center}\\large\\textbf{ \\textcolor{textcolor#2}{#3}}\\end{center}}
 
 % Variable INPUT
 
@@ -153,15 +157,16 @@
 \\vspace{.4em}
 
 % MAIN
+% MAIN
 \\parbox{\\linewidth}{
 \\centering 
-\\begin{tabular}{|p{.47\\textwidth}p{.47\\textwidth}|}
+\\begin{tabular}{|p{.1em} p{.17\\textwidth} p{.18\\textwidth} p{.1\\textwidth} p{.17\\textwidth} p{.15\\textwidth}p{.1em}|}
 \\hline
-\\vspace{3pt} ~a \\vspace{.5em} ~a  ~a & 
-\\vspace{3pt} ~a  \\vspace{.5em } ~a ~a \\\\
+& \\vspace{3pt}  ~a & \\vspace{1cm} ~a  ~a & & 
+ \\vspace{3pt} ~a  &  \\vspace{1cm} ~a ~a &\\\\
 %\\hline
-\\vspace{-5pt} ~a \\vspace{.5em} ~a  ~a &
-\\vspace{-5pt} ~a \\vspace{.5em} ~a ~a \\\\
+& \\vspace{-5pt} ~a & \\vspace{.75cm} ~a  ~a & &
+ \\vspace{-5pt} ~a & \\vspace{.75cm} ~a ~a &\\\\
 \\hline
 \\end{tabular}}
 
@@ -170,7 +175,7 @@
 % FOOTER
 \\mbox{\\includegraphics[height=32pt]{~a}}
 \\hfill
-\\raisebox{13pt}{\\pbox{4.4cm}{\\centering \\textbf{ \\url{https://know.ai.vub.ac.be}}}}
+\\raisebox{13pt}{\\pbox{4.6cm}{\\centering \\textbf{ \\url{https://know.ai.vub.ac.be}}}}
 \\hfill
 \\mbox{\\includegraphics[height=32pt]{~a}}
 
@@ -191,7 +196,7 @@
               (if chip2 "\\secondcolorchip" "") (if chip2-word1 "\\secondcolorfirstword" "") (if chip2-word2 "\\secondcolorsecondword" "")
               (if chip3 "\\thirdcolorchip" "") (if chip3-word1 "\\thirdcolorfirstword" "") (if chip3-word2 "\\thirdcolorsecondword" "")
               (if chip4 "\\fourthcolorchip" "") (if chip4-word1 "\\fourthcolorfirstword" "") (if chip4-word2 "\\fourthcolorsecondword" "")
-              (babel-pathname :directory '(".tmp" "logos") :name "vub_logo_cmyk")
+              (babel-pathname :directory '(".tmp" "logos") :name "logo-lab")
               (babel-pathname :directory '(".tmp" "logos") :name "wf-logo")))
     (let ((output-directory  (string-append "-output-directory=" (babel-pathname :directory '(".tmp")))))
       (exec-and-return  "pdflatex" "-synctex=1" "-interaction=nonstopmode" output-directory path-to-tex))
@@ -200,7 +205,8 @@
                                       :copies 1
                                       :orientation 4
                                       :size "postcard"
-                                      :fit-to-page t)))
+                                      :fit-to-page t)
+    ))
 
 (defun print-lexicon-6-chips (printer &key chip1 chip2 chip3 chip4 chip5 chip6)
   (let* ((name (capi:prompt-for-string "Name: "))
@@ -278,13 +284,14 @@
 % Document Class
 \\documentclass[final]{article}
 % Paper size, orientation and margins
-\\usepackage[a6paper, landscape, top=0.5cm,left=0.5cm,right=0.5cm,bottom=0.3cm]{geometry}
+\\usepackage[a6paper, landscape, top=0.5cm,left=0.5cm,right=0.5cm,bottom=0.1cm]{geometry}
 % No page numbers
 \\pagestyle{empty}
 % No indentation of paragraphs
 \\usepackage{parskip}
 % Font
-\\usepackage{tgheros}
+\\usepackage[sfdefault]{roboto} 
+\\usepackage[T1]{fontenc}
 % Drawing
 \\usepackage{tikz}
 %url
@@ -311,9 +318,9 @@
 		\\begin{tikzpicture}
 			\\draw  [rounded corners,fill=color#2]  rectangle(1.5,1.5);
 			\\draw [color=white,font=\\ttfamily\\scriptsize,align=left] (0.75,0.75) node {
-			R:\\pgfmathparse{int(round(256 * #3))}\\pgfmathprintnumber{\\pgfmathresult} \\\\
-			G:\\pgfmathparse{int(round(256 * #4))}\\pgfmathprintnumber{\\pgfmathresult}\\\\
-			B:\\pgfmathparse{int(round(256 * #5))}\\pgfmathprintnumber{\\pgfmathresult}}; 
+			R:\\pgfmathparse{int(round(255 * #3))}\\pgfmathprintnumber{\\pgfmathresult} \\\\
+			G:\\pgfmathparse{int(round(255 * #4))}\\pgfmathprintnumber{\\pgfmathresult}\\\\
+			B:\\pgfmathparse{int(round(255 * #5))}\\pgfmathprintnumber{\\pgfmathresult}}; 
 		\\end{tikzpicture}
 		\\end{center}
 	}
@@ -321,7 +328,7 @@
 \\newcommand{\\colorword[4]}{
 	\\pgfmathparse{1-#4} 
 	\\definecolor{textcolor#2}{rgb}{\\pgfmathresult,\\pgfmathresult,\\pgfmathresult}
-	\\begin{center}\\textbf{ \\textcolor{textcolor#2}{#3}}\\end{center}}
+	\\begin{center}\\large\\textbf{ \\textcolor{textcolor#2}{#3}}\\end{center}}
 
 % Variable INPUT
 
@@ -369,12 +376,12 @@
 \\hline
 \\end{tabular}}
 
-\\vspace{1em}
+\\vspace{.8em}
 
 % FOOTER
 \\mbox{\\includegraphics[height=32pt]{~a}}
 \\hfill
-\\raisebox{13pt}{\\pbox{4.4cm}{\\centering \\textbf{ \\url{https://know.ai.vub.ac.be}}}}
+\\raisebox{13pt}{\\pbox{4.6cm}{\\centering \\textbf{ \\url{https://know.ai.vub.ac.be}}}}
 \\hfill
 \\mbox{\\includegraphics[height=32pt]{~a}}
 
@@ -401,7 +408,7 @@
               (if chip4 "\\fourthcolorchip" "") (if chip4-word1 "\\fourthcolorfirstword" "") (if chip4-word2 "\\fourthcolorsecondword" "")
               (if chip5 "\\fifthcolorchip" "") (if chip5-word1 "\\fifthcolorfirstword" "") (if chip5-word2 "\\fifthcolorsecondword" "")
               (if chip6 "\\sixthcolorchip" "") (if chip6-word1 "\\sixthcolorfirstword" "") (if chip6-word2 "\\sixthcolorsecondword" "")
-              (babel-pathname :directory '(".tmp" "logos") :name "vub_logo_cmyk")
+              (babel-pathname :directory '(".tmp" "logos") :name "logo-lab")
               (babel-pathname :directory '(".tmp" "logos") :name "wf-logo")))
     (let ((output-directory  (string-append "-output-directory=" (babel-pathname :directory '(".tmp")))))
       (exec-and-return  "pdflatex" "-synctex=1" "-interaction=nonstopmode" output-directory path-to-tex))
