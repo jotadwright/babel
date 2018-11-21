@@ -21,6 +21,7 @@
   :serial t
   :components ((:file "package")
                (:file "utils")
+               (:file "print-lexicon")
                (:file "color-conversions")
                (:file "colours")
                (:file "world")

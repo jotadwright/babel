@@ -2,6 +2,26 @@
 
 (in-package :demo-wtnschp)
 
+(define-monitor record-communicative-success
+                :class 'data-recorder
+                :average-window 1
+                :documentation "records the game outcome of each game (1 or 0).")
+
+(define-monitor display-communicative-success
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-communicative-success))
+                :update-interval 1
+                :caption '("communicative success")
+                :x-label "# Games" 
+                :y1-label "Communicative Success" 
+                :y1-max 1.0 :y1-min 0 
+                :draw-y1-grid t)
+
+(define-event-handler (record-communicative-success interaction-finished)
+                      (record-value monitor
+                                    (if (communicated-successfully interaction) 1 0)))
+
 ;; ---------------------------------------
 ;; + Trace Interactions in Web Interface +
 ;; ---------------------------------------
@@ -30,7 +50,13 @@
   (add-element `((h2) "Interaction "
                  ,(if (communicated-successfully interaction)
                     `((b :style "color:green") "succeeded")
-                    `((b :style "color:red") "failed")))))
+                    `((b :style "color:red") "failed"))))
+  (let ((agent (first (interacting-agents interaction))))
+    (when (constructions (grammar agent))
+      (let ((mappings (grammar->mappings agent)))
+        (add-element '((h2) "The agent's updated lexicon:"))
+        (add-element (make-html mappings :expand-initially t))
+        (add-element '((hr)))))))
 
 (define-event-handler (trace-interaction-in-web-interface observe-scene-finished)
   (let ((source-path (babel-pathname :directory '(".tmp" "nao-img")

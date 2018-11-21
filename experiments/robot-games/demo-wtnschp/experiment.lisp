@@ -45,6 +45,9 @@
   ()
   (:documentation "Experiment class"))
 
+;(activate-monitor record-communicative-success)
+;(activate-monitor display-communicative-success)
+
 (defmethod initialize-instance :after ((experiment demo-experiment) &key)
   "Initialize the experiment"
   ;; set the population to a single robot
@@ -75,9 +78,9 @@
   (let* ((agent (first (population experiment)))
          (chips (grammar->chips agent))
          (args (loop repeat (length chips)
-                     for i from 0
+                     for i from 1
                      for kwarg = (make-kw (string-append "chip" (mkstr i)))
-                     for val = (nth i chips)
+                     for val = (nth (- i 1) chips)
                      append (list kwarg val))))
     (apply #'print-lexicon (get-configuration experiment :printer-name) args)))
 

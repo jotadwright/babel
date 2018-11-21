@@ -1,7 +1,6 @@
-(ql:quickload :utils)
-(ql:quickload :printer-interface)
+;;;; ./print-lexicon.lisp
 
-(in-package :utils)
+(in-package :demo-wtnschp)
 
 #|
 (print-lexicon "Canon_SELPHY_CP1300"

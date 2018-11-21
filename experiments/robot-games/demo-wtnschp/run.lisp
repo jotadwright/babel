@@ -52,6 +52,8 @@
 ;; For setting up the robot
 (setf *robot* (make-robot :ip "192.168.1.2" :server-port "7850"))
 
+(point *robot* 0.0)
+
 (stand *robot*)
 (crouch *robot*)
 (sit *robot*)

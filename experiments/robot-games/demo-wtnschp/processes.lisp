@@ -122,13 +122,22 @@
                     categories)
     (cons category (abs distance))))
 
-(defun discriminatingp (topic-cat others-cat)
+(defun speaker-discriminating-p (topic-cat others-cat)
   (let ((topic-category (first topic-cat))
         (topic-distance (rest topic-cat))
         (success t))
     (loop for (cat . dist) in others-cat
           when (and (eql cat topic-category)
                     (< dist topic-distance))
+          do (progn (setf success nil) (return)))
+    success))
+
+(defun hearer-discriminating-p (topic-cat others-cat)
+  (let ((topic-category (first topic-cat))
+        (topic-distance (rest topic-cat))
+        (success t))
+    (loop for (cat . dist) in others-cat
+          when (eql cat topic-category)
           do (progn (setf success nil) (return)))
     success))
 
@@ -156,7 +165,7 @@
         (others-cat (find-data process-result 'others-cat))
         (problem (make-instance 'conceptualisation-problem)))
     (when topic-cat
-      (when (discriminatingp topic-cat others-cat)
+      (when (speaker-discriminating-p topic-cat others-cat)
         (setf problem nil)))
     problem))
 
@@ -411,7 +420,7 @@
                             (:nl (speak agent "Dat heb ik niet begrepen. Kan je dat herhalen alsjeblief?" :speed 75)))
                        finally
                        do (setf utterance this-utterance))
-                 (prompt-correct-speech-input utterance)))
+                 (setf utterance (prompt-correct-speech-input utterance))))
       (:text (loop while (null utterance)
                    for input-utterance = (list (prompt))
                    if (not (= (length input-utterance) 1))
@@ -509,13 +518,13 @@
     (case topic-position
       (0 (case (get-configuration agent :input-lang)
            (:en (speak agent "I meant the object on the left"))
-           (:nl (speak agent "Ik bedoelde het linkse monster"))))
+           (:nl (speak agent "Ik bedoelde het linkse monster. Volgende keer beter"))))
       (1 (case (get-configuration agent :input-lang)
            (:en (speak agent "I meant the object in the middle"))
-           (:nl (speak agent "Ik bedoelde het middelste monster"))))
+           (:nl (speak agent "Ik bedoelde het middelste monster. Volgende keer beter"))))
       (2 (case (get-configuration agent :input-lang)
            (:en (speak agent "I meant the object on the right"))
-           (:nl (speak agent "Ik bedoelde het rechtse monster")))))))
+           (:nl (speak agent "Ik bedoelde het rechtse monster. Volgende keer beter")))))))
 
 (defmethod run-process (process
                         (process-label (eql 'determine-success))
@@ -566,7 +575,7 @@
     (if color-categories
       (let ((topic-cat/dist (categorise observed-topic color-categories))
             (others-cat/dist (mapcar (lambda (obj) (categorise obj color-categories)) scene-w/o-topic)))
-        (if (discriminatingp topic-cat/dist others-cat/dist)
+        (if (hearer-discriminating-p topic-cat/dist others-cat/dist)
           (progn
             (notify hearer-conceptualise-finished (first topic-cat/dist))
             (first topic-cat/dist))
@@ -686,8 +695,8 @@
                  (rest (remove topic-id (entities scene) :key #'id))
                  (topic-category (categorise topic-obj color-categories))
                  (rest-categories (mapcar (lambda (obj) (categorise obj color-categories)) rest))
-                 (discriminating (discriminatingp topic-category rest-categories))
-                 (utterance (first (find-data (input process) 'utterance))))
+                 (discriminating (hearer-discriminating-p topic-category rest-categories))
+                 (utterance (find-data (input process) 'utterance)))
             (if discriminating
               (let ((cxn (find-cxn-by-form-and-meaning utterance (id (first topic-category)) agent :highest-score)))
                 (if cxn
