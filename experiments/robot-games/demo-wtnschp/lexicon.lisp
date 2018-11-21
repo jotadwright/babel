@@ -157,12 +157,10 @@
 ;; used for web interface
 
 (defclass color-lex-item (entity)
-  ((word :accessor word :initarg :word :initform "" :type string
-         :documentation "the word of the color-lex")
-   (category :accessor category :initarg :category :initform nil
+  ((rgbcolor :accessor rgbcolor :initarg :rgbcolor :initform nil
              :documentation "the category of the color-lex")
-   (score :accessor score :initarg :score :initform 0 :type number
-          :documentation "The score of the lex item"))
+   (words :accessor words :initarg :words :initform nil
+          :documentation "the words of the category with their score"))
   (:documentation "An item in the color-lex, used for web interface"))
 
 (defclass color-lex (entity)
@@ -170,11 +168,14 @@
 
 (defun grammar->mappings (agent)
   (let ((lex-items
-         (loop for cxn in (constructions (grammar agent))
+         (loop for category in (find-data (ontology agent) 'color-categories)
+               for cxns = (find-cxn-by-meaning (id category) agent :all)
+               for color-category-id = (attr-val (first cxns) :meaning)
+               for color-category = (find color-category-id (find-data (ontology agent) 'color-categories) :key #'id)
+               for color = (prototype color-category)
+               for words = (loop for cxn in cxns
+                                 collect (cons (attr-val cxn :form) (attr-val cxn :score)))
                collect (make-instance 'color-lex-item
-                                      :word (attr-val cxn :form) :score (attr-val cxn :score)
-                                      :category (find (attr-val cxn :meaning)
-                                                      (find-data (ontology agent) 'color-categories)
-                                                      :key #'id)))))
-    (make-instance 'color-lex
-                   :entities lex-items)))
+                                      :rgbcolor color
+                                      :words words))))
+    (make-instance 'color-lex :entities lex-items)))

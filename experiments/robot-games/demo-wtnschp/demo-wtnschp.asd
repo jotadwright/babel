@@ -16,7 +16,8 @@
                :fcg
                #+:hunchentoot-available-on-this-platform :web-interface
                :nao-interface
-               :robot-interface)
+               :robot-interface
+               :printer-interface)
   :serial t
   :components ((:file "package")
                (:file "utils")

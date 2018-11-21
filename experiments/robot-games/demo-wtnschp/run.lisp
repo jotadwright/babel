@@ -39,6 +39,8 @@
 
 (run-series *exp* 5)
 
+(print-lexicon *exp*)
+
 (destroy *exp*)
 
 

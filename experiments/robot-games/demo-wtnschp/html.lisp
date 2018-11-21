@@ -66,15 +66,15 @@
              ((div :class "entity-title")
               ((a ,@(make-expand/collapse-link-parameters 
                      element-id t "expand entity")
-                  :name ,(format nil "~a (~,1f)" (word e) (score e)))
-               ,(format nil "~a (~,1f)" (word e) (score e)))))
+                  :name ,(format nil "prototype = (~{~,2f~^, ~})" (rgbcolor e)))
+               ,(format nil "prototype = (~{~,2f~^, ~})" (rgbcolor e)))))
            (lambda ()
              `((div :class "entity-box")
                ((div :class "entity-title")
                 ((a ,@(make-expand/collapse-link-parameters element-id nil 
                                                             "collapse entity")
-                    :name ,(format nil "~a (~a)" (word e) (score e)))
-                 ,(format nil "~a (~a)" (word e) (score e))))
+                    :name ,(format nil "prototype = (~{~,2f~^, ~})" (rgbcolor e)))
+                 ,(format nil "prototype = (~{~,2f~^, ~})" (rgbcolor e))))
                ((table :class "entity" :cellpadding "0" :cellspacing "0") 
                 ((tr)
                  ((td :class "entity-details")
@@ -95,9 +95,10 @@
          ((rect :x "0" :y "0"
                 :width ,(mkstr width)
                 :height ,(mkstr height)
-                :style ,(format nil "fill:rgb(~{~a~^, ~})" (mapcar #'round (prototype (category item)))))))))
-     `(((div :class "entity-detail")
-        ,(format nil "prototype = (~{~,2f~^, ~})" (prototype (category item))))))))
+                :style ,(format nil "fill:rgb(~{~a~^, ~})" (mapcar #'round (rgbcolor item))))))))
+     (loop for word in (words item)
+           append `(((div :class "entity-detail")      
+                     ,(format nil "~a (~,1f)" (car word) (cdr word))))))))
 
 ;; + Lex +
 

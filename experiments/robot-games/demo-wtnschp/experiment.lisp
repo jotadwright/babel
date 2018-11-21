@@ -21,7 +21,8 @@
                                                       "tawa" "gogi" "nipi" "niki" "sero"
                                                       "zago"))
 (define-configuration-default-value :input-form :text) ; :speech or :text
-(define-configuration-default-value :input-lang :nl) 
+(define-configuration-default-value :input-lang :nl)
+(define-configuration-default-value :printer-name "")
 
 ;; Interacting agents modes
 (define-configuration-default-value :determine-interacting-agents-mode :random-role-for-single-agent) ; :robot-speaker-often
@@ -34,7 +35,7 @@
 (define-configuration-default-value :who-aligns :both)
 (define-configuration-default-value :li-inc 0.1)
 (define-configuration-default-value :li-dec 0.1)
-(define-configuration-default-value :alpha 0.3)
+(define-configuration-default-value :alpha 0.5)
 
 ;; --------------
 ;; + Experiment +
@@ -52,13 +53,48 @@
   (setf *used-dutch-nonsense-words* nil)
   (case (get-configuration experiment :input-lang)
     (:en (speaker (first (population experiment)) "Do you want to play a language game?"))
-    (:nl (speak (first (population experiment)) "Wil je een taalspelletje spelen?" :speed 75))))
+    (:nl (speak (first (population experiment)) "Wil je een taalspelletje over kleuren spelen?" :speed 75))))
 
 (defmethod destroy ((experiment demo-experiment))
   "Some cleanup when manually running an experiment"
   ;; stop the connection to the robot
   (loop for agent in (population experiment)
         do (disconnect-robot agent)))
+
+(defun grammar->chips (agent)
+  (loop for category in (find-data (ontology agent) 'color-categories)
+        for cxns = (find-cxn-by-meaning (id category) agent :all)
+        for color-category-id = (attr-val (first cxns) :meaning)
+        for color-category = (find color-category-id (find-data (ontology agent) 'color-categories) :key #'id)
+        for color = (mapcar #'(lambda (x) (float (/ x 255))) (prototype color-category))
+        for words = (loop for cxn in cxns
+                          collect (list (attr-val cxn :form) (attr-val cxn :score)))
+        collect (list color words)))
+
+(defmethod print-lexicon ((experiment demo-experiment))
+  (let* ((agent (first (population experiment)))
+         (colors (find-data (ontology agent) 'color-categories)))
+    (cond
+     ((< (length colors) 4)
+      (error "Learn more words before using the printer interface..."))
+     ((= (length colors) 4)
+      (let ((chips (grammar->chips agent)))
+        (print-lexicon (get-configuration experiment :printer-name)
+                       :chip1 (first chips)
+                       :chip2 (second chips)
+                       :chip3 (third chips)
+                       :chip4 (fourth chips))))
+     ((= (length colors) 6)
+      (let ((chips (grammar->chips agent)))
+        (print-lexicon (get-configuration experiment :printer-name)
+                       :chip1 (first chips)
+                       :chip2 (second chips)
+                       :chip3 (third chips)
+                       :chip4 (fourth chips)
+                       :chip5 (fifth chips)
+                       :chip6 (sixth chips))))
+     (t
+      (error (format nil "Unable to process ~a chips" (length colors)))))))
 
 
 ;;;; Determine Interacting Agents
