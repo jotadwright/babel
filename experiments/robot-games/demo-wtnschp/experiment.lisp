@@ -22,7 +22,7 @@
                                                       "zago"))
 (define-configuration-default-value :input-form :text) ; :speech or :text
 (define-configuration-default-value :input-lang :nl)
-(define-configuration-default-value :printer-name "Canon SELPHY CP1300")
+(define-configuration-default-value :printer-name "Canon_SELPHY_CP1300")
 
 ;; Interacting agents modes
 (define-configuration-default-value :determine-interacting-agents-mode :random-role-for-single-agent) ; :robot-speaker-often
@@ -74,10 +74,10 @@
 (defmethod print-robot-lexicon ((experiment demo-experiment))
   (let* ((agent (first (population experiment)))
          (chips (grammar->chips agent))
-         (args (loop for chip in chips
+         (args (loop repeat (length chips)
                      for i from 0
                      for kwarg = (make-kw (string-append "chip" (mkstr i)))
-                     for val = `(nth ,i chips)
+                     for val = (nth i chips)
                      append (list kwarg val))))
     (apply #'print-lexicon (get-configuration experiment :printer-name) args)))
 
