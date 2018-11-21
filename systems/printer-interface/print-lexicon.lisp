@@ -9,8 +9,8 @@
                :chip2 '((0 1 0) ((a 0.7) (b 0.4)))
                :chip3 '((0 0 1) ((c 0.7) (d 0.4)))
                :chip4 '((1 1 0) ((e 1) (f 0.4)))
-              ; :chip5 '((0 1 1) ((g 0.7) (h 0.4)))
-              ; :chip6 '((1 0 1) ((i 0.7) (j 0.4)))
+               :chip5 '((0 1 1) ((g 0.7) (h 0.4)))
+               :chip6 '((1 0 1) ((i 0.7) (j 0.4)))
                )
 |#
 
@@ -196,8 +196,8 @@
               (if chip2 "\\secondcolorchip" "") (if chip2-word1 "\\secondcolorfirstword" "") (if chip2-word2 "\\secondcolorsecondword" "")
               (if chip3 "\\thirdcolorchip" "") (if chip3-word1 "\\thirdcolorfirstword" "") (if chip3-word2 "\\thirdcolorsecondword" "")
               (if chip4 "\\fourthcolorchip" "") (if chip4-word1 "\\fourthcolorfirstword" "") (if chip4-word2 "\\fourthcolorsecondword" "")
-              (babel-pathname :directory '(".tmp" "logos") :name "logo-lab")
-              (babel-pathname :directory '(".tmp" "logos") :name "wf-logo")))
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-lab")
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "wf-logo")))
     (let ((output-directory  (string-append "-output-directory=" (babel-pathname :directory '(".tmp")))))
       (exec-and-return  "pdflatex" "-synctex=1" "-interaction=nonstopmode" output-directory path-to-tex))
     (printer-interface:print-document path-to-pdf
@@ -408,8 +408,8 @@
               (if chip4 "\\fourthcolorchip" "") (if chip4-word1 "\\fourthcolorfirstword" "") (if chip4-word2 "\\fourthcolorsecondword" "")
               (if chip5 "\\fifthcolorchip" "") (if chip5-word1 "\\fifthcolorfirstword" "") (if chip5-word2 "\\fifthcolorsecondword" "")
               (if chip6 "\\sixthcolorchip" "") (if chip6-word1 "\\sixthcolorfirstword" "") (if chip6-word2 "\\sixthcolorsecondword" "")
-              (babel-pathname :directory '(".tmp" "logos") :name "logo-lab")
-              (babel-pathname :directory '(".tmp" "logos") :name "wf-logo")))
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-lab")
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "wf-logo")))
     (let ((output-directory  (string-append "-output-directory=" (babel-pathname :directory '(".tmp")))))
       (exec-and-return  "pdflatex" "-synctex=1" "-interaction=nonstopmode" output-directory path-to-tex))
     (printer-interface:print-document path-to-pdf
