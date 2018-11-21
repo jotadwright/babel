@@ -39,7 +39,7 @@
 
 (run-series *exp* 5)
 
-(print-lexicon *exp*)
+(print-robot-lexicon *exp*)
 
 (destroy *exp*)
 
@@ -51,15 +51,6 @@
 
 ;; For setting up the robot
 (setf *robot* (make-robot :ip "192.168.1.2" :server-port "7850"))
-
-(setf words '(tozo baga lose huma tado sela muga basa zabi peza
-              futa tili rabi faru moxa foda pawa gugo liru mago
-              toso levi dada subi pira pulu zala neto paru pulu
-              rika raso puwa savi vono tawa gogi nipi niki sero
-              zago))
-(loop for word in words
-      do (speak *robot* (mkstr word) :speed 75))
-(mapcar #'downcase (mapcar #'mkstr words))
 
 (stand *robot*)
 (crouch *robot*)

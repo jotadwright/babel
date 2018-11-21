@@ -22,7 +22,7 @@
                                                       "zago"))
 (define-configuration-default-value :input-form :text) ; :speech or :text
 (define-configuration-default-value :input-lang :nl)
-(define-configuration-default-value :printer-name "")
+(define-configuration-default-value :printer-name "Canon SELPHY CP1300")
 
 ;; Interacting agents modes
 (define-configuration-default-value :determine-interacting-agents-mode :random-role-for-single-agent) ; :robot-speaker-often
@@ -69,32 +69,17 @@
         for color = (mapcar #'(lambda (x) (float (/ x 255))) (prototype color-category))
         for words = (loop for cxn in cxns
                           collect (list (attr-val cxn :form) (attr-val cxn :score)))
-        collect (list color words)))
+        collect (list color (sort words #'> :key #'second))))
 
-(defmethod print-lexicon ((experiment demo-experiment))
+(defmethod print-robot-lexicon ((experiment demo-experiment))
   (let* ((agent (first (population experiment)))
-         (colors (find-data (ontology agent) 'color-categories)))
-    (cond
-     ((< (length colors) 4)
-      (error "Learn more words before using the printer interface..."))
-     ((= (length colors) 4)
-      (let ((chips (grammar->chips agent)))
-        (print-lexicon (get-configuration experiment :printer-name)
-                       :chip1 (first chips)
-                       :chip2 (second chips)
-                       :chip3 (third chips)
-                       :chip4 (fourth chips))))
-     ((= (length colors) 6)
-      (let ((chips (grammar->chips agent)))
-        (print-lexicon (get-configuration experiment :printer-name)
-                       :chip1 (first chips)
-                       :chip2 (second chips)
-                       :chip3 (third chips)
-                       :chip4 (fourth chips)
-                       :chip5 (fifth chips)
-                       :chip6 (sixth chips))))
-     (t
-      (error (format nil "Unable to process ~a chips" (length colors)))))))
+         (chips (grammar->chips agent))
+         (args (loop for chip in chips
+                     for i from 0
+                     for kwarg = (make-kw (string-append "chip" (mkstr i)))
+                     for val = `(nth ,i chips)
+                     append (list kwarg val))))
+    (apply #'print-lexicon (get-configuration experiment :printer-name) args)))
 
 
 ;;;; Determine Interacting Agents
