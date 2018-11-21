@@ -59,7 +59,7 @@
     (case (get-configuration agent :input-lang)
       (:en (speak agent (format nil "I could not detect ~a monsters"
                                 (required-context-size problem))))
-      (:nl (speak agent (format nil "Ik kan geen ~a monsters vinden"
+      (:nl (speak agent (format nil "Oeps! Ik kan geen ~a monsters vinden"
                                 (required-context-size problem)))))
     (head-touch-middle agent)
     (restart-object object nil)
@@ -437,10 +437,13 @@
   (let* ((prev-process-input (input process))
          (utterance (find-data prev-process-input 'utterance))
          observedp observed-topic)
-    (if (find-data prev-process-input 'topic-id)
+    ;; if hearer and interpretation succeeded
+    (if (and (eql (discourse-role agent) 'hearer)
+             (find-data prev-process-input 'topic-id))
       (case (get-configuration agent :input-lang)
         (:en (speak agent (format nil "Am I correct? Please show me the monster you would call ~a" utterance)))
         (:nl (speak agent (format nil "Had ik het juist? Welk monster had jij in gedachten?" utterance) :speed 75)))
+      ;; else; if speaker or unknown word
       (case (get-configuration agent :input-lang)
         (:en (speak agent (format nil "Please show me the monster you would call ~a" utterance)))
         (:nl (speak agent (format nil "Toon mij het monster dat jij ~a zou noemen" utterance) :speed 75))))
@@ -487,7 +490,7 @@
 ;; + Determine success +
 ;; ---------------------
 
-(defvar *speaker-success-messages* '("Profociat! Je hebt het juist"
+(defvar *speaker-success-messages* '("Proficiat! Je hebt het juist"
                                      "Gefeliciteerd! Je hebt het juist"
                                      "Bravo! Goed gedaan"))
 (defvar *speaker-failure-messages* '("Jammer! Je hebt het fout"
@@ -635,18 +638,19 @@
          (applied-category (find (attr-val applied-cxn :meaning)
                                  (get-data (ontology agent) 'color-categories)
                                  :key #'id)))
-    (if success
-      (let ((punished-cxns (dec-competitor-score applied-cxn agent :delta li-dec)))
-        (notify alignment-started)
-        (inc-score applied-cxn :delta li-inc)
-        (shift-category applied-category topic-obj :alpha alpha)
-        (notify lexicon-alignment (list applied-cxn) punished-cxns)
-        (notify category-alignment (list applied-category)))
-      (unless (= (attr-val applied-cxn :added) i-number)
-        ; don't do something when the speaker just invented
-        (notify alignment-started)
-        (dec-score applied-cxn agent :delta li-dec)
-        (notify lexicon-alignment nil (list applied-cxn))))))
+    (unless (= (attr-val applied-cxn :added) i-number)
+      ; don't do something when the speaker just invented
+      (if success
+        (let ((punished-cxns (dec-competitor-score applied-cxn agent :delta li-dec)))
+          (notify alignment-started)
+          (inc-score applied-cxn :delta li-inc)
+          (shift-category applied-category topic-obj :alpha alpha)
+          (notify lexicon-alignment (list applied-cxn) punished-cxns)
+          (notify category-alignment (list applied-category)))
+        (progn
+          (notify alignment-started)
+          (dec-score applied-cxn agent :delta li-dec)
+          (notify lexicon-alignment nil (list applied-cxn)))))))
 
 (define-event lexicon-added (cxn fcg-construction))
 (define-event category-added (cat category))
@@ -663,26 +667,27 @@
          (applied-category (find (attr-val applied-cxn :meaning)
                                  (get-data (ontology agent) 'color-categories)
                                  :key #'id)))
-    (if success
-      (let ((punished-cxns (dec-competitor-score applied-cxn agent :delta li-dec)))
-        (notify alignment-started)
-        (inc-score applied-cxn :delta li-inc)
-        (shift-category applied-category topic-obj :alpha alpha)
-        (notify lexicon-alignment (list applied-cxn) punished-cxns)
-        (notify category-alignment (list applied-category)))
-      (unless (= (attr-val applied-cxn :added) i-number)
-        ; don't do something when the hearer just learned
-        (notify alignment-started)
-        (dec-score applied-cxn agent :delta li-dec)
-        ;; if the hearer did not have success; maybe it should have used a different
-        ;; (existing) category for the utterance OR create a new category and link it
-        ;; to the utterance
-        (let* ((color-categories (find-data (ontology agent) 'color-categories))
-               (rest (remove topic-id (entities scene) :key #'id))
-               (topic-category (categorise topic-obj color-categories))
-               (rest-categories (mapcar (lambda (obj) (categorise obj color-categories)) rest))
-               (discriminating (discriminatingp topic-category rest-categories))
-               (utterance (first (find-data (input process) 'utterance))))
+    (unless (= (attr-val applied-cxn :added) i-number)
+      ; don't do something when the hearer just learned
+      (if success
+        (let ((punished-cxns (dec-competitor-score applied-cxn agent :delta li-dec)))
+          (notify alignment-started)
+          (inc-score applied-cxn :delta li-inc)
+          (shift-category applied-category topic-obj :alpha alpha)
+          (notify lexicon-alignment (list applied-cxn) punished-cxns)
+          (notify category-alignment (list applied-category)))
+        (progn
+          (notify alignment-started)
+          (dec-score applied-cxn agent :delta li-dec)
+          ;; if the hearer did not have success; maybe it should have used a different
+          ;; (existing) category for the utterance OR create a new category and link it
+          ;; to the utterance
+          (let* ((color-categories (find-data (ontology agent) 'color-categories))
+                 (rest (remove topic-id (entities scene) :key #'id))
+                 (topic-category (categorise topic-obj color-categories))
+                 (rest-categories (mapcar (lambda (obj) (categorise obj color-categories)) rest))
+                 (discriminating (discriminatingp topic-category rest-categories))
+                 (utterance (first (find-data (input process) 'utterance))))
             (if discriminating
               (let ((cxn (find-cxn-by-form-and-meaning utterance (id (first topic-category)) agent :highest-score)))
                 (if cxn
@@ -697,7 +702,7 @@
                 (push-data (ontology agent) 'color-categories new-category)
                 (notify lexicon-alignment nil (list applied-cxn))
                 (notify category-added new-category)
-                (notify lexicon-added new-lex-cxn))))))))
+                (notify lexicon-added new-lex-cxn)))))))))
 
       
 (defmethod run-process (process
