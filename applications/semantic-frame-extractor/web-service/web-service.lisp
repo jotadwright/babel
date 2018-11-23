@@ -34,27 +34,66 @@
      (:details . ,(apply #'format nil (simple-condition-format-control condition)
                          (simple-condition-format-arguments condition))))))
 
-(snooze:defroute frame-extractor (:post :application/json (op (eql 'extract-frames)))
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'extract-frames)))
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
                     (snooze:payload-as-string))
                  (error (e)
                    (snooze:http-condition 400 "Malformed JSON (~a)!" e))))
-         (missing-keys (keys-present-p json :utterance))
+         (missing-keys (keys-present-p json :utterance :frames))
          (utterance (rest (assoc :utterance json)))
+         (frames (rest (assoc :frames json)))
          (silent (if (assoc :silent json) (rest (assoc :silent json)) t)))
     (when missing-keys
       (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
     (unless (stringp utterance)
       (snooze:http-condition 400 "Utterance is not a string! Instead, received something of type ~a" (type-of utterance)))
-    (let ((frame-set (pie-comprehend utterance :silent silent)))
+    
+    (load-frames frames)
+    
+    (let ((frame-set (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
+                       (error (e)
+                         (snooze:http-condition 500 "Error in precision language processing module!" e)))))
       (encode-json-alist-to-string
-       `((:frames . ,(loop for frame in (pie::entities frame-set)
+       `((:frame-set . ,(loop for frame in (pie::entities frame-set)
                            collect frame)))))))
 
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'texts-extract-frames)))
+  (let* ((json (handler-case
+                   (cl-json:decode-json-from-string
+                    (snooze:payload-as-string))
+                 (error (e)
+                   (snooze:http-condition 400 "Malformed JSON (~a)!" e))))
+         (missing-keys (keys-present-p json :texts :frames))
+         (texts (rest (assoc :texts json)))
+         (frames (rest (assoc :frames json)))
+         (silent (if (assoc :silent json) (rest (assoc :silent json)) t)))
+    (when missing-keys
+      (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
+    (unless (listp texts)
+      (snooze:http-condition 400 "Texts is not a list! Instead, received something of type ~a" (type-of texts)))
+    
+    (load-frames frames)
+
+    (let ((text-frame-sets (loop for text in texts
+                                 for utterances = (get-penelope-sentence-tokens text)
+                                 collect (loop for utterance in utterances
+                                               for frame-set = (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
+                                                                 (error (e)
+                                                                   (snooze:http-condition 500 "Error in precision language processing module!" e)))
+                                               when frame-set
+                                               collect it))))
+      
+      (encode-json-alist-to-string
+       `((:frame-sets . ,text-frame-sets))))))
+    
+          
+
+;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.", "frames" : ["Causation"]}' http://localhost:9003/semantic-frame-extractor/extract-frames
+;; {"frameSet":[{"id":"causationFrame4","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame8","frameEvokingElement":"cause","cause":"the company","effect":"damage to their own clothes","actor":null,"affected":null},]}
 
 
 
-;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs."}' http://localhost:9003/frame-extractor/extract-frames
+;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that.", "This is a sentence. This causes that."], "frames" : ["Causation"]}' http://localhost:9003/semantic-frame-extractor/texts-extract-frames
+;; {"frameSets":[[[{"id":"causationFrame15","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame30","frameEvokingElement":"cause","cause":"they","effect":"damage to their own clothes","actor":null,"affected":null}],[{"id":"causationFrame16","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]],[[{"id":"causationFrame17","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]]]}
 
-;; {"frames":["{\"id\":\"causationFrame8\",\"utterance\":\"due to climate change\",\"frameVar\":\"?frame7\",\"frameEvokingElement\":\"due to\",\"cause\":\"climate change\",\"effect\":{\"id\":\"changePositionOnAScaleFrame5\",\"utterance\":\"Oxygen levels in oceans have fallen 2 % in 50 years due to climate change\",\"frameVar\":\"?frame25\",\"frameEvokingElement\":\"fall\",\"item\":\"oxygen levels in oceans\",\"difference\":\"2 %\",\"duration\":\"in 50 years\"},\"actor\":null,\"affected\":null}"]}
