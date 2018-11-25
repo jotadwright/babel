@@ -5,10 +5,18 @@
                         :name "causation-grammar"
                         :type "lisp")))
 
-(defun load-frames ()
-  (dolist (filename (cl-fad:list-directory
-                     (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" "causation" ))))
-    (ignore-errors (load filename))))
+(defun load-frames (&optional list-with-frames)
+  (if list-with-frames
+    (dolist (frame-name list-with-frames)
+      (unless (stringp frame-name)
+        (setf frame-name (mkstr frame-name)))
+      (setf frame-name (downcase frame-name))
+      (dolist (filename (cl-fad:list-directory
+                         (babel-pathname :directory `("applications" "semantic-frame-extractor" "lexical-units" ,frame-name))))
+        (ignore-errors (load filename))))
+    (dolist (filename (cl-fad:list-directory
+                       (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" "causation" ))))
+      (ignore-errors (load filename)))))
 
 
 (def-frame cause-to-start-frame
