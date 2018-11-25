@@ -10,16 +10,32 @@
 ;;-----------------------------------------------------------------
 
 
-(def-fcg-cxn active-transitive-actor-theme-cxn
+(def-fcg-cxn partial-active-actor-cxn
              ((?vp
                (syn-cat (phrase-type vp))
-               (footprints (arg-structure)))
+               (footprints (actor-arg-structure)))
               <-
               (?subject
                (referent ?x)
                --
                (dependency (edge nsubj))
                (head ?vp))
+              (?vp
+               --
+               (referent ?ev)
+               (sem-valence (actor ?x))
+               (syn-cat (not (voice passive)))
+               (syn-valence (subject ?subject))
+               (footprints (not actor-arg-structure))))
+             :disable-automatic-footprints t
+             :cxn-set unhashed)
+
+
+(def-fcg-cxn partial-active-transitive-theme-cxn
+             ((?vp
+               (syn-cat (phrase-type vp))
+               (footprints (theme-arg-structure)))
+              <-
               (?object
                (referent ?y)
                --
@@ -33,15 +49,20 @@
                (syn-cat (not (voice passive)))
                (syn-valence (subject ?subject)
                             (object ?object))
-               (footprints (not arg-structure))))
+               (footprints (not theme-arg-structure))))
              :disable-automatic-footprints t
              :cxn-set unhashed)
+
 
 (def-fcg-cxn active-transitive-actor-theme-cxn-subject-parataxis
              ((?vp
                (syn-cat (phrase-type vp))
                (footprints (arg-structure)))
               <-
+              (?conjunctive-unit
+               --
+               (dependency (pos-tag cc)
+                           (edge cc)))
               (?vp
                --
                (head ?same-head)
@@ -66,33 +87,12 @@
              :disable-automatic-footprints t
              :cxn-set unhashed)
 
-(def-fcg-cxn intransitive-cxn
-             ((?vp
-               (syn-cat (phrase-type vp))
-               (footprints (arg-structure)))
-              <-
-              (?subject
-               (referent ?x)
-               (dependency (edge nsubj))
-               --
-               (dependency (edge nsubj))
-               (head ?vp))
-              (?vp
-               --
-               (referent ?ev)
-               (sem-valence (actor ?x))
-               (syn-cat (not (voice passive)))
-               (syn-valence (subject ?subject))
-               (footprints (not arg-structure))))
-             :disable-automatic-footprints t
-             :cxn-set unhashed)
 
-
-(def-fcg-cxn passive-transitive-cxn
+(def-fcg-cxn partial-passive-transitive-actor-cxn
              ((?vp-unit
                (syn-cat (voice passive)
                         (phrase-type vp))
-               (footprints (arg-structure)))
+               (footprints (actor-arg-structure)))
               <-
               (?subject-unit
                (referent ?x)
@@ -106,7 +106,25 @@
                             (theme ?x))
                (dependency (pos-tag vbn))
                (syn-valence (subject ?subject-unit))
-               (footprints (not arg-structure)))
+               (footprints (not actor-arg-structure))))
+             :disable-automatic-footprints t
+             :cxn-set unhashed
+             :description "Example sentence: X is caused by Y")
+
+
+(def-fcg-cxn partial-passive-transitive-theme-cxn
+             ((?vp-unit
+               (syn-cat (voice passive)
+                        (phrase-type vp))
+               (footprints (theme-arg-structure)))
+              <-
+              (?vp-unit
+               --
+               (referent ?ev)
+               (sem-valence (actor ?y)
+                            (theme ?x))
+               (dependency (pos-tag vbn))
+               (footprints (not theme-arg-structure)))
               (?by
                --
                (dependency (edge agent))
@@ -152,37 +170,60 @@
              :description "Example sentence: X causes [Y to Zverb]")
 
 
+(def-fcg-cxn perfect-infinitive-passive-cxn
+             ((?caused-unit
+               (syn-cat (voice passive)
+                        (phrase-type vp))
+               (footprints (arg-structure)))
+               <-
+               (?to-unit
+                --
+                (head ?caused-unit)
+                (form ((string ?to-unit "to"))))
+               (?have-unit
+                --
+                (head ?caused-unit)
+                (form ((string ?have-unit "have"))))
+               (?been-unit
+                --
+                (head ?caused-unit)
+                (form ((string ?been-unit "been"))))
+               (?effect-unit
+                (referent ?y)
+                --
+                (dependency (pos-tag nn))
+                (head ?unknown-2))
+               (?unknown-1
+                --
+                (head ?unknown-2))
+               (?caused-unit
+                --
+                (head ?unknown-1)
+                (referent ?ev)
+                (sem-valence (actor ?x)
+                             (theme ?y))
+                (syn-cat (verb-form participle))
+                (dependency (pos-tag vbn)
+                            (edge xcomp))
+                (syn-valence (subject ?effect-unit))
+                (footprints (not arg-structure)))
+               (?by-unit
+                --
+                (head ?caused-unit)
+                (dependency (edge agent)))
+               (?cause-unit
+                (referent ?x)
+                --
+                (dependency (edge pobj))
+                (head ?by-unit)))
+             :cxn-set unhashed
+             :description "Example sentence: X is likely to have been caused by Y")
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Frame specific constructions for linking frame slots to units
 ;;-----------------------------------------------------------------
 
-;; too lenient
-;(def-fcg-cxn meta-causation=cause-cxn
-;             ((?vp
-;               (footprints (frame-cause)))
-;              (?cause
-;               (footprints (frame-cause)))
-;              <-
-;              (?vp
-;               --
-;               (referent ?ev)
-;               (meaning ((slot cause ?frame ?x)))
-;               (syn-cat (phrase-type vp))
-;               (footprints (arg-structure)))
-;              (?to
-;               --
-;               (head ?vp)
-;               (dependency (pos-tag in))
-;               (dependents (?cause))
-;               )
-;              (?cause
-;               (referent ?x)
-;               --
-;               (footprints (not frame-cause))
-;               (head ?to)
-;               (dependency (pos-tag nn))))
-;             :disable-automatic-footprints t
-;             :cxn-set unhashed)
 
 (def-fcg-cxn X-caused-by-Y
              (

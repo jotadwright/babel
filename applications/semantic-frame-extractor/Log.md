@@ -15,7 +15,18 @@ At the moment, pronominal resolutions are not taken into consideration and negat
 
 For grammar engineering and general evaluation purposes, the annotations are divided into a training set (`100-causation-frame-annotations.json`) and a test set (`50-causation-frame-annotations.json`).
 
+## Test set result for sentences with "cause"
+
+#### 2018-11-24
+Parsing the unknown test set sentences, containing "cause" as frame-evoking-element, results in 14 out of 20 correctly parsed sentences and 54 out of 60 correct slot fillers. 🎉
+
 ## Incremental evaluation results for sentences with "cause"
+
+#### 2018-11-24
+Making the passive transitive modular as well, catches one more correct slot filler.
+
+#### 2018-11-22
+The <span style="font-variant:small-caps;">perfect-infinitive-passive-cxn</span>, evoking the causation frame for "to have been caused", covers one more sentence. Making the grammar more modular by dividing the cxn for active transitive into one for the agent and one for the theme allows to parse two more slot fillers correctly. Adapting the <span style="font-variant:small-caps;">active-transitive-actor-theme-cxn-subject-parataxis</span> to requiring a coordinating conjunction prevents it from sometimes interfering with the parsing of sentences containing subordinating conjunctions, such as "as". These changes result in 100 out of 111 correct slot fillers and 26 out of 36 correctly parsed sentences.
 
 #### 2018-11-18
 Uncommenting the too lenient <span style="font-variant:small-caps;">meta-causation=cause-cxn</span> and introducing the <span style="font-variant:small-caps;">causative-to-cxn</span>, which covers structures such as "X causes Y to Z", results in two more correct slot fillers and 23 correct sentences.
