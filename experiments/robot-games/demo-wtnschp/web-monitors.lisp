@@ -22,6 +22,25 @@
                       (record-value monitor
                                     (if (communicated-successfully interaction) 1 0)))
 
+(define-monitor record-lexicon-size
+                :class 'data-recorder
+                :average-window 1
+                :documentation "records the game outcome of each game (1 or 0).")
+
+(define-monitor display-lexicon-size
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-lexicon-size))
+                :update-interval 1
+                :caption '("lexicon size")
+                :x-label "# Games" 
+                :y1-label "Lexicon Size" 
+                :draw-y1-grid t)
+
+(define-event-handler (record-lexicon-size interaction-finished)
+                      (record-value monitor
+                                    (length (constructions (grammar (first (population experiment)))))))
+
 ;; ---------------------------------------
 ;; + Trace Interactions in Web Interface +
 ;; ---------------------------------------

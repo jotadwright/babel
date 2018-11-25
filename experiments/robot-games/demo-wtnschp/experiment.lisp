@@ -20,12 +20,12 @@
                                                       "rika" "raso" "puwa" "savi" "vono"
                                                       "tawa" "gogi" "nipi" "niki" "sero"
                                                       "zago"))
-(define-configuration-default-value :input-form :text) ; :speech or :text
+(define-configuration-default-value :input-form :speech) ; :speech or :text
 (define-configuration-default-value :input-lang :nl)
 (define-configuration-default-value :printer-name "Canon_SELPHY_CP1300")
 
 ;; Interacting agents modes
-(define-configuration-default-value :determine-interacting-agents-mode :random-role-for-single-agent) ; :robot-speaker-often
+(define-configuration-default-value :determine-interacting-agents-mode :alternating) ; :robot-speaker-often
 (define-configuration-default-value :robot-hearer-prob 0.7)
 (define-configuration-default-value :robot-speaker-prob 0.7)
 (define-configuration-default-value :context-size 3)
@@ -94,6 +94,17 @@
   (let ((agents (agents experiment)))
     (setf (interacting-agents interaction)           agents
           (discourse-role (first agents))            (random-elt '(speaker hearer))
+          (utterance (first agents))                 nil
+          (communicated-successfully (first agents)) nil)
+    (notify interacting-agents-determined experiment interaction)))
+
+(defmethod determine-interacting-agents (experiment
+                                         (interaction interaction)
+                                         (mode (eql :alternating))
+                                         &key &allow-other-keys)
+  (let ((agents (agents experiment)))
+    (setf (interacting-agents interaction)           agents
+          (discourse-role (first agents))            (if (oddp (interaction-number interaction)) 'speaker 'hearer)
           (utterance (first agents))                 nil
           (communicated-successfully (first agents)) nil)
     (notify interacting-agents-determined experiment interaction)))

@@ -7,19 +7,10 @@
 (progn
   (activate-monitor trace-interaction-in-web-interface)
   (activate-monitor trace-tasks-and-processes)
-  ;(activate-monitor trace-fcg)
-  ;(activate-monitor trace-fcg-search-process)
-  )
-
-(progn
   (activate-monitor record-communicative-success)
-  ;(activate-monitor display-communicative-success)
-  (activate-monitor record-ontology-size)
-  ;(activate-monitor display-ontology-size)
+  (activate-monitor display-communicative-success)
   (activate-monitor record-lexicon-size)
-  ;(activate-monitor display-lexicon-size)
-  (activate-monitor display-metrics)
-  )
+  (activate-monitor display-lexicon-size))
 
 (deactivate-all-monitors)
 
@@ -34,6 +25,7 @@
 (set-configuration *exp* :determine-interacting-agents-mode :always-speaker)
 (set-configuration *exp* :determine-interacting-agents-mode :robot-hearer-often)
 (set-configuration *exp* :determine-interacting-agents-mode :random-role-for-single-agent)
+(set-configuration *exp* :determine-interacting-agents-mode :alternating)
 
 (run-interaction *exp*)
 
