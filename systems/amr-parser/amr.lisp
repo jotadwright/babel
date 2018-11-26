@@ -199,6 +199,20 @@
   "Transforms a predicate network into a Penman formatted meaning."
   (object->penman (predicates->object predicate-network)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 7. Evaluation                                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defun equivalent-amr-predicate-networks (fcg-amr-network amr-penman)
+  (irl:equivalent-irl-programs? fcg-amr-network
+                                (mapcar #'(lambda (predicate)
+                                            (cons (first predicate)
+                                                  (mapcar #'(lambda (symbol)
+                                                              (variablify symbol))
+                                                          (rest predicate))))
+                                        (amr:penman->predicates amr-penman))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Testing                                        ;;
