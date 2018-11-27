@@ -114,7 +114,7 @@
     (spit-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output-with-annotations" :type "json")
                print-result)
     (loop for parsing in print-result
-          and result = (cdr (assoc :slot-similarity parsing))
+          for result = (cdr (assoc :slot-similarity parsing))
           when (not (equal (first result) (second result)))
           do (format t "~s: ~s~%~%" (cdr (assoc :sentence parsing)) result)
           finally (format t "~s ~s~%~%~%" total-slot-similarity total-correct-sentences))
@@ -134,7 +134,6 @@
                        :if-does-not-exist :create)
      (write-line (encode-json-alist-to-string `((:evaluations ,@output-list)))
                  out)))
-
 
 
 ;(evaluate-grammar-output-for-evoking-elem '("cause"))
