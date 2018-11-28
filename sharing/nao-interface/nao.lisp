@@ -15,7 +15,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *nao-servers* nil
-  "A list of the form ((ip port container-name) (ip port container-name) ...)")
+  "A list containing triples of (ip port container-name)")
 
 (defun nao-servers ()
   *nao-servers*)
@@ -32,14 +32,11 @@
   "Pushes a new nao-container to the list of running containers"
   (push (list nao-ip server-port container-name) *nao-servers*))
 
-(defun pop-nao-server (entry)
+(defun pop-nao-server (nao-ip server-port container-name)
   "Pops a nao-container from the list of running containers"
-  ;; Entry = (ip port container-name)
   (setf *nao-servers*
-        (remove-if (lambda (elem)
-                     (reduce (lambda (x y) (and x y))
-                             (mapcar #'equalp elem entry)))
-                   (nao-servers))))
+        (remove (list nao-ip server-port container-name)
+                *nao-servers* :test #'equalp)))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Nao Robot Class ;;
@@ -58,7 +55,7 @@
                 :documentation "Host of the nao server")
    (server-port :initarg :server-port :type string :accessor server-port :initform ""
                 :documentation "Port to which the nao server should listen")
-   (container-name :initarg :container-name :initform nil :accessor container-name
+   (container-name :initarg :container-name :type string :initform nil :accessor container-name
                    :documentation "Name of the Docker container of this Nao"))
   (:documentation "Nao robot class"))
 
@@ -92,37 +89,41 @@
 (defgeneric stop-nao-server (nao &key)
   (:documentation "Stop the connection to the nao"))
 
-(defmethod start-nao-server ((nao nao)
-                             &key (test-connection t))
-  (let ((exists? (not (string= (first (exec-and-return "docker" "container" "inspect" (container-name nao))) "[]"))))
-    (cond ((ip-occupied? (ip nao))
-           (error (format nil "The IP address ~a is already in use" (ip nao))))
-          ((port-occupied? (server-port nao))
-           (error (format nil "The port number ~a is already in use" (server-port nao))))
-          (t
-            (if exists?
-                ;; Container does exist, make it run again
-                (run-prog "docker" :args `("start" ,(container-name nao)))
-                ;; Container does not yet exist, create one
-                (run-prog "docker" :args `("run" "-it" "-d"
-                                                 "-p" ,(format nil "~a:80" (server-port nao))
-                                                 "-v" ,(format nil "~a:/naoqi/src" (babel-pathname :directory '("sharing" "nao-interface" "python-server")))
-                                                 "-v" ,(format nil "~a:/naoqi/src/img" (babel-pathname :directory '(".tmp" "nao-img")))
-                                                 "--name" ,(container-name nao)
-                                                 "naoqi-python")))
-            ;; Push to the running containers
-            (push-nao-server (ip nao) (server-port nao) (container-name nao))
-            ;; Give some time to start the container
-            (sleep 1)
-            ;; Start the nao server inside the docker container
-            (run-prog "docker" :args `("exec" "-d"
-                                              ,(container-name nao)
-                                              "/usr/bin/python" "/naoqi/src/nao_server.py"
-                                              "--robot-ip" ,(ip nao)
-                                              "--robot-port" ,(port nao)))
-            (when test-connection
-              (sleep 1)
-              (test-server-connection nao))))))
+(defun docker-container-exists-p (container-name)
+  (not (string= (first (exec-and-return "docker" "container" "inspect" container-name)) "[]")))
+
+(defmethod start-nao-server ((nao nao) &key (test-connection t))
+  ;; check/create folder for nao images
+  (ensure-directories-exist (babel-pathname :directory '(".tmp" "nao-img")))
+  ;; start the nao server
+  (cond ((ip-occupied? (ip nao))
+         (error (format nil "The IP address ~a is already in use" (ip nao))))
+        ((port-occupied? (server-port nao))
+         (error (format nil "The port number ~a is already in use" (server-port nao))))
+        (t
+         (if (docker-container-exists-p (container-name nao))
+           ;; Container does exist, make it run again
+           (run-prog "docker" :args `("start" ,(container-name nao)))
+           ;; Container does not yet exist, create one
+           (run-prog "docker" :args `("run" "-it" "-d"
+                                      "-p" ,(format nil "~a:80" (server-port nao))
+                                      "-v" ,(format nil "~a:/naoqi/src" (babel-pathname :directory '("sharing" "nao-interface" "python-server")))
+                                      "-v" ,(format nil "~a:/naoqi/src/img" (babel-pathname :directory '(".tmp" "nao-img")))
+                                      "--name" ,(container-name nao)
+                                      "naoqi-python")))
+         ;; Push to the running containers
+         (push-nao-server (ip nao) (server-port nao) (container-name nao))
+         ;; Give some time to start the container
+         (sleep 1)
+         ;; Start the nao server inside the docker container
+         (run-prog "docker" :args `("exec" "-d"
+                                    ,(container-name nao)
+                                    "/usr/bin/python" "/naoqi/src/nao_server.py"
+                                    "--robot-ip" ,(ip nao)
+                                    "--robot-port" ,(port nao)))
+         (when test-connection
+           (sleep 1)
+           (test-server-connection nao)))))
 
 (defmethod stop-nao-server ((nao nao) &key)
   "Stops the python server associated to the given nao instance. Updates *nao-servers*"
@@ -134,8 +135,8 @@
   "Stops all known nao-servers."
   (when *nao-servers*
     (loop for entry in *nao-servers*
-          do (run-prog "docker" :args `("stop" ,(third entry)))
-          do (pop-nao-server entry)))
+          do (run-prog "docker" :args `("stop" ,(third entry))))
+    (setf *nao-servers* nil))
   *nao-servers*)
            
 
@@ -145,8 +146,7 @@
 (defgeneric test-server-connection (nao &key silent)
   (:documentation "Returns t if communication with nao-server succeeded, nil if it failed. Use silent = t for quick checks."))
 
-(defmethod test-server-connection ((nao nao)
-                                   &key (silent nil))
+(defmethod test-server-connection ((nao nao) &key (silent nil))
   (let* ((message (make-json 'test-connection :data '((test-message . "test-server-connection"))))
          (response (nao-send-http nao message)))
     (unless silent
