@@ -121,7 +121,8 @@
   ((question :type string :initarg :question :initform "" :accessor question)
    (image-index :type (or null number) :initarg :image-index :accessor image-index :initform nil)
    (image-filename :type (or nill string) :initarg :image-filename :accessor image-filename :initform nil)
-   (answer :initarg :answer :initform nil :accessor answer))
+   (answer :initarg :answer :initform nil :accessor answer)
+   (program-length :initarg :program-length :initform 0 :type number :accessor program-length))
   (:documentation "A question from the clevr dataset"))
 
 (defmethod initialize-instance :around ((q clevr-question) &rest initargs &key id)
@@ -192,7 +193,8 @@
                  :question (downcase (rest (assoc :question json-question)))
                  :image-index (rest (assoc :image--index json-question))
                  :image-filename (rest (assoc :image--filename json-question))
-                 :answer (rest (assoc :answer json-question))))
+                 :answer (rest (assoc :answer json-question))
+                 :program-length (length (rest (assoc :program json-question)))))
   
 (defun read-questions-from-file (questions-file)
   "Read the clevr questions from a file. This functions expects a file
