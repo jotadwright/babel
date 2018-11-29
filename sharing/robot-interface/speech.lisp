@@ -7,7 +7,7 @@
   #+nao (nao-speak robot speech :speed speed))
 
 (defun recognise-words (robot words)
-  "Recognise the given list of words. To stop the speech recognition, touch the front of Nao's head"
-  #+nao (let ((subscriber (nao-start-speech-rec robot words)))
+  "Recognise the given list of words. To stop the speech recognition, touch the middle of Nao's head"
+  #+nao (let ((subscriber (nao-start-speech-recognition robot words)))
           (when (nao-detect-touch robot :head :middle)
-            (nao-stop-speech-rec robot subscriber))))
+            (nao-stop-speech-recognition robot subscriber))))

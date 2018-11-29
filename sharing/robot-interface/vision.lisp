@@ -6,9 +6,9 @@
 (defun take-picture (robot &key (open t))
   "Takes a picture, gets it to your machine and optionally opens it."
   #+nao (let ((picture-details (nao-take-picture robot)))
-          (let* ((path (rest (assoc :path picture-details)))
+          (let* ((path (rest (assoc :directory picture-details)))
                  (file (rest (assoc :name picture-details)))
-                 (ext (rest (assoc :ext picture-details)))
+                 (ext (rest (assoc :type picture-details)))
                  (remote-pathname (pathname (format nil "~a~a.~a" path file ext)))
                  (local-pathname (pathname (babel-pathname :directory '(".tmp" "nao-img") :name file :type ext))))
             (nao-scp-get robot remote-pathname local-pathname)

@@ -1,7 +1,7 @@
 
 (in-package :robot-interface)
 
-(export '(head-touch-front head-touch-middle head-touch-rear head-yes-no))
+(export '(head-touch-front head-touch-middle head-touch-rear head-yes-or-no))
 
 (defun head-touch-front (robot)
   "Detect if the front head sensor is touched. Blocking call."
@@ -15,6 +15,6 @@
   "Detect if the rear head sensor is touched. Blocking call."
   #+nao (nao-detect-touch robot :head :rear))
 
-(defun head-yes-no (robot)
+(defun head-yes-or-no (robot)
   "Give yes/no feedback to the robot through head touch. Yes = front. No = rear."
   #+nao (nao-head-yes-no robot))
