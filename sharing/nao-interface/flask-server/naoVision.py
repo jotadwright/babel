@@ -50,7 +50,7 @@ class NaoVision(object):
         # to get filename and extension out
         return img_path, img_name, "jpg"
 
-    def analyze(self, filename=""):
+    def analyse(self, filename=""):
         # Get the following data for each object:
         # Position of the center (X,Y), Shape, Color, Width, Height, ID
 

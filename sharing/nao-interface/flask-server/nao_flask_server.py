@@ -33,12 +33,12 @@ def make_connection():
     # Get data from request
     request_data = request.get_json(force=True)
     # Check data
-    errors = check_request_data(request_data, ['test_message'])
+    errors = check_request_data(request_data, ['message'])
     # Return
     if errors:
         return json.dumps({'errors': errors}), 400
     else:
-        return json.dumps({'test_message': request_data['test_message'],
+        return json.dumps({'message': request_data['message'],
                            'robot_ip': IP,
                            'robot_port': PORT}), 200
 
@@ -60,7 +60,7 @@ def analyze_image():
         return json.dumps({'errors': errors}), 400
     else:
         vision = NaoVision(ip=IP, port=PORT)
-        name, data = vision.analyse(request_data['filename'])
+        name, data = vision.analyse(filename=request_data['filename'])
         return json.dumps({'filename': name,
                            'data': data}), 200
 
@@ -88,8 +88,8 @@ def set_posture():
         return json.dumps({'success': success}), 200
 
 
-@nao_server.route("/move_joint", methods=["POST"])
-def move_joint():
+@nao_server.route("/set_joint", methods=["POST"])
+def set_joint():
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['joint', 'value'])
     if errors:
@@ -97,12 +97,36 @@ def move_joint():
     else:
         joints = NaoJoints(ip=IP, port=PORT)
         if 'speed' in request_data:
-            success = joints.move(joint=str(request_data['joint']),
-                                  value=request_data['value'])
+            success = joints.set(joint=str(request_data['joint']),
+                                 value=request_data['value'])
         else:
-            success = joints.move(joint=str(request_data['joint']),
-                                  value=request_data['value'],
-                                  speed=float(request_data['speed']))
+            success = joints.set(joint=str(request_data['joint']),
+                                 value=request_data['value'],
+                                 speed=float(request_data['speed']))
+        return json.dumps({'success': success}), 200
+
+
+@nao_server.route("/raise_arm", methods=["POST"])
+def raise_arm():
+    request_data = request.get_json(force=True)
+    errors = check_request_data(request_data, ['arm'])
+    if errors:
+        return json.dumps({'errors': errors}), 400
+    else:
+        joints = NaoJoints(ip=IP, port=PORT)
+        success = joints.raise_arm(arm=request_data['arm'])
+        return json.dumps({'success': success}), 200
+
+
+@nao_server.route("/move_head", methods=["POST"])
+def move_head():
+    request_data = request.get_json(force=True)
+    errors = check_request_data(request_data, ['yesno'])
+    if errors:
+        return json.dumps({'errors': errors}), 400
+    else:
+        joints = NaoJoints(ip=IP, port=PORT)
+        success = joints.move_head(yesno=request_data['yesno'])
         return json.dumps({'success': success}), 200
 
 
@@ -114,8 +138,8 @@ def speak():
         return json.dumps({'errors': errors}), 400
     else:
         speech = NaoSpeak(ip=IP, port=PORT)
-        speech_data = speech.say(request_data['speech'])
-        return json.dumps({'speech': speech_data}), 200
+        success = speech.say(request_data['speech'])
+        return json.dumps({'success': success}), 200
 
 
 @nao_server.route("/speech/start_recognition", methods=["POST"])

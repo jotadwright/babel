@@ -42,7 +42,7 @@ class NaoPosture(NaoMovement):
         """ Go to the given posture """
         self.stiffness_on(self.motionProxy)
         success = self.postureProxy.goToPosture(posture, speed)
-        return int(success)
+        return success
 
     def get(self):
         """ Get the current posture """
@@ -55,11 +55,86 @@ class NaoJoints(NaoMovement):
     def __init__(self, ip, port, *args, **kwargs):
         super(NaoJoints, self).__init__(ip, port, *args, **kwargs)
 
-    def move(self, joint="HeadPitch", value=0.0, speed=0.3):
+    def set(self, joint="HeadPitch", value=0.0, speed=0.3):
         """ Move the given joint to a given value """
         self.stiffness_on(self.motionProxy)
         self.motionProxy.setAngles(joint, value, speed)
-        return 1
+        return True
+
+    def raise_left(self):
+        SPcurrentAngle = self.motionProxy.getAngles("LShoulderPitch", False)[0]
+        SPcurrentRoll = self.motionProxy.getAngles("LShoulderRoll", False)[0]
+
+        jointList = ["LShoulderPitch", "LShoulderRoll"]
+        angleList = [[0.2, SPcurrentAngle],
+                     [0.5, SPcurrentRoll]]
+        timeList = [[2.0, 6.0], [2.0, 6.0]]
+        isAbsolute = True
+
+        self.motionProxy.angleInterpolation(jointList, angleList, timeList, isAbsolute)
+        return True
+
+    def raise_right(self):
+        SPcurrentAngle = self.motionProxy.getAngles("RShoulderPitch", False)[0]
+        SPcurrentRoll = self.motionProxy.getAngles("RShoulderRoll", False)[0]
+
+        jointList = ["RShoulderPitch", "RShoulderRoll"]
+        angleList = [[0.2, SPcurrentAngle],
+                     [-0.5, SPcurrentRoll]]
+        timeList = [[2.0, 6.0], [2.0, 6.0]]
+        isAbsolute = True
+
+        self.motionProxy.angleInterpolation(jointList, angleList, timeList, isAbsolute)
+        return True
+
+    def raise_both(self):
+        LSPcurrentAngle = self.motionProxy.getAngles("LShoulderPitch", False)[0]
+        LSRcurrentAngle = self.motionProxy.getAngles("LShoulderRoll", False)[0]
+        RSPcurrentAngle = self.motionProxy.getAngles("RShoulderPitch", False)[0]
+        RSRcurrentAngle = self.motionProxy.getAngles("RShoulderRoll", False)[0]
+
+        jointList = ["LShoulderPitch", "LShoulderRoll", "RShoulderPitch", "RShoulderRoll"]
+        angleList = [[0.2, LSPcurrentAngle], [-0.3, LSRcurrentAngle],
+                     [0.2, RSPcurrentAngle], [0.3, RSRcurrentAngle]]
+        timeList = [[2.0, 6.0], [2.0, 6.0],
+                    [2.0, 6.0], [2.0, 6.0]]
+        isAbsolute = True
+        self.motionProxy.angleInterpolation(jointList, angleList, timeList, isAbsolute)
+        return True
+
+    def raise_arm(self, arm=None):
+        if arm == "Left":
+            return self.raise_left()
+        elif arm == "Right":
+            return self.raise_right()
+        elif arm == "Both":
+            return self.raise_both()
+        else:
+            return False
+
+    def say_yes(self):
+        current_head_pitch = self.motionProxy.getAngles("HeadPitch", False)[0]
+        names = ["HeadPitch"]
+        angleList = [-0.4, 0.3, -0.4, 0.3, current_head_pitch]
+        timeList = [1.0, 1.5, 2.0, 2.5, 3.0]
+        self.motionProxy.angleInterpolation(names, angleList, timeList, True)
+        return True
+
+    def say_no(self):
+        current_head_yaw = self.motionProxy.getAngles("HeadYaw", False)[0]
+        names = ["HeadYaw"]
+        angleList = [1.0, -1.0, 1.0, -1.0, current_head_yaw]
+        timeList = [1.0, 1.5, 2.0, 2.5, 3.0]
+        self.motionProxy.angleInterpolation(names, angleList, timeList, True)
+        return True
+
+    def move_head(self, yesno=None):
+        if yesno == "yes":
+            return self.say_yes()
+        elif yesno == "no":
+            return self.say_no()
+        else:
+            return False
 
 
 class NaoSpeak(object):
@@ -75,7 +150,7 @@ class NaoSpeak(object):
     def say(self, speech=""):
         """ Say something """
         self.ttsProxy.say(str(speech))
-        return speech
+        return True
 
 
 class NaoHeadTouch(object):
@@ -116,10 +191,10 @@ class NaoHeadTouch(object):
         while True:
             if self.memoryProxy.getData(self.front_sensor) > 0.5:
                 self.all_leds_on()
-                return 1
+                return "front"
             elif self.memoryProxy.getData(self.rear_sensor) > 0.5:
                 self.all_leds_on()
-                return 0
+                return "back"
             time.sleep(self.delay)
 
     def detect_touch(self, region="Front"):
@@ -129,19 +204,19 @@ class NaoHeadTouch(object):
             while self.memoryProxy.getData(self.front_sensor) < 0.5:
                 time.sleep(self.delay)
             self.all_leds_on()
-            return 1
+            return True
         elif region == "Rear":
             self.ledProxy.on(self.back_leds)
             while self.memoryProxy.getData(self.rear_sensor) < 0.5:
                 time.sleep(self.delay)
             self.all_leds_on()
-            return 1
+            return True
         elif region == "Middle":
             self.ledProxy.on(self.middle_leds)
             while self.memoryProxy.getData(self.middle_sensor) < 0.5:
                 time.sleep(self.delay)
             self.all_leds_on()
-            return 1
+            return True
 
 
 class NaoSpeechRecognition(object):

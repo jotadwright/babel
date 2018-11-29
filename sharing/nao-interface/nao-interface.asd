@@ -10,11 +10,11 @@
   :depends-on (:test-framework
                :utils
                :cl-json
-               :drakma)
+               :drakma
+               :assoc-utils)
   :serial t
   :components 
   ((:file "package")
-   (:file "json-curl")
    (:file "nao")
    (:file "nao-movement")
    (:file "nao-headtouch")
