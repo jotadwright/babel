@@ -49,5 +49,9 @@ After the insertion of an explicit "by"-unit into the <span style="font-variant:
 #### 2018-10-19
 Very first, naive string matching as similarity measure results in ~71 found slot fillers (out of 111). Of these, 37 are the trivial *frame-evoking-element* fillers, while 34 are non-trivial correctly parsed slot fillers. On the sentence level, 9 out of 36 are parsed completely correctly.
 
+## Incremental evaluation results for sentences with "due to"
+
+#### 2018-11-27
+For sentences containing "X is due to Y", where X is an NP, three slightly different <span style="font-variant:small-caps;">X-is-due-to-Y</span> cxns have been created, given the different possibilities of spacy positioning the units for "due", "to" and the "cause". Moreover, noun phrases involving the prepositional postmodifier "of" are covered by the <span style="font-variant:small-caps;">X1-of-X2-due-to-Y</span> cxn. These first changes result in 14 out of 57 correct slot fillers and 4 correctly parsed sentences out of 19.
 
 Vanja Cangalovic, Katrien Beuls, Paul Van Eecke
