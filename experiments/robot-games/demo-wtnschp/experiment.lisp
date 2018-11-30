@@ -7,7 +7,7 @@
 ;; -----------------------------
 
 ;; Robot stuff
-(define-configuration-default-value :robot-ip "192.168.1.2")
+(define-configuration-default-value :robot-ip "192.168.1.3")
 (define-configuration-default-value :robot-port "7850")
 (define-configuration-default-value :robot-vocabulary '((:en "green" "yellow" "blue" "red" "grey" "black" "pink")
                                                         (:nl "groen" "geel" "blauw" "rood" "grijs" "zwart" "roze")))
@@ -21,11 +21,11 @@
                                                       "tawa" "gogi" "nipi" "niki" "sero"
                                                       "zago"))
 (define-configuration-default-value :input-form :speech) ; :speech or :text
-(define-configuration-default-value :input-lang :nl)
+(define-configuration-default-value :input-lang :en)
 (define-configuration-default-value :printer-name "Canon_SELPHY_CP1300")
 
 ;; Interacting agents modes
-(define-configuration-default-value :determine-interacting-agents-mode :alternating) ; :robot-speaker-often
+(define-configuration-default-value :determine-interacting-agents-mode :random-role-for-single-agent) ; :robot-speaker-often
 (define-configuration-default-value :robot-hearer-prob 0.7)
 (define-configuration-default-value :robot-speaker-prob 0.7)
 (define-configuration-default-value :context-size 3)
@@ -55,7 +55,7 @@
         (list (make-embodied-agent experiment)))
   (setf *used-dutch-nonsense-words* nil)
   (case (get-configuration experiment :input-lang)
-    (:en (speaker (first (population experiment)) "Do you want to play a language game?"))
+    (:en (speak (first (population experiment)) "Do you want to play a language game?"))
     (:nl (speak (first (population experiment)) "Wil je een taalspelletje over kleuren spelen?" :speed 75))))
 
 (defmethod destroy ((experiment demo-experiment))

@@ -57,7 +57,7 @@
   (declare (ignorable trigger))
   (let ((agent (owner (task (process object)))))
     (case (get-configuration agent :input-lang)
-      (:en (speak agent (format nil "I could not detect ~a monsters"
+      (:en (speak agent (format nil "I could not detect ~a objects"
                                 (required-context-size problem))))
       (:nl (speak agent (format nil "Oeps! Ik kan geen ~a monsters vinden"
                                 (required-context-size problem)))))
@@ -83,7 +83,7 @@
                                                 :process process))
       (unless (notify-learning process-result :trigger 'detection)
         (case (get-configuration agent :input-lang)
-          (:en (speak agent (format nil "I detected ~a monsters" context-size)))
+          (:en (speak agent (format nil "I detected ~a objects" context-size)))
           (:nl (speak agent (format nil "Ik zie ~a monsters" context-size) :speed 75)))
         (when img-path
           (notify observe-scene-finished img-path scene))
@@ -301,7 +301,7 @@
                                             :process process))
   (unless (notify-learning process-result :trigger 'production)
     (case (get-configuration agent :input-lang)
-      (:en (speak agent (format nil "I am thinking of a monster and it has the color ~a" utterance)))
+      (:en (speak agent (format nil "I am thinking of an object and it has the color ~a" utterance)))
       (:nl (speak agent (format nil "Ik heb een monster in mijn gedachten en het heeft de kleur ~a" utterance) :speed 75)))
     (notify produce-finished utterance applied-cxn)
     process-result)))
@@ -348,9 +348,9 @@
   (let* ((sorted-on-x-axis (sort (entities scene) #'< :key #'xpos))
          (topic-position (position topic sorted-on-x-axis)))
     (case topic-position
-      (0 (point agent -1))
-      (1 (point agent 0.0))
-      (2 (point agent 1)))))
+      (0 (point agent :left))
+      (1 (point agent :both))
+      (2 (point agent :right)))))
 
 (defmethod run-process (process
                         (process-label (eql 'interpret))
@@ -407,7 +407,7 @@
     (setf vocab
           (remove-duplicates (append vocab words) :test #'string=))
     (case (get-configuration agent :input-lang)
-      (:en (speak agent "Choose a monster and say its color"))
+      (:en (speak agent "Choose an object and say its color"))
       (:nl (speak agent "Kies een monster en benoem zijn kleur" :speed 75)))
     (case input-form
       (:speech (when (head-touch-middle agent)
@@ -450,11 +450,11 @@
     (if (and (eql (discourse-role agent) 'hearer)
              (find-data prev-process-input 'topic-id))
       (case (get-configuration agent :input-lang)
-        (:en (speak agent (format nil "Am I correct? Please show me the monster you would call ~a" utterance)))
+        (:en (speak agent (format nil "Am I correct? Please show me the object you would call ~a" utterance)))
         (:nl (speak agent (format nil "Had ik het juist? Welk monster had jij in gedachten?" utterance) :speed 75)))
       ;; else; if speaker or unknown word
       (case (get-configuration agent :input-lang)
-        (:en (speak agent (format nil "Please show me the monster you would call ~a" utterance)))
+        (:en (speak agent (format nil "Please show me the object you would call ~a" utterance)))
         (:nl (speak agent (format nil "Toon mij het monster dat jij ~a zou noemen" utterance) :speed 75))))
     (loop while (null observedp)
           when (head-touch-middle agent)
@@ -466,7 +466,7 @@
                    (setf observed-topic (first (entities object-set))))
                  (unless (= (length (entities object-set)) 1)
                    (case (get-configuration agent :input-lang)
-                     (:en (speak agent (format nil "Sorry, I detected ~a monsters" (length (entities object-set)))))
+                     (:en (speak agent (format nil "Sorry, I detected ~a objects" (length (entities object-set)))))
                      (:nl (speak agent (format nil "Sorry, ik zie ~a monsters" (length (entities object-set))) :speed 75)))))))
     (make-process-result 1 (list (cons 'observed-topic observed-topic))
                          :process process)))
@@ -543,7 +543,8 @@
           (:en (speak agent "You are correct!"))
           (:nl (speak agent (random-elt *speaker-success-messages*) :speed 75)))
         (case (get-configuration agent :input-lang)
-          (:en (speak agent "You are wrong!"))
+          (:en (progn (speak agent "You are wrong!")
+                 (robot-give-feedback agent topic-id scene)))
           (:nl (progn
                  (speak agent (random-elt *speaker-failure-messages*) :speed 75)
                  (robot-give-feedback agent topic-id scene)))))

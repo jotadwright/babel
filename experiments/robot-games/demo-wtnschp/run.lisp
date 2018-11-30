@@ -7,10 +7,11 @@
 (progn
   (activate-monitor trace-interaction-in-web-interface)
   (activate-monitor trace-tasks-and-processes)
-  (activate-monitor record-communicative-success)
-  (activate-monitor display-communicative-success)
-  (activate-monitor record-lexicon-size)
-  (activate-monitor display-lexicon-size))
+  ;(activate-monitor record-communicative-success)
+  ;(activate-monitor display-communicative-success)
+  ;(activate-monitor record-lexicon-size)
+  ;(activate-monitor display-lexicon-size)
+  )
 
 (deactivate-all-monitors)
 
@@ -36,21 +37,17 @@
 (destroy *exp*)
 
 
-;; For showing the lexicon
-(defvar *agent* (first (population *exp*)))
-(show-lexicon *agent*)
-
-
 ;; For setting up the robot
-(setf *robot* (make-robot :ip "192.168.1.2" :server-port "7850"))
-
-(point *robot* 0.0)
+(setf *robot* (make-robot :ip "192.168.1.3" :server-port "7850"))
 
 (stand *robot*)
 (crouch *robot*)
 (sit *robot*)
+
 (take-picture *robot*)
 (observe-scene *robot*)
+
 (look-up-down *robot* 12)
+
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)
