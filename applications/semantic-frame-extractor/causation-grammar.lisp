@@ -255,6 +255,71 @@
               )
              :cxn-set unhashed)
 
+(def-fcg-cxn X-event-due-to-Y-v1
+             ((?due-unit
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (args (?frame ?cause ?effect)))
+              <-
+              (?event-unit
+               (referent ?effect)
+               (syn-cat (phrase-type vp))
+               (syn-valence (subject ?a-subject-unit))
+               --
+               ;TODO no way to look for verbal phrase features in spacy output?
+               )
+              (?due-unit
+               (HASH meaning ((frame causation due-to ?frame)
+                              (slot cause ?frame ?cause)
+                              (slot effect ?frame ?effect)))
+               --
+               (head ?event-unit)
+               (form ((string ?due-unit "due")))
+               (dependency (edge prep)))
+              (?to-unit
+               --
+               (head ?due-unit)
+               (form ((string ?to-unit "to"))))
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?due-unit)
+               (dependency (edge pobj))))
+             :cxn-set unhashed
+             :description "Example sentence: X(event) due to Y(obj)")
+
+(def-fcg-cxn X-event-due-to-Y-v2
+             ((?due-unit
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (args (?frame ?cause ?effect)))
+              <-
+              (?event-unit
+               (referent ?effect)
+               (syn-cat (phrase-type vp))
+               (syn-valence (subject ?a-subject-unit))
+               --
+               )
+              (?due-unit
+               (HASH meaning ((frame causation due-to ?frame)
+                              (slot cause ?frame ?cause)
+                              (slot effect ?frame ?effect)))
+               --
+               (head ?event-unit)
+               (form ((string ?due-unit "due")))
+               (dependency (edge prep)))
+              (?to-unit
+               --
+               (head ?due-unit)
+               (form ((string ?to-unit "to"))))
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?to-unit)
+               (dependency (edge pobj))))
+             :cxn-set unhashed
+             :description "Example sentence: X(event) due to Y(obj)")
+
 (def-fcg-cxn X-is-due-to-Y-v1
              ((?due-unit
                (referent ?frame)

@@ -57,6 +57,14 @@
 (pie-comprehend "The stalling is due to very weak prevailing winds, which are failing to steer the storm off to sea, allowing it to spin around and wobble back and forth.") ;NOT working, spacy does not include "allowing"
 
 
+;;; X-event-due-to-Y, WORKING
+
+(pie-comprehend "There is absolutely no doubt we will lose species due to the increasing pressures being exerted by climate change.")
+(pie-comprehend "Rob Elsworth, policy officer at Sandbag, said: Offsetting was supposed to be a price containment measure to ensure that carbon prices didn't rise too high, but carbon prices have remained low due to excess supply in the market.")
+(pie-comprehend "The International Red Cross says more people are already being made refugees due to environmental issues.")
+(pie-comprehend "The following day, the Big Green Gathering was cancelled due to a final act of sabotage on the part of the Mendip County council and Somerset and Avon police force.")
+
+
 ;;; WORKING
 
 (pie-comprehend "Nevertheless, it seems to me that our collective failure to tackle climate change is not just due to political deadlock or insufficient knowledge.")
