@@ -255,3 +255,186 @@
               )
              :cxn-set unhashed)
 
+(def-fcg-cxn X-is-due-to-Y-v1
+             ((?due-unit
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (args (?frame ?cause ?effect)))
+              <-
+              (?effect-unit
+               (referent ?effect)
+               --
+               (head ?event-unit)
+               (dependency (edge nsubj)))
+              (?event-unit
+               (syn-cat (phrase-type vp))
+               (syn-valence (subject ?effect-unit))
+               --
+               (HASH form ((meets ?due-unit ?to-unit ?scope))))
+              (?due-unit
+               (HASH meaning ((frame causation due-to ?frame)
+                              (slot cause ?frame ?cause)
+                              (slot effect ?frame ?effect)))
+               --
+               (head ?event-unit)
+               (form ((string ?due-unit "due")))
+               (dependency (edge acomp)))
+              (?to-unit
+               --
+               (head ?due-unit)
+               (dependency (pos-tag in)))
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?to-unit)
+               (dependency (edge pobj))))
+             :cxn-set unhashed
+             :description "Example sentence: X(nsubj) is due to Y(pobj)")
+
+(def-fcg-cxn X-is-due-to-Y-v2
+             ((?due-unit
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (args (?frame ?cause ?effect)))
+              <-
+              (?effect-unit
+               (referent ?effect)
+               --
+               (head ?event-unit)
+               (dependency (edge nsubj)))
+              (?event-unit
+               (syn-cat (phrase-type vp))
+               (syn-valence (subject ?effect-unit))
+               --
+               )
+              (?due-unit
+               (HASH meaning ((frame causation due-to ?frame)
+                              (slot cause ?frame ?cause)
+                              (slot effect ?frame ?effect)))
+               --
+               (head ?event-unit)
+               (form ((string ?due-unit "due")))
+               (dependency (edge acomp)))
+              (?to-unit
+               --
+               (head ?due-unit)
+               (dependency (pos-tag in)))
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?event-unit)
+               (dependency (edge attr))))
+             :cxn-set unhashed
+             :description "Example sentence: X(nsubj) is due to Y(attr)")
+
+(def-fcg-cxn X-is-due-to-Y-v3
+             ((?due-unit
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (args (?frame ?cause ?effect)))
+              <-
+              (?effect-unit
+               (referent ?effect)
+               --
+               (head ?event-unit)
+               (dependency (edge nsubj)))
+              (?event-unit
+               (syn-cat (phrase-type vp))
+               (syn-valence (subject ?effect-unit))
+               --
+               )
+              (?due-unit
+               (HASH meaning ((frame causation due-to ?frame)
+                              (slot cause ?frame ?cause)
+                              (slot effect ?frame ?effect)))
+               --
+               (head ?event-unit)
+               (form ((string ?due-unit "due")))
+               (dependency (edge acomp)))
+              (?to-unit
+               --
+               (head ?due-unit)
+               (dependency (pos-tag in)))
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?due-unit)
+               (dependency (edge pobj))))
+             :cxn-set unhashed
+             :description "Example sentence: X(nsubj) is due to Y(pobj)")
+
+;(def-fcg-cxn verb-X-due-to-Y
+;             ((?due-unit
+;               (referent ?frame)
+;               (sem-cat (frame causation))
+;               (args (?frame ?cause ?effect)))
+;              <-
+;              (?effect-unit
+;               (referent ?effect)
+;               --
+;               (head ?event-unit)
+;               (dependency (edge dobj)))
+;              (?event-unit
+;               (syn-cat (phrase-type vp))
+;               (syn-valence (subject ?effect-unit))
+;               --
+;               (HASH form ((meets ?due-unit ?to-unit ?scope))))
+;              (?due-unit
+;               (HASH meaning ((frame causation due-to ?frame)
+;                              (slot cause ?frame ?cause)
+;                              (slot effect ?frame ?effect)))
+;               --
+;               (head ?event-unit)
+;               (form ((string ?due-unit "due")))
+;               (dependency (edge prep)))
+;              (?to-unit
+;               --
+;               (head ?due-unit)
+;               (dependency (pos-tag in)))
+;              (?causal-unit
+;               (referent ?cause)
+;               --
+;               (head ?due-unit)
+;               ;(HASH form ((precedes ?due-unit ?causal-unit ?scope)))
+;               (dependency (edge pobj))))
+;             :cxn-set unhashed
+;             :description "Example sentence: predicts X(dobj) due to Y(pobj)")
+
+(def-fcg-cxn X1-of-X2-due-to-Y
+             ((?due-unit
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (args (?frame ?cause ?effect)))
+              <-
+              (?due-unit
+               (HASH meaning ((frame causation due-to ?frame)
+                              (slot cause ?frame ?cause)
+                              (slot effect ?frame ?effect)))
+               --
+               (head ?X2-unit)
+               (form ((string ?due-unit "due")))
+               (dependency (edge amod)))
+              (?X2-unit
+               --
+               (head ?of-unit)
+               (dependency (edge pobj)))
+              (?of-unit
+               --
+               (form ((string ?of-unit "of")))
+               (head ?X1-unit))
+              (?X1-unit
+               (referent ?effect)
+               --
+               (dependency (pos-tag nn)))
+              (?to-unit
+               --
+               (head ?due-unit)
+               (dependency (pos-tag in)))
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?due-unit)
+               (dependency (edge pobj))))
+             :cxn-set unhashed
+             :description "Example sentence: X1 of X2(pobj) due to Y(pobj)")
+
