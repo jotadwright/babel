@@ -17,6 +17,9 @@ For grammar engineering and general evaluation purposes, the annotations are div
 
 ## Incremental evaluation results for sentences with "due to"
 
+#### 2018-12-02
+Trying to render discontinuous frame slot fillers now poses a problem. Tweaking the rendering function to only render until a unit whose referent is another frame slot filler is found, prevents this error and results in 2 more correct sentences, thus 10 out of 19 sentences are parsed correctly and 44 out of 57 slot fillers are found. Still, whenever the target slot filler appears after another filler, it cannot be rendered. Thus the effect-slot in sentence "Indeed, due to the rise of the freezing line, the snow-rain limit is moving to a higher elevation." cannot be found.
+
 #### 2018-11-29
 <span style="font-variant:small-caps;">X-event-due-to-Y</span> cxns have been added to cover sentences in which the effect is a whole event (involving e.g. subject, object and predicate). Also in this case, two versions are needed to account for both spacy interpretations. Correctness rises to 8 out of 19 sentences.
 

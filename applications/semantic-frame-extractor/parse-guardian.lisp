@@ -44,6 +44,10 @@
 ;(log-parsing-output-into-json-file '("due to"))
 
 
+;;; NOT WORKING!!! discontinuous subunits cannot (and should not) be rendered, rendering cuts out everything in "effect"
+(pie-comprehend "Indeed, due to the rise of the freezing line, the snow-rain limit is moving to a higher elevation.")
+
+
 ;;; Spacy or grammar?
 
 (pie-comprehend "But you might need to know this: one such report published by the Institute of Development Studies in the UK predicts a whopping 20% to 60% rise in food prices by 2050, depending on the type of food, largely due to declining yields brought upon us by climate change.") ;NOT working, spacy places prepositional phrase outside and generally - what do we want?
@@ -55,6 +59,19 @@
 (pie-comprehend "UK waters are also not exempt from the global trend of ocean acidifiation due to higher levels of dissolved CO2.") ;NOT working, spacy places "due to" under "exempt" and not "trend" or "acidifiation"
 (pie-comprehend "Energy-intensive industries, such as iron, steel and cement manufacture, have become more efficient over time due to new equipment and better re-use of waste heat.") ;NOT working, spacy incorrect
 (pie-comprehend "The stalling is due to very weak prevailing winds, which are failing to steer the storm off to sea, allowing it to spin around and wobble back and forth.") ;NOT working, spacy does not include "allowing"
+
+(defun all-subunits-until-specified (unit forbidden-units structure &optional (cxn-inventory *fcg-constructions*))
+  "Returns the unit itself and all of its subunits, except for those that are not in, or subunits of, forbidden-units."
+  (loop for subunit-name in (remove-special-operators
+                             (feature-value (get-subunits-feature unit (get-configuration (visualization-configuration cxn-inventory) :selected-hierarchy))) +no-bindings+)
+        for subunit = (structure-unit structure subunit-name)
+        until (find subunit forbidden-units)
+        collect subunit
+        append (all-subunits-until-specified subunit forbidden-units structure)))
+
+;;; X-event-due-to-Y, WORKING with rendering-trick
+(pie-comprehend "The company has seven reactors out of action due to unexpected or routine repairs but Coley said five would return before the end of December.")
+(pie-comprehend "The Malaysian minister of defence said on Twitter he had fallen ill due to the haze and warned Malaysians to stay indoors.")
 
 
 ;;; X-event-due-to-Y, WORKING
