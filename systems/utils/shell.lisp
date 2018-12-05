@@ -15,7 +15,8 @@
 (in-package :utils)
 
 (export '(run-prog pipe-through pipe-input pipe-output close-pipe with-open-pipe
-          exec-and-print exec-and-return open-file-in-OS copy-file program-installed-p number-of-lines))
+          exec-and-print exec-and-return open-file-in-OS copy-file
+          program-installed-p number-of-lines who-am-i))
 
 
 ;;; helper function on gcl
@@ -222,6 +223,10 @@ Useful for re-using the &REST arg after removing some options."
             (first (exec-and-return "wc" "-l" (namestring file)))
             :remove-empty-subseqs t)))))
     number-of-lines))
+
+(defun who-am-i ()
+  "Returns the username of the system"
+  (first (exec-and-return "whoami")))
 
 
 
