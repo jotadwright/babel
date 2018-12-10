@@ -43,7 +43,7 @@
 #+lispworks
 (defun curl-json (route json &key (host *penelope-host*))
   "Send curl request and returns the answer."
-  (let* ((url (string-append *penelope-host* route))
+  (let* ((url (string-append host route))
          (response (exec-and-return "curl" url "-H"
                                     #+lispworks (format nil "~s" "Content-Type: application/json")
                                     #-lispworks (format nil "~a" "Content-Type: application/json")
@@ -51,11 +51,12 @@
     (when response (cl-json:decode-json-from-string (first response)))))
 
 #-lispworks
-(defun curl-json (url json)
+(defun curl-json (route json &key (host *penelope-host*))
   "Send curl request and returns the answer."
-  (let ((response (dex:post url
-                            :headers '((Content-Type . "application/json"))
-                            :content json)))
+  (let* ((url (string-append host route))
+         (response (dex:post url
+                             :headers '((Content-Type . "application/json"))
+                             :content json)))
     (when response (cl-json:decode-json-from-string response))))
 
 
