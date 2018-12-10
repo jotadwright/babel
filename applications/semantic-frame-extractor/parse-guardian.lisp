@@ -55,10 +55,7 @@
 (pie-comprehend "The Lancet estimated that China suffers 1.2 million premature deaths due to fossil fuel pollution.") ;NOT working, spacy places "due to" under "deathes" and not "suffers"
 (pie-comprehend "UK waters are also not exempt from the global trend of ocean acidifiation due to higher levels of dissolved CO2.") ;NOT working, spacy places "due to" under "exempt" and not "trend" or "acidifiation"
 (pie-comprehend "Energy-intensive industries, such as iron, steel and cement manufacture, have become more efficient over time due to new equipment and better re-use of waste heat.") ;NOT working, spacy incorrect
-
-;;; TODO: predicative-adj-due-to?
-(pie-comprehend "The first frame is a bit mouldy due to some damp at the front of the hive.") ;NOT working, "due" under "mouldy" and not "is"
-(pie-comprehend "Yorkshire and Humberside are the regions most affected due to the combination of high social vulnerabilities and high likelihoods of flooding, the JRF report shows.") ;NOT working, spacy places "due to Y" under "affected"
+(pie-comprehend "Yorkshire and Humberside are the regions most affected due to the combination of high social vulnerabilities and high likelihoods of flooding, the JRF report shows.") ;NOT working, spacy places "due to Y" under "affected" under "regions"
 
 
 ;;; X-event-due-to-Y, NOT working completely because discontinuous subunits are rendered
@@ -77,6 +74,7 @@
 
 ;;; WORKING
 
+(pie-comprehend "The first frame is a bit mouldy due to some damp at the front of the hive.")
 (pie-comprehend "The stalling is due to very weak prevailing winds, which are failing to steer the storm off to sea, allowing it to spin around and wobble back and forth.")
 (pie-comprehend "Nevertheless, it seems to me that our collective failure to tackle climate change is not just due to political deadlock or insufficient knowledge.")
 (pie-comprehend "There is no doubt whatsoever that the planet is warming, and it is primarily due to increased carbon dioxide in the atmosphere from burning of fossil fuels.")

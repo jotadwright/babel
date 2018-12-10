@@ -266,7 +266,7 @@
                (syn-cat (phrase-type vp))
                (syn-valence (subject ?subject))
                --
-               ;TODO no way to look for verbal phrase features in spacy output?
+               ;TODO no way to look for verbal phrase features in spacy output? MAYBE VIA SUBJ???
                )
               (?due-unit
                (HASH meaning ((frame causation due-to ?frame)
@@ -502,4 +502,45 @@
                (dependency (edge pobj))))
              :cxn-set unhashed
              :description "Example sentence: X1 of X2(pobj) due to Y(pobj)")
+
+(def-fcg-cxn predicative-adj-due-to-Y
+             ((?due-unit
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (args (?frame ?cause ?effect)))
+              <-
+              (?due-unit
+               (HASH meaning ((frame causation due-to ?frame)
+                              (slot cause ?frame ?cause)
+                              (slot effect ?frame ?effect)))
+               --
+               (head ?adj)
+               (form ((string ?due-unit "due")))
+               (dependency (edge prep)))
+              (?adj
+               --
+               (head ?event-unit)
+               (dependency (pos-tag jj)
+                           (edge acomp)))
+              (?event-unit
+               (syn-cat (phrase-type vp))
+               (syn-valence (subject ?subject))
+               (referent ?effect)
+               --
+               )
+              (?subject
+               --
+               (head ?event-unit)
+               (dependency (edge nsubj)))
+              (?to-unit
+               --
+               (head ?due-unit)
+               (dependency (pos-tag in)))
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?due-unit)
+               (dependency (edge pobj))))
+             :cxn-set unhashed
+             :description "Example sentence: a is b(adj) due to Y")
 

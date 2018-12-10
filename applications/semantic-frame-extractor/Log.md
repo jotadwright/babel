@@ -17,6 +17,9 @@ For grammar engineering and general evaluation purposes, the annotations are div
 
 ## Incremental evaluation results for sentences with "due to"
 
+#### 2018-12-10
+Adding the <span style="font-variant:small-caps;">predicative-adj-due-to-Y</span> cxn results in one more correct sentence. 
+
 #### 2018-12-09
 Reverting back to the original rendering function, which theoretically allows for discontinuous frame elements to be rendered. Made possible via a small adaptation, rendering now happens via unit boundaries and not the 'bag of words' approach. This change decreases correctness to 42 slot fillers and 9 correctly parsed sentences, as the new rendering technique sometimes catches too many units. Thus a more fine-grained evaluation technique would help, accounting for the correct substrings.
 
