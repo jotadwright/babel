@@ -7,7 +7,8 @@
 
 (export '(agent
           discourse-role utterance
-          communicated-successfully))
+          communicated-successfully
+          speakerp hearerp))
 
 (defclass agent (configuration blackboard)
   ((experiment :initarg :experiment :accessor experiment :initform nil
@@ -28,6 +29,21 @@
     :documentation "Whether the agent experienced success."
     :initform nil :accessor communicated-successfully))
   (:documentation "Base class for all agents"))
+
+;; ----------------------------------------------------------------------------
+;; speakerp and hearerp
+
+(defgeneric speakerp (agent)
+  (:documentation "Predicate to check if the agent is the speaker"))
+
+(defmethod speakerp ((agent agent))
+  (eql (discourse-role agent) 'speaker))
+
+(defgeneric hearerp (agent)
+  (:documentation "Predicate to check if the agent is the hearer"))
+
+(defmethod hearerp ((agent agent))
+  (eql (discourse-role agent) 'hearer))
 
 ;; ----------------------------------------------------------------------------
 ;; get-configuration

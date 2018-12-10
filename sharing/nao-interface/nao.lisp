@@ -51,7 +51,7 @@
                 :documentation "Host of the nao server")
    (server-port :initarg :server-port :type string :accessor server-port :initform ""
                 :documentation "Port to which the nao server should listen")
-   (container-name :initarg :container-name :type string :accessor container-name :initform nil
+   (container-name :initarg :container-name :type string :accessor container-name :initform ""
                    :documentation "Name of the Docker container of this Nao"))
   (:documentation "Nao robot class"))
 
