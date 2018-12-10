@@ -17,6 +17,12 @@ For grammar engineering and general evaluation purposes, the annotations are div
 
 ## Incremental evaluation results for sentences with "due to"
 
+#### 2018-12-09
+Reverting back to the original rendering function, which theoretically allows for discontinuous frame elements to be rendered. Made possible via a small adaptation, rendering now happens via unit boundaries and not the 'bag of words' approach. This change decreases correctness to 42 slot fillers and 9 correctly parsed sentences, as the new rendering technique sometimes catches too many units. Thus a more fine-grained evaluation technique would help, accounting for the correct substrings.
+
+#### 2018-12-06
+Improving the annotations yields one more correctly parsed sentence.
+
 #### 2018-12-02
 Trying to render discontinuous frame slot fillers now poses a problem. Tweaking the rendering function to only render until a unit whose referent is another frame slot filler is found, prevents this error and results in 2 more correct sentences, thus 10 out of 19 sentences are parsed correctly and 44 out of 57 slot fillers are found. Still, whenever the target slot filler appears after another filler, it cannot be rendered. Thus the effect-slot in sentence "Indeed, due to the rise of the freezing line, the snow-rain limit is moving to a higher elevation." cannot be found.
 

@@ -27,7 +27,7 @@
 
 (defun clean-slot-filler (frame-elem)
   "Cleans up the slot filler of given frame element by downcasing and replacing punctuation."
-  (downcase (cl-ppcre:regex-replace-all "  " (cl-ppcre:regex-replace-all "[0-9]|'" (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "[,|\.|\"|:]" (cdr frame-elem) "") " ") #'(lambda (match &rest registers) (format nil " ~A" match)) :simple-calls t) " ")))
+  (downcase (string-trim " " (cl-ppcre:regex-replace-all "  " (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "\ -\ " (cl-ppcre:regex-replace-all "[0-9]|['|,|:|\"|\.]" (cdr frame-elem) "") " ") " ") " "))))
 
 (defun frame-similarity (this-frame other-frame)
   "Returns similarity between given frames via string matching."

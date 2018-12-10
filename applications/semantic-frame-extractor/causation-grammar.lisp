@@ -264,7 +264,7 @@
               (?event-unit
                (referent ?effect)
                (syn-cat (phrase-type vp))
-               (syn-valence (subject ?a-subject-unit))
+               (syn-valence (subject ?subject))
                --
                ;TODO no way to look for verbal phrase features in spacy output?
                )
@@ -297,7 +297,7 @@
               (?event-unit
                (referent ?effect)
                (syn-cat (phrase-type vp))
-               (syn-valence (subject ?a-subject-unit))
+               (syn-valence (subject ?subject))
                --
                )
               (?due-unit
