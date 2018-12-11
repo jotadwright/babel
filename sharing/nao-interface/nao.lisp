@@ -151,9 +151,12 @@
   (let ((json-data (encode-json-to-string data))
         (uri (format nil "http://~a:~a~a"
                      (server-host nao) (server-port nao) route)))
-    (with-open-stream (stream (http-request uri :method :post :content json-data
-                                            :want-stream t :connection-timeout nil
-                                            :read-timeout nil :write-timeout nil))
+    (with-open-stream
+        #+LISPWORKS (stream (http-request uri :method :post :content json-data
+                                          :want-stream t :connection-timeout nil
+                                          :read-timeout nil :write-timeout nil))
+        #+CCL (stream (http-request uri :method :post :content json-data
+                                    :want-stream t :deadline (+ (get-universal-time) 1000000)))
       (decode-json-from-string (read-line stream)))))
            
 
