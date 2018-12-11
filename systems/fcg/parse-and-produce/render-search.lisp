@@ -108,6 +108,9 @@
           finally (return solution))))
 
 (defun filter-by-string-constraints (ordering-constraints string-constraints)
+  "Returns only those ordering constraints of which the units occur in
+string constraints. E.g. discards (meets ?X ?Y), where there is no
+string constraint with the variable ?Y."
   (loop for oc in ordering-constraints
         unless (loop for unit in (rest oc)
                      unless (find unit string-constraints :key #'second :test #'equal)
