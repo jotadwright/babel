@@ -379,16 +379,31 @@
 ;; ----------------
 
 (defun prompt ()
-  ;; !!! This will only work in LispWorks
-  (capi:prompt-for-string "Please enter an utterance:"))
+  #+LISPWORKS (capi:prompt-for-string "Please enter an utterance:")
+  #+CCL (ccl:get-string-from-user "Please enter an utterance:"))
 
 (defun prompt-correct-speech-input (utterance)
-  (multiple-value-bind (res success) (capi:prompt-for-confirmation (format nil "Did you say ~a?" utterance))
-    (if success
-      (if res
-        utterance
-        (capi:prompt-for-string "Please enter an utterance:"))
-      (prompt-correct-speech-input utterance))))
+  #+LISPWORKS (multiple-value-bind (res success) (capi:prompt-for-confirmation (format nil "Did you say ~a?" utterance))
+                (if success
+                  (if res
+                    utterance
+                    (capi:prompt-for-string "Please enter an utterance:"))
+                  (prompt-correct-speech-input utterance)))
+  #+CCL (let ((response (ccl:get-string-from-user (format nil "Did you say ~a? (y/n)" utterance))))
+          (cond
+           ((or (string= response "y")
+                (string= response "Y")
+                (string= response "yes")
+                (string= response "YES")
+                (string= response "Yes")) utterance)
+           ((or (string= response "n")
+                (string= response "N")
+                (string= response "no")
+                (string= response "NO")
+                (string= response "No")) (ccl:get-string-from-user "Please enter an utterance:"))
+           (t
+            (format t "Invalid answer. Please reply with 'y' or 'n'~%")
+            (prompt-correct-speech-input utterance)))))
 
 (define-event speech-input-finished (utterance string))
 
@@ -419,7 +434,7 @@
                             (:en (speak agent "I did not understand. Could you repeat please?"))
                             (:nl (speak agent "Dat heb ik niet begrepen. Kan je dat herhalen alsjeblief?" :speed 75)))
                        finally
-                       do (setf utterance this-utterance))
+                       (setf utterance this-utterance))
                  (setf utterance (prompt-correct-speech-input utterance))))
       (:text (loop while (null utterance)
                    for input-utterance = (list (prompt))
