@@ -35,6 +35,7 @@
     :components ((:file "parse-and-produce")
                  (:file "create-initial-structure")
                  (:file "render")
+                 (:file "render-search")
                  (:file "de-render")))
    (:file "legacy-functions-fcg-2")
    (:module construction-inventory-processor

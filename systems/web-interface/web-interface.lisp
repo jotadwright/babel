@@ -89,8 +89,7 @@
 ;; to your init-babel-user.lisp, http://my-machine:8000/
 (defvar *address* (if (boundp 'cl-user::*web-server-host-address*)
                     (eval 'cl-user::*web-server-host-address*)
-                    #+:windows "127.0.0.1" ;; on windows localhost doesn't seem to resolve to 127.0.0.1
-                    #-:windows "localhost" 
+                    "127.0.0.1" 
                     ))
 
 ;; address and port
