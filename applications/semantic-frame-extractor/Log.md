@@ -17,6 +17,9 @@ For grammar engineering and general evaluation purposes, the annotations are div
 
 ## Incremental evaluation results for sentences with "due to"
 
+#### 2018-12-11
+Via substring-matching in the evaluation, it is now possible to calculate the ratio of correct characters per frame slot filler. The current average correctness of the training set lies at 82.38% correct characters per slot filler. This metric allows to assign a correctness of 95.96% to sentences, such as "Indeed, due to the rise of the freezing line, the snow-rain limit is moving to a higher elevation.", in which all but one of the slot fillers are correctly extracted, with the latter additionally containing some superfluous words. Naive string-matching would assign these sentences a correctness of only 67%, ignoring the correct slot filler parts.
+
 #### 2018-12-10
 Adding the <span style="font-variant:small-caps;">predicative-adj-due-to-Y</span> cxn results in one more correct sentence. 
 
@@ -37,10 +40,16 @@ For sentences containing "X is due to Y", where X is an NP, three slightly diffe
 
 ## Test set result for sentences with "cause"
 
+#### 2018-12-11
+The more fine-grained evaluation results in 92.44% correct characters per frame slot filler.
+
 #### 2018-11-24
 Parsing the unknown test set sentences, containing "cause" as frame-evoking-element, results in 14 out of 20 correctly parsed sentences and 54 out of 60 correct slot fillers. 🎉
 
 ## Incremental evaluation results for sentences with "cause"
+
+#### 2018-12-11
+The more fine-grained evaluation results in 92.97% correct characters per frame slot filler.
 
 #### 2018-11-24
 Making the passive transitive modular as well, catches one more correct slot filler.

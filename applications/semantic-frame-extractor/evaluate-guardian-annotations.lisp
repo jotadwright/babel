@@ -27,12 +27,32 @@
 
 (defun clean-slot-filler (frame-elem)
   "Cleans up the slot filler of given frame element by downcasing and replacing punctuation."
-  (downcase (string-trim " " (cl-ppcre:regex-replace-all "  " (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "\ -\ " (cl-ppcre:regex-replace-all "[0-9]|['|,|:|\"|\.]" (cdr frame-elem) "") " ") " ") " "))))
+  (downcase (string-trim " ." (cl-ppcre:regex-replace-all "\\s+" (cl-ppcre:regex-replace-all "[0-9]+|'|%" (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "[,|\.|\"|:]" (cdr frame-elem) "") " ") #'(lambda (match &rest registers) (format nil " ~A" match)) :simple-calls t) " "))))
 
-(defun frame-similarity (this-frame other-frame)
+(defun coarse-frame-similarity (this-frame other-frame)
   "Returns similarity between given frames via string matching."
   (length
     (intersection this-frame other-frame :key #'clean-slot-filler :test #'string=)))
+
+(defun substring-frame-similarity (this-frame other-frame)
+  "Checks for matching substrings and returns similarity between given frames in correct characters per total characters."
+  (let* ((this-count (length this-frame))
+         (other-count (length other-frame))
+         (this-padded (concatenate 'list this-frame (make-list (max 0 (- other-count this-count)) :initial-element nil)))
+         (other-padded (concatenate 'list other-frame (make-list (max 0 (- this-count other-count)) :initial-element nil)))
+         (similarities (loop for this-slot-filler in this-padded
+                            for other-slot-filler in other-padded
+                            for this = (clean-slot-filler this-slot-filler)
+                            for other = (clean-slot-filler other-slot-filler)
+                            if (or (search this other)
+                                   (search other this))
+                            collect (/ (min (length this) (length other))
+                                       (max (length this) (length other)))
+                            else
+                            collect 0)))
+    (if similarities
+      (/ (reduce #'+ similarities) (list-length similarities))
+      0)))
 
 (defun frame-slots (this-frame other-frame)
   "Returns number of different frame slots in given frames."
@@ -64,7 +84,7 @@
                 (all-permutations other-padded))
                #'> :key
                (lambda (e)
-                   (reduce #'+ (mapcar (lambda (pair) (frame-similarity (car pair) (cdr pair))) e)))))))
+                   (reduce #'+ (mapcar (lambda (pair) (coarse-frame-similarity (car pair) (cdr pair))) e)))))))
 
 (defun evaluate-sentence (sentence-structure)
   "Assigns the number of correct frames and frame-slot-fillers to each given sentence-output."
@@ -73,11 +93,18 @@
          (alignment (bruteforce-alignment frames annotated))
          (frame-similarity
           (mapcar (lambda (pair)
-                    (list (frame-similarity (car pair) (cdr pair))
+                    (list (coarse-frame-similarity (car pair) (cdr pair))
                           (frame-slots (car pair) (cdr pair))))
+                  alignment))
+         (char-similarity
+          (mapcar (lambda (pair)
+                    (substring-frame-similarity (car pair) (cdr pair)))
                   alignment)))
     (append sentence-structure
             (list
+             (cons
+              :char-similarity
+              char-similarity)
              (cons
               :frame-similarity
               frame-similarity)
@@ -96,6 +123,11 @@
          (remove-if-not (lambda (slot-sim) (equal (first slot-sim) (second slot-sim))) sentences :key (lambda (sent) (cdr (assoc :slot-similarity sent)))))
         (length sentences)))
 
+(defun overall-char-similarity (sentences)
+  "Calculates the overall, average character similarity in correct chars per frame slot filler."
+  (/ (loop for sent in sentences
+        sum (second (assoc :char-similarity sent))) (list-length sentences)))
+
 (defun evaluate-grammar-output-for-evoking-elem (evoking-elems)
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
    Writes resulting output, annotations and correctness into json-file.
@@ -110,17 +142,19 @@
                                     parsing-with-annotations))
          (print-result (mapcar #'evaluate-sentence filtered-parsings))
          (total-correct-sentences (total-correct-sentences print-result))
-         (total-slot-similarity (total-slot-similarity print-result)))
+         (total-slot-similarity (total-slot-similarity print-result))
+         (overall-char-similarity (format nil "~$% correct characters per slot" (* 100 (overall-char-similarity print-result)))))
     (spit-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output-with-annotations" :type "json")
                print-result)
     (loop for parsing in print-result
           for result = (cdr (assoc :slot-similarity parsing))
           when (not (equal (first result) (second result)))
           do (format t "~s: ~s~%~%" (cdr (assoc :sentence parsing)) result)
-          finally (format t "~s ~s~%~%~%" total-slot-similarity total-correct-sentences))
+          finally (format t "~s ~s ~s~%~%~%" total-slot-similarity total-correct-sentences overall-char-similarity))
           (values
            total-slot-similarity
-           total-correct-sentences)))
+           total-correct-sentences
+           overall-char-similarity)))
 
 (defun spit-json (path-name output-list)
   "Encodes given alist into json and writes resulting json-objects into file of given name."
