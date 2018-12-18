@@ -34,7 +34,7 @@
      (:details . ,(apply #'format nil (simple-condition-format-control condition)
                          (simple-condition-format-arguments condition))))))
 
-(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'semantic-frame-extractor/api/extract-frames)))
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'api/extract-frames)))
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
                     (snooze:payload-as-string))
@@ -58,7 +58,7 @@
        `((:frame-set . ,(loop for frame in (pie::entities frame-set)
                            collect frame)))))))
 
-(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'semantic-frame-extractor/api/texts-extract-frames)))
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'api/texts-extract-frames)))
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
                     (snooze:payload-as-string))
