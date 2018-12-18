@@ -34,7 +34,7 @@
      (:details . ,(apply #'format nil (simple-condition-format-control condition)
                          (simple-condition-format-arguments condition))))))
 
-(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'api/extract-frames)))
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'extract-frames)))
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
                     (snooze:payload-as-string))
@@ -58,7 +58,7 @@
        `((:frame-set . ,(loop for frame in (pie::entities frame-set)
                            collect frame)))))))
 
-(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'api/texts-extract-frames)))
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'texts-extract-frames)))
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
                     (snooze:payload-as-string))
@@ -89,11 +89,11 @@
     
           
 
-;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.", "frames" : ["Causation"]}' http://localhost:9003/semantic-frame-extractor/extract-frames
+;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.", "frames" : ["Causation"]}' http://localhost:9004/semantic-frame-extractor/extract-frames
 ;; {"frameSet":[{"id":"causationFrame4","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame8","frameEvokingElement":"cause","cause":"the company","effect":"damage to their own clothes","actor":null,"affected":null},]}
 
 
 
-;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that.", "This is a sentence. This causes that."], "frames" : ["Causation"]}' http://localhost:9003/semantic-frame-extractor/texts-extract-frames
+;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that.", "This is a sentence. This causes that."], "frames" : ["Causation"]}' http://localhost:9004/semantic-frame-extractor/texts-extract-frames
 ;; {"frameSets":[[[{"id":"causationFrame15","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame30","frameEvokingElement":"cause","cause":"they","effect":"damage to their own clothes","actor":null,"affected":null}],[{"id":"causationFrame16","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]],[[{"id":"causationFrame17","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]]]}
 
