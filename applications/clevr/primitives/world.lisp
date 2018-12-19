@@ -113,20 +113,7 @@
   (permutation-of? (objects set1) (objects set2) :test #'equal-entity))
 
 (defmethod find-entity-by-id ((set clevr-object-set) (id symbol))
-  (find id (objects set) :key #'id))
-
-;; QUESTION
-(defclass clevr-question (entity)
-  ((question :type string :initarg :question :initform "" :accessor question)
-   (image-index :type (or null number) :initarg :image-index :accessor image-index :initform nil)
-   (image-filename :type (or nill string) :initarg :image-filename :accessor image-filename :initform nil)
-   (answer :initarg :answer :initform nil :accessor answer)
-   (program-length :initarg :program-length :initform 0 :type number :accessor program-length))
-  (:documentation "A question from the clevr dataset"))
-
-(defmethod initialize-instance :around ((q clevr-question) &rest initargs &key id)
-  (apply #'call-next-method q :id (or id (make-id 'question)) initargs))
-  
+  (find id (objects set) :key #'id))  
 
 ;; READING OBJECTS FROM FILE
 (defun json-key->symbol (json-object key)
@@ -186,14 +173,52 @@
                    (stream->list stream)))))
     (mapcar #'process-json-context contexts)))
 
+;; QUESTION
+(defclass clevr-question (entity)
+  ((question-index
+    :documentation "An index for the question"
+    :type number :initarg :question-index :initform 0 :accessor question-index)
+   (question
+    :documentation "The actual question string"
+    :type string :initarg :question :initform "" :accessor question)
+   (image-index
+    :documentation "The image index this question belongs to"
+    :type (or null number) :initarg :image-index :accessor image-index :initform nil)
+   (image-filename
+    :documentation "The image filename this question belongs to"
+    :type (or nill string) :initarg :image-filename :accessor image-filename :initform nil)
+   (answer
+    :documentation "The correct answer to the question"
+    :initarg :answer :initform nil :accessor answer)
+   (program
+    :documentation "The alist notation of the functional program"
+    :initarg :program :initform nil :type list :accessor program)
+   (dataset-split
+    :documentation "The dataset split this question belongs to"
+    :initarg :dataset-split :initform nil :type (or null string) :accessor dataset-split)
+   (template-filename
+    :documentation "The filename of the question template"
+    :initarg :template-filename :initform nil :type (or null string) :accessor template-filename)
+   (question-family-index
+    :documentation "The index of the question family; depends on template file"
+    :initarg :question-family-index :initform 0 :type number :accessor question-family-index))
+  (:documentation "A question from the clevr dataset"))
+
+(defmethod initialize-instance :around ((q clevr-question) &rest initargs &key id)
+  (apply #'call-next-method q :id (or id (make-id 'question)) initargs))
+
 ;; READ QUESTIONS FROM FILE
 (defun process-json-question (json-question)
   (make-instance 'clevr-question
+                 :question-index (rest (assoc :question--index json-question))
                  :question (downcase (rest (assoc :question json-question)))
                  :image-index (rest (assoc :image--index json-question))
                  :image-filename (rest (assoc :image--filename json-question))
                  :answer (rest (assoc :answer json-question))
-                 :program-length (length (rest (assoc :program json-question)))))
+                 :program (rest (assoc :program json-question))
+                 :dataset-split (rest (assoc :split json-question))
+                 :template-filename (rest (assoc :template--filename json-question))
+                 :question-family-index (rest (assoc :question--family--index json-question))))
   
 (defun read-questions-from-file (questions-file)
   "Read the clevr questions from a file. This functions expects a file
@@ -259,10 +284,10 @@
                  :objects (mapcar #'copy-object (objects obj-set))))
 
 (defmethod copy-object ((q clevr-question))
-  (make-instance 'clevr-question
-                 :id (id q)
-                 :question (question q)
-                 :image-index (image-index q)
-                 :image-filename (image-filename q)
-                 :answer (answer q)))
+  (make-instance 'clevr-question :id (id q)
+                 :question-index (question-index q) :question (question q)
+                 :image-index (image-index q) :image-filename (image-filename q)
+                 :answer (answer q) :program (program q) :dataset-split (dataset-split q)
+                 :template-filename (template-filename q)
+                 :question-family-index (question-family-index q)))
                  
