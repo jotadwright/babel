@@ -37,6 +37,7 @@
 (format t "~&~%* Initializing BABEL.")
 (format t "~%  The BABEL path is: ~a" (directory-namestring *babel-path*))
 
+#+ccl(ql:quickload :cl-ppcre)
 
 ;; put's the feature :hunchentoot-available-on-this-platform on
 ;; *features* except in some cases
