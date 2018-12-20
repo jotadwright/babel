@@ -37,8 +37,6 @@
 (format t "~&~%* Initializing BABEL.")
 (format t "~%  The BABEL path is: ~a" (directory-namestring *babel-path*))
 
-#+ccl(ql:quickload :cl-ppcre)
-
 ;; put's the feature :hunchentoot-available-on-this-platform on
 ;; *features* except in some cases
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -71,8 +69,6 @@
 
 (asdf:operate 'asdf:load-op :test-framework :verbose nil)
 
-
-
 ;; ccl by default creates a thread with a copy of the global random
 ;; state and gensym counter for every evaluation from an Emacs
 ;; buffer. At the beginning of every swank thread, the code below
@@ -97,3 +93,6 @@
 (let ((init-babel-user (babel-pathname :name "init-babel-user" :type "lisp")))
   (when (probe-file init-babel-user)
     (load init-babel-user)))
+
+
+
