@@ -4,7 +4,7 @@
 
 (defsystem :utils
   :description "Basic utilities"
-  :depends-on (:split-sequence :closer-mop :s-dot :cl-who :test-framework)
+  :depends-on (:split-sequence :cl-ppcre :closer-mop :s-dot :cl-who :test-framework)
   :components 
   ((:file "package")
    (:file "pop" :depends-on ("package"))
