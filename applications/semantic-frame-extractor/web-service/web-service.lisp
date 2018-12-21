@@ -87,14 +87,6 @@
       (encode-json-alist-to-string
        `((:frame-sets . ,text-frame-sets))))))
 
-;;overwriting method from snooze package because it contains a bug:
-(in-package #:snooze)
-
-(defmethod backend-payload ((backend (eql :hunchentoot)) (type snooze-types:text))
-  (let ((probe (apply (read-from-string "hunchentoot:raw-post-data") '(:force-text t))))
-    (assert (stringp probe) nil "Asked for a string, but request carries a ~a" (type-of probe))
-    probe))
-
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.", "frames" : ["Causation"]}' http://localhost:9004/semantic-frame-extractor/extract-frames
 ;; {"frameSet":[{"id":"causationFrame4","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame8","frameEvokingElement":"cause","cause":"the company","effect":"damage to their own clothes","actor":null,"affected":null},]}
