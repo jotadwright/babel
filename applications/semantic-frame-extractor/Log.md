@@ -2,7 +2,7 @@
 
 ## Causation-frame annotations
 #### 12.10.2018
-In total, 150 Guardian article sentences are annotated with their corresponding causation-frames. Frames consist of three slots, a *frame-evoking-element* (currently only "cause"), a *cause* and an *effect*. Following [framenet's definition of causation](https://framenet2.icsi.berkeley.edu/fnReports/data/frameIndex.xml?frame=Causation), each sentence contains at least one of the following *frame-evoking-elements*:
+In total, 174 Guardian article sentences are annotated with their corresponding causation-frames. Frames consist of three slots, a *frame-evoking-element* (currently only "cause"), a *cause* and an *effect*. Following [framenet's definition of causation](https://framenet2.icsi.berkeley.edu/fnReports/data/frameIndex.xml?frame=Causation), each sentence contains at least one of the following *frame-evoking-elements*:
 * cause.v
 * because of.prep
 * because.c
@@ -13,9 +13,12 @@ In total, 150 Guardian article sentences are annotated with their corresponding 
 
 At the moment, pronominal resolutions are not taken into consideration and negations are not treated specially.
 
-For grammar engineering and general evaluation purposes, the annotations are divided into a training set (`100-causation-frame-annotations.json`) and a test set (`50-causation-frame-annotations.json`).
+For grammar engineering and general evaluation purposes, the annotations are divided into a training set (`111-causation-frame-annotations.json`) and a test set (`63-causation-frame-annotations.json`).
 
 ## Incremental evaluation results for sentences with "due to"
+
+#### 2018-12-28
+Parsing the new training set sentences (a total of 30 now) results in 65 out of 90 correct slot fillers, 15 out of 30 completely correct sentences and 79.59% correct characters per slot filler.
 
 #### 2018-12-11
 Via substring-matching in the evaluation, it is now possible to calculate the ratio of correct characters per frame slot filler. The current average correctness of the training set lies at 82.38% correct characters per slot filler. This metric allows to assign a correctness of 95.96% to sentences, such as "Indeed, due to the rise of the freezing line, the snow-rain limit is moving to a higher elevation.", in which all but one of the slot fillers are correctly extracted, with the latter additionally containing some superfluous words. Naive string-matching would assign these sentences a correctness of only 67%, ignoring the correct slot filler parts.

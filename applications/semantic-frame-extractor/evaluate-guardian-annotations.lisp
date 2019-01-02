@@ -133,7 +133,7 @@
    Writes resulting output, annotations and correctness into json-file.
    Returns the total number of frame-slots and the number of correct slot-fillers as well as the number of correctly parsed sentences."
   (let* ((path-to-parse-results (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output" :type "json"))
-         (path-to-annotations (babel-pathname :directory '(:up "Corpora" "Guardian") :name "100-causation-frame-annotations" :type "json"))
+         (path-to-annotations (babel-pathname :directory '(:up "Corpora" "Guardian") :name "111-causation-frame-annotations" :type "json"))
          (parsing-with-annotations (load-parsings-with-annotations path-to-parse-results path-to-annotations))
          (filtered-parsings (mapcar (lambda (s)
                                       (filter-frames (lambda (s)

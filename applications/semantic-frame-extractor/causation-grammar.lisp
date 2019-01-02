@@ -265,9 +265,7 @@
                (referent ?effect)
                (syn-cat (phrase-type vp))
                (syn-valence (subject ?subject))
-               --
-               ;TODO no way to look for verbal phrase features in spacy output? MAYBE VIA SUBJ???
-               )
+               --)
               (?due-unit
                (HASH meaning ((frame causation due-to ?frame)
                               (slot cause ?frame ?cause)
