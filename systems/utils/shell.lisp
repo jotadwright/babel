@@ -16,7 +16,7 @@
 
 (export '(run-prog pipe-through pipe-input pipe-output close-pipe with-open-pipe
           exec-and-print exec-and-return open-file-in-OS copy-file
-          program-installed-p number-of-lines who-am-i))
+          program-installed-p number-of-lines who-am-i read-random-line))
 
 
 ;;; helper function on gcl
@@ -227,6 +227,14 @@ Useful for re-using the &REST arg after removing some options."
 (defun who-am-i ()
   "Returns the username of the system"
   (first (exec-and-return "whoami")))
+
+(defun read-random-line (file)
+  "Returns a random line from a file using perl
+   and avoids reading the entire file into memory!"
+  (first (exec-and-return "perl"
+                          "-e"
+                          "'srand; rand($.) < 1 && ($line = $_) while <>; print $line;'"
+                          (namestring file))))
 
 
 
