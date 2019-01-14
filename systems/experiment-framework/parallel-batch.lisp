@@ -141,9 +141,11 @@
         for commands = (list
                         "(setf cl-user::*automatically-start-web-interface* nil)"
                         "(setf test-framework::*dont-run-tests-when-loading-asdf-systems* t)"
-                        "(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
+                        "(ql:quickload :experiment-framework)"
+                        ;;"(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
                         ;; somehow this has to run twice for lispworks
-                        #+lispworks"(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
+                        #+lispworks"(ql:quickload :experiment-framework)"
+                        ;;#+lispworks"(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
                         (mkstr 
                          "(experiment-framework::parallel-batch-run-client-process"
                          " :asdf-system :" asdf-system 
@@ -261,7 +263,8 @@
         #+lispworks (make-random-state))
 
   ;; load the requested asdf system
-  (asdf:operate 'asdf:load-op asdf-system :verbose nil)
+  (ql:quickload asdf-system)
+  ;(asdf:operate 'asdf:load-op asdf-system :verbose nil)
 
   ;; set the package
   (setf *package* (find-package (read-from-string package)))
@@ -315,7 +318,8 @@
       (force-output t)
       (with-open-file (stream file-name :direction :output :if-exists nil)
         (unless stream (error "could not open ~s" file-name))
-        (write recorded-data :stream stream))
+        (write recorded-data :stream stream)
+        (finish-output stream))
       
       ;; When requested, then the configuration of the experiment is
       ;; written to a file
@@ -327,7 +331,9 @@
                                                 :type "lisp"))
                 experiment-class)))
           (with-open-file (stream file-name :direction :output :if-exists :supersede)
-            (pprint (entries experiment)) stream)
+            (pprint (entries experiment))
+            (finish-output stream)
+            stream)
           (format t "~%.. created ~a.~%" file-name)))
       
       (format t ".. finished.~%")
@@ -350,7 +356,9 @@
   
   ;; load the asdf system
   (let ((test-framework::*dont-run-tests-when-loading-asdf-systems* t))
-    (asdf:operate 'asdf:load-op asdf-system))
+    (ql:quickload asdf-system)
+    ;(asdf:operate 'asdf:load-op asdf-system
+    )
 
   ;; activate the monitors
   (monitors:deactivate-all-monitors)
@@ -466,7 +474,9 @@ name."
 
   ;; load the asdf system
   (let ((test-framework::*dont-run-tests-when-loading-asdf-systems* t))
-    (asdf:operate 'asdf:load-op asdf-system))
+    (ql:quickload asdf-system)
+    ;(asdf:operate 'asdf:load-op asdf-system)
+    )
 
   ;; create dummy monitors
   (let* ((original-data-recorders 
@@ -630,7 +640,9 @@ name."
      data-recorders bar-plot-parameter-lists)
   (assert (= (length data-recorders) (length bar-plot-parameter-lists)))
   (let ((test-framework::*dont-run-tests-when-loading-asdf-systems* t))
-    (asdf:operate 'asdf:load-op asdf-system))
+    (ql:quickload asdf-system)
+    ;(asdf:operate 'asdf:load-op asdf-system)
+    )
   
   (deactivate-all-monitors)
   (loop for data-recorder in data-recorders
@@ -727,7 +739,9 @@ name."
      (colors *great-gnuplot-colors*) graphic-type file-name)
   
   (let ((test-framework::*dont-run-tests-when-loading-asdf-systems* t))
-    (asdf:operate 'asdf:load-op asdf-system))
+    (ql:quickload asdf-system)
+    ;(asdf:operate 'asdf:load-op asdf-system)
+    )
   
   (loop for data-recorder in data-recorders
      for monitor = (monitors::get-monitor (read-from-string data-recorder))
