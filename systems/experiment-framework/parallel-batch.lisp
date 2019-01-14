@@ -141,11 +141,9 @@
         for commands = (list
                         "(setf cl-user::*automatically-start-web-interface* nil)"
                         "(setf test-framework::*dont-run-tests-when-loading-asdf-systems* t)"
-                        "(ql:quickload :experiment-framework)"
-                        ;;"(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
+                        "(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
                         ;; somehow this has to run twice for lispworks
-                        #+lispworks"(ql:quickload :experiment-framework)"
-                        ;;#+lispworks"(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
+                        #+lispworks"(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
                         (mkstr 
                          "(experiment-framework::parallel-batch-run-client-process"
                          " :asdf-system :" asdf-system 
@@ -316,7 +314,8 @@
                            (caar (slot-value monitor 'monitors::average-values)))))))
       (format t ".. writing recorded data to ~s.~%" file-name)
       (force-output t)
-      (with-open-file (stream file-name :direction :output :if-exists nil)
+      (ensure-directories-exist file-name)
+      (with-open-file (stream file-name :direction :output :if-exists :overwrite :if-does-not-exist :create)
         (unless stream (error "could not open ~s" file-name))
         (write recorded-data :stream stream)
         (finish-output stream))
