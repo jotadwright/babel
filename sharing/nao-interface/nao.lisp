@@ -155,6 +155,8 @@
         #+LISPWORKS (stream (http-request uri :method :post :content json-data
                                           :want-stream t :connection-timeout nil
                                           :read-timeout nil :write-timeout nil))
+        #+SBCL (stream (http-request uri :method :post :context json-data
+                                     :want-stream t :connection-timeout nil))
         #+CCL (stream (http-request uri :method :post :content json-data
                                     :want-stream t :deadline (+ (get-universal-time) 1000000)))
       (decode-json-from-string (read-line stream)))))
