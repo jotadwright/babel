@@ -26,11 +26,17 @@ class NaoMovement(object):
             print("Error was: ", e)
 
     def stiffness_on(self, proxy):
+        if not proxy.robotIsWakeUp():
+            proxy.wakeUp()
         # We use the "Body" name to signify the collection of all joints
-        pNames = "Body"
-        pStiffnessLists = 1.0
-        pTimeLists = 1.0
-        proxy.stiffnessInterpolation(pNames, pStiffnessLists, pTimeLists)
+        #pNames = "Body"
+        #pStiffnessLists = 1.0
+        #pTimeLists = 1.0
+        #proxy.stiffnessInterpolation(pNames, pStiffnessLists, pTimeLists)
+
+    def stiffness_off(self, proxy):
+        if proxy.robotIsWakeUp():
+            proxy.rest()
 
 
 class NaoPosture(NaoMovement):
@@ -175,15 +181,18 @@ class NaoHeadTouch(object):
         self.front_leds = "BrainLedsFront"
         self.middle_leds = "BrainLedsMiddle"
         self.back_leds = "BrainLedsBack"
+        self.brain_leds = "BrainLeds"
         self.delay = 0.5
 
     def all_leds_on(self):
-        for led in [self.front_leds, self.middle_leds, self.back_leds]:
-            self.ledProxy.on(led)
+        self.ledProxy.on(self.brain_leds)
+        #for led in [self.front_leds, self.middle_leds, self.back_leds]:
+        #    self.ledProxy.on(led)
 
     def all_leds_off(self):
-        for led in [self.front_leds, self.middle_leds, self.back_leds]:
-            self.ledProxy.off(led)
+        self.ledProxy.off(self.brain_leds)
+        #for led in [self.front_leds, self.middle_leds, self.back_leds]:
+        #    self.ledProxy.off(led)
 
     def front_or_back(self):
         self.all_leds_on()
@@ -235,10 +244,9 @@ class NaoSpeechRecognition(object):
             print("Error was: ", e)
 
         try:
-            autoMovesProxy = ALProxy("ALAutonomousMoves", ip, port)
-            autoMovesProxy.setExpressiveListeningEnabled(False)
+            self.ledProxy = ALProxy("ALLeds", ip, port)
         except Exception as e:
-            print("Could not create proxy to ALAutonomousMoves")
+            print("Could not create proxy to ALLeds")
             print("Error was: ", e)
 
     def start_speech_recognition(self, vocabulary=[]):
@@ -248,10 +256,12 @@ class NaoSpeechRecognition(object):
         self.asrProxy.setVocabulary(vocab, False)
         subscriber = "Nao_ASR_" + str(int(time.time()))
         self.asrProxy.subscribe(subscriber)
+        self.ledProxy.on("EarLeds")
         return subscriber
 
     def stop_speech_recognition(self, subscriber=""):
         ''' Stop the speech recognition, get the detected word(s) '''
         detected = self.memoryProxy.getData("WordRecognized")
         self.asrProxy.unsubscribe(str(subscriber))
+        self.ledProxy.off("EarLeds")
         return detected

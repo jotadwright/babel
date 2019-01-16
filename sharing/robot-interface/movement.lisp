@@ -41,25 +41,41 @@
   #+nao (nao-get-posture robot))
 
 ;;;; moving the head
-(defun look-up-down (robot value &key (unit :degrees))
-  "Move the head up or down. Default unit: degrees. Radians also possible."
-  #+nao (cond
-         ((eq unit :degrees)
-          (nao-set-joint robot :head :head-pitch :value (deg-to-rad value)))
-         ((eq unit :radians)
-          (nao-set-joint robot :head :head-pitch :value value))
-         (t
-          (error (format nil "~a is not a valid unit" unit)))))
+(defun look-up (robot degrees)
+  (assert (numberp degrees))
+  #+nao (unless (and (< degrees 38.5)
+                     (>= degrees 0))
+          (error "The robot cannot move its head ~a degrees backward.
+                  Please specify a number between 0 and 38.5"
+                 degrees))
+  #+nao (nao-set-joint robot :head :head-pitch :value (- (deg-to-rad degrees))))
 
-(defun look-left-right (robot value &key (unit :degrees))
-  " Move the head left or down. Default unit: degrees. Radians also possible. "
-  #+nao (cond
-         ((eq unit :degrees)
-          (nao-set-joint robot :head :head-yaw :value (deg-to-rad value)))
-         ((eq unit :radians)
-          (nao-set-joint robot :head :head-yaw :value value))
-         (t
-          (error (format nil "~a is not a valid unit" unit)))))
+(defun look-down (robot degrees)
+  (assert (numberp degrees))
+  #+nao (unless (and (< degrees 29.5)
+                     (>= degrees 0))
+          (error "The robot cannot move its head ~a degrees forward
+                  Please specify a number between 0 and 29.5"
+                 degrees))
+  #+nao (nao-set-joint robot :head :head-pitch :value (deg-to-rad degrees)))
+
+(defun look-left (robot degrees)
+  (assert (numberp degrees))
+  #+nao (unless (and (< degrees 119.5)
+                     (>= degrees 0))
+          (error "The robot cannot move its head ~a degrees to the left
+                  Please specify a number between 0 and 119.5"
+                 degrees))
+  #+nao (nao-set-joint robot :head :head-yaw :value (deg-to-rad degrees)))
+
+(defun look-right (robot degrees)
+  (assert (numberp degrees))
+  #+nao (unless (and (< degrees 119.5)
+                     (>= degrees 0))
+          (error "The robot cannot move its head ~a degrees to the right
+                  Please specify a number between 0 and 119.5"
+                 degrees))
+  #+nao (nao-set-joint robot :head :head-yaw :value (- (deg-to-rad degrees))))
 
 (defun say-yes (robot)
   " Say yes using the robot's head "

@@ -37,24 +37,3 @@
   (let ((response (nao-send-http nao "/speech/stop_recognition"
                                  :data `((subscriber . ,subscriber)))))
     (rest (assoc :recognised response))))
-
-#|
-(defmethod nao-speak ((nao nao) speech &key (speed 100))
-  (let* ((speech (if (not (= speed 100))
-                   (string-append (format nil "\\rspd=~a\\" speed) speech)
-                   speech))
-         (json (make-json 'speak :data `((speech . ,speech)))))
-    (nao-send-http nao json)))
-
-(defmethod nao-start-speech-rec ((nao nao) vocabulary)
-  (let* ((json (make-json 'speech-recognition :data `((action . "start")
-                                                      (vocabulary . ,vocabulary))))
-         (response (nao-send-http nao json)))
-    (get-response-key response :key :subscriber)))
-
-(defmethod nao-stop-speech-rec ((nao nao) subscriber)
-  (let* ((json (make-json 'speech-recognition :data `((action . "stop")
-                                                      (subscriber . ,subscriber))))
-         (response (nao-send-http nao json)))
-    (get-response-key response :key :detected)))
-|#

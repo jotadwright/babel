@@ -3,18 +3,6 @@
 
 (export '(nao-take-picture nao-analyze-scene))
 
-#|
-(defmethod nao-take-picture ((nao nao))
-  ;; (break "Please change the world and carry on.")
-  (sleep 0.5)
-  (nao-send-http nao (make-json 'vision :data '((action . "capture")))))
-
-(defmethod nao-analyze-scene ((nao nao) filename)
-  (sleep 1.0)
-  (nao-send-http nao (make-json 'vision :data `((action . "analyze")
-                                                (filename . ,filename)))))
-|#
-
 (defgeneric nao-take-picture (nao)
   (:documentation "Takes a picture on the Nao"))
 

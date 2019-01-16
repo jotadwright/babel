@@ -3,28 +3,6 @@
 
 (export '(nao-detect-touch nao-head-yes-no))
 
-#|
-(defmethod nao-detect-touch ((nao nao) (region (eql :head)) (sensor (eql :front)))
-  (let* ((json (make-json 'head-touch :data `((action . "detect") (region . "Front"))))
-         (response (nao-send-http nao json)))
-    (test-response-key response :key :touch :value 1 :test #'=)))
-
-(defmethod nao-detect-touch ((nao nao) (region (eql :head)) (sensor (eql :middle)))
-  (let* ((json (make-json 'head-touch :data `((action . "detect") (region . "Middle"))))
-         (response (nao-send-http nao json)))
-    (test-response-key response :key :touch :value 1 :test #'=)))
-
-(defmethod nao-detect-touch ((nao nao) (region (eql :head)) (sensor (eql :rear)))
-  (let* ((json (make-json 'head-touch :data `((action . "detect") (region . "Rear"))))
-         (response (nao-send-http nao json)))
-    (test-response-key response :key :touch :value 1 :test #'=)))
-
-(defmethod nao-head-yes-no ((nao nao))
-  (let* ((json (make-json 'head-touch :data '((action . "front-back"))))
-         (response (nao-send-http nao json)))
-    (test-response-key response :key :detected :value 1 :test #'=)))
-|#
-
 ;; + nao detect touch +
 
 (defgeneric nao-detect-touch (nao region sensor)
