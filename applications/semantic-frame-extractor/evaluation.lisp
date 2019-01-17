@@ -29,7 +29,8 @@
            ,article-id
            ("timeout" . t))
         
-          (when (pie::entities frame-set)
+          (when (and frame-set
+                     (pie::entities frame-set))
             (let ((cause (frame-extractor::cause (first (pie::entities frame-set)))) ;;what if there are more?
                   (effect (frame-extractor::effect (first (pie::entities frame-set)))))
               (when (and cause effect)
@@ -47,6 +48,7 @@
                        :function-kwargs (list :time-out time-out)
                        :input-file inputfile
                        :output-file outputfile
+                       :output-format :lines
                        :number-of-threads 8
                        :number-of-objects-per-thread 50))
 
