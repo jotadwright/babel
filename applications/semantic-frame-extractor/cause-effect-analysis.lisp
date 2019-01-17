@@ -31,15 +31,16 @@
 
     (values causes effects)))
 
-(defun list-to-set-wit-frequencies (list)
+(defun list-to-set-with-frequencies (list)
   (loop with set = nil
         for item in list
         if (assoc item set :test #'equalp)
         do (incf (cdr (assoc item set :test #'equalp)))
-        else do (push (cons item 1) set)
+        else do (unless (member item '("it" "that" "which" "they") :test #'equalp)
+                  (push (cons item 1) set))
         finally (return (sort set #'> :key #'cdr))))
 
-;(list-to-set-wit-frequencies *global-warming-causes*)
+;(list-to-set-with-frequencies *global-warming-causes*)
 
 (multiple-value-bind (causes effects)
     (build-hash-tables-for-causes-and-effects *extracted-frames*)
@@ -48,19 +49,42 @@
 
 (defun query-cause (given-effect &key (hash-table *effects*))
   "Query the cause for a given effect"
-  (list-to-set-wit-frequencies (gethash given-effect hash-table)))
+  (list-to-set-with-frequencies (gethash given-effect hash-table)))
 
 (defun query-effect (given-cause &key (hash-table *causes*))
   "Query the effect for a given cause"
-  (list-to-set-wit-frequencies (gethash given-cause hash-table)))
+  (list-to-set-with-frequencies (gethash given-cause hash-table)))
 
 (setf *global-warming-causes* (query-cause "global warming"))
 (setf *climate-change-effects* (query-effect "climate change"))
 (query-cause "rising sea levels" *effects*)
 (query-cause "extreme weather" *effects*)
 
-;;(defun build-causation-chain (given-cause &key (length 3) )
-;;  ""
+(defstruct chain-state
+  (chain)
+  (possible-continuations)
+  (continuation-function))
+
+(defun build-causation-chain (search-term &key (continuation-function #'query-effect) (length 10))
+  "Build a causation chain for a given search term."
   
-;;  (query-effect given-cause)
+  (let ((queue (list (make-chain-state
+                      :chain (list search-term)
+                      :continuation-function continuation-function
+                      :possible-continuations (funcall continuation-function search-term)))))
+    
+    (loop while queue
+          for state = (pop queue)
+          if (= (length (chain-state-chain state)) length)
+          return (chain-state-chain state)
+          else do (loop for (new-term . freq) in (sort (chain-state-possible-continuations state) #'< :key #'cdr)
+                          for new-state = (make-chain-state
+                                           :chain (append (chain-state-chain state) (list new-term))
+                                           :possible-continuations (funcall continuation-function new-term))
+                          do (push new-state queue))
+          finally (return (chain-state-chain state)))))
   
+;; (build-causation-chain "rising sea levels")
+;; 
+;; (build-causation-chain "global warming")
+

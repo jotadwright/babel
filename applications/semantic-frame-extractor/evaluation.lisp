@@ -56,5 +56,5 @@
                                                        :name "guardian-article-sentences-one-sentence-per-line"
                                                        :type "json")
                                        (babel-pathname :directory '(:up "Corpora" "Guardian")
-                                                       :name "guardian-causation-frames"
+                                                       :name "guardian-causation-frames-all"
                                                        :type "json"))
