@@ -136,7 +136,7 @@ of strings, each list corresponding to a noun chunk."
   (unless (stringp sentence)
     (error "The function <run-penelope-pos-tagger> expects a string as input"))
          (curl-json "/pos"
-                    (encode-json-to-string-for-shell `((:sentence . ,sentence)
+                    (encode-json-to-string-for-shell `((:sentence . ,(remove-multiple-spaces sentence))
                                                        (:model . ,model)))))
 
 ;; (run-penelope-pos-tagger "April is the fourt month of the year.")
@@ -198,7 +198,7 @@ of strings, each list corresponding to a named entity."
   (unless (stringp sentence)
     (error "The function <run-penelope-dependency-parser> expects a string as input"))
   (curl-json "/dependencies"
-             (encode-json-to-string-for-shell `((:sentence . ,sentence)
+             (encode-json-to-string-for-shell `((:sentence . ,(remove-multiple-spaces sentence))
                                                 (:model . ,model)))))
 
 ;;(run-penelope-dependency-parser "April is the fourth month of the year")

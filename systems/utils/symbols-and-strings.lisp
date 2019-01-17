@@ -356,4 +356,11 @@ string will consist solely of decimal digits and ASCII letters."
 
 ;;(hyphenize "the ocean")
 
+;; ############################################################################
 
+(export '(remove-multiple-spaces))
+
+(defun remove-multiple-spaces (string)
+  "Replaces multiple spaces by a single one."
+  (format nil "~{~a~^ ~}" (split-sequence:split-sequence #\Space string :remove-empty-subseqs t))
+  )
