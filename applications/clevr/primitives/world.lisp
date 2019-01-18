@@ -168,7 +168,6 @@
    where each line contains a json object of a context. If this is
    not the case, you can use json->lines in json-utils.lisp.
    Returns a list of 'clevr-object-set objects."
-  (warn "~%Reading contexts from file (~a)~%This could take some time..." (namestring contexts-file))
   (let ((contexts 
          (with-open-file (stream contexts-file :direction :input)
            (mapcar #'decode-json-from-string
@@ -227,7 +226,6 @@
    where each line contains a json object of a question. If this is
    not the case, you can use json->lines in json-utils.lisp.
    Returns a list of 'clevr-question objects."
-  (warn "~%Reading questions from file (~a)~%This could take some time..." (namestring questions-file))
   (let ((questions
          (with-open-file (stream questions-file :direction :input)
            (mapcar #'decode-json-from-string
