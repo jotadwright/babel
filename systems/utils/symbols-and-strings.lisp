@@ -360,7 +360,14 @@ string will consist solely of decimal digits and ASCII letters."
 
 (export '(remove-multiple-spaces))
 
-(defun remove-multiple-spaces (string)
-  "Replaces multiple spaces by a single one."
-  (format nil "~{~a~^ ~}" (split-sequence:split-sequence #\Space string :remove-empty-subseqs t))
-  )
+(defun remove-multiple-spaces (string &key (remove-newlines t))
+  "Replaces multiple spaces by a single one, including no-break-spaces."
+  (if remove-newlines
+      (let* ((string-without-newlines (format nil "~{~a~^ ~}"
+                                              (split-sequence:split-sequence #\Newline string :remove-empty-subseqs t)))
+             (string-without-no-break-spaces (format nil "~{~a~^ ~}"
+                                                     (split-sequence:split-sequence #\No-Break-Space string-without-newlines :remove-empty-subseqs t))))
+        (format nil "~{~a~^ ~}" (split-sequence:split-sequence #\Space string-without-no-break-spaces :remove-empty-subseqs t)))
+      (let ((string-without-no-break-spaces (format nil "~{~a~^ ~}"
+                                                    (split-sequence:split-sequence #\No-Break-Space string :remove-empty-subseqs t))))
+        (format nil "~{~a~^ ~}" (split-sequence:split-sequence #\Space string-without-no-break-spaces :remove-empty-subseqs t)))))
