@@ -34,13 +34,16 @@
 ;; client/inferior lisp 
 (defparameter *inferior-lisps* '((sbcl . ("sbcl" ("--noinform" "--disable-debugger")))
                                  (ccl . ("ccl" ("--batch" "--quiet")))
+                                 (lx86cl . ("lx86cl64" ("--batch" "--quiet")))
                                  (lispworks . ("lispworks" ())))
   "inferior lisps default command line options 
    format is command (arguments)")
 
 ;; default argument to run-client-process
-(defvar *inferior-lisp* (assqv #+sbcl 'sbcl #+ccl 'ccl #+lispworks 'lispworks
-                                     *inferior-lisps*)
+(defvar *inferior-lisp* (assqv #+sbcl 'sbcl
+                               #+ccl (if (program-installed-p "ccl") 'ccl 'lx86cl64)
+                               #+lispworks 'lispworks
+                               *inferior-lisps*)
   "the standard inferior lisp used in run-client-processes")
 
 (defun run-client-processes (&key asdf-system package experiment-class
