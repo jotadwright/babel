@@ -41,7 +41,7 @@
 
 ;; default argument to run-client-process
 (defvar *inferior-lisp* (assqv #+sbcl 'sbcl
-                               #+ccl (if (program-installed-p "ccl") 'ccl 'lx86cl64)
+                               #+ccl (if (program-installed-p "ccl") 'ccl 'lx86cl)
                                #+lispworks 'lispworks
                                *inferior-lisps*)
   "the standard inferior lisp used in run-client-processes")
