@@ -7,7 +7,7 @@
 ;; -----------------------------
 
 ;; Robot stuff
-(define-configuration-default-value :robot-ip "192.168.1.3")
+(define-configuration-default-value :robot-ip "192.168.1.4")
 (define-configuration-default-value :robot-port "7850")
 (define-configuration-default-value :robot-vocabulary '((:en "green" "yellow" "blue" "red" "grey" "black" "pink")
                                                         (:nl "groen" "geel" "blauw" "rood" "grijs" "zwart" "roze")))

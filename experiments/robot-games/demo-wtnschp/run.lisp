@@ -38,16 +38,17 @@
 
 
 ;; For setting up the robot
-(setf *robot* (make-robot :ip "192.168.1.3" :server-port "7850"))
+(setf *robot* (make-robot :ip "192.168.1.4" :server-port "7850"))
 
 (stand *robot*)
 (crouch *robot*)
 (sit *robot*)
 
 (take-picture *robot*)
-(observe-scene *robot*)
+(observe-scene *robot* :open t)
 
-(look-up-down *robot* 12)
+(look-up *robot* 12)
+(look-down *robot* 12)
 
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)
