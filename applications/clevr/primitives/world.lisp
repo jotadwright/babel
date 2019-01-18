@@ -85,7 +85,8 @@
     clevr-ontology))
 
 ;; GLOBAL VARIABLE *CLEVR-ONTOLOGY*
-(setf *clevr-ontology* (build-clevr-ontology))
+(export '(*clevr-ontology*))
+(defparameter *clevr-ontology* (build-clevr-ontology))
 
 ;; OBJECTS
 (defclass clevr-object (entity)
