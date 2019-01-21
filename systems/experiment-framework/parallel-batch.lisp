@@ -264,8 +264,7 @@
         #+lispworks (make-random-state))
 
   ;; load the requested asdf system
-  (ql:quickload asdf-system)
-  ;(asdf:operate 'asdf:load-op asdf-system :verbose nil)
+  (asdf:operate 'asdf:load-op asdf-system :verbose nil)
 
   ;; set the package
   (setf *package* (find-package (read-from-string package)))
