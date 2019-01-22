@@ -1,6 +1,6 @@
 (in-package :frame-extractor)
 
-;
+
 (defparameter *extracted-frames*
   (with-open-file (inputstream
                    (babel-pathname :directory '(:up "Corpora" "Guardian")
@@ -57,11 +57,11 @@
 
 (setf *global-warming-causes* (query-cause "global warming"))
 (setf *climate-change-effects* (query-effect "climate change"))
-(query-cause "rising sea levels" *effects*)
-(query-cause "extreme weather" *effects*)
+(query-cause "rising sea levels")
+(query-cause "extreme weather")
 
 (defstruct chain-state
-  (chain)
+   (chain)
   (possible-continuations)
   (continuation-function))
 
@@ -86,5 +86,5 @@
   
 ;; (build-causation-chain "rising sea levels")
 ;; 
-;; (build-causation-chain "global warming")
+;; (build-causation-chain "extreme weather")
 
