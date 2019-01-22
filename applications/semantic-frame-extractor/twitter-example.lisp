@@ -74,9 +74,10 @@
                                    :type "json")
                    :direction :output)
   (format outputstream "~a"
-          (encode-json-alist-to-string (loop for k being the hash-keys in *twitter-causes*
+          (encode-json-to-string (loop for k being the hash-keys in *twitter-causes*
                                              using (hash-value v)
-                                             collect (cons k v)))))
+                                             collect `((:cause . ,k)
+                                                       (:effects . ,v))))))
       
 
 
@@ -86,6 +87,7 @@
                                    :type "json")
                    :direction :output)
   (format outputstream "~a"
-          (encode-json-alist-to-string (loop for k being the hash-keys in *twitter-effects*
+          (encode-json-to-string (loop for k being the hash-keys in *twitter-effects*
                                              using (hash-value v)
-                                             collect (cons k v)))))
+                                             collect `((:cause . ,k)
+                                                       (:effects . ,v))))))

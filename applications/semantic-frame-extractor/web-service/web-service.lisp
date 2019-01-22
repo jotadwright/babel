@@ -96,3 +96,9 @@
 ;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that.", "This is a sentence. This causes that."], "frames" : ["Causation"]}' http://localhost:9004/semantic-frame-extractor/texts-extract-frames
 ;; {"frameSets":[[[{"id":"causationFrame15","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame30","frameEvokingElement":"cause","cause":"they","effect":"damage to their own clothes","actor":null,"affected":null}],[{"id":"causationFrame16","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]],[[{"id":"causationFrame17","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]]]}
 
+
+
+;;Testing on AI Lab server:
+
+;; curl -H "Content-Type: application/json" -d '{"texts" : ["With the growing number of natural disasters due to climate change, the sums spent by governments on catastrophe management have risen to unprecedented levels."], "frames" : ["Causation"]}' https://penelope.vub.be/semantic-frame-extractor/texts-extract-frames
+
