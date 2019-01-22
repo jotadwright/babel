@@ -46,13 +46,8 @@
 ;(load (babel-pathname :directory '("applications" "semantic-frame-extractor") :name "evaluate-guardian-annotations" :type "lisp"))
 ;(evaluate-grammar-output-for-evoking-elem '("due to"))
 
-
-
-
 ;;; TODO, sometimes spacy a bit incorrect or ambiguous
 
-(pie-comprehend "Property damage due to weather extremes has risen sharply in North America, including the Caribbean, over the last 30 years, the report said.")
-(pie-comprehend "A stronger greenhouse effect due to higher carbon dioxide levels in the atmosphere may be one explanation.")
 (pie-comprehend "In every case the line is already quite steep due to the hundreds of billions of tons of carbon pollution humans have dumped into the atmosphere thus far.") ;only "quite steep" included but also spacy incorrect for the cause
 (pie-comprehend "But you might need to know this: one such report published by the Institute of Development Studies in the UK predicts a whopping 20% to 60% rise in food prices by 2050, depending on the type of food, largely due to declining yields brought upon us by climate change.") ;NOT working, statement-frame ("predict") included in spacy parsing
 (pie-comprehend "Marmots and martens in the Americas are getting bigger off of longer growing seasons produce more foodstuffs, while the alpine chipmunks of Yellowstone National Park have actually seen the shape of their skulls change due to climate pressure.") ;NOT working or annotation needs to change?
@@ -77,6 +72,8 @@
 
 ;;; WORKING
 
+(pie-comprehend "Property damage due to weather extremes has risen sharply in North America, including the Caribbean, over the last 30 years, the report said.")
+(pie-comprehend "A stronger greenhouse effect due to higher carbon dioxide levels in the atmosphere may be one explanation.")
 (pie-comprehend "That difference is due to the long-term, human-caused global warming trend.")
 (pie-comprehend "Part of this can be attributed to the carbon tax and RET, but a far greater portion is due to other factors.")
 (pie-comprehend "A rise towards the 10% EU-wide target by 2020 has stalled due to the environmental concerns.")

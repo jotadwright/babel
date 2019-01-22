@@ -542,3 +542,34 @@
              :cxn-set unhashed
              :description "Example sentence: a is b(adj) due to Y")
 
+
+(def-fcg-cxn subj-due-to-Y
+             ((?due-unit
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (args (?frame ?cause ?effect)))
+              <-
+              (?due-unit
+               (HASH meaning ((frame causation due-to ?frame)
+                              (slot cause ?frame ?cause)
+                              (slot effect ?frame ?effect)))
+               --
+               (head ?subj)
+               (form ((string ?due-unit "due")))
+               (dependency (edge amod)))
+              (?subj
+                (referent ?effect)
+               --
+               (dependency (edge nsubj)))
+              (?to-unit
+               --
+               (head ?due-unit)
+               (dependency (pos-tag in)))
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?due-unit)
+               (dependency (edge pobj))))
+             :cxn-set unhashed
+             :description "Example sentence: X(subj) due to Y")
+
