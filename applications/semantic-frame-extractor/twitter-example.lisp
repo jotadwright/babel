@@ -16,7 +16,7 @@
                   (cl-ppcre::scan-to-strings " [cC]aus.+" tweet-text))
         collect tweet-text))
 
-(defparameter *test-tweets* (list (first *tweet-texts-with-caus*)
+ (defparameter *test-tweets* (list (first *tweet-texts-with-caus*)
                                   (second *tweet-texts-with-caus*)))
 
 (defparameter *unique-tweet-texts-with-caus*
