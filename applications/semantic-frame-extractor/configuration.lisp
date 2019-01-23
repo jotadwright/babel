@@ -39,20 +39,15 @@
                   (syn-roles set-of-predicates)
                   (form set-of-predicates)
                   (meaning set-of-predicates))
-  :fcg-configurations ((:production-order hashed-meaning unhashed hashed-lex-id)
-                       (:parse-order hashed-string hashed-lex-id unhashed)
-                       (:hashed-labels hashed-string hashed-meaning hashed-lex-id)
+  :fcg-configurations ((:parse-order hashed-string hashed-lex-id unhashed)
                        (:de-render-mode .  :raw-dependency-translation) ;;:english-noun-chunks)
                        (:form-predicates first meets)
                        (:node-tests :check-duplicate :restrict-nr-of-nodes)
                        ;; Goal tests
                        (:parse-goal-tests :no-applicable-cxns)
                        (:production-goal-tests :no-applicable-cxns )
-                       (:cxn-supplier-mode . :hashed-cxn-supplier)
                        (:shuffle-cxns-before-application . t)
-                       (:hash-mode . :hash-string-meaning-lex-id)
                        ;; For guiding search:
-                       (:node-expansion-mode . :expand-cip-node-with-hashed-cxns)
                        (:priority-mode . :depth-first)
                        (:queue-mode . :depth-first-avoid-duplicates)
                        (:max-search-depth . 100)
@@ -63,7 +58,7 @@
                                  (:hide-features ()) 
                                  (:with-search-debug-data . t))
   :hierarchy-features (dependents)
-  :hashed t
+  :hashed nil
                   
   (load-grammar)
   (load-frames)

@@ -13,13 +13,13 @@
                :snooze
                :cl-mop)
   :version "3.2.0"
-  :author "Katrien Beuls"
+  :author "Katrien Beuls and Vanja Cangalovic"
   :description "A tool for extracting semantic frames from text."
   :serial t
   :components ((:file "package")
                (:file "utilities")
                (:file "frame-definitions")
-               (:file "cxn-processing")
+             ;  (:file "cxn-processing")
                (:file "dependencies")
                (:file "configuration")
                (:module "web-service"
