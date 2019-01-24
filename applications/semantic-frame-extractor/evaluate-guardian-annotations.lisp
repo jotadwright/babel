@@ -34,6 +34,33 @@
   (length
     (intersection this-frame other-frame :key #'clean-slot-filler :test #'string=)))
 
+(defun substring-wordlevel-frame-similarity (this-frame other-frame)
+  "Checks for matching substrings and returns similarity between given frames (correct words, total words and correct words per total words)."
+  (let* ((this-count (length this-frame))
+         (other-count (length other-frame))
+         (this-padded (concatenate 'list this-frame (make-list (max 0 (- other-count this-count)) :initial-element nil)))
+         (other-padded (concatenate 'list other-frame (make-list (max 0 (- this-count other-count)) :initial-element nil)))
+         (similarities (loop for this-slot-filler in this-padded
+                            for other-slot-filler in other-padded
+                            for this = (split-sequence:split-sequence #\Space (clean-slot-filler this-slot-filler))
+                            for other = (split-sequence:split-sequence #\Space (clean-slot-filler other-slot-filler))
+                            if (or (search this other :test #'string=)
+                                   (search other this :test #'string=))
+                              collect (/ (min (list-length this) (list-length other))
+                                       (max (list-length this) (list-length other))) into percentages
+                              and collect (list (min (list-length this) (list-length other))
+                                                (max (list-length this) (list-length other))) into fractions
+                            else
+                              collect 0 into percentages
+                              and collect (list 0 (list-length other)) into fractions
+                            finally (return (list percentages fractions)))))
+    (if similarities
+      (list (/ (reduce #'+ (car similarities)) (list-length (car similarities)))
+              (list
+                (reduce #'+ (cadr similarities) :key #'car)
+                (reduce #'+ (cadr similarities) :key #'cadr)))
+      (list 0 0))))
+
 (defun substring-frame-similarity (this-frame other-frame)
   "Checks for matching substrings and returns similarity between given frames in correct characters per total characters."
   (let* ((this-count (length this-frame))
@@ -96,15 +123,29 @@
                     (list (coarse-frame-similarity (car pair) (cdr pair))
                           (frame-slots (car pair) (cdr pair))))
                   alignment))
-         (char-similarity
+         ;(char-similarity not needed
+         ; (mapcar (lambda (pair)
+         ;           (substring-frame-similarity (car pair) (cdr pair)))
+         ;         alignment))
+         (wordlevel-stats
           (mapcar (lambda (pair)
-                    (substring-frame-similarity (car pair) (cdr pair)))
-                  alignment)))
+                    (substring-wordlevel-frame-similarity (car pair) (cdr pair)))
+                  alignment))
+         (word-percentage-similarity
+           (list (caar wordlevel-stats)))
+         (word-similarity-counts
+           (cdar wordlevel-stats)))
     (append sentence-structure
             (list
              (cons
-              :char-similarity
-              char-similarity)
+               :word-similarity-counts
+               word-similarity-counts)
+             (cons
+              :word-percentage-similarity
+              word-percentage-similarity)
+             ;(cons
+             ; :char-similarity
+             ; char-similarity)
              (cons
               :frame-similarity
               frame-similarity)
@@ -117,16 +158,21 @@
    over a set of sentences."
   (reduce (lambda (a v) (mapcar #'+ a v)) (mapcar (lambda (v) (cdr (assoc :slot-similarity v))) sentences) :initial-value (list 0 0)))
 
+(defun total-word-similarity (sentences)
+  "Calculates the total number of words and the number of correct words
+   over a set of sentences."
+  (reduce (lambda (a v) (mapcar #'+ a v)) (mapcar (lambda (v) (cadr (assoc :word-similarity-counts v))) sentences) :initial-value (list 0 0)))
+
 (defun total-correct-sentences (sentences)
   "Calculates the total number of sentences and the number of correct ones over a given set of sentences."
   (list (length
          (remove-if-not (lambda (slot-sim) (equal (first slot-sim) (second slot-sim))) sentences :key (lambda (sent) (cdr (assoc :slot-similarity sent)))))
         (length sentences)))
 
-(defun overall-char-similarity (sentences)
-  "Calculates the overall, average character similarity in correct chars per frame slot filler."
+(defun overall-similarity (sentences assoc-keyword)
+  "Calculates the overall, average 'assoc-keyword'-similarity in correct items per frame slot filler."
   (/ (loop for sent in sentences
-        sum (second (assoc :char-similarity sent))) (list-length sentences)))
+        sum (second (assoc assoc-keyword sent))) (list-length sentences)))
 
 (defun evaluate-grammar-output-for-evoking-elem (evoking-elems)
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
@@ -143,18 +189,22 @@
          (print-result (mapcar #'evaluate-sentence filtered-parsings))
          (total-correct-sentences (total-correct-sentences print-result))
          (total-slot-similarity (total-slot-similarity print-result))
-         (overall-char-similarity (format nil "~$% correct characters per slot" (* 100 (overall-char-similarity print-result)))))
+         (total-word-similarity (total-word-similarity print-result))
+         ;(overall-char-similarity (* 100 (overall-similarity print-result :char-similarity))) not needed
+         (overall-word-percentage-similarity (* 100 (overall-similarity print-result :word-percentage-similarity))))
     (spit-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output-with-annotations" :type "json")
                print-result)
+    (format t "Incorrectly parsed sentences:~%~%")
     (loop for parsing in print-result
           for result = (cdr (assoc :slot-similarity parsing))
           when (not (equal (first result) (second result)))
-          do (format t "~s: ~s~%~%" (cdr (assoc :sentence parsing)) result)
-          finally (format t "~s ~s ~s~%~%~%" total-slot-similarity total-correct-sentences overall-char-similarity))
+          do (format t "~s: ~s (slots) ~s (words)~%~%" (cdr (assoc :sentence parsing)) result (cadr (assoc :word-similarity-counts parsing)))
+          finally (format t "correct slots and total slots: ~s~%correct sentences and total sentences: ~s~%correct words per slot on average: ~$%~%correct words and total words: ~s~%correct words per total words as ratio: ~$%~%~%" total-slot-similarity total-correct-sentences overall-word-percentage-similarity total-word-similarity (* 100 (/ (car total-word-similarity) (cadr total-word-similarity)))))
           (values
            total-slot-similarity
            total-correct-sentences
-           overall-char-similarity)))
+           overall-word-percentage-similarity
+           total-word-similarity)))
 
 (defun spit-json (path-name output-list)
   "Encodes given alist into json and writes resulting json-objects into file of given name."
