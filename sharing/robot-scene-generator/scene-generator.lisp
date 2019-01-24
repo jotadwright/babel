@@ -42,42 +42,43 @@
 
 (defun color->value (color)
   (case color
-    (red (list (randint :start 200 :end 255)
-               (randint :start 0 :end 10)
-               (randint :start 0 :end 10)))
-    (blue (list (randint :start 0 :end 10)
-               (randint :start 0 :end 10)
-               (randint :start 200 :end 255)))))
+    (red (list (random-from-range 200 255)
+               (random-from-range 0 10)
+               (random-from-range 0 10)))
+    (blue (list (random-from-range 0 10)
+               (random-from-range 0 10)
+               (random-from-range 200 255)))))
 
 (defun ypos->value (ypos)
   (case ypos
-    (top (randint :start 200 :end 500))
-    (bottom (randint :start 500 :end 800))))
+    (top (random-from-range 200 500))
+    (bottom (random-from-range 500 800))))
 
 (defun xpos->value (xpos)
   (case xpos
-    (left (randint :start 250 :end 650))
-    (right (randint :start 700 :end 1200))))
+    (left (random-from-range 250 650))
+    (right (random-from-range 700 1200))))
 
 (defun area->value (area)
   (case area
-    (large (randint :start 100 :end 125))
-    (small (randint :start 25 :end 50))))
+    (large (random-from-range 100 125))
+    (small (random-from-range 25 50))))
 
 (defun combo->value (combo)
   (list (color->value (first combo))
         (ypos->value (second combo))
         (xpos->value (third combo))
-        ;(area->value (third combo))
-        ))
+        (area->value (third combo))))
 
 (defun combos->values (combos)
   (loop for combo in combos
         collect (combo->value combo)))
 
 (defun generate-unique-scene (n)
-  (let* ((features '( (left right) (top bottom) (red blue) ;(small large)
-                     ))
+  (let* ((features '((left right)
+                     (top bottom)
+                     (red blue)
+                     (small large)))
          (all-combos (apply #'combinations features))
          (n-combos (random-elts all-combos n))
          (data (combos->values n-combos))
@@ -89,8 +90,7 @@
                                        :color (first d)
                                        :ypos (second d)
                                        :xpos (third d)
-                                       :radius 45
-                                       )))
+                                       :radius (fourth d))))
     (setf svg-html
           (wrap-in-svg (list-of-strings->string (mapcar #'to-html svg-objects))))
     (setf *current-scene* svg-html)

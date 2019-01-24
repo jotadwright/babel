@@ -27,9 +27,9 @@
        :documentation "ID of the object")
    (color :accessor color :initarg :color :initform (pick-color) ;; (randint :end 255 :dimensions '(3))
           :documentation "RGB color of the object")
-   (xpos :accessor xpos :initarg :xpos :initform (randint :start (first *xrange*) :end (rest *xrange*))
+   (xpos :accessor xpos :initarg :xpos :initform (random-from-range (car *xrange*) (cdr *xrange*))
          :documentation "Position of the object in x-axis")
-   (ypos :accessor ypos :initarg :ypos :initform (randint :start (first *yrange*) :end (rest *yrange*))
+   (ypos :accessor ypos :initarg :ypos :initform (random-from-range (car *yrange*) (cdr *yrange*))
          :documentation "Position of the object in y-axis"))
   (:documentation "Base class of svg-object"))
 
@@ -43,8 +43,8 @@
   (:documentation "Set a new location for the object; to avoid overlaps"))
 
 (defmethod new-location ((o svg-object))
-  (setf (xpos o) (randint :start (first *xrange*) :end (rest *xrange*)))
-  (setf (ypos o) (randint :start (first *yrange*) :end (rest *yrange*)))
+  (setf (xpos o) (random-from-range (car *xrange*) (cdr *xrange*)))
+  (setf (ypos o) (random-from-range (car *yrange*) (cdr *yrange*)))
   o)
 
 ;;;; bounding box
@@ -74,9 +74,9 @@
 ;;;;;;;;;;;;;;;;;;;
 
 (defclass svg-rect (svg-object)
-  ((width :accessor width :initarg :width :initform (randint :start 50 :end 300)
+  ((width :accessor width :initarg :width :initform (random-from-range 50 300)
           :documentation "Width of the rectangle")
-   (height :accessor height :initarg :height :initform (randint :start 50 :end 300)
+   (height :accessor height :initarg :height :initform (random-from-range 50 300)
            :documentation "Height of the rectangle"))
   (:documentation "An SVG rectangle"))
 
@@ -124,7 +124,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass svg-circle (svg-object)
-  ((radius :accessor radius :initarg :radius :initform (randint :start 25 :end 150)
+  ((radius :accessor radius :initarg :radius :initform (random-from-range 25 150)
            :documentation "Radius of the circle"))
   (:documentation "An SVG circle"))
 
@@ -156,9 +156,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass svg-ellipse (svg-object)
-  ((xradius :accessor xradius :initarg :xradius :initform (randint :start 25 :end 150)
+  ((xradius :accessor xradius :initarg :xradius :initform (random-from-range 25 150)
             :documentation "Radius in the x-axis")
-   (yradius :accessor yradius :initarg :yradius :initform (randint :start 25 :end 150)
+   (yradius :accessor yradius :initarg :yradius :initform (random-from-range 25 150)
             :documentation "Radius in the y-axis")
    (rotation :accessor rotation :initarg :rotation :initform (random 180)
              :documentation "Rotation of the ellipse"))
@@ -215,7 +215,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass svg-triangle (svg-object)
-  ((width :accessor width :initarg :width :initform (randint :start 100 :end 350)
+  ((width :accessor width :initarg :width :initform (random-from-range 100 350)
           :documentation "Width of the triangle")
    (height :accessor height :initarg :height :initform nil
            :documentation "Height of the triangle")
@@ -282,11 +282,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun random-svgs (n &key (to-html t) (draw-bbox t))
-  (let ((funcs (list ;#'make-svg-rect
-                     ;#'make-svg-square
+  (let ((funcs (list #'make-svg-rect
+                     #'make-svg-square
                      #'make-svg-circle
                      ;#'make-svg-ellipse
-                     ;#'make-svg-triangle
+                     #'make-svg-triangle
                      ))
         (results nil)
         (bboxes nil))
