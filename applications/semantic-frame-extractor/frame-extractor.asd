@@ -13,17 +13,15 @@
                :snooze
                :cl-mop)
   :version "3.2.0"
-  :author "Katrien Beuls and Vanja Cangalovic"
+  :author "Katrien Beuls, Paul Van Eecke and Vanja Cangalovic"
   :description "A tool for extracting semantic frames from text."
   :serial t
   :components ((:file "package")
                (:file "utilities")
                (:file "frame-definitions")
-             ;  (:file "cxn-processing")
                (:file "dependencies")
                (:file "configuration")
+               (:file "twitter-causation")
                (:module "web-service"
                 :serial t
-                :components ((:file "web-service")))
-              ; (:file "tests")
-               ))
+                :components ((:file "web-service")))))

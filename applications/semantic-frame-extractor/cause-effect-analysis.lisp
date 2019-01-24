@@ -47,6 +47,30 @@
   (defparameter *causes* causes) ;;hash table with causes as key and effect as values
   (defparameter *effects* effects))
 
+(with-open-file (outputstream
+                   (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                   :name "guardian-causes"
+                                   :type "json")
+                   :direction :output)
+  (format outputstream "~a"
+          (encode-json-to-string (loop for k being the hash-keys in *causes*
+                                             using (hash-value v)
+                                             collect `((:cause . ,k)
+                                                       (:effects . ,v))))))
+
+
+(with-open-file (outputstream
+                   (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                   :name "guardian-effect"
+                                   :type "json")
+                   :direction :output)
+  (format outputstream "~a"
+          (encode-json-to-string (loop for k being the hash-keys in *effects*
+                                             using (hash-value v)
+                                             collect `((:effect . ,k)
+                                                       (:causes . ,v))))))
+
+
 (defun query-cause (given-effect &key (hash-table *effects*))
   "Query the cause for a given effect"
   (list-to-set-with-frequencies (gethash given-effect hash-table)))

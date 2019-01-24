@@ -3,6 +3,7 @@
 ## Causation-frame annotations
 #### 12.10.2018
 In total, 174 Guardian article sentences are annotated with their corresponding causation-frames. Frames consist of three slots, a *frame-evoking-element* (currently only "cause"), a *cause* and an *effect*. Following [framenet's definition of causation](https://framenet2.icsi.berkeley.edu/fnReports/data/frameIndex.xml?frame=Causation), each sentence contains at least one of the following *frame-evoking-elements*:
+
 * cause.v
 * because of.prep
 * because.c
