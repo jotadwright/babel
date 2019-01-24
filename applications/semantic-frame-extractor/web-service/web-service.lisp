@@ -87,6 +87,30 @@
       (encode-json-alist-to-string
        `((:frame-sets . ,text-frame-sets))))))
 
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'causation-tracker)))
+  (let* ((json (handler-case
+                   (cl-json:decode-json-from-string
+                    (snooze:payload-as-string))
+                 (error (e)
+                   (snooze:http-condition 400 "Malformed JSON (~a)!" e))))
+         (missing-keys (keys-present-p json :phrase :direction :data))
+         (phrase (rest (assoc :phrase json)))
+         (direction (rest (assoc :direction json)))
+         (data (rest (assoc :data json))))
+    (when missing-keys
+      (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
+    (unless (stringp phrase)
+      (snooze:http-condition 400 "Phrase is not a string! Instead, received something of type ~a" (type-of phrase)))
+    (unless (stringp direction)
+      (snooze:http-condition 400 "Direction is not a string! Instead, received something of type ~a" (type-of direction)))
+    (unless (stringp data)
+      (snooze:http-condition 400 "Data is not a string! Instead, received something of type ~a" (type-of data)))
+    (if (equalp direction "cause->effect")
+      (cause->effect-graph phrase data)
+      (effect->cause-graph phrase data))))
+
+(snooze:defroute semantic-frame-extractor (:options :text/* (op (eql 'causation-tracker))))
+
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.", "frames" : ["Causation"]}' http://localhost:9004/semantic-frame-extractor/extract-frames
 ;; {"frameSet":[{"id":"causationFrame4","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame8","frameEvokingElement":"cause","cause":"the company","effect":"damage to their own clothes","actor":null,"affected":null},]}
