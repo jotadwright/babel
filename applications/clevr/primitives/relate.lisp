@@ -12,8 +12,9 @@
 (defmethod apply-spatial-relation ((object clevr-object)
                                    (spatial-relation-category spatial-relation-category)
                                    (context clevr-object-set))
-  (let* ((related-ids (rest (assoc (spatial-relation spatial-relation-category)
-                                   (relationships object))))
+  (let* ((related-ids (rest
+                       (assoc (spatial-relation spatial-relation-category)
+                              (relationships object))))
          (related-objects (loop for id in related-ids
                                 collect (find-entity-by-id context id))))
     (when related-objects

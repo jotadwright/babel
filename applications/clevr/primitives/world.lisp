@@ -114,7 +114,11 @@
   (permutation-of? (objects set1) (objects set2) :test #'equal-entity))
 
 (defmethod find-entity-by-id ((set clevr-object-set) (id symbol))
-  (find id (objects set) :key #'id))  
+  (find id (objects set) :key #'id))
+
+(defmethod empty-set-p ((set clevr-object-set))
+  "check if a given object-set is empty"
+  (null (objects set)))
 
 ;; READING OBJECTS FROM FILE
 (defun json-key->symbol (json-object key)
