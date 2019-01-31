@@ -1,7 +1,7 @@
 ;;;; /color-conversions.lisp
 ;; based on Babel2/experiments/colour-2015/conversions.lisp
 
-(in-package :robot-colour-game)
+(in-package :grounded-color-naming-game)
 
 ;; based on http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
 (defparameter *reference-white-D50* (list 0.96422 1.00000 0.82521)
@@ -178,10 +178,7 @@
 
 (defun rgb->rgbhex (rgb)
   "Converts a RGB [0,1] value to an 8-bit hexadecimal string."
-  (format nil "~{~2,'0X~}"
-	  (mapcar #'(lambda (x)
-		      (round (* 255 x)))
-		  rgb)))
+  (format nil "~{~2,'0X~}" rgb))
 
 (defun normalize-rgb (rgb)
   (mapcar #'(lambda (x) (float (/ x 255.0))) rgb))

@@ -2,7 +2,7 @@
 
 (in-package :cl-user)
 
-(defpackage :robot-colour-game
+(defpackage :grounded-color-naming-game
   (:use :common-lisp
         :utils
         :experiment-framework
