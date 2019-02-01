@@ -2,18 +2,40 @@
 
 (in-package :grounded-color-naming-game)
 
+(define-monitor display-metrics
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-communicative-success)
+                                (average record-lexicon-size)
+                                (average record-ontology-size)
+                                (average record-avg-forms-per-meaning)
+                                (average record-avg-meanings-per-form))
+                :update-interval 50
+                :caption '("communicative success"
+                           "lexicon size"
+                           "ontology size"
+                           "forms per meaning"
+                           "meanings per form")
+                :x-label "# Games"
+                :use-y-axis '(1 2 2 2 2)
+                :y1-label "Success"
+                :y2-label "Size"
+                :y1-max 1.0 :y1-min 0
+                :y2-max nil :y1-min 0
+                :draw-y1-grid t)
+
 ;;;; Communicative Success
 
 (define-monitor record-communicative-success
                 :class 'data-recorder
-                :average-window 5
+                :average-window 50
                 :documentation "records the game outcome of each game (1 or 0).")
 
 (define-monitor display-communicative-success
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
                 :data-sources '((average record-communicative-success))
-                :update-interval 1
+                :update-interval 50
                 :caption '("communicative success")
                 :x-label "# Games" 
                 :y1-label "Communicative Success" 
@@ -37,7 +59,7 @@
 
 (define-monitor record-lexicon-size
                 :class 'data-recorder
-                :average-window 5
+                :average-window 50
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-lexicon-size
@@ -63,7 +85,7 @@
 
 (define-monitor record-ontology-size
                 :class 'data-recorder
-                :average-window 5
+                :average-window 50
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-ontology-size
@@ -90,7 +112,7 @@
 
 (define-monitor record-avg-forms-per-meaning
                 :class 'data-recorder
-                :average-window 5
+                :average-window 50
                 :documentation "records avg nr of forms per meaning")
 
 (define-monitor export-avg-forms-per-meaning
@@ -129,7 +151,7 @@
 
 (define-monitor record-avg-meanings-per-form
                 :class 'data-recorder
-                :average-window 5
+                :average-window 50
                 :documentation "records avg nr of meanings per form")
 
 (define-monitor export-avg-meanings-per-form

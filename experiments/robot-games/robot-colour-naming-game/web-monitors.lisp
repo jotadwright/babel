@@ -19,32 +19,33 @@
                                         (id agent)
                                         (downcase (discourse-role agent)))))))
 
-(defun lexicon->s-dot (agent interaction-number &key (sorted-on :meaning))
+(defun lexicon->s-dot (agent interaction-number)
   (let ((graph '(((s-dot::margin "0")) s-dot::graph))
         (id 0)
         (cluster `(((s-dot::id ,(format nil "cluster~a" (id agent)))
-                    (s-dot::label ,(format nil "agent-~a (interaction ~a)" (id agent) interaction-number))
+                    (s-dot::label ,(format nil "agent ~a (interaction ~a)"
+                                           (id agent) interaction-number))
                     (s-dot::style "dashed")) s-dot::cluster))
-        (sorted-cxns (cond ((eql sorted-on :form)
-                            (sort (constructions (grammar agent)) #'string<
-                                  :key #'(lambda (cxn) (attr-val cxn :form))))
-                           ((eql sorted-on :meaning)
-                            (sort (constructions (grammar agent)) #'<
-                                  :key #'(lambda (cxn)
-                                           (let ((color (find (attr-val cxn :category)
-                                                              (get-data (ontology agent) 'color-categories)
-                                                              :key #'id)))
-                                             (first (value color)))))))))
-                       
-    (loop for cxn in sorted-cxns
-          for form = (attr-val cxn :form)
-          for category-id = (attr-val cxn :category)
-          for color = (find category-id (get-data (ontology agent) 'color-categories) :key #'id)
-          for score = (attr-val cxn :score)
+        (sorted-color-categories
+         (let ((all-colors (get-data (ontology agent) 'color-categories)))
+           (sort all-colors #'< :key #'(lambda (cc) (first (value cc)))))))
+    (loop for color in sorted-color-categories
+          for cxns-with-color = (find-all (id color) (constructions (grammar agent))
+                                          :key #'(lambda (cxn) (attr-val cxn :category)))
+          for forms = (mapcar #'(lambda (cxn) (attr-val cxn :form)) cxns-with-color)
+          for scores = (mapcar #'(lambda (cxn) (attr-val cxn :score)) cxns-with-color)
+          for sorted-forms-and-scores = (sort (pairlis forms scores) #'> :key #'cdr)
+          for node-label = (list-of-strings->string
+                            (loop for l below (length sorted-forms-and-scores)
+                                  for (form . score) in sorted-forms-and-scores
+                                  if (= l (1- (length sorted-forms-and-scores)))
+                                  collect (format nil "~a (~,1f)" form score)
+                                  else
+                                  collect (format nil "~a (~,1f)~%" form score)))
           do (push
               `(s-dot::node
                 ((s-dot::id ,(format nil "colour~a" (incf id)))
-                 (s-dot::label ,(format nil "~a (~,1f)" form score))
+                 (s-dot::label ,node-label)
                  (s-dot::shape "box")
                  (s-dot::fillcolor ,(format nil "#~a" (rgb->rgbhex (mapcar #'round (lab->rgb (value color))))))
                  (s-dot::style "filled")
