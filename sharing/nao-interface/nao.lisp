@@ -56,10 +56,10 @@
   (:documentation "Nao robot class"))
 
 (defmethod initialize-instance :after ((nao nao) &key (connect-automatically t))
+  (let ((container-name (format nil "nao-~a-~a" (ip nao) (server-port nao))))
+    (setf (container-name nao) container-name))
   (when connect-automatically
-    (let ((container-name (format nil "nao-~a-~a" (ip nao) (server-port nao))))
-      (setf (container-name nao) container-name)
-      (start-nao-server nao))))
+    (start-nao-server nao)))
 
 (defun make-nao (&key ip server-port
                       (port "9559")
@@ -80,7 +80,7 @@
 ;; Starting and stopping nao servers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export '(start-nao-server stop-nao-server stop-all-nao-servers))
+(export '(start-nao-server stop-nao-server stop-all-nao-servers nao-connected-p))
 
 (defgeneric start-nao-server (nao &key test-connection)
   (:documentation "Make connection to this nao"))
@@ -136,6 +136,11 @@
           do (run-prog "docker" :args `("stop" ,(third entry))))
     (setf *nao-servers* nil))
   *nao-servers*)
+
+(defmethod nao-connected-p ((nao nao))
+  "Check if the nao is still connected"
+  (and (ip-occupied? (ip nao))
+       (port-occupied? (server-port nao))))
 
 ;; Sending and receiving data from the nao
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

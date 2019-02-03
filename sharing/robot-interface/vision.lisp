@@ -17,9 +17,9 @@
                 (run-prog "/bin/sh" :args (list "-c" arg))))
             (format nil "~a.~a" file ext))))
 
-(defun observe-scene (robot &key (open nil))
+(defun observe-scene (robot &key (open t))
   "Takes a picture, gets it to your machine and analyzes it using machine vision."
-  #+nao (let* ((img-filename (take-picture robot :open nil))
+  #+nao (let* ((img-filename (take-picture robot :open open))
                (analysis (nao-analyze-scene robot img-filename))
                (analysis-img (when (assoc :filename analysis) (rest (assoc :filename analysis))))
                (analysis-data (when (assoc :data analysis) (rest (assoc :data analysis)))))

@@ -124,7 +124,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass svg-circle (svg-object)
-  ((radius :accessor radius :initarg :radius :initform (random-from-range 25 150)
+  ((radius :accessor radius :initarg :radius :initform (random-from-range 50 150)
            :documentation "Radius of the circle"))
   (:documentation "An SVG circle"))
 
@@ -282,11 +282,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun random-svgs (n &key (to-html t) (draw-bbox t))
-  (let ((funcs (list #'make-svg-rect
-                     #'make-svg-square
+  (let ((funcs (list ;#'make-svg-rect
+                     ;#'make-svg-square
                      #'make-svg-circle
                      ;#'make-svg-ellipse
-                     #'make-svg-triangle
+                     ;#'make-svg-triangle
                      ))
         (results nil)
         (bboxes nil))
