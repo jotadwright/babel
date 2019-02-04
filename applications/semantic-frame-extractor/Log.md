@@ -18,6 +18,12 @@ For grammar engineering and general evaluation purposes, the annotations are div
 
 ## Incremental evaluation results for sentences with "due to"
 
+#### 2019-02-04
+A simple wordlevel evaluation results in 17 out of 30 correct sentences, 71 out of 90 correct slot fillers and overall 607 out of 692 correctly annotated words.
+
+#### 2019-01-16
+Adding the <span style="font-variant:small-caps;">subj-due-to-Y</span> cxn results in 2 more correctly parsed sentences.
+
 #### 2018-12-28
 Parsing the new training set sentences (a total of 30 now) results in 65 out of 90 correct slot fillers, 15 out of 30 completely correct sentences and 79.59% correct characters per slot filler.
 
