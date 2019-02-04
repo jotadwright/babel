@@ -13,8 +13,9 @@
 (defun connect-agents-to-robots (interaction)
   "Connect the agents to the robots"
   (let ((robots (robots (experiment interaction))))
-    (loop for agent in (shuffle (interacting-agents interaction))
-          for robot in (shuffle robots)
+    ;;;; hardcoded for a single robot!!!!
+    (loop with robot = (first robots)
+          for agent in (shuffle (interacting-agents interaction))
           do (setf (robot agent) robot)
           unless (nao-connected-p robot)
           do (make-new-connection robot :test-connection
