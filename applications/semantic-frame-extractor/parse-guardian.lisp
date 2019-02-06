@@ -13,15 +13,19 @@
           collect (json:decode-json s) into docs
           finally (return docs))))
 
-(defun log-parsing-output-into-json-file (frame-evoking-elem-list)
+(defun log-parsing-output-into-json-file (target-frame-evoking-elements)
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
    Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
-  (let* ((sentence-objs (get-sentences-from-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "111-causation-frame-annotations" :type "json")))
-         (sentences (loop for sent in sentence-objs
-                          when (intersection
-                                (mapcar #'cdr (mapcar (lambda (x) (assoc :frame-evoking-element x)) (cdr (assoc :frame-elements sent))))
-                                frame-evoking-elem-list :test #'string=)
-                          collect (cdr (assoc :sentence sent)) into sentences
+  (let* ((sentence-objs (first (get-sentences-from-json
+                         (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                         :name "111-causation-frame-annotations" :type "json"))))
+         (sentences (loop for sentence-object in sentence-objs
+                          for frame-elements-in-sentence = (rest (assoc :frame-elements sentence-object))
+                          for frame-evoking-elements-in-sentence = (loop for frame-elts in frame-elements-in-sentence
+                                                                         collect (rest (assoc :frame-evoking-element frame-elts)))
+                          when (intersection frame-evoking-elements-in-sentence
+                                             target-frame-evoking-elements :test #'string=)
+                          collect (rest (assoc :sentence sentence-object)) into sentences
                           finally (return sentences))))
       (loop for sent in sentences
             for (last-cipn raw-frame-set) = (multiple-value-list (pie-comprehend-log (string-trim '(#\Space #\Backspace #\Linefeed #\Page #\Return) sent) :silent t))
@@ -31,7 +35,8 @@
                                                                                        (:cause . ,(cause frame))
                                                                                        (:effect . ,(effect frame)))))
                                                    (:applied-cxns . ,(mapcar #'name (applied-constructions last-cipn))))) into results
-            finally (with-open-file (out (babel-pathname :directory '(:up "corpora" "Guardian") :name "frame-extractor-output" :type "json")
+            finally (with-open-file (out (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                         :name "frame-extractor-output" :type "json")
                                          :direction :output
                                          :if-exists :supersede
                                          :if-does-not-exist :create)
@@ -41,12 +46,14 @@
                                  (format out  "~%")))))))
 
 ;(activate-monitor trace-fcg)
-;(log-parsing-output-into-json-file '("due to"))
+;(log-parsing-output-into-json-file '("because" "because of"))
 
 ;(load (babel-pathname :directory '("applications" "semantic-frame-extractor") :name "evaluate-guardian-annotations" :type "lisp"))
-;(evaluate-grammar-output-for-evoking-elem '("due to"))
+;(evaluate-grammar-output-for-evoking-elem '("because" "because of"))
 
 ;;; TODO, sometimes spacy a bit incorrect or ambiguous
+
+(pie-comprehend "Australians also generate more carbon pollution per head than any other developed country, largely because of their heavy reliance on coal-fired power stations to generate electricity.")
 
 (pie-comprehend "In every case the line is already quite steep due to the hundreds of billions of tons of carbon pollution humans have dumped into the atmosphere thus far.") ;only "quite steep" included but also spacy incorrect for the cause
 (pie-comprehend "But you might need to know this: one such report published by the Institute of Development Studies in the UK predicts a whopping 20% to 60% rise in food prices by 2050, depending on the type of food, largely due to declining yields brought upon us by climate change.") ;NOT working, statement-frame ("predict") included in spacy parsing

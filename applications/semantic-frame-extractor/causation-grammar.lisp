@@ -587,11 +587,11 @@
                         (frame-slots (cause ?cause)
                                      (effect ?effect)))
                (lex-id because)
-               (form ((first ?of-unit)))
                (head ?effect-unit)
                (dependents (?of-unit ?cause-unit)))
               (?of-unit
                --
+               (head ?because-unit)
                (form ((string ?of-unit "of"))))
               (?cause-unit
                (referent ?cause)
