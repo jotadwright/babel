@@ -1,23 +1,21 @@
 (in-package :nao-interface)
 
-(export '(nao-speak nao-start-speech-recognition nao-stop-speech-recognition))
+(export '(speak observe-word))
 
-;; + nao speak +
+;;;; speak
+(defmethod speak :before ((nao nao) (utterance string) &key (speed 100))
+  (assert (stringp utterance))
+  (assert (and (numberp speed) (<= 0 speed) (>= 100 speed))))
 
-(defgeneric nao-speak (nao speech &key speed)
-  (:documentation "Make the Nao say something"))
+(defmethod speak ((nao nao) (utterance string) &key (speed 100))
+  (let ((speech (if (/= speed 100)
+                  (concatenate 'string (format nil "\\rspd=~a\\" speed) utterance)
+                  utterance)))
+    (rest (assoc :success
+                 (nao-send-http nao :endpoint "/speech/say"
+                                :data `((speech . ,utterance)))))))
 
-(defmethod nao-speak ((nao nao) speech &key (speed 100))
-  (assert (stringp speech))
-  (assert (and (numberp speed) (<= 0 speed) (>= 100 speed)))
-  (let* ((speech (if (/= speed 100)
-                   (concatenate 'string (format nil "\\rspd=~a\\" speed) speech)
-                   speech))
-         (response (nao-send-http nao "/speech/say" :data `((speech . ,speech)))))
-    (rest (assoc :success response))))
-
-;; + nao speech recognition +
-
+;;;; listen
 (defgeneric nao-start-speech-recognition (nao vocabulary)
   (:documentation "Start the speech recognition process, given a certain vocabulary of words"))
 
@@ -25,15 +23,19 @@
   (:documentation "Stop the speech recognition process and return the detected word(s)"))
 
 (defmethod nao-start-speech-recognition ((nao nao) vocabulary)
-  (assert (listp vocabulary))
-  (assert (apply #'always (mapcar #'stringp vocabulary)))
-  (let ((response (nao-send-http nao "/speech/start_recognition"
-                                 :data `((dummy . dummy)
-                                         (vocabulary . ,vocabulary)))))
-    (rest (assoc :subscriber response))))
+  (rest (assoc :subscriber
+               (nao-send-http nao :endpoint "/speech/start_recognition"
+                              :data `((vocabulary . ,vocabulary))))))
 
 (defmethod nao-stop-speech-recognition ((nao nao) subscriber)
-  (assert (stringp subscriber))
-  (let ((response (nao-send-http nao "/speech/stop_recognition"
-                                 :data `((subscriber . ,subscriber)))))
-    (rest (assoc :recognised response))))
+  (rest (assoc :recognised
+               (nao-send-http nao :endpoint "/speech/stop_recognition"
+                              :data `((subscriber . ,subscriber))))))
+
+(defmethod observe-word :before ((nao nao) (vocabulary list))
+  (assert (apply #'always (mapcar #'stringp vocabulary))))
+
+(defmethod observe-word ((nao nao) (vocabulary list))
+  (let ((subscriber (nao-start-speech-recognition nao vocabulary)))
+    (when (detect-head-touch nao :middle)
+      (nao-stop-speech-recognition))))

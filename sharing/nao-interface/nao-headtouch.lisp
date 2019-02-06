@@ -1,35 +1,31 @@
-
 (in-package :nao-interface)
 
-(export '(nao-detect-touch nao-head-yes-no))
+(export '(detect-head-touch yes-no-feedback))
 
-;; + nao detect touch +
+;;;; Detect head touch
+(defmethod detect-head-touch ((nao nao) (sensor (eql :front)))
+  (rest (assoc :success
+               (nao-send-http nao
+                              :endpoint "/headtouch/detect"
+                              :data '((region . "Front"))))))
 
-(defgeneric nao-detect-touch (nao region sensor)
-  (:documentation "Detect touch on one of the sensors of the Nao.
-                   Region must be from '(:head :chest :hand :feet)
-                   Sensor depends on Region"))
+(defmethod detect-head-touch ((nao nao) (sensor (eql :middle)))
+  (rest (assoc :success
+               (nao-send-http nao
+                              :endpoint "/headtouch/detect"
+                              :data '((region . "Middle"))))))
 
-(defmethod nao-detect-touch ((nao nao) (region (eql :head)) (sensor (eql :front)))
-  (let* ((data '((region . "Front")))
-         (response (nao-send-http nao "/headtouch/detect" :data data)))
-    (rest (assoc :success response))))
+(defmethod detect-head-touch ((nao nao) (sensor (eql :rear)))
+  (rest (assoc :success
+               (nao-send-http nao
+                              :endpoint "/headtouch/detect"
+                              :data '((region . "Rear"))))))
 
-(defmethod nao-detect-touch ((nao nao) (region (eql :head)) (sensor (eql :middle)))
-  (let* ((data '((region . "Middle")))
-         (response (nao-send-http nao "/headtouch/detect" :data data)))
-    (rest (assoc :success response))))
+(defmethod detect-head-touch ((nao nao) sensor)
+  (error "The sensor ~a is not a valid head sensor for Nao" sensor))
 
-(defmethod nao-detect-touch ((nao nao) (region (eql :head)) (sensor (eql :rear)))
-  (let* ((data '((region . "Rear")))
-         (response (nao-send-http nao "/headtouch/detect" :data data)))
-    (rest (assoc :success response))))
-
-;; + head yes or no +
-
-(defgeneric nao-head-yes-no (nao)
-  (:documentation "Detect if the Nao's head is touched in the front or in the back"))
-
-(defmethod nao-head-yes-no ((nao nao))
-  (let ((response (nao-send-http nao "/headtouch/yes_no")))
-    (string= (rest (assoc :result response)) "front")))
+;;;; yes/no feedback
+(defmethod yes-no-feedback ((nao nao))
+  (string= (rest (assoc :result
+                        (nao-send-http nao :endpoint "/headtouch/yes_no")))
+           "front"))

@@ -1,123 +1,151 @@
-
 (in-package :nao-interface)
 
-(export '(nao-go-to-posture nao-get-posture
-          nao-set-joint nao-head-say nao-raise-arm))
+(export '(go-to-posture current-posture look-direction nod shake-head point celebrate))
 
-;; + nao go posture +
-
-(defgeneric nao-go-to-posture (nao posture &key speed)
-  (:documentation "Make the Nao go to a certain posture"))
-
-(defmethod nao-go-to-posture :before ((nao nao) posture &key (speed 0.3))
+;;;; go to posture
+(defmethod go-to-posture :before ((nao nao) posture &key (speed 0.5))
   (assert (numberp speed))
-  (assert (and (<= speed 1.0) (>= speed 0.0))))
+  (assert (and (<= speed 1) (>= speed 0))))
 
-(defmethod nao-go-to-posture ((nao nao) (posture (eql :sit)) &key (speed 0.3))
-  (let ((response (nao-send-http nao "/posture/set"
-                                 :data `((posture . "Sit") (speed . ,speed)))))
-    (rest (assoc :success response))))
+(defmethod go-to-posture ((nao nao) (posture (eql :sit)) &key (speed 0.5))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/posture/set"
+                              :data `((posture . "Sit")
+                                      (speed . ,speed))))))
 
-(defmethod nao-go-to-posture ((nao nao) (posture (eql :sit-relax)) &key (speed 0.3))
-  (let ((response (nao-send-http nao "/posture/set"
-                                 :data `((posture . "SitRelax") (speed . ,speed)))))
-    (rest (assoc :success response))))
+(defmethod go-to-posture ((nao nao) (posture (eql :sit-relax)) &key (speed 0.5))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/posture/set"
+                              :data `((posture . "SitRelax")
+                                      (speed . ,speed))))))
 
-(defmethod nao-go-to-posture ((nao nao) (posture (eql :stand)) &key (speed 0.3))
-  (let ((response (nao-send-http nao "/posture/set"
-                                 :data `((posture . "Stand") (speed . ,speed)))))
-    (rest (assoc :success response))))
+(defmethod go-to-posture ((nao nao) (posture (eql :stand)) &key (speed 0.5))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/posture/set"
+                              :data `((posture . "Stand")
+                                      (speed . ,speed))))))
 
-(defmethod nao-go-to-posture ((nao nao) (posture (eql :stand-init)) &key (speed 0.3))
-  (let ((response (nao-send-http nao "/posture/set"
-                                 :data `((posture . "StandInit") (speed . ,speed)))))
-    (rest (assoc :success response))))
+(defmethod go-to-posture ((nao nao) (posture (eql :stand-init)) &key (speed 0.5))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/posture/set"
+                              :data `((posture . "StandInit")
+                                      (speed . ,speed))))))
 
-(defmethod nao-go-to-posture ((nao nao) (posture (eql :stand-zero)) &key (speed 0.3))
-  (let ((response (nao-send-http nao "/posture/set"
-                                 :data `((posture . "StandZero") (speed . ,speed)))))
-    (rest (assoc :success response))))
+(defmethod go-to-posture ((nao nao) (posture (eql :stand-zero)) &key (speed 0.5))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/posture/set"
+                              :data `((posture . "StandZero")
+                                      (speed . ,speed))))))
 
-(defmethod nao-go-to-posture ((nao nao) (posture (eql :crouch)) &key (speed 0.3))
-  (let ((response (nao-send-http nao "/posture/set"
-                                 :data `((posture . "Crouch") (speed . ,speed)))))
-    (rest (assoc :success response))))
+(defmethod go-to-posture ((nao nao) (posture (eql :crouch)) &key (speed 0.5))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/posture/set"
+                              :data `((posture . "Crouch")
+                                      (speed . ,speed))))))
 
-(defmethod nao-go-to-posture ((nao nao) (posture (eql :belly)) &key (speed 0.3))
-  (let ((response (nao-send-http nao "/posture/set"
-                                 :data `((posture . "LyingBelly") (speed . ,speed)))))
-    (rest (assoc :success response))))
+(defmethod go-to-posture ((nao nao) (posture (eql :lying-belly)) &key (speed 0.5))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/posture/set"
+                              :data `((posture . "LyingBelly")
+                                      (speed . ,speed))))))
 
-(defmethod nao-go-to-posture ((nao nao) (posture (eql :back)) &key (speed 0.3))
-  (let ((response (nao-send-http nao "/posture/set"
-                                 :data `((posture . "LyingBack") (speed . ,speed)))))
-    (rest (assoc :success response))))
+(defmethod go-to-posture ((nao nao) (posture (eql :lying-back)) &key (speed 0.5))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/posture/set"
+                              :data `((posture . "LyingBack")
+                                      (speed . ,speed))))))
 
-;; + nao get posture +
+(defmethod go-to-posture ((nao nao) posture &key speed)
+  (error "The posture ~a is not valid for the Nao" posture))
 
-(defgeneric nao-get-posture (nao)
-  (:documentation "Get the current posture of the Nao"))
+;;;; current posture
+(defmethod current-posture ((nao nao))
+  (rest (assoc :posture
+               (nao-send-http nao :endpoint "/posture/get"))))
 
-(defmethod nao-get-posture ((nao nao))
-  (let ((response (nao-send-http nao "/posture/get")))
-    (rest (assoc :posture response))))
+;;;; look direction
+(defmethod look-direction :before ((nao nao) direction angle &key (speed 0.5))
+  (assert (numberp angle))
+  (assert (and (<= angle 1) (>= angle 0)))
+  (assert (numberp speed))
+  (assert (and (<= speed 1) (>= speed 0))))
 
-;; + nao set joint +
+(defmethod look-direction ((nao nao) (direction (eql :left)) angle &key (speed 0.5))
+  ;; move the head-yaw with a positive angle
+  (let* ((max 119.5)
+         (value (deg-to-rad (* angle max))))
+    (rest (assoc :success
+                 (nao-send-http nao :endpoint "/set_joint"
+                                :data `((joint . "HeadYaw")
+                                        (value . ,value)
+                                        (speed . ,speed)))))))
 
-(defgeneric nao-set-joint (nao region joint &key value speed)
-  (:documentation "Sets the joints in the head to the given value.
-                   Also, checks if the value is within a safe range for the Nao!"))
+(defmethod look-direction ((nao nao) (direction (eql :right)) angle &key (speed 0.5))
+  ;; move the head-yaw with a negative angle
+  (let* ((max 119.5)
+         (value (- (deg-to-rad (* angle max)))))
+    (rest (assoc :success
+                 (nao-send-http nao :endpoint "/set_joint"
+                                :data `((joint . "HeadYaw")
+                                        (value . ,value)
+                                        (speed . ,speed)))))))
 
-(defmethod nao-set-joint :before ((nao nao) region joint &key value (speed 0.3))
-  (declare (ignorable value))
-  (assert (and (numberp speed) (<= speed 1.0) (>= speed 0.0))))
+(defmethod look-direction ((nao nao) (direction (eql :up)) angle &key (speed 0.5))
+  ;; move the head-pitch with a negative angle
+  (let* ((max 38.5)
+         (value (- (deg-to-rad (* angle max)))))
+    (rest (assoc :success
+                 (nao-send-http nao :endpoint "/set_joint"
+                                :data `((joint . "HeadPitch")
+                                        (value . ,value)
+                                        (speed . ,speed)))))))
 
-(defmethod nao-set-joint ((nao nao) (region (eql :head)) (joint (eql :head-pitch))
-                          &key value (speed 0.3))
-  (if (and (< value 0.51) (> value -0.67))
-    (let ((response (nao-send-http nao "/set_joint"
-                                  :data `((joint . "HeadPitch") (value . ,value) (speed . ,speed)))))
-      (rest (assoc :success response)))
-    (error (format nil "The value ~a is out of range for the joint ~a"
-                   value joint))))
+(defmethod look-direction ((nao nao) (direction (eql :down)) angle &key (speed 0.5))
+  ;; move the head-pitch with a positive angle
+  (let* ((max 29.5)
+         (value (deg-to-rad (* angle max))))
+    (rest (assoc :success
+                 (nao-send-http nao :endpoint "/set_joint"
+                                :data `((joint . "HeadPitch")
+                                        (value . ,value)
+                                        (speed . ,speed)))))))
 
-(defmethod nao-set-joint ((nao nao) (region (eql :head)) (joint (eql :head-yaw))
-                          &key value (speed 0.3))
-  (if (and (< value 2.08) (> value -2.08))
-    (let ((response (nao-send-http nao "/set_joint"
-                                  :data `((joint . "HeadYaw") (value . ,value) (speed . ,speed)))))
-      (rest (assoc :success response)))
-    (error (format nil "The value ~a is out of range for the joint ~a"
-                   value joint))))
+(defmethod look-direction ((nao nao) direction angle &key speed)
+  (error "The direction ~a is not valid for the Nao robot" direction))
 
+;;;; nod
+(defmethod nod ((nao nao))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/move_head"
+                              :data '((yesno . "yes"))))))
 
-;; + nao head say +
+;;;; shake head
+(defmethod shake-head ((nao nao))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/move_head"
+                              :data '((yesno . "no"))))))
 
-(defgeneric nao-head-say (nao yesno)
-  (:documentation "Say yes or no using Nao's head movement"))
+;;;; point
+(defmethod point ((nao nao) (arm (eql :left)))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/raise_arm"
+                              :data '((arm . "Left"))))))
 
-(defmethod nao-head-say ((nao nao) (yes-or-no (eql :yes)))
-  (let ((response (nao-send-http nao "/move_head" :data '((yesno . "yes")))))
-    (rest (assoc :success response))))
+(defmethod point ((nao nao) (arm (eql :right)))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/raise_arm"
+                              :data '((arm . "Right"))))))
 
-(defmethod nao-head-say ((nao nao) (yes-or-no (eql :no)))
-  (let ((response (nao-send-http nao "/move_head" :data '((yesno . "no")))))
-    (rest (assoc :success response))))
+(defmethod point ((nao nao) (arm (eql :both)))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/raise_arm"
+                              :data '((arm . "Both"))))))
 
-;; + nao raise arm +
+(defmethod point ((nao nao) arm)
+  (error "The arm ~a is not valid for the Nao robot" arm))
 
-(defgeneric nao-raise-arm (nao arm)
-  (:documentation "Makes the Nao point using left, right or both arms"))
-
-(defmethod nao-raise-arm ((nao nao) (arm (eql :left)))
-  (let ((response (nao-send-http nao "/raise_arm" :data '((arm . "Left")))))
-    (rest (assoc :success response))))
-
-(defmethod nao-raise-arm ((nao nao) (arm (eql :right)))
-  (let ((response (nao-send-http nao "/raise_arm" :data '((arm . "Right")))))
-    (rest (assoc :success response))))
-
-(defmethod nao-raise-arm ((nao nao) (arm (eql :both)))
-  (let ((response (nao-send-http nao "/raise_arm" :data '((arm . "Both")))))
-    (rest (assoc :success response))))
+;;;; celebrate
+(defmethod celebrate ((nao nao))
+  (rest (assoc :success
+               (nao-send-http nao :endpoint "/celebrate"))))
 

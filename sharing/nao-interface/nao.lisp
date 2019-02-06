@@ -1,4 +1,3 @@
-
 (in-package :nao-interface)
 
 ;;;;;;;;;;;;;;;;;
@@ -36,7 +35,7 @@
 ;; Nao Robot Class ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(export '(nao make-nao))
+(export '(nao))
 
 (defclass nao ()
   ((ip :initarg :ip :type string :accessor ip :initform ""
@@ -55,35 +54,39 @@
                    :documentation "Name of the Docker container of this Nao"))
   (:documentation "Nao robot class"))
 
-(defmethod initialize-instance :after ((nao nao) &key (connect-automatically t))
+(defmethod initialize-instance :after ((nao nao) &key (connect-automatically t) &allow-other-keys)
   (let ((container-name (format nil "nao-~a-~a" (ip nao) (server-port nao))))
     (setf (container-name nao) container-name))
   (when connect-automatically
     (start-nao-server nao)))
 
-(defun make-nao (&key ip server-port
-                      (port "9559")
-                      (username "nao")
-                      (password "nao")
-                      (server-host "localhost")
-                      (connect-automatically t))
-  (make-instance 'nao
-                 :ip ip
-                 :port port
-                 :username username
-                 :password password
-                 :server-host server-host
-                 :server-port server-port
-                 :connect-automatically connect-automatically))
+;; Implementing the Robot Interface API
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(export '(make-new-connection robot-connected-p disconnect-robot))
+
+(defmethod make-new-connection ((nao nao) &key (test-connection t))
+  (unless (container-name nao)
+    (let ((container-name (format nil "nao-~a-~a" (ip nao) (server-port nao))))
+      (setf (container-name nao) container-name)))
+  (start-nao-server nao :test-connection test-connection))
+
+(defmethod robot-connected-p ((nao nao))
+  "Check if the nao is still connected"
+  (and (ip-occupied? (ip nao))
+       (port-occupied? (server-port nao))))
+
+(defmethod disconnect-robot ((nao nao))
+  (stop-nao-server nao))
 
 ;; Starting and stopping nao servers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export '(start-nao-server stop-nao-server stop-all-nao-servers nao-connected-p))
+(export '(stop-all-nao-servers))
 
 (defgeneric start-nao-server (nao &key test-connection)
   (:documentation "Make connection to this nao"))
+
 (defgeneric stop-nao-server (nao &key)
   (:documentation "Stop the connection to the nao"))
 
@@ -137,25 +140,20 @@
     (setf *nao-servers* nil))
   *nao-servers*)
 
-(defmethod nao-connected-p ((nao nao))
-  "Check if the nao is still connected"
-  (and (ip-occupied? (ip nao))
-       (port-occupied? (server-port nao))))
+;; Sending and receiving data from/to the nao
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Sending and receiving data from the nao
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defgeneric nao-send-http (nao route &key data)
+(defgeneric nao-send-http (nao &key endpoint data)
   (:documentation "Encode the data to json, send it to the nao,
-    decode the response and return it. This found expects the data
+    decode the response and return it. This method expects the data
     to be an a-list."))
 
-(defmethod nao-send-http ((nao nao) route &key data)
+(defmethod nao-send-http ((nao nao) &key endpoint data)
   (assert (alistp data))
-  (assert (stringp route))
+  (assert (stringp endpoint))
   (let ((json-data (encode-json-to-string data))
         (uri (format nil "http://~a:~a~a"
-                     (server-host nao) (server-port nao) route)))
+                     (server-host nao) (server-port nao) endpoint)))
     (with-open-stream
         #+LISPWORKS (stream (http-request uri :method :post :content json-data
                                           :want-stream t :connection-timeout nil
@@ -164,22 +162,22 @@
                                      :want-stream t :connection-timeout nil))
         #+CCL (stream (http-request uri :method :post :content json-data
                                     :want-stream t :deadline (+ (get-universal-time) 1000000)))
-      (decode-json-from-string (read-line stream)))))
+        (decode-json-from-string
+         (list-of-strings->string
+          (stream->list stream))))))
            
 
 ;; Testing the connection with nao
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export '(test-server-connection))
-
 (defgeneric test-server-connection (nao &key silent)
   (:documentation "Returns t if communication with nao-server succeeded, nil if it failed. Use silent = t for quick checks."))
 
 (defmethod test-server-connection ((nao nao) &key (silent nil))
-  (let ((response (nao-send-http nao "/test_connection"
+  (let ((response (nao-send-http nao :endpoint "/test_connection"
                                  :data '((message . "test-server-connection")))))
     (unless silent
-      (nao-speak nao (format nil "Connected to Babel 2 at port ~a" (server-port nao)))
+      (speak nao (format nil "Connected to Babel 2 at port ~a" (server-port nao)))
       (warn "Did Nao speak? If not, check whether you are connected to the same WiFi network (CiscoNao) and that Docker is running!"))
     (string= (rest (assoc :message response)) "test-server-connection")))
 
