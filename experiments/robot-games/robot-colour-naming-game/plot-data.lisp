@@ -21,7 +21,7 @@
     :shared-configuration `((:population-size . ,population-size)
                             (:export-lexicon-interval . ,export-lexicon-interval))
     :configurations strategies
-    :output-dir (babel-pathname :directory `("tutorial" "language-games" "grounded-color-naming-game" "raw-data")))
+    :output-dir (babel-pathname :directory '("experiments" "robot-games" "robot-colour-naming-game" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names y-axis y1-max y2-max xlabel y1-label y2-label)
@@ -31,9 +31,9 @@
   (raw-files->evo-plot
     :raw-file-paths
     (loop for measure-name in measure-names
-          collect `("tutorial" "language-games" "grounded-color-naming-game" "raw-data" ,experiment-name ,measure-name))
+          collect `("experiments" "robot-games" "robot-colour-naming-game" "raw-data" ,experiment-name ,measure-name))
     :average-windows 1000
-    :plot-directory `("tutorial" "language-games" "grounded-color-naming-game" "graphs")
+    :plot-directory `("experiments" "robot-games" "robot-colour-naming-game" "graphs")
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
     :use-y-axis y-axis

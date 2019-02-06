@@ -2,28 +2,6 @@
 
 (in-package :grounded-color-naming-game)
 
-(define-monitor display-metrics
-                :class 'gnuplot-display
-                :documentation "Plots the communicative success."
-                :data-sources '((average record-communicative-success)
-                                (average record-lexicon-size)
-                                (average record-ontology-size)
-                                (average record-avg-forms-per-meaning)
-                                (average record-avg-meanings-per-form))
-                :update-interval 50
-                :caption '("communicative success"
-                           "lexicon size"
-                           "ontology size"
-                           "forms per meaning"
-                           "meanings per form")
-                :x-label "# Games"
-                :use-y-axis '(1 2 2 2 2)
-                :y1-label "Success"
-                :y2-label "Size"
-                :y1-max 1.0 :y1-min 0
-                :y2-max nil :y1-min 0
-                :draw-y1-grid t)
-
 ;;;; Communicative Success
 
 (define-monitor record-communicative-success
@@ -47,7 +25,7 @@
                 :documentation "Exports communicative success"
                 :data-sources '(record-communicative-success)
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
-                                           :directory '("tutorial" "language-game" "grounded-color-naming-game" "raw-data"))
+                                           :directory '("experiments" "robot-games" "robot-colour-naming-game" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -59,7 +37,7 @@
 
 (define-monitor record-lexicon-size
                 :class 'data-recorder
-                :average-window 50
+                :average-window 1
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-lexicon-size
@@ -67,7 +45,7 @@
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
                 :file-name (babel-pathname :name "lexicon-size" :type "lisp"
-                                           :directory '("tutorial" "language-game" "grounded-color-naming-game" "raw-data"))
+                                           :directory '("experiments" "robot-games" "robot-colour-naming-game" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -85,7 +63,7 @@
 
 (define-monitor record-ontology-size
                 :class 'data-recorder
-                :average-window 50
+                :average-window 1
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-ontology-size
@@ -93,7 +71,7 @@
                 :documentation "Exports lexicon size"
                 :data-sources '(record-ontology-size)
                 :file-name (babel-pathname :name "ontology-size" :type "lisp"
-                                           :directory '("tutorial" "language-game" "grounded-color-naming-game" "raw-data"))
+                                           :directory '("experiments" "robot-games" "robot-colour-naming-game" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -112,7 +90,7 @@
 
 (define-monitor record-avg-forms-per-meaning
                 :class 'data-recorder
-                :average-window 50
+                :average-window 1
                 :documentation "records avg nr of forms per meaning")
 
 (define-monitor export-avg-forms-per-meaning
@@ -120,7 +98,7 @@
                 :documentation "Exports nr of forms per meaning"
                 :data-sources '(record-avg-forms-per-meaning)
                 :file-name (babel-pathname :name "forms-per-meaning" :type "lisp"
-                                           :directory '("tutorial" "language-game" "grounded-color-naming-game" "raw-data"))
+                                           :directory '("experiments" "robot-games" "robot-colour-naming-game" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -151,7 +129,7 @@
 
 (define-monitor record-avg-meanings-per-form
                 :class 'data-recorder
-                :average-window 50
+                :average-window 1
                 :documentation "records avg nr of meanings per form")
 
 (define-monitor export-avg-meanings-per-form
@@ -159,7 +137,7 @@
                 :documentation "Exports nr of meanings per form"
                 :data-sources '(record-avg-meanings-per-form)
                 :file-name (babel-pathname :name "meanings-per-form" :type "lisp"
-                                           :directory '("tutorial" "language-game" "grounded-color-naming-game" "raw-data"))
+                                           :directory '("experiments" "robot-games" "robot-colour-naming-game" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -225,7 +203,7 @@
     :draw-y-1-grid t
     :y-label "Forms associated to one color category"
     :x-label "# Games"
-    :file-name (babel-pathname :directory '("tutorial" "language-game" "grounded-color-naming-game" "graphs")
+    :file-name (babel-pathname :directory '("experiments" "robot-games" "robot-colour-naming-game" "raw-data")
 			       :name "meaning-form-competition"
 			       :type "pdf")
     :graphic-type "pdf")
@@ -270,7 +248,7 @@
     :draw-y-1-grid t
     :y-label "Meanings associated to one form"
     :x-label "# Games"
-    :file-name (babel-pathname :directory '("tutorial" "language-game" "grounded-color-naming-game" "graphs")
+    :file-name (babel-pathname :directory '("experiments" "robot-games" "robot-colour-naming-game" "graphs")
 			       :name "form-meaning-competition"
 			       :type "pdf")
     :graphic-type "pdf")
@@ -297,3 +275,25 @@
 (define-event-handler (disconnect-robots-after-series run-series-finished)
   (loop for robot in (robots experiment)
         do (disconnect-robot robot)))
+
+(define-monitor display-metrics
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-communicative-success)
+                                (average record-lexicon-size)
+                                (average record-ontology-size)
+                                (average record-avg-forms-per-meaning)
+                                (average record-avg-meanings-per-form))
+                :update-interval 50
+                :caption '("communicative success"
+                           "lexicon size"
+                           "ontology size"
+                           "forms per meaning"
+                           "meanings per form")
+                :x-label "# Games"
+                :use-y-axis '(1 2 2 2 2)
+                :y1-label "Success"
+                :y2-label "Size"
+                :y1-max 1.0 :y1-min 0
+                :y2-max nil :y1-min 0
+                :draw-y1-grid t)
