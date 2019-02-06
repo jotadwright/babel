@@ -6,13 +6,34 @@
 (activate-monitor trace-fcg)
 (clear-page)
 
-(pie-comprehend "With the growing number of natural disasters due to climate change, the sums spent by governments on catastrophe management have risen to unprecedented levels.")
+;; Because
+;;-----------------
+(pie-comprehend "Satellite measurements have problems because of calibration changes when they are replaced every few years.")
+
+(pie-comprehend "Shell warned environmentalists and ethical investors yesterday that failure to exploit tar sands and other unconventional oil products would worsen climate change because it would lead to the world burning even more carbon-heavy coal.")
+
+(pie-comprehend "Because the phenomenon causes less rain to fall in many areas of the tropics, forests become especially vulnerable to man-made fires, which accelerate carbon dioxide buildup in the atmosphere and reduce air quality.")
+
+
+;; Due to
+;;-----------------
+(pie-comprehend "Canada faced fresh calls to shut down its commercial seal hunt on Thursday, following new evidence that death rates among seal pups had dramatically increased due to thinning winter sea ice.")
+
+(pie-comprehend "As a consequence, the Newtok Traditional Council is not now eligible for disaster relief funding despite the fact that erosion is causing an ongoing disaster and a humanitarian crisis in the community.")
+
+(pie-comprehend "This includes the extinction of the dinosaurs 65m years ago , thought to have been caused by the impact of a large asteroid on the Yucatan peninsula and beneath the Gulf of Mexico.")
+
+
+
+
+
+
+(pie-comprehend "Everything from economic growth to the weather can cause short-term fluctuations beyond any government's control.")
 
 
 (pie-comprehend "The money is aimed at encouraging the sustainable use of land, including ensuring that fewer forests are lost to agriculture  the biggest cause of deforestation  and that there is a market for sustainably produced forestry goods, including food, fibre and timber.")
 
-(pie-comprehend "Everything from economic growth to the weather can cause short-term fluctuations beyond any government's control.")
-
 (pie-comprehend "If you accept that humans are causing global warming, as over 97% of peer-reviewed scientific papers do, then this conclusion should not be at all controversial.")
 
-(pie-comprehend "As a consequence, the Newtok Traditional Council is not now eligible for disaster relief funding despite the fact that erosion is causing an ongoing disaster and a humanitarian crisis in the community.")
+
+(pie-comprehend "With the growing number of natural disasters due to climate change, the sums spent by governments on catastrophe management have risen to unprecedented levels.")

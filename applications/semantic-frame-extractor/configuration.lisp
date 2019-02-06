@@ -15,7 +15,7 @@
                          (babel-pathname :directory `("applications" "semantic-frame-extractor" "lexical-units" ,frame-name))))
         (ignore-errors (load filename))))
     (dolist (filename (cl-fad:list-directory
-                       (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" "causation" ))))
+                       (babel-pathname :directory '("applications" "semantic-frame-extractor" "lexical-units" "causation"))))
       (ignore-errors (load filename)))))
 
 

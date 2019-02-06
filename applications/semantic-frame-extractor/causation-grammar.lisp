@@ -1,6 +1,5 @@
 ;;;;; Grammatical constructions for the CAUSATION-frames of The Guardian Climate Change Corpus
-;;;;; Revised version after switch to hybrid approach, June 2018
-;;;;; Katrien Beuls (katrien@ai.vub.ac.be)
+;;;;;
 ;;;;; ----------------------------------------------------------------------------------------
 
 (in-package :frame-extractor)
@@ -10,7 +9,7 @@
 ;;-----------------------------------------------------------------
 
 
-(def-fcg-cxn partial-active-actor-cxn
+(def-fcg-cxn active-actor-cxn
              ((?vp
                (syn-cat (phrase-type vp))
                (footprints (actor-arg-structure)))
@@ -31,7 +30,7 @@
              :cxn-set unhashed)
 
 
-(def-fcg-cxn partial-active-transitive-theme-cxn
+(def-fcg-cxn active-transitive-theme-cxn
              ((?vp
                (syn-cat (phrase-type vp))
                (footprints (theme-arg-structure)))
@@ -88,7 +87,7 @@
              :cxn-set unhashed)
 
 
-(def-fcg-cxn partial-passive-transitive-actor-cxn
+(def-fcg-cxn passive-transitive-actor-cxn
              ((?vp-unit
                (syn-cat (voice passive)
                         (phrase-type vp))
@@ -112,7 +111,7 @@
              :description "Example sentence: X is caused by Y")
 
 
-(def-fcg-cxn partial-passive-transitive-theme-cxn
+(def-fcg-cxn passive-transitive-theme-cxn
              ((?vp-unit
                (syn-cat (voice passive)
                         (phrase-type vp))
@@ -572,4 +571,83 @@
                (dependency (edge pobj))))
              :cxn-set unhashed
              :description "Example sentence: X(subj) due to Y")
+
+
+
+;; Constructions needed for "because (of"
+;;-----------------------------------------------
+
+
+(def-fcg-cxn X-because-of-Y-cxn
+             (
+              <-
+              (?because-unit
+               --
+               (sem-cat (frame causation)
+                        (frame-slots (cause ?cause)
+                                     (effect ?effect)))
+               (lex-id because)
+               (form ((first ?of-unit)))
+               (head ?effect-unit)
+               (dependents (?of-unit ?cause-unit)))
+              (?of-unit
+               --
+               (form ((string ?of-unit "of"))))
+              (?cause-unit
+               (referent ?cause)
+               --
+               (head ?because-unit)
+               (dependency (edge pobj)))
+              (?effect-unit
+               (referent ?effect)
+               --
+               (dependents (?because-unit))));;verb?
+             :cxn-set unhashed)
+               
+(def-fcg-cxn because-Y-cxn
+             ((?cause-unit
+               (footprints (because-y-cxn)))
+              <-
+              (?because-unit
+               --
+               (sem-cat (frame causation)
+                        (frame-slots (cause ?cause)
+                                     (effect ?effect)))
+               (lex-id because)
+               (dependency (edge mark))
+               (head ?cause-unit))
+              (?cause-unit
+               (referent ?cause)
+               --
+               (footprints (not because-y-cxn))
+               (dependents (?because-unit))))
+             :cxn-set unhashed
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn because-Y-X-cxn
+             ((?because-unit
+               (footprints (because-y-x-cxn)))
+              <-
+              (?because-unit
+               --
+               (footprints (not because-y-x-cxn))
+               (sem-cat (frame causation)
+                        (frame-slots (cause ?cause)
+                                     (effect ?effect)))
+               (head ?cause-unit))
+              (?cause-unit
+               --
+               (referent ?cause)
+               (footprints (because-y-cxn))
+               (dependents (?because-unit))
+               (head ?effect-unit))
+              (?effect-unit
+               (referent ?effect)
+               --
+               (dependents (?cause-unit))))
+             :cxn-set unhashed
+             :disable-automatic-footprints t)
+               
+              
+             
 
