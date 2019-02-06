@@ -1,32 +1,13 @@
-
 (in-package :robot-interface)
 
-(export '(take-picture observe-scene))
+(export '(take-picture observe-world))
 
-(defun take-picture (robot &key (open t))
-  "Takes a picture, gets it to your machine and optionally opens it."
-  #+nao (let ((picture-details (nao-take-picture robot)))
-          (let* ((path (rest (assoc :directory picture-details)))
-                 (file (rest (assoc :name picture-details)))
-                 (ext (rest (assoc :type picture-details)))
-                 (remote-pathname (pathname (format nil "~a~a.~a" path file ext)))
-                 (local-pathname (pathname (babel-pathname :directory '(".tmp" "nao-img") :name file :type ext))))
-            (nao-scp-get robot remote-pathname local-pathname)
-            (when open
-              (let ((arg (format nil "open ~a" local-pathname)))
-                (run-prog "/bin/sh" :args (list "-c" arg))))
-            (format nil "~a.~a" file ext))))
+(defgeneric take-picture (robot &key open)
+  (:documentation "Takes a picture, copies it from the robot to your computer and
+   optionally opens it. Returns the filename of the image."))
 
-(defun observe-scene (robot &key (open t))
-  "Takes a picture, gets it to your machine and analyzes it using machine vision."
-  #+nao (let* ((img-filename (take-picture robot :open open))
-               (analysis (nao-analyze-scene robot img-filename))
-               (analysis-img (when (assoc :filename analysis) (rest (assoc :filename analysis))))
-               (analysis-data (when (assoc :data analysis) (rest (assoc :data analysis)))))
-          (when open
-            (let* ((local-pathname (babel-pathname :directory '(".tmp" "nao-img")
-                                                   :name (format nil "~a" analysis-img)
-                                                   :type "jpg"))
-                   (arg (format nil "open ~a" local-pathname)))
-              (run-prog "/bin/sh" :args (list "-c" arg))))
-          (values analysis-data analysis-img)))
+(defgeneric observe-world (robot &key open)
+  (:documentation "Takes a picture and performs object segmentation on it.
+   The 'open' keyword can be used to show the image with the result of
+   segmentation as an overlay. Returns both the detected features and
+   the filename of the image."))

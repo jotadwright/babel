@@ -1,20 +1,13 @@
-
 (in-package :robot-interface)
 
-(export '(head-touch-front head-touch-middle head-touch-rear head-yes-or-no))
+(export '(detect-head-touch yes-no-feedback))
 
-(defun head-touch-front (robot)
-  "Detect if the front head sensor is touched. Blocking call."
-  #+nao (nao-detect-touch robot :head :front))
+(defgeneric detect-head-touch (robot sensor)
+  ;; this could use a timeout argument
+  (:documentation "Detect if the given sensor (:front, :middle or :rear) is touched.
+   This is a blocking call. Returns t when touch is detected."))
 
-(defun head-touch-middle (robot)
-  "Detect if the middle head sensor is touched. Blocking call."
-  #+nao (nao-detect-touch robot :head :middle))
-
-(defun head-touch-rear (robot)
-  "Detect if the rear head sensor is touched. Blocking call."
-  #+nao (nao-detect-touch robot :head :rear))
-
-(defun head-yes-or-no (robot)
-  "Give yes/no feedback to the robot through head touch. Yes = front. No = rear."
-  #+nao (nao-head-yes-no robot))
+(defgeneric yes-no-feedback (robot)
+  ;; this could use a timeout argument
+  (:documentation "Give yes/no feedback to the robot by pressing the front/rear sensor.
+   This is a blocking call. When touching front sensor, returns t. Otherwise nil."))

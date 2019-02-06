@@ -1,96 +1,47 @@
 (in-package :robot-interface)
 
-(export '(current-posture sit sit-relax stand stand-init stand-zero crouch lie-down-belly lie-down-back
-          look-up-down look-left-right
-          say-yes say-no
-          point))
+(export '(go-to-posture current-posture
+         look-direction nod shake-head
+         point celebrate))
 
 ;;;; Postures
 
-(defun sit (robot)
-  "Go to a sitting posture"
-  #+nao (nao-go-to-posture robot :sit))
+(defgeneric go-to-posture (robot posture &key speed)
+  (:documentation "Make the robot go to a certain posture.
+   The available postures depend on the robot type.
+   The speed keyword can be used to control the speed of the motors.
+   This is a float in [0,1]. This is a blocking call until the
+   posture is reached. Returns t when the posture is reached."))
 
-(defun sit-relax (robot)
-  #+nao (nao-go-to-posture robot :sit-relax))
+(defgeneric current-posture (robot)
+  (:documentation "Get the current posture of the robot"))
 
-(defun stand (robot)
-  "Go to a standing posture"
-  #+nao (nao-go-to-posture robot :stand))
+;;;; Moving the head
 
-(defun stand-init (robot)
-  "Stand with more balance"
-  #+nao (nao-go-to-posture robot :stand-init))
+(defgeneric look-direction (robot direction angle &key speed)
+  (:documentation "Make the robot look in a given direction (:left, :right, :up, :down),
+   specifying the angle with a number in the range [0,1].
+   0 will reset the motor to the default position.
+   1 will cause maximum movement in that direction.
+   Keyword argument can be used to control the speed of the motors.
+   This is also a float in [0,1].
+   Returns t when the angle is set."))
 
-(defun stand-zero (robot)
-  "Stand with stretched arms"
-  #+nao (nao-go-to-posture robot :stand-zero))
+;;;; Nodding and shaking the head
 
-(defun crouch (robot)
-  "Go to a crouching posture"
-  #+nao (nao-go-to-posture robot :crouch))
+(defgeneric nod (robot)
+  (:documentation "Make the robot nod"))
 
-(defun lie-down-belly (robot)
-  #+nao (nao-go-to-posture robot :belly))
+(defgeneric shake-head (robot)
+  (:documentation "Make the robot shake its head"))
 
-(defun lie-down-back (robot)
-  #+nao (nao-go-to-posture robot :back))
+;;;; Pointing
 
-(defun current-posture (robot)
-  "Return the current posture"
-  #+nao (nao-get-posture robot))
+(defgeneric point (robot arm)
+  (:documentation "Make the robot point with the given arm (:left, :right or :both).
+   Makes the robot raise its hand up to shoulder height with a streched arm. This is
+   a blocking call. Returns t when the action is complete."))
 
-;;;; moving the head
-(defun look-up (robot degrees)
-  (assert (numberp degrees))
-  #+nao (unless (and (< degrees 38.5)
-                     (>= degrees 0))
-          (error "The robot cannot move its head ~a degrees backward.
-                  Please specify a number between 0 and 38.5"
-                 degrees))
-  #+nao (nao-set-joint robot :head :head-pitch :value (- (deg-to-rad degrees))))
-
-(defun look-down (robot degrees)
-  (assert (numberp degrees))
-  #+nao (unless (and (< degrees 29.5)
-                     (>= degrees 0))
-          (error "The robot cannot move its head ~a degrees forward
-                  Please specify a number between 0 and 29.5"
-                 degrees))
-  #+nao (nao-set-joint robot :head :head-pitch :value (deg-to-rad degrees)))
-
-(defun look-left (robot degrees)
-  (assert (numberp degrees))
-  #+nao (unless (and (< degrees 119.5)
-                     (>= degrees 0))
-          (error "The robot cannot move its head ~a degrees to the left
-                  Please specify a number between 0 and 119.5"
-                 degrees))
-  #+nao (nao-set-joint robot :head :head-yaw :value (deg-to-rad degrees)))
-
-(defun look-right (robot degrees)
-  (assert (numberp degrees))
-  #+nao (unless (and (< degrees 119.5)
-                     (>= degrees 0))
-          (error "The robot cannot move its head ~a degrees to the right
-                  Please specify a number between 0 and 119.5"
-                 degrees))
-  #+nao (nao-set-joint robot :head :head-yaw :value (- (deg-to-rad degrees))))
-
-(defun say-yes (robot)
-  " Say yes using the robot's head "
-  #+nao (nao-head-say robot :yes))
-
-(defun say-no (robot)
-  " Say no using the robot's head "
-  #+nao (nao-head-say robot :no))
-
-(defun point (robot arm)
-  "Raise left or right arm."
-  #+nao (cond
-         ((eql arm :left)
-          (nao-raise-arm robot :left))
-         ((eql arm :right)
-          (nao-raise-arm robot :right))
-         ((eql arm :both)
-          (nao-raise-arm robot :both))))
+(defgeneric celebrate (robot)
+  (:documentation "Makes the robot raise both arms in celebration! This is a blocking call.
+   Returns t when the action is complete."))

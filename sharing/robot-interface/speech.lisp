@@ -1,13 +1,14 @@
 (in-package :robot-interface)
 
-(export '(speak recognise-words))
+(export '(speak observe-word))
 
-(defun speak (robot speech &key (speed 100))
-  "Make the robot say something"
-  #+nao (nao-speak robot speech :speed speed))
+(defgeneric speak (robot utterance &key speed)
+  (:documentation "Make the robot say the utterance. Keyword argument can be used
+   to control the speed of the text-to-speech. This is an integer in [0,100].
+   This is a blocking call. Returns t when finished."))
 
-(defun recognise-words (robot words)
-  "Recognise the given list of words. To stop the speech recognition, touch the middle of Nao's head"
-  #+nao (let ((subscriber (nao-start-speech-recognition robot words)))
-          (when (nao-detect-touch robot :head :middle)
-            (nao-stop-speech-recognition robot subscriber))))
+(defgeneric observe-word (robot vocabulary)
+  ;; cannot use 'listen' as it is a build in function on streams
+  ;; this could use a timeout argument
+  (:documentation "Make the robot listen for words in the vocabulary.
+   Returns a single word; the last one recognised."))
