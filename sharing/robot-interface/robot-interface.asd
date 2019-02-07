@@ -11,7 +11,7 @@
                :utils
                :cl-json
                :drakma
-               :new-nao-interface)
+               :nao-interface)
   :serial t
   :components 
   ((:file "package")
