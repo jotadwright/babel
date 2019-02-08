@@ -11,6 +11,36 @@
   "Default de-render mode: call de-render-with-scope."
   (de-render utterance :de-render-with-scope))
 
+(defmethod de-render ((utterance string) (mode (eql :de-render-string-meets-precedes-first)) &key &allow-other-keys)
+  "splits utterance by space and calls de-render-string-meets-precedes with this list."
+  (de-render (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t)
+             :de-render-string-meets-precedes-first))
+
+(defmethod de-render ((utterance list) (mode (eql :de-render-string-meets-precedes-first)) &key &allow-other-keys)
+  "De-renders a list of strings into string, meets and precedes constraints."
+  (let ((strings nil)
+        (sequence nil)
+	(constraints nil))
+    (dolist (string utterance)
+      (let ((unit-name (make-const string nil)))
+        (push unit-name sequence)
+	(dolist (prev strings)
+	  (push `(precedes ,(second prev) ,unit-name) constraints))
+	(push `(string ,unit-name ,string) strings)))
+    (do ((left strings (rest left)))
+	((null (cdr left)))
+      (push `(meets ,(second (second left)) ,(second (first left)))
+	    constraints))
+    (push `(first ,(last-elt sequence)) constraints)
+    (make-instance 'coupled-feature-structure 
+		   :left-pole `((root (meaning ())
+                                      (sem-cat ())
+                                      (form ,(cons (cons 'sequence (reverse sequence))
+                                                   (append strings constraints)))
+                                      (syn-cat ())))
+		   :right-pole '((root)))))
+
+
 (defmethod de-render ((utterance string) (mode (eql :de-render-string-meets-precedes)) &key &allow-other-keys)
   "splits utterance by space and calls de-render-string-meets-precedes with this list."
   (de-render (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t)
