@@ -16,10 +16,10 @@
 (defun log-parsing-output-into-json-file (target-frame-evoking-elements)
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
    Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
-  (let* ((sentence-objs (first (get-sentences-from-json
+  (let* ((sentence-objs (get-sentences-from-json
                          (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                         :name "111-causation-frame-annotations" :type "json"))))
-         (sentences (loop for sentence-object in sentence-objs
+                                         :name "111-causation-frame-annotations" :type "json")))
+         (sentences (loop for sentence-object in (first sentence-objs)
                           for frame-elements-in-sentence = (rest (assoc :frame-elements sentence-object))
                           for frame-evoking-elements-in-sentence = (loop for frame-elts in frame-elements-in-sentence
                                                                          collect (rest (assoc :frame-evoking-element frame-elts)))
@@ -28,7 +28,8 @@
                           collect (rest (assoc :sentence sentence-object)) into sentences
                           finally (return sentences))))
       (loop for sent in sentences
-            for (last-cipn raw-frame-set) = (multiple-value-list (pie-comprehend-log (string-trim '(#\Space #\Backspace #\Linefeed #\Page #\Return) sent) :silent t))
+            for (last-cipn raw-frame-set) = (multiple-value-list
+                                             (pie-comprehend-log (string-trim '(#\Space #\Backspace #\Linefeed #\Page #\Return) sent) :silent t))
             collect (encode-json-alist-to-string `((:sentence . ,sent)
                                                    (:frame-elements . ,(loop for frame in (pie::entities raw-frame-set)
                                                                              collect `((:frame-evoking-element . ,(pie::frame-evoking-element frame))
@@ -46,14 +47,19 @@
                                  (format out  "~%")))))))
 
 ;(activate-monitor trace-fcg)
-;(log-parsing-output-into-json-file '("because" "because of"))
+;(log-parsing-output-into-json-file '("lead to"))
 
 ;(load (babel-pathname :directory '("applications" "semantic-frame-extractor") :name "evaluate-guardian-annotations" :type "lisp"))
-;(evaluate-grammar-output-for-evoking-elem '("because" "because of"))
+;(evaluate-grammar-output-for-evoking-elem '("lead to"))
+
+(pie-comprehend "The Senate is holding hearings this month that could lead to further legislation")
+(pie-comprehend "And public opposition has led to hundreds of coal plants closed or blocked by the Sierra Club and its allies.")
+
+;; wrong analysis by Spacy:
+(pie-comprehend "Rural-dwellers who are unemployed, young or old, or disabled are increasingly stuck in their homes and unable to access essential services because of savage cuts to public transport in the countryside, MPs have warned.")
+(pie-comprehend "Shell warned environmentalists and ethical investors yesterday that failure to exploit tar sands and other unconventional oil products would worsen climate change because it would lead to the world burning even more carbon-heavy coal.")
 
 ;;; TODO, sometimes spacy a bit incorrect or ambiguous
-
-(pie-comprehend "Australians also generate more carbon pollution per head than any other developed country, largely because of their heavy reliance on coal-fired power stations to generate electricity.")
 
 (pie-comprehend "In every case the line is already quite steep due to the hundreds of billions of tons of carbon pollution humans have dumped into the atmosphere thus far.") ;only "quite steep" included but also spacy incorrect for the cause
 (pie-comprehend "But you might need to know this: one such report published by the Institute of Development Studies in the UK predicts a whopping 20% to 60% rise in food prices by 2050, depending on the type of food, largely due to declining yields brought upon us by climate change.") ;NOT working, statement-frame ("predict") included in spacy parsing

@@ -6,6 +6,14 @@
 (activate-monitor trace-fcg)
 (clear-page)
 
+
+;; Lead to
+;;-----------------
+
+(pie-comprehend "If the mine goes ahead and that leads to the development of other mines in the basin, their potential combined maximum output would result in more than 705m tonnes of CO2 being emitted each year.")
+
+
+
 ;; Because
 ;;-----------------
 (pie-comprehend "Satellite measurements have problems because of calibration changes when they are replaced every few years.")

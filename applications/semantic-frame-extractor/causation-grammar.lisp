@@ -574,7 +574,7 @@
 
 
 
-;; Constructions needed for "because (of"
+;; Constructions needed for "because (of)"
 ;;-----------------------------------------------
 
 
@@ -649,5 +649,29 @@
              :disable-automatic-footprints t)
                
               
-             
 
+;; Constructions needed for "lead to"
+;;-----------------------------------------------
+    
+
+(def-fcg-cxn causation-frame-to-Y
+             (<-
+              (?frame-unit
+               --
+               (sem-cat (frame causation))
+               (sem-valence (actor ?actor)
+                            (theme ?effect))
+               (dependents (?to-unit)))
+              (?to-unit
+               --
+               (head ?frame-unit)
+               (form ((string ?to-unit "to")))
+               (dependents (?effect-unit)))
+              (?effect-unit
+               (referent ?effect)
+               --
+               (head ?to-unit)
+               (dependency (edge pobj))))
+             :cxn-set unhashed)
+              
+             

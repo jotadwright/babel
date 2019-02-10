@@ -27,7 +27,12 @@
 
 (defun clean-slot-filler (frame-elem)
   "Cleans up the slot filler of given frame element by downcasing and replacing punctuation."
-  (downcase (string-trim " ." (cl-ppcre:regex-replace-all "\\s+" (cl-ppcre:regex-replace-all "[0-9]+|'|%" (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "[,|\.|\"|:]" (cdr frame-elem) "") " ") #'(lambda (match &rest registers) (format nil " ~A" match)) :simple-calls t) " "))))
+  (unless (stringp (rest frame-elem))
+    (setf (rest frame-elem) (rest (assoc :utterance (rest frame-elem)))))
+          
+    (downcase
+     (string-trim " ."
+                  (cl-ppcre:regex-replace-all "\\s+" (cl-ppcre:regex-replace-all "[0-9]+|'|%" (cl-ppcre:regex-replace-all "-" (cl-ppcre:regex-replace-all "[,|\.|\"|:]" (cdr frame-elem) "") " ") #'(lambda (match &rest registers) (format nil " ~A" match)) :simple-calls t) " "))))
 
 (defun clean-string (s)
   "Cleans up the given string by downcasing and replacing punctuation."
@@ -132,8 +137,10 @@
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
    Writes resulting output, annotations and correctness into json-file.
    Returns the total number of frame-slots and the number of correct slot-fillers as well as the number of correctly parsed sentences."
-  (let* ((path-to-parse-results (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output" :type "json"))
-         (path-to-annotations (babel-pathname :directory '(:up "Corpora" "Guardian") :name "111-causation-frame-annotations" :type "json"))
+  (let* ((path-to-parse-results (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                :name "frame-extractor-output" :type "json"))
+         (path-to-annotations (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                              :name "111-causation-frame-annotations" :type "json"))
          (parsing-with-annotations (load-parsings-with-annotations path-to-parse-results path-to-annotations))
          (filtered-parsings (mapcar (lambda (s)
                                       (filter-frames (lambda (s)
@@ -143,14 +150,18 @@
          (print-result (mapcar #'evaluate-sentence filtered-parsings))
          (total-correct-sentences (total-correct-sentences print-result))
          (total-slot-similarity (total-slot-similarity print-result))
-         (total-word-result (reduce (lambda (a v) (mapcar #'+ a v)) (mapcar (lambda (v) (cdr (assoc :wordlevel-result v))) print-result) :initial-value (list 0 0))))
-    (spit-json (babel-pathname :directory '(:up "Corpora" "Guardian") :name "frame-extractor-output-with-annotations" :type "json")
+         (total-word-result (reduce (lambda (a v) (mapcar #'+ a v))
+                                    (mapcar (lambda (v) (cdr (assoc :wordlevel-result v))) print-result)
+                                    :initial-value (list 0 0))))
+    (spit-json (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                               :name "frame-extractor-output-with-annotations" :type "json")
                print-result)
     (format t "Incorrectly parsed sentences:~%~%")
     (loop for parsing in print-result
           for slot-result = (cdr (assoc :slot-similarity parsing))
           when (not (equal (first slot-result) (second slot-result)))
-          do (format t "~s: ~s (slots) ~s (words)~%~%" (cdr (assoc :sentence parsing)) slot-result (cdr (assoc :wordlevel-result parsing)))
+          do (format t "~s: ~s (slots) ~s (words)~%~%" (cdr (assoc :sentence parsing))
+                     slot-result (cdr (assoc :wordlevel-result parsing)))
           finally (format t "correct slots and total slots: ~s~%correct sentences and total sentences: ~s~%correct words and total words overall: ~s~%~%" total-slot-similarity total-correct-sentences total-word-result))
           (values
            total-slot-similarity
@@ -168,6 +179,6 @@
 
 
 
-;(evaluate-grammar-output-for-evoking-elem '("because"))
+;(evaluate-grammar-output-for-evoking-elem '("lead to"))
 
 
