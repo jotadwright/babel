@@ -1,59 +1,18 @@
 ;(ql:quickload :frame-extractor)
 (in-package :frame-extractor)
 
-(defun pie-comprehend-log (utterance &key (cxn-inventory *fcg-constructions*) (silent nil))
-  "Utility function to comprehend an utterance and extract the frames in one go.
-   Returns both a frame-set and the last cip-node."
-  (multiple-value-bind (meaning cipn) (comprehend utterance :cxn-inventory cxn-inventory :silent silent)
-    (values cipn (run-pie cipn))))
-
-(defun get-sentences-from-json (path)
-  (with-open-file (s path)
-    (loop while (peek-char t s nil nil)
-          collect (json:decode-json s) into docs
-          finally (return docs))))
-
-(defun log-parsing-output-into-json-file (target-frame-evoking-elements)
-  "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
-   Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
-  (let* ((sentence-objs (get-sentences-from-json
-                         (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                         :name "111-causation-frame-annotations" :type "json")))
-         (sentences (loop for sentence-object in (first sentence-objs)
-                          for frame-elements-in-sentence = (rest (assoc :frame-elements sentence-object))
-                          for frame-evoking-elements-in-sentence = (loop for frame-elts in frame-elements-in-sentence
-                                                                         collect (rest (assoc :frame-evoking-element frame-elts)))
-                          when (intersection frame-evoking-elements-in-sentence
-                                             target-frame-evoking-elements :test #'string=)
-                          collect (rest (assoc :sentence sentence-object)) into sentences
-                          finally (return sentences))))
-      (loop for sent in sentences
-            for (last-cipn raw-frame-set) = (multiple-value-list
-                                             (pie-comprehend-log (string-trim '(#\Space #\Backspace #\Linefeed #\Page #\Return) sent) :silent t))
-            collect (encode-json-alist-to-string `((:sentence . ,sent)
-                                                   (:frame-elements . ,(loop for frame in (pie::entities raw-frame-set)
-                                                                             collect `((:frame-evoking-element . ,(pie::frame-evoking-element frame))
-                                                                                       (:cause . ,(cause frame))
-                                                                                       (:effect . ,(effect frame)))))
-                                                   (:applied-cxns . ,(mapcar #'name (applied-constructions last-cipn))))) into results
-            finally (with-open-file (out (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                                         :name "frame-extractor-output" :type "json")
-                                         :direction :output
-                                         :if-exists :supersede
-                                         :if-does-not-exist :create)
-                      (loop for result in results
-                            do (progn
-                                 (format out result)
-                                 (format out  "~%")))))))
-
 ;(activate-monitor trace-fcg)
-;(log-parsing-output-into-json-file '("lead to"))
-
+;(log-parsing-output-into-json-file '("lead to" "cause" "because" "give rise" "lead to" "result in"))
+(pie-comprehend "Last year, Hurricane Felix caused widespread devastation to Nicaragua's coffee plantations.")
+(pie-comprehend "Those gorillas are losing their habitat because of rapid urbanisation.")
+(pie-comprehend "The climate scientist Dr Alice Bows, a specialist from the Tyndall centre for climate change research, also told a jury that the growth in aviation was a big issue because its emissions caused particular harm at higher altitude.")
 ;(load (babel-pathname :directory '("applications" "semantic-frame-extractor") :name "evaluate-guardian-annotations" :type "lisp"))
-;(evaluate-grammar-output-for-evoking-elem '("lead to"))
+;(evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "give rise" "lead to" "result in"))
 
 (pie-comprehend "The Senate is holding hearings this month that could lead to further legislation")
 (pie-comprehend "And public opposition has led to hundreds of coal plants closed or blocked by the Sierra Club and its allies.")
+(pie-comprehend "This could give rise to lawsuits in future, though Blood said he hoped that could be avoided, if the report's recommendations were followed.")
+(pie-comprehend "If the mine goes ahead and that leads to the development of other mines in the basin, their potential combined maximum output would result in more than 705m tonnes of CO2 being emitted each year.")
 
 ;; wrong analysis by Spacy:
 (pie-comprehend "Rural-dwellers who are unemployed, young or old, or disabled are increasingly stuck in their homes and unable to access essential services because of savage cuts to public transport in the countryside, MPs have warned.")

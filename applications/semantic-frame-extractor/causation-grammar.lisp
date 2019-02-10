@@ -27,7 +27,7 @@
                (syn-valence (subject ?subject))
                (footprints (not actor-arg-structure))))
              :disable-automatic-footprints t
-             :cxn-set unhashed)
+             :cxn-set cxn)
 
 
 (def-fcg-cxn active-transitive-theme-cxn
@@ -50,7 +50,7 @@
                             (object ?object))
                (footprints (not theme-arg-structure))))
              :disable-automatic-footprints t
-             :cxn-set unhashed)
+             :cxn-set cxn)
 
 
 (def-fcg-cxn active-transitive-actor-theme-cxn-subject-parataxis
@@ -84,7 +84,7 @@
                (head ?vp))
               )
              :disable-automatic-footprints t
-             :cxn-set unhashed)
+             :cxn-set cxn)
 
 
 (def-fcg-cxn passive-transitive-actor-cxn
@@ -107,7 +107,7 @@
                (syn-valence (subject ?subject-unit))
                (footprints (not actor-arg-structure))))
              :disable-automatic-footprints t
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X is caused by Y")
 
 
@@ -134,7 +134,7 @@
                (dependency (edge pobj))
                (head ?by)))
              :disable-automatic-footprints t
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X is caused by Y")
 
 
@@ -165,7 +165,7 @@
                            (edge ccomp))
                (head ?vp-unit)))
              :disable-automatic-footprints t
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X causes [Y to Zverb]")
 
 
@@ -215,7 +215,7 @@
                 --
                 (dependency (edge pobj))
                 (head ?by-unit)))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X is likely to have been caused by Y")
 
 
@@ -252,7 +252,7 @@
                --
                (dependents (?caused-unit)))
               )
-             :cxn-set unhashed)
+             :cxn-set cxn)
 
 (def-fcg-cxn X-event-due-to-Y-v1
              ((?due-unit
@@ -282,7 +282,7 @@
                --
                (head ?due-unit)
                (dependency (edge pobj))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X(event) due to Y(obj)")
 
 (def-fcg-cxn X-event-due-to-Y-v2
@@ -314,7 +314,7 @@
                --
                (head ?to-unit)
                (dependency (edge pobj))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X(event) due to Y(obj)")
 
 (def-fcg-cxn X-is-due-to-Y-v1
@@ -350,7 +350,7 @@
                --
                (head ?to-unit)
                (dependency (edge pobj))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X(nsubj) is due to Y(pobj)")
 
 (def-fcg-cxn X-is-due-to-Y-v2
@@ -386,7 +386,7 @@
                --
                (head ?event-unit)
                (dependency (edge attr))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X(nsubj) is due to Y(attr)")
 
 (def-fcg-cxn X-is-due-to-Y-v3
@@ -422,7 +422,7 @@
                --
                (head ?due-unit)
                (dependency (edge pobj))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X(nsubj) is due to Y(pobj)")
 
 ;(def-fcg-cxn verb-X-due-to-Y
@@ -459,7 +459,7 @@
 ;               (head ?due-unit)
 ;               ;(HASH form ((precedes ?due-unit ?causal-unit ?scope)))
 ;               (dependency (edge pobj))))
-;             :cxn-set unhashed
+;             :cxn-set cxn
 ;             :description "Example sentence: predicts X(dobj) due to Y(pobj)")
 
 (def-fcg-cxn X1-of-X2-due-to-Y
@@ -497,7 +497,7 @@
                --
                (head ?due-unit)
                (dependency (edge pobj))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X1 of X2(pobj) due to Y(pobj)")
 
 (def-fcg-cxn predicative-adj-due-to-Y
@@ -538,7 +538,7 @@
                --
                (head ?due-unit)
                (dependency (edge pobj))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: a is b(adj) due to Y")
 
 
@@ -569,7 +569,7 @@
                --
                (head ?due-unit)
                (dependency (edge pobj))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :description "Example sentence: X(subj) due to Y")
 
 
@@ -602,7 +602,7 @@
                (referent ?effect)
                --
                (dependents (?because-unit))));;verb?
-             :cxn-set unhashed)
+             :cxn-set cxn)
                
 (def-fcg-cxn because-Y-cxn
              ((?cause-unit
@@ -621,7 +621,7 @@
                --
                (footprints (not because-y-cxn))
                (dependents (?because-unit))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :disable-automatic-footprints t)
 
 (def-fcg-cxn because-Y-X-cxn
@@ -645,14 +645,13 @@
                (referent ?effect)
                --
                (dependents (?cause-unit))))
-             :cxn-set unhashed
+             :cxn-set cxn
              :disable-automatic-footprints t)
                
               
 
 ;; Constructions needed for "lead to"
 ;;-----------------------------------------------
-    
 
 (def-fcg-cxn causation-frame-to-Y
              (<-
@@ -670,8 +669,32 @@
               (?effect-unit
                (referent ?effect)
                --
-               (head ?to-unit)
-               (dependency (edge pobj))))
-             :cxn-set unhashed)
+               (head ?to-unit)))
+               ;(dependency (edge pobj))))
+             :cxn-set cxn)
+
+;; Constructions needed for "result in"
+;;-----------------------------------------------
+
+(def-fcg-cxn causation-result-in-frame-effect
+             (<-
+              (?frame-unit
+               --
+               (sem-cat (frame causation))
+               (sem-valence (actor ?actor)
+                            (theme ?effect))
+               (lex-id result-in)
+               (dependents (?in-unit)))
+              (?in-unit
+               --
+               (head ?frame-unit)
+               (form ((string ?in-unit "in")))
+               (dependents (?effect-unit)))
+              (?effect-unit
+               (referent ?effect)
+               --
+               (head ?in-unit)))
+               ;(dependency (edge pobj))))
+             :cxn-set cxn)
               
              

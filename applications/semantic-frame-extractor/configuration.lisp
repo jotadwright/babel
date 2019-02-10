@@ -39,7 +39,7 @@
                   (syn-roles set-of-predicates)
                   (form set-of-predicates)
                   (meaning set-of-predicates))
-  :fcg-configurations ((:parse-order hashed-string hashed-lex-id unhashed)
+  :fcg-configurations (;(:parse-order hashed-string hashed-lex-id unhashed)
                        (:de-render-mode .  :raw-dependency-translation) ;;:english-noun-chunks)
                        (:form-predicates first meets)
                        (:node-tests :check-duplicate :restrict-nr-of-nodes)

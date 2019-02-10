@@ -1,5 +1,3 @@
-;(ql:quickload :frame-extractor)
-(ql:quickload :cl-ppcre)
 (in-package :frame-extractor)
 
 (defun get-sentences-from-json (path)
@@ -7,6 +5,48 @@
     (loop while (peek-char t s nil nil)
           collect (json:decode-json s) into docs
           finally (return docs))))
+
+(defun spit-json (path-name output-list)
+  "Encodes given alist into json and writes resulting json-objects into file of given name."
+  (with-open-file (out path-name
+                       :direction :output
+                       :if-exists :supersede
+                       :if-does-not-exist :create)
+     (write-line (encode-json-alist-to-string `((:evaluations ,@output-list)))
+                 out)))
+
+(defun pie-comprehend-log (utterance &key (cxn-inventory *fcg-constructions*) (silent nil))
+  "Utility function to comprehend an utterance and extract the frames in one go.
+   Returns both a frame-set and the last cip-node."
+  (multiple-value-bind (meaning cipn) (comprehend utterance :cxn-inventory cxn-inventory :silent silent)
+    (values cipn (run-pie cipn))))
+
+(defun log-parsing-output-into-json-file (target-frame-evoking-elements &key gold-standard frame-extractor-output)
+  "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
+   Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
+  (let* ((sentence-objs (get-sentences-from-json gold-standard))
+         (sentences (loop for sentence-object in sentence-objs
+                          for frame-elements-in-sentence = (rest (assoc :frame-elements sentence-object))
+                          for frame-evoking-elements-in-sentence = (loop for frame-elts in frame-elements-in-sentence
+                                                                         collect (rest (assoc :frame-evoking-element frame-elts)))
+                          when (intersection frame-evoking-elements-in-sentence
+                                             target-frame-evoking-elements :test #'string=)
+                          collect (rest (assoc :sentence sentence-object)) into sentences
+                          finally (return sentences))))
+      (loop for sent in sentences
+            for (last-cipn raw-frame-set) = (multiple-value-list
+                                             (pie-comprehend-log (string-trim '(#\Space #\Backspace #\Linefeed #\Page #\Return) sent) :silent t))
+            collect (encode-json-alist-to-string `((:sentence . ,sent)
+                                                   (:frame-elements . ,(loop for frame in (pie::entities raw-frame-set)
+                                                                             collect `((:frame-evoking-element . ,(pie::frame-evoking-element frame))
+                                                                                       (:cause . ,(cause frame))
+                                                                                       (:effect . ,(effect frame)))))
+                                                   (:applied-cxns . ,(mapcar #'name (applied-constructions last-cipn))))) into results
+            finally (with-open-file (out frame-extractor-output :direction :output :if-exists :supersede :if-does-not-exist :create)
+                      (loop for result in results
+                            do (progn
+                                 (format out result)
+                                 (format out  "~%")))))))
 
 (defun filter-frames (filterfn sentence)
   "Applies given function to filter out unwanted frames in (annotated-)frame-elements of given sentence."
@@ -17,7 +57,7 @@
 
 (defun load-parsings-with-annotations (parsing-path annotation-path)
   "Loads given frame-extractor output and corresponding annotations into one datastructure."
-  (let* ((annotations (first (get-sentences-from-json annotation-path)))
+  (let* ((annotations (get-sentences-from-json annotation-path))
          (parsings (get-sentences-from-json parsing-path))
          (annotations-by-sentence (mapcar (lambda (a) (cons (cdr (assoc :sentence a)) (list a))) annotations)))
     (mapcar (lambda (parsing)
@@ -133,15 +173,27 @@
          (remove-if-not (lambda (slot-sim) (equal (first slot-sim) (second slot-sim))) sentences :key (lambda (sent) (cdr (assoc :slot-similarity sent)))))
         (length sentences)))
 
-(defun evaluate-grammar-output-for-evoking-elem (evoking-elems)
+(defparameter *training-corpus* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                :name "111-causation-frame-annotations" :type "json"))
+(defparameter *test-corpus* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                :name "63-causation-frame-annotations" :type "json"))
+;;standard file with parse results:
+(defparameter *frame-extractor-output* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                       :name "frame-extractor-output" :type "json"))
+
+(defun evaluate-grammar-output-for-evoking-elem (evoking-elems &key
+                                                               (gold-standard *training-corpus*)
+                                                               (frame-extractor-output nil)
+                                                               (evaluation-results
+                                                                (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                                                :name "frame-extractor-output-with-annotations" :type "json")))
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
    Writes resulting output, annotations and correctness into json-file.
    Returns the total number of frame-slots and the number of correct slot-fillers as well as the number of correctly parsed sentences."
-  (let* ((path-to-parse-results (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                                :name "frame-extractor-output" :type "json"))
-         (path-to-annotations (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                              :name "111-causation-frame-annotations" :type "json"))
-         (parsing-with-annotations (load-parsings-with-annotations path-to-parse-results path-to-annotations))
+  (unless frame-extractor-output
+    (log-parsing-output-into-json-file evoking-elems :gold-standard gold-standard :frame-extractor-output *frame-extractor-output*)
+    (setf frame-extractor-output *frame-extractor-output*))
+  (let* ((parsing-with-annotations (load-parsings-with-annotations frame-extractor-output gold-standard))
          (filtered-parsings (mapcar (lambda (s)
                                       (filter-frames (lambda (s)
                                                        (find (cdr (assoc :frame-evoking-element s)) evoking-elems :test #'string=))
@@ -153,32 +205,30 @@
          (total-word-result (reduce (lambda (a v) (mapcar #'+ a v))
                                     (mapcar (lambda (v) (cdr (assoc :wordlevel-result v))) print-result)
                                     :initial-value (list 0 0))))
-    (spit-json (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                               :name "frame-extractor-output-with-annotations" :type "json")
-               print-result)
+    (spit-json evaluation-results print-result)
     (format t "Incorrectly parsed sentences:~%~%")
     (loop for parsing in print-result
           for slot-result = (cdr (assoc :slot-similarity parsing))
           when (not (equal (first slot-result) (second slot-result)))
           do (format t "~s: ~s (slots) ~s (words)~%~%" (cdr (assoc :sentence parsing))
                      slot-result (cdr (assoc :wordlevel-result parsing)))
-          finally (format t "correct slots and total slots: ~s~%correct sentences and total sentences: ~s~%correct words and total words overall: ~s~%~%" total-slot-similarity total-correct-sentences total-word-result))
+          finally (format t "correct slots and total slots: ~s: ~a ~%correct sentences and total sentences: ~s: ~a ~%correct words and total words overall: ~s: ~a ~%~%" total-slot-similarity (coerce (apply #'/ total-slot-similarity) 'float) total-correct-sentences (coerce (apply #'/ total-correct-sentences) 'float) total-word-result (coerce (apply #'/ total-word-result) 'float)))
           (values
            total-slot-similarity
            total-correct-sentences
            total-word-result)))
 
-(defun spit-json (path-name output-list)
-  "Encodes given alist into json and writes resulting json-objects into file of given name."
-  (with-open-file (out path-name
-                       :direction :output
-                       :if-exists :supersede
-                       :if-does-not-exist :create)
-     (write-line (encode-json-alist-to-string `((:evaluations ,@output-list)))
-                 out)))
+;;##########################################################
+;; EVALUATION
+;;##########################################################
+
+;; Running the evaluation (on training set - slow):
+;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in"))
+
+;; Running the evaluation when you have recently parsed all sentences (on training set - faster):
+;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :frame-extractor-output *frame-extractor-output* )
 
 
-
-;(evaluate-grammar-output-for-evoking-elem '("lead to"))
-
-
+;; Running the evaluation (on test set):
+;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :gold-standard *test-corpus*)
+                                          
