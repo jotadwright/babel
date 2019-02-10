@@ -10,12 +10,12 @@
                             (theme ?effect)))
               <-
               (?lead-unit
-               (HASH meaning ((frame causation lead ?frame) 
+               (HASH meaning ((frame causation lead-to ?frame) 
                               (slot cause ?frame ?cause)
                               (slot effect ?frame ?effect)))
                --
                (syn-cat (lex-class verb))
-               (lex-id lead)
+               (lex-id lead-to)
                (dependents (?to-unit)))
               (?to-unit
                --
@@ -37,7 +37,7 @@
                              (aspect (perfect -)
                                      (progressive -))
                              (modality indicative)))
-               (lex-id lead)
+               (lex-id lead-to)
                --
                (HASH form ((string ?leads-unit "leads")))))
             :disable-automatic-footprints t
@@ -58,7 +58,7 @@
                              (aspect (perfect ?p)
                                      (progressive +))
                              (modality ?m)))
-               (lex-id lead)
+               (lex-id lead-to)
                --
                (HASH form ((string ?leading-unit "leading")))))
             :disable-automatic-footprints t
@@ -76,7 +76,7 @@
                              (aspect (perfect -)
                                      (progressive -))
                              (modality ?m)))
-               (lex-id lead)
+               (lex-id lead-to)
                --
                (HASH form ((string ?lead-unit "lead")))))
             :disable-automatic-footprints t
@@ -93,7 +93,7 @@
                         (tam (tense ?tense)
                              (aspect ?aspect)
                              (modality ?m)))
-               (lex-id lead)
+               (lex-id lead-to)
                --
                (HASH form ((string ?led-unit "led")))))
             :disable-automatic-footprints t

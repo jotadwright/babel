@@ -17,7 +17,7 @@
 
 (defun load-parsings-with-annotations (parsing-path annotation-path)
   "Loads given frame-extractor output and corresponding annotations into one datastructure."
-  (let* ((annotations (get-sentences-from-json annotation-path))
+  (let* ((annotations (first (get-sentences-from-json annotation-path)))
          (parsings (get-sentences-from-json parsing-path))
          (annotations-by-sentence (mapcar (lambda (a) (cons (cdr (assoc :sentence a)) (list a))) annotations)))
     (mapcar (lambda (parsing)
