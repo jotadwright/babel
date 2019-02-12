@@ -98,6 +98,9 @@
                          :description object-features))
     (scale-object raw-object)))
 
+(defmethod access-channel ((object mwm-object) channel)
+  (funcall (symbol-function (internal-symb (mkstr channel))) object))
+
 (defclass mwm-object-set (entity)
   ((entities
     :documentation "the entities in the set"

@@ -11,6 +11,7 @@
 (define-configuration-default-value :channels
                                     '(:x-pos :y-pos :width :height :wh-ratio :area
                                       :nr-of-sides :nr-of-corners :mean-color :stdev-color))
+(define-configuration-default-value :conceptualisation-strategy :nearest-neighbour) ; :nearest-neighbour or :discrimination
 
 ;;;; Experiment
 (defclass mwm-experiment (experiment)
