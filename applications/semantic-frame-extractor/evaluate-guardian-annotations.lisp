@@ -86,6 +86,7 @@
 (defun evaluate-sentence-on-wordlevel (frames-alignment sentence)
   "Returns number of correctly parsed words and number of total words in given sentence from given parse annotations and gold standard."
   (let* ((clean-sentence-list (split-sequence:split-sequence #\Space (clean-string sentence)))
+         (all-words (list-length clean-sentence-list))
          (parsed-frames (mapcar #'car frames-alignment))
          (gold-frames (mapcar #'cadr frames-alignment))
          (similarities (loop for parsed-frame in parsed-frames
@@ -102,9 +103,22 @@
                                           collect (list 0 (list-length gold))))))
     (if similarities
       (list 
-        (+ (- (list-length clean-sentence-list) (reduce #'+ similarities :key #'cadr)) (reduce #'+ similarities :key #'car))
-        (list-length clean-sentence-list))
-    (list 0 0))))
+        (+ (- all-words (reduce #'+ similarities :key #'cadr)) (reduce #'+ similarities :key #'car))
+        all-words)
+      (let ((gold-slot-fillers (loop for gold-frame in gold-frames
+                            append (loop for gold-slot-filler in gold-frame
+                              collect (clean-slot-filler gold-slot-filler)))))
+          (list (- all-words
+                   (loop for gold-slot-filler in gold-slot-fillers
+                         for gold-slot-fillers-without-current = (remove-nth (position gold-slot-filler gold-slot-fillers :test #'string=) gold-slot-fillers)
+                         if (member gold-slot-filler gold-slot-fillers-without-current :test #'string=)
+                            sum (/ (length (split-sequence:split-sequence #\Space  gold-slot-filler)) 2) ; ideally divided by calculated number of whole occurrences
+                          else
+                            if (not (reduce (lambda (x y) (or x y))
+                                            (mapcar (lambda (other) (position (split-sequence:split-sequence #\Space gold-slot-filler) other :test #'equal))
+                                                    (mapcar (lambda (other) (split-sequence:split-sequence #\Space other)) gold-slot-fillers-without-current))))
+                                        sum (length (split-sequence:split-sequence #\Space gold-slot-filler)))) ; if filler is subseq of another filler, count only the words of the larger one
+                all-words)))))
 
 (defun frame-slots (this-frame other-frame)
   "Returns number of different frame slots in given frames."
@@ -206,7 +220,7 @@
                                     (mapcar (lambda (v) (cdr (assoc :wordlevel-result v))) print-result)
                                     :initial-value (list 0 0))))
     (spit-json evaluation-results print-result)
-    (format t "Incorrectly parsed sentences:~%~%")
+    (format t "~%Incorrectly parsed sentences:~%~%")
     (loop for parsing in print-result
           for slot-result = (cdr (assoc :slot-similarity parsing))
           when (not (equal (first slot-result) (second slot-result)))
