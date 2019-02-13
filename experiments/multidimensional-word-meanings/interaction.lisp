@@ -13,12 +13,15 @@
         (discriminating-categories agent) nil
         (applied-lex agent) nil))
 
+(define-event context-generated (context mwm-object-set))
+
 (defmethod interact :before ((experiment mwm-experiment) interaction &key)
   "Generate a context and intialize the agents"
   (let* ((min-context-size (get-configuration experiment :min-context-size))
          (max-context-size (get-configuration experiment :max-context-size))
          (context-size (random-from-range min-context-size max-context-size))
          (context (generate-context context-size)))
+    (notify context-generated context)
     (loop for agent in (interacting-agents interaction)
           do (initialize-agent agent context))))
 
@@ -34,7 +37,9 @@
     (let ((interpreted-topic (interpret hearer (utterance hearer))))
       (setf (topic hearer) interpreted-topic)
       (if interpreted-topic
-        (unless (determine-success speaker hearer)
+        (if (determine-success speaker hearer)
+          (loop for agent in (interacting-agents interaction)
+                do (setf (communicated-successfully agent) t))
           (adopt hearer (topic speaker)))
         (adopt hearer (topic speaker))))))
     
