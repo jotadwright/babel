@@ -6,7 +6,6 @@
                      :experiment-framework
                      :monitors
                      :plot-raw-data
-                     :irl
-                     :fcg)
+                     :irl)
   ;; add more :import-from statements here
   (:nicknames :mwm))

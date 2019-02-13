@@ -14,7 +14,13 @@
     :type (or null mwm-object) :accessor topic)
    (context
     :documentation "The context of the current interaction"
-    :type (or null mwm-object-set) :accessor context))
+    :type (or null mwm-object-set) :accessor context)
+   (discriminating-categories
+    :documentation "Discriminating categories for the topic"
+    :type list :initform nil :accessor discriminating-categories)
+   (applied-lex
+    :documentation "List of applied lex items"
+    :type list :initform nil :accessor applied-lex))
   (:documentation "The agent"))
 
 ;; The current implementation of the different parts of the interaction script
@@ -30,7 +36,7 @@
 
 (defun get-channel-categories (agent channel)
   "Get all the known categories on the given channel"
-  (find-all channel (get-data (ontology agent) 'channels) :key #'channel))
+  (find-data (ontology agent) channel))
   
 (defmethod categorise-object ((agent mwm-agent) (object mwm-object))
   "For each channel, compute the one closest to the object"
@@ -38,9 +44,10 @@
     (loop for channel in channels
           for channel-categories = (get-channel-categories agent channel)
           for (best-channel similarity)
-          = (the-biggest #'(lambda (c)
-                             (channel-similarity object c))
-                         channel-categories)
+          = (multiple-value-list
+             (the-biggest #'(lambda (c)
+                              (channel-similarity object c))
+                          channel-categories))
           collect (list channel best-channel similarity))))
 
 (defun get-best-categorisation-for-context (context-categorisations channel)
@@ -55,7 +62,7 @@
 
 (defun valid-categorisation-p (topic-cat best-other-cat strategy)
   (case strategy
-    (:nearest-neighbour
+    (:nearest
      (if (eql (second topic-cat) (second best-other-cat))
        (> (third topic-cat) (third best-other-cat))
        t))
@@ -71,7 +78,7 @@
   (let* ((strategy (get-configuration agent :conceptualisation-strategy))
          (object-categorisations
           (loop for object in (entities (context agent))
-                collect (cons object (categorise-object agent object strategy))))
+                collect (cons object (categorise-object agent object))))
          (topic-categorisation
           (find topic object-categorisations :key #'car))
          (context-categorisations
@@ -81,7 +88,7 @@
                 for channel in (get-configuration agent :channels)
                 for topic-cat = (find channel (rest topic-categorisation) :key #'first)
                 for best-other-cat = (get-best-categorisation-for-context context-categorisations channel)
-                unless (valid-categorisation-p topic-cat best-other-cat strategy)
+                when (valid-categorisation-p topic-cat best-other-cat strategy)
                 do (push topic-cat discriminating-categories)
                 finally
                 (return (loop for (channel category similarity) in discriminating-categories
@@ -100,7 +107,8 @@
                for lex = (find form (lexicon agent) :key #'form :test #'string=)
                when lex
                collect lex)))
-    (reduce #'fuzzy-union lex-items :key #'meaning :initial-value '())))
+    (values (reduce #'fuzzy-union lex-items :key #'meaning :initial-value '())
+            lex-items)))
 
 (defun overlap (meaning object-categories)
   "Compute the overlap between the meaning of a form
@@ -114,7 +122,7 @@
 (defun get-best-new-word (lexicon utterance utterance-meaning object)
   (let ((lex-to-consider (remove-if #'(lambda (lex)
                                         (member (form lex) utterance :test #'string=))
-                                    (lexicon agent))))
+                                    lexicon)))
     (loop with best-lex = nil
           with best-overlap = nil
           for lex in lex-to-consider
@@ -137,29 +145,34 @@
   ;; of that category to the topic. This could also change to being 1 everywhere.
   (when (and (discriminating-categories agent)
              (lexicon agent))
-    (loop with utterance = nil
-          with utterance-lexs = nil
-          with utterance-meaning = nil
-          with utterance-similarity = nil
-          with continue = t
-          while continue
-          for best-new-word = (get-best-new-word (lexicon agent)
-                                                 utterance
-                                                 utterance-meaning
-                                                 (discriminating-categories agent))
-          for extended-meaning = (fuzzy-union (meaning best-new-word) utterance-meaning)
-          for new-similarity = (overlap extended-meaning (discriminating-categories agent))
-          if (and (plusp new-similarity)
-                  (or (null utterance-similarity)
-                      (> new-similarity utterance-similarity)))
-          do (progn (push (form best-new-word) utterance)
-               (push best-new-word utterance-lexs)
-               (setf utterance-meaning extended-meaning
-                     utterance-similarity new-similarity))
-          else
-          (setf continue nil)
-          finally
-          (return utterance-lexs))))
+    (setf (applied-lex agent)
+          (loop with utterance = nil
+                with utterance-lexs = nil
+                with utterance-meaning = nil
+                with utterance-similarity = nil
+                with continue = t
+                while continue
+                for best-new-word = (get-best-new-word (lexicon agent)
+                                                       utterance
+                                                       utterance-meaning
+                                                       (discriminating-categories agent))
+                for extended-meaning = (fuzzy-union (meaning best-new-word) utterance-meaning)
+                for new-similarity = (overlap extended-meaning (discriminating-categories agent))
+                if (and (plusp new-similarity)
+                        (or (null utterance-similarity)
+                            (> new-similarity utterance-similarity)))
+                do (progn (push (form best-new-word) utterance)
+                     (push best-new-word utterance-lexs)
+                     (setf utterance-meaning extended-meaning
+                           utterance-similarity new-similarity))
+                else
+                do (setf continue nil)
+                finally
+                (return utterance-lexs)))
+    (setf (utterance agent)
+          (when (applied-lex agent)
+            (mapcar #'form (applied-lex agent)))))
+  (utterance agent))
                     
          
 ;; ---------------
@@ -186,14 +199,17 @@
   ;; Now, only new categories are expressed
   ;; What about discriminating categories already there?
   (let* ((utterance-meaning (utterance-meaning agent (utterance agent)))
-         (topic-similarity (overlap utterance-meaning (discriminating-categories agent))))
-    (when (> (random 1.0) topic-similarity)
+         (topic-similarity (when utterance-meaning
+                             (overlap utterance-meaning (discriminating-categories agent)))))
+    (when (or (null utterance-meaning)
+              (and utterance-meaning
+                   (> (random 1.0) topic-similarity)))
       (let* ((all-channels (get-configuration agent :channels))
              (used-channels (mapcar #'channel (mapcar #'car (discriminating-categories agent))))
              (unused-channels (set-difference all-channels used-channels))
              (new-categories
               (loop for channel in unused-channels
-                    for topic-value-on-channel (access-channel (topic agent) channel)
+                    for topic-value-on-channel = (access-channel (topic agent) channel)
                     collect (add-category agent channel topic-value-on-channel))))
         ;; after invention, production will be retried
         ;; so, we set these new categories as discriminating categories
@@ -210,7 +226,10 @@
 (defmethod interpret ((agent mwm-agent) (utterance string))
   "Search for the object in the context that maximizes the overlap
    with the meaning of the utterance (if known)."
-  (let ((parsed-utterance-meaning (utterance-meaning agent utterance)))
+  (multiple-value-bind (parsed-utterance-meaning applied-lexs)
+      (utterance-meaning agent utterance)
+    (when (hearerp agent)
+      (setf (applied-lex agent) applied-lexs))
     (loop with best-object = nil
           with best-overlap = nil
           for object in (entities (context agent))
@@ -230,10 +249,38 @@
 ;; ------------
 
 (defmethod adopt ((agent mwm-agent) (topic mwm-object))
-  ;; determine unexpressed channels
-  ;; determine categories for those channels (re-use or create??)
-  ;; store with the first unknown word
-  nil)
+  (let (;; determine the first unkown form
+        (new-form (loop for form in (utterance agent)
+                        unless (find form (lexicon agent) :key #'form :test #'string=)
+                        return form)))
+    (when new-form
+      (let* (;; determine the unexpressed channels
+             (utterance-meaning (utterance-meaning agent (utterance agent)))
+             (used-channels (mapcar #'channel (mapcar #'car utterance-meaning)))
+             (all-channels (get-configuration agent :channels))
+             (unused-channels (set-difference all-channels used-channels))
+             ;; categorise all objects on all channels
+             (strategy (get-configuration agent :conceptualisation-strategy))
+             (object-categorisations
+              (loop for object in (entities (context agent))
+                    collect (cons object (categorise-object agent object))))
+             (topic-categorisation
+              (find topic object-categorisations :key #'car))
+             (context-categorisations
+              (remove topic object-categorisations :key #'car)))
+        ;; find discriminating categories for the topic on the unused channels
+        ;; if no category is discriminating, create a new one
+        (loop with new-meaning = nil
+              for channel in unused-channels
+              for topic-on-channel = (find channel (rest topic-categorisation) :key #'first)
+              for best-other-on-channel = (get-best-categorisation-for-context context-categorisations channel)
+              if (valid-categorisation-p topic-on-channel best-other-on-channel strategy)
+              do (push (second topic-on-channel) new-meaning)
+              else
+              do (push (add-category agent channel (access-channel (topic agent) channel)) new-meaning)
+              finally
+              ;; store these categories as meaning of the first, unknown word
+              do (add-lex agent new-form new-meaning))))))
 
 ;; ---------------------
 ;; + Determine Success +
@@ -246,6 +293,9 @@
   
     
     
+;; ------------------------------
+;; + Tutor Ontology and Lexicon +
+;; ------------------------------
 
 ;;;; The tutor ontology and lexicon
 (defun build-tutor-ontology-and-lexicon (agent)
@@ -278,16 +328,16 @@
         (0-corners-category (make-instance 'nr-corners-channel :value (scale-channel :nr-of-corners 0)))
         (square-ratio-category (make-instance 'wh-ratio-channel :value 1.0))
         (rectangle-ratio-category (make-instance 'wh-ratio-channel :value 0.75)))
-    (set-data (ontology agent) 'channels (list left-category x-middle-category right-category
-                                               bottom-category y-middle-category top-category
-                                               small-area-category medium-area-category large-area-category
-                                               narrow-category medium-width-category wide-category
-                                               tall-category medium-height-category short-category
-                                               red-category green-category blue-category
-                                               shiny-category matte-category
-                                               4-sides-category 3-sides-category 10-sides-category
-                                               4-corners-category 3-corners-category 0-corners-category
-                                               square-ratio-category rectangle-ratio-category))
+    (set-data (ontology agent) :x-pos (list left-category x-middle-category right-category))
+    (set-data (ontology agent) :y-pos (list bottom-category y-middle-category top-category))
+    (set-data (ontology agent) :area (list small-area-category medium-area-category large-area-category))
+    (set-data (ontology agent) :width (list narrow-category medium-width-category wide-category))
+    (set-data (ontology agent) :height (list tall-category medium-height-category short-category))
+    (set-data (ontology agent) :mean-color (list red-category green-category blue-category))
+    (set-data (ontology agent) :stdev-color (list shiny-category matte-category))
+    (set-data (ontology agent) :nr-of-sides (list 4-sides-category 3-sides-category 10-sides-category))
+    (set-data (ontology agent) :nr-of-corners (list 4-corners-category 3-corners-category 0-corners-category))
+    (set-data (ontology agent) :wh-ratio (list square-ratio-category rectangle-ratio-category))
     (add-lex agent "square" (list 4-sides-category 4-corners-category square-ratio-category)
              :initial-certainty 1.0)
     (add-lex agent "triangle" (list 3-sides-category 3-corners-category square-ratio-category)

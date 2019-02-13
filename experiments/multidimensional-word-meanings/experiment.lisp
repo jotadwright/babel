@@ -11,7 +11,12 @@
 (define-configuration-default-value :channels
                                     '(:x-pos :y-pos :width :height :wh-ratio :area
                                       :nr-of-sides :nr-of-corners :mean-color :stdev-color))
-(define-configuration-default-value :conceptualisation-strategy :nearest-neighbour) ; :nearest-neighbour or :discrimination
+(define-configuration-default-value :conceptualisation-strategy :nearest) ; :nearest or :discrimination
+(define-configuration-default-value :initial-certainty 0.05)
+(define-configuration-default-value :incf-lex-score 0.01)
+(define-configuration-default-value :decf-lex-score 0.02)
+(define-configuration-default-value :alignment-strategy :lateral-inhibition)
+(define-configuration-default-value :who-aligns :both)
 
 ;;;; Experiment
 (defclass mwm-experiment (experiment)
