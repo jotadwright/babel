@@ -3,6 +3,8 @@
 
 (in-package :mwm)
 
+(activate-monitor trace-interaction-in-web-interface)
+
 (defparameter *configuration*
   (make-configuration
    :entries
@@ -10,8 +12,6 @@
      (determine-interacting-agents-mode . :default)
      (conceptualisation-strategy . :nearest)
      (who-aligns . :none))))
-
-(activate-monitor trace-interaction-in-web-interface)
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
