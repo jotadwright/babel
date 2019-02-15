@@ -167,6 +167,8 @@
                                                           id-map
                                                           id-mappings)))))
 
+(export '(read-contexts-from-file))
+
 (defun read-contexts-from-file (contexts-file)
   "Read the clevr scenes from a file. This functions expects a file
    where each line contains a json object of a context. If this is
@@ -224,7 +226,9 @@
                  :dataset-split (rest (assoc :split json-question))
                  :template-filename (rest (assoc :template--filename json-question))
                  :question-family-index (rest (assoc :question--family--index json-question))))
-  
+
+(export '(read-questions-from-file))
+
 (defun read-questions-from-file (questions-file)
   "Read the clevr questions from a file. This functions expects a file
    where each line contains a json object of a question. If this is

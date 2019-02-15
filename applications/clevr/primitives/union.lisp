@@ -6,6 +6,8 @@
 ;; UNION primtive ;;
 ;; -----------------
 
+(export '(union!))
+
 (defprimitive union! ((target-set clevr-object-set)
                       (source-set-1 clevr-object-set)
                       (source-set-2 clevr-object-set))

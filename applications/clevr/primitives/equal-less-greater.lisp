@@ -2,6 +2,8 @@
 
 (in-package :clevr)
 
+(export '(equal-integer less-than greater-than))
+
 ;; -------------------------
 ;; EQUAL-INTEGER primtive ;;
 ;; -------------------------

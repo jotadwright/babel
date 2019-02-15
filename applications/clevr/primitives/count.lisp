@@ -6,6 +6,8 @@
 ;; COUNT primtive ;;
 ;; -----------------
 
+(export '(count!))
+
 ;; For the moment, this is implemented without using the integer
 ;; categories in the ontology. Let's see if it works like this.
 (defprimitive count! ((target-num number)

@@ -6,6 +6,8 @@
 ;; SAME primtive ;;
 ;; ----------------
 
+(export '(same))
+
 (defgeneric same-set-by-object-attribute (set object attribute)
   (:documentation "Filter the given set by the attribute of the given object;
    also remove the object itself from this set."))

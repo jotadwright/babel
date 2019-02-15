@@ -6,6 +6,8 @@
 ;; RELATE primtive ;;
 ;; ------------------
 
+(export '(relate))
+
 (defgeneric apply-spatial-relation (object spatial-relation-category context)
   (:documentation "Apply the spatial relation to the object"))
 

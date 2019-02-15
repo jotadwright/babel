@@ -6,6 +6,8 @@
 ;; UNIQUE primtive ;;
 ;; ------------------
 
+(export '(unique))
+
 (defprimitive unique ((target-object clevr-object)
                       (source-set clevr-object-set))
   ;; first case; given source set, compute target object

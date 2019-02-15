@@ -6,6 +6,8 @@
 ;; EXIST primtive ;;
 ;; -----------------
 
+(export '(exist))
+
 (defprimitive exist ((target-bool boolean-category)
                      (source-set clevr-object-set))
   ;; first case; give source-set, compute target-bool

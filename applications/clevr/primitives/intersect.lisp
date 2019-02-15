@@ -6,6 +6,8 @@
 ;; INTERSECT primtive ;;
 ;; ---------------------
 
+(export '(intersect))
+
 (defprimitive intersect ((target-set clevr-object-set)
                          (source-set-1 clevr-object-set)
                          (source-set-2 clevr-object-set))

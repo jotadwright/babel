@@ -6,6 +6,8 @@
 ;; QUERY primtive ;;
 ;; -----------------
 
+(export '(query))
+
 (defgeneric query-object-attribute (object attribute ontology)
   (:documentation "Extract the attribute from the object and
    get the corresponding category from the ontology"))

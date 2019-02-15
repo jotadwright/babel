@@ -6,6 +6,8 @@
 ;; FILTER primtive ;;
 ;; ------------------
 
+(export '(filter))
+
 (defgeneric filter-by-category (set category)
   (:documentation "Filter the set by the given category."))
 
