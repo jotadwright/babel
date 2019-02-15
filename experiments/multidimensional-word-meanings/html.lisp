@@ -21,5 +21,6 @@
   (append
    `(((div :class "entity-detail")
       ,(format nil "~a" (form lex))))
-   `(((div :class "entity-detail")
-      ,(format nil "~a" (meaning lex))))))
+   (loop for (category . certainty) in (meaning lex)
+         append `(((div :class "entity-detail")
+                   ,(format nil "~a (~,2f)" (id category) certainty))))))

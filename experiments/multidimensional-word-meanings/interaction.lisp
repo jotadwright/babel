@@ -52,6 +52,7 @@
 ;; -------------
 
 ;; Alignment consists of several steps:
+;; 0. Punish form competitors
 ;; 1. Entrenchement of the shared attributes between meaning and topic
 ;;    Also, the categories are shifted towards the topic.
 ;; 2. Erosion of the disjoint attributes between meaning and topic
@@ -59,7 +60,7 @@
 ;;    of the used words.
 
 (defmethod align-agent :around ((agent mwm-agent) strategy)
-  (case (get-configuration agent :who-align)
+  (case (get-configuration agent :who-aligns)
     (:speaker (when (speakerp agent) (call-next-method)))
     (:hearer (when (hearerp agent) (call-next-method)))
     (:both (call-next-method))))
@@ -74,6 +75,13 @@
          (utterance-meaning (utterance-meaning agent (utterance agent)))
          (shared-categories (intersection utterance-meaning topic-categories :key #'car))
          (disjoint-categories (set-difference utterance-meaning topic-categories :key #'car)))
+    ;; punish form competitors across channels
+    (loop for lex in (applied-lex agent)
+          do (loop for competitor in (get-form-competitors agent lex)
+                   do (loop for channel in (get-configuration agent :channels)
+                            do (dec-lex-score agent lex channel
+                                              :delta (get-configuration :decf-lex-score)))))
+    ;; entrenchment and erosion
     (loop for lex in (applied-lex agent)
           do (loop for (category . certainty) in (meaning lex)
                    if (member category shared-categories :key #'car)
@@ -83,6 +91,7 @@
                    else
                    do (dec-lex-score agent lex (channel category)
                                      :delta (get-configuration agent :decf-lex-score))))
+    ;; extend meaning
     (when (and (not (communicated-successfully agent))
                (hearerp agent)
                (null (unknown-forms agent)))

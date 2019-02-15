@@ -220,6 +220,7 @@
     (when (or (null utterance-meaning)
               (and utterance-meaning
                    (> (random 1.0) topic-similarity)))
+      ;; utterance meaning instead of discriminating categories
       (let* ((all-channels (get-configuration agent :channels))
              (used-channels (mapcar #'channel (mapcar #'car (discriminating-categories agent))))
              (unused-channels (set-difference all-channels used-channels))

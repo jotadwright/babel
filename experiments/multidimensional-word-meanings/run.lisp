@@ -10,7 +10,7 @@
    :entries
    '((game-mode . :tt)
      (determine-interacting-agents-mode . :default)
-     (conceptualisation-strategy . :nearest)
+     (conceptualisation-strategy . :discrimination)
      (who-aligns . :none))))
 
 (defparameter *experiment*
