@@ -188,9 +188,9 @@
         (length sentences)))
 
 (defparameter *training-corpus* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                                :name "111-causation-frame-annotations" :type "json"))
+                                                :name "152-causation-frame-annotations" :type "json"))
 (defparameter *test-corpus* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                                :name "63-causation-frame-annotations" :type "json"))
+                                                :name "93-causation-frame-annotations" :type "json"))
 ;;standard file with parse results:
 (defparameter *frame-extractor-output* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
                                                        :name "frame-extractor-output" :type "json"))
@@ -237,7 +237,7 @@
 ;;##########################################################
 
 ;; Running the evaluation (on training set - slow):
-;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in"))
+;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in" "lead"))
 
 ;; Running the evaluation when you have recently parsed all sentences (on training set - faster):
 ;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :frame-extractor-output *frame-extractor-output* )
