@@ -2,7 +2,7 @@
 
 ## Causation-frame annotations
 #### 12.10.2018
-In total, 174 Guardian article sentences are annotated with their corresponding causation-frames. Frames consist of three slots, a *frame-evoking-element* (currently only "cause"), a *cause* and an *effect*. Following [framenet's definition of causation](https://framenet2.icsi.berkeley.edu/fnReports/data/frameIndex.xml?frame=Causation), each sentence contains at least one of the following *frame-evoking-elements*:
+In total, 345 Guardian article sentences are annotated with their corresponding causation-frames. Frames consist of three slots, a *frame-evoking-element*, a *cause* and an *effect*. Following [framenet's definition of causation](https://framenet2.icsi.berkeley.edu/fnReports/data/frameIndex.xml?frame=Causation), each sentence contains at least one of the following *frame-evoking-elements*:
 
 * cause.v
 * because of.prep
@@ -12,9 +12,9 @@ In total, 174 Guardian article sentences are annotated with their corresponding 
 * due to.prep
 * result in.v
 
-At the moment, pronominal resolutions are not taken into consideration and negations are not treated specially.
+At the moment, pronominal resolutions are not taken into consideration and negations are not treated.
 
-For grammar engineering and general evaluation purposes, the annotations are divided into a training set (`111-causation-frame-annotations.json`) and a test set (`63-causation-frame-annotations.json`).
+For grammar engineering and general evaluation purposes, the annotations are divided into a training set (`199-causation-frame-annotations.json`) and a test set (`164-causation-frame-annotations.json`).
 
 ## Incremental evaluation results for sentences with "due to"
 

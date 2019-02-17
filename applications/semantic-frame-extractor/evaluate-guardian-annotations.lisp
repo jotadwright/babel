@@ -188,9 +188,9 @@
         (length sentences)))
 
 (defparameter *training-corpus* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                                :name "184-causation-frame-annotations" :type "json"))
+                                                :name "199-causation-frame-annotations" :type "json"))
 (defparameter *test-corpus* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                                :name "119-causation-frame-annotations" :type "json"))
+                                                :name "146-causation-frame-annotations" :type "json"))
 ;;standard file with parse results:
 (defparameter *frame-extractor-output* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
                                                        :name "frame-extractor-output" :type "json"))
