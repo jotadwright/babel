@@ -23,9 +23,7 @@
 ;; 6. Atomic
 ;; 7. City 
 ;;--------------------------------------------------------
-;(ql:quickload :amr-grammar)
 (in-package :amr-grammar)
-(activate-monitor trace-fcg)
 
 ;; Grammar
 (def-fcg-constructions amr-Banarescu-grammar
@@ -48,10 +46,9 @@
                 <-
                 (?investor-unit
                  (HASH meaning ((person ?p)
-                                (:arg0-of ?p ?i))
-                       --
-                       (HASH form ((string ?invest-unit "investor")))))))
-;)
+                                (:arg0-of ?p ?i)))
+                 --
+                 (HASH form ((string ?investor-unit "investor"))))))
 
 
 

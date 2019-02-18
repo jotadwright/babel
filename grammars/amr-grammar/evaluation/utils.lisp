@@ -7,6 +7,6 @@
                                 (mapcar #'(lambda (predicate)
                                             (cons (first predicate)
                                                   (mapcar #'(lambda (symbol)
-                                                              (variablify symbol))
+                                                              (utils::variablify symbol))
                                                           (rest predicate))))
                                         (amr:penman->predicates amr-penman))))
