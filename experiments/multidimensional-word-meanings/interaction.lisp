@@ -44,8 +44,10 @@
         (adopt hearer (topic speaker))))))
     
 (defmethod interact :after ((experiment mwm-experiment) interaction &key)
-  (loop for agent in (interacting-agents interaction)
-        do (align-agent agent (get-configuration experiment :alignment-strategy))))
+  (let ((speaker-topic (topic (speaker interaction))))
+    (loop for agent in (interacting-agents interaction)
+          do (align-agent agent speaker-topic
+                          (get-configuration experiment :alignment-strategy)))))
 
 ;; -------------
 ;; + Alignment +
@@ -59,7 +61,7 @@
 ;; 3. In case of failed game and no unknown words, the hearer extends the meaning
 ;;    of the used words.
 
-(defmethod align-agent :around ((agent mwm-agent) strategy)
+(defmethod align-agent :around ((agent mwm-agent) (topic mwm-object) strategy)
   (case (get-configuration agent :who-aligns)
     (:speaker (when (speakerp agent) (call-next-method)))
     (:hearer (when (hearerp agent) (call-next-method)))
@@ -70,30 +72,47 @@
         unless (find form (lexicon agent) :key #'form :test #'string=)
         collect form))
 
-(defmethod align-agent ((agent mwm-agent) (strategy (eql :lateral-inhibition)))
-  (let* ((topic-categories (categorise-object agent (topic agent)))
+(define-event alignment-started (agent mwm-agent))
+(define-event competitor-punished (competitor mwm-lex))
+(define-event lex-channels-entrenched (lex mwm-lex) (channels list))
+(define-event lex-channels-eroded (lex mwm-lex) (channels list))
+(define-event meaning-extended (lex mwm-lex) (categories list))
+
+(defmethod align-agent ((agent mwm-agent) (topic mwm-object) (strategy (eql :lateral-inhibition)))
+  (let* ((topic-categories (loop for (channel category certainty) in (categorise-object agent topic)
+                                 collect (cons category certainty)))
          (utterance-meaning (utterance-meaning agent (utterance agent)))
          (shared-categories (intersection utterance-meaning topic-categories :key #'car))
          (disjoint-categories (set-difference utterance-meaning topic-categories :key #'car)))
+    (notify alignment-started agent)
     ;; punish form competitors across channels
     (loop for lex in (applied-lex agent)
           do (loop for competitor in (get-form-competitors agent lex)
+                   do (notify competitor-punished competitor)
                    do (loop for channel in (get-configuration agent :channels)
-                            do (dec-lex-score agent lex channel
-                                              :delta (get-configuration :decf-lex-score)))))
+                            do (dec-lex-score agent competitor channel
+                                              :delta (get-configuration agent :decf-lex-score)))))
     ;; entrenchment and erosion
     (loop for lex in (applied-lex agent)
-          do (loop for (category . certainty) in (meaning lex)
+          do (loop with entrenched-channels = nil
+                   with eroded-channels = nil
+                   for (category . certainty) in (meaning lex)
                    if (member category shared-categories :key #'car)
                    do (progn (shift-category category (topic agent))
                         (inc-lex-score lex (channel category)
-                                       :delta (get-configuration agent :incf-lex-score)))
+                                       :delta (get-configuration agent :incf-lex-score))
+                        (push (channel category) entrenched-channels)) 
                    else
-                   do (dec-lex-score agent lex (channel category)
-                                     :delta (get-configuration agent :decf-lex-score))))
+                   do (progn (push (channel category) eroded-channels)
+                        (dec-lex-score agent lex (channel category)
+                                       :delta (get-configuration agent :decf-lex-score)))
+                   finally
+                   (progn (notify lex-channels-entrenched lex entrenched-channels)
+                     (notify lex-channels-eroded lex eroded-channels))))
     ;; extend meaning
     (when (and (not (communicated-successfully agent))
                (hearerp agent)
                (null (unknown-forms agent)))
       (loop for lex in (applied-lex agent)
-            do (extend-meaning lex disjoint-categories)))))
+            do (extend-meaning lex disjoint-categories)
+            do (notify meaning-extended lex disjoint-categories)))))
