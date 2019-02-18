@@ -1,28 +1,13 @@
 ;;AMR grammar Banarescu Corpus developed by Martina Galletti (Spring 2019)
 ;;-------------------------------------------------------
-;; Sentences covered so far:
-;; 1. Zintan
-;; 40. City of Zintan
-;; 6. Mollie Brown
-;; 7. President Obama
-;; 8. Obama, the president 
-;;-------------------------------------------------------
-;; Nominal constructions covered so far:
-;; 1.named entities for person 
-;; 2.named entities for city
-;; 3. Brown last name 
-;;-------------------------------------------------------
-;; Verbal constructions covered so far:
+;; Lexical constructions covered so far:
+;; - investor-cxn
+;; - bond-cxn
+;; - zintan-cxn
 ;;--------------------------------------------------------
-;; Single lemma constructions covered so far:
-;; 1. Investor
-;; 2. Zintan
-;; 3. Bond
-;; 4. Small
-;; 5. Atom
-;; 6. Atomic
-;; 7. City 
-;;--------------------------------------------------------
+;; Grammatical constructions covered so far:
+;; - compound-noun+nominalised-verb-cxn
+
 (in-package :amr-grammar)
 
 ;; Grammar
@@ -32,26 +17,125 @@
                   (subunits set)
                   (args sequence)
                   (footprints set))
-  :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-first))
+  :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-first)
+                       (:parse-goal-tests :no-strings-in-root :no-applicable-cxns))
 
-  ;; 1. Investor 
-  ;; (PERSON P) (INVEST-01 I) (:ARG0-OF P I))
   (def-fcg-cxn investor-cxn 
                ((?investor-unit
-                 (referent ?i)
-                 (sem-valence (name ?m))
-                 (syn-cat (lex-class noun))
-                 (sem-cat (sem-class person))
-                 (number ?numb))
+                 (referent ?p)
+                 (meaning ((person ?p)
+                           (invest-01 ?i)
+                           (:arg0-of ?p ?i)))
+                 (sem-valence (arg0-of ?i)) ;;a person or thing that does something
+                 (syn-cat (lex-class noun)
+                          (nominalisation +)
+                          (number sg)
+                          (syn-function ?func))
+                 (sem-cat (sem-class person)))
                 <-
                 (?investor-unit
-                 (HASH meaning ((person ?p)
-                                (:arg0-of ?p ?i)))
                  --
                  (HASH form ((string ?investor-unit "investor"))))))
 
+  (def-fcg-cxn bond-cxn
+               ((?bond-unit
+                 (referent ?b)
+                 (meaning ((bond ?b)))
+                 (syn-cat (lex-class noun)
+                          (number sg)
+                          (syn-function ?func))
+                 (sem-cat (sem-class object)))
+                <-
+                (?bond-unit
+                 --
+                 (HASH form ((string ?bond-unit "bond"))))))
+
+  (def-fcg-cxn compound-noun+nominalised-verb-cxn ;;bond investor
+               ((?compound-noun-unit
+                 (referent ?ref)
+                 (meaning ((:arg1 ?event ?type)))
+                 (sem-cat (sem-class ?class))
+                 (syn-cat (lex-class noun)
+                          (nominalisation +)
+                          (compound +)
+                          (number ?numb)
+                          (syn-function ?func))
+                 (subunits (?first-noun-unit ?second-noun-unit)))
+                <-
+                (?first-noun-unit
+                 --
+                 (referent ?type)
+                 (syn-cat (lex-class noun)))
+                (?second-noun-unit
+                 --
+                 (referent ?ref)
+                 (syn-cat (nominalisation +)
+                          (number ?numb)
+                          (syn-function ?func))
+                 (sem-valence (arg0-of ?event))
+                 (sem-cat (sem-class ?class)))
+                (?compound-noun-unit
+                 --
+                 (HASH form ((meets ?first-noun-unit ?second-noun-unit))))))
+
+  (def-fcg-cxn small-cxn
+               ((?small-unit
+                 (referent ?size)
+                 (meaning ((small ?size)))
+                 (syn-cat (lex-class adjective)
+                          (syn-function ?func))
+                 (sem-cat (sem-class size)))
+                <-
+                (?small-unit
+                 --
+                 (HASH form ((string ?small-unit "small"))))))
+  
+  (def-fcg-cxn adjective-noun-nominalisation-cxn ;;small investor
+               ((?nominal-unit
+                 (referent ?ref)
+                 (meaning ((:manner ?event ?type)))
+                 (sem-cat (sem-class ?class))
+                 (syn-cat (syn-function ?func)
+                          (nominalisation +)
+                          (number ?numb))
+                 (subunits (?adjective-unit ?noun-unit)))
+                <-
+                (?adjective-unit
+                 --
+                 (referent ?type)
+                 (syn-cat (lex-class adjective)
+                          (syn-function adjectival))) ;;merge
+                (?noun-unit
+                 --
+                 (referent ?ref)
+                 (syn-cat (nominalisation +)
+                          (number ?numb)
+                          (syn-function ?func))
+                 (sem-valence (arg0-of ?event))
+                 (sem-cat (sem-class ?class)))
+                (?nominal-unit
+                 --
+                 (HASH form ((meets ?adjective-unit ?noun-unit))))))
+  
+
+  (def-fcg-cxn Zintan-cxn
+               ((?Zintan-unit
+                 (referent ?C)
+                 (syn-cat (lex-class proper-noun)
+                          (syn-function nominal)
+                          (phrase-type NP))
+                 (sem-cat (sem-class city)))
+                <-
+                (?Zintan-unit
+                 (HASH meaning ((CITY ?C) (NAME ?N) (:NAME ?C ?N) (:OP1 ?N "Zintan")))
+                 --
+                 (HASH form ((string ?Zintan-unit "Zintan")))))))
 
 
+
+
+
+#|
   ;;2. Zintan and 41.Zintan the city of Zintan
   ;;((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan"))
   (def-fcg-cxn city-cxn
@@ -69,18 +153,7 @@
                  (HASH form ((string ?city-unit "city"))))))
 
   ;;Zintan
-  (def-fcg-cxn Zintan-cxn
-               ((?Zintan-unit
-                 (referent ?n)
-                 (syn-cat (lex-class proper-noun)
-                          (syn-function nominal))
-                 (sem-cat (sem-class city)))
-                <-
-                (?Zintan-unit
-                 (HASH meaning ((name ?n)
-                                (:op1 ?n "Zintan")))
-                 --
-                 (HASH form ((string ?Zintan-unit "Zintan"))))))
+  
 
   ;;8.President Obama + 13.Obama the president
   ;; same AMR representation, no article in AMR, no construction for "the"? 
@@ -228,17 +301,7 @@
   ;;3. bond Investor
   ;;((PERSON P) (INVEST-01 I) (BOND B) (:ARG0-OF P I) (:ARG1 I B))
 
-  ;;bond
-  (def-fcg-cxn bond-cxn
-               ((?bond-unit
-                 (referent ?b)
-                 (syn-cat (lex-class noun)))
-                <-
-                (?bond-unit
-                 (HASH meaning ((bond ?b)
-                                (:arg1 ?i ?b)))
-                 --
-                 (HASH form ((string ?bond-unit "bond"))))))
+
 
   ;;compound noun construction
   (def-fcg-cxn compound-noun-cxn
@@ -324,5 +387,5 @@
 
   )
 
-
+|#
             
