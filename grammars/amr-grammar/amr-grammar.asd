@@ -5,5 +5,10 @@
   :homepage "https://gitlab.ai.vub.ac.be/ehai/amr-grammar"
   :serial t
   :depends-on (:fcg :amr)
-  :components ((:file "package"))
+  :components ((:file "package")
+               (:file "grammar")
+               (:module evaluation
+                :serial t
+                :components 
+                ((:file "utils"))))
   :description "An FCG grammar for semantic parsing of English utterances into AMR.")
