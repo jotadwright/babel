@@ -373,3 +373,14 @@ string will consist solely of decimal digits and ASCII letters."
                                                     (split-sequence:split-sequence #+LISPWORKS #\No-Break-Space #+CCL #\No-Break_Space
                                                                                    string :remove-empty-subseqs t))))
         (format nil "~{~a~^ ~}" (split-sequence:split-sequence #\Space string-without-no-break-spaces :remove-empty-subseqs t)))))
+
+
+;; ############################################################################
+
+(export '(variablifly))
+
+(defun variablify (symbol)
+  "Turn a symbol into a variable if it isn't one yet."
+  (if (variable-p symbol)
+    symbol
+    (intern (format nil "?~a" symbol))))
