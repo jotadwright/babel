@@ -26,4 +26,6 @@
   (make-instance 'mwm-experiment :configuration *P-configuration*))
 
 (run-interaction *experiment*)
+
+(run-series *experiment* 10)
      

@@ -48,23 +48,22 @@
              (the-biggest #'(lambda (c)
                               (channel-similarity object c))
                           channel-categories))
-          collect (list channel best-channel similarity))))
+          when best-channel
+          collect (cons best-channel similarity))))
 
 (defun discriminate-on-channel (topic-on-channel context-on-channel strategy)
   (case strategy
     (:nearest
-     (when (loop with (t-channel t-category t-similarity) = topic-on-channel
-                 for (channel category similarity) in context-on-channel
+     (when (loop with (t-category t-similarity) = topic-on-channel
+                 for (category similarity) in context-on-channel
                  never (and (eql category t-category)
                             (> similarity t-similarity)))
-       (cons (second topic-on-channel)
-             (third topic-on-channel))))
+       topic-on-channel))
     (:discrimination
-     (when (loop with (t-channel t-category t-similarity) = topic-on-channel
-                 for (channel category similarity) in context-on-channel
+     (when (loop with (t-category t-similarity) = topic-on-channel
+                 for (category similarity) in context-on-channel
                  never (eql category t-category))
-       (cons (second topic-on-channel)
-             (third topic-on-channel))))))
+       topic-on-channel))))
      
 
 (define-event conceptualisation-finished (discriminating-categories list))
@@ -78,26 +77,31 @@
   (let* ((strategy (get-configuration agent :conceptualisation-strategy))
          (object-categorisations
           (loop for object in (entities (context agent))
-                collect (cons object (categorise-object agent object))))
+                for categorisation = (categorise-object agent object)
+                when categorisation
+                collect (cons object categorisation)))
          (topic-categorisation
           (find topic object-categorisations :key #'car))
          (context-categorisations
           (remove topic object-categorisations :key #'car)))
-    (setf (discriminating-categories agent)
-          (loop with discriminating-categories = nil
-                for channel in (get-configuration agent :channels)
-                for topic-on-channel = (find channel (rest topic-categorisation) :key #'first)
-                for context-on-channel
-                = (loop for (object . categorisations) in context-categorisations
-                        collect (find channel categorisations :key 'first))
-                for discriminating-category-on-channel
-                = (discriminate-on-channel topic-on-channel
-                                           context-on-channel
-                                           strategy)
-                when discriminating-category-on-channel
-                do (push discriminating-category-on-channel discriminating-categories)
-                finally
-                (return discriminating-categories)))
+    (when (rest topic-categorisation)
+      (setf (discriminating-categories agent)
+            (loop with discriminating-categories = nil
+                  for channel in (get-configuration agent :channels)
+                  for topic-on-channel = (find channel (rest topic-categorisation)
+                                               :key (compose #'channel #'car))
+                  for context-on-channel
+                  = (loop for (object . categorisations) in context-categorisations
+                          collect (find channel categorisations
+                                        :key (compose #'channel #'car)))
+                  for discriminating-category-on-channel
+                  = (discriminate-on-channel topic-on-channel
+                                             context-on-channel
+                                             strategy)
+                  when discriminating-category-on-channel
+                  do (push discriminating-category-on-channel discriminating-categories)
+                  finally
+                  (return discriminating-categories))))
     (notify conceptualisation-finished (discriminating-categories agent)))
   (discriminating-categories agent))
   
@@ -111,10 +115,13 @@
    in the utterance."
   (let ((lex-items
          (loop for form in utterance
-               for lex = (find form (lexicon agent) :key #'form :test #'string=)
+               for lex = (find form (lexicon agent)
+                               :key #'form :test #'string=)
                when lex
                collect lex)))
-    (values (reduce #'fuzzy-union lex-items :key #'meaning :initial-value '())
+    (values (reduce #'fuzzy-union lex-items
+                    :key #'meaning
+                    :initial-value '())
             lex-items)))
 
 (defun overlap (meaning object-categories)
@@ -126,15 +133,23 @@
                   (fuzzy-cardinality (fuzzy-difference object-categories meaning))))
             (* (fuzzy-cardinality meaning) (fuzzy-cardinality object-categories)))))
 
-(defun get-best-new-word (lexicon utterance utterance-meaning object)
-  (let ((lex-to-consider (remove-if #'(lambda (lex)
-                                        (member (form lex) utterance :test #'string=))
-                                    lexicon)))
+(defun get-best-new-word (lexicon utterance utterance-meaning discriminating-categories)
+  (let* ((lex-w-categories
+          (remove-duplicates
+           (loop for (category . similarity) in discriminating-categories
+                 collect (find category lexicon
+                               :key #'(lambda (lex)
+                                        (mapcar #'car (meaning lex)))
+                               :test #'member))))
+         (lex-to-consider
+          (remove-if #'(lambda (lex)
+                         (member (form lex) utterance :test #'string=))
+                     lex-w-categories)))
     (loop with best-lex = nil
           with best-overlap = nil
           for lex in lex-to-consider
           for extended-meaning = (fuzzy-union (meaning lex) utterance-meaning)
-          for overlap = (overlap extended-meaning object)
+          for overlap = (overlap extended-meaning discriminating-categories)
           when (or (null best-lex)
                    (> overlap best-overlap))
           do (setf best-lex lex
@@ -211,10 +226,11 @@
 ;; + Invention +
 ;; -------------
 
-(define-event invention-finished (new-categories list) (new-lex mwm-lex))
+(define-event invention-finished (re-used-categories list)
+  (new-categories list) (new-lex mwm-lex))
 
 (defmethod invent ((agent mwm-agent))
-  "Invent a new form. As a meaning, use all the unexpressed channels.
+  "Invent a new form. As a meaning, use all the non-discriminating channels.
    For each of these channels, check if there is already a discriminating
    category. if so, re-use it. Otherwise, invent a new one. The new categories
    take the value of the topic as initial value. Associate the categories to
@@ -229,28 +245,32 @@
               (and utterance-meaning
                    (> (random 1.0) topic-similarity)))
       (let* ((all-channels (get-configuration agent :channels))
-             (used-channels (mapcar #'channel (mapcar #'car utterance-meaning)))
+             (used-channels (mapcar (compose #'channel #'car) (discriminating-categories agent)))
              (unused-channels (set-difference all-channels used-channels))
-             (new-categories
-              (loop for channel in unused-channels
-                    for discriminating-category = (find channel (mapcar #'car (discriminating-categories agent))
-                                                        :key #'channel)
-                    for topic-value-on-channel = (access-channel (topic agent) channel)
-                    if discriminating-category
-                    collect discriminating-category
-                    else
-                    collect (add-category agent channel topic-value-on-channel)))
              new-lex)
-        ;; after invention, production will be retried
-        ;; so, we set these new categories as discriminating categories
-        ;; with certainty 1
-        (setf (discriminating-categories agent)
-              (loop for c in new-categories
-                    collect (cons c 1)))
-        (setf new-lex
-              (add-lex agent (make-new-word) new-categories))
-        (notify invention-finished new-categories new-lex)
-        new-lex))))
+        (multiple-value-bind (re-used-categories new-categories)
+            (loop with re-used-categories = nil
+                  with new-categories = nil
+                  for channel in unused-channels
+                  for discriminating-category = (find channel (discriminating-categories agent)
+                                                      :key (compose #'channel #'car))
+                  for topic-value-on-channel = (access-channel (topic agent) channel)
+                  if discriminating-category
+                  do (push (car discriminating-category) re-used-categories)
+                  else
+                  do (push (add-category agent channel topic-value-on-channel) new-categories)
+                  finally
+                  (return (values re-used-categories new-categories)))
+          ;; after invention, production will be retried
+          ;; so, we set these new categories as discriminating categories
+          ;; with certainty 1
+          (setf (discriminating-categories agent)
+                (loop for c in (append re-used-categories new-categories)
+                      collect (cons c 1)))
+          (setf new-lex
+                (add-lex agent (make-new-word) (append re-used-categories new-categories)))
+          (notify invention-finished re-used-categories new-categories new-lex)
+          new-lex)))))
 
 ;; ------------------
 ;; + Interpretation +
@@ -270,9 +290,7 @@
              (loop with best-object = nil
                    with best-overlap = nil
                    for object in (entities (context agent))
-                   for object-categorisation = (let ((categorisation (categorise-object agent object)))
-                                                 (loop for (channel category similarity) in categorisation
-                                                       collect (cons category similarity)))
+                   for object-categorisation = (categorise-object agent object)
                    for overlap = (overlap parsed-utterance-meaning object-categorisation)
                    when (or (null best-object)
                             (> overlap best-overlap))
@@ -288,7 +306,8 @@
 ;; + Adoption +
 ;; ------------
 
-(define-event adoption-finished (new-lex mwm-lex))
+(define-event adoption-finished (re-used-categories list)
+  (new-categories list) (new-lex mwm-lex))
 
 (defmethod adopt ((agent mwm-agent) (topic mwm-object))
   (let (;; determine the first unkown form
@@ -298,7 +317,7 @@
     (when new-form
       (let* (;; determine the unexpressed channels
              (utterance-meaning (utterance-meaning agent (utterance agent)))
-             (used-channels (mapcar #'channel (mapcar #'car utterance-meaning)))
+             (used-channels (mapcar (compose #'channel #'car) utterance-meaning))
              (all-channels (get-configuration agent :channels))
              (unused-channels (set-difference all-channels used-channels))
              ;; categorise all objects on all channels
@@ -312,24 +331,28 @@
               (remove topic object-categorisations :key #'car)))
         ;; find discriminating categories for the topic on the unused channels
         ;; if no category is discriminating, create a new one
-        (loop with new-meaning = nil
-              for channel in unused-channels
-              for topic-on-channel = (find channel (rest topic-categorisation) :key #'first)
-              for context-on-channel
-              = (loop for (object . categorisations) in context-categorisations
-                      collect (find channel categorisations :key 'first))
-              for discriminating-category-on-channel
-              = (discriminate-on-channel topic-on-channel
-                                         context-on-channel
-                                         strategy)
-              if discriminating-category-on-channel
-              do (push (car discriminating-category-on-channel) new-meaning)
-              else
-              do (push (add-category agent channel (access-channel topic channel)) new-meaning)
-              finally
-              ;; store these categories as meaning of the first, unknown word
-              do (let ((new-lex (add-lex agent new-form new-meaning)))
-                   (notify adoption-finished new-lex)))))))
+        (multiple-value-bind (re-used-categories new-categories)
+            (loop with re-used-categories = nil
+                  with new-categories = nil
+                  for channel in unused-channels
+                  for topic-on-channel = (find channel (rest topic-categorisation)
+                                               :key (compose #'channel #'car))
+                  for context-on-channel
+                  = (loop for (object . categorisations) in context-categorisations
+                          collect (find channel categorisations
+                                        :key (compose #'channel #'car)))
+                  for discriminating-category-on-channel
+                  = (discriminate-on-channel topic-on-channel
+                                             context-on-channel
+                                             strategy)
+                  if discriminating-category-on-channel
+                  do (push (car discriminating-category-on-channel) re-used-categories)
+                  else
+                  do (push (add-category agent channel (access-channel topic channel)) new-categories)
+                  finally
+                  ;; store these categories as meaning of the first, unknown word
+                  do (let ((new-lex (add-lex agent new-form (append re-used-categories new-categories))))
+                       (notify adoption-finished re-used-categories new-categories new-lex))))))))
 
 ;; ---------------------
 ;; + Determine Success +

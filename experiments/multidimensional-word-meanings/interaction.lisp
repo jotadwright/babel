@@ -79,8 +79,7 @@
 (define-event meaning-extended (lex mwm-lex) (categories list))
 
 (defmethod align-agent ((agent mwm-agent) (topic mwm-object) (strategy (eql :lateral-inhibition)))
-  (let* ((topic-categories (loop for (channel category certainty) in (categorise-object agent topic)
-                                 collect (cons category certainty)))
+  (let* ((topic-categories (categorise-object agent topic))
          (utterance-meaning (utterance-meaning agent (utterance agent)))
          (shared-categories (intersection utterance-meaning topic-categories :key #'car))
          (disjoint-categories (set-difference utterance-meaning topic-categories :key #'car)))
