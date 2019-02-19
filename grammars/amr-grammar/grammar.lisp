@@ -124,7 +124,7 @@
                  (syn-cat (lex-class proper-noun)
                           (syn-function nominal)
                           (phrase-type NP))
-                 (sem-cat (sem-class city)))
+                 (sem-cat (sem-class location)))
                 <-
                 (?Zintan-unit
                  (HASH meaning ((CITY ?C) (NAME ?N) (:NAME ?C ?N) (:OP1 ?N "Zintan")))
