@@ -104,7 +104,7 @@ the nodes above the solution."
    data, returns a corresponding gp-cxn instance
    and adds the remaining data to the hash maps."
   (let ((gp-cxn (make-instance 'gp-cxn
-                               :name (name (car-applied-cxn cipn-car))
+                               :name  (intern (replace-all (mkstr (name (car-applied-cxn cipn-car))) "+" "-"))
                                :id id
                                :snd-mrg-binds (car-second-merge-bindings cipn-car)
                                :snd-mrg-struc (car-second-merge-structure cipn-car))))
