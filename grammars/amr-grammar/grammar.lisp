@@ -3,10 +3,15 @@
 ;; Lexical constructions covered so far:
 ;; - investor-cxn
 ;; - bond-cxn
-;; - zintan-cxn
+;; - Zintan-cxn
+;; - city-cxn
+;; - President-cxn
+;; - president-cxn
+;; - Obama-cxn
 ;;--------------------------------------------------------
 ;; Grammatical constructions covered so far:
 ;; - compound-noun+nominalised-verb-cxn
+;; - named-entity-function-cxn
 
 (in-package :amr-grammar)
 
@@ -116,7 +121,6 @@
                 (?nominal-unit
                  --
                  (HASH form ((meets ?adjective-unit ?noun-unit))))))
-  
 
   (def-fcg-cxn Zintan-cxn
                ((?Zintan-unit
@@ -127,84 +131,61 @@
                  (sem-cat (sem-class location)))
                 <-
                 (?Zintan-unit
-                 (HASH meaning ((CITY ?C) (NAME ?N) (:NAME ?C ?N) (:OP1 ?N "Zintan")))
+                 (HASH meaning ((city ?c)
+                                (name ?n)
+                                (:name ?c ?n)
+                                (:op1 ?n "Zintan")))
                  --
                  (HASH form ((string ?Zintan-unit "Zintan")))))))
 
+ (def-fcg-cxn city-cxn
+              ((?city-unit
+                (referent ?C)
+                (meaning ((city ?c)
+                          (name ?n)
+                          (:name ?c ?n)
+                          (:op1 ?n "Zintan")))
+                (syn-cat (lex-class common-noun)
+                         (syn-function nominal)
+                         (phrase-type NP))
+               (sem-cat (sem-class location)))
+               <-
+               (?city-unit
+                --
+                (HASH form ((string ?city-unit "city"))))))
 
-
-
-
-#|
-  ;;2. Zintan and 41.Zintan the city of Zintan
-  ;;((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan"))
-  (def-fcg-cxn city-cxn
-               ((?city-unit
-                 (referent ?c)
-                 (sem-valence (name ?n))
-                 (syn-cat (lex-class noun)
-                          (syn-function nominal))
-                 (sem-cat (sem-class city)))
-                <-
-                (?city-unit
-                 (HASH meaning ((city ?c)
-                                (:name ?c ?n)))
-                 --
-                 (HASH form ((string ?city-unit "city"))))))
-
-  ;;Zintan
-  
-
-  ;;8.President Obama + 13.Obama the president
-  ;; same AMR representation, no article in AMR, no construction for "the"? 
-  ;;((PRESIDENT P) (NAME N) (:NAME P N) (:OP1 N "Obama")) 
-
-  ;;president
-  (def-fcg-cxn president-capitalized-cxn
-               ((?president-unit
+  (def-fcg-cxn President-cxn
+               ((?President-unit
                  (referent ?p)
-                 (sem-valence (name ?n))
+                 (meaning ((President ?P)
+                           (name ?n)
+                           (:name ?P ?n)
+                           (:op1 ?n "Obama")))
                  (syn-cat (lex-class noun)
                           (syn-function nominal))
-                 (sem-cat (sem-class person)))
+                 (sem-cat (sem-class person))
+                 (sem-valence (name ?n)))
                 <-
-                (?president-unit
-                 (HASH meaning ((president ?p)
-                                (:name ?p ?n)))
+                (?President-unit
                  --
-                 (HASH form ((string ?president-unit "President"))))))
+                 (HASH form ((string ?President-unit "President"))))))
 
-  (def-fcg-cxn president-cxn
-               ((?president-unit
-                 (referent ?p)
-                 (sem-valence (name ?n))
-                 (syn-cat (lex-class noun)
-                          (syn-function nominal))
-                 (sem-cat (sem-class person)))
-                <-
-                (?president-unit
-                 (HASH meaning ((president ?p)
-                                (:name ?p ?n)))
-                 --
-                 (HASH form ((string ?president-unit "president"))))))
-
-  ;;Obama
   (def-fcg-cxn Obama-cxn
                ((?Obama-unit
                  (referent ?n)
                  (syn-cat (lex-class proper-noun)
                           (syn-function nominal))
                  (sem-cat (sem-class person)))
-                <-
-                (?Obama-unit
-                 (HASH meaning ((name ?n)
-                                (:op1 ?n "Obama")))
+                 <-
+                 (?Obama-unit
+                  (HASH meaning ((president ?P)
+                                 (name ?n)
+                                 (:name ?P ?n)
+                                 (:op1 ?n "Obama")))
                  --
                  (HASH form ((string ?Obama-unit "Obama"))))))
 
-
-  ;;named entities for person 
-  (def-fcg-cxn named-entity-function-cxn
+  (def-fcg-cxn named-entity-function-person-cxn
                ((?named-entity-unit
                  (referent ?p)
                  (subunits (?nominal-unit-1 ?nominal-unit-2))
@@ -227,29 +208,55 @@
                  --
                  (HASH form ((meets ?nominal-unit-1 ?nominal-unit-2))))))
 
-  ;;named entities for city 
-  (def-fcg-cxn named-entity-function-cxn
+  (def-fcg-cxn named-entity-function-city-cxn
                ((?named-entity-unit
-                 (referent ?c)
+                 (referent ?p)
                  (subunits (?nominal-unit-1 ?nominal-unit-2))
                  (syn-cat (phrase-type NP)
-                          (named-entity-type city)))
+                          (named-entity-type location)))
                 <-
                 (?nominal-unit-1
                  --
-                 (referent ?n)
+                 (referent ?p)
                  (sem-valence (name ?n))
                  (syn-cat (syn-function nominal))
-                 (sem-cat (sem-class city)))
+                 (sem-cat (sem-class location)))
                 (?nominal-unit-2
                  --
                  (referent ?n)
                  (syn-cat (syn-function nominal))
-                 (sem-cat (sem-class city)))
+                 (sem-cat (sem-class location)))
                
                 (?named-entity-unit
                  --
                  (HASH form ((meets ?nominal-unit-1 ?nominal-unit-2))))))
+
+  ;;((BOMB B) (ATOM A) (:MOD B A))
+
+  (def-fcg-cxn bomb-cxn
+               ((?bomb-unit
+                 (referent ?b)
+                 (meaning ((bomb ?b)
+                           (:mod ?b ?a))
+                 (syn-cat (lex-class noun)
+                          (number sing))))
+                <-
+                (?bomb-unit
+                 --
+                 (HASH form ((string ?bomb-unit "bomb"))))))
+
+  (def-fcg-cxn atomic-cxn
+               ((?atomic-unit
+                 (referent ?a)
+                 (meaning ((bomb ?b)
+                           (atom ?a)
+                           (:mod ?b ?a))
+                 (syn-cat (lex-class adjective)
+                          (number ?numb))))
+                <-
+                (?atomic-unit
+                 --
+                 (HASH form ((string ?atomic-unit"atomic"))))))
 
   ;;7.Mollie Brown 
   ;;((PERSON P) (NAME N) (:NAME P N) (:OP1 N "Mollie") (:OP2 N "Brown"))
@@ -345,32 +352,6 @@
                  --
                  (HASH form ((string ?bond-unit "small"))))))
 
-  ;;((BOMB B) (ATOM A) (:MOD B A))
-
-  ;;bomb
-  (def-fcg-cxn bomb-cxn
-               ((?bomb-unit
-                 (referent ?b)
-                 (syn-cat (lex-class noun)
-                          (number sing)))
-                <-
-                (?bomb-unit
-                 (HASH meaning ((bomb ?b)))
-                 --
-                 (HASH form ((string ?bomb-unit "bomb"))))))
-
-  ;;atomic
-  (def-fcg-cxn atomic-cxn
-               ((?atomic-unit
-                 (referent ?a)
-                 (syn-cat (lex-class adjective)
-                          (number ?numb)))
-                <-
-                (?atomic-unit
-                 (HASH meaning ((atomic ?a)
-                                (:mod ?b ?a)))
-                 --
-                 (HASH form ((string ?atomic-unit"atomic"))))))
 
   ;;atom
   (def-fcg-cxn atom-cxn
