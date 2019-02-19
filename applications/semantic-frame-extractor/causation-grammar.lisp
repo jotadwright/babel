@@ -153,6 +153,7 @@
                --
                (sem-cat (frame causation))
                (referent ?ev)
+               (lex-id cause)
                (sem-valence (actor ?y)
                             (theme ?x))
                (syn-cat (lex-class verb))
@@ -658,10 +659,12 @@
               (?frame-unit
                --
                (sem-cat (frame causation))
+               (referent ?frame)
                (sem-valence (actor ?actor)
                             (theme ?effect))
                (dependents (?to-unit)))
               (?to-unit
+               (referent ?frame)
                --
                (head ?frame-unit)
                (form ((string ?to-unit "to")))
@@ -669,9 +672,63 @@
               (?effect-unit
                (referent ?effect)
                --
-               (head ?to-unit)))
-               ;(dependency (edge pobj))))
-             :cxn-set cxn)
+               (head ?to-unit))))
+
+(def-fcg-cxn causation-frame-to-Y2
+             (<-
+              (?frame-unit
+               --
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (sem-valence (actor ?actor)
+                            (theme ?effect))
+               (dependents (?effect-unit)))
+              (?effect-unit
+               (referent ?effect)
+               --
+               (dependency (edge xcomp))
+               (dependents (?to-unit)))
+              (?to-unit
+               (referent ?frame)
+               --
+               (head ?effect-unit)
+               (form ((string ?to-unit "to"))))))
+
+(def-fcg-cxn subject-ellipsis-main-verb-vbd-cxn
+             (<-
+              (?subject-unit
+               (referent ?actor)
+               --
+               (dependency (edge nsubj))
+               (head ?other-main-verb-unit))
+              (?other-main-verb-unit
+               --
+               (dependents (?subject-unit ?frame-main-verb-unit))
+               (dependency (pos-tag vbd)))
+              (?frame-main-verb-unit
+               --
+               (head ?other-main-verb-unit)
+               (sem-cat (frame causation))
+               (dependency (edge conj))
+               (sem-valence (actor ?actor)))))
+
+(def-fcg-cxn subject-ellipsis-main-verb-vb-cxn
+             (<-
+              (?subject-unit
+               (referent ?actor)
+               --
+               (dependency (edge nsubj))
+               (head ?other-main-verb-unit))
+              (?other-main-verb-unit
+               --
+               (dependents (?subject-unit ?frame-main-verb-unit))
+               (dependency (pos-tag vb)))
+              (?frame-main-verb-unit
+               --
+               (head ?other-main-verb-unit)
+               (sem-cat (frame causation))
+               (dependency (edge conj))
+               (sem-valence (actor ?actor)))))             
 
 ;; Constructions needed for "result in"
 ;;-----------------------------------------------

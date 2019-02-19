@@ -17,10 +17,7 @@
                (syn-cat (lex-class verb))
                (lex-id lead-to)
                (dependents (?to-unit)))
-              (?to-unit
-               --
-               (head ?lead-unit)
-               (form ((string ?to-unit "to")))))
+              )
               :cxn-set lex)
 
 (def-fcg-cxn lead->leads-morph

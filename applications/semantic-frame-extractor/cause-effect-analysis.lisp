@@ -111,7 +111,11 @@
 ;; (build-causation-chain "rising sea levels")
 ;; 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 ;; (build-causation-chain "extreme weather")
+=======
+;; (build-causation-chain "humans")
+>>>>>>> Stashed changes
 =======
 ;; (build-causation-chain "humans")
 >>>>>>> Stashed changes

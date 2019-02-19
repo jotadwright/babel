@@ -237,7 +237,7 @@
 ;;##########################################################
 
 ;; Running the evaluation (on training set - slow):
-;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in" "lead"))
+;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in"))
 
 ;; Running the evaluation when you have recently parsed all sentences (on training set - faster):
 ;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :frame-extractor-output *frame-extractor-output* )
