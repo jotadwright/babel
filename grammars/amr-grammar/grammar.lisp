@@ -190,10 +190,11 @@
   (def-fcg-cxn bomb-cxn
                ((?bomb-unit
                  (referent ?b)
-                 (meaning ((bomb ?b))
+                 (meaning ((bomb ?b)))
+                 (sem-cat (sem-class object))
                  (syn-cat (lex-class noun)
-                          (number sing)
-                          (syn-function nominal))))
+                          (number sg)
+                          (syn-function nominal)))
                 <-
                  (?bomb-unit
                  --
@@ -204,7 +205,6 @@
                  (referent ?a)
                  (meaning ((atom ?a)))
                  (syn-cat (lex-class adjective)
-                          ;;(number ?numb)
                           (syn-function adjectival))
                  (sem-cat (sem-class pertainym)))
                 <-
@@ -216,37 +216,64 @@
                ((?atom-unit
                  (referent ?a)
                  (meaning ((atom ?a)))
-                 (syn-cat (lex-class adjective)
-                          ;;(number ?numb)
-                          (syn-function adjectival))
-                 (sem-cat (sem-class pertainym)))
+                 (syn-cat (lex-class noun)
+                          (number sg)
+                          (syn-function ?func))
+                 (sem-cat (sem-class object)))
                 <-
                 (?atom-unit
                  --
                  (HASH form ((string ?atom-unit "atom"))))))
 
-(def-fcg-cxn pertainym-adjective-noun-cxn
-              ((?pertainym-adjective-noun-unit
-                (referent ?b)
-                (meaning (:mod ?b ?a))
-                (syn-cat (phrase-type NP))
-                (subunits (?adjective-unit ?noun-unit)))
+  (def-fcg-cxn pertainym-adjective-noun-cxn
+               ((?pertainym-adjective-noun-unit
+                 (referent ?ref)
+                 (meaning ((:mod ?ref ?type)))
+                 (syn-cat (syn-function nominal)
+                          (number ?nb))
+                 (subunits (?adjective-unit ?noun-unit)))
                 <-
                 (?adjective-unit
                  --
-                 (referent ?ref)
+                 (referent ?type)
                  (syn-cat (lex-class adjective))
-                          ;;(number ?numb))
                  (sem-cat (sem-class pertainym)))
-                 (?noun-unit
+                (?noun-unit
                  --
                  (referent ?ref)
-                 (syn-cat (lex-class noun)))
-                          ;;(number sing)))
+                 (syn-cat (lex-class noun)
+                          (number ?nb)
+                          (syn-function nominal)))
                 (?pertainym-adjective-noun-unit
                  --
-                (syn-cat (phrase-type NP))
-                (HASH form ((meets ?adjective-unit ?noun-unit))))))
+                 (HASH form ((meets ?adjective-unit ?noun-unit))))))
+
+  (def-fcg-cxn compound-noun-noun-cxn ;;atom bomb
+               ((?compound-noun-unit
+                 (referent ?ref)
+                 (meaning ((:mod ?ref ?type)))
+                 (sem-cat (sem-class ?class))
+                 (syn-cat (lex-class noun)
+                          (compound +)
+                          (number ?numb)
+                          (syn-function nominal))
+                 (subunits (?first-noun-unit ?second-noun-unit)))
+                <-
+                (?first-noun-unit
+                 --
+                 (referent ?type)
+                 (syn-cat (lex-class noun)
+                          (syn-function adjectival)))
+                (?second-noun-unit
+                 --
+                 (referent ?ref)
+                 (syn-cat (lex-class noun)
+                          (number ?numb)
+                          (syn-function nominal))
+                 (sem-cat (sem-class ?class)))
+                (?compound-noun-unit
+                 --
+                 (HASH form ((meets ?first-noun-unit ?second-noun-unit))))))
 
 ;;'((PERSON P) (NAME N) (:NAME P N) (:OP1 N ""Mollie"") (:OP2 N "Brown")))
 
@@ -254,17 +281,17 @@
   (def-fcg-cxn Mollie-cxn
                ((?Mollie-unit
                  (referent ?p)
-                 (sem-valence (name ?m))
+                 (meaning ((person ?p)
+                           (name ?n)
+                           (:name ?p ?n)
+                           (:op1 ?n "Mollie")))
+                 (sem-valence (name ?n))
                  (sem-cat (sem-class person))
                  (syn-cat (lex-class proper-noun)
                           (syn-function nominal)))
                 <-
                 (?Mollie-unit
-                 (HASH meaning ((person ?p)
-                                (:name ?p ?m)
-                                ;;(name ?m)
-                                (:op1 ?m "Mollie") ;;first name
-                                ))
+                 (HASH meaning )
                  --
                  (HASH form ((string ?Mollie-unit "Mollie"))))))
 
@@ -277,6 +304,7 @@
                           (named-entity-type person)))
                 (?brown-unit
                  (referent ?m)
+                 (meaning ((:op2 ?m "Brown")))
                  (sem-cat (sem-class person))
                  (syn-cat (lex-class proper-noun)
                           (syn-function nominal)))
@@ -287,7 +315,6 @@
                  (sem-valence (name ?m))
                  (sem-cat (sem-class person)))
                 (?brown-unit
-                 (HASH meaning ((:op2 ?m "Brown")))
                  --
                  (HASH form ((string ?brown-unit "Brown"))))
                 (?named-entity-unit
