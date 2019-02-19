@@ -1,6 +1,6 @@
 # amr-parser
 
-This library facilitates the manipulation of AMR meaning representations (Banarescu et al. 2016) in Common Lisp. Warning: it parses different AMR notations, not natural language!
+This library facilitates the manipulation of AMR meaning representations (Banarescu et al. 2014) in Common Lisp. Warning: it parses different AMR notations, not natural language!
 
 It exports the following high-level functions:
 
@@ -35,3 +35,9 @@ It also exports the following more low-level functions:
 - `predicates->object`: takes a meaning representation in predicate notation and returns a CLOS object of the class `amr-object`.
 
 - `object->penman`: takes a CLOS object of the class `amr-object` and returns a meaning representation in Penman notation.
+
+
+
+References:
+
+- Laura Banarescu, Claire Bonial, Shu Cai, Madalina Georgescu, Kira Griffitt, Ulf Hermjakob, Kevin Knight, Philipp Koehn, Martha Palmer, and Nathan Schneider. 2014. Abstract Meaning Representation (AMR) 1.2.1 Specification. Available at https://github.com/amrisi/amr- guidelines/blob/master/amr.md
