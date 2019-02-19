@@ -6,17 +6,16 @@
 ;; - Zintan-cxn
 ;; - city-cxn
 ;; - President-cxn
-;; - president-cxn
 ;; - Obama-cxn
 ;;--------------------------------------------------------
 ;; Grammatical constructions covered so far:
 ;; - compound-noun+nominalised-verb-cxn
-;; - named-entity-function-cxn
+;; - named-entity-function-title-cxn
 
 (in-package :amr-grammar)
 
 ;; Grammar
-(def-fcg-constructions amr-Banarescu-grammar
+(def-fcg-constructions amr-Banarescu-grammar 
   :feature-types ((form set-of-predicates)
                   (meaning set-of-predicates)
                   (subunits set)
@@ -136,58 +135,38 @@
                                 (:name ?c ?n)
                                 (:op1 ?n "Zintan")))
                  --
-                 (HASH form ((string ?Zintan-unit "Zintan")))))))
+                 (HASH form ((string ?Zintan-unit "Zintan"))))))
 
- (def-fcg-cxn city-cxn
-              ((?city-unit
-                (referent ?C)
-                (meaning ((city ?c)
-                          (name ?n)
-                          (:name ?c ?n)
-                          (:op1 ?n "Zintan")))
-                (syn-cat (lex-class common-noun)
-                         (syn-function nominal)
-                         (phrase-type NP))
-               (sem-cat (sem-class location)))
-               <-
-               (?city-unit
-                --
-                (HASH form ((string ?city-unit "city"))))))
-
-  (def-fcg-cxn President-cxn
-               ((?President-unit
+  (def-fcg-cxn president-cxn
+               ((?president-unit
                  (referent ?p)
-                 (meaning ((President ?P)
-                           (name ?n)
-                           (:name ?P ?n)
-                           (:op1 ?n "Obama")))
+                 (meaning ((president ?p)))
                  (syn-cat (lex-class noun)
                           (syn-function nominal))
-                 (sem-cat (sem-class person))
+                 (sem-cat (sem-class title))
                  (sem-valence (name ?n)))
                 <-
-                (?President-unit
+                (?president-unit
                  --
-                 (HASH form ((string ?President-unit "President"))))))
+                 (HASH form ((string ?president-unit "President"))))))
 
   (def-fcg-cxn Obama-cxn
                ((?Obama-unit
                  (referent ?n)
                  (syn-cat (lex-class proper-noun)
                           (syn-function nominal))
-                 (sem-cat (sem-class person)))
+                 (sem-cat (sem-class person))
+                 (meaning ((name ?n)
+                           (:op1 ?n "Obama"))))
                  <-
                  (?Obama-unit
-                  (HASH meaning ((president ?P)
-                                 (name ?n)
-                                 (:name ?P ?n)
-                                 (:op1 ?n "Obama")))
                  --
                  (HASH form ((string ?Obama-unit "Obama"))))))
 
-  (def-fcg-cxn named-entity-function-person-cxn
+  (def-fcg-cxn named-entity-title-person-cxn
                ((?named-entity-unit
                  (referent ?p)
+                 (meaning ((:name ?p ?n)))
                  (subunits (?nominal-unit-1 ?nominal-unit-2))
                  (syn-cat (phrase-type NP)
                           (named-entity-type person)))
@@ -197,7 +176,7 @@
                  (referent ?p)
                  (sem-valence (name ?n))
                  (syn-cat (syn-function nominal))
-                 (sem-cat (sem-class person)))
+                 (sem-cat (sem-class title)))
                 (?nominal-unit-2
                  --
                  (referent ?n)
@@ -207,61 +186,71 @@
                 (?named-entity-unit
                  --
                  (HASH form ((meets ?nominal-unit-1 ?nominal-unit-2))))))
-
-  (def-fcg-cxn named-entity-function-city-cxn
-               ((?named-entity-unit
-                 (referent ?p)
-                 (subunits (?nominal-unit-1 ?nominal-unit-2))
-                 (syn-cat (phrase-type NP)
-                          (named-entity-type location)))
-                <-
-                (?nominal-unit-1
-                 --
-                 (referent ?p)
-                 (sem-valence (name ?n))
-                 (syn-cat (syn-function nominal))
-                 (sem-cat (sem-class location)))
-                (?nominal-unit-2
-                 --
-                 (referent ?n)
-                 (syn-cat (syn-function nominal))
-                 (sem-cat (sem-class location)))
-               
-                (?named-entity-unit
-                 --
-                 (HASH form ((meets ?nominal-unit-1 ?nominal-unit-2))))))
-
-  ;;((BOMB B) (ATOM A) (:MOD B A))
 
   (def-fcg-cxn bomb-cxn
                ((?bomb-unit
                  (referent ?b)
-                 (meaning ((bomb ?b)
-                           (:mod ?b ?a))
+                 (meaning ((bomb ?b))
                  (syn-cat (lex-class noun)
-                          (number sing))))
+                          (number sing)
+                          (syn-function nominal))))
                 <-
-                (?bomb-unit
+                 (?bomb-unit
                  --
                  (HASH form ((string ?bomb-unit "bomb"))))))
 
   (def-fcg-cxn atomic-cxn
                ((?atomic-unit
                  (referent ?a)
-                 (meaning ((bomb ?b)
-                           (atom ?a)
-                           (:mod ?b ?a))
+                 (meaning ((atom ?a)))
                  (syn-cat (lex-class adjective)
-                          (number ?numb))))
+                          ;;(number ?numb)
+                          (syn-function adjectival))
+                 (sem-cat (sem-class pertainym)))
                 <-
                 (?atomic-unit
                  --
-                 (HASH form ((string ?atomic-unit"atomic"))))))
+                 (HASH form ((string ?atomic-unit "atomic"))))))
 
-  ;;7.Mollie Brown 
-  ;;((PERSON P) (NAME N) (:NAME P N) (:OP1 N "Mollie") (:OP2 N "Brown"))
+  (def-fcg-cxn atom-cxn
+               ((?atom-unit
+                 (referent ?a)
+                 (meaning ((atom ?a)))
+                 (syn-cat (lex-class adjective)
+                          ;;(number ?numb)
+                          (syn-function adjectival))
+                 (sem-cat (sem-class pertainym)))
+                <-
+                (?atom-unit
+                 --
+                 (HASH form ((string ?atom-unit "atom"))))))
 
-  ;;Mollie
+(def-fcg-cxn pertainym-adjective-noun-cxn
+              ((?pertainym-adjective-noun-unit
+                (referent ?b)
+                (meaning (:mod ?b ?a))
+                (syn-cat (phrase-type NP))
+                (subunits (?adjective-unit ?noun-unit)))
+                <-
+                (?adjective-unit
+                 --
+                 (referent ?ref)
+                 (syn-cat (lex-class adjective))
+                          ;;(number ?numb))
+                 (sem-cat (sem-class pertainym)))
+                 (?noun-unit
+                 --
+                 (referent ?ref)
+                 (syn-cat (lex-class noun)))
+                          ;;(number sing)))
+                (?pertainym-adjective-noun-unit
+                 --
+                (syn-cat (phrase-type NP))
+                (HASH form ((meets ?adjective-unit ?noun-unit))))))
+
+;;'((PERSON P) (NAME N) (:NAME P N) (:OP1 N ""Mollie"") (:OP2 N "Brown")))
+
+;;Mollie
   (def-fcg-cxn Mollie-cxn
                ((?Mollie-unit
                  (referent ?p)
@@ -273,7 +262,7 @@
                 (?Mollie-unit
                  (HASH meaning ((person ?p)
                                 (:name ?p ?m)
-                                (name ?m)
+                                ;;(name ?m)
                                 (:op1 ?m "Mollie") ;;first name
                                 ))
                  --
@@ -304,69 +293,27 @@
                 (?named-entity-unit
                  --
                  (HASH form ((meets ?first-name-unit ?brown-unit))))))
-
-  ;;3. bond Investor
-  ;;((PERSON P) (INVEST-01 I) (BOND B) (:ARG0-OF P I) (:ARG1 I B))
-
-
-
-  ;;compound noun construction
-  (def-fcg-cxn compound-noun-cxn
-               ((?compound-unit
-                 (referent ?ref)
-                 (syn-cat (phrase-type NP)
-                          (number ?numb)
-                          (person 3))
-                 (subunits (?noun-unit1 ?noun-unit2))
-                 (boundaries (leftmost-unit ?noun-unit1)
-                             (rightmost-unit ?noun-unit2)))
+  
+)
+ 
+#|
+  
+  
+    (def-fcg-cxn city-cxn
+               ((?city-unit
+                 (referent ?C)
+                 (meaning ((city ?c)
+                           (name ?n)
+                           (:name ?c ?n)
+                           (:op1 ?n "Zintan")))
+                 (syn-cat (lex-class common-noun)
+                          (syn-function nominal)
+                          (phrase-type NP))
+                 (sem-cat (sem-class location)))
                 <-
-                (?noun-unit1
-                 (referent ?ref)
+                (?city-unit
                  --
-                 (syn-cat (lex-class noun)))
-                (?noun-unit2
-                 --
-                 (referent ?ref)
-                 (syn-cat (lex-class noun))
-                 (HASH meaning ((person ?p)
-                                (:arg0-of ?p ?i))))
-                (?compound-unit
-                 --
-                 (HASH form ((meets ?noun-unit1 ?nound-unit2))))))
-
-  ;;4. small investor
-
-  ;;((PERSON P) (INVEST-01 I) (SMALL S) (:ARG0-OF P I) (:MANNER I S))
-
-  ;;small
-  (def-fcg-cxn small-cxn
-               ((?small-unit
-                 (referent ?s)
-                 (syn-cat (lex-class adjective)
-                          (number ?numb)))
-                <-
-                (?small-unit
-                 (HASH meaning ((small ?s)
-                                (:manner ?i ?s)))
-                 --
-                 (HASH form ((string ?bond-unit "small"))))))
-
-
-  ;;atom
-  (def-fcg-cxn atom-cxn
-               ((?atom-unit
-                 (referent ?a)
-                 (syn-cat (lex-class adjective)
-                          (number ?numb)))
-                <-
-                (?atomic-unit
-                 (HASH meaning ((atomic ?a)
-                                (:mod ?b ?a)))
-                 --
-                 (HASH form ((string ?atomic-unit"atom"))))))
-
-  )
+                 (HASH form ((string ?city-unit "city"))))))
 
 |#
             
