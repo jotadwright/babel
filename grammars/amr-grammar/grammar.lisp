@@ -46,6 +46,7 @@
                  (referent ?b)
                  (meaning ((bond ?b)))
                  (syn-cat (lex-class noun)
+                          (nominalisation -)
                           (number sg)
                           (syn-function ?func))
                  (sem-cat (sem-class object)))
@@ -194,6 +195,7 @@
                  (sem-cat (sem-class object))
                  (syn-cat (lex-class noun)
                           (number sg)
+                          (nominalisation -)
                           (syn-function nominal)))
                 <-
                  (?bomb-unit
@@ -218,6 +220,7 @@
                  (meaning ((atom ?a)))
                  (syn-cat (lex-class noun)
                           (number sg)
+                          (nominalisation -)
                           (syn-function ?func))
                  (sem-cat (sem-class object)))
                 <-
@@ -268,6 +271,7 @@
                  --
                  (referent ?ref)
                  (syn-cat (lex-class noun)
+                          (nominalisation -)
                           (number ?numb)
                           (syn-function nominal))
                  (sem-cat (sem-class ?class)))
@@ -275,9 +279,6 @@
                  --
                  (HASH form ((meets ?first-noun-unit ?second-noun-unit))))))
 
-;;'((PERSON P) (NAME N) (:NAME P N) (:OP1 N ""Mollie"") (:OP2 N "Brown")))
-
-;;Mollie
   (def-fcg-cxn Mollie-cxn
                ((?Mollie-unit
                  (referent ?p)
@@ -295,7 +296,6 @@
                  --
                  (HASH form ((string ?Mollie-unit "Mollie"))))))
 
-  ;;Brown
   (def-fcg-cxn Brown-last-name-cxn
                ((?named-entity-unit
                  (subunits (?brown-unit ?first-name-unit))
