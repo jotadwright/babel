@@ -71,7 +71,7 @@
         
 (defmethod conceptualise ((agent mwm-agent) (topic mwm-object))
   "Find discrete categories for the topic. This depends on the
-   conceptualisation strategy. When using :nearest-neighbour,
+   conceptualisation strategy. When using :nearest,
    other objects can have the same category as the topic, but the topic
    must be closest to it. When using :discrimination, no other object
    is allowed to have the same category as the topic."
@@ -152,6 +152,11 @@
   ;; so the discriminating-categories should also be a fuzzy set
   ;; for now, the certainty of the latter are equal to the similarity
   ;; of that category to the topic. This could also change to being 1 everywhere.
+
+  ;; also, this should include something such that the same channel
+  ;; is not being expressed multiple times! e.g. small and large (TO DO)
+  ;; for this, adapt the 'fuzzy-union', such that it takes channels into
+  ;; account instead of category objects!!
   (when (and (discriminating-categories agent)
              (lexicon agent))
     (setf (applied-lex agent)
@@ -165,8 +170,11 @@
                                                        utterance
                                                        utterance-meaning
                                                        (discriminating-categories agent))
-                for extended-meaning = (fuzzy-union (meaning best-new-word) utterance-meaning)
-                for new-similarity = (overlap extended-meaning (discriminating-categories agent))
+                for extended-meaning = (when best-new-word
+                                         (fuzzy-union (meaning best-new-word) utterance-meaning))
+                for new-similarity = (if best-new-word
+                                       (overlap extended-meaning (discriminating-categories agent))
+                                       -1)
                 if (and (plusp new-similarity)
                         (or (null utterance-similarity)
                             (> new-similarity utterance-similarity)))
@@ -206,27 +214,31 @@
 (define-event invention-finished (new-categories list) (new-lex mwm-lex))
 
 (defmethod invent ((agent mwm-agent))
-  "Invent a new form. Create new categories on the channels
-   that were not discriminating. These categories will take the
-   value of the topic as initial value. Associate these new
-   categories to the newly created form with a low certainty score.
+  "Invent a new form. As a meaning, use all the unexpressed channels.
+   For each of these channels, check if there is already a discriminating
+   category. if so, re-use it. Otherwise, invent a new one. The new categories
+   take the value of the topic as initial value. Associate the categories to
+   the newly created form with a low certainty score.
    If the used meaning already closely resembles the topic, don't invent.
-   Only a slight shift in meaning will be necessary."
-  ;; Now, only new categories are expressed
-  ;; What about discriminating categories already there?
+   Only a slight shift in meaning will be necessary. This shift is performed
+   during alignment"
   (let* ((utterance-meaning (utterance-meaning agent (utterance agent)))
          (topic-similarity (when utterance-meaning
                              (overlap utterance-meaning (discriminating-categories agent)))))
     (when (or (null utterance-meaning)
               (and utterance-meaning
                    (> (random 1.0) topic-similarity)))
-      ;; utterance meaning instead of discriminating categories
       (let* ((all-channels (get-configuration agent :channels))
-             (used-channels (mapcar #'channel (mapcar #'car (discriminating-categories agent))))
+             (used-channels (mapcar #'channel (mapcar #'car utterance-meaning)))
              (unused-channels (set-difference all-channels used-channels))
              (new-categories
               (loop for channel in unused-channels
+                    for discriminating-category = (find channel (mapcar #'car (discriminating-categories agent))
+                                                        :key #'channel)
                     for topic-value-on-channel = (access-channel (topic agent) channel)
+                    if discriminating-category
+                    collect discriminating-category
+                    else
                     collect (add-category agent channel topic-value-on-channel)))
              new-lex)
         ;; after invention, production will be retried
@@ -244,7 +256,7 @@
 ;; + Interpretation +
 ;; ------------------
 
-(define-event interpretation-finished (topic mwm-object))
+(define-event interpretation-finished (topic t))
 
 (defmethod interpret ((agent mwm-agent) (utterance list))
   "Search for the object in the context that maximizes the overlap
@@ -254,19 +266,20 @@
     (when (hearerp agent)
       (setf (applied-lex agent) applied-lexs))
     (let ((interpreted-topic
-           (loop with best-object = nil
-                 with best-overlap = nil
-                 for object in (entities (context agent))
-                 for object-categorisation = (let ((categorisation (categorise-object agent object)))
-                                               (loop for (channel category similarity) in categorisation
-                                                     collect (cons category similarity)))
-                 for overlap = (overlap parsed-utterance-meaning object-categorisation)
-                 when (or (null best-object)
-                          (> overlap best-overlap))
-                 do (setf best-object object
-                          best-overlap overlap)
-                 finally
-                 (return best-object))))
+           (when parsed-utterance-meaning
+             (loop with best-object = nil
+                   with best-overlap = nil
+                   for object in (entities (context agent))
+                   for object-categorisation = (let ((categorisation (categorise-object agent object)))
+                                                 (loop for (channel category similarity) in categorisation
+                                                       collect (cons category similarity)))
+                   for overlap = (overlap parsed-utterance-meaning object-categorisation)
+                   when (or (null best-object)
+                            (> overlap best-overlap))
+                   do (setf best-object object
+                            best-overlap overlap)
+                   finally
+                   (return best-object)))))
       (when (hearerp agent)
         (notify interpretation-finished interpreted-topic))
       interpreted-topic)))
@@ -310,9 +323,9 @@
                                          context-on-channel
                                          strategy)
               if discriminating-category-on-channel
-              do (push (car discriminating-category-on-channel) discriminating-categories)
+              do (push (car discriminating-category-on-channel) new-meaning)
               else
-              do (push (add-category agent channel (access-channel (topic agent) channel)) new-meaning)
+              do (push (add-category agent channel (access-channel topic channel)) new-meaning)
               finally
               ;; store these categories as meaning of the first, unknown word
               do (let ((new-lex (add-lex agent new-form new-meaning)))

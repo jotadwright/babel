@@ -2,8 +2,10 @@
 
 ;; make html of object
 (defmethod make-html-for-entity-details ((object mwm-object) &key)
-  `(((div :class "entity-detail")
-     ,(format nil "~{~a~^, ~}" (description object)))))
+  (append
+   (loop for (feature . value) in (description object)
+         append `(((div :class "entity-detail")
+                   ,(format nil "~a = ~a" feature value))))))
 
 ;; make html of object set
 (defmethod make-html-for-entity-details ((set mwm-object-set) &key)
