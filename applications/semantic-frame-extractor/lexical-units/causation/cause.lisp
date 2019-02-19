@@ -32,7 +32,7 @@
                              (modality indicative)))
                (lex-id cause)
                --
-               ((string ?causes-unit "causes"))))
+               (form ((string ?causes-unit "causes")))))
             :cxn-set morph)
 
 (def-fcg-cxn cause->causing-morph
