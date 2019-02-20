@@ -1,32 +1,32 @@
 (in-package :frame-extractor)
 
-(def-fcg-cxn result-in-verb-lex
-              ((?result-unit
+(def-fcg-cxn give-rise-verb-lex
+              (<-
+               (?give-unit
                 (referent ?frame)
                 (sem-cat (frame causation))
                 (syn-valence (subject ?subject-unit)
                              (prep-object ?object-unit))
                 (sem-valence (actor ?cause)
                              (theme ?effect))
-                (meaning ((frame causation result-in ?frame) 
+                (meaning ((frame causation give-rise ?frame) 
                           (slot cause ?frame ?cause)
-                          (slot effect ?frame ?effect))))
-               <-
-               (?result-unit
+                          (slot effect ?frame ?effect)))
                 --
                 (syn-cat (lex-class verb))
-                (lex-id result-in)
-                (dependents (?in-unit)))
-               (?in-unit
+                (lex-id give-rise)
+                (dependents (?rise-unit)))
+               (?rise-unit
+                (lex-id give-rise)
                 --
                 (head ?result-unit)
-                (form ((string ?in-unit "in")))))
+                (form ((string ?rise-unit "rise"))))) 
               :cxn-set lex)
 
-(def-fcg-cxn result->results-morph
+(def-fcg-cxn give->gives-morph
              (
               <-
-              (?results-unit
+              (?gives-unit
                (syn-cat (lex-class verb)
                         (finite +)
                         (agreement (- - + -))
@@ -34,16 +34,16 @@
                              (aspect (perfect -)
                                      (progressive -))
                              (modality indicative)))
-               (lex-id result-in)
+               (lex-id give-rise)
                --
-               (form ((string ?results-unit "results")))))
+               (form ((string ?gives-unit "gives")))))
             :cxn-set morph)
 
 
-(def-fcg-cxn result->resulting-morph
+(def-fcg-cxn give->giving-morph
              (
               <-
-              (?resulting-unit
+              (?giving-unit
                (syn-cat (lex-class verb)
                         (finite -)
                         (agreement ?agr)
@@ -51,35 +51,35 @@
                              (aspect (perfect ?p)
                                      (progressive +))
                              (modality ?m)))
-               (lex-id result-in)
+               (lex-id give-rise)
                --
-               (form ((string ?resulting-unit "resulting")))))
+               (form ((string ?giving-unit "giveing")))))
             :cxn-set morph)
 
-(def-fcg-cxn result->result-morph
+(def-fcg-cxn give->give-morph
              (
               <-
-              (?result-unit
+              (?give-unit
                (syn-cat (lex-class verb)
                         (verb-form base-form)
                         (tam (tense ?tense)
                              (aspect (perfect -)
                                      (progressive -))
                              (modality ?m)))
-               (lex-id result-in)
+               (lex-id give-rise)
                --
-               (form ((string ?result-unit "result")))))
+               (form ((string ?give-unit "give")))))
             :cxn-set morph)
 
-(def-fcg-cxn result->resulted-morph
+(def-fcg-cxn give->gave-morph
              (
               <-
-              (?resulted-unit
+              (?giveed-unit
                (syn-cat (lex-class verb)
                         (tam (tense ?tense)
                              (aspect ?aspect)
                              (modality ?m)))
-               (lex-id result-in)
+               (lex-id give-rise)
                --
-               (form ((string ?resulted-unit "resulted")))))
+               (form ((string ?giveed-unit "gave")))))
             :cxn-set morph)

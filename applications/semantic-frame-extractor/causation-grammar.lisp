@@ -660,6 +660,8 @@
                --
                (sem-cat (frame causation))
                (referent ?frame)
+               (syn-valence (subject ?subject-unit)
+                            (prep-object ?effect-unit))
                (sem-valence (actor ?actor)
                             (theme ?effect))
                (dependents (?to-unit)))
@@ -680,6 +682,8 @@
                --
                (referent ?frame)
                (sem-cat (frame causation))
+               (syn-valence (subject ?subject-unit)
+                            (prep-object ?effect-unit))
                (sem-valence (actor ?actor)
                             (theme ?effect))
                (dependents (?effect-unit)))
@@ -709,7 +713,8 @@
                --
                (head ?other-main-verb-unit)
                (sem-cat (frame causation))
-               (dependency (edge conj))
+               (dependency (edge conj)
+                           (pos-tag vbd))
                (sem-valence (actor ?actor)))))
 
 (def-fcg-cxn subject-ellipsis-main-verb-vb-cxn
@@ -727,7 +732,8 @@
                --
                (head ?other-main-verb-unit)
                (sem-cat (frame causation))
-               (dependency (edge conj))
+               (dependency (edge conj)
+                           (pos-tag vb))
                (sem-valence (actor ?actor)))))             
 
 ;; Constructions needed for "result in"
@@ -738,6 +744,8 @@
               (?frame-unit
                --
                (sem-cat (frame causation))
+               (syn-valence (subject ?subject-unit)
+                            (prep-object ?effect-unit))
                (sem-valence (actor ?actor)
                             (theme ?effect))
                (lex-id result-in)
@@ -751,7 +759,40 @@
                (referent ?effect)
                --
                (head ?in-unit)))
-               ;(dependency (edge pobj))))
              :cxn-set cxn)
-              
+
+
+
+;; Constructions needed for "give rise to"
+;;-----------------------------------------------
+
+(def-fcg-cxn give-rise-to-Y
+             (<-
+              (?frame-unit-part1
+               --
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (syn-valence (subject ?subject-unit)
+                            (prep-object ?effect-unit))
+               (sem-valence (actor ?actor)
+                            (theme ?effect))
+               (lex-id ?lex-id)
+               (dependents (?frame-unit-part2)))
+              (?frame-unit-part2
+               --
+               (head ?frame-unit-part1)
+               (lex-id ?lex-id)
+               (dependents (?to-unit)))
+              (?to-unit
+               (referent ?frame)
+               --
+               (head ?frame-unit-part2)
+               (form ((string ?to-unit "to")))
+               (dependents (?effect-unit)))
+              (?effect-unit
+               (referent ?effect)
+               --
+               (dependency (edge pobj))
+               (head ?to-unit))
+              ))
              

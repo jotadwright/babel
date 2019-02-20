@@ -5,7 +5,7 @@
                (referent ?frame)
                (sem-cat (frame causation))
                (syn-valence (subject ?subject-unit)
-                            (object ?object-unit))
+                            (prep-object ?object-unit))
                (sem-valence (actor ?cause)
                             (theme ?effect))
                (meaning ((frame causation lead-to ?frame) 
