@@ -793,6 +793,42 @@
                (referent ?effect)
                --
                (dependency (edge pobj))
-               (head ?to-unit))
-              ))
+               (head ?to-unit))))
+
+;; X is bound to give rise to Y
+(def-fcg-cxn X-aux-past-participle-to-causation-frame-to-Y
+             (<-
+              (?aux-unit
+               --
+               (dependency (edge auxpass))
+               (head ?past-participle-unit))
+              (?past-participle-unit
+               --
+               (dependency (pos-tag vbn))
+               (dependents (?aux-unit ?cause-unit ?frame-unit)))
+              (?cause-unit
+               (referent ?cause)
+               --
+               (head ?past-participle-unit)
+               (dependency (edge nsubjpass)))
+              (?frame-unit
+               --
+               (referent ?frame)
+               (syn-valence (prep-object ?effect-unit)
+                            (subject ?cause-unit))
+               (sem-valence (actor ?cause)
+                            (theme ?effect))
+               (sem-cat (frame causation))
+               (dependents (?to-unit)))
+              (?to-unit
+               --
+               (referent ?frame)
+               (head ?frame-unit)
+               (dependents (?effect-unit)))
+              
+              (?effect-unit
+               (referent ?effect)
+               --
+               (head ?to-unit))))
+             
              

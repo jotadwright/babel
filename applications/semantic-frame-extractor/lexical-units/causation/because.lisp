@@ -60,6 +60,6 @@
                (dependents (?of-unit)))
               (?of-unit
                --
-               (form ((string ?because-unit "of")))
+               (form ((string ?of-unit "of")))
                (head ?because-unit)))
             :cxn-set lex)

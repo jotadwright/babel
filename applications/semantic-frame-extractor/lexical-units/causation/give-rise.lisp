@@ -74,12 +74,22 @@
 (def-fcg-cxn give->gave-morph
              (
               <-
-              (?giveed-unit
+              (?gave-unit
                (syn-cat (lex-class verb)
                         (tam (tense ?tense)
                              (aspect ?aspect)
                              (modality ?m)))
                (lex-id give-rise)
                --
-               (form ((string ?giveed-unit "gave")))))
+               (form ((string ?gave-unit "gave")))))
+            :cxn-set morph)
+
+(def-fcg-cxn give->given-morph
+             (
+              <-
+              (?given-unit
+               (lex-id give-rise)
+               (syn-cat (lex-class verb))
+               --
+               (form ((string ?given-unit "given")))))
             :cxn-set morph)
