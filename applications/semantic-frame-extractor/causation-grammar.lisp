@@ -587,7 +587,7 @@
                (sem-cat (frame causation)
                         (frame-slots (cause ?cause)
                                      (effect ?effect)))
-               (lex-id because)
+               (lex-id because-of)
                (head ?effect-unit)
                (dependents (?of-unit ?cause-unit)))
               (?of-unit

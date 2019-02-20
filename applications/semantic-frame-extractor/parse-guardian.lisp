@@ -7,6 +7,11 @@
 ;;############################
 ;;BECAUSE OF
 ;##############################
+(evaluate-grammar-output-for-evoking-elem '("because of"))
+;correct slots and total slots: (42 60): 0.7 
+;correct sentences and total sentences: (8 20): 0.4 
+;correct words and total words overall: (650 749): 0.8678238
+
 
 (pie-comprehend "Those gorillas are losing their habitat because of rapid urbanisation.") ; (0 3) (slots) (1 10) (words)
 
