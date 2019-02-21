@@ -236,7 +236,6 @@ nil."
 
 (export '(member-equal
 	  pushend
-          filter ;; this export is only useful for the class 'filter elsewhere, not for the function filter deprecated here
 	  toggle
           insert-after
 	  mappend
