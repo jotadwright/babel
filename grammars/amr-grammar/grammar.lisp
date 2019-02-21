@@ -18,6 +18,10 @@
 ;; - teacher-cxn
 ;; - spy-cxn
 ;; - attractive-cxn
+;; - edible-cxn
+;; - sandwich-cxn
+;; - fund-cxn
+;; - taxable-cxn
 ;;--------------------------------------------------------
 ;; Grammatical constructions covered so far:
 ;; - compound-noun+nominalised-verb-cxn
@@ -136,6 +140,8 @@
                  --
                  (HASH form ((meets ?adjective-unit ?noun-unit))))))
 
+ ;; ((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan"))
+ 
   (def-fcg-cxn Zintan-cxn
                ((?Zintan-unit
                  (referent ?C)
@@ -472,9 +478,7 @@
                  --
                  (HASH form ((meets ?adjective-unit ?noun-unit))))))
 
-        ;; '((SANDWICH S) (EAT-01 E) (POSSIBLE P) (:ARG1-OF S E) (:DOMAIN-OF E P)))
-
-        (def-fcg-cxn sandwich
+            (def-fcg-cxn sandwich-cxn
            ((?sandwich-unit
              (referent ?s)
              (meaning ((sandwich ?s)))
@@ -486,33 +490,115 @@
              (?sandwich-unit
              --
              (HASH form ((string ?sandiwch-unit "sandwich"))))))
-
-        (def-fcg-cxn edible
+            
+        (def-fcg-cxn edible-cxn
             ((?edible-unit
               (referent ?e)
-              (meaning ((eat-01 ?e)))
+              (meaning ((eat-01 ?e)
+                        (possible ?p)
+                        (:domain-of ?e ?p)))
               (syn-cat (lex-class adjective)
                        (number ?numb)
-                        (syn-function ?func))
-              (sem-cat (sem-class foodquality)))
+                       (syn-function ?func))
+              (sem-cat (sem-class quality)))
               <-
               (?edible-unit
                --
                (HASH form ((string ?edible-unit "edible"))))))
 
+        (def-fcg-cxn adjective-food-noun-unit-cxn ;;edible sandwich
+             ((?adjective-food-noun-unit
+              (referent ?ref)
+              (meaning ((:arg1-of ?ref ?quality)))
+              (sem-cat (sem-class ?class))
+              (syn-cat (phrase-type NP)
+                       (syn-function ?func)
+                       (number ?numb))
+              (subunits (?adjective-unit ?noun-unit)))
+               <-
+               (?adjective-unit
+                --
+               (referent ?quality)
+               (syn-cat (lex-class adjective)
+                        (number ?numb)
+                        (syn-function ?func)))
+               (?noun-unit
+                --
+                (referent ?ref)
+                (syn-cat  (lex-class noun)
+                          (number ?numb)
+                          (syn-function ?func))
+                (sem-cat (sem-class food)))
+                (?adjective-food-noun-unit 
+                 --
+                (HASH form ((meets ?adjective-unit ?noun-unit))))))
+
+         (def-fcg-cxn fund-cxn
+         ((?fund-unit
+           (referent ?f)
+           (meaning ((fund ?f)))
+           (syn-cat (lex-class noun)
+                    (number sg)
+                    (syn-function ?fund))
+           (sem-cat (sem-class organisation)))
+          <-
+           (?fund-unit
+           --
+           (HASH form  ((string ?fund-unit "fund"))))))
+  
+       (def-fcg-cxn taxable-cxn
+             ((?taxable-unit
+               (referent ?t)
+               (meaning ((tax-01 ?t)))
+               (syn-cat (lex-class adjective)
+                        (number sg)
+                        (syn-function ?func))
+               (sem-cat (sem-class quality)))
+                <-
+               (?taxable-unit
+                --
+               (HASH form  ((string ?taxable-unit "taxable"))))))
+
+        (def-fcg-cxn adjective-2-noun-unit-cxn ;;fundable tax
+             ((?adjective-food-noun-unit
+              (referent ?ref)
+              (meaning ((:arg1-of ?ref ?quality)))
+              (sem-cat (sem-class ?class))
+              (syn-cat (phrase-type NP)
+                       (syn-function ?func)
+                       (number ?numb))
+              (subunits (?adjective-unit ?noun-unit)))
+               <-
+               (?adjective-unit
+                --
+               (referent ?quality)
+               (syn-cat (lex-class adjective)
+                        (number ?numb)
+                        (syn-function ?func)))
+               (?noun-unit
+                --
+                (referent ?ref)
+                (syn-cat  (lex-class noun)
+                          (number ?numb)
+                          (syn-function ?func)))
+                (?adjective-food-noun-unit 
+                 --
+                (HASH form ((meets ?adjective-unit ?noun-unit))))))
 
 )
 
 
 #|
 
-    (def-fcg-cxn city-cxn
+(comprehend "the city of Zintan") ;
+(equivalent-amr-predicate-networks (comprehend  "the city of Zintan")
+                                   '((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan")))
+      (def-fcg-cxn city-cxn
                ((?city-unit
                  (referent ?C)
                  (meaning ((city ?c)
                            (name ?n)
-                           (:name ?c ?n)
-                           (:op1 ?n "Zintan")))
+                           (:name ?c ?n)))
                  (syn-cat (lex-class common-noun)
                           (syn-function nominal)
                           (phrase-type NP))
