@@ -2,6 +2,18 @@
 (in-package :clevr-grammar)
 (activate-monitor trace-fcg)
 
+;; UNRESOLVED ISSUES IN THE GRAMMAR:
+;;  1. In the *-hop question family, formulation does not work
+;;     for the questions that do not follow the regular patterns
+;;     e.g. 'how big is X' and 'what is X made of'. This is because
+;;     the meaning contains a bind-statement for attribute-category,
+;;     which triggers the lexical construction of the attribute, but
+;;     this lexical construction is not necessary for these questions.
+;;  2. The same problem occurs in the single-and question family.
+;;  3. Formulation for the comparison question family does not find
+;;     a solution as the max nr of nodes is reached before a solution
+;;     is found.
+
 ;; ------------------------ ;;
 ;; zero hop question family ;;
 ;; ------------------------ ;;
