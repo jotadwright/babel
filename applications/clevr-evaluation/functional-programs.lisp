@@ -180,7 +180,7 @@
                (push (predicate->polish current-predicate bind-statement) rpn)
                (dolist (var in-vars)
                  (when (variable-p var)
-                   (let ((all-linked (all-linked-predicates current-predicate var bind-statement)))
+                   (let ((all-linked (all-linked-predicates current-predicate var irl-program)))
                      (dolist (p all-linked) (push p stack)))))))
     rpn))
 
