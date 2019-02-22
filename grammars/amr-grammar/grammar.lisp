@@ -22,6 +22,7 @@
 ;; - sandwich-cxn
 ;; - fund-cxn
 ;; - taxable-cxn
+;; - city-cxn 
 ;;--------------------------------------------------------
 ;; Grammatical constructions covered so far:
 ;; - compound-noun+nominalised-verb-cxn
@@ -144,19 +145,54 @@
  
   (def-fcg-cxn Zintan-cxn
                ((?Zintan-unit
-                 (referent ?C)
+                 (referent ?c)
+                 (meaning ((name ?n)
+                          (:op1 ?n "Zintan")))
                  (syn-cat (lex-class proper-noun)
                           (syn-function nominal)
                           (phrase-type NP))
                  (sem-cat (sem-class location)))
                 <-
                 (?Zintan-unit
-                 (HASH meaning ((city ?c)
-                                (name ?n)
-                                (:name ?c ?n)
-                                (:op1 ?n "Zintan")))
                  --
                  (HASH form ((string ?Zintan-unit "Zintan"))))))
+
+        (def-fcg-cxn city-cxn
+               ((?city-unit
+                 (referent ?c)
+                 (meaning ((city ?c)))
+                 (syn-cat (lex-class common-noun)
+                          (syn-function nominal)
+                          (phrase-type NP))
+                 (sem-cat (sem-class location)))
+                <-
+                (?city-unit
+                 --
+                 (HASH form ((string ?city-unit "city"))))))
+
+    (def-fcg-cxn named-entity-city-cxn
+               ((?named-entity-unit
+                 (referent ?c)
+                 (meaning ((:name ?c ?n)))
+                 (subunits (?nominal-unit-1 ?nominal-unit-2))
+                 (syn-cat (phrase-type NP)
+                          (named-entity-type person)))
+                <-
+                (?nominal-unit-1
+                 --
+                 (referent ?p)
+                 (sem-valence (name ?n))
+                 (syn-cat (lex-class common-noun))
+                 (sem-cat (sem-class location)))
+                (?nominal-unit-2
+                 --
+                 (referent ?n)
+                 (syn-cat (lex-class proper-noun))
+                 (sem-cat (sem-class location)))
+               
+                (?named-entity-unit
+                 --
+                 (HASH form ((meets ?nominal-unit-1 ?nominal-unit-2))))))
 
   (def-fcg-cxn president-capitalized-cxn
                ((?president-unit
@@ -589,24 +625,19 @@
 
 
 #|
-
-(comprehend "the city of Zintan") ;
-(equivalent-amr-predicate-networks (comprehend  "the city of Zintan")
-                                   '((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan")))
-      (def-fcg-cxn city-cxn
-               ((?city-unit
-                 (referent ?C)
-                 (meaning ((city ?c)
-                           (name ?n)
-                           (:name ?c ?n)))
-                 (syn-cat (lex-class common-noun)
+  (def-fcg-cxn Zintan-cxn
+               ((?Zintan-unit
+                 (referent ?c)
+                 (syn-cat (lex-class proper-noun)
                           (syn-function nominal)
                           (phrase-type NP))
                  (sem-cat (sem-class location)))
                 <-
-                (?city-unit
+                (?Zintan-unit
+                 (HASH meaning ((name ?n)
+                                (:name ?c ?n)
+                                (:op1 ?n "Zintan")))
                  --
-                 (HASH form ((string ?city-unit "city"))))))
-
+                 (HASH form ((string ?Zintan-unit "Zintan"))))))
 |#
             
