@@ -22,7 +22,10 @@
 ;; - sandwich-cxn
 ;; - fund-cxn
 ;; - taxable-cxn
-;; - city-cxn 
+;; - the-cxn
+;; - boy-cxn
+;; - cannot-cxn
+;; - go-cxn
 ;;--------------------------------------------------------
 ;; Grammatical constructions covered so far:
 ;; - compound-noun+nominalised-verb-cxn
@@ -30,6 +33,10 @@
 ;; - adjective-noun-nominalisation-cxn
 ;; - pertainym-adjective-noun-cxn
 ;; - compound-noun-noun-cxn without nominalised-verb-cxn
+;; - named-entity-city-cxn
+;; - NP-cxn
+;; - V-to-infinitive-cxn
+;; - subject-verb-cxn
 
 (in-package :amr-grammar)
 
@@ -141,71 +148,45 @@
                  --
                  (HASH form ((meets ?adjective-unit ?noun-unit))))))
 
- ;; ((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan"))
- 
-  (def-fcg-cxn Zintan-cxn
+ (def-fcg-cxn Zintan-cxn
                ((?Zintan-unit
                  (referent ?c)
-                 (meaning ((name ?n)
-                          (:op1 ?n "Zintan")))
                  (syn-cat (lex-class proper-noun)
                           (syn-function nominal)
                           (phrase-type NP))
                  (sem-cat (sem-class location)))
                 <-
                 (?Zintan-unit
+                 (HASH meaning ((city ?c)
+                                (name ?n)
+                                (:name ?c ?n)
+                                (:op1 ?n "Zintan")))
                  --
                  (HASH form ((string ?Zintan-unit "Zintan"))))))
-
-        (def-fcg-cxn city-cxn
-               ((?city-unit
-                 (referent ?c)
-                 (meaning ((city ?c)))
-                 (syn-cat (lex-class common-noun)
-                          (syn-function nominal)
-                          (phrase-type NP))
-                 (sem-cat (sem-class location)))
-                <-
-                (?city-unit
-                 --
-                 (HASH form ((string ?city-unit "city"))))))
-
+ 
     (def-fcg-cxn named-entity-city-cxn
-               ((?named-entity-unit
-                 (referent ?c)
-                 (meaning ((:name ?c ?n)))
-                 (subunits (?nominal-unit-1 ?nominal-unit-2))
+               ((?named-entity-city-unit
+                 (subunits (?city-unit ?of-unit ?Zintan-unit ?the-unit))
                  (syn-cat (phrase-type NP)
-                          (named-entity-type person)))
+                          (named-entity-type city)))
                 <-
-                (?nominal-unit-1
+                (?the-unit
+                --
+                (HASH form ((string ?the-unit "the"))))
+                (?city-unit
+                --
+                (HASH form ((string ?city-unit "city"))))
+                (?of-unit
+                --
+                (HASH form ((string ?of-unit "of"))))
+                (?Zintan-unit
+                
+                --
+                (sem-cat (sem-class location)))
+                (?named-entity-city-unit
                  --
-                 (referent ?p)
-                 (sem-valence (name ?n))
-                 (syn-cat (lex-class common-noun))
-                 (sem-cat (sem-class location)))
-                (?nominal-unit-2
-                 --
-                 (referent ?n)
-                 (syn-cat (lex-class proper-noun))
-                 (sem-cat (sem-class location)))
-               
-                (?named-entity-unit
-                 --
-                 (HASH form ((meets ?nominal-unit-1 ?nominal-unit-2))))))
-
-  (def-fcg-cxn president-capitalized-cxn
-               ((?president-unit
-                 (referent ?p)
-                 (meaning ((president ?p)))
-                 (syn-cat (lex-class noun)
-                          (syn-function nominal))
-                 (sem-cat (sem-class title))
-                 (sem-valence (name ?n)))
-                <-
-                (?president-unit
-                 --
-                 (HASH form ((string ?president-unit "President"))))))
+                 (HASH form ((meets ?the-unit ?city-unit)
+                             (meets ?of-unit ?Zintan-unit))))))
 
     (def-fcg-cxn president-cxn
                ((?president-unit
@@ -233,7 +214,16 @@
                  --
                  (HASH form ((string ?Obama-unit "Obama"))))))
 
-  (def-fcg-cxn named-entity-title-person-cxn
+  (def-fcg-cxn the-cxn
+               (<-
+                (?the-unit
+                 (syn-cat (lex-class article)
+                          (definite +)
+                          (number ?number)) 
+                 --
+                 (HASH form ((string ?the-unit "the"))))))
+
+  (def-fcg-cxn named-entity-title-person-cxn ;; president Obama
                ((?named-entity-unit
                  (referent ?p)
                  (meaning ((:name ?p ?n)))
@@ -257,6 +247,36 @@
                  --
                  (HASH form ((meets ?nominal-unit-1 ?nominal-unit-2))))))
 
+    (def-fcg-cxn named-entity-title-article-person-cxn ;; Obama the president 
+               ((?named-entity-article-unit
+                 (referent ?p)
+                 (meaning ((:name ?p ?n)))
+                 (subunits (?nominal-unit-1 ?article-unit ?nominal-unit-2))
+                 (syn-cat (phrase-type NP)
+                          (named-entity-type person)))
+                <-
+                (?nominal-unit-1
+                 --
+                 (referent ?n)
+                 (syn-cat (syn-function nominal))
+                 (sem-cat (sem-class person)))
+                (?article-unit
+                 --
+                 (referent ?p)
+                 (syn-cat (lex-class article)
+                          (definite ?def)
+                          (number ?n)))
+                (?nominal-unit-2
+                 --
+                 (referent ?p)
+                 (sem-valence (name ?n))
+                 (syn-cat (syn-function nominal))
+                 (sem-cat (sem-class title)))
+                (?named-entity-article-unit
+                 --
+                 (HASH form ((meets ?nominal-unit-1 ?article-unit)
+                             (meets ?article-unit ?nominal-unit-2))))))
+    
   (def-fcg-cxn bomb-cxn
                ((?bomb-unit
                  (referent ?b)
@@ -432,7 +452,7 @@
           --
          (HASH form ((string ?history-unit "history"))))))
 
-     (def-fcg-cxn compound-noun-noun-cxn ;;history teacher
+    (def-fcg-cxn compound-noun-noun-cxn ;;history teacher
                ((?compound-noun-unit
                  (referent ?ref)
                  (meaning ((:arg1 ?ref ?topic)))
@@ -474,7 +494,7 @@
            --
            (HASH form  ((string ?spy-unit "spy"))))))
   
-       (def-fcg-cxn attractive-cxn
+      (def-fcg-cxn attractive-cxn
              ((?attractive-unit
                (referent ?a)
                (meaning ((attract-01 ?a)))
@@ -487,7 +507,7 @@
                 --
                (HASH form  ((string ?attractive-unit "attractive"))))))
          
-        (def-fcg-cxn adjective-noun-unit-cxn ;;attractive spy
+       (def-fcg-cxn adjective-noun-unit-cxn ;;attractive spy
              ((?adjective-noun-unit 
                (referent ?ref)
                (meaning ((:arg0-of ?ref ?quality)))
@@ -515,7 +535,7 @@
                  (HASH form ((meets ?adjective-unit ?noun-unit))))))
 
             (def-fcg-cxn sandwich-cxn
-           ((?sandwich-unit
+             ((?sandwich-unit
              (referent ?s)
              (meaning ((sandwich ?s)))
              (syn-cat (lex-class noun)
@@ -621,23 +641,139 @@
                  --
                 (HASH form ((meets ?adjective-unit ?noun-unit))))))
 
+  (def-fcg-cxn a-cxn
+                (<-
+                (?a-unit
+                 (syn-cat (lex-class article)
+                          (definite -)
+                          (number sg))
+                 --
+                 (HASH form ((string ?a-unit "a"))))))
+
+   (def-fcg-cxn an-cxn
+                 (<-
+                 (?an-unit
+                 (syn-cat (lex-class article)
+                          (definite -)
+                          (number sg))
+                  --
+                 (HASH form ((string ?an-unit "an"))))))
+   
+  (def-fcg-cxn boy-cxn
+                ((?boy-unit
+                  (referent ?b)
+                  (meaning ((boy ?b)))
+                  (syn-cat (lex-class noun)
+                           (number sg)
+                           (syn-function ?func))
+                  (sem-cat (sem-class person)))
+                 <-
+                 (?boy-unit
+                 (HASH meaning ((boy ?b)))
+                  --
+                  (HASH form ((string ?boy-unit "boy"))))))
+  
+      (def-fcg-cxn NP-cxn
+               ((?NP-unit
+                 (referent ?ref)
+                 (syn-cat (phrase-type NP)
+                          (number ?n)
+                          (person 3))
+                 (sem-cat (sem-class referring-expression))
+                 (subunits (?article-unit ?noun-unit))
+                 (boundaries (rightmost-unit ?noun-unit)
+                             (leftmost-unit ?article-unit)))
+                <-
+                (?article-unit
+                 (referent ?ref)
+                 --
+                 (syn-cat (lex-class article)
+                          (definite ?def)
+                          (number ?n)))
+                (?noun-unit
+                 --
+                 (referent ?ref)
+                 (syn-cat (lex-class noun)
+                          (number ?n)))
+                (?NP-unit
+                 --
+                 (HASH form ((meets ?article-unit ?noun-unit)))))) 
+
+     (def-fcg-cxn go-cxn
+                ((?go-unit
+                  (referent ?g)
+                  (syn-cat (lex-class verb)
+                           (finite -))
+                  (sem-valence (arg0 ?arg0))
+                  (meaning ((go-01 ?g)
+                            (:arg0 ?g ?b))))
+                 <-
+                 (?go-unit
+                  --
+                  (HASH form ((string ?go-unit "go"))))))
+
+     (def-fcg-cxn cannot-cxn
+                ((?cannot-unit
+                  (referent ?c)
+                  (syn-cat (lex-class verb)
+                           (finite +)
+                           (modal +)
+                           (phrase-type VP))
+                  (sem-valence (:arg0 ?arg0)
+                               (:arg1 ?arg1))
+                  (meaning ((possible ?p)
+                            (:polarity ?p -)
+                            (:domain ?p ?g))))
+                  <-
+                  (?cannot-unit
+                   --
+                   (HASH form ((string ?cannot-unit "cannot"))))))
+
+      (def-fcg-cxn subject-verb-cxn
+               ((?subject-verb-unit
+                 (subunits (?vp-unit ?subject-unit)))
+                <-
+                (?vp-unit
+                 --
+                 (syn-cat (lex-class verb)
+                           (phrase-type VP)
+                           (finite +)))
+                (?subject-unit
+                 --
+                 (referent ?b)
+                 (syn-cat (phrase-type NP))
+                 (boundaries (rightmost-unit ?rmu-subject))
+                 (HASH form ((meets ?rmu-subject ?vp-unit))))))
+
+                
 )
 
-
 #|
-  (def-fcg-cxn Zintan-cxn
-               ((?Zintan-unit
-                 (referent ?c)
-                 (syn-cat (lex-class proper-noun)
-                          (syn-function nominal)
-                          (phrase-type NP))
-                 (sem-cat (sem-class location)))
-                <-
-                (?Zintan-unit
-                 (HASH meaning ((name ?n)
-                                (:name ?c ?n)
-                                (:op1 ?n "Zintan")))
-                 --
-                 (HASH form ((string ?Zintan-unit "Zintan"))))))
+
+       (def-fcg-cxn infinitif-modal-cxn
+                   ((?infinitif-modal-unit
+                     (subunits (?subject-verb-unit ?main-verb-unit)))
+                    <-
+                    (?main-verb-unit
+                     (subunits (?infinitif-unit))
+                     --
+                     (referent ?subject))
+                    (?main-verb-unit
+                     --
+                     (sem-valence (arg0 ?subject)
+                                  (arg1 ?main-event))
+                     (syn-cat (lex-class verb)
+                              (finite +)))
+                    (?infinitif-unit
+                     --
+                     (HASH form ((string ?to-unit "go")
+                                 (meets ?finite-verb-unit ?infinitif-unit)
+                                 (meets ?infinitf-unit ?main-verb-unit))))
+                    (?infinitif-modal-cxt
+                     --
+                     (referent ?main-event)
+                     (sem-valence (arg0 ?subject))
+                     (syn-cat (lex-class verb)
+                              (finite -)))))
 |#
             
