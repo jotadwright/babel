@@ -53,7 +53,7 @@
                            (mkstr irl-program))
                           ((string= irl-encoding "json")
                            (encode-irl-program irl-program)))))
-         (:status . ,(downcase (mkstr (first (statuses cipn)))))
+         (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
          (:applied--constructions . ,(when (applied-constructions cipn)
                                        (mapcar #'downcase
                                                (mapcar #'mkstr
@@ -97,7 +97,7 @@
                                          (mkstr irl-program))
                                         ((string= irl-encoding "json")
                                          (encode-irl-program irl-program)))))
-                       (:status . ,(mkstr (first (statuses cipn))))
+                       (:fcg--status . ,(mkstr (first (statuses cipn))))
                        (:applied--constructions . ,(when (applied-constructions cipn)
                                                      (mapcar #'downcase
                                                              (mapcar #'mkstr
@@ -145,7 +145,7 @@
             (http-condition 500 "Error in language processing module!" e)))
       (encode-json-alist-to-string
        `((:utterance . ,(when utterance (mkstr (list-of-strings->string utterance))))
-         (:status . ,(downcase (mkstr (first (statuses cipn)))))
+         (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
          (:applied--constructions . ,(when (applied-constructions cipn)
                                        (mapcar #'downcase
                                                (mapcar #'mkstr
@@ -196,7 +196,7 @@
        (loop for utterance in utterances
              for cipn in cipns
              collect `((:utterance . ,(when utterance (mkstr (list-of-strings->string utterance))))
-                       (:status . ,(downcase (mkstr (first (statuses cipn)))))
+                       (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
                        (:applied--constructions . ,(when (applied-constructions cipn)
                                                      (mapcar #'downcase
                                                              (mapcar #'mkstr
@@ -224,7 +224,7 @@
             (http-condition 500 "Error in language processing module!" e)))
       (encode-json-alist-to-string
        `((:utterance . ,(when utterance (mkstr (list-of-strings->string utterance))))
-         (:status . ,(downcase (mkstr (first (statuses cipn)))))
+         (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
          (:applied--constructions . ,(when (applied-constructions cipn)
                                        (mapcar #'downcase
                                                (mapcar #'mkstr
@@ -350,13 +350,14 @@
                               ((string= irl-encoding "sexpr")
                                (mkstr irl-program))
                               ((string= irl-encoding "json")
-                               (encode-irl-program irl-program)))))
-             (:status . ,(downcase (mkstr (first (statuses cipn)))))
+                               (encode-irl-program irl-program (first solutions))))))
+             (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
              (:applied--constructions . ,(when (applied-constructions cipn)
                                            (mapcar #'downcase
                                                    (mapcar #'mkstr
                                                            (mapcar #'fcg::name
                                                                    (applied-constructions cipn))))))
+             (:irl--status . ,(if answers "succeeded" "failed"))
              (:solutions . ,(mapcar #'downcase answers)))))))))                   
     
 

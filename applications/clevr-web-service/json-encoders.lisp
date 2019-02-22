@@ -2,60 +2,60 @@
 
 (in-package :clevr-web-service)
 
-;;;; IRL-program -> JSON
-(defun encode-predicate (predicate predicates-w-bindings)
-  `((:name . ,(downcase (mkstr (first predicate))))
-    (:output . ,(second predicate))
-    (:inputs . ,(if (member (first predicate) predicates-w-bindings)
-                  (subseq predicate 2 (- (length predicate) 1))
-                  (subseq predicate 2)))
-    (:binding . ,(when (member (first predicate) predicates-w-bindings)
-                    (last-elt predicate)))))
+;;; make sexpr
+(defmethod make-sexpr ((set clevr-object-set))
+  (loop for object in (objects set)
+        collect `((:color . ,(color object))
+                  (:shape . ,(shape object))
+                  (:material . ,(material object))
+                  (:size . ,(size object))
+                  (:id . ,(id object)))))
 
-(defun encode-bind-statements (binding)
-  `((:type . ,(downcase (mkstr (second binding))))
-    (:var . ,(third binding))
-    (:value . ,(downcase (mkstr (fourth binding))))))
+(defmethod make-sexpr ((object clevr-object))
+  `((:color . ,(color object))
+    (:shape . ,(shape object))
+    (:material . ,(material object))
+    (:size . ,(size object))
+    (:id . ,(id object))))
 
-(defun encode-irl-program (irl-program)
-  "Encode an irl program into a json string"
-  (let ((predicates
-         (remove-if (lambda (p) (eql p 'bind))
-                    irl-program :key #'first))
-        (bind-statements
-         (remove-if-not (lambda (p) (eql p 'bind))
-                        irl-program :key #'first))
-        (predicates-w-bindings '(equal? filter query relate same)))
-    (encode-json-alist-to-string
-     (list (cons :predicates
-                 (loop for p in predicates
-                       collect (encode-predicate p predicates-w-bindings)))
-           (cons :bindings
-                 (loop for b in bind-statements
-                       collect (encode-bind-statements b)))))))
+(defmethod make-sexpr ((bc boolean-category))
+  (downcase (mkstr (id bc))))
 
-;;;; JSON -> IRL-program
-(defun decode-predicate (a-list)
-  (append
-   (list (read-from-string (rest (assoc :name a-list))))
-   (list (read-from-string (rest (assoc :output a-list))))
-   (when (rest (assoc :inputs a-list))
-     (mapcar #'read-from-string
-             (rest (assoc :inputs a-list))))
-   (when (rest (assoc :binding a-list))
-     (list (read-from-string (rest (assoc :binding a-list)))))))
+(defmethod make-sexpr ((mc material-category))
+  (downcase (mkstr (material mc))))
 
-(defun decode-bind-statements (a-list)
-  (list 'bind
-        (read-from-string (rest (assoc :type a-list)))
-        (read-from-string (rest (assoc :var a-list)))
-        (read-from-string (rest (assoc :value a-list)))))
+(defmethod make-sexpr ((cc color-category))
+  (downcase (mkstr (color cc))))
 
-(defun decode-irl-program (a-list)
-  "Decode an a-list into an irl-program"
-  (append
-   (loop for p in (rest (assoc :predicates a-list))
-         collect (decode-predicate p))
-   (loop for b in (rest (assoc :bindings a-list))
-         collect (decode-bind-statements b))))
+(defmethod make-sexpr ((sc size-category))
+  (downcase (mkstr (size sc))))
+
+(defmethod make-sexpr ((sc shape-category))
+  (downcase (mkstr (shape sc))))
+
+(defparameter *clevr-predicate-arities*
+  '((count! . 1) (equal-integer . 2) (less-than . 2) (greater-than . 2)
+    (equal? . 2) (exist . 1) (filter . 1) (get-context . 0) (intersect . 2)
+    (query . 1) (relate . 1) (same . 1) (union . 2) (unique . 1)))
+
+;;;; encode-irl-program
+;;;; put the irl-program in an s-expr that can be
+;;;; easily encoded in a json string
+(defun encode-irl-program (irl-program &optional list-of-bindings)
+  (let* ((reverse-polish (program->rpn irl-program)))
+    (loop for predicate in reverse-polish
+          for output-var = (second (find (first predicate) irl-program :key #'first))
+          for output-value = (when list-of-bindings
+                               (value (find output-var list-of-bindings :key #'var)))
+          collect `((:name . ,(downcase (mkstr (first predicate))))
+                    (:arity . ,(rest (assoc (first predicate) *clevr-predicate-arities*)))
+                    (:arg . ,(when (length> predicate 1)
+                               (if (eql (first predicate) 'filter)
+                                 (downcase (mkstr (third predicate)))
+                                 (downcase (mkstr (second predicate))))))
+                    (:output . ,(when output-value (make-sexpr output-value)))))))
+
+;;;; TO DO: write functions for decoding an IRL program from JSON
+(defun decode-irl-program (sexpr)
+  sexpr)
 

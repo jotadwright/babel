@@ -8,7 +8,9 @@
   (:import-from :irl
                 :evaluate-irl-program
                 :bind
-                :irl-program-p)
+                :irl-program-p
+                :var
+                :value)
   (:import-from :fcg
                 :statuses :size
                 :applied-constructions)
@@ -26,4 +28,5 @@
   (:import-from :clevr-evaluation
                 :preprocess-sentence
                 :get-target-value
-                :answer->str))
+                :answer->str
+                :program->rpn))
