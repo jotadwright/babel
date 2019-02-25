@@ -45,7 +45,7 @@
                                       :cxn-inventory *CLEVR*
                                       :silent t)
           (error (e)
-            (http-condition 500 "Error in language processing module!" e))) 
+            (http-condition 500 "Error in language processing module!" e)))
       (encode-json-alist-to-string
        `((:meaning . ,(when irl-program
                         (cond

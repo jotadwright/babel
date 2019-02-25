@@ -10,7 +10,6 @@
                :irl
                :fcg
                :cl-json
-               :cl-fad
                :snooze
                :clevr
                :clevr-grammar
