@@ -2,7 +2,9 @@
 (in-package :frame-extractor)
 
 (def-fcg-cxn cause-verb-lex
-             ((?cause-unit
+             (
+              <-
+              (?cause-unit
                (referent ?frame)
                (sem-cat (frame causation))
                (syn-valence (subject ?subject-unit)
@@ -11,9 +13,7 @@
                             (theme ?effect))
                (meaning ((frame causation cause ?frame) 
                          (slot cause ?frame ?cause)
-                         (slot effect ?frame ?effect))))
-              <-
-              (?cause-unit
+                         (slot effect ?frame ?effect)))
                --
                (syn-cat (lex-class verb))
                (lex-id cause)))

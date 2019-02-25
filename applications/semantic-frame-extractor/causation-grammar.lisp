@@ -604,7 +604,7 @@
                --
                (dependents (?because-unit))));;verb?
              :cxn-set cxn)
-               
+
 (def-fcg-cxn because-Y-cxn
              ((?cause-unit
                (footprints (because-y-cxn)))

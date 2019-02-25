@@ -1,7 +1,9 @@
 (in-package :frame-extractor)
 
 (def-fcg-cxn result-in-verb-lex
-              ((?result-unit
+              (
+               <-
+               (?result-unit
                 (referent ?frame)
                 (sem-cat (frame causation))
                 (syn-valence (subject ?subject-unit)
@@ -10,14 +12,13 @@
                              (theme ?effect))
                 (meaning ((frame causation result-in ?frame) 
                           (slot cause ?frame ?cause)
-                          (slot effect ?frame ?effect))))
-               <-
-               (?result-unit
+                          (slot effect ?frame ?effect)))
                 --
                 (syn-cat (lex-class verb))
                 (lex-id result-in)
                 (dependents (?in-unit)))
                (?in-unit
+                (lex-id result-in)
                 --
                 (head ?result-unit)
                 (form ((string ?in-unit "in")))))

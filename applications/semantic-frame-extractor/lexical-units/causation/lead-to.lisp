@@ -1,23 +1,28 @@
 (in-package :frame-extractor)
 
 (def-fcg-cxn lead-to-verb-lex
-              ((?lead-unit
-               (referent ?frame)
-               (sem-cat (frame causation))
-               (syn-valence (subject ?subject-unit)
-                            (prep-object ?object-unit))
-               (sem-valence (actor ?cause)
-                            (theme ?effect))
-               (meaning ((frame causation lead-to ?frame) 
-                              (slot cause ?frame ?cause)
-                              (slot effect ?frame ?effect))))
-              <-
-              (?lead-unit
-               --
-               (syn-cat (lex-class verb))
-               (lex-id lead-to)
-               (dependents (?to-unit)))
-              )
+              (
+               <-
+               (?lead-unit
+                (referent ?frame)
+                (sem-cat (frame causation))
+                (syn-valence (subject ?subject-unit)
+                             (prep-object ?object-unit))
+                (sem-valence (actor ?cause)
+                             (theme ?effect))
+                (meaning ((frame causation lead-to ?frame) 
+                          (slot cause ?frame ?cause)
+                          (slot effect ?frame ?effect)))
+                --
+                (syn-cat (lex-class verb))
+                (lex-id lead-to)
+                (dependents (?to-unit)))
+               (?to-unit
+                (lex-id lead-to)
+                --
+                (head ?lead-unit)
+                (dependency (edge prep))
+                (form ((string ?to-unit "to")))))
               :cxn-set lex)
 
 (def-fcg-cxn lead->leads-morph

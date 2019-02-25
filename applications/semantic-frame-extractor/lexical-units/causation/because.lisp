@@ -1,7 +1,9 @@
 (in-package :frame-extractor)
 
 (def-fcg-cxn because-conjunction-lex
-             ((?because-unit
+             (
+              <-
+              (?because-unit
                (referent ?frame)
                (syn-cat (lex-class conjunction))
                (lex-id because)
@@ -10,10 +12,7 @@
                                      (effect ?effect)))
                (meaning ((frame causation because ?frame) 
                          (slot cause ?frame ?cause)
-                         (slot effect ?frame ?effect))))
-              <-
-              (?because-unit
-                
+                         (slot effect ?frame ?effect)))
                --
                (form ((string ?because-unit "because")))
                (dependency (pos-tag in)
@@ -21,7 +20,9 @@
             :cxn-set lex)
 
 (def-fcg-cxn because-initial-conjunction-lex
-             ((?because-unit
+             (
+              <-
+              (?because-unit
                (referent ?frame)
                (syn-cat (lex-class conjunction))
                (lex-id because)
@@ -30,10 +31,7 @@
                                      (effect ?effect)))
                (meaning ((frame causation because ?frame) 
                          (slot cause ?frame ?cause)
-                         (slot effect ?frame ?effect))))
-              <-
-              (?because-unit
-                
+                         (slot effect ?frame ?effect)))
                --
                (form ((string ?because-unit "Because")))
                (dependency (pos-tag in)
@@ -41,7 +39,9 @@
             :cxn-set lex)
 
 (def-fcg-cxn because-of-preposition-lex
-             ((?because-unit
+             (
+              <-
+              (?because-unit
                (referent ?frame)
                (syn-cat (lex-class preposition))
                (lex-id because-of)
@@ -50,16 +50,15 @@
                                      (effect ?effect)))
                (meaning ((frame causation because-of ?frame) 
                          (slot cause ?frame ?cause)
-                         (slot effect ?frame ?effect))))
-              <-
-              (?because-unit
+                         (slot effect ?frame ?effect)))
                --
                (form ((string ?because-unit "because")))
                (dependency (pos-tag in)
                            (edge prep))
                (dependents (?of-unit)))
               (?of-unit
+               (lex-id because-of)
                --
                (form ((string ?of-unit "of")))
                (head ?because-unit)))
-            :cxn-set lex)
+             :cxn-set lex)

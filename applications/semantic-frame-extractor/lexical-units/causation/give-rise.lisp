@@ -1,6 +1,6 @@
 (in-package :frame-extractor)
 
-(def-fcg-cxn give-rise-verb-lex
+(def-fcg-cxn give-rise-to-verb-lex
               (<-
                (?give-unit
                 (referent ?frame)
@@ -9,18 +9,23 @@
                              (prep-object ?object-unit))
                 (sem-valence (actor ?cause)
                              (theme ?effect))
-                (meaning ((frame causation give-rise ?frame) 
+                (meaning ((frame causation give-rise-to ?frame) 
                           (slot cause ?frame ?cause)
                           (slot effect ?frame ?effect)))
                 --
                 (syn-cat (lex-class verb))
-                (lex-id give-rise)
-                (dependents (?rise-unit)))
+                (lex-id give-rise-to)
+                (dependents (?rise-unit ?to-unit)))
                (?rise-unit
-                (lex-id give-rise)
+                (lex-id give-rise-to)
                 --
-                (head ?result-unit)
-                (form ((string ?rise-unit "rise"))))) 
+                (head ?give-unit)
+                (form ((string ?rise-unit "rise"))))
+               (?to-unit
+                (lex-id give-rise-to)
+                --
+                (head ?give-unit)
+                (form ((string ?to-unit "to")))))
               :cxn-set lex)
 
 (def-fcg-cxn give->gives-morph
@@ -34,7 +39,7 @@
                              (aspect (perfect -)
                                      (progressive -))
                              (modality indicative)))
-               (lex-id give-rise)
+               (lex-id give-rise-to)
                --
                (form ((string ?gives-unit "gives")))))
             :cxn-set morph)
@@ -51,7 +56,7 @@
                              (aspect (perfect ?p)
                                      (progressive +))
                              (modality ?m)))
-               (lex-id give-rise)
+               (lex-id give-rise-to)
                --
                (form ((string ?giving-unit "giveing")))))
             :cxn-set morph)
@@ -66,7 +71,7 @@
                              (aspect (perfect -)
                                      (progressive -))
                              (modality ?m)))
-               (lex-id give-rise)
+               (lex-id give-rise-to)
                --
                (form ((string ?give-unit "give")))))
             :cxn-set morph)
@@ -79,7 +84,7 @@
                         (tam (tense ?tense)
                              (aspect ?aspect)
                              (modality ?m)))
-               (lex-id give-rise)
+               (lex-id give-rise-to)
                --
                (form ((string ?gave-unit "gave")))))
             :cxn-set morph)
@@ -88,7 +93,7 @@
              (
               <-
               (?given-unit
-               (lex-id give-rise)
+               (lex-id give-rise-to)
                (syn-cat (lex-class verb))
                --
                (form ((string ?given-unit "given")))))
