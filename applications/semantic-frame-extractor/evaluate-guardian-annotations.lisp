@@ -15,11 +15,11 @@
      (write-line (encode-json-alist-to-string `((:evaluations ,@output-list)))
                  out)))
 
-(defun pie-comprehend-log (utterance &key (cxn-inventory *fcg-constructions*) (silent nil))
+(defun pie-comprehend-log (utterance &key (cxn-inventory *fcg-constructions*) (silent nil) (strings-as-output t))
   "Utility function to comprehend an utterance and extract the frames in one go.
    Returns both a frame-set and the last cip-node."
   (multiple-value-bind (meaning cipn) (comprehend utterance :cxn-inventory cxn-inventory :silent silent)
-    (values cipn (run-pie cipn))))
+    (values cipn (run-pie cipn :strings-as-output strings-as-output))))
 
 (defun log-parsing-output-into-json-file (target-frame-evoking-elements &key gold-standard frame-extractor-output)
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
