@@ -16,6 +16,69 @@
                                            :node-id (parse-integer (dp-get-node-id dependency))
                                            :head-id (dp-get-head-id dependency))))
 
+;;De-render-for-conll-evaluation
+
+(defmethod de-render ((conll-sentence list) (mode (eql :de-render-conll))
+                      &key cxn-inventory &allow-other-keys)
+  (declare (ignorable mode))
+  (let ((list-utterance (mapcar #'(lambda(word)
+                                     (cdr (assoc :FORM word))) conll-sentence))
+         (strings nil)
+         (meets-constraints nil)
+         (sequence nil)
+         (units nil)
+         (transient-structure nil))
+    ;; collect strings and unit-names
+    (loop for token in list-utterance
+          for unit-name = (make-const token nil)
+          do
+          (setf strings (append strings (list `(string ,unit-name ,token))))
+          (setf sequence (append sequence (list unit-name))))
+    ;; collect meets constraints
+    (do ((left strings (rest left)))
+	((null (cdr left)))
+      (setf meets-constraints (append meets-constraints (list `(meets ,(second (second left)) ,(second (first left)))))))
+    ;; make units
+    (setf units
+          (loop for conll-word in conll-sentence
+          for i from 0
+          for unit-name = (nth i sequence)
+          collect (make-unit :name unit-name 
+                     :features `((head ,(when (numberp  (cdr (assoc :HEAD conll-word)))
+                                          (nth (- (cdr (assoc :HEAD conll-word)) 1) sequence)))
+                                 (dependents ,(find-dependents conll-word conll-sentence sequence))
+                                 (form ((string ,unit-name
+                                                ,(cdr (assoc :FORM conll-word)))))
+                                 (dependency
+                                  ((pos-tag
+                                    ,(intern (upcase (cdr (assoc :XPOS conll-word))) :fcg))
+                                   (edge
+                                    ,(intern (upcase (cdr (assoc :DEPREL conll-word))) :fcg))))))))
+    ;; Creating the actual initial transient structure
+    (setf transient-structure
+          (make-instance 'coupled-feature-structure 
+                         :left-pole (append
+                                     `((root (meaning ())
+                                            (sem-cat ())
+                                            (form ,meets-constraints)
+                                            (syn-cat ())))
+                                     units)
+		   :right-pole '((root))))
+    ;; Setting sequence and utterance data to the blackboard
+    (set-data transient-structure :sequence sequence)
+    (set-data transient-structure :utterance (list (list-of-strings->string list-utterance)))
+    transient-structure))
+
+(defun find-dependents (conll-word conll-sentence sequence)
+  (let* ((conll-word-id (cdr (assoc :ID conll-word)))
+        (dependents (loop for word in (remove conll-word-id conll-sentence :key #'(lambda(w) (cdr (assoc :ID w))) :test #'=)
+                          for head-id = (cdr (assoc :HEAD word))
+                          when (and (numberp head-id)
+                                    (numberp conll-word-id)
+                                    (= head-id conll-word-id))
+                          collect (- (cdr (assoc :ID word)) 1))))
+    (mapcar #'(lambda(index) (nth index sequence)) dependents)))
+
 
 ;;copied from Babel2/applications/frame-extractor (10/10/2018)
 (defmethod de-render ((utterance string) (mode (eql :raw-dependency-translation))
