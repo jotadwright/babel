@@ -300,7 +300,7 @@ A CLEVR object using the following keys:
 }
 ```
 
-Note that the IRL network is encoded in reverse polish notation. Below, we show two examples of this encoding:
+Note that order of the predicates is in reverse polish notation. Below, we show two examples of this ordering:
 
 **IRL Program**:
 
@@ -314,7 +314,7 @@ Note that the IRL network is encoded in reverse polish notation. Below, we show 
 
 **RPN Encoding:** `((get-context)(filter cube)(unique)(exist))`
 
-**IRL Program:**:
+**IRL Program:**
 
 ```
 ((get-context ?context)
@@ -328,4 +328,14 @@ Note that the IRL network is encoded in reverse polish notation. Below, we show 
  (bind shape-category ?shape-2 sphere))
 ```
 
-**RPN Encoding:** `((get-context)(filter cube)
+**RPN Encoding:**
+
+```
+((get-context)
+ (filter red)
+ (filter cube)
+ (get-context)
+ (filter sphere)
+ (union!)
+ (count!))
+```
