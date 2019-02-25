@@ -28,7 +28,6 @@
     corpus-sentences))
 
 ;; (pprint (read-corpus *corpus*))
-;; (setf *conll-corpus*  (read-corpus *corpus*))
 ;; (setf *conll-sentence* (first (read-corpus *corpus*)))
 
 (defun read-conll-line (string)
@@ -54,6 +53,8 @@
 
 
 ;; testing
+(setf *conll-corpus*  (read-corpus *corpus*))
+(activate-monitor trace-fcg)
 (set-configuration *fcg-constructions* :de-render-mode :de-render-conll)
 (pie-comprehend (third *conll-corpus*))
                         
