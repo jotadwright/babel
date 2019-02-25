@@ -3,6 +3,12 @@
 
 ;(activate-monitor trace-fcg)
 
+(pie-comprehend "With the growing number of natural disasters due to climate change, the sums spent by governments on catastrophe management have risen to unprecedented levels.")
+
+(pie-comprehend "The International Red Cross says more people are already being made refugees due to environmental issues.")
+
+(pie-comprehend "The Lancet estimated that China suffers 1.2 million premature deaths due to fossil fuel pollution.")
+
 
 ;;############################
 ;;BECAUSE OF
@@ -12,8 +18,15 @@
 ;correct sentences and total sentences: (8 20): 0.4 
 ;correct words and total words overall: (650 749): 0.8678238
 
+;;resultaat sinds aanpassingen met CONLL de-renderer?
+;correct slots and total slots: (43 78): 0.55128205 
+;correct sentences and total sentences: (7 20): 0.35 
+;correct words and total words overall: (574 749): 0.76635516 
+
+(pie-comprehend "After seven hours' delay because of bad weather we got our first sight of the floating Arctic sea ice as we came in to land.")
+
 ;;Problem with dependency parser (partial parse - not due to period...):
-(pie-comprehend "such a stupid construction. Hege Njaa Aschim, the Norwegian government's spokeswoman for the vault, said:  The construction was planned like that because it was practical as a way to go inside and it should not be a problem because of the permafrost keeping it safe.") ; (0 3) (slots) (33 46) (words)
+(pie-comprehend "such a stupid construction. Hege Njaa Aschim, the Norwegian government's spokeswoman for the vault, said:  The construction was planned like that because it was practical as a way to go inside and it should not be a problem because of the permafrost keeping it safe." :strings-as-output t) ; (0 3) (slots) (33 46) (words)
 
 ;;Punctuation in effect slot, missing capitalisation of 'Reports'
 (pie-comprehend "Reports that the issue is polarising the Warsaw talks appear to be overblown, mostly because of the much tweeted 'walk out'.") ; (2 3) (slots) (16 22) (words)
@@ -50,7 +63,7 @@
 ;;problem with Spacy for effect (comma)
 (pie-comprehend "Sulphur and soot emissions, which give rise to lung cancers, acid rain and respiratory problems are expected to rise more than 30% over the next 12 years.") ; (2 3) (slots) (23 28) (words)
 ;; annotation = MUCH shorter (two papers)
-(pie-comprehend "Work by the dendro-climatologists there gave rise to two papers Dr Keith Briffa and colleagues that convinced us that British/Irish oak was not a good subject for the reconstruction of instrumental-style temperature and rainfall records.") ; (2 3) (slots) (9 37) (words)
+(pie-comprehend "Work by the dendro-climatologists there gave rise to two papers Dr Keith Briffa and colleagues that convinced us that British/Irish oak was not a good subject for the reconstruction of instrumental-style temperature and rainfall records." :strings-as-output nil) ; (2 3) (slots) (9 37) (words)
 ;;annotation = longer (effect: that view with some vs. that view)
 (pie-comprehend "Your links to China and North Korea give rise to that view with some.") ; (2 3) (slots) (12 14) (words)
 

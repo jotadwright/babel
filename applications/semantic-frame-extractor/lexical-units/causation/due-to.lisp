@@ -10,13 +10,11 @@
                (sem-cat (frame causation)
                         (frame-slots (cause ?cause)
                                      (effect ?effect)))
-               (meaning ((frame causation because-of ?frame) 
+               (meaning ((frame causation due-to ?frame) 
                          (slot cause ?frame ?cause)
                          (slot effect ?frame ?effect)))
                --
                (form ((string ?because-unit "due")))
-               (dependency (pos-tag in)
-                           (edge prep))
                (dependents (?to-unit)))
               (?to-unit
                (lex-id due-to)

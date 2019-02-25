@@ -21,6 +21,7 @@
                (:file "frame-definitions")
                (:file "dependencies")
                (:file "configuration")
+               (:file "conll-evaluation")
                (:file "evaluate-guardian-annotations")
                (:file "twitter-causation")
                (:module "web-service"

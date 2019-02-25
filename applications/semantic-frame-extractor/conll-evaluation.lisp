@@ -51,12 +51,10 @@
       (:head . ,head)
       (:deprel . ,deprel))))
 
+(defun restore-conll-sentence (conll-sentence)
+  (list-of-strings->string (mapcar #'(lambda(word) (cdr (assoc :FORM word))) conll-sentence)))
 
+;(restore-conll-sentence (third *conll-corpus*))
 ;; testing
-(setf *conll-corpus*  (read-corpus *corpus*))
-(activate-monitor trace-fcg)
-(set-configuration *fcg-constructions* :de-render-mode :de-render-conll)
-(pie-comprehend (third *conll-corpus*))
-                        
-    
-    
+;(set-configuration *fcg-constructions* :de-render-mode :de-render-conll)
+;(pie-comprehend (third *conll-corpus*))

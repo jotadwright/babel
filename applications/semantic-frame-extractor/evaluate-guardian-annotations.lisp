@@ -18,10 +18,51 @@
 (defun pie-comprehend-log (utterance &key (cxn-inventory *fcg-constructions*) (silent nil) (strings-as-output t))
   "Utility function to comprehend an utterance and extract the frames in one go.
    Returns both a frame-set and the last cip-node."
+  (setf utterance (string-trim '(#\Space #\Backspace #\Linefeed #\Page #\Return) utterance))
   (multiple-value-bind (meaning cipn) (comprehend utterance :cxn-inventory cxn-inventory :silent silent)
     (values cipn (run-pie cipn :strings-as-output strings-as-output))))
 
-(defun log-parsing-output-into-json-file (target-frame-evoking-elements &key gold-standard frame-extractor-output)
+(defun extract-indices-from-frame-object (frame-object)
+  (sort (append (pie::frame-evoking-element frame-object)
+                (cause frame-object)
+                (effect frame-object)) #'<))
+
+(defun log-parsing-conll-output-into-json-file (target-frame-evoking-elements &key conll-gold-standard frame-extractor-output (strings-as-output nil))
+  "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
+   Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
+  (let ((conll-sentences (read-corpus conll-gold-standard)))
+    
+    (set-configuration *fcg-constructions* :de-render-mode :de-render-conll)
+    
+    (loop for conll-sent in conll-sentences
+          for sentence = (restore-conll-sentence conll-sent)
+          when (loop for target-FE-elt in target-frame-evoking-elements
+                     when (search target-FE-elt sentence)
+                     do (return t))
+          collect (let ((raw-frame-set (pie-comprehend conll-sent :silent t :strings-as-output strings-as-output)))
+                    (encode-json-alist-to-string `((:sentence . ,sentence)
+                                                   (:frame-elements . ,(loop for frame in (pie::entities raw-frame-set)
+                                                                             for cause = (cond ((or (listp (cause frame)) ;;indices or string
+                                                                                                    (stringp (cause frame)))
+                                                                                                (cause frame))
+                                                                                               (t (extract-indices-from-frame-object
+                                                                                                   (cause frame))))
+                                                                             for effect = (cond ((or (listp (effect frame)) ;;indices or string
+                                                                                                     (stringp (effect frame)))
+                                                                                                 (effect frame))
+                                                                                                (t (extract-indices-from-frame-object
+                                                                                                    (effect frame))))
+                                                                             collect `((:frame-evoking-element . ,(pie::frame-evoking-element frame))
+                                                                                       (:cause . ,cause)
+                                                                                       (:effect . ,effect)))))))  into results
+                                                ; (:applied-cxns . ,(mapcar #'name (applied-constructions last-cipn))))) into results
+            finally (with-open-file (out frame-extractor-output :direction :output :if-exists :supersede :if-does-not-exist :create)
+                      (loop for result in results
+                            do (progn
+                                 (format out result)
+                                 (format out  "~%")))))))
+
+(defun log-parsing-output-into-json-file (target-frame-evoking-elements &key gold-standard frame-extractor-output (strings-as-output nil))
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
    Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
   (let* ((sentence-objs (get-sentences-from-json gold-standard))
@@ -35,12 +76,20 @@
                           finally (return sentences))))
       (loop for sent in sentences
             for (last-cipn raw-frame-set) = (multiple-value-list
-                                             (pie-comprehend-log (string-trim '(#\Space #\Backspace #\Linefeed #\Page #\Return) sent) :silent t))
+                                             (pie-comprehend-log sent :silent t :strings-as-output strings-as-output))
             collect (encode-json-alist-to-string `((:sentence . ,sent)
                                                    (:frame-elements . ,(loop for frame in (pie::entities raw-frame-set)
-                                                                             collect `((:frame-evoking-element . ,(pie::frame-evoking-element frame))
-                                                                                       (:cause . ,(cause frame))
-                                                                                       (:effect . ,(effect frame)))))
+                                                                             for cause = (cond ((or (listp (cause frame)) ;;indices or string
+                                                                                                    (stringp (cause frame)))
+                                                                                                (cause frame))
+                                                                                               (t (extract-indices-from-frame-object (cause frame))))
+                                                                             for effect = (cond ((or (listp (effect frame)) ;;indices or string
+                                                                                                     (stringp (effect frame)))
+                                                                                                 (effect frame))
+                                                                                                (t (extract-indices-from-frame-object (effect frame))))
+                                                                             append `((:frame-evoking-element ,(pie::frame-evoking-element frame))
+                                                                                      (:cause ,cause)
+                                                                                      (:effect ,effect))))
                                                    (:applied-cxns . ,(mapcar #'name (applied-constructions last-cipn))))) into results
             finally (with-open-file (out frame-extractor-output :direction :output :if-exists :supersede :if-does-not-exist :create)
                       (loop for result in results
@@ -189,30 +238,40 @@
 
 (defparameter *training-corpus* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
                                                 :name "199-causation-frame-annotations" :type "json"))
+
+(defparameter *training-corpus-conll* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                       :name "199-causation-frame-annotations"
+                                       :type "conll"))
+
 (defparameter *test-corpus* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
                                                 :name "146-causation-frame-annotations" :type "json"))
-;;standard file with parse results:
+;;standard file with parse results (with strings):
 (defparameter *frame-extractor-output* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
                                                        :name "frame-extractor-output" :type "json"))
+;;standard file with parse results (with indices):
+(defparameter *frame-extractor-output-indices* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                       :name "frame-extractor-output-indices" :type "json"))
 
 (defun evaluate-grammar-output-for-evoking-elem (evoking-elems &key
                                                                (gold-standard *training-corpus*)
                                                                (frame-extractor-output nil)
                                                                (evaluation-results
                                                                 (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                                                                :name "frame-extractor-output-with-annotations" :type "json")))
+                                                                                :name "frame-extractor-output-with-annotations" :type "json"))
+                                                               (strings-as-output t))
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
    Writes resulting output, annotations and correctness into json-file.
    Returns the total number of frame-slots and the number of correct slot-fillers as well as the number of correctly parsed sentences."
   (unless frame-extractor-output
-    (log-parsing-output-into-json-file evoking-elems :gold-standard gold-standard :frame-extractor-output *frame-extractor-output*)
+    (log-parsing-output-into-json-file evoking-elems :gold-standard gold-standard :frame-extractor-output *frame-extractor-output*
+                                       :strings-as-output strings-as-output)
     (setf frame-extractor-output *frame-extractor-output*))
   (let* ((parsing-with-annotations (load-parsings-with-annotations frame-extractor-output gold-standard))
-         (filtered-parsings (mapcar (lambda (s)
-                                      (filter-frames (lambda (s)
-                                                       (find (cdr (assoc :frame-evoking-element s)) evoking-elems :test #'string=))
-                                                     s))
-                                    parsing-with-annotations))
+         (filtered-parsings (loop for parsing in parsing-with-annotations
+                                  when (loop for frame-evoking-elt in evoking-elems
+                                             when (search frame-evoking-elt (rest (assoc :sentence parsing)))
+                                             do (return frame-evoking-elt))
+                                  collect parsing))
          (print-result (mapcar #'evaluate-sentence filtered-parsings))
          (total-correct-sentences (total-correct-sentences print-result))
          (total-slot-similarity (total-slot-similarity print-result))
@@ -235,6 +294,11 @@
 ;;##########################################################
 ;; EVALUATION
 ;;##########################################################
+
+;; Log parsing to output file (without evaluation):
+;; (log-parsing-output-into-json-file '("due to") :gold-standard *training-corpus* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
+;; (log-parsing-conll-output-into-json-file '("due to") :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
+;; (log-parsing-output-into-json-file '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :gold-standard *training-corpus* :frame-extractor-output *frame-extractor-output-w-indices* :strings-as-output nil)
 
 ;; Running the evaluation (on training set - slow):
 ;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in"))
