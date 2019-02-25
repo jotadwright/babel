@@ -55,7 +55,98 @@
                                  (downcase (mkstr (second predicate))))))
                     (:output . ,(when output-value (make-sexpr output-value)))))))
 
-;;;; TO DO: write functions for decoding an IRL program from JSON
-(defun decode-irl-program (sexpr)
-  sexpr)
 
+;;;; TO DO: write functions for decoding an IRL program from JSON
+(defun decode-bind-statement (value var)
+  (let* ((all-categories (loop for field in (fields *clevr-ontology*)
+                               for field-data = (get-data *clevr-ontology* field)
+                               when (listp field-data)
+                               append field-data))
+         (category (find value all-categories
+                         :key #'(lambda (cat) (downcase (mkstr (id cat))))
+                         :test #'string=)))
+    `(bind ,(type-of category) ,var ,(read-from-string value))))
+
+(defun decode-predicate (json)
+  (let* ((name (read-from-string (rest (assoc :name json))))
+         (output-var (make-var 'var))
+         (input-vars (loop repeat (rest (assoc :arity json))
+                           collect (make-var 'var)))
+         (bind-var (when (rest (assoc :arg json))
+                     (make-var 'binding)))
+         (bind-statement
+          (when bind-var
+            (decode-bind-statement (rest (assoc :arg json)) bind-var))))
+    (values (append
+             (list name output-var)
+             (when input-vars input-vars)
+             (when bind-var (list bind-var)))
+            bind-statement)))
+
+(defun add-predicate (stack predicate irl-program arity)
+  ;; arity = 1; get 1 elem from the stack and link its output to the new predicate's input
+  ;; arity = 2; get 2 elem from the stack and link each of their outputs to the new predicate's inputs
+  (cond
+   ((= arity 0)
+    ;; push the predicate on the stack
+    ;; do nothing with the IRL program
+    (values (append (list predicate) stack) irl-program))
+   ((= arity 1)
+    ;; get 1 elem from the stack and link its output to the new predicate's input
+    ;; remove the previous from the stack and add it to the irl program
+    ;; push the new predicate on the stack
+    (let* ((prev-predicate (pop stack))
+           (output-var (second prev-predicate)))
+      (setf (nth 2 predicate) output-var)
+      (values (append (list predicate) stack)
+              (append (list prev-predicate) irl-program))))
+   ((= arity 2)
+    ;; get 2 elem from the stack and link their outputs to the new predicate's inputs
+    ;; remove the previous predicates from the stack and add them to the irl program
+    ;; push the new predicate on the stack
+    (let* ((prev-predicate-1 (pop stack))
+           (prev-predicate-2 (pop stack))
+           (output-var-1 (second prev-predicate-1))
+           (output-var-2 (second prev-predicate-2)))
+      (setf (nth 2 predicate) output-var-1
+            (nth 3 predicate) output-var-2)
+      (values (append (list predicate) stack)
+              (append (list prev-predicate-1 prev-predicate-2) irl-program))))))
+
+(defun decode-irl-program (json)
+  ;; the decoder expects a list of json objects, representing
+  ;; the IRL program in reverse polish notation. 
+  (let ((stack (list (decode-predicate (first json))))
+        irl-program
+        bind-statements)
+    (loop for i from 1
+          while stack
+          for obj = (nth i json)
+          for arity = (rest (assoc :arity obj))
+          if (null obj)
+          do (push (pop stack) irl-program)
+          else
+          do (multiple-value-bind (predicate bind-statement)
+                 (decode-predicate obj)
+               (multiple-value-bind (new-stack new-irl-program)
+                   (add-predicate stack predicate irl-program arity)
+                 (when bind-statement
+                   (push bind-statement bind-statements))
+                 (setf stack new-stack
+                       irl-program new-irl-program))))
+    (append irl-program bind-statements)))
+
+#|
+(decode-irl-program 
+ '(((:name . "get-context") (:arity . 0) (:arg . nil))
+   ((:name . "filter") (:arity . 1) (:arg . "red"))
+   ((:name . "unique") (:arity . 1) (:arg . nil))
+   ((:name . "exist") (:arity . 1) (:arg . nil))))
+
+(decode-irl-program
+ '(((:name . "get-context") (:arity . 0) (:arg . nil))
+   ((:name . "filter") (:arity . 1) (:arg . "red"))
+   ((:name . "get-context") (:arity . 0) (:arg . nil))
+   ((:name . "filter") (:arity . 1) (:arg . "blue"))
+   ((:name . "union!") (:arity . 2) (:arg . nil))))
+|#

@@ -363,11 +363,11 @@
 
 ;; Test the web interface on localhost:9003 or https://penelope.vub.be/clevr-api/ (may not contain the latest version)
 
-;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?", "irl_encoding": "sexpr"}' http://localhost:9003/comprehend
+;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?", "irl_encoding": "json"}' http://localhost:9003/comprehend
 
 ;; curl -H "Content-Type: application/json" -d '{"meaning" : "((GET-CONTEXT ?SOURCE-1153) (FILTER ?TARGET-2594 ?TARGET-2593 ?COLOR-205) (BIND SHAPE-CATEGORY ?SHAPE-175 CUBE) (FILTER ?TARGET-2593 ?SOURCE-1153 ?SHAPE-175) (BIND COLOR-CATEGORY ?COLOR-205 RED) (COUNT! ?TARGET-2681 ?TARGET-2594))"}' http://localhost:9003/formulate
 
-;; curl -H "Content-Type: application/json" -d '{"meaning":{"predicates":[{"name":"get-context","output":"?source1824","inputs":null,"binding":null},{"name":"filter","output":"?target4067","inputs":["?target4068"],"binding":"?color308"},{"name":"filter","output":"?target4068","inputs":["?source1824"],"binding":"?shape256"},{"name":"count!","output":"?target4157","inputs":["?target4067"],"binding":null}],"bindings":[{"type":"shape-category","var":"?shape256","value":"cube"},{"type":"color-category","var":"?color308","value":"red"}]},"irl_encoding":"json"}' http://localhost:9003/formulate 
+;; curl -H "Content-Type: application/json" -d '{"meaning":[{"name":"get-context", "arity":0},{"name":"filter", "arity":1, "arg":"cube"}, {"name":"filter", "arity":1, "arg":"red"}, {"name":"count!", "arity":1}], "irl_encoding":"json"}' http://localhost:9003/formulate 
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?"}' http://localhost:9003/comprehend-and-formulate
 
