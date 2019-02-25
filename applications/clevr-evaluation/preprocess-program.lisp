@@ -2,6 +2,8 @@
 
 (in-package :clevr-evaluation)
 
+(export '(preprocess-program))
+
 (define-event duplicate-context-finished (irl-program list))
 (define-event filter-things-finished (irl-program list))
 (define-event reverse-nominal-groups-finished (irl-program list))

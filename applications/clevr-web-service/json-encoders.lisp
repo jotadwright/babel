@@ -42,7 +42,7 @@
 ;;;; put the irl-program in an s-expr that can be
 ;;;; easily encoded in a json string
 (defun encode-irl-program (irl-program &optional list-of-bindings)
-  (let* ((reverse-polish (program->rpn irl-program)))
+  (let* ((reverse-polish (preprocess-program (program->rpn irl-program))))
     (loop for predicate in reverse-polish
           for output-var = (second (find (first predicate) irl-program :key #'first))
           for output-value = (when list-of-bindings

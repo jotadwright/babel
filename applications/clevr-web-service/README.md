@@ -13,9 +13,9 @@ The CLEVR Web Service defines a RESTful API that gives access to the CLEVR Gramm
  - **URL Params:** None
  - **Data Params:** 
  	- Required: 
- 		- `utterance` [string]
+ 		- `utterance: "string"`
    - Optional:
- 		- `irl_encoding` [string] 
+ 		- `irl_encoding: "string"`
  - **Success Response:**
  	- Code: 200
  	
@@ -55,10 +55,10 @@ The CLEVR Web Service defines a RESTful API that gives access to the CLEVR Gramm
  - **URL Params:** None
  - **Data Params:** 
  	- Required: 
- 		- `utterance` [string]
+ 		- `utterance: "string"`
    - Optional:
- 		- `irl_encoding` [string] 
- 		- `n` [integer]
+ 		- `irl_encoding: "string"`
+ 		- `n: integer`
  - **Success Response:**
  	- Code: 200
  	
@@ -105,9 +105,9 @@ The CLEVR Web Service defines a RESTful API that gives access to the CLEVR Gramm
  - **URL Params:** None
  - **Data Params:** 
  	- Required: 
- 		- `meaning` [string]
+ 		- `meaning: "string"/{object}`
    - Optional:
- 		- `irl_encoding` [string] 
+ 		- `irl_encoding: "string"`
  - **Success Response:**
  	- Code: 200
  	
@@ -147,10 +147,10 @@ The CLEVR Web Service defines a RESTful API that gives access to the CLEVR Gramm
  - **URL Params:** None
  - **Data Params:** 
  	- Required: 
- 		- `meaning` [string]
+ 		- `meaning: "string"/{object}`
    - Optional:
- 		- `irl_encoding` [string] 
- 		- `n` [integer]
+ 		- `irl_encoding: "string"`
+ 		- `n: integer`
  - **Success Response:**
  	- Code: 200
  	
@@ -197,7 +197,7 @@ The CLEVR Web Service defines a RESTful API that gives access to the CLEVR Gramm
  - **URL Params:** None
  - **Data Params:** 
  	- Required: 
- 		- `utterance` [string]
+ 		- `utterance: "string"`
  - **Success Response:**
  	- Code: 200
  	
@@ -237,10 +237,10 @@ The CLEVR Web Service defines a RESTful API that gives access to the CLEVR Gramm
  - **URL Params:** None
  - **Data Params:** 
  	- Required: 
- 		- `utterance` [string]
- 		- `scene` [string]
+ 		- `utterance: "string"`
+ 		- `scene: "string"`
    - Optional:
- 		- `irl_encoding` [string] 
+ 		- `irl_encoding: "string"`
  - **Success Response:**
  	- Code: 200
  	
@@ -288,14 +288,44 @@ Each predicate of the IRL network is a JSON object:
 
 The `output` key contains the intermediate result after having executed the predicate. This key can contain a list of objects, a single object, a string or an integer.
 
-A CLEVR object is encoded as follows:
+A CLEVR object using the following keys:
 
 ```
 {
- "color": "red",
- "shape": "cube",
- "material": "metal",
- "size": "large",
- "id": "obj123"
+ "color": "string",
+ "shape": "string",
+ "material": "string",
+ "size": "string",
+ "id": "string"
 }
 ```
+
+Note that the IRL network is encoded in reverse polish notation. Below, we show two examples of this encoding:
+
+**IRL Program**:
+
+```
+((get-context ?context)
+ (filter ?set-1 ?context ?shape-1)
+ (unique ?obj-1 ?set-2)
+ (exist ?target ?obj-1)
+ (bind shape-category ?shape-1 cube))
+```
+
+**RPN Encoding:** `((get-context)(filter cube)(unique)(exist))`
+
+**IRL Program:**:
+
+```
+((get-context ?context)
+ (filter ?set-1 ?context ?shape-1)
+ (filter ?set-2 ?set-1 ?color-1)
+ (filter ?set-3 ?context ?shape-2)
+ (union! ?u-set ?set-2 ?set-3)
+ (count! ?target ?u-set)
+ (bind shape-category ?shape-1 cube)
+ (bind color-category ?color-1 red)
+ (bind shape-category ?shape-2 sphere))
+```
+
+**RPN Encoding:** `((get-context)(filter cube)

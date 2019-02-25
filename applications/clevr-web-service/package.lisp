@@ -27,6 +27,7 @@
   (:import-from :clevr-grammar :*CLEVR*)
   (:import-from :clevr-evaluation
                 :preprocess-sentence
+                :preprocess-program
                 :get-target-value
                 :answer->str
                 :program->rpn))
