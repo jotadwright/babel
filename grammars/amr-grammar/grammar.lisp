@@ -49,7 +49,7 @@
                   (footprints set))
   :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-first)
                        (:parse-goal-tests :no-strings-in-root :no-applicable-cxns))
-
+  
   (def-fcg-cxn investor-cxn 
                ((?investor-unit
                  (referent ?p)
@@ -507,18 +507,18 @@
            (HASH form  ((string ?spy-unit "spy"))))))
   
       (def-fcg-cxn attractive-cxn
-             ((?attractive-unit
-               (referent ?a)
-               (meaning ((attract-01 ?a)))
-               (syn-cat (lex-class adjective)
-                        (number sg)
-                        (syn-function ?func))
-               (sem-cat (sem-class quality)))
-                <-
-               (?attractive-unit
-                --
-               (HASH form  ((string ?attractive-unit "attractive"))))))
-         
+                   ((?attractive-unit
+                     (referent ?a)
+                     (meaning ((attract-01 ?a)))
+                     (syn-cat (lex-class adjective)
+                              (number sg)
+                              (syn-function ?func))
+                     (sem-cat (sem-class quality)))
+                    <-
+                    (?attractive-unit
+                     --
+                     (HASH form  ((string ?attractive-unit "attractive"))))))
+     
        (def-fcg-cxn adjective-noun-unit-arg0of-cxn ;;attractive spy
              ((?adjective-noun-unit 
                (referent ?ref)
@@ -546,34 +546,72 @@
                  --
                  (HASH form ((meets ?adjective-unit ?noun-unit))))))
 
-        (def-fcg-cxn sandwich-cxn
-             ((?sandwich-unit
-             (referent ?s)
-             (meaning ((sandwich ?s)))
-             (syn-cat (lex-class noun)
-                      (number sg)
-                      (syn-function ?func))
-             (sem-cat (sem-class food)))
-             <-
-             (?sandwich-unit
-             --
-             (HASH form ((string ?sandiwch-unit "sandwich"))))))
-            
-        (def-fcg-cxn edible-cxn
-            ((?edible-unit
-              (referent ?e)
-              (meaning ((eat-01 ?e)
-                        (possible ?p)
-                        (:domain-of ?e ?p)))
-              (syn-cat (lex-class adjective)
-                       (number ?numb)
-                       (syn-function ?func))
-              (sem-cat (sem-class food)))
+       (def-fcg-cxn an-cxn
+                    (<-
+                     (?an-unit
+                      (syn-cat (lex-class article)
+                               (definite -)
+                               (number sg))
+                      --
+                      (HASH form ((string ?an-unit "an"))))))
+ 
+       (def-fcg-cxn edible-cxn
+                    ((?edible-unit
+                      (referent ?e)
+                      (meaning ((eat-01 ?e)
+                                (possible ?p)
+                                (:domain-of ?e ?p)))
+                      (syn-cat (lex-class adjective)
+                               (number ?numb)
+                               (syn-function ?func))
+                      (sem-cat (sem-class food)))
               <-
               (?edible-unit
                --
                (HASH form ((string ?edible-unit "edible"))))))
 
+       (def-fcg-cxn sandwich-cxn
+                    ((?sandwich-unit
+                      (referent ?s)
+                      (meaning ((sandwich ?s)))
+                      (syn-cat (lex-class noun)
+                               (number sg)
+                               (syn-function ?func))
+                      (sem-cat (sem-class food)))
+                     <-
+                     (?sandwich-unit
+                      --
+                      (HASH form ((string ?sandiwch-unit "sandwich"))))))
+
+             (def-fcg-cxn article-adjective-cxn
+                   ((?article-adjective-unit
+                     (referent ?ref)
+                     (syn-cat (phrase-type NP)
+                              (number ?n)
+                              (person 3))
+                     (subunits (?article-unit ?adjective-unit))
+                     (boundaries (rightmost-unit ?adjective-unit)
+                                 (leftmost-unit ?article-unit)))
+                     <-
+                     (?article-unit
+                      (referent ?ref)
+                      --
+                      (syn-cat (lex-class article)
+                               (definite ?def)
+                               (number ?n)))
+                     (?adjective-unit
+                      --
+                      (referent ?ref)
+                      (syn-cat (lex-class adjective)
+                               (number ?numb)
+                               (syn-function ?func)))
+                     (?article-adjective-unit
+                      --
+                      (HASH form ((meets ?article-unit ?adjective-unit))))))
+      )
+#|
+
+       
          (def-fcg-cxn adjective-possible-noun-unit-arg1of-possible-cxn ;;edible sandwich
              ((?adjective-possible-noun-unit-arg1of-possible-cxn
               (referent ?ref)
@@ -597,7 +635,34 @@
                 (?adjective-possible-noun-unit-arg1of-possible-cxn
                  --
                 (HASH form ((precedes ?adjective-unit ?noun-unit))))))
-        
+
+         
+            (def-fcg-cxn NP-cxn
+               ((?NP-unit
+                 (referent ?ref)
+                 (syn-cat (phrase-type NP)
+                          (number ?n)
+                          (person 3))
+                 (sem-cat (sem-class referring-expression))
+                 (subunits (?article-unit ?noun-unit))
+                 (boundaries (rightmost-unit ?noun-unit)
+                             (leftmost-unit ?article-unit)))
+                <-
+                (?article-unit
+                 (referent ?ref)
+                 --
+                 (syn-cat (lex-class article)
+                          (definite ?def)
+                          (number ?n)))
+                (?noun-unit
+                 --
+                 (referent ?ref)
+                 (syn-cat (lex-class noun)
+                          (number ?n)))
+                (?NP-unit
+                 --
+                 (HASH form ((meets ?article-unit ?noun-unit))))))
+                
          (def-fcg-cxn fund-cxn
          ((?fund-unit
            (referent ?f)
@@ -659,14 +724,6 @@
                  --
                  (HASH form ((string ?a-unit "a"))))))
 
-   (def-fcg-cxn an-cxn
-                 (<-
-                 (?an-unit
-                 (syn-cat (lex-class article)
-                          (definite -)
-                          (number sg))
-                  --
-                 (HASH form ((string ?an-unit "an"))))))
    
   (def-fcg-cxn boy-cxn
                 ((?boy-unit
@@ -682,31 +739,6 @@
                   --
                   (HASH form ((string ?boy-unit "boy"))))))
   
-      (def-fcg-cxn NP-cxn
-               ((?NP-unit
-                 (referent ?ref)
-                 (syn-cat (phrase-type NP)
-                          (number ?n)
-                          (person 3))
-                 (sem-cat (sem-class referring-expression))
-                 (subunits (?article-unit ?noun-unit))
-                 (boundaries (rightmost-unit ?noun-unit)
-                             (leftmost-unit ?article-unit)))
-                <-
-                (?article-unit
-                 (referent ?ref)
-                 --
-                 (syn-cat (lex-class article)
-                          (definite ?def)
-                          (number ?n)))
-                (?noun-unit
-                 --
-                 (referent ?ref)
-                 (syn-cat (lex-class noun)
-                          (number ?n)))
-                (?NP-unit
-                 --
-                 (HASH form ((meets ?article-unit ?noun-unit))))))
 
      (def-fcg-cxn go-cxn
                 ((?go-unit
@@ -793,10 +825,6 @@
                 (?subject-verb-unit
                 --
                 (HASH form ((meets ?np-unit ?vp-modal-unit))))))
-
-)
-
-#|
 
  
         (def-fcg-cxn marble-cxn
