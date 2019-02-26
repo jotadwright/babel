@@ -545,6 +545,7 @@
                (?adjective-noun-unit 
                 --
                 (HASH form ((meets ?adjective-unit ?noun-unit))))))
+ 
  (def-fcg-cxn an-cxn
               (<-
                (?an-unit
@@ -594,7 +595,8 @@
                 (referent ?e)
                 (syn-cat (lex-class adjective)
                          (number ?numb)
-                         (syn-function ?func)))
+                         (syn-function ?func))
+                (sem-cat (sem-class possibility)))
                (?noun-unit-1
                 --
                 (referent ?ref)
@@ -668,7 +670,7 @@
                 --
                 (HASH form ((meets ?article-unit ?adjective-unit))))))
  
- (def-fcg-cxn adjective-noun-unit-arg1of-cxn ;;fundable 
+ (def-fcg-cxn adjective-noun-unit-arg1of-cxn ;;taxable
               ((?adjective-possibility-noun-unit
                 (referent ?ref)
                 (meaning ((:arg1-of ?ref ?possibility)))
@@ -683,7 +685,8 @@
                 (referent ?possibility)
                 (syn-cat (lex-class adjective)
                          (number ?numb)
-                         (syn-function ?func)))
+                         (syn-function ?func)
+                (sem-cat (sem-class possibility))))
                (?noun-unit
                 --
                 (referent ?ref)
