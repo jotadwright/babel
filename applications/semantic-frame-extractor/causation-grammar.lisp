@@ -630,7 +630,6 @@
                             (theme ?effect))
                (dependents (?to-unit)))
               (?to-unit
-               (referent ?frame)
                --
                (head ?frame-unit)
                (form ((string ?to-unit "to")))
@@ -657,7 +656,6 @@
                (dependency (edge xcomp))
                (dependents (?to-unit)))
               (?to-unit
-               (referent ?frame)
                --
                (head ?effect-unit)
                (form ((string ?to-unit "to"))))))
@@ -748,7 +746,6 @@
                (lex-id ?lex-id)
                (dependents (?to-unit)))
               (?to-unit
-               (referent ?frame)
                --
                (head ?frame-unit-part2)
                (form ((string ?to-unit "to")))
@@ -786,7 +783,6 @@
                (dependents (?to-unit)))
               (?to-unit
                --
-               (referent ?frame)
                (head ?frame-unit)
                (dependents (?effect-unit)))
               
