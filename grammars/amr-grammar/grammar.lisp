@@ -545,7 +545,6 @@
                 (?adjective-noun-unit 
                  --
                  (HASH form ((meets ?adjective-unit ?noun-unit))))))
-
        (def-fcg-cxn an-cxn
                     (<-
                      (?an-unit
@@ -563,8 +562,7 @@
                                 (:domain-of ?e ?p)))
                       (syn-cat (lex-class adjective)
                                (number ?numb)
-                               (syn-function ?func))
-                      (sem-cat (sem-class food)))
+                               (syn-function ?func)))
               <-
               (?edible-unit
                --
@@ -582,7 +580,68 @@
                      (?sandwich-unit
                       --
                       (HASH form ((string ?sandiwch-unit "sandwich"))))))
+             
+           (def-fcg-cxn adjective-noun-unit-arg1of-cxn ;; edible sandwich 
+             ((?adjective-noun-unit-arg1of-unit
+              (referent ?ref)
+              (meaning ((:arg1-of ?ref ?e)))
+              (syn-cat (phrase-type NP)
+                       (number ?numb))
+              (subunits (?adjective-unit-1 ?noun-unit-1)))
+               <-
+               (?adjective-unit-1
+                --
+               (referent ?e)
+               (syn-cat (lex-class adjective)
+                        (number ?numb)
+                        (syn-function ?func)))
+               (?noun-unit-1
+                --
+                (referent ?ref)
+                (syn-cat  (lex-class noun)
+                          (number ?numb)
+                          (syn-function ?func)))
+                (?adjective-noun-unit-arg1of-unit 
+                 --
+                (HASH form ((meets ?adjective-unit-1 ?noun-unit-1))))))
 
+      
+           (def-fcg-cxn a-cxn
+                        (<-
+                         (?a-unit
+                          (syn-cat (lex-class article)
+                                   (definite -)
+                                   (number sg))
+                          --
+                          (HASH form ((string ?a-unit "a"))))))
+  
+           (def-fcg-cxn fund-cxn
+                        ((?fund-unit
+                          (referent ?f)
+                          (meaning ((fund ?f)))
+                          (syn-cat (lex-class noun)
+                                   (number sg)
+                                   (syn-function ?fund))
+                          (sem-cat (sem-class organisation)))
+                         <-
+                         (?fund-unit
+                          --
+                          (HASH form  ((string ?fund-unit "fund"))))))
+  
+           (def-fcg-cxn taxable-cxn
+                        ((?taxable-unit
+                          (referent ?t)
+                          (meaning ((tax-01 ?t)))
+                          (syn-cat (lex-class adjective)
+                                   (number sg)
+                                   (syn-function ?func))
+                          (sem-cat (sem-class possibility)))
+                         <-
+                         (?taxable-unit
+                          --
+                          (HASH form  ((string ?taxable-unit "taxable"))))))
+
+           
              (def-fcg-cxn article-adjective-cxn
                    ((?article-adjective-unit
                      (referent ?ref)
@@ -608,6 +667,162 @@
                      (?article-adjective-unit
                       --
                       (HASH form ((meets ?article-unit ?adjective-unit))))))
+
+             (def-fcg-cxn adjective-noun-unit-arg1of-cxn ;;fundable 
+                          ((?adjective-possibility-noun-unit
+                            (referent ?ref)
+                            (meaning ((:arg1-of ?ref ?possibility)))
+                            (sem-cat (sem-class ?class))
+                            (syn-cat (phrase-type NP)
+                                     (syn-function ?func)
+                                     (number ?numb))
+                            (subunits (?adjective-unit ?noun-unit)))
+                           <-
+                           (?adjective-unit
+                            --
+                            (referent ?possibility)
+                            (syn-cat (lex-class adjective)
+                                     (number ?numb)
+                        (syn-function ?func)))
+                           (?noun-unit
+                            --
+                            (referent ?ref)
+                            (syn-cat  (lex-class noun)
+                                      (number ?numb)
+                                      (syn-function ?func)))
+                           (?adjective-possibility-noun-unit 
+                            --
+                            (HASH form ((meets ?adjective-unit ?noun-unit))))))
+
+                         (def-fcg-cxn NP-cxn
+               ((?NP-unit
+                 (referent ?ref)
+                 (syn-cat (phrase-type NP)
+                          (number ?n)
+                          (person 3))
+                 (sem-cat (sem-class referring-expression))
+                 (subunits (?article-unit ?noun-unit))
+                 (boundaries (rightmost-unit ?noun-unit)
+                             (leftmost-unit ?article-unit)))
+                <-
+                (?article-unit
+                 (referent ?ref)
+                 --
+                 (syn-cat (lex-class article)
+                          (definite ?def)
+                          (number ?n)))
+                (?noun-unit
+                 --
+                 (referent ?ref)
+                 (syn-cat (lex-class noun)
+                          (number ?n)))
+                (?NP-unit
+                 --
+                 (HASH form ((meets ?article-unit ?noun-unit))))))
+               
+   
+                         (def-fcg-cxn boy-cxn
+                                      ((?boy-unit
+                                        (referent ?b)
+                                        (meaning ((boy ?b)))
+                                        (syn-cat (lex-class noun)
+                                                 (number sg)
+                                                 (syn-function ?func))
+                                        (sem-cat (sem-class person)))
+                                       <-
+                                       (?boy-unit
+                                        (HASH meaning ((boy ?b)))
+                                        --
+                                        (HASH form ((string ?boy-unit "boy"))))))
+  
+
+                         (def-fcg-cxn go-cxn
+                                      ((?go-unit
+                                        (referent ?g)
+                                        (syn-cat (lex-class verb)
+                                                 (finite -))
+                                        (sem-valence (arg0 ?arg0))
+                                        (meaning ((go-01 ?g)
+                                                  (:arg0 ?g ?b))))
+                                       <-
+                                       (?go-unit
+                                        --
+                                        (HASH form ((string ?go-unit "go"))))))
+
+                         (def-fcg-cxn cannot-cxn
+                                      ((?cannot-unit
+                                        (referent ?c)
+                                        (syn-cat (lex-class verb)
+                                                 (finite +)
+                                                 (modal +)
+                                                 (phrase-type VP))
+                                        (sem-valence (:arg0 ?arg0)
+                                                     (:arg1 ?arg1))
+                                        (meaning ((possible ?p)
+                                                  (:polarity ?p -)
+                                                  (:domain ?p ?g))))
+                                       <-
+                                       (?cannot-unit
+                                        --
+                                        (HASH form ((string ?cannot-unit "cannot"))))))
+
+                         (def-fcg-cxn vp-modal-cxn ;;cannot go 
+                                      ((?vp-modal-unit
+                                        (referent ?g)
+                                        (syn-cat (phrase-type VP))
+                                        (sem-cat (sem-class event))
+                                        (boundaries (rightmost-unit ?infinitif-unit)
+                                                    (leftmost-unit ?modal-unit))
+                                        (subunits (?modal-unit ?infinitif-unit)))
+                                       <-
+                                       (?modal-unit
+                                        --
+                                        (referent ?c)
+                                        (syn-cat (lex-class verb)
+                                                 (finite +)
+                                                 (modal +)
+                                                 (phrase-type VP))
+                                        (sem-valence (:arg0 ?arg0)
+                                                     (:arg1 ?arg1)))
+                                       (?infinitif-unit
+                                        --
+                                        (referent ?g)
+                                        (syn-cat (lex-class verb)
+                                                 (finite -))
+                                        (sem-valence (arg0 ?arg0)))
+                                       (?vp-modal-unit
+                                        --
+                                        (HASH form ((meets ?modal-unit ?infinitif-unit))))))
+
+                         (def-fcg-cxn subject-verb-cxn
+                                      ((?subject-verb-unit
+                                        (referent ?ref)
+                                        (syn-cat (phrase-type NP)
+                                                 (number ?n)
+                                                 (person 3))
+                                        (sem-cat (sem-class referring-expression))
+                                        (subunits (?vp-modal-unit ?np-unit))
+                                        (boundaries (rightmost-unit ?np-unit)
+                                                    (leftmost-unit ?vp-modal-unit)))
+                                       <-
+                                       (?vp-modal-unit
+                                        --
+                                        (referent ?ref)
+                                        (subunits (?modal-unit ?infinitif-unit))
+                                        (syn-cat (lex-class verb)
+                                                 (phrase-type VP)
+                                                 (finite +)))
+                                       (?np-unit
+                                        --
+                                        (referent ?ref)
+                                        (syn-cat (phrase-type NP)
+                                                 (number ?n)
+                                                 (person 3)))
+                                       (?subject-verb-unit
+                                        --
+                                        (HASH form ((meets ?np-unit ?vp-modal-unit))))))
+             
+             
       )
 #|
 
@@ -636,197 +851,7 @@
                  --
                 (HASH form ((precedes ?adjective-unit ?noun-unit))))))
 
-         
-            (def-fcg-cxn NP-cxn
-               ((?NP-unit
-                 (referent ?ref)
-                 (syn-cat (phrase-type NP)
-                          (number ?n)
-                          (person 3))
-                 (sem-cat (sem-class referring-expression))
-                 (subunits (?article-unit ?noun-unit))
-                 (boundaries (rightmost-unit ?noun-unit)
-                             (leftmost-unit ?article-unit)))
-                <-
-                (?article-unit
-                 (referent ?ref)
-                 --
-                 (syn-cat (lex-class article)
-                          (definite ?def)
-                          (number ?n)))
-                (?noun-unit
-                 --
-                 (referent ?ref)
-                 (syn-cat (lex-class noun)
-                          (number ?n)))
-                (?NP-unit
-                 --
-                 (HASH form ((meets ?article-unit ?noun-unit))))))
-                
-         (def-fcg-cxn fund-cxn
-         ((?fund-unit
-           (referent ?f)
-           (meaning ((fund ?f)))
-           (syn-cat (lex-class noun)
-                    (number sg)
-                    (syn-function ?fund))
-           (sem-cat (sem-class organisation)))
-          <-
-           (?fund-unit
-           --
-           (HASH form  ((string ?fund-unit "fund"))))))
-  
-       (def-fcg-cxn taxable-cxn
-             ((?taxable-unit
-               (referent ?t)
-               (meaning ((tax-01 ?t)))
-               (syn-cat (lex-class adjective)
-                        (number sg)
-                        (syn-function ?func))
-               (sem-cat (sem-class possibility)))
-                <-
-               (?taxable-unit
-                --
-               (HASH form  ((string ?taxable-unit "taxable"))))))
-
-        (def-fcg-cxn adjective-noun-unit-arg1of-cxn ;;fundable tax
-             ((?adjective-possibility-noun-unit
-              (referent ?ref)
-              (meaning ((:arg1-of ?ref ?possibility)))
-              (sem-cat (sem-class ?class))
-              (syn-cat (phrase-type NP)
-                       (syn-function ?func)
-                       (number ?numb))
-              (subunits (?adjective-unit ?noun-unit)))
-               <-
-               (?adjective-unit
-                --
-               (referent ?possibility)
-               (syn-cat (lex-class adjective)
-                        (number ?numb)
-                        (syn-function ?func)))
-               (?noun-unit
-                --
-                (referent ?ref)
-                (syn-cat  (lex-class noun)
-                          (number ?numb)
-                          (syn-function ?func)))
-                (?adjective-possibility-noun-unit 
-                 --
-                (HASH form ((meets ?adjective-unit ?noun-unit))))))
-
-  (def-fcg-cxn a-cxn
-                (<-
-                (?a-unit
-                 (syn-cat (lex-class article)
-                          (definite -)
-                          (number sg))
-                 --
-                 (HASH form ((string ?a-unit "a"))))))
-
-   
-  (def-fcg-cxn boy-cxn
-                ((?boy-unit
-                  (referent ?b)
-                  (meaning ((boy ?b)))
-                  (syn-cat (lex-class noun)
-                           (number sg)
-                           (syn-function ?func))
-                  (sem-cat (sem-class person)))
-                 <-
-                 (?boy-unit
-                 (HASH meaning ((boy ?b)))
-                  --
-                  (HASH form ((string ?boy-unit "boy"))))))
-  
-
-     (def-fcg-cxn go-cxn
-                ((?go-unit
-                  (referent ?g)
-                  (syn-cat (lex-class verb)
-                           (finite -))
-                  (sem-valence (arg0 ?arg0))
-                  (meaning ((go-01 ?g)
-                            (:arg0 ?g ?b))))
-                 <-
-                 (?go-unit
-                  --
-                  (HASH form ((string ?go-unit "go"))))))
-
-     (def-fcg-cxn cannot-cxn
-                ((?cannot-unit
-                  (referent ?c)
-                  (syn-cat (lex-class verb)
-                           (finite +)
-                           (modal +)
-                           (phrase-type VP))
-                  (sem-valence (:arg0 ?arg0)
-                               (:arg1 ?arg1))
-                  (meaning ((possible ?p)
-                            (:polarity ?p -)
-                            (:domain ?p ?g))))
-                  <-
-                  (?cannot-unit
-                   --
-                   (HASH form ((string ?cannot-unit "cannot"))))))
-
-            (def-fcg-cxn vp-modal-cxn ;;cannot go 
-                   ((?vp-modal-unit
-                     (referent ?g)
-                     (syn-cat (phrase-type VP))
-                     (sem-cat (sem-class event))
-                     (boundaries (rightmost-unit ?infinitif-unit)
-                                (leftmost-unit ?modal-unit))
-                     (subunits (?modal-unit ?infinitif-unit)))
-                    <-
-                    (?modal-unit
-                    --
-                    (referent ?c)
-                    (syn-cat (lex-class verb)
-                           (finite +)
-                           (modal +)
-                           (phrase-type VP))
-                    (sem-valence (:arg0 ?arg0)
-                                 (:arg1 ?arg1)))
-                    (?infinitif-unit
-                     --
-                     (referent ?g)
-                     (syn-cat (lex-class verb)
-                              (finite -))
-                     (sem-valence (arg0 ?arg0)))
-                    (?vp-modal-unit
-                     --
-                    (HASH form ((meets ?modal-unit ?infinitif-unit))))))
-
-      (def-fcg-cxn subject-verb-cxn
-               ((?subject-verb-unit
-                 (referent ?ref)
-                 (syn-cat (phrase-type NP)
-                          (number ?n)
-                          (person 3))
-                 (sem-cat (sem-class referring-expression))
-                 (subunits (?vp-modal-unit ?np-unit))
-                 (boundaries (rightmost-unit ?np-unit)
-                             (leftmost-unit ?vp-modal-unit)))
-                <-
-                (?vp-modal-unit
-                 --
-                 (referent ?ref)
-                 (subunits (?modal-unit ?infinitif-unit))
-                 (syn-cat (lex-class verb)
-                           (phrase-type VP)
-                           (finite +)))
-                (?np-unit
-                 --
-                 (referent ?ref)
-                 (syn-cat (phrase-type NP)
-                          (number ?n)
-                          (person 3)))
-                (?subject-verb-unit
-                --
-                (HASH form ((meets ?np-unit ?vp-modal-unit))))))
-
- 
+          
         (def-fcg-cxn marble-cxn
                 ((?marble-unit
                   (referent ?m)
