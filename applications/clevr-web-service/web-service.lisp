@@ -21,14 +21,8 @@
                          (simple-condition-format-arguments condition))))))
 
 ;;;; /comprehend route
-(defroute comprehend (:post :application/json)
-  (let* ((json
-          (handler-case
-              (decode-json-from-string
-               (payload-as-string))
-            (error (e)
-              (http-condition 400 "Malformed JSON"))))
-         (missing-keys (keys-present-p json :utterance))
+(defun handle-comprehend-route (json)
+  (let* ((missing-keys (keys-present-p json :utterance))
          (utterance (rest (assoc :utterance json)))
          (irl-encoding (if (assoc :irl--encoding json)
                          (downcase (rest (assoc :irl--encoding json)))
@@ -59,6 +53,21 @@
                                                (mapcar #'mkstr
                                                        (mapcar #'fcg::name
                                                                (applied-constructions cipn)))))))))))
+(defroute comprehend (:post :application/json)
+ (handle-comprehend-route
+   (handler-case
+       (decode-json-from-string
+        (payload-as-string))
+     (error (e)
+       (http-condition 400 "Malformed JSON")))))
+         
+(defroute comprehend (:post :text/plain)
+  (handle-comprehend-route
+   (handler-case
+       (decode-json-from-string
+        (payload-as-string))
+     (error (e)
+       (http-condition 400 "Malformed JSON")))))
 
 ;;;; /comprehend-all route
 (defroute comprehend-all (:post :application/json)
