@@ -27,8 +27,9 @@
                 (cause frame-object)
                 (effect frame-object)) #'<))
 
-(defun log-parsing-conll-output-into-json-file (target-frame-evoking-elements &key (cxn-inventory *fcg-constructions*)
-                                                                              conll-gold-standard frame-extractor-output (strings-as-output nil))
+(defun log-parsing-conll-output-into-json-file (&key (frame-evoking-elements nil)
+                                                     (cxn-inventory *fcg-constructions*)
+                                                     conll-gold-standard frame-extractor-output (strings-as-output nil))
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
    Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
   (let ((conll-sentences (read-corpus conll-gold-standard)))
@@ -37,11 +38,15 @@
     
     (loop for conll-sent in conll-sentences
           for sentence = (restore-conll-sentence conll-sent)
-          when (loop for target-FE-elt in target-frame-evoking-elements
+          for lemmatized-sentence = (mapcar #'(lambda(word) (cdr (assoc :LEMMA word))) conll-sent)
+          when (if frame-evoking-elements
+                 (loop for target-FE-elt in frame-evoking-elements
                      when (search target-FE-elt sentence)
                      do (return t))
+                 t)
           collect (let ((raw-frame-set (pie-comprehend conll-sent :silent t :strings-as-output strings-as-output)))
-                    (encode-json-alist-to-string `((:sentence . ,sentence)
+                    (encode-json-alist-to-string `((:sentence . ,lemmatized-sentence)
+                                                   (:nr-of-words . ,(length conll-sent))
                                                    (:frame-elements . ,(loop for frame in (pie::entities raw-frame-set)
                                                                              for cause = (cond ((or (listp (cause frame)) ;;indices or string
                                                                                                     (stringp (cause frame)))
@@ -54,7 +59,10 @@
                                                                                                 (t (extract-indices-from-frame-object
                                                                                                     (effect frame))))
                                                                              collect `((:frame-evoking-element . ,(pie::frame-evoking-element frame))
-                                                                                       (:dummy . dummy)
+                                                                                       (:frame-evoking-element-id .
+                                                                                        ,(find-frame-evoking-element-id
+                                                                                          (pie::frame-evoking-element frame)
+                                                                                          lemmatized-sentence))
                                                                                        (:cause  . ,cause)
                                                                                        (:effect . ,effect)))))))  into results
             finally (with-open-file (out frame-extractor-output :direction :output :if-exists :supersede :if-does-not-exist :create)
@@ -63,10 +71,18 @@
                                  (format out result)
                                  (format out  "~%")))))))
 
+(defun find-frame-evoking-element-id (indices tokenized-sentence)
+  (let ((words (mapcar #'(lambda(index)
+                           (nth (- index 1) tokenized-sentence)) indices)))
+    (format nil "~{~a~^-~}" words)))
+
+;; (find-frame-evoking-element-id '(2 3 5) '(a b c d e))
+
+
 
 ;;(log-parsing-conll-output-into-json-file '("due to") :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
 
-
+#|
 (defun log-parsing-output-into-json-file (target-frame-evoking-elements &key (cxn-inventory *fcg-constructions*)
                                                                         gold-standard frame-extractor-output (strings-as-output nil))
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
@@ -107,6 +123,8 @@
                                     do (progn
                                          (format out result)
                                          (format out  "~%")))))))
+
+|#
 
 (defun filter-frames (filterfn sentence)
   "Applies given function to filter out unwanted frames in (annotated-)frame-elements of given sentence."
@@ -307,9 +325,10 @@
 ;;##########################################################
 
 ;; Log parsing to output file (without evaluation):
-;; (log-parsing-output-into-json-file '("due to") :gold-standard *training-corpus* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
-;; (log-parsing-conll-output-into-json-file '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
-;; (log-parsing-output-into-json-file '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :gold-standard *training-corpus* :frame-extractor-output *frame-extractor-output-w-indices* :strings-as-output nil)
+;; 
+;; (log-parsing-conll-output-into-json-file :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
+;;
+
 
 ;; Running the evaluation (on training set - slow):
 ;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in"))
