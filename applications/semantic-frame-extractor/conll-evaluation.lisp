@@ -183,7 +183,7 @@
           (push `(:targets-predicted . ,targets-predicted) results)
           (push `(:fes-predicted . ,fes-predicted) results)
           (push `(:causes-predicted . ,causes-predicted) results)
-          (push `(:effect-predicted . ,effects-predicted) results))
+          (push `(:effects-predicted . ,effects-predicted) results))
 
     ;; Checking whether predications are correct
     (loop with frames-predicted-correct = 0
@@ -237,17 +237,17 @@
                                           (cdr (assoc :targets-gold results))))))
           ;; fe
           (fe-precision (* 100 (float (/ (cdr (assoc :predicted-fes-correct results))
-                                         (cdr (assoc :frames-predicted results))))))
+                                         (cdr (assoc :fes-predicted results))))))
           (fe-recall (* 100 (float (/ (cdr (assoc :predicted-fes-correct results))
                                       (cdr (assoc :fes-gold results))))))
           ;; cause
           (cause-precision (* 100 (float (/ (cdr (assoc :predicted-causes-correct results))
-                                            (cdr (assoc :frames-predicted results))))))
+                                            (cdr (assoc :causes-predicted results))))))
           (cause-recall (* 100 (float (/ (cdr (assoc :predicted-causes-correct results))
                                          (cdr (assoc :causes-gold results))))))
           ;; effect
           (effect-precision (* 100 (float (/ (cdr (assoc :predicted-effects-correct results))
-                                             (cdr (assoc :frames-predicted results))))))
+                                             (cdr (assoc :effects-predicted results))))))
           (effect-recall (* 100 (float (/ (cdr (assoc :predicted-effects-correct results))
                                           (cdr (assoc :effects-gold results))))))
 
@@ -261,7 +261,7 @@
       (format t "~%================= Target =================~%")
       (format t "Precision (target): ~,2f%~%" target-precision)
       (format t "Recall (target): ~,2f%~%" target-recall)
-      (format t "F1 (frame level): ~,2f%~%" (* 2 (/ (* target-precision target-recall)
+      (format t "F1 (target): ~,2f%~%" (* 2 (/ (* target-precision target-recall)
                                                     (+ target-precision target-recall))))
       (format t "~%================= Frame Element =================~%")
       (format t "Precision (fe): ~,2f%~%" fe-precision)
