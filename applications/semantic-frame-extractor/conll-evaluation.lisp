@@ -336,4 +336,4 @@
   )
 
 
-;; (run-fcg-evaluation)
+;; (run-fcg-evaluation :include-parsing? t)

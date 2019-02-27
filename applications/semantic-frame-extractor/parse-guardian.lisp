@@ -1,8 +1,26 @@
+;;This file is used for grammar development. It includes sentences
+;;that do not work perfectly, together with comments.
+
+;;For demonstration purposes, please use run-guardian.lisp instead !!!
+
+
 ;(ql:quickload :frame-extractor)
+
 (in-package :frame-extractor)
 
 ;(activate-monitor trace-fcg)
 
+;;############################
+;;CAUSE
+;;############################
+(pie-comprehend "The ozone hole causes an increase in westerly winds which, by a complex interaction of wind, sea and ice, results in lower temperatures in the east.")
+
+;;############################
+;;DUE TO
+;;############################
+(evaluate-grammar-during-development :frame-evoking-elements '("due to"))
+
+(pie-comprehend "The state of emergency in France, which is due to last three months, has resulted in hundreds of events around the conference being been called off.")
 (pie-comprehend "With the growing number of natural disasters due to climate change, the sums spent by governments on catastrophe management have risen to unprecedented levels.")
 
 (pie-comprehend "The International Red Cross says more people are already being made refugees due to environmental issues.")
@@ -13,7 +31,7 @@
 ;;############################
 ;;BECAUSE OF
 ;##############################
-(evaluate-grammar-output-for-evoking-elem '("because of"))
+(evaluate-grammar-during-development :frame-evoking-elements '("because of"))
 ;correct slots and total slots: (42 60): 0.7 
 ;correct sentences and total sentences: (8 20): 0.4 
 ;correct words and total words overall: (650 749): 0.8678238

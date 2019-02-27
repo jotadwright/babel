@@ -23,9 +23,13 @@
     (values cipn (run-pie cipn :strings-as-output strings-as-output))))
 
 (defun extract-indices-from-frame-object (frame-object)
-  (sort (append (pie::frame-evoking-element frame-object)
-                (cause frame-object)
-                (effect frame-object)) #'<))
+  (if (and (listp (pie::frame-evoking-element frame-object))
+           (listp (cause frame-object))
+           (listp (effect frame-object)))
+    (sort (append (pie::frame-evoking-element frame-object)
+                  (cause frame-object)
+                  (effect frame-object)) #'<)
+    frame-object))
 
 (defun conll-comprehend->json (&key (frame-evoking-elements nil)
                                     (cxn-inventory *fcg-constructions*)
@@ -82,9 +86,9 @@
 
 ;;(conll-comprehend->json '("due to") :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
 
-#|
-(defun log-parsing-output-into-json-file (target-frame-evoking-elements &key (cxn-inventory *fcg-constructions*)
-                                                                        gold-standard frame-extractor-output (strings-as-output nil))
+
+(defun fcg-comprehend->json (target-frame-evoking-elements &key (cxn-inventory *fcg-constructions*)
+                                                           gold-standard frame-extractor-output (strings-as-output t))
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
    Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
 
@@ -100,8 +104,7 @@
                           collect (rest (assoc :sentence sentence-object)) into sentences
                           finally (return sentences))))
     (loop for sent in sentences
-          collect (let ((raw-frame-set (pie-comprehend sent :silent nil :strings-as-output strings-as-output)))
-
+          collect (let ((raw-frame-set (pie-comprehend sent :silent t :strings-as-output strings-as-output)))
                     (encode-json-alist-to-string `((:sentence . ,sent)
                                                    (:frame-elements . ,(loop for frame in (pie::entities raw-frame-set)
                                                                              for cause = (cond ((or (listp (cause frame)) ;;indices or string
@@ -115,7 +118,7 @@
                                                                                                 (t (extract-indices-from-frame-object
                                                                                                     (effect frame))))
                                                                              collect `((:frame-evoking-element . ,(pie::frame-evoking-element frame))
-                                                                                       (:dummy . dummy)
+                                                                                       
                                                                                        (:cause  . ,cause)
                                                                                        (:effect . ,effect))))))) into results
                     finally (with-open-file (out frame-extractor-output :direction :output :if-exists :supersede :if-does-not-exist :create)
@@ -124,7 +127,6 @@
                                          (format out result)
                                          (format out  "~%")))))))
 
-|#
 
 (defun filter-frames (filterfn sentence)
   "Applies given function to filter out unwanted frames in (annotated-)frame-elements of given sentence."
@@ -281,23 +283,23 @@
 (defparameter *frame-extractor-output-indices* (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
                                                        :name "frame-extractor-output-indices" :type "json"))
 
-(defun evaluate-grammar-output-for-evoking-elem (evoking-elems &key
-                                                               (gold-standard *training-corpus*)
-                                                               (frame-extractor-output nil)
-                                                               (evaluation-results
-                                                                (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
-                                                                                :name "frame-extractor-output-with-annotations" :type "json"))
-                                                               (strings-as-output t))
+(defun evaluate-grammar-during-development (&key (frame-evoking-elements '("lead to" "cause" "because" "because of" "give rise to" "due to" "result in"))
+                                                 (gold-standard *training-corpus*)
+                                                 (frame-extractor-output nil)
+                                                 (evaluation-results
+                                                  (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                                  :name "frame-extractor-output-with-annotations" :type "json"))
+                                                 (strings-as-output t))
   "Evaluates the frame-extractor output for given frame-evoking-elements by comparing it with corresponding annotations.
    Writes resulting output, annotations and correctness into json-file.
    Returns the total number of frame-slots and the number of correct slot-fillers as well as the number of correctly parsed sentences."
   (unless frame-extractor-output
-    (log-parsing-output-into-json-file evoking-elems :gold-standard gold-standard :frame-extractor-output *frame-extractor-output*
+    (fcg-comprehend->json frame-evoking-elements :gold-standard gold-standard :frame-extractor-output *frame-extractor-output*
                                        :strings-as-output strings-as-output)
     (setf frame-extractor-output *frame-extractor-output*))
   (let* ((parsing-with-annotations (load-parsings-with-annotations frame-extractor-output gold-standard))
          (filtered-parsings (loop for parsing in parsing-with-annotations
-                                  when (loop for frame-evoking-elt in evoking-elems
+                                  when (loop for frame-evoking-elt in frame-evoking-elements
                                              when (search frame-evoking-elt (rest (assoc :sentence parsing)))
                                              do (return frame-evoking-elt))
                                   collect parsing))
@@ -325,18 +327,17 @@
 ;;##########################################################
 
 ;; Log parsing to output file (without evaluation):
-;; 
-;; (log-parsing-conll-output-into-json-file :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
-;;
+;;------------------------------------------------------------------------
+;; -> for CONLL-style corpus:
+;; (conll-comprehend->json :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
+;; -> for JSON corpus (incl. using Spacy):
+;; (fcg-comprehend->json :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
 
-
+;;------------------------------------------------------------------------
 ;; Running the evaluation (on training set - slow):
-;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in"))
+;; (evaluate-grammar-during-development)
 
 ;; Running the evaluation when you have recently parsed all sentences (on training set - faster):
-;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :frame-extractor-output *frame-extractor-output* )
+;; (evaluate-grammar-during-development :frame-extractor-output *frame-extractor-output* )
 
-
-;; Running the evaluation (on test set):
-;; (evaluate-grammar-output-for-evoking-elem '("lead to" "cause" "because" "because of" "give rise" "due to" "result in") :gold-standard *test-corpus*)
                                           
