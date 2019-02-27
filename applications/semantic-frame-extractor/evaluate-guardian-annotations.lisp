@@ -27,9 +27,9 @@
                 (cause frame-object)
                 (effect frame-object)) #'<))
 
-(defun log-parsing-conll-output-into-json-file (&key (frame-evoking-elements nil)
-                                                     (cxn-inventory *fcg-constructions*)
-                                                     conll-gold-standard frame-extractor-output (strings-as-output nil))
+(defun conll-comprehend->json (&key (frame-evoking-elements nil)
+                                    (cxn-inventory *fcg-constructions*)
+                                    conll-gold-standard frame-extractor-output (strings-as-output nil))
   "Parses sentences from the Guardian training-corpus that contain the specified frame-evoking-elems.
    Encodes the resulting frame-sets into json-format and writes them into 'frame-extractor-output.json' file."
   (let ((conll-sentences (read-corpus conll-gold-standard)))
@@ -41,8 +41,8 @@
           for lemmatized-sentence = (mapcar #'(lambda(word) (cdr (assoc :LEMMA word))) conll-sent)
           when (if frame-evoking-elements
                  (loop for target-FE-elt in frame-evoking-elements
-                     when (search target-FE-elt sentence)
-                     do (return t))
+                       when (search target-FE-elt sentence)
+                       do (return t))
                  t)
           collect (let ((raw-frame-set (pie-comprehend conll-sent :silent t :strings-as-output strings-as-output)))
                     (encode-json-alist-to-string `((:sentence . ,lemmatized-sentence)
@@ -65,11 +65,11 @@
                                                                                           lemmatized-sentence))
                                                                                        (:cause  . ,cause)
                                                                                        (:effect . ,effect)))))))  into results
-            finally (with-open-file (out frame-extractor-output :direction :output :if-exists :supersede :if-does-not-exist :create)
-                      (loop for result in results
-                            do (progn
-                                 (format out result)
-                                 (format out  "~%")))))))
+          finally (with-open-file (out frame-extractor-output :direction :output :if-exists :supersede :if-does-not-exist :create)
+                    (loop for result in results
+                          do (progn
+                               (format out result)
+                               (format out  "~%")))))))
 
 (defun find-frame-evoking-element-id (indices tokenized-sentence)
   (let ((words (mapcar #'(lambda(index)
@@ -80,7 +80,7 @@
 
 
 
-;;(log-parsing-conll-output-into-json-file '("due to") :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
+;;(conll-comprehend->json '("due to") :conll-gold-standard *training-corpus-conll* :frame-extractor-output *frame-extractor-output-indices* :strings-as-output nil)
 
 #|
 (defun log-parsing-output-into-json-file (target-frame-evoking-elements &key (cxn-inventory *fcg-constructions*)
