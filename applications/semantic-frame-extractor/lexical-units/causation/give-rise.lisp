@@ -28,6 +28,35 @@
                 (form ((string ?to-unit "to")))))
               :cxn-set lex)
 
+(def-fcg-cxn give-rise-to-verb-lex-2
+              (<-
+               (?give-unit
+                (referent ?frame)
+                (sem-cat (frame causation))
+                (syn-valence (subject ?subject-unit)
+                             (prep-object ?object-unit))
+                (sem-valence (actor ?cause)
+                             (theme ?effect))
+                (meaning ((frame causation give-rise-to ?frame) 
+                          (slot cause ?frame ?cause)
+                          (slot effect ?frame ?effect)))
+                --
+                (syn-cat (lex-class verb))
+                (lex-id give-rise-to)
+                (dependents (?rise-unit)))
+               (?rise-unit
+                (lex-id give-rise-to)
+                --
+                (head ?give-unit)
+                (dependents (?to-unit))
+                (form ((string ?rise-unit "rise"))))
+               (?to-unit
+                (lex-id give-rise-to)
+                --
+                (head ?rise-unit)
+                (form ((string ?to-unit "to")))))
+              :cxn-set lex)
+
 (def-fcg-cxn give->gives-morph
              (
               <-

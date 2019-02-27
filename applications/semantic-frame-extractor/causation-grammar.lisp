@@ -255,7 +255,7 @@
               )
              :cxn-set cxn)
 
-
+;;Constructions needed for "due to":
 
 (def-fcg-cxn X-event-due-to-Y-v1
              (
@@ -290,8 +290,6 @@
               <-
               (?event-unit
                (referent ?effect)
-               (syn-cat (phrase-type vp))
-               (syn-valence (subject ?subject))
                --
                (dependents (?due-unit)))
               (?due-unit
@@ -341,6 +339,29 @@
              :cxn-set cxn
              :description "Example sentence: X(event) due to Y(obj)")
 
+(def-fcg-cxn X-event-due-to-Y-v4
+             (
+              <-
+              (?event-unit
+               (referent ?effect)
+               --
+               (dependents (?due-unit)))
+              (?due-unit
+               --
+               (head ?event-unit)
+               (sem-cat (frame-slots (cause ?cause)
+                                     (effect ?effect)))
+               (lex-id due-to)
+               (dependents (?causal-unit))
+               )
+              
+              (?causal-unit
+               (referent ?cause)
+               --
+               (head ?due-unit)
+               (dependency (edge pobj))))
+             :cxn-set cxn
+             :description "Example sentence: X(event) due to Y(obj)")
 
 (def-fcg-cxn X-is-due-to-Y-v1
              (
@@ -351,10 +372,9 @@
                (head ?event-unit)
                (dependency (edge nsubj)))
               (?event-unit
-               (syn-cat (phrase-type vp))
-               (syn-valence (subject ?effect-unit))
                --
-               (HASH form ((meets ?due-unit ?to-unit ?scope))))
+               (form ((string ?event-unit "is")))
+               (dependents (?due-unit)))
               (?due-unit
                --
                (head ?event-unit)
@@ -383,10 +403,9 @@
                (head ?event-unit)
                (dependency (edge nsubj)))
               (?event-unit
-               (syn-cat (phrase-type vp))
-               (syn-valence (subject ?effect-unit))
                --
-               )
+               (form ((string ?event-unit "is")))
+               (dependents (?due-unit)))
               (?due-unit
                --
                (head ?event-unit)
@@ -412,20 +431,20 @@
               (?effect-unit
                (referent ?effect)
                --
-               (head ?event-unit)
+               (dependents (?event-unit))
                (dependency (edge nsubj)))
               (?event-unit
-               (syn-cat (phrase-type vp))
-               (syn-valence (subject ?effect-unit))
                --
-               )
+               (form ((string ?event-unit "is")))
+               (head ?effect-unit)
+               (dependents (?due-unit)))
               (?due-unit
                --
                (head ?event-unit)
+               (dependents (?to-unit ?causal-unit))
                (sem-cat (frame-slots (cause ?cause)
                                      (effect ?effect)))
-               (lex-id due-to)
-               (dependency (edge acomp)))
+               (lex-id due-to))
               (?to-unit
                --
                (head ?due-unit)
@@ -433,8 +452,7 @@
               (?causal-unit
                (referent ?cause)
                --
-               (head ?due-unit)
-               (dependency (edge pobj))))
+               (head ?due-unit)))
              :cxn-set cxn
              :description "Example sentence: X(nsubj) is due to Y(pobj)")
 
@@ -596,6 +614,7 @@
               (?because-unit
                --
                (footprints (not because-y-x-cxn))
+               (lex-id because)
                (sem-cat (frame causation)
                         (frame-slots (cause ?cause)
                                      (effect ?effect)))
@@ -723,6 +742,29 @@
                (head ?in-unit)))
              :cxn-set cxn)
 
+(def-fcg-cxn causation-result-in-frame-cause
+             (<-
+              (?frame-unit
+               --
+               (sem-cat (frame causation))
+               
+               (sem-valence (actor ?cause)
+                            (theme ?effect))
+               (lex-id result-in)
+               (head ?prep-unit)
+               )
+              (?prep-unit
+               --
+               (dependency (edge prep))
+               (dependents (?frame-unit))
+               (head ?cause-unit))
+              
+              (?cause-unit
+               (referent ?cause)
+               --
+               (dependents (?prep-unit))))
+             :cxn-set cxn)
+
 
 
 ;; Constructions needed for "give rise to"
@@ -755,6 +797,31 @@
                --
                (dependency (edge pobj))
                (head ?to-unit))))
+
+(def-fcg-cxn to-give-rise-to-Y
+             (<-
+              (?give-unit
+               --
+               (referent ?frame)
+               (sem-cat (frame causation))
+               (sem-valence (actor ?actor)
+                            (theme ?effect))
+               (lex-id ?lex-id)
+               (dependents (?rise-unit ?to-unit-1 ?effect-unit)))
+              (?rise-unit
+               --
+               (head ?give-unit)
+               (lex-id ?lex-id)
+               )
+              (?to-unit-1
+               --
+               (head ?give-unit)
+               (form ((string ?to-unit-1 "to")))
+               )
+              (?effect-unit
+               (referent ?effect)
+               --
+               (head ?give-unit))))
 
 ;; X is bound to give rise to Y
 (def-fcg-cxn X-aux-past-participle-to-causation-frame-to-Y

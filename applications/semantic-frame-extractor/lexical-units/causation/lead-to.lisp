@@ -25,6 +25,35 @@
                 (form ((string ?to-unit "to")))))
               :cxn-set lex)
 
+(def-fcg-cxn lead-to-followed-by-modifier-verb-lex
+              (
+               <-
+               (?lead-unit
+                (referent ?frame)
+                (sem-cat (frame causation))
+                (syn-valence (subject ?subject-unit)
+                             (prep-object ?object-unit))
+                (sem-valence (actor ?cause)
+                             (theme ?effect))
+                (meaning ((frame causation lead-to ?frame) 
+                          (slot cause ?frame ?cause)
+                          (slot effect ?frame ?effect)))
+                --
+                (syn-cat (lex-class verb))
+                (lex-id lead-to)
+                (dependents (?adjective-unit)))
+               (?adjective-unit
+                --
+                (head ?lead-unit)
+                (dependents (?to-unit))
+                (dependency (pos-tag jj)))
+               (?to-unit
+                (lex-id lead-to)
+                --
+                (head ?adjective-unit)
+                (form ((string ?to-unit "to")))))
+              :cxn-set lex)
+
 (def-fcg-cxn lead->leads-morph
              (
               <-

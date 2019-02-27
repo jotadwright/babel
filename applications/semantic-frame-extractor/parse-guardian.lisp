@@ -9,18 +9,60 @@
 (in-package :frame-extractor)
 
 ;(activate-monitor trace-fcg)
+;;If you have run the CONLL evaluation before, please reset the de-render mode:
+;(set-configuration *fcg-constructions* :de-render-mode :raw-dependency-translation)
+
+;;############################
+;;RESULT IN
+;;############################
+(pie-comprehend "The scientists ' letter cites peer - reviewed research over several years , some commissioned by the European Commission , which show that displaced human activity caused by converting forests and grasslands to biofuels production can result in 'substantial CO2' emissions .")
+
 
 ;;############################
 ;;CAUSE
 ;;############################
 (pie-comprehend "The ozone hole causes an increase in westerly winds which, by a complex interaction of wind, sea and ice, results in lower temperatures in the east.")
 
+(pie-comprehend "The unseemly rush into CSG resulted in substantial processing overcapacity , with economic pressure increasing as CSG production was constrained by community objection to the damage caused to arable land and water .")
 ;;############################
 ;;DUE TO
 ;;############################
 (evaluate-grammar-during-development :frame-evoking-elements '("due to"))
 
+;;correct slots and total slots: (80 111): 0.7207207 
+;;correct sentences and total sentences: (16 33): 0.4848485 
+;;correct words and total words overall: (598 824): 0.72572816
+
+;correct slots and total slots: (76 111): 0.6846847 
+;correct sentences and total sentences: (15 33): 0.45454547 
+;correct words and total words overall: (570 824): 0.69174755 
+
+(pie-comprehend "Almost all of the fatalities last year , 93 % , were due to weather - related events .")
+
+(pie-comprehend "Nevertheless, it seems to me that our collective failure to tackle climate change is not just due to political deadlock or insufficient knowledge.")
+
+(pie-comprehend "That difference is due to the long-term, human-caused global warming trend.")
+
+(pie-comprehend "Property damage due to weather extremes has risen sharply in North America, including the Caribbean, over the last 30 years, the report said.")
+
+(pie-comprehend "California senator Diane Feinstein argues that we should curb carbon emissions because the Sierra snowpack, which accounts for much of California's drinking water, will be reduced by 40% by 2050 due to global warming.") ; (0 6) (slots) (-27 36) (words)
+
+(pie-comprehend "Almost all of the fatalities last year, 93%, were due to weather-related events.") ; (0 3) (slots) (1 15) (words)
+
+
+;;due-to correct, apart from capitalisation
+(pie-comprehend "This, as we examine in this chapter, is due to the rapidly falling costs of renewables, which combined with lower fuel usage from energy efficiency investments actually result in significantly lower long term fuel bill.") ; (0 6) (slots) (-7 35) (words)
+
+;;units wegsnijden uit partial transient structure is nefast:
+(pie-comprehend "Loss of Arctic sea ice results in enhanced warming of the Arctic Ocean due to a strong positive feedback.") ; (4 6) (slots) (12 19) (words)
+
+
+;;NOT A CAUSAL DUE TO:
 (pie-comprehend "The state of emergency in France, which is due to last three months, has resulted in hundreds of events around the conference being been called off.")
+
+;;longer FCG annotations:
+(pie-comprehend "California senator Diane Feinstein argues that we should curb carbon emissions because the Sierra snowpack, which accounts for much of California's drinking water, will be reduced by 40% by 2050 due to global warming.")
+
 (pie-comprehend "With the growing number of natural disasters due to climate change, the sums spent by governments on catastrophe management have risen to unprecedented levels.")
 
 (pie-comprehend "The International Red Cross says more people are already being made refugees due to environmental issues.")
@@ -72,6 +114,7 @@
 ;;correct sentences and total sentences: (13 20): 0.65 
 ;;correct words and total words overall: (463 524): 0.8835878 
 
+(pie-comprehend "This has given rise to a third problem in addressing climate change , which stems from a combination of the economic implications of the issue and the uncertainty that surrounds it .")
 ;;annotation = shorter effect (lawsuits)
 (pie-comprehend "This could give rise to lawsuits in future, though Blood said he hoped that could be avoided, if the report's recommendations were followed.") ; (2 3) (slots) (22 24) (words)
 
@@ -86,7 +129,7 @@
 (pie-comprehend "Your links to China and North Korea give rise to that view with some.") ; (2 3) (slots) (12 14) (words)
 
 ;;Not the complete sentence is dependency parsed (until CLOUD)
-(pie-comprehend "Jasper Kirkby, head of the CLOUD (Cosmics Leaving OUtdoor Droplets) experiment at Cern, the particle physics laboratory near Geneva, studied various gas mixtures of sulphuric acid, water and ammonia  the three gases thought to give rise to aerosol particles at the low altitudes where clouds form.") ; (0 3) (slots) (32 46) (words)
+(pie-comprehend "Jasper Kirkby, head of the CLOUD experiment at Cern, the particle physics laboratory near Geneva, studied various gas mixtures of sulphuric acid, water and ammonia  the three gases thought to give rise to aerosol particles at the low altitudes where clouds form.") ; (0 3) (slots) (32 46) (words)
 
 ;(get-penelope-dependency-analysis "Jasper Kirkby, head of the CLOUD (Cosmics Leaving OUtdoor Droplets) experiment at Cern, the particle physics laboratory near Geneva, studied various gas mixtures of sulphuric acid, water and ammonia  the three gases thought to give rise to aerosol particles at the low altitudes where clouds form.")
 
@@ -103,6 +146,7 @@
 ;;Incorrectly parsed sentences:
 ;;------------------------------
 
+(pie-comprehend "Finally , extreme weather can lead to acute outbreaks of infectious disease while at the same time reducing access to health care .")
 ;;problem with subframe:
 (pie-comprehend "Shell warned environmentalists and ethical investors yesterday that failure to exploit tar sands and other unconventional oil products would worsen climate change because it would lead to the world burning even more carbon-heavy coal.") ;;(0 3) (slots) (24 35) (words)
 
