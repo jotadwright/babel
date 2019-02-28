@@ -607,7 +607,6 @@
                 --
                 (HASH form ((meets ?adjective-unit-1 ?noun-unit-1))))))
  
-      
  (def-fcg-cxn a-cxn
               (<-
                (?a-unit
@@ -623,8 +622,7 @@
                 (meaning ((fund ?f)))
                 (syn-cat (lex-class noun)
                          (number sg)
-                         (syn-function ?fund))
-                (sem-cat (sem-class organisation)))
+                         (syn-function ?fund)))
                <-
                (?fund-unit
                 --
@@ -642,7 +640,6 @@
                (?taxable-unit
                 --
                 (HASH form  ((string ?taxable-unit "taxable"))))))
- 
  
  (def-fcg-cxn article-adjective-cxn
               ((?article-adjective-unit
@@ -671,31 +668,31 @@
                 (HASH form ((meets ?article-unit ?adjective-unit))))))
  
  (def-fcg-cxn adjective-noun-unit-arg1of-cxn ;;taxable
-              ((?adjective-possibility-noun-unit
+              ((?adjective-noun-unit-arg1of-unit
                 (referent ?ref)
                 (meaning ((:arg1-of ?ref ?possibility)))
-                (sem-cat (sem-class ?class))
+                (sem-cat (sem-class possibility))
                 (syn-cat (phrase-type NP)
-                                     (syn-function ?func)
-                                     (number ?numb))
-                (subunits (?adjective-unit ?noun-unit)))
+                         (syn-function ?func)
+                         (number ?numb))
+                (subunits (?adjective11-unit ?noun-unit22)))
                <-
-               (?adjective-unit
+               (?adjective-unit11
                 --
                 (referent ?possibility)
                 (syn-cat (lex-class adjective)
                          (number ?numb)
                          (syn-function ?func)
                 (sem-cat (sem-class possibility))))
-               (?noun-unit
+               (?noun-unit22
                 --
                 (referent ?ref)
                 (syn-cat  (lex-class noun)
                           (number ?numb)
                           (syn-function ?func)))
-               (?adjective-possibility-noun-unit 
+               (?adjective-noun-unit-arg1of-unit 
                             --
-                            (HASH form ((meets ?adjective-unit ?noun-unit))))))
+               (HASH form ((meets ?adjective-unit11 ?noun-unit22))))))
  
  (def-fcg-cxn NP-cxn
               ((?NP-unit
