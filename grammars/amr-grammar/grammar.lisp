@@ -563,7 +563,8 @@
                           (:domain-of ?e ?p)))
                 (syn-cat (lex-class adjective)
                          (number ?numb)
-                         (syn-function ?func)))
+                         (syn-function ?func))
+                (sem-cat (sem-class possibility)))
                <-
                (?edible-unit
                 --
@@ -575,24 +576,23 @@
                 (meaning ((sandwich ?s)))
                 (syn-cat (lex-class noun)
                          (number sg)
-                         (syn-function ?func))
-                (sem-cat (sem-class food)))
+                         (syn-function ?func)))
                <-
                (?sandwich-unit
                 --
-                (HASH form ((string ?sandiwch-unit "sandwich"))))))
+                (HASH form ((string ?sandwich-unit "sandwich"))))))
              
- (def-fcg-cxn adjective-noun-unit-arg1of-cxn ;; edible sandwich 
-              ((?adjective-noun-unit-arg1of-unit
-                (referent ?ref)
-                (meaning ((:arg1-of ?ref ?e)))
+ (def-fcg-cxn adjective-noun-arg1of-cxn ;; edible sandwich 
+              ((?adjective-noun-arg1of-unit
+                (referent ?s)
+                (meaning ((:arg1-of ?ref ?p)))
                 (syn-cat (phrase-type NP)
                          (number ?numb))
                 (subunits (?adjective-unit-1 ?noun-unit-1)))
                <-
                (?adjective-unit-1
                 --
-                (referent ?e)
+                (referent ?p)
                 (syn-cat (lex-class adjective)
                          (number ?numb)
                          (syn-function ?func))
@@ -603,7 +603,7 @@
                 (syn-cat  (lex-class noun)
                           (number ?numb)
                           (syn-function ?func)))
-               (?adjective-noun-unit-arg1of-unit 
+               (?adjective-noun-arg1of-unit 
                 --
                 (HASH form ((meets ?adjective-unit-1 ?noun-unit-1))))))
  
@@ -622,7 +622,7 @@
                 (meaning ((fund ?f)))
                 (syn-cat (lex-class noun)
                          (number sg)
-                         (syn-function ?fund)))
+                         (syn-function ?func)))
                <-
                (?fund-unit
                 --
@@ -667,8 +667,8 @@
                 --
                 (HASH form ((meets ?article-unit ?adjective-unit))))))
  
- (def-fcg-cxn adjective-noun-unit-arg1of-cxn ;;taxable
-              ((?adjective-noun-unit-arg1of-unit
+ (def-fcg-cxn adjective-noun-arg1of-morethanpossibility-cxn ;;taxable
+              ((?adjective-noun-arg1of-morethanpossibility-unit
                 (referent ?ref)
                 (meaning ((:arg1-of ?ref ?possibility)))
                 (sem-cat (sem-class possibility))
@@ -690,7 +690,7 @@
                 (syn-cat  (lex-class noun)
                           (number ?numb)
                           (syn-function ?func)))
-               (?adjective-noun-unit-arg1of-unit 
+               (?adjective-noun-arg1of-morethanpossibility-unit
                             --
                (HASH form ((meets ?adjective-unit11 ?noun-unit22))))))
  
@@ -699,7 +699,7 @@
                 (referent ?ref)
                 (syn-cat (phrase-type NP)
                          (number ?n)
-                          (person 3))
+                         (person 3))
                 (sem-cat (sem-class referring-expression))
                 (subunits (?article-unit ?noun-unit))
                 (boundaries (rightmost-unit ?noun-unit)
@@ -808,7 +808,6 @@
                (?vp-modal-unit
                 --
                 (referent ?ref)
-                (subunits (?modal-unit ?infinitif-unit))
                 (syn-cat (lex-class verb)
                          (phrase-type VP)
                          (finite +)))
