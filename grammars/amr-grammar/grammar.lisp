@@ -771,9 +771,9 @@
                 (referent ?g)
                 (syn-cat (phrase-type VP))
                 (sem-cat (sem-class event))
+                (subunits (?modal-unit ?infinitif-unit))
                 (boundaries (rightmost-unit ?infinitif-unit)
-                            (leftmost-unit ?modal-unit))
-                (subunits (?modal-unit ?infinitif-unit)))
+                            (leftmost-unit ?modal-unit)))
                <-
                (?modal-unit
                 --
@@ -794,63 +794,49 @@
                 --
                 (HASH form ((meets ?modal-unit ?infinitif-unit))))))
  
- (def-fcg-cxn subject-verb-cxn
-              ((?subject-verb-unit
+ 
+ (def-fcg-cxn subject-verb-modal-cxn
+              ((?subject-verb-modal-cxn
                 (referent ?ref)
                 (syn-cat (phrase-type NP)
                          (number ?n)
                          (person 3))
-                (sem-cat (sem-class referring-expression))
                 (subunits (?vp-modal-unit ?np-unit))
-                (boundaries (rightmost-unit ?np-unit)
-                            (leftmost-unit ?vp-modal-unit)))
+                (boundaries (rightmost-unit ?vp-modal-rightmost-unit)
+                            (leftmost-unit ?np-leftmost-unit)))
                <-
                (?vp-modal-unit
                 --
                 (referent ?ref)
                 (syn-cat (lex-class verb)
                          (phrase-type VP)
-                         (finite +)))
+                         (finite +))
+                (sem-valence (:arg0 ?arg0)
+                             (:arg1 ?arg1))
+                (boundaries
+                 (leftmost-unit ?vp-modal-leftmost-unit)
+                 (rightmost-unit ?vp-modal-rightmost-unit)))
                (?np-unit
                 --
                 (referent ?ref)
                 (syn-cat (phrase-type NP)
                          (number ?n)
-                         (person 3)))
-               (?subject-verb-unit
+                         (person 3))
+                (sem-cat (sem-class referring-expression))
+                (boundaries
+                 (leftmost-unit ?np-leftmost-unit)
+                 (rightmost-unit ?np-rightmost-unit)))
+               (?subject-verb-modal-cxn
                 --
-                (HASH form ((meets ?np-unit ?vp-modal-unit))))))
+                (HASH form ((meets ?np-rightmost-unit ?vp-modal-leftmost-unit))))))
+
  
  )
+
 #|
 
-       
-         (def-fcg-cxn adjective-possible-noun-unit-arg1of-possible-cxn ;;edible sandwich
-             ((?adjective-possible-noun-unit-arg1of-possible-cxn
-              (referent ?ref)
-              (meaning ((:arg1-of ?ref ?e)))
-              (syn-cat (phrase-type NP)
-                       (syn-function ?func)
-                       (number ?numb))
-              (subunits (?adjective-unit ?noun-unit)))
-               <-
-               (?adjective-unit
-                --
-               (referent ?e)
-               (syn-cat (lex-class adjective)
-                        (number ?numb)))
-               (?noun-unit
-                --
-                (referent ?ref)
-                (syn-cat  (lex-class noun)
-                          (number ?numb)
-                          (syn-function ?func)))
-                (?adjective-possible-noun-unit-arg1of-possible-cxn
-                 --
-                (HASH form ((precedes ?adjective-unit ?noun-unit))))))
-
-          
-        (def-fcg-cxn marble-cxn
+ 
+         (def-fcg-cxn marble-cxn
                 ((?marble-unit
                   (referent ?m)
                   (meaning ((marble ?m)))
@@ -863,8 +849,7 @@
                  (HASH meaning ((marble ?m)))
                   --
                   (HASH form ((string ?marble-unit "marble"))))))
-
-                
+         
   (def-fcg-cxn active-transitive-cxn ;;subject = agent
                ((?transitive-clause-unit
                  (subunits (?vp-unit ?agent-unit ?patient-unit))
