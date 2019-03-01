@@ -21,6 +21,15 @@
   (rewarded-attrs list)
   (punished-attrs list))
 
+;(defun similarity->delta (similarity)
+;  (- similarity 0.5))
+
+(defun similarity->delta (similarity)
+  (float
+   (if (>= similarity 0.8)
+     (- (* (/ 5 2) similarity) 2)
+     (- (* (/ 5 8) similarity) (/ 1 2)))))
+
 (defun align-known-words (agent topic words)
   (loop for word in words
         for cxn = (find-cxn-with-form agent word)
@@ -29,9 +38,10 @@
                  with punished
                  for (attr value certainty) in meaning
                  for sim = (attribute-similarity topic value attr)
-                 for delta = (- sim 0.5)
+                 for delta = (similarity->delta sim)
+                 unless (= delta 0)
                  do (adjust-certainty agent cxn attr delta)
-                 if (plusp delta)
+                 if (>= delta 0)
                  do (progn (push attr rewarded)
                       (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
                  else

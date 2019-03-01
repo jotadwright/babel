@@ -18,6 +18,7 @@
                :cl-mop)
   :serial t
   :components ((:file "package")
+               (:file "utils")
                (:file "fuzzy-operations")
                (:file "world")
                (:file "ontology")
@@ -27,4 +28,5 @@
                (:file "experiment")
                (:file "interaction")
                (:file "html")
-               (:file "web-monitor")))
+               (:file "web-monitor")
+               (:file "monitors")))

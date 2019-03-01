@@ -59,25 +59,36 @@
 ;;;; For now, these are always exactly the same value
 ;;;; No noise is present, yet!
 
+;;;; The world is 500x300
+;;;; We take large objects to have an area of 200 and small ones 50
+;;;; The wh-ratio of a cylinder should be 0.5, while that of cubes and spheres should be 1
+;;;; Therefore, we put the width and height of large cylinders to 10x20 and small cylinders 5x10
+;;;; For large spheres and cubes, we use 14x14. For small ones 7x7.
+
+;;;; The scaling takes into account both the min and max, such that everything is maximaly apart.
+
+;;;; WARNING: THIS IS VERY AD-HOC. SHOULD BE IMPROVED LATER.
+
+(defun scale-value (value min max)
+  (float
+   (min
+    (max (/ (- value min)
+            (- max min))
+         0.0)
+    1.0)))
+
 (defun object->width-and-height (object)
-  "The width and the height depend
-   on 2 aspects of the object:
-   the shape and the size:
-   large cylinder = 7x10 (area 70, ratio 0.7)
-   small cylinder = 5x7 (area 35, ratio 0.71)
-   large cube/sphere = 8.5x8.5 (area 72.25, ratio 1)
-   small cube/sphere = 6x6 (area 36, ratio 1)"
   (let* ((w (if (eql (shape object) 'cylinder)
               (if (eql (size object) 'large)
-                7
-                5)
+                10.0
+                5.0)
               (if (eql (size object) 'large)
-                8.5
-                6)))
+                14.0
+                7.0)))
          (h (if (eql (shape object) 'cylinder)
               (if (eql (size object) 'large)
-                10
-                7)
+                20.0
+                10.0)
               w)))
     (values w h)))
 
@@ -85,9 +96,9 @@
   "Return the number of sides (= vlakken)
    and the number of corners"
   (case (shape object)
-    (cube (values 6 8))
-    (sphere (values 1 0))
-    (cylinder (values 3 0))))
+    (cube (values 6.0 8.0))
+    (sphere (values 1.0 0.0))
+    (cylinder (values 3.0 0.0))))
 
 (defun object->color (object)
   "Return the color of the object"
@@ -105,7 +116,7 @@
   "Return the variance of the object"
   (case (material object)
     (metal '(1 1 1))
-    (rubber '(0.5 0.5 0.5))))
+    (rubber '(0 0 0))))
 
 (defmethod clevr->mwm ((set clevr-object-set))
   (make-instance 'mwm-object-set
@@ -114,30 +125,20 @@
                                 collect (clevr->mwm obj))))
 
 (defmethod clevr->mwm ((object clevr-object))
-  "Create the object and scale at the same time.
-   x = [0;320]
-   y = [0;240]
-   width = [0;8.5]
-   height = [0;10]
-   area = [0;75]
-   wh-ratio = already scaled
-   mean-rgb = [0;255]
-   rgb-variance = already scaled
-   nr-of-sides = [0;6]
-   nr-of-corners = [0;8]"
+  "Create the object and scale at the same time."
   (multiple-value-bind (width height) (object->width-and-height object)
     (multiple-value-bind (sides corners) (object->sides-and-corners object)
       (make-instance 'mwm-object
                      :id (id object) ;; !!!
-                     :x-pos (/ (first (coordinates object)) 320.0)
-                     :y-pos (/ (second (coordinates object)) 240.0)
-                     :width (/ width 8.5)
-                     :height (/ height 10.0)
-                     :area (/ (* width height) 75.0)
+                     :x-pos (/ (first (coordinates object)) 500.0)
+                     :y-pos (/ (second (coordinates object)) 300.0)
+                     :width (scale-value width 5 14) ;(/ (- width 5.0) (- 14.0 5.0))
+                     :height (scale-value height 7 20) ;(/ (- height 7.0) (- 20.0 7.0))
+                     :area (scale-value (* width height) 50 200) ;(/ (- (* width height) 50.0) (- 200.0 50.0))
                      :wh-ratio (float (/ width height))
                      :mean-rgb (mapcar #'(lambda (c) (/ c 255.0)) (object->color object))
                      :rgb-variance (object->color-variance object)
-                     :nr-of-sides (/ sides 6.0)
+                     :nr-of-sides (scale-value sides 1 6) ;(/ (- sides 1.0) (- 6.0 1.0))
                      :nr-of-corners (/ corners 8.0)
                      :description `(,(shape object)
                                     ,(color object)
@@ -151,5 +152,5 @@
           (cons :size (size object))
           (cons :shape (shape object))
           (cons :material (material object))
-          (cons :x-pos (if (> x-pos 160) 'right 'left))
-          (cons :y-pos (if (> y-pos 120) 'front 'behind)))))
+          (cons :x-pos (if (> x-pos 250) 'right 'left))
+          (cons :y-pos (if (> y-pos 150) 'front 'behind)))))

@@ -1,8 +1,24 @@
 (in-package :mwm)
 
+;; -----------------
+;; + Printing dots +
+;; -----------------
+
+(define-monitor print-a-dot-for-each-interaction
+                :documentation "Prints a '.' for each interaction
+                 and prints the number after :dot-interval")
+
+(define-event-handler (print-a-dot-for-each-interaction interaction-finished)
+  (if (= (mod (interaction-number interaction)
+                (get-configuration experiment :dot-interval)) 0)
+    (format t ". (~a)~%" (interaction-number interaction))
+    (format t ".")))
+
+
 ;; ---------
 ;; + TIIWI +
 ;; ---------
+                                       
 
 (define-monitor trace-interaction-in-web-interface)
 
@@ -36,7 +52,7 @@
      ((tr)
       ((th) "MWM context"))
      ((tr)
-      ((td) ,(make-html (clevr->mwm context) :expand-initially t))))))
+      ((td) ,(make-html (clevr->mwm context)))))))
 
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-finished)
   (add-element `((h2) ,(format nil "The topic is ~a" (id (topic agent)))))

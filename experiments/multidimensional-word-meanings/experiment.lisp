@@ -3,10 +3,17 @@
 ;; ------------------
 ;; + Configurations +
 ;; ------------------
-(define-configuration-default-value :contexts (merge-pathnames
-                                               (make-pathname :directory '(:relative "CLEVR" "CLEVR-learning-data")
-                                                              :name "CLEVR_scenes_num_objects_4_per_line" :type "json")
-                                               cl-user:*babel-corpora*))
+(define-configuration-default-value :dot-interval 100)
+(define-configuration-default-value :contexts (list
+                                               (merge-pathnames
+                                                (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
+                                                               :name "CLEVR_val_full_per_line" :type "json")
+                                                cl-user:*babel-corpora*)
+                                               (merge-pathnames
+                                                (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
+                                                               :name "CLEVR_train_full_per_line" :type "json")
+                                                cl-user:*babel-corpora*))
+                                               )
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks)
 (define-configuration-default-value :attributes '(x-pos y-pos area width height wh-ratio
                                                   mean-rgb rgb-variance nr-of-sides nr-of-corners))
@@ -24,11 +31,16 @@
 
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Create the population and load the scenes from file"
+  (activate-monitor print-a-dot-for-each-interaction)
   (setf (population experiment)
         (list (make-tutor-agent experiment)
               (make-learner-agent experiment)))
+  (warn "Loading large data files into memory. This could take a few seconds...")
   (setf (world experiment)
-        (read-contexts-from-file (get-configuration experiment :contexts))))
+        (loop for file in (get-configuration experiment :contexts)
+              for scenes = (read-contexts-from-file file)
+              append scenes))
+  (warn "Done loading!"))
 
 ;; --------------------------------
 ;; + Determine interacting agents +
