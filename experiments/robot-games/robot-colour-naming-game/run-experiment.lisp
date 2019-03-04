@@ -1,5 +1,5 @@
-(ql:quickload :robot-colour-naming-game-experiment)
-(in-package :roconaga)
+(ql:quickload :grounded-colour-naming-game-experiment)
+(in-package :gcng)
 
 ;; ---------------------------------
 ;; + Running series of experiments +

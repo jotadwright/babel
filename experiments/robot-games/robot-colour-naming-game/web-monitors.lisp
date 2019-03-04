@@ -1,4 +1,4 @@
-(in-package :roconaga)
+(in-package :gcng)
 
 ;; ------------------
 ;; + Sensory Object +

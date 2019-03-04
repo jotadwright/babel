@@ -1,4 +1,4 @@
-(in-package :roconaga)
+(in-package :gcng)
 
 (defun get-form-competitors (agent cxn)
   "Get the form-competitors of the given cxn.

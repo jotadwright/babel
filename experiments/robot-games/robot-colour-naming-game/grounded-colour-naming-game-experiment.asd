@@ -1,6 +1,6 @@
 (in-package :asdf)
 
-(defsystem :robot-colour-naming-game-experiment
+(defsystem :grounded-colour-naming-game-experiment
   :description "Grounded Colour Naming Game with robots"
   :author "EHAI <ehai@ai.vub.ac.be>"
   :maintainer "Jens Nevens <jens@ai.vub.ac.be>"

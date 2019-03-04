@@ -1,4 +1,4 @@
-(in-package :roconaga)
+(in-package :gcng)
 
 (defun initialize-agent (agent)
   "Reset the slots of the agent for this interaction"

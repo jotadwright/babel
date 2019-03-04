@@ -1,6 +1,6 @@
 (in-package :cl-user)
 
-(defpackage :robot-colour-naming-game-experiment
+(defpackage :grounded-colour-naming-game-experiment
   (:use :common-lisp
         :utils
         :experiment-framework
@@ -14,4 +14,4 @@
         :robot-interface
         :scene-generator)
   (:documentation "Grounded Colour Naming Game with robots")
-  (:nicknames :roconaga))
+  (:nicknames :gcng))
