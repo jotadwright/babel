@@ -32,9 +32,9 @@
 
 ;;; filter-by-closest-color
 (defun filter-by-closest-color (object-set color-category all-color-categories)
-  ;; for every object, compute the closest color category
-  ;; take out the objects of which this category equals color-category
-  ;; if multiple remain, take the one with the smallest distance
+  "for every object, compute the closest color category
+   take out the objects of which this category equals color-category
+   if multiple remain, take the one with the smallest distance"
   (let ((filtered-objects
          (loop for object in (entities object-set)
                for (closest-category . distance) = (loop with nearest = nil

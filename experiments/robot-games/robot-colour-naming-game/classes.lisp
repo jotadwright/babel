@@ -141,11 +141,10 @@
 (define-configuration-default-value :perceptual-deviation nil)
 (define-configuration-default-value :silent nil)
 (define-configuration-default-value :export-lexicon-interval 50)
-(define-configuration-default-value :alignment-strategy :li)
-(define-configuration-default-value :who-aligns :both)
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.1)
 (define-configuration-default-value :alpha 0.1)
+(define-configuration-default-value :simulation-mode nil)
 
 ;; --------------------
 ;; + Experiment Class +
@@ -168,20 +167,28 @@
         (loop for i from 0 below (get-configuration experiment :population-size)
               collect (make-instance 'grounded-color-naming-game-agent :id i
                                      :experiment experiment)))
-  ;; open the connection to the robots
-  (setf (robots experiment)
-        (loop for ip in (get-configuration experiment :robot-ips)
-              for port in (get-configuration experiment :robot-ports)
-              for robot = (make-robot :ip ip :server-port port
-                                      :connect-automatically nil)
-              do (make-new-connection robot :test-connection (not (get-configuration experiment :silent)))
-              do (sleep 1)
-              collect robot))
-  ;; check if there are at least 2 robots, otherwise use the same one twice
-  (when (length< (robots experiment) 2)
-    (setf (robots experiment) (loop repeat 2 collect (first (robots experiment)))))
-  ;; start up the scene server
-  (start-scene-server))
+  (unless (get-configuration experiment :simulation-mode)
+    (warn "Simulation Mode is turned off. You need a real robot to run the experiment.")
+    ;; open the connection to the robots
+    (setf (robots experiment)
+          (loop for ip in (get-configuration experiment :robot-ips)
+                for port in (get-configuration experiment :robot-ports)
+                for robot = (make-robot :type 'nao :ip ip :port port
+                                        :connect-automatically nil)
+                do (make-new-connection robot :test-connection (not (get-configuration experiment :silent)))
+                do (sleep 1)
+                collect robot))
+    ;; check if there are at least 2 robots, otherwise use the same one twice
+    (when (length< (robots experiment) 2)
+      (setf (robots experiment) (loop repeat 2 collect (first (robots experiment)))))
+    ;; check if the robots are connected
+    (unless (loop for robot in (robots experiment)
+                  always (robot-connected-p robot))
+      (error "Could not connect to the robots!"))
+    ;; start up the scene server
+    (start-scene-server))
+  (when (get-configuration experiment :simulation-mode)
+    (warn "Simulation Mode is turned on, but currently not implemented.")))
 
 (defmethod destroy ((experiment grounded-color-naming-game-experiment))
   "Some cleanup when manually running an experiment"

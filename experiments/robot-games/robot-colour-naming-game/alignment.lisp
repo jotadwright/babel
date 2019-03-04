@@ -77,9 +77,9 @@
 (define-event discriminating-category-found (category color-category))
 
 (defun find-discriminating-category (agent correct-topic)
-  ;; the hearer conceptualises the topic and this
-  ;; needs to be discriminating
-  ;; when successful, the hearer stores a new cxn
+  "the hearer conceptualises the topic and this
+   needs to be discriminating
+   when successful, the hearer stores a new cxn"
   (let* ((irl-program `((bind sensory-object ?topic ,correct-topic)
                         (filter-by-closest-color ?topic ?context ?color)
                         (get-context ?context)))
@@ -95,9 +95,9 @@
 
 (defmethod adopt ((agent grounded-color-naming-game-agent)
                   (correct-topic sensory-object))
-  ;; the hearer looks for a discriminating category for the topic
-  ;; if this fails, a new one is created
-  ;; a new cxn is stored (either between existing or new category)
+  "the hearer looks for a discriminating category for the topic
+   if this fails, a new one is created
+    a new cxn is stored (either between existing or new category)"
   (notify adoption-started)
   (let ((discriminating-color-category
          (find-discriminating-category agent correct-topic))
@@ -119,25 +119,16 @@
 ;; -------------
 
 (define-event alignment-started (agent grounded-color-naming-game-agent))
-
-(defmethod align ((agent grounded-color-naming-game-agent)
-                  correct-topic (strategy (eql :li)))
-  ;;;; If the interaction was a success, the agents shift their
-  ;;;; applied color category slightly towards the topic. Also, they
-  ;;;; reward the applied form/meaning mapping and punish its competitors
-
-  ;;;; If the interaction was not a success, the agents punish the applied
-  ;;;; form/meaning mapping, if there is any. Remember that the interaction
-  ;;;; can fail before there is an applied form/meaning mapping.
-  (if (communicated-successfully agent)
-    (progn (notify alignment-started agent)
-      (shift-color-prototype agent (applied-category agent) correct-topic)
-      (reward-applied-cxn-and-punish-competitors agent (applied-cxn agent)))
-    (when (applied-cxn agent)
-      (notify alignment-started agent)
-      (punish-applied-cxn agent (applied-cxn agent)))))
-
+  
 (defmethod align-agent ((agent grounded-color-naming-game-agent) correct-topic)
+  "If the interaction was a success, the agents shift their
+   applied color category slightly towards the topic. Also, they
+   reward the applied form/meaning mapping and punish its competitors
+
+   If the interaction was not a success, the agents punish the applied
+   form/meaning mapping, if there is any.
+   Alternatively, if there is none and the agent is the hearer,
+   adopt a new word."
   (if (communicated-successfully agent)
     (progn (notify alignment-started agent)
       (shift-color-prototype agent (applied-category agent) correct-topic)
