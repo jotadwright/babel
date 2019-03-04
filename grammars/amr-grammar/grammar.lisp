@@ -923,8 +923,8 @@
                --
                (HASH form ((precedes ?subject-unit-rightmost-unitt ?vp-unit))))))
 
-(def-fcg-cxn object-before-subject-cxn
-             ((?object-before-subject-unit
+(def-fcg-cxn arg1of-before-transitive-verb-cxn
+             ((?arg1of-before-transitive-verb-unit
                (meaning ((:arg1-of ?t ?o)))
                (subunits (?object-unit ?vp-unit)))
               <-
@@ -944,13 +944,17 @@
                         (past-simple +)
                         (phrase-type VP)))
               --
-              (?object-before-subject-unit
+              (?arg1of-before-transitive-verb-unit
                (HASH form ((precedes ?object-unit ?vp-unit))))))
+
+
+
+
               
 
 )
 
-;;what the girl opined + the girl's opinion + the opinion of the girl  ((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G))
+;;the girl's opinion + the opinion of the girl  ((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G))
 
 #|
 
