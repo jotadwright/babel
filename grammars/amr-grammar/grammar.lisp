@@ -926,7 +926,7 @@
 (def-fcg-cxn object-before-subject-cxn
              ((?object-before-subject-unit
                (meaning ((:arg1-of ?t ?o)))
-               (subunits (?object-unit ?subject-verb-unit)))
+               (subunits (?object-unit ?vp-unit)))
               <-
               (?object-unit
                --
@@ -935,17 +935,17 @@
                         (number ?numb)
                         (syn-function ?func))
                (sem-cat (sem-class object)))
-              (?subject-verb-unit
+               (?vp-unit
                --
                (referent ?o)
-               (subunits (?vp-unit ?subject-unit))
-               (syn-cat (phrase-type VP))
-               (boundaries
-                (leftmost-unit ?subject-verb-leftmost-unit)
-                (rightmost-unit ?subject-verb-rightmost-unit)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (past-simple +)
+                        (phrase-type VP)))
               --
               (?object-before-subject-unit
-               (HASH form ((precedes ?object-unit ?subject-verb-leftmost-unit))))))
+               (HASH form ((precedes ?object-unit ?vp-unit))))))
               
 
 )
@@ -953,6 +953,15 @@
 ;;what the girl opined + the girl's opinion + the opinion of the girl  ((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G))
 
 #|
+
+   (?subject-verb-unit
+               --
+               (referent ?o)
+               (syn-cat (phrase-type VP)
+                        (syn-func ?func))
+               (boundaries
+                (leftmost-unit ?subject-verb-leftmost-unit)
+                (rightmost-unit ?subject-verb-rightmost-unit)))
 
  (:arg1-of ?object ?o)
  (:arg0 ?o ?person))
