@@ -1,23 +1,57 @@
-;;;; ./web-monitors.lisp
+(in-package :roconaga)
 
-(in-package :grounded-color-naming-game)
+;; ------------------
+;; + Sensory Object +
+;; ------------------
 
-;; --------------------------------------
-;; + Trace Interaction in Web Interface +
-;; --------------------------------------
+(define-css 'color "div.color { display:inline-block;position:relative;overflow:hidden; }")
 
+(defmethod make-html-for-entity-details ((obj sensory-object) &key)
+  (let ((width 170)
+        (height 120))
+    (append
+     `(((div :class "color")
+        ((svg :xmlns "http://www.w3.org/2000/svg"
+              :width ,(format nil "~,2f" width)
+              :height ,(format nil "~,2f" height))
+         ((rect :x "0" :y "0"
+                :width ,(mkstr width)
+                :height ,(mkstr height)
+                :style ,(format nil "fill:rgb(~{~a~^, ~})" (mapcar #'round (rgb-color obj))))))))
+     `(((div :class "entity-detail")
+        ,(format nil "lab = (~{~,2f~^, ~})" (lab-color obj)))))))
 
-(define-monitor trace-interaction-in-web-interface)
+;; --------------
+;; + Object Set +
+;; --------------
 
-(define-event-handler (trace-interaction-in-web-interface interaction-started)
-  (add-element '((hr)))
-  (add-element `((h1) ,(format nil "Interaction ~a"
-                               (interaction-number interaction))))
-  (add-element '((hr)))
-  (loop for agent in (interacting-agents interaction)
-        do (add-element `((h3) ,(format nil "Agent ~a is the ~a"
-                                        (id agent)
-                                        (downcase (discourse-role agent)))))))
+(defmethod make-html-for-entity-details ((set sensory-object-set) &key)
+  `(((div :class "entity-detail") 
+     ,@(loop for e in (entities set)
+             collect (make-html e :expand-initially t)))))
+
+;; ------------
+;; + Category +
+;; ------------
+
+(defmethod make-html-for-entity-details ((color-cat color-category) &key)
+  (let ((width 200)
+        (height 120))
+    (append
+     `(((div :class "color")
+        ((svg :xmlns "http://www.w3.org/2000/svg"
+              :width ,(format nil "~,2f" width)
+              :height ,(format nil "~,2f" height))
+         ((rect :x "0" :y "0"
+                :width ,(mkstr width)
+                :height ,(mkstr height)
+                :style ,(format nil "fill:rgb(~{~a~^, ~})" (mapcar #'round (lab->rgb (value color-cat)))))))))
+     `(((div :class "entity-detail")
+        ,(format nil "lab = (~{~,2f~^, ~})" (value color-cat)))))))
+
+;; ------------------
+;; + Export Lexicon +
+;; ------------------
 
 (defun lexicon->s-dot (agent interaction-number)
   (let ((graph '(((s-dot::margin "0")) s-dot::graph))
@@ -70,7 +104,22 @@
                            (format "pdf"))                 
   (s-dot->image (lexicon->s-dot agent interaction-number)
                 :path path :format format :open nil))
-                
+
+;; --------------------------------------
+;; + Trace Interaction in Web Interface +
+;; --------------------------------------
+
+(define-monitor trace-interaction-in-web-interface)
+
+(define-event-handler (trace-interaction-in-web-interface interaction-started)
+  (add-element '((hr)))
+  (add-element `((h1) ,(format nil "Interaction ~a"
+                               (interaction-number interaction))))
+  (add-element '((hr)))
+  (loop for agent in (interacting-agents interaction)
+        do (add-element `((h3) ,(format nil "Agent ~a is the ~a"
+                                        (id agent)
+                                        (downcase (discourse-role agent)))))))                
 
 (define-event-handler (trace-interaction-in-web-interface interaction-finished)
   (let ((speaker (speaker interaction))

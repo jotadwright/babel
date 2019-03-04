@@ -1,20 +1,17 @@
-;;;; /package.lisp
-
 (in-package :cl-user)
 
-(defpackage :grounded-color-naming-game
+(defpackage :robot-colour-naming-game-experiment
   (:use :common-lisp
         :utils
         :experiment-framework
         :test-framework
         :monitors
         :plot-raw-data
-        :tasks-and-processes
-        :meta-layer-learning
         :irl
         :fcg
         #+:hunchentoot-available-on-this-platform :web-interface
         :nao-interface
         :robot-interface
         :scene-generator)
-  (:documentation "Colour Naming Game with 2 robots"))
+  (:documentation "Grounded Colour Naming Game with robots")
+  (:nicknames :roconaga))

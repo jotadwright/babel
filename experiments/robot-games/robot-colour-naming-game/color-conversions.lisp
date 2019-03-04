@@ -1,7 +1,4 @@
-;;;; /color-conversions.lisp
-;; based on Babel2/experiments/colour-2015/conversions.lisp
-
-(in-package :grounded-color-naming-game)
+(in-package :roconaga)
 
 ;; based on http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
 (defparameter *reference-white-D50* (list 0.96422 1.00000 0.82521)

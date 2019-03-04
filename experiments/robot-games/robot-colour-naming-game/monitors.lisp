@@ -1,6 +1,4 @@
-;;;; ./monitors.lisp
-
-(in-package :grounded-color-naming-game)
+(in-package :roconaga)
 
 ;;;; Communicative Success
 
