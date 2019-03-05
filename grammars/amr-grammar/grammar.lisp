@@ -36,6 +36,8 @@
 ;; - pleasing-cxn
 ;; - girls-cxn
 ;; - though-cxn
+;; - comment-cxn
+;; - innappropriate-cxn
 ;;--------------------------------------------------------
 ;; Grammatical constructions covered so far:
 ;; - compound-noun+nominalised-verb-cxn
@@ -960,8 +962,6 @@
 
 ;;the girl's opinion + the opinion of the girl  ((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G))
 
-
-
 (def-fcg-cxn marble-cxn
              ((?marble-unit
                (referent ?m)
@@ -998,6 +998,34 @@
               --
               (HASH form ((string ?white-unit "white"))))))
 
+
+(def-fcg-cxn comment-cxn
+             ((?comment-unit
+               (referent ?c)
+               (meaning ((comment ?c)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (syn-function ?func)))
+              <-
+              (?comment-unit
+               --
+               (HASH form ((string ?comment-unit "comment"))))))
+
+(def-fcg-cxn appropriate-cxn
+            ((?appropriate-unit
+              (referent ?a)
+              (meaning ((appropriate ?a)
+                        (polarity ?a -)))
+              (syn-cat (lex-class adjective)
+                       (number ?numb)
+                       (syn-function ?func))
+             (sem-cat (sem-class quality)))
+             <-
+             (?appropriate-unit
+              --
+              (HASH form ((string ?appropriate-unit "inappropriate"))))))
+
+
 (def-fcg-cxn predicative-cxn 
              ((?predicative-unit
                (subunits (?vp-unit ?adjective-predicative-unit ?referring-noun-unit))
@@ -1015,8 +1043,7 @@
                (referent ?adj)
                (syn-cat (lex-class adjective)
                           (number ?numb)
-                          (syn-function ?func))
-               (sem-cat (sem-class colour)))
+                          (syn-function ?func)))
               (?referring-noun-unit
                --
                (referent ?referring)
@@ -1122,13 +1149,64 @@
                --
                (HASH form ((precedes ?gerund-referring-entity ?vp-unit )
                            (precedes ?vp-unit ?adjective-predicative-unit))))))
+
+             
  
 )
 
-;;((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)) 
+;; The comment is inappropriate;((APPROPRIATE A) (COMMENT C) (:DOMAIN A C) (:POLARITY A -))  
+
 
 #|
 
+              (def-fcg-cxn white-cxn
+             ((?white-unit
+               (referent ?w)
+               (meaning ((white ?w)))
+               (syn-cat (lex-class adjective)
+                        (number ?numb)
+                        (syn-function ?func))
+               (sem-cat (sem-class colour)))
+              <-
+              (?white-unit
+              --
+              (HASH form ((string ?white-unit "white"))))))
+              
+ (def-fcg-cxn marble-cxn
+             ((?marble-unit
+               (referent ?m)
+               (meaning ((marble ?m)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (syn-function ?func)))
+              <-
+              (?marble-unit
+               --
+               (HASH form ((string ?marble-unit "marble"))))))
+
+(def-fcg-cxn is-cxn
+             ((?is-unit
+               (referent ?is)
+               (syn-cat (lex-class verb)
+                        (is-copular +)
+                        (phrase-type VP)))
+              <-
+              (?is-unit
+               --
+               (HASH form ((string ?is-unit "is"))))))
+
+(def-fcg-cxn white-cxn
+             ((?white-unit
+               (referent ?w)
+               (meaning ((white ?w)))
+               (syn-cat (lex-class adjective)
+                        (number ?numb)
+                        (syn-function ?func))
+               (sem-cat (sem-class colour)))
+              <-
+              (?white-unit
+              --
+              (HASH form ((string ?white-unit "white"))))))
  (def-fcg-cxn genitive-possessor-cxn
              ((?genitive-possessor-unit
                (referent ?g)
