@@ -958,6 +958,9 @@
                 --
                 (HASH form ((string ?s-unit "'s"))))))
 
+;;the girl's opinion + the opinion of the girl  ((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G))
+
+
 
 (def-fcg-cxn marble-cxn
              ((?marble-unit
@@ -995,39 +998,134 @@
               --
               (HASH form ((string ?white-unit "white"))))))
 
-  (def-fcg-cxn predicative-cxn 
-               ((?predicative-unit
-                 (subunits (?vp-unit ?adjective-predicative-unit ?referring-noun-unit))
-                 (syn-cat (phrase-type clausal))
-                 (meaning ((:domain ?w ?m)))
-                 (referent ?ref))
-                <-
-                (?vp-unit
-                 --
-                 (syn-cat (lex-class verb)
+(def-fcg-cxn predicative-cxn 
+             ((?predicative-unit
+               (subunits (?vp-unit ?adjective-predicative-unit ?referring-noun-unit))
+               (syn-cat (phrase-type clausal))
+               (meaning ((:domain ?adj ?referring)))
+               (referent ?ref))
+              <-
+              (?vp-unit
+               --
+               (syn-cat (lex-class verb)
                         (is-copular +)
                         (phrase-type VP)))
-                (?adjective-predicative-unit
-                 --
-                 (referent ?w)
-                 (syn-cat (lex-class adjective)
+              (?adjective-predicative-unit
+               --
+               (referent ?adj)
+               (syn-cat (lex-class adjective)
                           (number ?numb)
                           (syn-function ?func))
-                 (sem-cat (sem-class colour)))
-                (?referring-noun-unit
-                 --
-                 (referent ?m)
-                 (syn-cat (lex-class noun)
-                          (number sg)
+               (sem-cat (sem-class colour)))
+              (?referring-noun-unit
+               --
+               (referent ?referring)
+               (syn-cat (lex-class noun)
+                        (number sg)
                           (syn-function ?func)))
-                (?predicative-unit
-                 --
-                 (HASH form ((precedes ?referring-noun-unit ?vp-unit )
-                             (precedes ?vp-unit ?adjective-predicative-unit))))))
+              (?predicative-unit
+               --
+               (HASH form ((precedes ?referring-noun-unit ?vp-unit )
+                           (precedes ?vp-unit ?adjective-predicative-unit))))))
+
+(def-fcg-cxn pleasing-cxn
+             ((?pleasing-unit
+               (referent ?p)
+               (meaning ((please-01 ?p)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (gerund +)
+                        (syn-function ?func)))
+               <-
+               (?pleasing-unit
+                --
+                (HASH form ((string ?pleasing-unit "pleasing"))))))
+                  
+(def-fcg-cxn girls-cxn
+             ((?girls-unit
+               (referent ?g)
+               (meaning ((girls ?g)))
+               (syn-cat (lex-class noun)
+                        (number pl)
+                        (syn-function ?func))
+               (sem-cat (sem-class arg1)))
+              <-
+              (?girl-unit
+               --
+               (HASH form ((string ?girls-unit "girls"))))))
+
+(def-fcg-cxn tough-cxn
+             ((?tough-unit
+               (referent ?t)
+               (meaning ((tough ?t)))
+               (syn-cat (lex-class adjective)
+                        (number ?numb)
+                        (syn-function ?func))
+               (sem-cat (sem-class quality)))
+              <-
+              (?tough-unit
+              --
+              (HASH form ((string ?tough-unit "tough"))))))
+
+(def-fcg-cxn arg1-gerund-cxn
+             ((?arg1-gerund-unit
+               (referent ?ref)
+               (meaning ((:arg1 ?ger ?ref)))
+               (syn-cat (syn-function ?arg1))
+               (subunits (?gerund-unit ?arg1-unit)))
+               <-
+               (?gerund-unit
+                (referent ?ger)
+                --
+                (syn-cat (lex-class noun)
+                         (number sg)
+                         (gerund +)
+                         (syn-function ?func)))
+               (?arg1-unit
+                (referent ?ref)
+                --
+                (syn-cat (lex-class noun)
+                         (number pl)
+                         (syn-function ?func))
+                (sem-cat (sem-class arg1)))
+               (?arg1-gerund-unit
+                --
+                (HASH form ((precedes ?gerund-unit ?arg1-unit))))))
+
+(def-fcg-cxn predicative-gerund-referring-entity-cxn 
+             ((?predicative-gerund-referring-entity
+               (subunits (?vp-unit ?adjective-predicative-unit ?gerund-referring-entity))
+               (syn-cat (phrase-type clausal))
+               (meaning ((:domain ?adj ?referring)))
+               (referent ?ref))
+              <-
+              (?vp-unit
+               --
+               (syn-cat (lex-class verb)
+                        (is-copular +)
+                        (phrase-type VP)))
+              (?adjective-predicative-unit
+               --
+               (referent ?adj)
+               (syn-cat (lex-class adjective)
+                          (number ?numb)
+                          (syn-function ?func))
+               (sem-cat (sem-class quality)))
+              (?gerund-referring-entity
+               --
+               (referent ?referring)
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (gerund +)
+                        (syn-function ?func)))
+              (?predicative-gerund-referring-entity
+               --
+               (HASH form ((precedes ?gerund-referring-entity ?vp-unit )
+                           (precedes ?vp-unit ?adjective-predicative-unit))))))
  
 )
 
-;;the girl's opinion + the opinion of the girl  ((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G))
+;;((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)) 
 
 #|
 
