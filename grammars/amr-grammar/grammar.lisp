@@ -1422,7 +1422,8 @@
                --
                (referent ?fin-verb)
                (syn-cat (lex-class verb)
-                        (finite +)))
+                        (finite +)
+                        (modal -)))
               (?infinitif
               --
               (referent ?inf)
@@ -1584,6 +1585,10 @@
 )
 
 #|
+ 
+'((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
+agr1 p g da togliere
+
 
 '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
