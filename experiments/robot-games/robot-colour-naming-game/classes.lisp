@@ -43,6 +43,30 @@
 (defmethod find-entity-by-id ((set sensory-object-set) id)
   (find id (entities set) :key #'id))
 
+(defparameter *basic-colors*
+  '((0 0 255)
+    (0 255 0)
+    (255 0 0)
+    (255 255 0)
+    (0 255 255)
+    (255 0 255)))
+
+(defun random-simulated-scene (size)
+  (let* ((colors (random-elts *basic-colors* size))
+         (noisy-colors (loop for color in colors
+                             collect (loop for channel in color
+                                           for fn = (random-elt (list #'+ #'-))
+                                           for noise = (random-from-range 0 10)
+                                           collect (max 0 (min 255 (funcall fn noise channel)))))))
+    (make-instance 'sensory-object-set
+                   :id 'context
+                   :entities (loop for color in noisy-colors
+                                   collect (make-instance 'sensory-object
+                                                          :rgb-color color
+                                                          :lab-color (rgb->lab color)
+                                                          :x (random-from-range 0 1000)
+                                                          :y (random-from-range 0 500))))))
+
 ;; --------------------
 ;; + Color categories +
 ;; --------------------
@@ -71,14 +95,15 @@
 (defclass grounded-color-naming-game-agent (agent)
   ((context
     :documentation "the context of the current interaction"
-    :type list :accessor context :initarg :context :initform nil :accessor world)
+    :type (or null sensory-object-set) :accessor context
+    :initarg :context :initform nil :accessor world)
    (topic
     :documentation "the topic of the current interaction"
-    :type (or null rcg-object) :accessor topic :initarg :topic :initform nil
+    :type (or null sensory-object) :accessor topic :initarg :topic :initform nil
     :accessor hypothesized-topic)
    (observed-object
     :documentation "object observed after pointing"
-    :type (or null rcg-object) :accessor observed-object :initarg :observed-object :initform nil)
+    :type (or null sensory-object) :accessor observed-object :initarg :observed-object :initform nil)
    (grammar
     :documentation "the lexicon of the agent"
     :type fcg-construction-set :accessor grammar :initarg :grammar)
@@ -139,12 +164,12 @@
 (define-configuration-default-value :max-context-size 5)
 (define-configuration-default-value :population-size 10)
 (define-configuration-default-value :perceptual-deviation nil)
-(define-configuration-default-value :silent nil)
+(define-configuration-default-value :silent t)
 (define-configuration-default-value :export-lexicon-interval 50)
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.1)
 (define-configuration-default-value :alpha 0.1)
-(define-configuration-default-value :simulation-mode nil)
+(define-configuration-default-value :simulation-mode t)
 
 ;; --------------------
 ;; + Experiment Class +
@@ -162,6 +187,8 @@
   (activate-monitor print-a-dot-for-each-interaction)
   ;; activate disconnect-robots-after-series monitor
   (activate-monitor disconnect-robots-after-series)
+  ;; activate exporting the lexicon
+  (activate-monitor export-color-lexicon)
   ;; set the population
   (setf (population experiment)
         (loop for i from 0 below (get-configuration experiment :population-size)
@@ -192,8 +219,9 @@
 
 (defmethod destroy ((experiment grounded-color-naming-game-experiment))
   "Some cleanup when manually running an experiment"
-  ;; stop the scene server
-  (stop-scene-server)
-  ;; disconnect the robots
-  (loop for robot in (robots experiment)
-        do (disconnect-robot robot)))
+  (unless (get-configuration experiment :simulation-mode)
+    ;; stop the scene server
+    (stop-scene-server)
+    ;; disconnect the robots
+    (loop for robot in (robots experiment)
+          do (disconnect-robot robot))))

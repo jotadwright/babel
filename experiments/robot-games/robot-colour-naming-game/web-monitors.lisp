@@ -9,6 +9,7 @@
 (defmethod make-html-for-entity-details ((obj sensory-object) &key)
   (let ((width 170)
         (height 120))
+    (mapcar #'round (rgb-color obj))
     (append
      `(((div :class "color")
         ((svg :xmlns "http://www.w3.org/2000/svg"

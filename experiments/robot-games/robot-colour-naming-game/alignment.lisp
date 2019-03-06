@@ -105,12 +105,14 @@
     (unless discriminating-color-category
       (setf discriminating-color-category (make-color-category correct-topic))
       (notify new-category-created discriminating-color-category)
-      (unless (get-configuration agent :silent)
+      (unless (and (get-configuration agent :simulation-mode)
+                   (get-configuration agent :silent))
         (speak (robot agent) "I created a new color category"))
       (push-data (ontology agent) 'color-categories discriminating-color-category))
     (setf new-cxn (add-lex-cxn agent (utterance agent) discriminating-color-category))
     (notify adoption-finished new-cxn)
-    (unless (get-configuration agent :silent)
+    (unless (and (get-configuration agent :simulation-mode)
+                 (get-configuration agent :silent))
       (speak (robot agent) "I adopted a new word"))
     new-cxn))
 

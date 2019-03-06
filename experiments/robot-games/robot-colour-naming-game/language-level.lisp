@@ -68,7 +68,8 @@
   (let* ((form (make-new-word))
          (new-cxn (add-lex-cxn agent form irl-program)))
     (notify new-cxn-created new-cxn)
-    (unless (get-configuration agent :silent)
+    (unless (and (get-configuration agent :simulation-mode)
+                 (get-configuration agent :silent))
       (speak (robot agent) "I invented a new word"))
     new-cxn))
 
@@ -88,7 +89,8 @@
       (progn (setf (applied-cxn agent) (get-original-cxn (first (applied-constructions cipn))))
         (setf (utterance agent) (first utterance))
         (notify production-succeeded (applied-cxn agent) (utterance agent))
-        (unless (get-configuration agent :silent)
+        (unless (and (get-configuration agent :simulation-mode)
+                     (get-configuration agent :silent))
           (speak (robot agent)
                  (format nil "I call the topic ~a"
                          (first utterance)))))
@@ -122,12 +124,14 @@
   (multiple-value-bind (irl-program cipn)
       (comprehend (list utterance) :cxn-inventory (grammar agent))
     (if irl-program
-      (progn (unless (get-configuration agent :silent)
+      (progn (unless (and (get-configuration agent :simulation-mode)
+                          (get-configuration agent :silent))
                (speak (robot agent) "I parsed the utterance"))
         (setf (irl-program agent) irl-program
               (applied-cxn agent) (get-original-cxn (first (applied-constructions cipn))))
         (notify parsing-succeeded (applied-cxn agent) (irl-program agent)))
-      (progn (unless (get-configuration agent :silent)
+      (progn (unless (and (get-configuration agent :simulation-mode)
+                          (get-configuration agent :silent))
                (speak (robot agent) "I could not parse the utterance"))
           (notify parsing-failed))))
   (applied-cxn agent))

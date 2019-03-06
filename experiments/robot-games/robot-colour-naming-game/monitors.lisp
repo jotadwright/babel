@@ -271,8 +271,9 @@
 (define-monitor disconnect-robots-after-series)
 
 (define-event-handler (disconnect-robots-after-series run-series-finished)
-  (loop for robot in (robots experiment)
-        do (disconnect-robot robot)))
+  (unless (get-configuration experiment :simulation-mode)
+    (loop for robot in (robots experiment)
+          do (disconnect-robot robot))))
 
 (define-monitor display-metrics
                 :class 'gnuplot-display

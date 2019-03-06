@@ -9,15 +9,16 @@
    open a new connection. If the agent is the
    speaker, it will say the current interaction
    number."
-  (setf (robot agent) robot)
-  (unless (robot-connected-p robot)
-    (make-new-connection robot :test-connection
-                         (not (get-configuration agent :silent))))
-  (unless (get-configuration agent :silent)
-    (when (speakerp agent)
-      (speak (robot agent)
-             (format nil "Interaction ~a starts"
-                     (interaction-number interaction))))))
+  (unless (get-configuration agent :simulation-mode)
+    (setf (robot agent) robot)
+    (unless (robot-connected-p robot)
+      (make-new-connection robot :test-connection
+                           (not (get-configuration agent :silent))))
+    (unless (get-configuration agent :silent)
+      (when (speakerp agent)
+        (speak (robot agent)
+               (format nil "Interaction ~a starts"
+                       (interaction-number (current-interaction (experiment agent)))))))))
 
 ;; -----------------
 ;; + Observe World +
@@ -78,13 +79,20 @@
   (let* ((interaction (current-interaction (experiment agent)))
          (context-size (get-data interaction 'context-size))
          (perceptual-deviation (get-configuration (experiment interaction) :perceptual-deviation)))
-    (if (speakerp agent)
-      (robot-observe-world agent context-size)
-      (if perceptual-deviation
-        (robot-observe-world agent context-size)
+    (if (get-configuration agent :simulation-mode)
+      (if (speakerp agent)
+        (progn (setf (context agent) (random-simulated-scene context-size))
+          (set-data (ontology agent) 'context (context agent)))
         (let ((speaker-context (context (speaker interaction))))
           (setf (context agent) speaker-context)
-          (set-data (ontology agent) 'context speaker-context))))))
+          (set-data (ontology agent) 'context speaker-context)))
+      (if (speakerp agent)
+        (robot-observe-world agent context-size)
+        (if perceptual-deviation
+          (robot-observe-world agent context-size)
+          (let ((speaker-context (context (speaker interaction))))
+            (setf (context agent) speaker-context)
+            (set-data (ontology agent) 'context speaker-context)))))))
   
 
 ;; ----------------
@@ -98,7 +106,8 @@
   "Choose a random topic from the context"
   (setf (topic agent) (random-elt (entities context)))
   (notify choose-topic-finished (topic agent))
-  (unless (get-configuration agent :silent)
+  (unless (and (get-configuration agent :simulation-mode)
+               (get-configuration agent :silent))
     (speak (robot agent) "I chose the topic"))
   (topic agent))
 
@@ -131,23 +140,36 @@
 (defmethod point-and-observe ((pointer grounded-color-naming-game-agent)
                               object-from-pointer-perspective
                               (observer grounded-color-naming-game-agent))
-  (let* ((sorted-pointer-context (sort-on-x-axis (context pointer)))
-         (sorted-observer-context (sort-on-x-axis (context observer)))
-         (pointer-object-position (position object-from-pointer-perspective sorted-pointer-context :key #'x-pos :test #'=)))
-  (if (get-configuration pointer :perceptual-deviation)
-    (let ((observed-object (nth pointer-object-position sorted-observer-context)))
-      (cond ((= pointer-object-position (/ (length (context pointer)) 2))
-             (point (robot pointer) :both))
-            ((< pointer-object-position (/ (length (context pointer)) 2))
-             (point (robot pointer) :left))
-            ((> pointer-object-position (/ (length (context pointer)) 2))
-             (point (robot pointer) :right)))
-      (setf (observed-object observer) observed-object))
-    (progn
-      (cond ((= pointer-object-position (/ (length (context pointer)) 2))
-             (point (robot pointer) :both))
-            ((< pointer-object-position (/ (length (context pointer)) 2))
-             (point (robot pointer) :left))
-            ((> pointer-object-position (/ (length (context pointer)) 2))
-             (point (robot pointer) :right)))
-      (setf (observed-object observer) object-from-pointer-perspective)))))
+  (when object-from-pointer-perspective
+    (let* ((sorted-pointer-context (sort-on-x-axis (entities (context pointer))))
+           (sorted-observer-context (sort-on-x-axis (entities (context observer))))
+           (pointer-object-position (position (x-pos object-from-pointer-perspective)
+                                              sorted-pointer-context
+                                              :key #'x-pos :test #'=)))
+      (if (get-configuration pointer :perceptual-deviation)
+        (let ((observed-object (nth pointer-object-position sorted-observer-context)))
+          (unless (get-configuration pointer :simulation-mode)
+            (cond ((= pointer-object-position (/ (length (entities (context pointer))) 2))
+                   (point (robot pointer) :both))
+                  ((< pointer-object-position (/ (length (entities (context pointer))) 2))
+                   (point (robot pointer) :left))
+                  ((> pointer-object-position (/ (length (entities (context pointer))) 2))
+                   (point (robot pointer) :right))))
+          (setf (observed-object observer) observed-object))
+        (progn
+          (unless (get-configuration pointer :simulation-mode)
+            (cond ((= pointer-object-position (/ (length (entities (context pointer))) 2))
+                   (point (robot pointer) :both))
+                  ((< pointer-object-position (/ (length (entities (context pointer))) 2))
+                   (point (robot pointer) :left))
+                  ((> pointer-object-position (/ (length (entities (context pointer))) 2))
+                   (point (robot pointer) :right))))
+          (setf (observed-object observer) object-from-pointer-perspective))))))
+
+;; -------------
+;; + Agent Nod +
+;; -------------
+
+(defmethod agent-nod ((agent grounded-color-naming-game-agent))
+  (unless (get-configuration agent :simulation-mode)
+    (nod (robot agent))))

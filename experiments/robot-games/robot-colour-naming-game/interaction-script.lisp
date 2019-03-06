@@ -47,7 +47,7 @@
     (point-and-observe hearer (hypothesized-topic hearer) speaker)
     ;; 10
     (if (determine-success speaker hearer)
-      (nod speaker)
+      (agent-nod speaker)
       (point-and-observe speaker (topic speaker) hearer))
     ;; 11
     (align-agent speaker (topic speaker))

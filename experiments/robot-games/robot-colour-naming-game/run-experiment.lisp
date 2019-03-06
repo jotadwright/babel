@@ -15,6 +15,7 @@
   (activate-monitor trace-fcg)
   (activate-monitor trace-irl-in-web-browser)
   (activate-monitor trace-interaction-in-web-interface))
+(deactivate-all-monitors)
 
 ;;;; Open your browser at localhost:8000
 
@@ -25,7 +26,7 @@
 (run-interaction *experiment*)
 
 ;;;; Run a series of experiments
-(run-series *experiment* 2)  ;; note that the robot connection is closed after a series!
+(run-series *experiment* 50)  ;; note that the robot connection is closed after a series!
 
 ;;;; Destroy the experiment (disconnects robots)
 (destroy *experiment*)
