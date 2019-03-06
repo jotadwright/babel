@@ -379,8 +379,8 @@ string will consist solely of decimal digits and ASCII letters."
 
 (export '(variablifly))
 
-(defun variablify (symbol)
+(defun variablify (symbol &key (package *package*))
   "Turn a symbol into a variable if it isn't one yet."
   (if (variable-p symbol)
     symbol
-    (intern (format nil "?~a" symbol))))
+    (intern (format nil "?~a" symbol) package)))
