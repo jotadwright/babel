@@ -1026,7 +1026,7 @@
             ((?appropriate-unit
               (referent ?a)
               (meaning ((appropriate ?a)
-                        (polarity ?a -)))
+                        (:polarity ?a -)))
               (syn-cat (lex-class adjective)
                        (number ?numb)
                        (syn-function ?func))
