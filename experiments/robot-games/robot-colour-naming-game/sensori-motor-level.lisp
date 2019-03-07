@@ -106,8 +106,8 @@
   "Choose a random topic from the context"
   (setf (topic agent) (random-elt (entities context)))
   (notify choose-topic-finished (topic agent))
-  (unless (and (get-configuration agent :simulation-mode)
-               (get-configuration agent :silent))
+  (unless (or (get-configuration agent :simulation-mode)
+              (get-configuration agent :silent))
     (speak (robot agent) "I chose the topic"))
   (topic agent))
 

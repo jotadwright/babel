@@ -28,7 +28,7 @@
 (run-interaction *experiment*)
 
 ;;;; Run a series of experiments
-(run-series *experiment* 50)  ;; note that the robot connection is closed after a series!
+(run-series *experiment* 20) ;; note that the robot connection is closed after a series!
 
 ;;;; Destroy the experiment (disconnects robots)
 (destroy *experiment*)
