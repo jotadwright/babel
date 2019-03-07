@@ -133,7 +133,8 @@
                  (id (observed-object speaker))))
       (notify success-determined success (topic speaker)))
     (setf (communicated-successfully speaker) success
-          (communicated-successfully hearer) success)
+          (communicated-successfully hearer) success
+          (communicated-successfully (current-interaction (experiment speaker))) success)
     success))
       
 
