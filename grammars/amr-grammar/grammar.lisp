@@ -341,7 +341,8 @@
                  (syn-cat (lex-class noun)
                           (number sg)
                           (nominalisation -)
-                          (syn-function nominal)))
+                          (syn-function nominal))
+                  (sem-cat (sem-class object)))
                <-
                (?bomb-unit
                 --
@@ -377,7 +378,8 @@
                  (referent ?ref)
                  (syn-cat (lex-class noun)
                           (number ?nb)
-                          (syn-function nominal)))
+                          (syn-function nominal))
+                  (sem-cat (sem-class object)))
                 (?pertainym-adjective-noun-unit
                  --
                  (HASH form ((meets ?adjective-unit ?noun-unit))))))
@@ -390,7 +392,7 @@
                          (number sg)
                          (nominalisation -)
                           (syn-function adjectival))
-                (sem-cat (sem-class object)))
+                (sem-cat (sem-class type)))
                <-
                (?atom-unit
                 --
@@ -413,13 +415,14 @@
                          (number sg)
                          (nominalisation -)
                          (syn-function adjectival))
-                (sem-cat (sem-class object)))
+                (sem-cat (sem-class type)))
                (?second-noun-unit
                 --
                 (referent ?ref)
                 (syn-cat (lex-class noun)
                          (number ?numb)
-                         (syn-function nominal)))
+                         (syn-function nominal))
+                (sem-cat (sem-class object)))
                (?compound-noun-noun-unit
                 --
                 (HASH form ((meets ?first-noun-unit ?second-noun-unit))))))
@@ -912,6 +915,35 @@
                 --
                 (HASH form ((string ?opined-unit "opined"))))))
 
+(def-fcg-cxn subject-verb-cxn
+             ((?subject-verb-unit
+               (meaning ((:arg0 ?o ?g)))
+               (subunits (?vp-unit ?subject-unit))
+               (referent ?o)
+               (syn-cat (phrase-type VP)))
+              <-
+              (?vp-unit
+               --
+               (referent ?o)
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (past-simple +)
+                        (phrase-type VP)))
+              (?subject-unit
+               --
+               (referent ?g)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (boundaries
+                (leftmost-unit ?subject-leftmost-unit)
+                (rightmost-unit ?subject-rightmost-unit)))
+              (?subject-verb-unit
+               --
+               (HASH form ((precedes ?subject-unit-rightmost-unitt ?vp-unit))))))
+
 (def-fcg-cxn arg1of-before-transitive-verb-cxn
              ((?arg1of-before-transitive-verb-unit
                (meaning ((:arg1-of ?t ?o)))
@@ -953,6 +985,16 @@
                 --
                 (HASH form ((string ?opinion-unit "opinion"))))))
 
+(def-fcg-cxn s-possessive-cxn
+             ((?s-possessive-unit
+               (referent ?g)
+               (syn-cat (syn-function ?func))
+               (sem-cat (sem-class possess)))
+              <-
+              (?s-possessive-unit
+               --
+               (HASH form ((string ?s-unit "'s"))))))
+
  (def-fcg-cxn genitive-possessor-cxn
              ((?genitive-possessor-unit
                (referent ?g)
@@ -981,16 +1023,6 @@
               (?genitive-possessor-unit
                --
                (HASH form ((precedes ?possessor-rightmost-unit ?possessed-unit))))))
-
-(def-fcg-cxn s-possessive-cxn
-             ((?s-possessive-unit
-               (referent ?g)
-               (syn-cat (syn-function ?func))
-               (sem-cat (sem-class possess)))
-              <-
-              (?s-possessive-unit
-               --
-               (HASH form ((string ?s-unit "'s"))))))
 
 (def-fcg-cxn marble-cxn
              ((?marble-unit
@@ -1365,7 +1397,10 @@
              ((?want-unit
                (referent ?w)
                (syn-cat (lex-class verb)
-                        (finite +))
+                        (finite +)
+                        (modal -)
+                        (phrase-type VP)
+                        (infinitif -))
                (meaning ((want-01 ?w))))
                <-
               (?want-unit
@@ -1377,6 +1412,7 @@
                (referent ?g)
                (syn-cat (lex-class verb)
                         (finite -)
+                        (modal -)
                         (phrase-type VP)
                         (infinitif +))
                (sem-valence (arg0 ?b))
@@ -1386,17 +1422,19 @@
                --
                (HASH form ((string ?go-unit "go"))))))
 
-(def-fcg-cxn arg0-verb-cxn ;;arg0 and not subject. arg0 of go is boy but not arg0 of want is boy 
-             ((?arg0-verb-unit
-               (meaning ((:arg0 ?verb ?subj)))
-               (subunits (?vp-unit ?subject-unit))
-               (referent ?ref))
+(def-fcg-cxn arg0-to-infinitif-cxn 
+             ((?arg0-to-infinitif
+               (meaning ((:arg0 ?w ?subj)))
+               (subunits (?V-to-infinitive-unit ?subject-unit))
+               (referent ?w))
               <-
-              (?vp-unit
+              (?V-to-infinitive-unit
                --
-               (referent ?verb)
+               (referent ?w)
                (syn-cat (lex-class verb)
                         (finite ?fin)
+                        (modal -)
+                        (infinitif ?inf)
                         (phrase-type VP)))
               (?subject-unit
                --
@@ -1408,7 +1446,7 @@
                (boundaries
                 (leftmost-unit ?subject-leftmost-unit)
                 (rightmost-unit ?subject-rightmost-unit)))
-              (?arg0-verb-unit
+              (?arg0-to-infinitif
                --
                (HASH form ((precedes ?subject-unit-rightmost-unit ?vp-unit))))))
 
