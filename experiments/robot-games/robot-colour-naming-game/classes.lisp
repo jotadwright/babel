@@ -170,6 +170,7 @@
 (define-configuration-default-value :cxn-decf-score 0.1)
 (define-configuration-default-value :alpha 0.1)
 (define-configuration-default-value :simulation-mode t)
+(define-configuration-default-value :trace-every-nth-interaction 100)
 
 ;; --------------------
 ;; + Experiment Class +

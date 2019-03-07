@@ -122,23 +122,29 @@
   (loop for agent in (interacting-agents interaction)
         do (add-element `((h3) ,(format nil "Agent ~a is the ~a"
                                         (id agent)
-                                        (downcase (discourse-role agent)))))))                
+                                        (downcase (discourse-role agent))))))
+  (add-element `((h3) ,(format nil "Running in ~a mode"
+                               (if (get-configuration experiment :simulation-mode)
+                                 "simulation" "robot"))))
+  (add-element '((hr))))
 
 (define-event-handler (trace-interaction-in-web-interface interaction-finished)
   (let ((speaker (speaker interaction))
         (hearer (hearer interaction))
         (i-number (interaction-number interaction)))
-    (when (get-data (ontology speaker) 'color-categories)
-      (add-element '((h3) "The speaker's ontology:"))
-      (add-element `((div) ,(lexicon->svg speaker i-number))))
-    (when (get-data (ontology hearer) 'color-categories)
-      (add-element '((h3) "The hearer's ontology:"))
-      (add-element `((div) ,(lexicon->svg hearer i-number)))))
-  (add-element '((hr)))
-  (add-element `((h2) "Interaction "
+    (add-element '((hr)))
+    (add-element `((h2) "Interaction "
                  ,(if (communicated-successfully interaction)
                     `((b :style "color:green") "succeeded")
-                    `((b :style "color:red") "failed")))))
+                    `((b :style "color:red") "failed"))))
+    (when (get-data (ontology speaker) 'color-categories)
+      (add-element `((h2) ,(format nil "The speaker's ontology after ~a interactions:"
+                                   (interaction-number interaction))))
+      (add-element `((div) ,(lexicon->svg speaker i-number))))
+    (when (get-data (ontology hearer) 'color-categories)
+      (add-element `((h2) ,(format nil "The hearer's ontology after ~a interactions:"
+                                   (interaction-number interaction))))
+      (add-element `((div) ,(lexicon->svg hearer i-number))))))
 
 (define-event-handler (trace-interaction-in-web-interface observe-scene-finished)
   (let ((source-path (babel-pathname :directory '(".tmp" "nao-img")
@@ -165,28 +171,37 @@
             ((td :align "center") ,(make-html context :expand-initially t)))))))))
 
 (define-event-handler (trace-interaction-in-web-interface choose-topic-finished)
-  (add-element `((h3) "The speaker chooses " ((i) ,(format nil "~a" (id topic))) " as the topic.")))
+  (add-element `((h2) "The speaker chooses " ((i) ,(format nil "~a" (id topic))) " as the topic")))
 
 (define-event-handler (trace-interaction-in-web-interface new-category-created)
-  (add-element '((h3) "A new color category is created"))
+  (add-element '((h2) "A new color category is created"))
   (add-element (make-html category :expand-initially t)))
 
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-started)
-  (add-element '((h3) "The speaker tries to conceptualise the topic...")))
+  (add-element '((h2) "The speaker tries to conceptualise the topic")))
 
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-failed)
-  (add-element '((h3) "The speaker could not conceptualise the topic")))
+  (add-element '((h2 :style "color:red") "Conceptualisation failed")))
 
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-succeeded)
+  (add-element '((h2 :style "color:green") "Conceptualisation succeeded"))
   (add-element `((h3) "The speaker conceptualises the topic using " ((i) ,(format nil "~a" (id category)))))
   (add-element (make-html category :expand-initially t))
+  (add-element '((h3) "Meaning representation:"))
   (add-element (irl-program->svg irl-program)))
 
 (define-event-handler (trace-interaction-in-web-interface new-cxn-created)
-  (add-element '((h3) "A new construction is created"))
+  (add-element '((h2) "A new construction is created"))
   (add-element (make-html cxn)))
 
+(define-event-handler (trace-interaction-in-web-interface production-started)
+  (add-element '((h2) "The speaker tries to formulate")))
+
+(define-event-handler (trace-interaction-in-web-interface production-failed)
+  (add-element '((h2 :style "color:red") "Formulation failed")))
+
 (define-event-handler (trace-interaction-in-web-interface production-succeeded)
+  (add-element '((h2 :style "color:green") "Formulation succeeded"))
   (add-element `((h3) "The speaker utters the word " ((i) ,(format nil "\"~a\"" utterance))))
   (add-element (make-html cxn)))
 
@@ -195,22 +210,30 @@
   (add-element `((h2) ,(format nil "The utterance \"~a\" is passed from speaker to hearer" utterance)))
   (add-element '((hr))))
 
+(define-event-handler (trace-interaction-in-web-interface parsing-started)
+  (add-element '((h2) "The hearer tries to parse the utterance")))
+
 (define-event-handler (trace-interaction-in-web-interface parsing-failed)
-  (add-element '((h3) "The hearer could not parse the utterance")))
+  (add-element '((h2 :style "color:red") "Parsing failed"))
+  (add-element `((h3) "The hearer does not know the word " ((i) ,(format nil "~a" (utterance agent))))))
 
 (define-event-handler (trace-interaction-in-web-interface parsing-succeeded)
-  (add-element '((h3) "The hearer parsed the utterance"))
+  (add-element '((h2 :style "color:green") "Parsing succeeded"))
+  (add-element '((h3) "The hearer could parse the utterance:"))
   (add-element (make-html cxn))
+  (add-element '((h3) "Meaning representation:"))
   (add-element (irl-program->svg irl-program)))
 
 (define-event-handler (trace-interaction-in-web-interface interpretation-started)
-  (add-element `((h3) ,(format nil "The hearer tries to interpret the utterance using ~a" (id category))))
+  (add-element `((h2) ,(format nil "The hearer tries to interpret the utterance using ~a" (id category))))
   (add-element (make-html category :expand-initially t)))
 
 (define-event-handler (trace-interaction-in-web-interface interpretation-failed)
-  (add-element '((h3) "The hearer could not interpret the utterance")))
+  (add-element '((h2 :style "color:red") "Interpretation failed"))
+  (add-element '((h3) "The hearer could not find a unique topic")))
 
 (define-event-handler (trace-interaction-in-web-interface interpretation-succeeded)
+  (add-element '((h2 :style "color:green") "Interpretation succeeded"))
   (add-element `((h3) ,(format nil "The hearer points to ~a as the topic" (id topic)))))
 
 (define-event-handler (trace-interaction-in-web-interface cxn-rewarded)
@@ -222,20 +245,35 @@
   (add-element (make-html cxn)))
 
 (define-event-handler (trace-interaction-in-web-interface discriminating-category-found)
-  (add-element '((h3) "The hearer found a discriminating category"))
+  (add-element '((h2) "The hearer found a discriminating category"))
+  (add-element (make-html category :expand-initially t)))
+
+(define-event-handler (trace-interaction-in-web-interface new-category-created-adoption)
+  (add-element '((h2) "The hearer could not find a discriminating category"))
+  (add-element '((h2) "A new color category is created"))
   (add-element (make-html category :expand-initially t)))
 
 (define-event-handler (trace-interaction-in-web-interface adoption-started)
-  (add-element '((h3) "The hearer needs to learn"))
-  (add-element '((h3) "The hearer looks for a discriminating color category")))
+  (add-element '((h2) "The hearer will learn a new word"))
+  (add-element '((h2) "The hearer looks for a discriminating color category")))
 
 (define-event-handler (trace-interaction-in-web-interface adoption-finished)
-  (add-element '((h3) "The hearer adopted a new word"))
+  (add-element '((h2) "The hearer adopted a new word"))
   (add-element (make-html cxn)))
 
 (define-event-handler (trace-interaction-in-web-interface alignment-started)
-  (add-element `((h3) ,(format nil "The ~a started alignment"
+  (add-element '((hr)))
+  (add-element `((h2) ,(format nil "The ~a started alignment"
+                               (downcase (discourse-role agent))))))
+
+(define-event-handler (trace-interaction-in-web-interface alignment-finished)
+  (add-element `((h2) ,(format nil "The ~a finished alignment"
                                (downcase (discourse-role agent))))))
 
 (define-event-handler (trace-interaction-in-web-interface category-shifted)
   (add-element `((h3) ,(format nil "The agent shifted ~a" (id category)))))
+
+(define-event-handler (trace-interaction-in-web-interface success-determined)
+  (if success
+    (add-element '((h2) "This is correct. The speaker nods"))
+    (add-element `((h2) ,(format nil "This is wrong. The speaker points to ~a" (id topic))))))

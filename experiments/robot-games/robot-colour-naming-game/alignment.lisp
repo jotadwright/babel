@@ -92,6 +92,7 @@
 
 (define-event adoption-started)
 (define-event adoption-finished (cxn fcg-construction))
+(define-event new-category-created-adoption (category color-category))
 
 (defmethod adopt ((agent grounded-color-naming-game-agent)
                   (correct-topic sensory-object))
@@ -104,7 +105,7 @@
         new-cxn)
     (unless discriminating-color-category
       (setf discriminating-color-category (make-color-category correct-topic))
-      (notify new-category-created discriminating-color-category)
+      (notify new-category-created-adoption discriminating-color-category)
       (unless (or (get-configuration agent :simulation-mode)
                   (get-configuration agent :silent))
         (speak (robot agent) "I created a new color category"))
@@ -121,6 +122,7 @@
 ;; -------------
 
 (define-event alignment-started (agent grounded-color-naming-game-agent))
+(define-event alignment-finished (agent grounded-color-naming-game-agent))
   
 (defmethod align-agent ((agent grounded-color-naming-game-agent) correct-topic)
   "If the interaction was a success, the agents shift their
@@ -141,4 +143,6 @@
         (punish-applied-cxn agent (applied-cxn agent)))
       (when (and (hearerp agent)
                  (null (applied-cxn agent)))
-        (adopt agent correct-topic)))))
+        (notify alignment-started agent)
+        (adopt agent correct-topic))))
+  (notify alignment-finished agent))

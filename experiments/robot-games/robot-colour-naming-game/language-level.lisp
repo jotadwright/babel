@@ -77,11 +77,14 @@
 ;; + Production +
 ;; --------------
 
+(define-event production-started (agent grounded-color-naming-game-agent))
+(define-event production-failed (agent grounded-color-naming-game-agent))
 (define-event production-succeeded (cxn fcg-construction) (utterance string))
 
 (defmethod produce-utterance ((agent grounded-color-naming-game-agent)
                               (irl-program list))
   "Produce a word for the color category associated with the topic"
+  (notify production-started agent)
   (multiple-value-bind (utterance cipn)
       (formulate (fcg::instantiate-variables irl-program)
                  :cxn-inventory (grammar agent))
@@ -94,7 +97,8 @@
           (speak (robot agent)
                  (format nil "I call the topic ~a"
                          (first utterance)))))
-      (progn (invent agent irl-program)
+      (progn (notify production-failed agent)
+        (invent agent irl-program)
         (produce-utterance agent irl-program))))
   (utterance agent))
 
@@ -115,12 +119,14 @@
 ;; + Comprehension +
 ;; -----------------
 
+(define-event parsing-started (utterance string))
 (define-event parsing-succeeded (cxn fcg-construction) (irl-program list))
-(define-event parsing-failed)
+(define-event parsing-failed (agent grounded-color-naming-game-agent))
 
 (defmethod comprehend-utterance ((agent grounded-color-naming-game-agent)
                                  (utterance string))
   "Comprehend the utterance from the speaker"
+  (notify parsing-started utterance)
   (multiple-value-bind (irl-program cipn)
       (comprehend (list utterance) :cxn-inventory (grammar agent))
     (if irl-program
@@ -133,6 +139,6 @@
       (progn (unless (or (get-configuration agent :simulation-mode)
                          (get-configuration agent :silent))
                (speak (robot agent) "I could not parse the utterance"))
-          (notify parsing-failed))))
+          (notify parsing-failed agent))))
   (applied-cxn agent))
 

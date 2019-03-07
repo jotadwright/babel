@@ -11,6 +11,25 @@
         (irl-program agent) nil
         (observed-object agent) nil))
 
+(defmethod interact :around ((experiment grounded-color-naming-game-experiment)
+                             interaction &key)
+  (when (and (get-configuration experiment :trace-every-nth-interaction)
+             (or (= (interaction-number interaction) 1)
+                 (= 0 (mod (interaction-number interaction)
+                           (get-configuration experiment :trace-every-nth-interaction)))))
+      (activate-monitor trace-fcg)
+      ;(activate-monitor trace-irl-in-web-browser)
+      (activate-monitor trace-interaction-in-web-interface))
+  (call-next-method)
+  (when (and (get-configuration experiment :trace-every-nth-interaction)
+             (or (= (interaction-number interaction) 1)
+                 (= 0 (mod (interaction-number interaction)
+                           (get-configuration experiment :trace-every-nth-interaction)))))
+      (deactivate-monitor trace-fcg)
+      ;(deactivate-monitor trace-irl-in-web-browser)
+      (deactivate-monitor trace-interaction-in-web-interface)
+      (deactivate-all-monitors)))
+  
 (defmethod interact :before ((experiment grounded-color-naming-game-experiment)
                              interaction &key)
   "Prepare the interaction"
@@ -23,6 +42,7 @@
 
 (defmethod interact ((experiment grounded-color-naming-game-experiment)
                      interaction &key)
+  (notify interaction-started experiment interaction (interaction-number interaction))
   (let ((speaker (speaker interaction))
         (hearer (hearer interaction)))
     ;; 1
@@ -51,4 +71,5 @@
       (point-and-observe speaker (topic speaker) hearer))
     ;; 11
     (align-agent speaker (topic speaker))
-    (align-agent hearer (topic speaker))))
+    (align-agent hearer (topic speaker))
+    (notify interaction-finished experiment interaction (interaction-number interaction))))

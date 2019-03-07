@@ -2,7 +2,7 @@
 
 ;;;; To evaluate an expression in Emacs, first place your cursor
 ;;;; at the closing parenthesis of the expression. Next, do
-;;;; C-x C-f. 
+;;;; C-x C-f.
 
 ;;;; Load the system
 (ql:quickload :grounded-colour-naming-game-experiment)
@@ -29,6 +29,9 @@
 
 ;;;; Run a series of experiments
 (run-series *experiment* 20) ;; note that the robot connection is closed after a series!
+
+(create-static-html-page "Grounded Colour Naming Game Experiment"
+  (run-series *experiment* 1000))
 
 ;;;; Destroy the experiment (disconnects robots)
 (destroy *experiment*)

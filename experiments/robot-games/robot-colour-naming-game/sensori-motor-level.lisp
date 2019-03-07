@@ -82,7 +82,8 @@
     (if (get-configuration agent :simulation-mode)
       (if (speakerp agent)
         (progn (setf (context agent) (random-simulated-scene context-size))
-          (set-data (ontology agent) 'context (context agent)))
+          (set-data (ontology agent) 'context (context agent))
+          (notify observe-scene-finished (context agent) nil agent))
         (let ((speaker-context (context (speaker interaction))))
           (setf (context agent) speaker-context)
           (set-data (ontology agent) 'context speaker-context)))
@@ -118,6 +119,8 @@
 (defun sort-on-x-axis (objects)
   (sort objects #'< :key #'x-pos))
 
+(define-event success-determined (success t) (topic sensory-object))
+
 (defmethod determine-success ((speaker grounded-color-naming-game-agent)
                               (hearer grounded-color-naming-game-agent))
   "Determine the success of the interaction"
@@ -127,7 +130,8 @@
                (observed-object speaker))
       (setf success
             (eql (id (topic speaker))
-                 (id (observed-object speaker)))))
+                 (id (observed-object speaker))))
+      (notify success-determined success (topic speaker)))
     (setf (communicated-successfully speaker) success
           (communicated-successfully hearer) success)
     success))
