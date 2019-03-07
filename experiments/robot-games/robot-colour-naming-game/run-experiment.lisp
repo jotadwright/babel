@@ -15,6 +15,8 @@
   (activate-monitor trace-fcg)
   (activate-monitor trace-irl-in-web-browser)
   (activate-monitor trace-interaction-in-web-interface))
+
+;;;; Deactivate all monitors
 (deactivate-all-monitors)
 
 ;;;; Open your browser at localhost:8000

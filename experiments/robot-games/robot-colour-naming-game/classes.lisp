@@ -44,12 +44,12 @@
   (find id (entities set) :key #'id))
 
 (defparameter *basic-colors*
-  '((0 0 255)
-    (0 255 0)
-    (255 0 0)
-    (255 255 0)
-    (0 255 255)
-    (255 0 255)))
+  '((0 0 254)
+    (0 254 0)
+    (254 0 0)
+    (254 254 0)
+    (0 254 254)
+    (254 0 254)))
 
 (defun random-simulated-scene (size)
   (let* ((colors (random-elts *basic-colors* size))
@@ -57,7 +57,7 @@
                              collect (loop for channel in color
                                            for fn = (random-elt (list #'+ #'-))
                                            for noise = (random-from-range 0 10)
-                                           collect (max 0 (min 255 (funcall fn noise channel)))))))
+                                           collect (max 0 (min 254 (funcall fn channel noise)))))))
     (make-instance 'sensory-object-set
                    :id 'context
                    :entities (loop for color in noisy-colors
