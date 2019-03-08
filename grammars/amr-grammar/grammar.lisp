@@ -863,14 +863,14 @@
 
 (def-fcg-cxn subject-verb-cxn
              ((?subject-verb-unit
-               (meaning ((:arg0 ?o ?g)))
+               (meaning ((:arg0 ?verb ?subj)))
                (subunits (?vp-unit ?subject-unit))
                (referent ?o)
                (syn-cat (phrase-type VP)))
               <-
               (?vp-unit
                --
-               (referent ?o)
+               (referent ?verb)
                (syn-cat (lex-class verb)
                         (finite +)
                         (modal ?mod)
@@ -878,11 +878,10 @@
                         (phrase-type VP)))
               (?subject-unit
                --
-               (referent ?g)
+               (referent ?subj)
                (syn-cat (phrase-type NP)
                         (number sg)
                         (person 3)
-                        (transitive +)
                         (syn-function ?func))
                (boundaries
                 (leftmost-unit ?subject-leftmost-unit)
