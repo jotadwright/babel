@@ -1141,7 +1141,7 @@
 (def-fcg-cxn girls-morph-cxn
              ((?girls-unit
                (referent ?g)
-               (meaning ((girls ?g)))
+               (meaning ((girl ?g)))
                (syn-cat (lex-class noun)
                         (number pl)
                         (lex-id girl)
@@ -1331,8 +1331,6 @@
                 --
                 (HASH form ((string ?feared-unit "feared"))))))
 
-;;'((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
-
 (def-fcg-cxn battle-cxn
              ((?battle-unit
                (referent ?b)
@@ -1381,7 +1379,7 @@
                (syn-cat (lex-class noun)
                         (number sg)
                         (syn-function ?func))
-               (sem-class (sem-cat referred-expression)))
+               (sem-cat (sem-class agent)))
                <-
                (?woman-unit
                 --
@@ -1395,7 +1393,7 @@
                         (number sg)
                         (syn-function ?func)
                         (person 3))
-              (sem-class (sem-cat profession)))
+              (sem-cat (sem-class predicative)))
                <-
                (?lawyer-unit
                 --
@@ -1403,42 +1401,42 @@
 
 (def-fcg-cxn np-np-predicative-cxn 
              ((?np-np-predicative-unit
-               (subunits (?vp-unit ?np-1-unit ?np-2-unit))
+               (subunits (?vp-unit ?np-a-unit ?np-pr-unit))
                (meaning ((:domain ?l ?w)))
-               (boundaries (leftmost ?np-1-leftmost-unit)
-                           (rightmost ?np-2-rightmost-unit))
-               (referent ?w))
+               (boundaries (leftmost-unit ?leftmost-np-a-unit)
+                           (rightmost-unit ?rightmost-np-pr-unit)))
               <-
               (?vp-unit
                --
-               (referent ?is)
                (syn-cat (lex-class verb)
                         (is-copular +)
-                        (phrase-type vp)))
-              (?np-1-unit
+                        (phrase-type VP)))
+              (?np-a-unit
                --
                (referent ?w)
                (syn-cat (phrase-type NP)
                         (number sg)
                         (person 3)
                         (syn-function ?func))
-               (sem-class (sem-cat referred-expression))
-               (boundaries (leftmost-unit ?np-1-leftmost-unit)
-                           (rightmost-unit ?np-1-rightmost-unit)))
-              (?np-2-unit
+               (sem-cat (sem-class agent))
+               (boundaries
+                (leftmost-unit ?leftmost-np-a-unit)
+                (rightmost-unit ?rightmost-np-a-unit)))
+              (?np-pr-unit
                --
                (referent ?l)
                (syn-cat (phrase-type NP)
                         (number sg)
                         (person 3)
                         (syn-function ?func))
-               (sem-class (sem-cat profession))
-               (boundaries (leftmost-unit ?np-2-leftmost-unit)
-                           (rightmost-unit ?np-2-rightmost-unit)))
-              (?noun-noun-predicative-unit
+               (sem-cat (sem-class predicative))
+               (boundaries
+                (rightmost-unit ?rightmost-np-pr-unit)
+                (leftmost-unit ?leftmost-np-pr-unit)))
+              (?np-np-predicative-unit
                --
-               (HASH form ((precedes ?np-1-unit ?vp-unit )
-                           (precedes ?vp-unit ?np-2-unit))))))
+               (HASH form ((precedes ?rightmost-np-a-unit ?vp-unit )
+                           (precedes ?vp-unit ?leftmost-np-pr-unit))))))
 
 (def-fcg-cxn want-cxn
              ((?want-unit
