@@ -861,35 +861,6 @@
                 --
                 (HASH form ((string ?opined-unit "opined"))))))
 
-(def-fcg-cxn subject-verb-cxn
-             ((?subject-verb-unit
-               (meaning ((:arg0 ?verb ?subj)))
-               (subunits (?vp-unit ?subject-unit))
-               (referent ?o)
-               (syn-cat (phrase-type VP)))
-              <-
-              (?vp-unit
-               --
-               (referent ?verb)
-               (syn-cat (lex-class verb)
-                        (finite +)
-                        (modal ?mod)
-                        (transitive ?trans)
-                        (phrase-type VP)))
-              (?subject-unit
-               --
-               (referent ?subj)
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (syn-function ?func))
-               (boundaries
-                (leftmost-unit ?subject-leftmost-unit)
-                (rightmost-unit ?subject-rightmost-unit)))
-              (?subject-verb-unit
-               --
-               (HASH form ((precedes ?subject-unit-rightmost-unitt ?vp-unit))))))
-
 (def-fcg-cxn arg1of-before-transitive-verb-cxn
              ((?arg1of-before-transitive-verb-unit
                (meaning ((:arg1-of ?t ?o)))
@@ -1407,6 +1378,35 @@
                (HASH form ((precedes ?rightmost-np-a-unit ?vp-unit )
                            (precedes ?vp-unit ?leftmost-np-pr-unit))))))
 
+(def-fcg-cxn subject-verb-cxn
+             ((?subject-verb-unit
+               (meaning ((:arg0 ?verb ?subj)))
+               (subunits (?vp-unit ?subject-unit))
+               (referent ?o)
+               (syn-cat (phrase-type VP)))
+              <-
+              (?vp-unit
+               --
+               (referent ?verb)
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal ?mod)
+                        (transitive ?trans)
+                        (phrase-type VP)))
+              (?subject-unit
+               --
+               (referent ?subj)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (boundaries
+                (leftmost-unit ?subject-leftmost-unit)
+                (rightmost-unit ?subject-rightmost-unit)))
+              (?subject-verb-unit
+               --
+               (HASH form ((precedes ?subject-unit-rightmost-unitt ?vp-unit))))))
+
 (def-fcg-cxn want-cxn
              ((?want-unit
                (referent ?w)
@@ -1414,7 +1414,8 @@
                         (finite +)
                         (modal -)
                         (phrase-type VP)
-                        (to-infinitif +))
+                        (to-infinitif +)
+                        (transitive +))
                (meaning ((want-01 ?w))))
                <-
               (?want-unit
@@ -1440,8 +1441,11 @@
              ((?V-infinitive-unit
               (meaning ((:arg1 ?verb ?inf)))
               (subunits (?finite-verb-unit ?infinitif-unit))
-              (referent ?ref)
-              (syn-cat (phrase-type VP)))
+              (referent ?verb)
+              (syn-cat (phrase-type VP))
+              (boundaries
+               (leftmost-unit ?finite-verb-unit)
+               (rightmost-unit ?infinitif-unit)))
               <-
               (?finite-verb-unit
                --
@@ -1462,22 +1466,24 @@
               --
               (HASH form ((precedes ?finite-verb-unit ?infinitif))))))
 
-(def-fcg-cxn subject-verb-infinitive-cxn
-             ((?subject-verb-infinitive-unit
-               (meaning ((:arg0 ?verb ?b)))
-               (subunits (?V-infinitive-unit ?subject-unit))
-               (boundaries (leftmost-unit ?subject-leftmost-unit)
-                           (rightmost-unit ?V-infinitive-rightmost-unit))
-               (referent ?b))
-               <-
-              (?V-infinitive-unit
+;;'((WANT-01 W) (BOY B) (GO-01 G) (:ARG0 W B) (:ARG1 W G) (:ARG0 G B)))
+
+(def-fcg-cxn subject-infinitif-cxn
+             ((?subject-infinitif-unit
+               (meaning ((:arg0 ?inf ?b)))
+               (referent ?b)
+               (subunits (?infinitif-unit ?np-unit))
+               (boundaries (leftmost-unit ?np-leftmost-unit)
+                           (rightmost-unit ?infinitif-unit)))
+              <-
+              (?infinitif-unit
                --
-               (referent ?verb)
-               (syn-cat (phrase-type VP))
-               (boundaries
-                (leftmost-unit ?V-infinitive-leftmost-unit)
-                (rightmost-unit ?V-infinitive-rightmost-unit)))
-              (?subject-unit
+              (referent ?inf)
+              (syn-cat (lex-class verb)
+                       (finite -)
+                        (infinitif +)
+                        (phrase-type VP)))
+              (?np-unit
                --
                (referent ?b)
                (syn-cat (phrase-type NP)
@@ -1485,11 +1491,12 @@
                         (person 3)
                         (syn-function ?func))
                (boundaries
-                (leftmost-unit ?subject-leftmost-unit)
-                (rightmost-unit ?subject-rightmost-unit)))
-              (?subject-verb-infinitive-unit
+                (leftmost-unit ?np-leftmost-unit)
+                (rightmost-unit ?np-rightmost-unit)))
+              (?subject-infinitif-unit
                --
-               (HASH form ((precedes ?subject-leftmost-unit ?V-infinitive-rightmost-unit))))))
+               (HASH form ((precedes ?np-rightmost-unit ?infinitif-unit))))))
+              
 
  (def-fcg-cxn Mollie-cxn
               ((?Mollie-unit
@@ -1703,58 +1710,37 @@
 )
 
 #|
- '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
+
  
-'((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
-agr1 p g da togliere
-
-
- (def-fcg-cxn Mollie-cxn
-              ((?Mollie-unit
-                (referent ?p)
-                (meaning ((person ?p)
-                          (name ?n)
-                          (:name ?p ?n)
-                          (:op1 ?n "Mollie")))
-                (sem-valence (name ?n))
-                (sem-cat (sem-class person))
-                (syn-cat (lex-class proper-noun)
-                         (syn-function nominal)))
+(def-fcg-cxn subject-verb-infinitive-cxn
+             ((?subject-verb-infinitive-unit
+               (meaning ((:arg0 ?verb ?b)))
+               (subunits (?V-infinitive-unit ?np-unit))
+               (boundaries (leftmost-unit ?np-leftmost-unit)
+                           (rightmost-unit ?V-infinitive-rightmost-unit))
+               (referent ?b))
                <-
-               (?Mollie-unit
-                --
-                (HASH form ((string ?Mollie-unit "Mollie"))))))
+              (?V-infinitive-unit
+               --
+               (referent ?verb)
+               (syn-cat (phrase-type VP))
+               (boundaries
+                (leftmost-unit ?V-infinitive-leftmost-unit)
+                (rightmost-unit ?V-infinitive-rightmost-unit)))
+              (?np-unit
+               --
+               (referent ?b)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (boundaries
+                (leftmost-unit ?np-leftmost-unit)
+                (rightmost-unit ?np-rightmost-unit)))
+              (?subject-verb-infinitive-unit
+               --
+               (HASH form ((precedes ?np-rightmost-unit ?V-infinitive-rightmost-unit))))))
 
- (def-fcg-cxn Brown-last-name-cxn
-              ((?named-entity-unit
-                (subunits (?brown-unit ?first-name-unit))
-                (referent ?p)
-                 (syn-cat (phrase-type NP)
-                          (named-entity-type person))
-                (meaning ((:op2 ?m "Brown"))))
-               (?brown-unit
-                (referent ?m)
-                (meaning ((:op2 ?m "Brown")))
-                (sem-cat (sem-class person))
-                (syn-cat (lex-class proper-noun)
-                         (syn-function nominal)))
-               <-
-               (?first-name-unit
-                --
-                (referent ?p)
-                (sem-valence (name ?m))
-                (sem-cat (sem-class person)))
-               (?brown-unit
-                --
-                (HASH form ((string ?brown-unit "Brown"))))
-               (?named-entity-unit
-                --
-                (HASH form ((meets ?first-name-unit ?brown-unit))))))
-
-(def-fcg-cxn infinitif-arg0-cxn
-          ((?infinitif-arg0-unit
-            (meaning ((:arg0 ?g
-                       
 (def-fcg-cxn arg0-to-infinitif-cxn 
              ((?arg0-to-infinitif
                (meaning ((:arg0 ?main-verb ?subj)))
@@ -1837,7 +1823,36 @@ agr1 p g da togliere
                --
               (HASH form ((precedes ?vp-unit ?direct-object-unit))))))
 
-'((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
+(def-fcg-cxn subject-want-cxn
+         ((?subject-want-unit
+           (referent ?b)
+           (meaning ((:arg0 ?w ?b)))
+           (subunits (?want-unit ?np-unit))
+           (boundaries (leftmost-unit ?np-leftmost-unit)
+                       (rightmost-unit ?want-unit)))
+          <-
+          (?want-unit
+          --
+          (referent ?w)
+          (syn-cat (lex-class verb)
+                   (finite +)
+                   (modal -)
+                   (phrase-type VP)
+                   (to-infinitif +)
+                   (transitive +)))
+          (?np-unit
+           --
+           (referent ?b)
+           (syn-cat (phrase-type NP)
+                    (number sg)
+                    (person 3)
+                    (syn-function ?func))
+           (boundaries
+            (leftmost-unit ?np-leftmost-unit)
+            (rightmost-unit ?np-rightmost-unit)))
+           (?subject-want-unit
+            --
+           (HASH form ((precedes ?np-rightmost-unit ?want-unit))))))
 
 
 |#
