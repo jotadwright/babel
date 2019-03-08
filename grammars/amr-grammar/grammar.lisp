@@ -981,6 +981,44 @@
                --
                (HASH form ((string ?s-unit "'s"))))))
 
+(def-fcg-cxn girl-lex-cxn
+             ((?girl-unit
+               (referent ?g)
+               (meaning ((girl ?g)))
+               (syn-cat (lex-class noun)
+                        (number ?numb)
+                        (syn-function ?func)))
+              <-
+              (?girl-unit
+               (lex-id girl))))
+ 
+(def-fcg-cxn girl-morph-cxn
+             ((?girl-unit
+               (referent ?g)
+               (meaning ((girl ?g)))
+               (lex-id girl)
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (syn-function ?func)))
+              <-
+              (?girl-unit
+               --
+               (HASH form ((string ?girl-unit "girl"))))))
+                  
+(def-fcg-cxn girls-morph-cxn
+             ((?girls-unit
+               (referent ?g)
+               (lex-id girl)
+               (meaning ((girl ?g)))
+               (syn-cat (lex-class noun)
+                        (number pl)
+                        (syn-function ?func))
+               (sem-cat (sem-class arg1)))
+              <-
+              (?girls-unit
+               --
+               (HASH form ((string ?girls-unit "girls"))))))
+
  (def-fcg-cxn genitive-possessor-cxn
              ((?genitive-possessor-unit
                (referent ?g)
@@ -988,27 +1026,29 @@
                (syn-cat (syn-function ?func))
                (subunits (?possessor-unit ?possessed-unit))
                (boundaries (rightmost-unit ?possessor-rightmost-unit)
-                           (leftmost-unit ?possessor-unit)))
+                           (leftmost-unit ?possessor-leftmost-unit)))
               <-
-              (?possessor-unit
+              (?np-possessor-unit
                (referent ?g)
                --
                (syn-cat (phrase-type NP)
                         (number sg)
                         (person 3)
                         (syn-function ?func))
-               (boundaries (leftmost-unit ?np-leftmost-unit)
-                           (rightmost-unit ?np-rightmost-unit)))
-              (?possessed-unit
+               (boundaries (leftmost-unit ?possessor-leftmost-unit)
+                           (rightmost-unit ?possessor-rightmost-unit)))
+              (?np-possessed-unit
                (referent ?o)
                --
                (syn-cat (lex-class noun)
                         (number sg)
                         (syn-function ?func))
-               (sem-class (sem-cat possessed)))
+               (sem-class (sem-cat possessed))
+               (boundaries (leftmost-unit ?possessed-leftmost-unit)
+                           (rightmost-unit ?possessed-rightmost-unit)))
               (?genitive-possessor-unit
                --
-               (HASH form ((precedes ?possessor-rightmost-unit ?possessed-unit))))))
+               (HASH form ((precedes ?possessor-rightmost-unit ?possessed-leftmost-unit))))))
 
 (def-fcg-cxn marble-cxn
              ((?marble-unit
@@ -1129,8 +1169,8 @@
              ((?girl-unit
                (referent ?g)
                (meaning ((girl ?g)))
+               (lex-id girl)
                (syn-cat (lex-class noun)
-                        (lex-id girl)
                         (number sg)
                         (syn-function ?func)))
               <-
@@ -1141,14 +1181,14 @@
 (def-fcg-cxn girls-morph-cxn
              ((?girls-unit
                (referent ?g)
+               (lex-id girl)
                (meaning ((girl ?g)))
                (syn-cat (lex-class noun)
                         (number pl)
-                        (lex-id girl)
                         (syn-function ?func))
                (sem-cat (sem-class arg1)))
               <-
-              (?girl-unit
+              (?girls-unit
                --
                (HASH form ((string ?girls-unit "girls"))))))
 
