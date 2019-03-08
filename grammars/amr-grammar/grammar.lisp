@@ -988,10 +988,10 @@
                (meaning ((:arg0 ?o ?g)))
                (syn-cat (syn-function ?func))
                (subunits (?possessor-unit ?possessed-unit))
-               (boundaries (rightmost-unit ?np-rightmost-unit)
-                           (leftmost-unit ?np-unit)))
+               (boundaries (rightmost-unit ?possessor-rightmost-unit)
+                           (leftmost-unit ?possessor-unit)))
               <-
-              (?np-unit
+              (?possessor-unit
                (referent ?g)
                --
                (syn-cat (phrase-type NP)
