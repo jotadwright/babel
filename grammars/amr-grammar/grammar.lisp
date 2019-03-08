@@ -832,7 +832,6 @@
                --
                (HASH form ((precedes ?subject-unit-leftmost-unit ?vp-unit-rightmost-unit))))))
 
-
 (def-fcg-cxn what-cxn 
              ((?what-unit
                (referent ?t)
@@ -895,8 +894,7 @@
                         (number sg)
                         (person 3)
                         (phrase-type nominal)
-                        (syn-function ?func))
-              (sem-class (sem-cat possessed)))
+                        (syn-function ?func)))
                <-
                (?opinion-unit
                 --
@@ -904,13 +902,91 @@
 
 (def-fcg-cxn s-possessive-cxn
              ((?s-possessive-unit
-               (referent ?g)
                (syn-cat (syn-function ?func))
                (sem-cat (sem-class possess)))
               <-
               (?s-possessive-unit
                --
                (HASH form ((string ?s-unit "'s"))))))
+
+(def-fcg-cxn of-cxn
+               ((?of-unit
+                 (syn-cat (lex-class preposition)
+                          (phrase-type PP)))
+                <-
+                (?of-unit
+                 --
+                 (HASH form ((string ?of-unit "of"))))))
+
+(def-fcg-cxn x-s-y-cxn
+             ((?possessive-unit
+               (referent ?g)
+                (meaning ((:arg0 ?o ?g)))
+                (subunits (?np-x-unit ?np-y-unit ?apo-s-unit))
+                (boundaries (leftmost-unit ?np-x-unit-leftmost)
+                            (rightmost-unit ?np-y-unit)))
+               <-
+               (?np-x-unit
+               --
+               (referent ?g)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (sem-cat (sem-class possessor))
+               (boundaries
+                (leftmost-unit ?np-x-unit-leftmost)
+                (rightmost-unit ?np-x-unit-rightmost)))
+               (?np-y-unit
+               --
+               (referent ?o)
+               (syn-cat (number sg)
+                        (person 3)
+                        (syn-function ?func)))
+               (?apo-s-unit
+                --
+               (HASH form ((string ?apo-s-unit "'s"))))
+               (?possessive-unit
+                --
+                (HASH form ((meets ?np-x-unit-rightmost ?apo-s-unit ?np-y-unit))))))
+
+(def-fcg-cxn y-of-x-cxn
+             ((?possessive2-unit
+               (referent ?g)
+               (meaning ((:arg0 ?o ?g)))
+                (subunits (?np-x-unit ?np-y-unit ?of-unit))
+                (boundaries (leftmost-unit ?np-x-unit-leftmost)
+                            (rightmost-unit ?np-y-unit-rightmost)))
+               <-
+               (?np-x2-unit
+               --
+               (referent ?g)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (sem-cat (sem-class possessor))
+               (boundaries
+                (leftmost-unit ?np-x-unit-leftmost)
+                (rightmost-unit ?np-x-unit-rightmost)))
+               (?np-y1-unit
+               --
+               (referent ?o)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (sem-cat (sem-class possessor))
+               (boundaries
+                (leftmost-unit ?np-y-unit-leftmost)
+                (rightmost-unit ?np-y-unit-rightmost)))
+               (?of-unit
+                --
+                (HASH form ((string ?of-unit "of"))))
+               (?possessive2-unit
+                --
+                (HASH form ((precedes ?np-x-unit-rightmost ?of-unit)
+                            (precedes ?of-unit ?np-y-unit-rightmost))))))
 
 (def-fcg-cxn girl-lex-cxn
              ((?girl-unit
@@ -950,71 +1026,6 @@
               (?girls-unit
                --
                (HASH form ((string ?girls-unit "girls"))))))
-
-(def-fcg-cxn genitive-possessor-cxn
-             ((?genitive-possessor-unit
-               (referent ?g)
-               (meaning ((:arg0 ?o ?g)))
-               (syn-cat (syn-function ?func))
-               (subunits (?np-possessor-unit ?possessed-unit))
-               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
-                           (rightmost-unit ?possessed-unit)))
-              <-
-              (?np-possessor-unit
-               (referent ?g)
-               --
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (syn-function ?func))
-               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
-                           (rightmost-unit ?np-possessor-rightmost-unit))
-               (sem-cat (sem-class possessor)))
-              (?possessed-unit
-               (referent ?o)
-               --
-               (syn-cat (phrase-type nominal)
-                        (lex-class noun)
-                        (number sg)
-                        (syn-function ?func))
-               (sem-class (sem-cat possessed)))
-              (?genitive-possessor-unit
-               --
-               (HASH form ((precedes ?np-possessor-leftmost-unit ?possessed-unit))))))
-
- (def-fcg-cxn genitive-possessessed-np-cxn
-             ((?genitive-possessed-np-unit
-               (referent ?g)
-               (meaning ((:arg0 ?o ?g)))
-               (syn-cat (syn-function ?func))
-               (subunits (?np-possessor-unit ?np-possessed-unit))
-               (boundaries (leftmost-unit ?np-possessed-leftmost-unit)
-                           (rightmost-unit ?np-possessor-rightmost-unit)))
-              <-
-              (?np-possessor-unit
-               (referent ?g)
-               --
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (syn-function ?func))
-               (sem-cat (sem-class possessor))
-               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
-                           (rightmost-unit ?np-possessor-rightmost-unit)))
-              (?np-possessed-unit
-               (referent ?o)
-               --
-               (syn-cat (phrase-type NP)
-                        (lex-class noun)
-                        (person 3)
-                        (number sg)
-                        (syn-function ?func))
-               (sem-class (sem-cat possessed))
-               (boundaries (leftmost-unit ?np-possessed-leftmost-unit)
-                           (rightmost-unit ?np-possessed-rightmost-unit)))
-              (?genitive-possessed-np-unit
-               --
-              (HASH form ((precedes ?np-possessed-unit ?np-possessor-unit))))))
 
 (def-fcg-cxn marble-cxn
              ((?marble-unit
@@ -1466,8 +1477,6 @@
               --
               (HASH form ((precedes ?finite-verb-unit ?infinitif))))))
 
-;;'((WANT-01 W) (BOY B) (GO-01 G) (:ARG0 W B) (:ARG1 W G) (:ARG0 G B)))
-
 (def-fcg-cxn subject-infinitif-cxn
              ((?subject-infinitif-unit
                (meaning ((:arg0 ?inf ?b)))
@@ -1853,6 +1862,72 @@
            (?subject-want-unit
             --
            (HASH form ((precedes ?np-rightmost-unit ?want-unit))))))
+
+(def-fcg-cxn genitive-possessor-cxn
+             ((?genitive-possessor-unit
+               (referent ?g)
+               (meaning ((:arg0 ?o ?g)))
+               (syn-cat (syn-function ?func))
+               (subunits (?np-possessor-unit ?possessed-unit))
+               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
+                           (rightmost-unit ?possessed-unit)))
+              <-
+              (?np-possessor-unit
+               (referent ?g)
+               --
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
+                           (rightmost-unit ?np-possessor-rightmost-unit))
+               (sem-cat (sem-class possessor)))
+              (?possessed-unit
+               (referent ?o)
+               --
+               (syn-cat (phrase-type nominal)
+                        (lex-class noun)
+                        (number sg)
+                        (syn-function ?func))
+               (sem-class (sem-cat possessed)))
+              (?genitive-possessor-unit
+               --
+               (HASH form ((precedes ?np-possessor-leftmost-unit ?possessed-unit))))))
+
+ (def-fcg-cxn genitive-possessessed-np-cxn
+             ((?genitive-possessed-np-unit
+               (referent ?g)
+               (meaning ((:arg0 ?o ?g)))
+               (syn-cat (syn-function ?func))
+               (subunits (?np-possessor-unit ?np-possessed-unit))
+               (boundaries (leftmost-unit ?np-possessed-leftmost-unit)
+                           (rightmost-unit ?np-possessor-rightmost-unit)))
+              <-
+              (?np-possessor-unit
+               (referent ?g)
+               --
+               (syn-cat (phrase-type NP)
+                        (lex-class noun)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (sem-cat (sem-class possessor))
+               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
+                           (rightmost-unit ?np-possessor-rightmost-unit)))
+              (?np-possessed-unit
+               (referent ?o)
+               --
+               (syn-cat (phrase-type NP)
+                        (lex-class noun)
+                        (person 3)
+                        (number sg)
+                        (syn-function ?func))
+               (sem-class (sem-cat possessed))
+               (boundaries (leftmost-unit ?np-possessed-leftmost-unit)
+                           (rightmost-unit ?np-possessed-rightmost-unit)))
+              (?genitive-possessed-np-unit
+               --
+              (HASH form ((precedes ?np-possessed-unit ?np-possessor-unit))))))
 
 
 |#
