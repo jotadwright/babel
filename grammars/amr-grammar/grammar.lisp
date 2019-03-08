@@ -842,38 +842,38 @@
                 --
                 (HASH form ((meets ?modal-unit ?infinitif-unit))))))
  
- (def-fcg-cxn subject-verb-modal-cxn
-              ((?subject-verb-modal-unit
-                (referent ?b)
-                (syn-cat (phrase-type NP)
-                         (number ?n)
-                         (person 3))
-                (subunits (?vp-modal-unit ?np-unit))
-                (boundaries (rightmost-unit ?vp-modal-rightmost-unit)
-                            (leftmost-unit ?np-leftmost-unit)))
-               <-
-               (?vp-modal-unit
-                --
-                (referent ?g)
-                (syn-cat (phrase-type VP)
-                         (finite +))
-                (sem-valence (:arg0 ?b))
-                (boundaries
-                 (rightmost-unit ?vp-modal-rightmost-unit)
-                 (leftmost-unit ?vp-modal-leftmost-unit)))
-               (?np-unit
-                --
-                (referent ?b)
-                (syn-cat (phrase-type NP)
-                         (number ?n)
-                         (person 3)
-                         (syn-function ?func))
-                (boundaries
-                 (leftmost-unit ?np-leftmost-unit)
-                 (rightmost-unit ?np-rightmost-unit)))
-               (?subject-verb-modal-unit
-                --
-                (HASH form ((meets ?np-rightmost-unit ?vp-modal-leftmost-unit))))))
+(def-fcg-cxn subject-verb-adverb-cxn
+             ((?subject-verb-adverb-unit
+               (meaning ((:arg0 ?verb ?subject)))
+               (subunits (?vp-unit ?subject-unit))
+               (referent ?subject)
+               (boundaries (rightmost-unit ?vp-rightmost-unit)
+                           (leftmost-unit ?subject-leftmost-unit)))
+              <-
+              (?vp-unit
+               --
+               (referent ?verb)
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (phrase-type VP))
+               (boundaries
+                 (rightmost-unit ?vp-unit-rightmost)
+                 (leftmost-unit ?vp-unit-leftmost)))
+              (?subject-unit
+               --
+               (referent ?subject)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (lex-class noun)
+                        (syn-function ?func))
+               (boundaries
+                (leftmost-unit ?subject-unit-leftmost)
+                (rightmost-unit ?subject-unit-rightmost)))
+              (?subject-verb-adverb-unit
+               --
+               (HASH form ((precedes ?subject-unit-leftmost-unit ?vp-unit-rightmost-unit))))))
+
 
 (def-fcg-cxn what-cxn 
              ((?what-unit
@@ -915,7 +915,6 @@
                (syn-cat (lex-class verb)
                         (finite +)
                         (modal -)
-                        (past-simple +)
                         (phrase-type VP)))
               (?subject-unit
                --
@@ -1228,7 +1227,8 @@
                (meaning ((work-01 ?w)))
                (syn-cat (lex-class verb)
                         (finite +)
-                         (phrase-type VP)))
+                        (transitive -)
+                        (phrase-type VP)))
               <-
               (?work-unit
                --
@@ -1249,9 +1249,12 @@
 
 (def-fcg-cxn adverb-manner-cxn
              ((?adverb-manner-unit
-               (meaning ((:manner ?adv ?verb)))
+               (meaning ((:manner ?verb ?adv)))
                (subunits (?vp-unit ?adverb-unit))
-               (syn-cat (phrase-type clausal)))
+               (syn-cat (phrase-type clausal))
+               (boundaries
+                 (rightmost-unit ?vp-unit-leftmost)
+                 (leftmost-unit ?adverb-unit-rightmost)))
                <-
                (?vp-unit
                 --
@@ -1268,25 +1271,23 @@
                (sem-cat (sem-class manner)))
                (?adverb-manner-unit
                 --
-                (HASH form ((meets ?vp-unit ?adverb-unit))))))
+                (HASH form ((precedes ?vp-unit ?adverb-unit))))))
 
 (def-fcg-cxn subject-verb-adverb-cxn
              ((?subject-verb-adverb-unit
                (meaning ((:arg0 ?verb ?subject)))
                (subunits (?vp-unit ?subject-unit))
                (referent ?subject)
-               (boundaries (rightmost-unit ?vp-rightmost-unit)
+               (boundaries (rightmost-unit ?adverb-manner-rightmost-unit)
                            (leftmost-unit ?subject-leftmost-unit)))
               <-
-              (?vp-unit
+              (?adverb-manner-unit
                --
                (referent ?verb)
                (syn-cat (lex-class verb)
                         (finite +)
-                        (phrase-type VP))
-               (boundaries
-                 (rightmost-unit ?vp-unit-rightmost)
-                 (leftmost-unit ?vp-unit-leftmost)))
+                        (transitive -)
+                        (phrase-type VP)))
               (?subject-unit
                --
                (referent ?subject)
@@ -1308,7 +1309,8 @@
                (meaning ((soldier ?s)))
                (syn-cat (lex-class noun)
                         (number sg)
-                        (syn-function ?func)))
+                        (syn-function ?func))
+               (sem-cat (sem-class agent)))
               <-
               (?soldier-unit
                --
@@ -1321,12 +1323,15 @@
                (syn-cat (lex-class verb)
                         (finite +)
                         (modal -)
+                        (transitive +)
                         (past-simple +)
                         (phrase-type VP)))
                <-
                (?feared-unit
                 --
                 (HASH form ((string ?feared-unit "feared"))))))
+
+;;'((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
 
 (def-fcg-cxn battle-cxn
              ((?battle-unit
@@ -1343,18 +1348,21 @@
 
 (def-fcg-cxn active-transitive-cxn 
              ((?active-transitive-unit
-               (subunits (?subject-verb-unit ?direct-object-unit))
+               (subunits (?vp-unit ?direct-object-unit))
                (syn-cat (phrase-type transitive))
-               (meaning ((:arg1 ?f ?b)))
+               (meaning ((:arg1 ?verb ?b)))
                (boundaries (rightmost-unit ?direct-object-unit)
-                           (leftmost-unit ?subject-verb-leftmost-unit))
-               (referent ?f))
+                           (leftmost-unit ?vp-leftmost-unit))
+               (referent ?verb))
               <-
-              (?subject-verb-unit
-               --
-               (referent ?f)
-               (boundaries (leftmost-unit ?subject-verb-leftmost-unit)
-                           (rightmost-unit ?subject-verb-rightmost-unit)))
+              (?vp-unit
+                --
+                (referent ?verb)
+                (syn-cat (lex-class verb)
+                         (finite +)
+                         (modal -)
+                         (transitive +)
+                         (phrase-type VP)))
               (?direct-object-unit
                --
                (referent ?b)
