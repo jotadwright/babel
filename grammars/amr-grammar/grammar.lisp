@@ -1019,14 +1019,14 @@
                --
                (HASH form ((string ?girls-unit "girls"))))))
 
- (def-fcg-cxn genitive-possessor-cxn
+(def-fcg-cxn genitive-possessor-cxn
              ((?genitive-possessor-unit
                (referent ?g)
                (meaning ((:arg0 ?o ?g)))
                (syn-cat (syn-function ?func))
-               (subunits (?possessor-unit ?possessed-unit))
-               (boundaries (rightmost-unit ?possessor-rightmost-unit)
-                           (leftmost-unit ?possessor-leftmost-unit)))
+               (subunits (?np-possessor-unit ?np-possessed-unit))
+               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
+                           (rightmost-unit ?possessed-unit)))
               <-
               (?np-possessor-unit
                (referent ?g)
@@ -1035,20 +1035,50 @@
                         (number sg)
                         (person 3)
                         (syn-function ?func))
-               (boundaries (leftmost-unit ?possessor-leftmost-unit)
-                           (rightmost-unit ?possessor-rightmost-unit)))
-              (?np-possessed-unit
+               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
+                           (rightmost-unit ?np-possessor-rightmost-unit)))
+              (?possessed-unit
                (referent ?o)
                --
                (syn-cat (lex-class noun)
                         (number sg)
                         (syn-function ?func))
-               (sem-class (sem-cat possessed))
-               (boundaries (leftmost-unit ?possessed-leftmost-unit)
-                           (rightmost-unit ?possessed-rightmost-unit)))
+               (sem-class (sem-cat possessed)))
               (?genitive-possessor-unit
                --
-               (HASH form ((precedes ?possessor-rightmost-unit ?possessed-leftmost-unit))))))
+               (HASH form ((precedes ?np-possessor-leftmost-unit ?possessed-unit))))))
+
+ (def-fcg-cxn genitive-possessessed-np-cxn
+             ((?genitive-possessed-np-unit
+               (referent ?g)
+               (meaning ((:arg0 ?o ?g)))
+               (syn-cat (syn-function ?func))
+               (subunits (?np-possessor-unit ?np-possessed-unit))
+               (boundaries (leftmost-unit ?np-possessed-leftmost-unit)
+                           (rightmost-unit ?np-possessor-rightmost-unit)))
+              <-
+              (?np-possessor-unit
+               (referent ?g)
+               --
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
+                           (rightmost-unit ?np-possessor-rightmost-unit)))
+              (?np-possessed-unit
+               (referent ?o)
+               --
+               (syn-cat (phrase-type NP)
+                        (lex-class noun)
+                        (number sg)
+                        (syn-function ?func))
+               (sem-class (sem-cat possessed))
+               (boundaries (leftmost-unit ?np-possessed-leftmost-unit)
+                           (rightmost-unit ?np-possessed-rightmost-unit)))
+              (?genitive-possessessed-np-unit
+               --
+               (HASH form ((precedes ?np-possessed-rightmost-unit ?np-possessor-leftmost-unit))))))
 
 (def-fcg-cxn marble-cxn
              ((?marble-unit
@@ -1153,44 +1183,6 @@
                (?pleasing-unit
                 --
                 (HASH form ((string ?pleasing-unit "pleasing"))))))
-
-(def-fcg-cxn girl-lex-cxn
-             ((?girl-unit
-               (referent ?g)
-               (meaning ((girl ?g)))
-               (syn-cat (lex-class noun)
-                        (number ?numb)
-                        (syn-function ?func)))
-              <-
-              (?girl-unit
-               (lex-id girl))))
- 
-(def-fcg-cxn girl-morph-cxn
-             ((?girl-unit
-               (referent ?g)
-               (meaning ((girl ?g)))
-               (lex-id girl)
-               (syn-cat (lex-class noun)
-                        (number sg)
-                        (syn-function ?func)))
-              <-
-              (?girl-unit
-               --
-               (HASH form ((string ?girl-unit "girl"))))))
-                  
-(def-fcg-cxn girls-morph-cxn
-             ((?girls-unit
-               (referent ?g)
-               (lex-id girl)
-               (meaning ((girl ?g)))
-               (syn-cat (lex-class noun)
-                        (number pl)
-                        (syn-function ?func))
-               (sem-cat (sem-class arg1)))
-              <-
-              (?girls-unit
-               --
-               (HASH form ((string ?girls-unit "girls"))))))
 
 (def-fcg-cxn tough-cxn
              ((?tough-unit
@@ -1383,34 +1375,6 @@
               (?battle-unit
                --
                (HASH form ((string ?battle-unit "battle"))))))
-
-(def-fcg-cxn active-transitive-cxn 
-             ((?active-transitive-unit
-               (subunits (?vp-unit ?direct-object-unit))
-               (syn-cat (phrase-type transitive))
-               (meaning ((:arg1 ?verb ?b)))
-               (boundaries (rightmost-unit ?direct-object-unit)
-                           (leftmost-unit ?vp-leftmost-unit))
-               (referent ?verb))
-              <-
-              (?vp-unit
-                --
-                (referent ?verb)
-                (syn-cat (lex-class verb)
-                         (finite +)
-                         (modal -)
-                         (transitive +)
-                         (phrase-type VP)))
-              (?direct-object-unit
-               --
-               (referent ?b)
-               (syn-cat (lex-class noun)
-                        (number sg)
-                        (syn-function ?func))
-               (sem-class (sem-cat direct-object)))
-              (?active-transitive-unit
-               --
-              (HASH form ((precedes ?subject-verb-unit ?direct-object-unit))))))
 
 (def-fcg-cxn woman-cxn
              ((?woman-unit
@@ -1606,26 +1570,53 @@
                (syn-cat (lex-class verb)
                         (finite +)
                         (modal -)
+                        (transitive +)
                         (past-simple +)
-                        (phrase-type VP))
-               (sem-cat (sem-class transitive)))
+                        (phrase-type VP)))
                <-
                (?slew-unit
                 --
                 (HASH form ((string ?slew-unit "slew"))))))
 
-(def-fcg-cxn orcs-cxn
-             ((?orcs-unit
+(def-fcg-cxn orc-lex-cxn
+             ((?orc-unit
                (referent ?o)
-               (meaning ((orcs ?o)))
+               (meaning ((orc ?o)))
+               (syn-cat (lex-class noun)
+                        (number ?numb)
+                        (syn-function ?func)))
+              <-
+              (?orc-unit
+               (lex-id orc))))
+
+(def-fcg-cxn orc-morph-cxn
+             ((?orc-unit
+               (referent ?o)
+               (lex-id orc)
+               (meaning ((orc ?o)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (syn-function ?func)))
+              <-
+              (?orc-unit
+               --
+               (HASH form ((string ?orc-unit "orc"))))))
+
+(def-fcg-cxn orcs-morph-cxn
+             ((?orcs-unit
+               (referent ?dir-obj)
+               (lex-id orc)
+               (meaning ((orc ?o)))
                (syn-cat (lex-class noun)
                         (number pl)
                         (syn-function ?func))
-               (sem-cat (sem-class arg1)))
+               (sem-class (sem-cat direct-object)))
               <-
               (?orcs-unit
                --
                (HASH form ((string ?orcs-unit "orcs"))))))
+
+;;'((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
 (def-fcg-cxn arg0-of-verb-cxn 
              ((?arg0-verb-unit
@@ -1651,6 +1642,83 @@
               (?arg0-verb-unit
                --
                (HASH form ((precedes ?subject-unit-rightmost-unit ?vp-unit))))))
+
+
+(def-fcg-cxn active-transitive-cxn 
+             ((?active-transitive-unit
+               (subunits (?vp-unit ?direct-object-unit))
+               (syn-cat (phrase-type transitive))
+               (meaning ((:arg1 ?verb ?dir-obj)))
+               (boundaries (rightmost-unit ?direct-object-unit)
+                           (leftmost-unit ?vp-leftmost-unit))
+               (referent ?verb))
+              <-
+              (?vp-unit
+                --
+                (referent ?verb)
+                (syn-cat (lex-class verb)
+                         (finite +)
+                         (modal -)
+                         (transitive +)
+                         (phrase-type VP)))
+              (?direct-object-unit
+               --
+               (referent ?dir-obj)
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (syn-function ?func))
+               (sem-class (sem-cat direct-object)))
+              (?active-transitive-unit
+               --
+              (HASH form ((precedes ?subject-verb-unit ?direct-object-unit))))))
+
+(def-fcg-cxn slaying-cxn
+             ((?slaying-unit
+               (referent ?s)
+               (meaning ((slay-01 ?s)))
+               (syn-cat (lex-class verb)
+                        (modal -)
+                        (present-participle +)
+                        (phrase-type VP))
+               (sem-cat (sem-class transitive)))
+               <-
+               (?slaying-unit
+                --
+                (HASH form ((string ?slaying-unit "slaying"))))))
+)
+
+#|
+ 
+'((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
+agr1 p g da togliere
+
+(def-fcg-cxn active-transitive-cxn 
+             ((?active-transitive-unit
+               (subunits (?vp-unit ?direct-object-unit))
+               (syn-cat (phrase-type transitive))
+               (meaning ((:arg1 ?verb ?b)))
+               (boundaries (rightmost-unit ?direct-object-unit)
+                           (leftmost-unit ?vp-leftmost-unit))
+               (referent ?verb))
+              <-
+              (?vp-unit
+                --
+                (referent ?verb)
+                (syn-cat (lex-class verb)
+                         (finite +)
+                         (modal -)
+                         (transitive +)
+                         (phrase-type VP)))
+              (?direct-object-unit
+               --
+               (referent ?b)
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (syn-function ?func))
+               (sem-class (sem-cat direct-object)))
+              (?active-transitive-unit
+               --
+              (HASH form ((precedes ?subject-verb-unit ?direct-object-unit))))))
 
 (def-fcg-cxn active-arg1-cxn 
              ((?active-arg1-unit
@@ -1678,40 +1746,6 @@
               (?active-arg1-unit
                --
               (HASH form ((precedes ?vp-unit ?direct-object-unit))))))
-
-(def-fcg-cxn orc-cxn
-             ((?orc-unit
-               (referent ?o)
-               (meaning ((orc ?o)))
-               (syn-cat (lex-class noun)
-                        (number sg)
-                        (syn-function ?func))
-               (sem-cat (sem-class arg1)))
-              <-
-              (?orcs-unit
-               --
-               (HASH form ((string ?orcs-unit "orcs"))))))
-
-(def-fcg-cxn slaying-cxn
-             ((?slaying-unit
-               (referent ?s)
-               (meaning ((slay-01 ?s)))
-               (syn-cat (lex-class verb)
-                        (modal -)
-                        (present-participle +)
-                        (phrase-type VP))
-               (sem-cat (sem-class transitive)))
-               <-
-               (?slaying-unit
-                --
-                (HASH form ((string ?slaying-unit "slaying"))))))
-)
-
-#|
- 
-'((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
-agr1 p g da togliere
-
 
 '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
