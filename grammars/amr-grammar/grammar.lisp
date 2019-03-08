@@ -1534,22 +1534,6 @@
                 --
                 (HASH form ((meets ?first-name-unit ?brown-unit))))))
 
-
-(def-fcg-cxn slew-cxn
-             ((?slew-unit
-               (referent ?s)
-               (meaning ((slay-01 ?s)))
-               (syn-cat (lex-class verb)
-                        (finite +)
-                        (modal -)
-                        (transitive +)
-                        (past-simple +)
-                        (phrase-type VP)))
-               <-
-               (?slew-unit
-                --
-                (HASH form ((string ?slew-unit "slew"))))))
-
 (def-fcg-cxn orc-lex-cxn
              ((?orc-unit
                (referent ?o)
@@ -1568,7 +1552,8 @@
                (meaning ((orc ?o)))
                (syn-cat (lex-class noun)
                         (number sg)
-                        (syn-function ?func)))
+                        (syn-function ?func))
+              (sem-cat (sem-class arg1)))
               <-
               (?orc-unit
                --
@@ -1607,9 +1592,9 @@
                --
                (referent ?verb)
                (syn-cat (lex-class verb)
-                        (finite +)
+                        ;;(finite +)
                         (modal -)
-                        (past-simple +)
+                        ;;(past-simple +)
                         (phrase-type VP)))
               (?arg0-of-verb-unit
                --
@@ -1642,22 +1627,83 @@
                --
               (HASH form ((precedes ?vp-unit ?direct-object-unit))))))
 
-(def-fcg-cxn slaying-cxn
+(def-fcg-cxn slay-lex-cxn
+             ((?slay-unit
+               (referent ?s)
+               (meaning ((slay-01 ?s)))
+               (syn-cat (lex-class verb)
+                        (number ?numb)
+                        (syn-function ?func)))
+              <-
+              (?slay-unit
+               (lex-id slay))))
+
+(def-fcg-cxn slew-morph-cxn
+             ((?slew-unit
+               (referent ?s)
+               (lex-id slay)
+               (meaning ((slay-01 ?s)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive +)
+                        (past-simple +)
+                        (phrase-type VP)))
+              <-
+              (?slew-unit
+               --
+               (HASH form ((string ?slew-unit "slew"))))))
+
+(def-fcg-cxn slaying-morph-cxn
              ((?slaying-unit
                (referent ?s)
+               (lex-id slay)
                (meaning ((slay-01 ?s)))
                (syn-cat (lex-class verb)
                         (modal -)
                         (present-participle +)
-                        (phrase-type VP))
-               (sem-cat (sem-class transitive)))
+                        (phrase-type VP)
+                        (syn-function ?func)))
+              <-
+              (?slaying-unit
+               --
+               (HASH form ((string ?slaying-unit "slaying"))))))
+
+(def-fcg-cxn arg1-present-participle-cxn
+             ((?arg1-present-participle-unit
+               (referent ?o)
+               (meaning ((:arg1 ?s ?o)))
+               (syn-cat (syn-function ?arg1))
+               (subunits (?present-participle-unit ?arg1-NP-unit))
+               (boundaries (?arg1-NP-unit-rightmost-unit ?present-participle-unit)))
                <-
-               (?slaying-unit
+               (?present-participle-unit
+                (referent ?s)
                 --
-                (HASH form ((string ?slaying-unit "slaying"))))))
+                (syn-cat (lex-class verb)
+                         (modal -)
+                         (present-participle +)
+                         (phrase-type VP))
+                         (syn-function ?func))
+               (?arg1-NP-unit
+               (referent ?o)
+                --
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (boundaries
+                (leftmost-unit ?arg1-NP-unit-leftmost-unit)
+                (rightmost-unit ?arg1-NP-unit-rightmost-unit))
+                (sem-cat (sem-class arg1)))
+               (?arg1-present-participle-unit
+                --
+                (HASH form ((precedes ?arg1-NP-unit-rightmost-unit ?present-participle-unit))))))
+
 )
 
 #|
+ '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
  
 '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
 agr1 p g da togliere
