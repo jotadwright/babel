@@ -1,7 +1,7 @@
 ;;;; This is the main file for running the experiment
 
-;;;; To evaluate an expression in Emacs, first place your cursor
-;;;; at the closing parenthesis of the expression. Next, do
+;;;; To evaluate an expression in Emacs, place your cursor
+;;;; at the closing parenthesis of the expression and do
 ;;;; C-x C-f.
 
 ;;;; Load the system
@@ -16,36 +16,48 @@
   (activate-monitor trace-irl-in-web-browser)
   (activate-monitor trace-interaction-in-web-interface))
 
-;;;; Deactivate all monitors
-(deactivate-all-monitors)
-
 ;;;; Open your browser at localhost:8000
 
+;;;; Create a configuration object, holding the parameters of the experiment
+(defparameter *configuration*
+  (make-configuration
+   :entries '((:min-context-size . 2)
+              (:max-context-size . 5)
+              (:population-size . 10)
+              (:simulation-mode . t)
+              (:trace-every-nth-interaction . 1))))
+
 ;;;; Create an instance of the experiment
-(defparameter *experiment* (make-instance 'grounded-color-naming-game-experiment))
+(defparameter *experiment*
+  (make-instance 'grounded-color-naming-game-experiment :configuration *configuration*))
 
 ;;;; Run a single interaction of the experiment
 (run-interaction *experiment*)
 
 ;;;; Run a series of experiments
-(run-series *experiment* 20) ;; note that the robot connection is closed after a series!
-
-(create-static-html-page "Grounded Colour Naming Game Experiment"
-  (run-series *experiment* 1000))
+(run-series *experiment* 20)
 
 ;;;; Destroy the experiment (disconnects robots)
 (destroy *experiment*)
 
-;;;; Run a batch of experiments and export data
+;;;; Run the experiment for S amount of series,
+;;;; with each serie containing N interactions.
+;;;; At the same time, data will be collected and
+;;;; exported to a subfolder of the experiment.
 (run-experiments '(
-                   (baseline ((:population-size . 5)
-                              (:export-lexicon-interval . 10)
-                              (:silent . t)))
+                   (baseline ((:min-context-size . 2)
+                              (:max-context-size . 5)
+                              (:population-size . 10)
+                              (:simulation-mode . t)
+                              (:trace-every-nth-interaction . 1)))
                    )
-                 :number-of-interactions 500
-                 :number-of-series 1) 
+                 :number-of-interactions 1000
+                 :number-of-series 5) 
 
 ;;;; Create a graph from the exported data
+;;;; Make sure that the experiment-name matches
+;;;; what is specified in run-experiments.
+;;;; This will create and open a PDF file.
 (create-graph-for-single-strategy
  :experiment-name "baseline"
  :measure-names '("communicative-success"
@@ -62,6 +74,7 @@
 
 
 ;;;; Functions for setting up the Nao robot
+;;;; (not available unless you have the nao-interface package)
 (setf *robot* (make-robot :type 'nao :ip "192.168.1.4" :port "7850"))
 
 (stand *robot*)
@@ -77,12 +90,12 @@
 (look-right *robot* 15)
 
 (disconnect-robot *robot*)
-; (setf nao-interface::*nao-servers* nil)
 
 
 
 
-;; Functions for setting up the scene server
+;;;; Functions for setting up the scene server
+;;;; (not available unless yoou have the robot-scene-generator package)
 (start-scene-server) ; look at localhost:8000/svg
 
 (generate-new-scene 3)

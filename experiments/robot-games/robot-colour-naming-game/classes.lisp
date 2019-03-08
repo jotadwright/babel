@@ -216,7 +216,7 @@
     ;; start up the scene server
     (start-scene-server))
   (when (get-configuration experiment :simulation-mode)
-    (warn "Simulation Mode is turned on, but currently not implemented.")))
+    (warn "Simulation Mode is turned on. You are currently not using a robot.")))
 
 (defmethod destroy ((experiment grounded-color-naming-game-experiment))
   "Some cleanup when manually running an experiment"
