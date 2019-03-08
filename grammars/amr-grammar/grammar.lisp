@@ -1440,7 +1440,8 @@
              ((?V-infinitive-unit
               (meaning ((:arg1 ?verb ?inf)))
               (subunits (?finite-verb-unit ?infinitif-unit))
-              (referent ?ref))
+              (referent ?ref)
+              (syn-cat (phrase-type VP)))
               <-
               (?finite-verb-unit
                --
@@ -1448,20 +1449,21 @@
                (syn-cat (lex-class verb)
                         (finite +)
                         (modal -)
-                        (to-infinitif +)))
+                        (to-infinitif +)
+                        (phrase-type VP)))
               (?infinitif
               --
               (referent ?inf)
               (syn-cat (lex-class verb)
                         (finite -)
                         (infinitif +)
-                         (phrase-type VP)))
+                        (phrase-type VP)))
               (?V-infinitive-unit
               --
               (HASH form ((precedes ?finite-verb-unit ?infinitif))))))
 
 (def-fcg-cxn subject-verb-infinitive-cxn
-             ((?subject-verb-unit
+             ((?subject-verb-infinitive-unit
                (meaning ((:arg0 ?verb ?b)))
                (subunits (?V-infinitive-unit ?subject-unit))
                (boundaries (leftmost-unit ?subject-leftmost-unit)
@@ -1471,6 +1473,7 @@
               (?V-infinitive-unit
                --
                (referent ?verb)
+               (syn-cat (phrase-type VP))
                (boundaries
                 (leftmost-unit ?V-infinitive-leftmost-unit)
                 (rightmost-unit ?V-infinitive-rightmost-unit)))
@@ -1484,7 +1487,7 @@
                (boundaries
                 (leftmost-unit ?subject-leftmost-unit)
                 (rightmost-unit ?subject-rightmost-unit)))
-              (?subject-verb-unit
+              (?subject-verb-infinitive-unit
                --
                (HASH form ((precedes ?subject-leftmost-unit ?V-infinitive-rightmost-unit))))))
 
