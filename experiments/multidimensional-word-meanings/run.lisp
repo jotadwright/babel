@@ -13,16 +13,17 @@
 
 (run-interaction *experiment*)
 
+;; indicative features (= features with a high score) vs. discriminatory features
+;; (= features that are sufficiently distant from other concepts)
+
+
 ;; When loading val-set + train-set, there are 85k scenes!
 ;; Should run a multiple of that to make sure that each scene is at least seen once!
-(run-series *experiment* 10000)
+(run-series *experiment* 10)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
 (lexicon-quality (find 'learner (population *experiment*) :key #'id))
-
-
-
 
 ;; ---------------------------------
 ;; + Running series of experiments +
@@ -33,6 +34,8 @@
                   )
                  :number-of-interactions 100000
                  :number-of-series 1)
+
+(create-x-pos-convergence-graph :nr-of-interactions 100)
 
 (create-graph-for-single-strategy
  :experiment-name "baseline"

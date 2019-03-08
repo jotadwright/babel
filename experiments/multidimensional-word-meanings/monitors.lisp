@@ -4,10 +4,48 @@
 ;; + Monitors +
 ;; ------------
 
-;; Need some kind of measure that quantifies the learner's lexicon
-;; instead of visual inspection. The metric should go down when there
-;; is something in the meaning that should not be there.
+;;;; A-list monitor to show the convergence of x-pos
+(define-monitor record-x-pos-convergence
+                :documentation "Record the convergence of x-pos for concepts left, right and green"
+                :class 'alist-recorder
+                :average-windows 1)
 
+(define-event-handler (record-x-pos-convergence interaction-finished)
+  (loop with learner = (find 'learner (population experiment) :key #'id)
+        for concept in '("left" "right" "green")
+        for cxn = (find concept (constructions (grammar learner))
+                        :key #'(lambda (cxn) (attr-val cxn :form))
+                        :test #'string=)
+        when cxn
+        do (let ((x-pos-value (second (find 'x-pos (attr-val cxn :meaning) :key #'first))))
+             (set-value-for-symbol monitor
+                                   (intern concept)
+                                   x-pos-value))))
+
+(define-monitor plot-x-pos-convergence
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-x-pos-convergence
+    :average-windows 1
+    :draw-y-1-grid t
+    :y-label "x-pos value for different concepts"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "x-pos-convergence"
+			       :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-x-pos-convergence-graph (&key 
+                                       (configurations nil)
+                                       (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create an x-pos convergence graph." nr-of-interactions)
+  (activate-monitor plot-x-pos-convergence)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-x-pos-convergence)
+  (format t "~%Graphs have been created"))
+
+
+;;;; Export lexicon quality (should go to 1)
 (defparameter *tutor-lexicon*
   '(("left" (x-pos 0 1))
     ("right" (x-pos 1 1))
@@ -51,7 +89,6 @@
           collect v into cxn-val
           finally (return (average cxn-val)))))
 
-;;;; Export lexicon quality (should go to 1)
 (define-monitor record-lexicon-quality
                 :class 'data-recorder
                 :average-window 1

@@ -65,9 +65,9 @@
 ;;;; Therefore, we put the width and height of large cylinders to 10x20 and small cylinders 5x10
 ;;;; For large spheres and cubes, we use 14x14. For small ones 7x7.
 
-;;;; The scaling takes into account both the min and max, such that everything is maximaly apart.
-
-;;;; WARNING: THIS IS VERY AD-HOC. SHOULD BE IMPROVED LATER.
+;;;; For the moment, sensory-scaling is being used. This takes into account the min/max boundaries
+;;;; of the world. Another option would be to use context-scaling (for some attributes), taking
+;;;; only into account the current context.
 
 (defun scale-value (value min max)
   (float

@@ -29,6 +29,8 @@
   ()
   (:documentation "The experiment class"))
 
+(defparameter *world* nil)
+
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Create the population and load the scenes from file"
   (activate-monitor print-a-dot-for-each-interaction)
@@ -36,10 +38,12 @@
         (list (make-tutor-agent experiment)
               (make-learner-agent experiment)))
   (warn "Loading large data files into memory. This could take a few seconds...")
-  (setf (world experiment)
-        (loop for file in (get-configuration experiment :contexts)
-              for scenes = (read-contexts-from-file file)
-              append scenes))
+  (unless *world*
+    (setf *world*
+          (loop for file in (get-configuration experiment :contexts)
+                for scenes = (read-contexts-from-file file)
+                append scenes)))
+  (setf (world experiment) *world*)
   (warn "Done loading!"))
 
 ;; --------------------------------
