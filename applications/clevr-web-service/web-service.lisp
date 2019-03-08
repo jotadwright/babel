@@ -294,13 +294,8 @@
        (return (make-instance 'clevr::clevr-object-set
                               :objects list-of-objects))))
 
-(defroute comprehend-and-execute (:post :application/json)
-  (let* ((json
-          (handler-case (decode-json-from-string
-                         (payload-as-string))
-            (error (e)
-              (http-condition 400 "Malformed JSON"))))
-         (missing-keys (keys-present-p json :utterance :scene))
+(defun handle-comprehend-and-execute-route (json)
+  (let* ((missing-keys (keys-present-p json :utterance :scene))
          (utterance (rest (assoc :utterance json)))
          (scene (rest (assoc :scene json)))
          (irl-encoding (if (assoc :irl--encoding json)
@@ -367,12 +362,28 @@
                                                            (mapcar #'fcg::name
                                                                    (applied-constructions cipn))))))
              (:irl--status . ,(if answers "succeeded" "failed"))
-             (:solutions . ,(mapcar #'downcase answers)))))))))                   
+             (:solutions . ,(mapcar #'downcase answers)))))))))
+
+(defroute comprehend-and-execute (:post :application/json)
+  (handle-comprehend-and-execute-route
+   (handler-case
+       (decode-json-from-string
+        (payload-as-string))
+     (error (e)
+       (http-condition 400 "Malformed JSON")))))
+
+(defroute comprehend-and-execute (:post :text/plain)
+  (handle-comprehend-and-execute-route
+   (handler-case
+       (decode-json-from-string
+        (payload-as-string))
+     (error (e)
+       (http-condition 400 "Malformed JSON")))))
     
 
 ;; Test the web interface on localhost:9003 or https://penelope.vub.be/clevr-api/ (may not contain the latest version)
 
-;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?", "irl_encoding": "json"}' http://localhost:9003/comprehend
+;; curl -H "Content-Type: text/plain" -d '{"utterance" : "How many red cubes are there?", "irl_encoding": "json"}' http://localhost:9003/comprehend
 
 ;; curl -H "Content-Type: application/json" -d '{"meaning" : "((GET-CONTEXT ?SOURCE-1153) (FILTER ?TARGET-2594 ?TARGET-2593 ?COLOR-205) (BIND SHAPE-CATEGORY ?SHAPE-175 CUBE) (FILTER ?TARGET-2593 ?SOURCE-1153 ?SHAPE-175) (BIND COLOR-CATEGORY ?COLOR-205 RED) (COUNT! ?TARGET-2681 ?TARGET-2594))"}' http://localhost:9003/formulate
 
@@ -380,6 +391,6 @@
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?"}' http://localhost:9003/comprehend-and-formulate
 
-;; curl -H "Content-Type: application/json" -d '{"utterance": "What is the color of the sphere?", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
+;; curl -H "Content-Type: text/plain" -d '{"utterance": "What is the color of the sphere?", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
 
 
