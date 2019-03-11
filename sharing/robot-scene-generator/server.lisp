@@ -41,7 +41,7 @@
              (str (format nil "~% //<![CDATA[~%  ~{~a~%~} ~%//]]>~%"
                           (loop for js-func being the hash-values of *js-functions*
                                 collect js-func into funcs
-                                finally return (reverse funcs)))))))
+                                finally (return (reverse funcs))))))))
 
 ;;;; Request Queue
 ;;;;;;;;;;;;;;;;;;
