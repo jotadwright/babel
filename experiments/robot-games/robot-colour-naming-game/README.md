@@ -4,7 +4,7 @@ This repository contains the Grounded Colour Naming Game experiment, a didactic 
 
 [Nevens J., Van Eecke P. and Beuls K. (2019). **A Practical Guide to Studying Emergent Communication through Grounded Language Games**, AISB19, Falmouth, 2019.]()
 
-Additionally, the experiment is accompanied by an [online web demonstration](https://emergent-languages.org/demos/aisb19).
+Additionally, the experiment is accompanied by an [online web demonstration](https://ehai.ai.vub.ac.be/demos/babel-grounded-colour-naming-game-experiment).
 
 ## Getting Started
 

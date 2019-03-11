@@ -28,7 +28,7 @@
       (deactivate-monitor trace-fcg)
       (deactivate-monitor trace-irl-in-web-browser)
       (deactivate-monitor trace-interaction-in-web-interface)
-      (deactivate-all-monitors)))
+      ))
   
 (defmethod interact :before ((experiment grounded-color-naming-game-experiment)
                              interaction &key)

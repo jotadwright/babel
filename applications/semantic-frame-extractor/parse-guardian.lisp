@@ -8,7 +8,9 @@
 
 (in-package :frame-extractor)
 
+;;Active the FCG web interface:
 ;(activate-monitor trace-fcg)
+
 ;;If you have run the CONLL evaluation before, please reset the de-render mode:
 ;(set-configuration *fcg-constructions* :de-render-mode :raw-dependency-translation)
 
@@ -36,6 +38,9 @@
 ;correct slots and total slots: (76 111): 0.6846847 
 ;correct sentences and total sentences: (15 33): 0.45454547 
 ;correct words and total words overall: (570 824): 0.69174755 
+
+(pie-comprehend "A decline in the size of some species of fish in the North Sea could be due to a rise in
+water temperatures , according to research .")
 
 (pie-comprehend "Almost all of the fatalities last year , 93 % , were due to weather - related events .")
 

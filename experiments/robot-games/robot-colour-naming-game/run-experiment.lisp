@@ -2,7 +2,7 @@
 
 ;;;; To evaluate an expression in Emacs, place your cursor
 ;;;; at the closing parenthesis of the expression and do
-;;;; C-x C-f.
+;;;; C-x C-e.
 
 ;;;; Load the system
 (ql:quickload :grounded-colour-naming-game-experiment)
@@ -49,10 +49,10 @@
                               (:max-context-size . 5)
                               (:population-size . 10)
                               (:simulation-mode . t)
-                              (:trace-every-nth-interaction . 1)))
+                              (:trace-every-nth-interaction . 100)))
                    )
                  :number-of-interactions 1000
-                 :number-of-series 5) 
+                 :number-of-series 5)
 
 ;;;; Create a graph from the exported data
 ;;;; Make sure that the experiment-name matches

@@ -262,25 +262,24 @@
               <-
               (?event-unit
                (referent ?effect)
-               (syn-cat (phrase-type vp))
-               (syn-valence (subject ?subject))
                --
-               )
+               (dependents (?due-unit)))
               (?due-unit
                --
                (head ?event-unit)
                (sem-cat (frame-slots (cause ?cause)
                                      (effect ?effect)))
                (lex-id due-to)
-               (dependency (edge prep)))
+               (dependents (?to-unit)))
               (?to-unit
                --
                (head ?due-unit)
-               (form ((string ?to-unit "to"))))
+               (lex-id due-to)
+               (dependents (?causal-unit)))
               (?causal-unit
                (referent ?cause)
                --
-               (head ?due-unit)
+               (head ?to-unit)
                (dependency (edge pobj))))
              :cxn-set cxn
              :description "Example sentence: X(event) due to Y(obj)")

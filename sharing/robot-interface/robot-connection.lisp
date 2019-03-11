@@ -2,12 +2,12 @@
 
 (export '(make-robot make-new-connection disconnect-robot))
 
-(defun make-robot (&key type ip port (connect-automatically t))
+(defun make-robot (&key type ip server-port (connect-automatically t))
   "Make a new robot of the type 'type', specifying its
    IP address and a port number."
   (let ((robot-class (find-class type nil)))
     (if robot-class
-      (apply #'make-instance robot-class (list :ip ip :server-port port :connect-automatically connect-automatically))
+      (apply #'make-instance robot-class (list :ip ip :server-port server-port :connect-automatically connect-automatically))
       (error "The robot type ~a is not known" type))))
 
 (defgeneric make-new-connection (robot &key test-connection)
