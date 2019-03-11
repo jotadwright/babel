@@ -279,17 +279,18 @@
    into the clevr package. This is needed for the irl-program
    evaluation to work."
   (loop with list-of-objects = nil
-        for object in (clevr::objects context)
-        do (push
-            (make-instance 'clevr::clevr-object
-                           :shape (intern (mkstr (clevr::shape object)) 'clevr)
-                           :size (intern (mkstr (clevr::size object)) 'clevr)
-                           :color (intern (mkstr (clevr::color object)) 'clevr)
-                           :material (intern (mkstr (clevr::material object)) 'clevr)
-                           :relationships (loop for (key . lists) in (clevr::relationships object)
-                                                collect (cons (intern (mkstr key) 'clevr)
-                                                              lists)))
-            list-of-objects)
+     for object in (clevr::objects context)
+     for idx from 0
+     do (push
+         (make-instance 'clevr::clevr-object :id (make-symbol (format nil "obj-~a" idx))
+                        :shape (intern (mkstr (clevr::shape object)) 'clevr)
+                        :size (intern (mkstr (clevr::size object)) 'clevr)
+                        :color (intern (mkstr (clevr::color object)) 'clevr)
+                        :material (intern (mkstr (clevr::material object)) 'clevr)
+                        :relationships (loop for (key . lists) in (clevr::relationships object)
+                                          collect (cons (intern (mkstr key) 'clevr)
+                                                        lists)))
+         list-of-objects)
      finally
        (return (make-instance 'clevr::clevr-object-set
                               :objects list-of-objects))))
@@ -391,6 +392,6 @@
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?"}' http://localhost:9003/comprehend-and-formulate
 
-;; curl -H "Content-Type: text/plain" -d '{"utterance": "What is the color of the sphere?", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
+;; curl -H "Content-Type: text/plain" -d '{"utterance": "what is the color of the sphere that is both right of the green cylinder and behind the cube", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
 
 
