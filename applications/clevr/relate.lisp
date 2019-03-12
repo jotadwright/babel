@@ -18,7 +18,9 @@
                        (assoc (spatial-relation spatial-relation-category)
                               (relationships object))))
          (related-objects (loop for id in related-ids
-                                collect (find-entity-by-id context id))))
+                                for found = (find-entity-by-id context id)
+                                when found
+                                collect found)))
     (when related-objects
       (make-instance 'clevr-object-set :objects related-objects))))
 
