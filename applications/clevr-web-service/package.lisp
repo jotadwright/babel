@@ -10,7 +10,9 @@
                 :bind
                 :irl-program-p
                 :var
-                :value)
+                :value
+                :primitives-evaluated
+                :bindings)
   (:import-from :fcg
                 :statuses :size
                 :applied-constructions)
@@ -27,7 +29,11 @@
   (:import-from :clevr-grammar :*CLEVR*)
   (:import-from :clevr-evaluation
                 :preprocess-sentence
-                :preprocess-program
+                ;:preprocess-program
+                :preprocess-program-for-web-service
                 :get-target-value
                 :answer->str
-                :program->rpn))
+                :program->rpn
+                :linked-bind-statement
+                :bind-statement-value
+                :input-vars))

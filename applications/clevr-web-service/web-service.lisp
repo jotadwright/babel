@@ -282,7 +282,7 @@
      for object in (clevr::objects context)
      for idx from 0
      do (push
-         (make-instance 'clevr::clevr-object :id (make-symbol (format nil "obj-~a" idx))
+         (make-instance 'clevr::clevr-object :id (id object)
                         :shape (intern (mkstr (clevr::shape object)) 'clevr)
                         :size (intern (mkstr (clevr::size object)) 'clevr)
                         :color (intern (mkstr (clevr::color object)) 'clevr)
@@ -332,7 +332,7 @@
                               :silent t)
             (error (e)
               (http-condition 500 "Error in language processing module!")))
-        (let (solutions answers)
+        (let (solutions answers id-subs)
           (when (eql (first (statuses cipn)) 'fcg::succeeded)
             ;; ccl requires to intern the symbols manually (why?)
             #+ccl (setf irl-program
@@ -341,29 +341,35 @@
                                       collect (intern (mkstr symbol) 'clevr))))
             #+ccl (setf context (copy-and-intern-context context))
             (set-data *clevr-ontology* 'clevr:clevr-context context)
-            (setf solutions
-                  (handler-case
-                      (evaluate-irl-program irl-program *clevr-ontology*)
-                    (error (e)
-                      (http-condition 500 "Error in execution module!"))))
-            (setf answers
-                  (loop for solution in solutions
-                     collect (answer->str (get-target-value irl-program solution)))))
-          (encode-json-alist-to-string
-           `((:meaning . ,(when irl-program
-                            (cond
-                              ((string= irl-encoding "sexpr")
-                               (mkstr irl-program))
-                              ((string= irl-encoding "json")
-                               (encode-irl-program irl-program (first solutions))))))
-             (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
-             (:applied--constructions . ,(when (applied-constructions cipn)
-                                           (mapcar #'downcase
-                                                   (mapcar #'mkstr
-                                                           (mapcar #'fcg::name
-                                                                   (applied-constructions cipn))))))
-             (:irl--status . ,(if answers "succeeded" "failed"))
-             (:solutions . ,(mapcar #'downcase answers)))))))))
+            ;(setf solutions
+            (multiple-value-bind (solutions evaluator)
+                (handler-case
+                    (evaluate-irl-program irl-program *clevr-ontology*)
+                  (error (e)
+                    (http-condition 500 "Error in execution module!")))
+              (setf answers
+                    (loop for solution in solutions
+                       collect (answer->str (get-target-value irl-program solution))))
+              (setf id-subs
+                    (loop for object in (objects context)
+                          for i from 0
+                          collect (cons (id object)
+                                        (format nil "obj-~a" i))))
+              (encode-json-alist-to-string
+               `((:meaning . ,(when irl-program
+                                (cond
+                                 ((string= irl-encoding "sexpr")
+                                  (mkstr irl-program id-subs))
+                                 ((string= irl-encoding "json")
+                                  (encode-irl-program irl-program id-subs (nodes evaluator))))))
+                 (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
+                 (:applied--constructions . ,(when (applied-constructions cipn)
+                                               (mapcar #'downcase
+                                                       (mapcar #'mkstr
+                                                               (mapcar #'fcg::name
+                                                                       (applied-constructions cipn))))))
+                 (:irl--status . ,(if answers "succeeded" "failed"))
+                 (:solutions . ,(mapcar #'downcase answers)))))))))))
 
 (defroute comprehend-and-execute (:post :application/json)
   (handle-comprehend-and-execute-route
@@ -392,6 +398,6 @@
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?"}' http://localhost:9003/comprehend-and-formulate
 
-;; curl -H "Content-Type: text/plain" -d '{"utterance": "what is the color of the sphere that is both right of the green cylinder and behind the cube", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
+;; curl -H "Content-Type: text/plain" -d '{"utterance": "what is the color of the sphere that is both right of the green cylinder and behind the large cube", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
 
 

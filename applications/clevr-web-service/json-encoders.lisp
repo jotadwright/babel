@@ -3,34 +3,42 @@
 (in-package :clevr-web-service)
 
 ;;; make sexpr
-(defmethod make-sexpr ((set clevr-object-set))
+(defgeneric make-sexpr (thing &key &allow-other-keys))
+
+(defmethod make-sexpr ((set clevr-object-set) &key substitutions)
   (loop for object in (objects set)
         collect `((:color . ,(color object))
                   (:shape . ,(shape object))
                   (:material . ,(material object))
                   (:size . ,(size object))
-                  (:id . ,(downcase (mkstr (id object)))))))
+                  (:id . ,(downcase
+                           (mkstr
+                            (rest
+                             (assoc (id object) substitutions))))))))
 
-(defmethod make-sexpr ((object clevr-object))
+(defmethod make-sexpr ((object clevr-object) &key substitutions)
   `((:color . ,(color object))
     (:shape . ,(shape object))
     (:material . ,(material object))
     (:size . ,(size object))
-    (:id . ,(downcase (mkstr (id object))))))
+    (:id . ,(downcase
+             (mkstr
+              (rest
+               (assoc (id object) substitutions)))))))
 
-(defmethod make-sexpr ((bc boolean-category))
+(defmethod make-sexpr ((bc boolean-category) &key)
   (downcase (mkstr (id bc))))
 
-(defmethod make-sexpr ((mc material-category))
+(defmethod make-sexpr ((mc material-category) &key)
   (downcase (mkstr (material mc))))
 
-(defmethod make-sexpr ((cc color-category))
+(defmethod make-sexpr ((cc color-category) &key)
   (downcase (mkstr (color cc))))
 
-(defmethod make-sexpr ((sc size-category))
+(defmethod make-sexpr ((sc size-category) &key)
   (downcase (mkstr (size sc))))
 
-(defmethod make-sexpr ((sc shape-category))
+(defmethod make-sexpr ((sc shape-category) &key)
   (downcase (mkstr (shape sc))))
 
 (defparameter *clevr-predicate-arities*
@@ -41,10 +49,19 @@
 ;;;; encode-irl-program
 ;;;; put the irl-program in an s-expr that can be
 ;;;; easily encoded in a json string
+#|
 (defun encode-irl-program (irl-program &optional list-of-bindings)
   (let* ((reverse-polish (program->rpn (preprocess-program irl-program))))
-    (loop for predicate in reverse-polish
-          for output-var = (second (find (first predicate) irl-program :key #'first))
+    (loop for rpn-predicate in reverse-polish
+          for irl-predicates = (find-all (first rpn-predicate) irl-program :key #'first)
+          for the-predicate = (if (length= irl-predicates 1)
+                                (first irl-predicates)
+                                (loop for possible-predicate in irl-predicates
+                                      for bind-statements = (linked-bind-statement possible-predicate irl-program)
+                                      when (eql (bind-statement-value bind-statement)
+                                                (second rpn-predicate))
+                                      return possible-predicate))
+          for output-var = (second the-predicate)
           for output-value = (when list-of-bindings
                                (value (find output-var list-of-bindings :key #'var)))
           collect `((:name . ,(downcase (mkstr (first predicate))))
@@ -54,6 +71,54 @@
                                  (downcase (mkstr (third predicate)))
                                  (downcase (mkstr (second predicate))))))
                     (:output . ,(when output-value (make-sexpr output-value)))))))
+|#
+
+(defun extract-predicate (possible-predicates rpn-predicate irl-program processed-predicates)
+  (if (length= possible-predicates 1)
+    (first possible-predicates)
+    (or (loop for possible-predicate in possible-predicates
+              for bind-statement = (linked-bind-statement possible-predicate irl-program)
+              when (eql (bind-statement-value bind-statement)
+                        (last-elt rpn-predicate))
+              return possible-predicate)
+        (loop with best-pos = 100
+              with best-p
+              for possible-predicate in possible-predicates
+              for input = (first (input-vars possible-predicate))
+              for all-vars = (find-all-anywhere-if #'variable-p processed-predicates)
+              for pos = (position input all-vars)
+              when (and pos (< pos best-pos))
+              do (setf best-pos pos
+                       best-p possible-predicate)
+              finally (return best-p)))))
+
+(defun encode-irl-program (irl-program id-subs &optional list-of-nodes)
+  (let* ((reverse-polish (program->rpn (preprocess-program-for-web-service irl-program))))
+    (loop with processed-predicates = nil
+          for rpn-predicate in reverse-polish
+          for possible-predicates = (find-all (first rpn-predicate) irl-program :key #'first)
+          for the-predicate = (extract-predicate possible-predicates
+                                                 rpn-predicate
+                                                 irl-program
+                                                 processed-predicates)
+          for node = (find the-predicate list-of-nodes
+                           :key #'(lambda (node)
+                                    (first (primitives-evaluated node)))
+                           :test #'equal)
+          for output-var = (second the-predicate)
+          for output-value = (when node
+                               (value (find output-var (bindings node) :key #'var)))
+          do (push the-predicate processed-predicates)
+          collect `((:name . ,(downcase (mkstr (first rpn-predicate))))
+                    (:arity . ,(rest (assoc (first rpn-predicate) *clevr-predicate-arities*)))
+                    (:arg . ,(when (length> rpn-predicate 1)
+                               (if (eql (first rpn-predicate) 'filter)
+                                 (downcase (mkstr (third rpn-predicate)))
+                                 (downcase (mkstr (second rpn-predicate))))))
+                    (:output . ,(when output-value (make-sexpr output-value :substitutions id-subs)))
+                    (:status . ,(if node
+                                  (downcase (mkstr (irl:status node)))
+                                  "not-executed"))))))
 
 
 ;;;; TO DO: write functions for decoding an IRL program from JSON
