@@ -2,7 +2,8 @@
 
 (in-package :clevr-evaluation)
 
-(export '(preprocess-program))
+(export '(preprocess-program
+          preprocess-program-for-web-service))
 
 (define-event duplicate-context-finished (irl-program list))
 (define-event filter-things-finished (irl-program list))
@@ -169,5 +170,19 @@
               (reverse-nominal-groups
                (filter-things
                 (duplicate-context irl-program)))))
+        (notify process-network-finished processed-irl-program)
+        processed-irl-program))))
+
+(defun preprocess-program-for-web-service (irl-program)
+  "Preprocess the meaning network for evaluation. Make sure the final
+   predicate remains at the end of the meaning network. If comprehension
+   was not successful, there could be multiple top-units. When this is
+   the case, don't even bother to process the network further."
+  (let* ((final-primitive (predicate-name (get-target-predicate irl-program))))
+    (when final-primitive
+      (let* ((processed-irl-program
+              ;(reverse-nominal-groups
+               (filter-things
+                (duplicate-context irl-program))))
         (notify process-network-finished processed-irl-program)
         processed-irl-program))))
