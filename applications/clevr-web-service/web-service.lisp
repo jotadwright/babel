@@ -46,7 +46,7 @@
                           ((string= irl-encoding "sexpr")
                            (mkstr irl-program))
                           ((string= irl-encoding "json")
-                           (encode-irl-program irl-program)))))
+                           (encode-irl-program irl-program nil)))))
          (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
          (:applied--constructions . ,(when (applied-constructions cipn)
                                        (mapcar #'downcase
@@ -105,7 +105,7 @@
                                         ((string= irl-encoding "sexpr")
                                          (mkstr irl-program))
                                         ((string= irl-encoding "json")
-                                         (encode-irl-program irl-program)))))
+                                         (encode-irl-program irl-program nil)))))
                        (:fcg--status . ,(mkstr (first (statuses cipn))))
                        (:applied--constructions . ,(when (applied-constructions cipn)
                                                      (mapcar #'downcase
@@ -245,29 +245,24 @@
 (defvar *train-scenes* nil)
 (defvar *val-scenes* nil)
 
-(defun maybe-load-scenes ()
-  ;; if *train-scenes* is not yet computed,
-  ;; compute and store it.
-  (unless *train-scenes*
-    (let ((path 
+(defun load-validation-set ()
+  (let ((path 
+           (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
+                                           :name "CLEVR_val_full_per_line" :type "json")
+                            cl-user:*babel-corpora*)))
+      (setf *val-scenes*
+            (read-contexts-from-file path))))
+
+(defun load-training-set ()
+  (let ((path 
            (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
                                            :name "CLEVR_train_full_per_line" :type "json")
                             cl-user:*babel-corpora*)))
       (setf *train-scenes*
             (read-contexts-from-file path))))
-  ;; idem *val-scenes*
-  (unless *val-scenes*
-    (let ((path 
-           (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
-                                           :name "CLEVR_val_full_per_line" :type "json")
-                            cl-user:*babel-corpora*)))
-      (setf *val-scenes*
-            (read-contexts-from-file path)))))
 
 ;;;; /scenes route  
 (defroute scenes (:get :application/json)
-  ;; load from file if necessary
-  (maybe-load-scenes)
   ;; get all scene names and return them
   (encode-json-alist-to-string
    `((:scenes . ,(append (mapcar #'image-filename *train-scenes*)
@@ -311,8 +306,6 @@
     (unless (or (string= irl-encoding "sexpr")
                 (string= irl-encoding "json"))
       (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr' or 'json'." irl-encoding))
-    ;; load the scenes from file if necessary
-    (maybe-load-scenes)
     ;; add .png to scene name if needed
     (unless (find #\. scene)
       (setf scene (format nil "~a.png" scene)))
@@ -332,7 +325,7 @@
                               :silent t)
             (error (e)
               (http-condition 500 "Error in language processing module!")))
-        (let (solutions answers id-subs)
+        (let (answers id-subs)
           (when (eql (first (statuses cipn)) 'fcg::succeeded)
             ;; ccl requires to intern the symbols manually (why?)
             #+ccl (setf irl-program
@@ -341,7 +334,6 @@
                                       collect (intern (mkstr symbol) 'clevr))))
             #+ccl (setf context (copy-and-intern-context context))
             (set-data *clevr-ontology* 'clevr:clevr-context context)
-            ;(setf solutions
             (multiple-value-bind (solutions evaluator)
                 (handler-case
                     (evaluate-irl-program irl-program *clevr-ontology*)
@@ -390,7 +382,7 @@
 
 ;; Test the web interface on localhost:9003 or https://penelope.vub.be/clevr-api/ (may not contain the latest version)
 
-;; curl -H "Content-Type: text/plain" -d '{"utterance" : "How many red cubes are there?", "irl_encoding": "json"}' http://localhost:9003/comprehend
+;; curl -H "Content-Type: text/plain" -d '{"utterance" : "How many things are cubes or spheres?", "irl_encoding": "json"}' http://localhost:9003/comprehend
 
 ;; curl -H "Content-Type: application/json" -d '{"meaning" : "((GET-CONTEXT ?SOURCE-1153) (FILTER ?TARGET-2594 ?TARGET-2593 ?COLOR-205) (BIND SHAPE-CATEGORY ?SHAPE-175 CUBE) (FILTER ?TARGET-2593 ?SOURCE-1153 ?SHAPE-175) (BIND COLOR-CATEGORY ?COLOR-205 RED) (COUNT! ?TARGET-2681 ?TARGET-2594))"}' http://localhost:9003/formulate
 
@@ -398,6 +390,6 @@
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?"}' http://localhost:9003/comprehend-and-formulate
 
-;; curl -H "Content-Type: text/plain" -d '{"utterance": "what is the color of the sphere that is both right of the green cylinder and behind the large cube", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
+;; curl -H "Content-Type: text/plain" -d '{"utterance": "How many things are cubes or spheres?", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
 
 

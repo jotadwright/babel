@@ -41,6 +41,9 @@
 (defmethod make-sexpr ((sc shape-category) &key)
   (downcase (mkstr (shape sc))))
 
+(defmethod make-sexpr ((thing t) &key)
+  (mkstr thing))
+
 (defparameter *clevr-predicate-arities*
   '((count! . 1) (equal-integer . 2) (less-than . 2) (greater-than . 2)
     (equal? . 2) (exist . 1) (filter . 1) (get-context . 0) (intersect . 2)
@@ -101,10 +104,11 @@
                                                  rpn-predicate
                                                  irl-program
                                                  processed-predicates)
-          for node = (find the-predicate list-of-nodes
-                           :key #'(lambda (node)
-                                    (first (primitives-evaluated node)))
-                           :test #'equal)
+          for node = (when list-of-nodes
+                       (find the-predicate list-of-nodes
+                             :key #'(lambda (node)
+                                      (first (primitives-evaluated node)))
+                             :test #'equal))
           for output-var = (second the-predicate)
           for output-value = (when node
                                (value (find output-var (bindings node) :key #'var)))
