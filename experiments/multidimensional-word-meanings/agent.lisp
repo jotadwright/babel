@@ -149,9 +149,11 @@
          (context-as-alist
           (mapcar #'cdr
                   (remove-if #'(lambda (id) (eql id (id (topic agent))))
-                             all-objects-as-alist :key #'car))))
-    (setf (discriminative-set agent)
-          (mapcar #'cdr (discriminate-topic topic-as-alist context-as-alist)))
+                             all-objects-as-alist :key #'car)))
+         (discriminative-set (mapcar #'cdr (discriminate-topic topic-as-alist context-as-alist))))
+    (unless (and (get-configuration agent :max-tutor-utterance-length)
+                 (length> discriminative-set (get-configuration agent :max-tutor-utterance-length)))
+      (setf (discriminative-set agent) discriminative-set))
     (notify conceptualisation-finished agent)
     (discriminative-set agent)))
 

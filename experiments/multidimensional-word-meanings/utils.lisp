@@ -23,7 +23,7 @@
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names
                                               y-axis y1-max y2-max xlabel y1-label y2-label
-                                              captions)
+                                              captions (open t))
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
@@ -31,7 +31,7 @@
     :raw-file-paths
     (loop for measure-name in measure-names
           collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name))
-    :average-windows 100
+    :average-windows 1000
     :plot-directory `("experiments" "multidimensional-word-meanings" "graphs")
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
@@ -43,7 +43,8 @@
     :y2-max y2-max
     :x-label (if xlabel xlabel "Number of Games")
     :y1-label (when y1-label y1-label)
-    :y2-label (when y2-label y2-label))
+    :y2-label (when y2-label y2-label)
+    :open open)
   (format t "~%Graphs have been created"))
 
 (defun create-graph-comparing-strategies (&key experiment-names measure-name

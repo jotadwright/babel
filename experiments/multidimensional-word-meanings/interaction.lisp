@@ -36,15 +36,15 @@
    alignment."
   (let ((speaker (speaker interaction))
         (hearer (hearer interaction)))
-    (conceptualise speaker (id speaker))
-    (produce-word speaker (id speaker))
-    (when (utterance speaker)
-      (setf (utterance hearer) (utterance speaker))
-      (when (and (parse-word hearer (id hearer))
-                 (interpret hearer (id hearer))
-                 (determine-success speaker hearer))
-        (setf (communicated-successfully speaker) t
-              (communicated-successfully hearer) t)))))
+    (when (conceptualise speaker (id speaker))
+      (produce-word speaker (id speaker))
+      (when (utterance speaker)
+        (setf (utterance hearer) (utterance speaker))
+        (when (and (parse-word hearer (id hearer))
+                   (interpret hearer (id hearer))
+                   (determine-success speaker hearer))
+          (setf (communicated-successfully speaker) t
+                (communicated-successfully hearer) t))))))
 
 (defmethod learner-speaks ((experiment mwm-experiment)
                            interaction &key)
@@ -79,4 +79,5 @@
   (let* ((tutor (find 'tutor (interacting-agents interaction) :key #'id))
          (learner (find 'learner (interacting-agents interaction) :key #'id))
          (topic (find (id (topic tutor)) (objects (context learner)) :key #'id)))
-    (align-agent learner topic)))
+    (when (discriminative-set tutor)
+      (align-agent learner topic))))

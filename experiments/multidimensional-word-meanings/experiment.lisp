@@ -21,6 +21,7 @@
 (define-configuration-default-value :certainty-incf 0.1)
 (define-configuration-default-value :certainty-decf 0.2)
 (define-configuration-default-value :alpha 0.05)
+(define-configuration-default-value :max-tutor-utterance-length 1)
 
 ;; --------------
 ;; + Experiment +
@@ -66,7 +67,7 @@
                                          (interaction interaction)
                                          (mode (eql :learner-speaks))
                                          &key &allow-other-keys)
-  "The tutor is always the speaker"
+  "The learner is always the speaker"
   (let ((tutor (find 'tutor (population experiment) :key #'id))
         (learner (find 'learner (population experiment) :key #'id)))
     (setf (interacting-agents interaction)

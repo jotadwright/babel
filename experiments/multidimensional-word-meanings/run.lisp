@@ -3,6 +3,7 @@
 (in-package :mwm)
 
 (activate-monitor trace-interaction-in-web-interface)
+;(deactivate-monitor trace-interaction-in-web-interface)
 
 (activate-monitor print-a-dot-for-each-interaction)
 
@@ -16,10 +17,7 @@
 ;; indicative features (= features with a high score) vs. discriminatory features
 ;; (= features that are sufficiently distant from other concepts)
 
-
-;; When loading val-set + train-set, there are 85k scenes!
-;; Should run a multiple of that to make sure that each scene is at least seen once!
-(run-series *experiment* 10)
+(run-series *experiment* 100000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -32,7 +30,7 @@
 (run-experiments '(
                    (baseline ())
                   )
-                 :number-of-interactions 100000
+                 :number-of-interactions 20000
                  :number-of-series 1)
 
 (create-x-pos-convergence-graph :nr-of-interactions 100)
