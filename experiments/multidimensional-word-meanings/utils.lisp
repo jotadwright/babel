@@ -7,9 +7,8 @@
                          (monitors
                            (list "export-communicative-success"
                                  "export-lexicon-size"
-                                 "export-meanings-per-form"
-                                 "export-utterance-length"
-                                 "export-lexicon-quality")))
+                                 "export-features-per-form"
+                                 "export-utterance-length")))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
     :experiment-class 'mwm-experiment

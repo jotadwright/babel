@@ -215,7 +215,9 @@
   (when (parsed-meaning agent)
     (let ((objects-with-similarity
            (loop for object in (objects (context agent))
-                 collect (cons object (weighted-similarity object (parsed-meaning agent))))))
+                 for weighted-sim = (weighted-similarity object (parsed-meaning agent))
+                 ;do (format t "Similarity ~a and ~a: ~a~%" (id object) (parsed-meaning agent) weighted-sim)
+                 collect (cons object weighted-sim))))
       (setf (topic agent)
             (car (the-biggest #'cdr objects-with-similarity)))))
   (notify interpretation-finished agent)

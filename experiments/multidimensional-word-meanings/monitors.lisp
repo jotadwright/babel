@@ -177,12 +177,17 @@
                 :column-separator " "
                 :comment-string "#")
 
+#|
 (define-event-handler (record-communicative-success interaction-finished)
   (let ((tutor (find 'tutor (population experiment) :key #'id)))
     (record-value monitor
                   (if (discriminative-set tutor)
                     (if (communicated-successfully interaction) 1 0)
-                    (if (caaar (monitors::get-values monitor)) (caaar (monitors::get-values monitor)) 0)))))
+                    1))))
+|#
+
+(define-event-handler (record-communicative-success interaction-finished)
+  (record-value monitor (if (communicated-successfully interaction) 1 0)))
 
 ;;;; Lexicon size
 (define-monitor record-lexicon-size
@@ -207,22 +212,22 @@
   (record-value monitor (get-lexicon-size (hearer experiment))))
 
 ;;;; Number of meanings per form
-(define-monitor record-meanings-per-form
+(define-monitor record-features-per-form
                 :class 'data-recorder
                 :average-window 100
                 :documentation "records avg nr of meanings per form")
 
-(define-monitor export-meanings-per-form
+(define-monitor export-features-per-form
                 :class 'lisp-data-file-writer
                 :documentation "Exports nr of meanings per form"
-                :data-sources '(record-meanings-per-form)
-                :file-name (babel-pathname :name "meanings-per-form" :type "lisp"
+                :data-sources '(record-features-per-form)
+                :file-name (babel-pathname :name "features-per-form" :type "lisp"
                                            :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
 
-(defun compute-nr-of-meanings-per-form (agent)
+(defun compute-nr-of-features-per-form (agent)
   (loop for cxn in (constructions (grammar agent))
         for meaning = (attr-val cxn :meaning)
         sum (length meaning) into meaning-length-sum
@@ -232,8 +237,8 @@
                             (length (constructions (grammar agent)))))
                   0))))
 
-(define-event-handler (record-meanings-per-form interaction-finished)
-   (record-value monitor (compute-nr-of-meanings-per-form (hearer experiment))))
+(define-event-handler (record-features-per-form interaction-finished)
+   (record-value monitor (compute-nr-of-features-per-form (hearer experiment))))
 
 ;;;; Utterance length
 (define-monitor record-utterance-length

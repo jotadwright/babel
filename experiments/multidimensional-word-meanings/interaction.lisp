@@ -18,8 +18,8 @@
 
 (define-event context-determined (context clevr-object-set))
 
-(defmethod interact :before ((experiment mwm-experiment)
-                             interaction &key)
+(defmethod initialize-interaction ((experiment mwm-experiment)
+                                   interaction &key)
   "Initialize the interaction by choosing a random context"
   (let ((context (random-elt (world experiment))))
     (notify context-determined context)
@@ -36,15 +36,20 @@
    alignment."
   (let ((speaker (speaker interaction))
         (hearer (hearer interaction)))
-    (when (conceptualise speaker (id speaker))
-      (produce-word speaker (id speaker))
-      (when (utterance speaker)
-        (setf (utterance hearer) (utterance speaker))
-        (when (and (parse-word hearer (id hearer))
-                   (interpret hearer (id hearer))
-                   (determine-success speaker hearer))
-          (setf (communicated-successfully speaker) t
-                (communicated-successfully hearer) t))))))
+    (loop while t
+          for success = (conceptualise speaker (id speaker))
+          if success
+          return success
+          else
+          do (initialize-interaction experiment interaction))
+    (produce-word speaker (id speaker))
+    (when (utterance speaker)
+      (setf (utterance hearer) (utterance speaker))
+      (when (and (parse-word hearer (id hearer))
+                 (interpret hearer (id hearer))
+                 (determine-success speaker hearer))
+        (setf (communicated-successfully speaker) t
+              (communicated-successfully hearer) t)))))
 
 (defmethod learner-speaks ((experiment mwm-experiment)
                            interaction &key)
@@ -69,6 +74,7 @@
                      interaction &key)
   "Call the appropriate interaction script, depending
    on who is speaker and hearer"
+  (initialize-interaction experiment interaction)
   (let ((speaker (speaker interaction)))
     (cond
      ((tutorp speaker) (tutor-speaks experiment interaction))

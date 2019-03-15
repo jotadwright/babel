@@ -17,7 +17,24 @@
 ;; indicative features (= features with a high score) vs. discriminatory features
 ;; (= features that are sufficiently distant from other concepts)
 
-(run-series *experiment* 100000)
+;; TO DO; features reaching 0 certainty should be removed
+;; However, there should be a way to add features again, when needed.
+;; This will be necessary for the CLEVR COGENT experiment.
+
+;; The features should be added again when the game fails.
+;; How to decide which features to add again?
+
+;; For now, all the ones that are no longer present are put
+;; back but with a low initial certainty score. This gives very bad performance.
+
+;; Maybe this should be based on some kind of re-entrance. If I had had this feature
+;; with the value of the topic, would I have interpreted the topic correctly?
+
+;; Or otherwise look at the scene and try to determine if the current (unused)
+;; feature is important for the topic w.r.t. the other objects.
+;; If it is, than add the feature again.
+
+(run-series *experiment* 10)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -30,7 +47,7 @@
 (run-experiments '(
                    (baseline ())
                   )
-                 :number-of-interactions 20000
+                 :number-of-interactions 10000
                  :number-of-series 1)
 
 (create-x-pos-convergence-graph :nr-of-interactions 100)
@@ -41,12 +58,11 @@
  :y-axis '(1)
  :y1-max 1
  :xlabel "Number of games"
- :y1-label "Success")
+ :y1-label "Success") 
 
 (create-graph-for-single-strategy
  :experiment-name "baseline"
- :measure-names '("lexicon-quality"
-                  "meanings-per-form"
+ :measure-names '("features-per-form"
                   "utterance-length")
  :y-axis '(1 1 1)
  :y1-max nil

@@ -103,10 +103,12 @@
                    (append node-content
                            '((s-dot::style "filled")
                              (s-dot::fillcolor "#AA0000"))))
+          when (> certainty 0.0)
           do (push
               `(s-dot::node ,node-content)
               graph))
     (loop for (attr value certainty) in meaning
+          when (> certainty 0.0)
           do (push
               `(s-dot::edge
                 ((s-dot::from ,(format nil "~a" form))
@@ -131,11 +133,13 @@
                                                         value)
                                                 (format nil "~a~%(~,2f)"
                                                         (downcase (mkstr attr))
-                                                        value))))                                
+                                                        value))))
+          when (> certainty 0.0)
           do (push
               `(s-dot::node ,node-content)
               graph))
     (loop for (attr value certainty) in meaning
+          when (> certainty 0.0)
           do (push
               `(s-dot::edge
                 ((s-dot::from ,"root")
@@ -199,6 +203,11 @@
   ; cxn, attr
   (add-element `((h2) ,(format nil "Removed attribute ~a from word \"~a\""
                                attr (attr-val cxn :form)))))
+
+(define-event-handler (trace-interaction-in-web-interface re-introduced-meaning)
+  (loop for attr in attrs
+        do (add-element `((h2) ,(format nil "Re-introduced attribute ~a to word \"~a\""
+                                        attr (attr-val cxn :form))))))
 
 (define-event-handler (trace-interaction-in-web-interface cxn-removed)
   ; cxn
