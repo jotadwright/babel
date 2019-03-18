@@ -65,7 +65,6 @@
 ;; - adjective-noun-unit-arg0of-cxn
 ;; - adjective-noun-arg1of-cxn
 ;; - article-adjective-cxn
-;; - adjective-noun-arg1of-morethanpossibility-cxn
 ;; - vp-modal-cxn
 ;; - subject-verb-modal-cxn
 ;; - subject-verb-modal-cxn
@@ -706,7 +705,9 @@
                 (syn-cat (phrase-type NP)
                          (number ?n)
                          (person 3)
-                         (syn-function ?func))
+                         (syn-function ?func)
+                         (compound ?comp)
+                         (subject-quantifier -))
                 (subunits (?article-unit ?noun-unit))
                 (boundaries (rightmost-unit ?noun-unit)
                             (leftmost-unit ?article-unit))
@@ -735,7 +736,9 @@
                          (lex-class noun)
                          (number sg)
                          (person 3)
-                         (syn-function ?func))
+                         (syn-function ?func)
+                         (compound -)
+                         (subject-quantifier -))
                 (sem-cat (sem-class person)))
                <-
                (?boy-unit
@@ -800,37 +803,6 @@
                 --
                 (HASH form ((meets ?modal-unit ?infinitif-unit))))))
  
-(def-fcg-cxn subject-verb-adverb-cxn
-             ((?subject-verb-adverb-unit
-               (meaning ((:arg0 ?verb ?subject)))
-               (subunits (?vp-unit ?subject-unit))
-               (referent ?subject)
-               (boundaries (rightmost-unit ?vp-rightmost-unit)
-                           (leftmost-unit ?subject-leftmost-unit)))
-              <-
-              (?vp-unit
-               --
-               (referent ?verb)
-               (syn-cat (lex-class verb)
-                        (finite +)
-                        (phrase-type VP))
-               (boundaries
-                 (rightmost-unit ?vp-unit-rightmost)
-                 (leftmost-unit ?vp-unit-leftmost)))
-              (?subject-unit
-               --
-               (referent ?subject)
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (lex-class noun)
-                        (syn-function ?func))
-               (boundaries
-                (leftmost-unit ?subject-unit-leftmost)
-                (rightmost-unit ?subject-unit-rightmost)))
-              (?subject-verb-adverb-unit
-               --
-               (HASH form ((precedes ?subject-unit-leftmost-unit ?vp-unit-rightmost-unit))))))
 
 (def-fcg-cxn what-cxn 
              ((?what-unit
@@ -854,6 +826,7 @@
                         (modal -)
                         (transitive +)
                         (past-simple +)
+                        (relative -)
                         (phrase-type VP)))
                <-
                (?opined-unit
@@ -894,11 +867,14 @@
                         (number sg)
                         (person 3)
                         (phrase-type nominal)
-                        (syn-function ?func)))
+                        (syn-function ?func))
+              (sem-cat (sem-class possessed)))
                <-
                (?opinion-unit
                 --
                 (HASH form ((string ?opinion-unit "opinion"))))))
+
+;;'((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G)))
 
 (def-fcg-cxn s-possessive-cxn
              ((?s-possessive-unit
@@ -918,48 +894,27 @@
                  --
                  (HASH form ((string ?of-unit "of"))))))
 
-(def-fcg-cxn x-s-y-cxn
-             ((?possessive-unit
-               (referent ?g)
-                (meaning ((:arg0 ?o ?g)))
-                (subunits (?np-x-unit ?np-y-unit ?apo-s-unit))
-                (boundaries (leftmost-unit ?np-x-unit-leftmost)
-                            (rightmost-unit ?np-y-unit)))
-               <-
-               (?np-x-unit
-               --
-               (referent ?g)
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (syn-function ?func))
-               (sem-cat (sem-class possessor))
-               (boundaries
-                (leftmost-unit ?np-x-unit-leftmost)
-                (rightmost-unit ?np-x-unit-rightmost)))
-               (?np-y-unit
-               --
-               (referent ?o)
-               (syn-cat (number sg)
-                        (person 3)
-                        (syn-function ?func)))
-               (?apo-s-unit
-                --
-               (HASH form ((string ?apo-s-unit "'s"))))
-               (?possessive-unit
-                --
-                (HASH form ((meets ?np-x-unit-rightmost ?apo-s-unit ?np-y-unit))))))
-
 (def-fcg-cxn y-of-x-cxn
-             ((?possessive2-unit
+             ((?y-of-x-unit
                (referent ?g)
                (meaning ((:arg0 ?o ?g)))
-                (subunits (?np-x-unit ?np-y-unit ?of-unit))
-                (boundaries (leftmost-unit ?np-x-unit-leftmost)
-                            (rightmost-unit ?np-y-unit-rightmost)))
+                (subunits (?np-x2-unit ?np-y2-unit ?of-unit))
+                (boundaries (leftmost-unit ?np-x2-leftmost-unit)
+                            (rightmost-unit ?np-y2-rightmost-unit)))
                <-
                (?np-x2-unit
                --
+               (referent ?o)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (syn-function ?func))
+               (sem-cat (sem-class possessed))
+               (boundaries
+                (leftmost-unit ?np-x2-leftmost-unit)
+                (rightmost-unit ?np-x2-rightmost-unit)))
+               (?np-y2-unit
+               --
                (referent ?g)
                (syn-cat (phrase-type NP)
                         (number sg)
@@ -967,26 +922,50 @@
                         (syn-function ?func))
                (sem-cat (sem-class possessor))
                (boundaries
-                (leftmost-unit ?np-x-unit-leftmost)
-                (rightmost-unit ?np-x-unit-rightmost)))
-               (?np-y1-unit
+                (leftmost-unit ?np-y2-leftmost-unit)
+                (rightmost-unit ?np-y2-rightmost-unit)))
+               (?of-unit
+                --
+                (HASH form ((string ?of-unit "of"))))
+               (?y-of-x-unit
+                --
+                (HASH form ((precedes ?np-x2-rightmost-unit ?of-unit)
+                            (precedes ?of-unit ?np-y2-leftmost-unit))))))
+ 
+ (def-fcg-cxn x-s-y-cxn
+             ((?x-s-y-unit
+               (referent ?g)
+               (meaning ((:arg0 ?o ?g)))
+               (subunits (?np-x-unit ?np-y-unit ?apo-s-unit))
+               (boundaries (leftmost-unit ?np-y-leftmost-unit)
+                           (rightmost-unit ?np-x-rightmost-unit)))
+               <-
+               (?np-x-unit
                --
                (referent ?o)
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (person 3)
+                        (syn-function nominal))
+              (sem-cat (sem-class possessed)))
+               (?np-y-unit
+               --
+               (referent ?g)
                (syn-cat (phrase-type NP)
                         (number sg)
                         (person 3)
                         (syn-function ?func))
-               (sem-cat (sem-class possessor))
-               (boundaries
-                (leftmost-unit ?np-y-unit-leftmost)
-                (rightmost-unit ?np-y-unit-rightmost)))
-               (?of-unit
+              (sem-cat (sem-class possessor))
+              (boundaries
+                (leftmost-unit ?np-y-leftmost-unit)
+                (rightmost-unit ?np-y-rightmost-unit)))
+               (?apo-s-unit
                 --
-                (HASH form ((string ?of-unit "of"))))
-               (?possessive2-unit
+               (HASH form ((string ?apo-s-unit "'s"))))
+               (?x-s-y-unit
                 --
-                (HASH form ((precedes ?np-x-unit-rightmost ?of-unit)
-                            (precedes ?of-unit ?np-y-unit-rightmost))))))
+                (HASH form ((precedes ?np-y-rightmost-unit ?apo-s-unit)
+                            (precedes ?apo-s-unit ?np-x-leftmost-unit))))))
 
 (def-fcg-cxn girl-lex-cxn
              ((?girl-unit
@@ -1006,7 +985,8 @@
                (lex-id girl)
                (syn-cat (lex-class noun)
                         (number sg)
-                        (syn-function ?func))
+                        (syn-function nominative)
+                        (compound -))
                (sem-cat (sem-class possessor)))
               <-
               (?girl-unit
@@ -1020,7 +1000,8 @@
                (meaning ((girl ?g)))
                (syn-cat (lex-class noun)
                         (number pl)
-                        (syn-function ?func))
+                        (syn-function ?func)
+                        (subject-quantifier -))
                (sem-cat (sem-class arg1)))
               <-
               (?girls-unit
@@ -1228,8 +1209,9 @@
 
 (def-fcg-cxn adverb-manner-cxn
              ((?adverb-manner-unit
-               (meaning ((:manner ?verb ?adv)))
+               (meaning ((:manner ?w ?h)))
                (subunits (?vp-unit ?adverb-unit))
+               (referent ?w)
                (syn-cat (phrase-type clausal))
                (boundaries
                  (rightmost-unit ?vp-unit-leftmost)
@@ -1237,13 +1219,13 @@
                <-
                (?vp-unit
                 --
-                (referent ?verb)
+                (referent ?w)
                 (syn-cat (lex-class verb)
                          (finite +)
                           (phrase-type VP)))
                (?adverb-unit
                --
-               (referent ?adv)
+               (referent ?h)
                 (syn-cat (lex-class adverb)
                         (number ?numb)
                         (syn-function ?func))
@@ -1252,35 +1234,35 @@
                 --
                 (HASH form ((precedes ?vp-unit ?adverb-unit))))))
 
-(def-fcg-cxn subject-verb-adverb-cxn
+ (def-fcg-cxn subject-verb-adverb-cxn
              ((?subject-verb-adverb-unit
-               (meaning ((:arg0 ?verb ?subject)))
-               (subunits (?vp-unit ?subject-unit))
-               (referent ?subject)
+               (meaning ((:arg0 ?w ?b)))
+               (subunits (?adverb-manner-unit ?subject-unit))
                (boundaries (rightmost-unit ?adverb-manner-rightmost-unit)
                            (leftmost-unit ?subject-leftmost-unit)))
               <-
               (?adverb-manner-unit
                --
-               (referent ?verb)
-               (syn-cat (lex-class verb)
-                        (finite +)
-                        (transitive -)
-                        (phrase-type VP)))
+               (referent ?w)
+               (syn-cat (phrase-type clausal))
+               (boundaries
+                 (rightmost-unit ?adverb-manner-rightmost-unit)
+                 (leftmost-unit ?adverb-manner-leftmost-unit)))
               (?subject-unit
                --
+               (referent ?b)
                (referent ?subject)
                (syn-cat (phrase-type NP)
                         (number sg)
                         (person 3)
                         (syn-function ?func))
-               (sem-cat (sem-class ?class))
                (boundaries
-                (leftmost-unit ?subject-unit-leftmost)
-                (rightmost-unit ?subject-unit-rightmost)))
+                (leftmost-unit ?subject-leftmost-unit)
+                (rightmost-unit ?subject-rightmost-unit)))
               (?subject-verb-adverb-unit
                --
-               (HASH form ((precedes ?subject-unit-leftmost-unit ?vp-unit-rightmost-unit))))))
+               (HASH form ((precedes ?subject-unit-leftmost-unit ?adverb-manner-rightmost-unit))))))
+
 
 (def-fcg-cxn soldier-cxn
              ((?soldier-unit
@@ -1288,7 +1270,9 @@
                (meaning ((soldier ?s)))
                (syn-cat (lex-class noun)
                         (number sg)
-                        (syn-function ?func))
+                        (syn-function ?func)
+                        (compound -)
+                        (subject-quantifier -))
                (sem-cat (sem-class agent)))
               <-
               (?soldier-unit
@@ -1304,6 +1288,7 @@
                         (modal -)
                         (transitive +)
                         (past-simple +)
+                        (relative -)
                         (phrase-type VP)))
                <-
                (?feared-unit
@@ -1316,7 +1301,8 @@
                (meaning ((battle-01 ?b)))
                (syn-cat (lex-class noun)
                         (number sg)
-                        (syn-function ?func))
+                        (syn-function ?func)
+                        (phrase-type nominal))
                (sem-cat (sem-class direct-object)))
               <-
               (?battle-unit
@@ -1393,8 +1379,13 @@
              ((?subject-verb-unit
                (meaning ((:arg0 ?verb ?subj)))
                (subunits (?vp-unit ?subject-unit))
-               (referent ?o)
-               (syn-cat (phrase-type VP)))
+               (referent ?verb)
+               (boundaries (rightmost-unit ?vp-unit)
+                           (leftmost-unit (subject-unit)))
+               (syn-cat (phrase-type VP)
+                        (compound -)
+                        (relative -)
+                        (subject-quantifier -)))
               <-
               (?vp-unit
                --
@@ -1402,6 +1393,7 @@
                (syn-cat (lex-class verb)
                         (finite +)
                         (modal ?mod)
+                        (relative -)
                         (transitive ?trans)
                         (phrase-type VP)))
               (?subject-unit
@@ -1410,6 +1402,8 @@
                (syn-cat (phrase-type NP)
                         (number sg)
                         (person 3)
+                        (compound -)
+                        (subject-quantifier -)
                         (syn-function ?func))
                (boundaries
                 (leftmost-unit ?subject-leftmost-unit)
@@ -1426,6 +1420,7 @@
                         (modal -)
                         (phrase-type VP)
                         (to-infinitif +)
+                        (relative -)
                         (transitive +))
                (meaning ((want-01 ?w))))
                <-
@@ -1441,7 +1436,8 @@
                         (modal -)
                         (phrase-type VP)
                         (infinitif +))
-               (sem-valence (arg0 ?b))
+               (sem-valence (arg0 ?b)
+                            (arg2 ?p))
                (meaning ((go-01 ?g))))
               <-
               (?go-unit
@@ -1582,7 +1578,8 @@
                (meaning ((orc ?o)))
                (syn-cat (lex-class noun)
                         (number pl)
-                        (syn-function ?func))
+                        (syn-function ?func)
+                        (phrase-type nominal))
                (sem-cat (sem-class direct-object)))
               <-
               (?orcs-unit
@@ -1637,6 +1634,7 @@
                (referent ?o)
                (syn-cat (lex-class noun)
                         (number ?numb)
+                        (phrase-type nominal)
                         (syn-function ?func))
                (sem-cat (sem-class direct-object)))
               (?active-transitive-unit
@@ -1716,218 +1714,435 @@
                 --
                 (HASH form ((precedes ?arg1-NP-unit-rightmost-unit ?present-participle-unit))))))
 
-)
-
-#|
-
- 
-(def-fcg-cxn subject-verb-infinitive-cxn
-             ((?subject-verb-infinitive-unit
-               (meaning ((:arg0 ?verb ?b)))
-               (subunits (?V-infinitive-unit ?np-unit))
-               (boundaries (leftmost-unit ?np-leftmost-unit)
-                           (rightmost-unit ?V-infinitive-rightmost-unit))
-               (referent ?b))
+(def-fcg-cxn college-cxn
+             ((?college-unit
+               (referent ?c)
+               (meaning ((college ?c)))
+               (syn-cat (phrase-type nominal)
+                        (lex-class noun)
+                        (number sg)
+                        (nominalisation -)
+                        (syn-function adjectival)
+                        (person 3)
+                        (compound +))
+              (sem-cat (sem-class age)))
                <-
-              (?V-infinitive-unit
-               --
-               (referent ?verb)
-               (syn-cat (phrase-type VP))
-               (boundaries
-                (leftmost-unit ?V-infinitive-leftmost-unit)
-                (rightmost-unit ?V-infinitive-rightmost-unit)))
-              (?np-unit
-               --
-               (referent ?b)
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (syn-function ?func))
-               (boundaries
-                (leftmost-unit ?np-leftmost-unit)
-                (rightmost-unit ?np-rightmost-unit)))
-              (?subject-verb-infinitive-unit
-               --
-               (HASH form ((precedes ?np-rightmost-unit ?V-infinitive-rightmost-unit))))))
-
-(def-fcg-cxn arg0-to-infinitif-cxn 
-             ((?arg0-to-infinitif
-               (meaning ((:arg0 ?main-verb ?subj)))
-               (subunits (?V-to-infinitive-unit ?subject-unit))
-               (referent ?main-verb))
-              <-
-              (?V-to-infinitive-unit
-               --
-               (referent ?main-verb)
-               (syn-cat (lex-class verb)
-                        (finite ?fin)
-                        (modal -)
-                        (phrase-type VP)))
-              (?subject-unit
-               --
-               (referent ?subj)
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (syn-function ?func))
-               (boundaries
-                (leftmost-unit ?subject-leftmost-unit)
-                (rightmost-unit ?subject-rightmost-unit)))
-              (?arg0-to-infinitif
-               --
-               (HASH form ((precedes ?subject-unit-rightmost-unit ?vp-unit))))))
-
-(def-fcg-cxn active-transitive-cxn 
-             ((?active-transitive-unit
-               (subunits (?vp-unit ?direct-object-unit))
-               (syn-cat (phrase-type transitive))
-               (meaning ((:arg1 ?verb ?b)))
-               (boundaries (rightmost-unit ?direct-object-unit)
-                           (leftmost-unit ?vp-leftmost-unit))
-               (referent ?verb))
-              <-
-              (?vp-unit
+               (?college-unit
                 --
-                (referent ?verb)
-                (syn-cat (lex-class verb)
-                         (finite +)
-                         (modal -)
-                         (transitive +)
-                         (phrase-type VP)))
-              (?direct-object-unit
+                (HASH form ((string ?college-unit "college"))))))
+
+ (def-fcg-cxn compound-noun-noun-type-cxn ;;type
+              ((?compound-noun-noun-unit
+                (referent ?ref)
+                (meaning ((:mod ?ref ?type)))
+                (syn-cat (lex-class noun)
+                         (compound +)
+                         (number ?numb)
+                         (syn-function nominal))
+                (subunits (?first-noun-unit ?second-noun-unit)))
+               <-
+               (?first-noun-unit
+                --
+                (referent ?type)
+                (syn-cat (lex-class noun)
+                         (number sg)
+                         (nominalisation -)
+                         (syn-function adjectival))
+                (sem-cat (sem-class type)))
+               (?second-noun-unit
+                --
+                (referent ?ref)
+                (syn-cat (lex-class noun)
+                         (number ?numb)
+                         (syn-function nominal))
+                (sem-cat (sem-class object)))
+               (?compound-noun-noun-unit
+                --
+                (HASH form ((meets ?first-noun-unit ?second-noun-unit))))))
+ 
+ (def-fcg-cxn compound-noun-noun-source-cxn ;;source
+              ((?compound-noun-noun-source-unit
+                (referent ?ref)
+                (meaning ((:source ?ref ?c)))
+                (syn-cat (lex-class noun)
+                         (compound +)
+                         (number ?numb)
+                         (syn-function nominal))
+                (sem-cat (sem-class age))
+                (subunits (?np-unit ?second-noun-unit))
+                (boundaries (leftmost-unit ?np-age-unit-leftmost-unit)
+                            (rightmost-unit ?second-noun-unit)))
+               <-
+               (?np-age-unit
+                --
+                (referent ?c)
+                (syn-cat (phrase-type np)
+                         (number sg)
+                         (person 3)
+                         (syn-function adjectival))
+                (sem-cat (sem-class age))
+                (boundaries
+                (leftmost-unit ?np-age-unit-leftmost-unit)
+                (rightmost-unit ?np-age-unit-rightmost-unit)))
+               (?second-noun-unit
+                --
+                (referent ?ref)
+                (syn-cat (lex-class noun)
+                         (number ?numb)
+                         (syn-function nominal))
+                (sem-cat (sem-class person)))
+               (?compound-noun-noun-source-unit
+                --
+                (HASH form ((precedes ?np-age-unit-rightmost-unit ?second-noun-unit))))))
+
+ (def-fcg-cxn sang-cxn
+             ((?sang-unit
+               (referent ?s)
+               (meaning ((sing-01 ?s)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive -)
+                        (past-simple +)
+                        (relative +)
+                        (phrase-type VP)))
+               <-
+               (?sang-unit
+                --
+                (HASH form ((string ?sang-unit "sang"))))))
+
+(def-fcg-cxn arg0-of-compound-noun-relative-cxn 
+             ((?arg0-of-compound-noun-relative-unit
+               (meaning ((:arg0-of ?b ?s)))
+               (syn-cat (relative +))
+               (subunits (?compound-noun-unit ?relative-unit ?verb-unit))
+               (boundaries (leftmost-unit ?compound-noun-unit-leftmost-unit)
+                           (rightmost-unit ?verb-unit))
+               (referent ?b))
+              <-
+               (?compound-noun-unit
                --
                (referent ?b)
                (syn-cat (lex-class noun)
+                        (compound +)
                         (number sg)
-                        (syn-function ?func))
-               (sem-class (sem-cat direct-object)))
-              (?active-transitive-unit
+                        (syn-function nominal))
+               (sem-cat (sem-class age))
+               (boundaries (leftmost-unit ?compound-noun-leftmost-unit)
+                           (rightmost-unit ?compound-noun-rightmost-unit)))
+              (?who-unit
+              --
+              (HASH form ((string ?who-unit "who"))))
+              (?verb-unit
                --
-              (HASH form ((precedes ?subject-verb-unit ?direct-object-unit))))))
-
-(def-fcg-cxn active-arg1-cxn 
-             ((?active-arg1-unit
-               (subunits (?vp-unit ?direct-object-unit))
-               (syn-cat (phrase-type transitive))
-               (meaning ((:arg1 ?verb ?dir-obj)))
-               (referent ?f))
-              <-
-              (?direct-object-unit
-               --
-               (referent ?dir-obj)
-               (syn-cat (lex-class noun)
-                        (number ?numb)
-                        (syn-function ?func))
-               (sem-cat (sem-class arg1)))
-               (?vp-unit
-               --
-               (referent ?verb)
+               (referent ?s)
                (syn-cat (lex-class verb)
                         (finite +)
                         (modal -)
                         (past-simple +)
-                        (phrase-type VP))
-              (sem-cat (sem-class transitive)))
-              (?active-arg1-unit
+                        (transitive -)
+                        (relative +)
+                        (phrase-type VP)))
+              (?arg0-of-compound-noun-relative-unit
                --
-              (HASH form ((precedes ?vp-unit ?direct-object-unit))))))
+               (HASH form ((precedes ??compound-noun-unit-rightmost-unit ?relative-unit)
+                           (precedes ?relative-unit ?verb-unit))))))
 
-(def-fcg-cxn subject-want-cxn
-         ((?subject-want-unit
-           (referent ?b)
-           (meaning ((:arg0 ?w ?b)))
-           (subunits (?want-unit ?np-unit))
-           (boundaries (leftmost-unit ?np-leftmost-unit)
-                       (rightmost-unit ?want-unit)))
-          <-
-          (?want-unit
-          --
-          (referent ?w)
-          (syn-cat (lex-class verb)
-                   (finite +)
-                   (modal -)
-                   (phrase-type VP)
-                   (to-infinitif +)
-                   (transitive +)))
-          (?np-unit
-           --
-           (referent ?b)
-           (syn-cat (phrase-type NP)
-                    (number sg)
-                    (person 3)
-                    (syn-function ?func))
-           (boundaries
-            (leftmost-unit ?np-leftmost-unit)
-            (rightmost-unit ?np-rightmost-unit)))
-           (?subject-want-unit
-            --
-           (HASH form ((precedes ?np-rightmost-unit ?want-unit))))))
-
-(def-fcg-cxn genitive-possessor-cxn
-             ((?genitive-possessor-unit
-               (referent ?g)
-               (meaning ((:arg0 ?o ?g)))
-               (syn-cat (syn-function ?func))
-               (subunits (?np-possessor-unit ?possessed-unit))
-               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
-                           (rightmost-unit ?possessed-unit)))
+(def-fcg-cxn who-cxn 
+             ((?who-unit
+               (syn-cat (lex-class pronoun)
+                        (syn-function ?func)))
               <-
-              (?np-possessor-unit
-               (referent ?g)
+              (?who-unit
                --
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (syn-function ?func))
-               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
-                           (rightmost-unit ?np-possessor-rightmost-unit))
-               (sem-cat (sem-class possessor)))
-              (?possessed-unit
-               (referent ?o)
-               --
-               (syn-cat (phrase-type nominal)
-                        (lex-class noun)
-                        (number sg)
-                        (syn-function ?func))
-               (sem-class (sem-cat possessed)))
-              (?genitive-possessor-unit
-               --
-               (HASH form ((precedes ?np-possessor-leftmost-unit ?possessed-unit))))))
+               (HASH form ((string ?who-unit "who"))))))
 
- (def-fcg-cxn genitive-possessessed-np-cxn
-             ((?genitive-possessed-np-unit
-               (referent ?g)
-               (meaning ((:arg0 ?o ?g)))
-               (syn-cat (syn-function ?func))
-               (subunits (?np-possessor-unit ?np-possessed-unit))
-               (boundaries (leftmost-unit ?np-possessed-leftmost-unit)
-                           (rightmost-unit ?np-possessor-rightmost-unit)))
+(def-fcg-cxn increased-cxn
+             ((?increased-unit
+               (referent ?i)
+               (meaning ((increase-01 ?i)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive -)
+                        (past-simple +)
+                        (phrase-type VP)
+                        (subject-quantifier +)))
               <-
-              (?np-possessor-unit
-               (referent ?g)
+              (?increased-unit
                --
-               (syn-cat (phrase-type NP)
-                        (lex-class noun)
+               (HASH form ((string ?increased-unit "increased"))))))
+
+(def-fcg-cxn pandas-cxn
+             ((?pandas-unit
+               (referent ?p)
+               (meaning ((panda ?p)))
+               (syn-cat (lex-class noun)
+                        (number pl)
+                        (person 3)
+                        (subject-quantifier +)
+                        (syn-function nominal))
+               (sem-cat (sem-class quantified)))
+              <-
+              (?pandas-unit
+               --
+               (HASH form ((string ?pandas-unit "pandas"))))))
+
+(def-fcg-cxn number-cxn
+             ((?number-unit
+               (referent ?n)
+               (meaning ((number ?n)))
+               (syn-cat (lex-class noun)
                         (number sg)
                         (person 3)
-                        (syn-function ?func))
-               (sem-cat (sem-class possessor))
-               (boundaries (leftmost-unit ?np-possessor-leftmost-unit)
-                           (rightmost-unit ?np-possessor-rightmost-unit)))
-              (?np-possessed-unit
-               (referent ?o)
+                        (subject-quantifier +))
+               (sem-cat (sem-class quantifier)))
+              <-
+               (?number-unit
+                --
+                (HASH form ((string ?number-unit "number"))))))
+
+(def-fcg-cxn quantifier-of-cxn
+             ((?quantifier-of-unit
+               (referent ?p)
+               (meaning ((:quant-of ?n ?p)))
+               (subunits (?quantifier-unit ?of-unit ?quantified-unit))
+               (boundaries (leftmost-unit ?quanitifier-number-leftmost-unit)
+                           (rightmost-unit ?quantified-unit)))
+               <-
+               (?quantifier-number-unit
+                --
+                (referent ?n)
+                (syn-cat (phrase-type NP)
+                         (lex-class noun)
+                         (person 3)
+                         (compound -)
+                         (subject-quantifier -)
+                         (syn-func ?func)
+               (sem-cat (sem-class quantifier))
+               (boundaries (leftmost-unit ?quantifier-number-leftmost-unit)
+                           (rightmost-unit ?quantifier-number-rightmost-unit))))
+               (?of-unit
+                --
+               (HASH form ((string ?of-unit "of"))))
+               (?quantified-unit
                --
-               (syn-cat (phrase-type NP)
-                        (lex-class noun)
+               (referent ?p)
+               (syn-cat (lex-class noun)
+                        (number plu)
                         (person 3)
-                        (number sg)
-                        (syn-function ?func))
-               (sem-class (sem-cat possessed))
-               (boundaries (leftmost-unit ?np-possessed-leftmost-unit)
-                           (rightmost-unit ?np-possessed-rightmost-unit)))
-              (?genitive-possessed-np-unit
+                        (syn-function nominal)
+                        (subject-quantifier +))
+               (sem-cat (sem-class quantified)))
+               (?quantifier-of-unit
+                --
+               (HASH form ((meets ?quantifier-number-rightmost-unit ?of-unit ?quantified-unit))))))
+
+
+(def-fcg-cxn did-cxn
+             ((?did-unit
+               (syn-cat (lex-class aux)
+                        (finite ?fin)
+                        (lemma do)))
+              <-
+              (?did-unit
                --
-              (HASH form ((precedes ?np-possessed-unit ?np-possessor-unit))))))
+               (HASH form ((string ?did-unit "did"))))))
+
+(def-fcg-cxn not-cxn
+             ((?not-unit
+               (meaning ((:polarity -)))
+               (syn-cat (lex-class adverb)))
+               <-
+              (?not-unit
+               --
+               (HASH form ((string ?not-unit "not"))))))
+
+ (def-fcg-cxn vp-negative-cxn  
+              ((?vp-negative-unit
+                (referent ?g)
+                (meaning ((:polarity ?g -)))
+                (subunits (?not-unit ?did-unit ?infinitif-unit))
+                (boundaries (rightmost-unit ?infinitif-unit)
+                            (leftmost-unit ?did-unit)))
+               <-
+               (?infinitif-unit
+                --
+                (referent ?g)
+                (syn-cat (lex-class verb)
+                         (finite -)
+                         (modal -)
+                         (phrase-type vp)
+                         (infinitif +)))
+               (?not-unit
+                --
+                (HASH form ((string ?not-unit "not"))))
+               (?did-unit
+                 (HASH form ((string ?did-unit "did"))))
+               (?vp-negative-unit
+                --
+                (HASH form ((precedes ?did-unit ?not-unit)
+                            (precedes ?not-unit ?infinitif-unit))))))
+
+ (def-fcg-cxn machine-cxn
+             ((?machine-unit
+               (referent ?m)
+               (meaning ((machine ?m)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (phrase-type NP)
+                        (syn-function accusative))
+                (sem-cat (sem-class direct-object)))
+               <-
+               (?machine-unit
+                --
+                (HASH form ((string ?machine-unit "machine"))))))
+
+ (def-fcg-cxn adjusted-cxn
+             ((?adjusted-unit
+               (referent ?a)
+               (meaning ((adjust-01 ?a)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (relative -)
+                        (transitive +)
+                        (past-simple +)
+                        (phrase-type VP)))
+               <-
+               (?adjusted-unit
+                --
+                (HASH form ((string ?adjusted-unit "adjusted"))))))
+ 
+ (def-fcg-cxn active-transitive-np-object-cxn 
+             ((?active-transitive-np-object-unit
+               (subunits (?subject-verb ?np-direct-object-unit))
+               (meaning ((:arg1 ?verb ?direct-object)))
+               (boundaries (rightmost-unit ?np-direct-object-rightmost-unit)
+                           (leftmost-unit ?subject-verb-leftmost-unit))
+               (referent ?verb))
+              <-
+              (?subject-verb
+                --
+                (referent ?verb)
+                (syn-cat (subject-quantifier -)
+                         (phrase-type vp)
+                         (compound -)
+                         (relative -))
+               (boundaries (leftmost-unit ?subject-verb-leftmost-unit)
+                           (rightmost-unit ?subject-verb-rightmost-unit)))
+              (?np-direct-object-unit
+               --
+               (referent ?direct-object)
+               (syn-cat (number ?numb)
+                        (phrase-type np)
+                        (person 3)
+                        (subject-quantifier -)
+                        (syn-function accusative))
+               (sem-cat (sem-class direct-object))
+               (boundaries (leftmost-unit ?np-direct-object-leftmost-unit)
+                           (rightmost-unit ?np-direct-object-rightmost-unit)))
+              (?active-transitive-np-object-unit
+               --
+              (HASH form ((precedes ?subject-verb-rightmost-unit ?np-direct-object-leftmost-unit))))))
+
+(def-fcg-cxn judge-cxn
+             ((?judge-unit
+               (referent ?j)
+               (meaning ((judge ?j)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (syn-function ?func)
+                        (subject-quantifier -)))
+              <-
+              (?judge-unit
+               --
+                (HASH form ((string ?judge-unit "judge"))))))
+
+(def-fcg-cxn saw-cxn
+             ((?saw-unit
+               (referent ?s)
+               (meaning ((see-01 ?s)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive +)
+                        (past-simple +)
+                        (relative -)
+                        (phrase-type VP)))
+               <-
+               (?saw-unit
+                --
+                (HASH form ((string ?saw-unit "saw"))))))
+
+(def-fcg-cxn explosion-cxn
+             ((?explosion-unit
+               (referent ?e)
+               (meaning ((explode-01 ?e)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (phrase-type NP)
+                        (syn-function accusative))
+               (sem-cat (sem-class direct-object)))
+              <-
+              (?explosion-unit
+               --
+               (HASH form ((string ?explosion-unit "explosion"))))))
+
+(def-fcg-cxn proposal-cxn
+             ((?proposal-unit
+               (referent ?t)
+               (meaning ((thing ?t)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (phrase-type NP)
+                        (syn-function accusative))
+               (sem-cat (sem-class direct-object)))
+              <-
+              (?proposal-unit
+               --
+               (HASH form ((string ?proposal-unit "proposal"))))))
+
+(def-fcg-cxn read-cxn
+             ((?read-unit
+               (referent ?r)
+               (meaning ((read-01 ?r)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive +)
+                        (past-simple -)
+                        (relative -)
+                        (phrase-type VP)))
+               <-
+               (?read-unit
+                --
+                (HASH form ((string ?read-unit "read"))))))
+
+)
+
+
+
+#|
+
+   '((READ-01 R) (JUDGE J) (THING T) (:ARG0 R J) (:ARG1 R T)))
+
+   ;; '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
+
+ (def-fcg-cxn must-cxn
+              ((?must-unit
+                (referent ?p)
+                (syn-cat (lex-class verb)
+                         (finite +)
+                         (modal +)
+                         (phrase-type VP))
+                (sem-valence (:arg2 ?g))
+                (meaning ((obligate-01 ?p)
+                          (:arg2 ?p ?g))))
+               <-
+               (?must-unit
+                --
+                (HASH form ((string ?must-unit "must"))))))
 
 
 |#
