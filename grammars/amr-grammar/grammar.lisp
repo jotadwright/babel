@@ -876,12 +876,11 @@
 
 (def-fcg-cxn s-possessive-cxn
              ((?s-possessive-unit
-              (syn-cat (syn-function ?func)))
-              ;;(sem-cat (sem-class possess)))
+              (syn-cat (syn-function possessive-form)))
               <-
               (?s-possessive-unit
                --
-               (HASH form ((string ?s-unit "'s"))))))
+               (HASH form ((string ?s-possessive-unit "'s"))))))
 
 (def-fcg-cxn of-cxn
                ((?of-unit
@@ -896,7 +895,7 @@
              ((?y-of-x-unit
                (referent ?g)
                (meaning ((:arg0 ?o ?g)))
-                (subunits (?np-x2-unit ?np-y2-unit ?of-unit))
+                (subunits (?np-x2-unit ?np-y2-unit ?of-preposition-unit))
                 (boundaries (leftmost-unit ?np-x2-leftmost-unit)
                             (rightmost-unit ?np-y2-rightmost-unit)))
                <-
@@ -907,7 +906,6 @@
                         (number sg)
                         (person 3)
                         (syn-function ?func))
-               (sem-cat (sem-class possessed))
                (boundaries
                 (leftmost-unit ?np-x2-leftmost-unit)
                 (rightmost-unit ?np-x2-rightmost-unit)))
@@ -918,52 +916,53 @@
                         (number sg)
                         (person 3)
                         (syn-function ?func))
-               (sem-cat (sem-class possessor))
                (boundaries
                 (leftmost-unit ?np-y2-leftmost-unit)
                 (rightmost-unit ?np-y2-rightmost-unit)))
-               (?of-unit
+               (?of-preposition-unit
                 --
-                (HASH form ((string ?of-unit "of"))))
+               (syn-cat (lex-class preposition)
+                          (phrase-type PP)))
                (?y-of-x-unit
                 --
-                (HASH form ((precedes ?np-x2-rightmost-unit ?of-unit)
-                            (precedes ?of-unit ?np-y2-leftmost-unit))))))
+                (HASH form ((precedes ?np-x2-rightmost-unit ?of-preposition-unit)
+                            (precedes ?of-preposition-unit ?np-y2-leftmost-unit))))))
  
  (def-fcg-cxn x-s-y-cxn
-             ((?x-s-y-unit
-               (referent ?g)
-               (meaning ((:arg0 ?o ?g)))
-               (subunits (?np-x-unit ?np-y-unit ?s-unit))
-               (boundaries (leftmost-unit ?np-y-leftmost-unit)
-                           (rightmost-unit ?np-x-rightmost-unit)))
+              ((?x-s-y-unit
+                (referent ?g)
+                (meaning ((:arg0 ?o ?g)))
+                (subunits (?np-x-unit ?np-y-unit ?possessive-unit))
+                (boundaries (leftmost-unit ?np-y-leftmost-unit)
+                            (rightmost-unit ?np-x-rightmost-unit)))
                <-
                (?np-x-unit
-               --
-               (referent ?o)
-               (syn-cat (lex-class noun)
-                        (number sg)
-                        (person 3)
-                        (syn-function nominal))
-              (sem-cat (sem-class possessed)))
-               (?np-y-unit
-               --
-               (referent ?g)
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (syn-function ?func))
-              (sem-cat (sem-class possessor))
-              (boundaries
-                (leftmost-unit ?np-y-leftmost-unit)
-                (rightmost-unit ?np-y-rightmost-unit)))
-               (?s-unit
                 --
-               (HASH form ((string ?s-unit "'s"))))
+                (referent ?o)
+                (syn-cat (lex-class noun)
+                         (number sg)
+                         (person 3)
+                         (syn-function nominal))
+                (sem-cat (sem-class possessed)))
+               (?np-y-unit
+                --
+                (referent ?g)
+                (syn-cat (phrase-type NP)
+                         (number sg)
+                         (person 3)
+                         (syn-function ?func))
+                (sem-cat (sem-class possessor))
+                (boundaries
+                 (leftmost-unit ?np-y-leftmost-unit)
+                 (rightmost-unit ?np-y-rightmost-unit)))
+               (?possessive-unit
+                --
+                (form ((string ?possessive-unit "'s")))
+                (syn-cat (syn-function possessive-form)))
                (?x-s-y-unit
                 --
-                (HASH form ((precedes ?np-y-rightmost-unit ?s-unit)
-                            (precedes ?apo-s-unit ?np-x-leftmost-unit))))))
+                (HASH form ((precedes ?np-y-rightmost-unit ?possessive-unit)
+                            (precedes ?possessive-unit ?np-x-leftmost-unit))))))
 
 (def-fcg-cxn girl-lex-cxn
              ((?girl-unit
@@ -1380,7 +1379,7 @@
                (subunits (?vp-unit ?subject-unit))
                (referent ?verb)
                (boundaries (rightmost-unit ?vp-unit)
-                           (leftmost-unit (subject-unit)))
+                           (leftmost-unit ?subject-unit))
                (syn-cat (phrase-type VP)
                         (compound -)
                         (relative -)
@@ -1410,7 +1409,7 @@
                 (rightmost-unit ?subject-rightmost-unit)))
               (?subject-verb-unit
                --
-               (HASH form ((precedes ?subject-unit-rightmost-unitt ?vp-unit))))))
+               (HASH form ((precedes ?subject-rightmost-unit ?vp-unit))))))
 
 (def-fcg-cxn want-cxn
              ((?want-unit
@@ -1800,9 +1799,12 @@
                (sem-cat (sem-class age))
                (boundaries (leftmost-unit ?compound-noun-leftmost-unit)
                            (rightmost-unit ?compound-noun-rightmost-unit)))
-              (?who-unit
+              (?relative-unit
               --
-              (HASH form ((string ?who-unit "who"))))
+              (syn-cat (lex-class pronoun)
+                       (number ?numb)
+                       (syn-function ?func))
+              (sem-cat (sem-class subject)))
               (?verb-unit
                --
                (referent ?s)
@@ -1820,12 +1822,16 @@
 
 (def-fcg-cxn who-cxn 
              ((?who-unit
+               (referent ?b)
                (syn-cat (lex-class pronoun)
-                        (syn-function ?func)))
+                        (number ?numb)
+                        (syn-function ?func))
+               (sem-cat (sem-class subject)))
               <-
               (?who-unit
                --
                (HASH form ((string ?who-unit "who"))))))
+
 
 (def-fcg-cxn increased-cxn
              ((?increased-unit
@@ -2318,6 +2324,7 @@
                (syn-cat (lex-class noun)
                         (number sg)
                         (syn-function ?func))
+               (sem-cat (sem-class patient)))
               <-
               (?nation-unit
                --
@@ -2326,14 +2333,32 @@
 (def-fcg-cxn june-cxn
              ((?june-unit
                (referent ?d2)
-               (meaning ((:date-entity ?d2)))
+               (meaning ((:date-entity ?d2)
+                         (:month ?d2 6)))
                (syn-cat (lex-class noun)
                         (number sg)
                         (syn-function ?func))
+               (sem-cat (sem-class date-entity)))
               <-
-              (?nation-unit
+              (?june-unit
                --
-               (HASH form ((string ?nation-unit "nation"))))))              
+               (HASH form ((string ?june-unit "june"))))))
+
+(def-fcg-cxn defaulted-cxn
+             ((?defaulted-unit
+               (referent ?d)
+               (meaning ((default-01 ?d)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive -)
+                        (past-simple +)
+                        (relative -)
+                        (phrase-type VP)))
+               <-
+               (?defaulted-unit
+                --
+                (HASH form ((string ?defaulted-unit "defaulted"))))))
                
 )
 
