@@ -77,18 +77,30 @@
          0.0)
     1.0)))
 
+(defun add-noise (value min-noise max-noise &key min-bound max-bound)
+  (let* ((func (random-elt (list #'+ #'-)))
+         (noise (random-from-range min-noise max-noise))
+         (new-value (funcall func value noise)))
+    (when min-bound
+      (if (< value min-bound)
+        (setf new-value min-bound)))
+    (when max-bound
+      (if (> value max-bound)
+        (setf new-value max-bound)))
+    new-value))
+
 (defun object->width-and-height (object)
   (let* ((w (if (eql (shape object) 'cylinder)
               (if (eql (size object) 'large)
-                10.0
-                5.0)
+                (add-noise 10.0 0.0 2.0)
+                (add-noise 5.0 0.0 2.0))
               (if (eql (size object) 'large)
-                14.0
-                7.0)))
+                (add-noise 14.0 0.0 2.0)
+                (add-noise 7.0 0.0 2.0))))
          (h (if (eql (shape object) 'cylinder)
               (if (eql (size object) 'large)
-                20.0
-                10.0)
+                (add-noise 20.0 0.0 2.0)
+                (add-noise 10.0 0.0 2.0))
               w)))
     (values w h)))
 
@@ -96,27 +108,32 @@
   "Return the number of sides (= vlakken)
    and the number of corners"
   (case (shape object)
-    (cube (values 6.0 8.0))
-    (sphere (values 1.0 0.0))
-    (cylinder (values 3.0 0.0))))
+    (cube (values 6 8))
+    (sphere (values 1 0))
+    (cylinder (values 3 0))))
 
 (defun object->color (object)
   "Return the color of the object"
-  (case (color object)
-    (gray '(87 87 87))
-    (red '(173 35 35))
-    (blue '(42 75 215))
-    (green '(29 105 20))
-    (brown '(129 74 25))
-    (purple '(129 38 192))
-    (cyan '(41 208 208))
-    (yellow '(255 238 51))))
+  (let ((color (case (color object)
+                 (gray '(87 87 87))
+                 (red '(173 35 35))
+                 (blue '(42 75 215))
+                 (green '(29 105 20))
+                 (brown '(129 74 25))
+                 (purple '(129 38 192))
+                 (cyan '(41 208 208))
+                 (yellow '(255 238 51)))))
+    (mapcar #'(lambda (c)
+                (add-noise c 0.0 10.0 :min-bound 0.0 :max-bound 255.0))
+            color)))
 
 (defun object->color-variance (object)
   "Return the variance of the object"
   (case (material object)
-    (metal '(1 1 1))
-    (rubber '(0 0 0))))
+    (metal (loop repeat 3
+                 collect (add-noise 1.0 0.0 0.2)))
+    (rubber (loop repeat 3
+                  collect (add-noise 0.0 0.0 0.2 :min-bound 0.0)))))
 
 (defmethod clevr->mwm ((set clevr-object-set))
   (make-instance 'mwm-object-set
@@ -130,16 +147,16 @@
     (multiple-value-bind (sides corners) (object->sides-and-corners object)
       (make-instance 'mwm-object
                      :id (id object) ;; !!!
-                     :x-pos (/ (first (coordinates object)) 500.0)
-                     :y-pos (/ (second (coordinates object)) 300.0)
-                     :width (scale-value width 5 14) ;(/ (- width 5.0) (- 14.0 5.0))
-                     :height (scale-value height 7 20) ;(/ (- height 7.0) (- 20.0 7.0))
-                     :area (scale-value (* width height) 50 200) ;(/ (- (* width height) 50.0) (- 200.0 50.0))
-                     :wh-ratio (float (/ width height))
-                     :mean-rgb (mapcar #'(lambda (c) (/ c 255.0)) (object->color object))
+                     :x-pos (first (coordinates object)) ;(/ (first (coordinates object)) 500.0)
+                     :y-pos (second (coordinates object)) ;(/ (second (coordinates object)) 300.0)
+                     :width width ;(scale-value width 5 14) ;(/ (- width 5.0) (- 14.0 5.0))
+                     :height height; (scale-value height 7 20) ;(/ (- height 7.0) (- 20.0 7.0))
+                     :area (* width height) ;(scale-value (* width height) 50 200) ;(/ (- (* width height) 50.0) (- 200.0 50.0))
+                     :wh-ratio (/ width height) ;(float (/ width height))
+                     :mean-rgb (object->color object) ;(mapcar #'(lambda (c) (/ c 255.0)) (object->color object))
                      :rgb-variance (object->color-variance object)
-                     :nr-of-sides (scale-value sides 1 6) ;(/ (- sides 1.0) (- 6.0 1.0))
-                     :nr-of-corners (/ corners 8.0)
+                     :nr-of-sides sides ;(scale-value sides 1 6) ;(/ (- sides 1.0) (- 6.0 1.0))
+                     :nr-of-corners corners ;(/ corners 8.0)
                      :description `(,(shape object)
                                     ,(color object)
                                     ,(size object)
@@ -152,5 +169,5 @@
           (cons :size (size object))
           (cons :shape (shape object))
           (cons :material (material object))
-          (cons :x-pos (if (> x-pos 250) 'right 'left))
-          (cons :y-pos (if (> y-pos 150) 'front 'behind)))))
+          (cons :x-pos (if (> x-pos 240) 'right 'left))
+          (cons :y-pos (if (> y-pos 160) 'front 'behind)))))

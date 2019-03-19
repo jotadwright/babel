@@ -15,14 +15,15 @@
                                                 cl-user:*babel-corpora*))
                                                )
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks) ; :tutor-speaks :learner-speaks :default
-(define-configuration-default-value :attributes '(x-pos y-pos area width height wh-ratio
+(define-configuration-default-value :attributes '(x-pos y-pos
+                                                  area width height wh-ratio
                                                   mean-rgb rgb-variance nr-of-sides nr-of-corners))
 (define-configuration-default-value :initial-certainty 0.5)
 (define-configuration-default-value :certainty-incf 0.1)
-(define-configuration-default-value :certainty-decf 0.2)
+(define-configuration-default-value :certainty-decf 0.1)
 (define-configuration-default-value :alpha 0.05)
 (define-configuration-default-value :max-tutor-utterance-length 1)
-(define-configuration-default-value :shift-prototype :on-success) ; :on-success :on-failure :always
+(define-configuration-default-value :shift-prototype :always) ; :on-success :on-failure :always
 (define-configuration-default-value :remove-on-lower-bound t) ; t or nil
 
 ;; --------------

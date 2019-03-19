@@ -4,8 +4,11 @@
 ;; + Fuzzy Set Operations +
 ;; ------------------------
 
+;(defun fuzzy-set-channels (set)
+;  (mapcar #'first set))
+
 (defun fuzzy-set-channels (set)
-  (mapcar #'first set))
+  (mapcar #'attributes (mapcar #'car set)))
 
 (defun fuzzy-set-values (set)
   (mapcar #'second set))
@@ -20,15 +23,19 @@
   (loop with result
         for channel in (union (fuzzy-set-channels a)
                               (fuzzy-set-channels b))
-        for a-entry = (find channel a :key #'first)
-        for b-entry = (find channel b :key #'first)
+        for a-entry = (find channel a
+                            :key #'(lambda (entry)
+                                     (attribute (car entry))))
+        for b-entry = (find channel b
+                            :key #'(lambda (entry)
+                                     (attribute (car entry))))
         do (push
             (cond
              ((and a-entry b-entry
-                   (> (third a-entry) (third b-entry)))
+                   (> (cdr a-entry) (cdr b-entry)))
               a-entry)
              ((and a-entry b-entry
-                   (> (third b-entry) (third a-entry)))
+                   (> (cdr b-entry) (cdr a-entry)))
               b-entry)
              (a-entry a-entry)
              (b-entry b-entry))

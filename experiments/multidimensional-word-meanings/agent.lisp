@@ -66,45 +66,7 @@
 ;; ------------------
 ;; + Discrimination +
 ;; ------------------
-#|
-(defun categorise (object categories)
-  "Determine the closest category to the object
-   from the list of categories."
-  (multiple-value-bind (closest-category distance)
-      (the-smallest #'(lambda (category)
-                        (distance object category))
-                    categories)
-    (cons closest-category (abs distance))))
 
-(defmethod closest-categories ((agent mwm-agent) (object mwm-object))
-  "Create a fuzzy-set representation of the object, using the closest
-   categories weighted by the distance between the category and the object"
-  (loop for attr in (get-configuration agent :attributes)
-        for categories = (find-data (ontology agent) attr)
-        when categories
-        collect (categorise object categories)))   
-        
-(defmethod discriminating-categories ((agent mwm-agent) (object mwm-object)
-                                      list-of-objects)
-  "Create a fuzzy-set representation of the object, using categories
-   that are discriminating for that object weighted by the distance
-   between the category and the object"
-  (loop for attr in (get-configuration agent :attributes)
-        for categories = (find-data (ontology agent) attr)
-        for (closest-category . distance) = (when categories
-                                              (categorise object categories))
-        for (closest-other-category . other-distance)
-        = (when categories
-            (loop for other-object in list-of-objects
-                  collect (categorise other-object categories) into lst
-                  finally
-                  (return (extremum (find-all closest-category lst :key #'car)
-                                    :key #'cdr :test #'<))))
-        when (and closest-category
-                  closest-other-category
-                  (<= distance other-distance))
-        collect (cons closest-category distance)))
-|#
 
 ;; ---------------------
 ;; + Conceptualisation +
@@ -213,13 +175,12 @@
    and each of the objects in the context. The topic is the
    object for which this value is maximized."
   (when (parsed-meaning agent)
-    (let ((objects-with-similarity
+    (let ((objects-with-distance
            (loop for object in (objects (context agent))
-                 for weighted-sim = (weighted-similarity object (parsed-meaning agent))
-                 ;do (format t "Similarity ~a and ~a: ~a~%" (id object) (parsed-meaning agent) weighted-sim)
-                 collect (cons object weighted-sim))))
+                 for weighted-d = (weighted-distance object (parsed-meaning agent))
+                 collect (cons object weighted-d))))
       (setf (topic agent)
-            (car (the-biggest #'cdr objects-with-similarity)))))
+            (car (the-smallest #'cdr objects-with-distance)))))
   (notify interpretation-finished agent)
   (topic agent))
               

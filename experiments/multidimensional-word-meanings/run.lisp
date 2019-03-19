@@ -20,21 +20,10 @@
 ;; TO DO; features reaching 0 certainty should be removed
 ;; However, there should be a way to add features again, when needed.
 ;; This will be necessary for the CLEVR COGENT experiment.
-
 ;; The features should be added again when the game fails.
 ;; How to decide which features to add again?
 
-;; For now, all the ones that are no longer present are put
-;; back but with a low initial certainty score. This gives very bad performance.
-
-;; Maybe this should be based on some kind of re-entrance. If I had had this feature
-;; with the value of the topic, would I have interpreted the topic correctly?
-
-;; Or otherwise look at the scene and try to determine if the current (unused)
-;; feature is important for the topic w.r.t. the other objects.
-;; If it is, than add the feature again.
-
-(run-series *experiment* 10)
+(run-series *experiment* 3000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -47,8 +36,12 @@
 (run-experiments '(
                    (baseline ())
                   )
-                 :number-of-interactions 10000
-                 :number-of-series 1)
+                 :number-of-interactions 50000
+                 :number-of-series 1
+                 :monitors (list "export-communicative-success"
+                                 "export-lexicon-size"
+                                 "export-features-per-form"
+                                 "export-utterance-length"))
 
 (create-x-pos-convergence-graph :nr-of-interactions 100)
 

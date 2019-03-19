@@ -84,21 +84,23 @@
         (s-dot::label ,form)
         (s-dot::fontcolor "#AA0000")))
      graph)
-    (loop for (attr value certainty) in meaning
-          for node-content = `((s-dot::id ,(mkdotstr (downcase (mkstr attr))))
-                               (s-dot::label ,(if (listp value)
-                                                (format nil "~a~%(~{~,2f~^, ~})"
-                                                        (downcase (mkstr attr))
-                                                        value)
-                                                (format nil "~a~%(~,2f)"
-                                                        (downcase (mkstr attr))
-                                                        value))))
-          when (member attr highlight-green)
+    (loop for (category . certainty) in meaning
+          for node-content = `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+                               (s-dot::label ,(if (listp (mean category))
+                                                (format nil "~a~%(~{~,2f~^, ~})~%(~{~,2f~^, ~})"
+                                                        (downcase (mkstr (attribute category)))
+                                                        (mean category)
+                                                        (variance category))
+                                                (format nil "~a~%(~,2f)~%(~,2f)"
+                                                        (downcase (mkstr (attribute category)))
+                                                        (mean category)
+                                                        (variance category)))))
+          when (member (attribute category) highlight-green)
           do (setf node-content
                    (append node-content
                            '((s-dot::style "filled")
                              (s-dot::fillcolor "#AAFFAA"))))
-          when (member attr highlight-red)
+          when (member (attribute category) highlight-red)
           do (setf node-content
                    (append node-content
                            '((s-dot::style "filled")
@@ -107,12 +109,12 @@
           do (push
               `(s-dot::node ,node-content)
               graph))
-    (loop for (attr value certainty) in meaning
+    (loop for (category . certainty) in meaning
           when (> certainty 0.0)
           do (push
               `(s-dot::edge
                 ((s-dot::from ,(format nil "~a" form))
-                 (s-dot::to ,(mkdotstr (downcase (mkstr attr))))
+                 (s-dot::to ,(mkdotstr (downcase (mkstr (attribute category)))))
                  (s-dot::label ,(format nil "~,2f" certainty))))
               graph))
     (reverse graph)))
@@ -125,25 +127,25 @@
        ((s-dot::id ,"root")
         (s-dot::label "")))
      graph)
-    (loop for (attr value certainty) in meaning
-          for node-content = `((s-dot::id ,(mkdotstr (downcase (mkstr attr))))
-                               (s-dot::label ,(if (listp value)
+    (loop for (category . certainty) in meaning
+          for node-content = `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+                               (s-dot::label ,(if (listp (mean category))
                                                 (format nil "~a~%(~{~,2f~^, ~})"
-                                                        (downcase (mkstr attr))
-                                                        value)
+                                                        (downcase (mkstr (attribute category)))
+                                                        (mean category))
                                                 (format nil "~a~%(~,2f)"
-                                                        (downcase (mkstr attr))
-                                                        value))))
+                                                        (downcase (mkstr (attribute category)))
+                                                        (mean category)))))
           when (> certainty 0.0)
           do (push
               `(s-dot::node ,node-content)
               graph))
-    (loop for (attr value certainty) in meaning
+    (loop for (category . certainty) in meaning
           when (> certainty 0.0)
           do (push
               `(s-dot::edge
                 ((s-dot::from ,"root")
-                 (s-dot::to ,(mkdotstr (downcase (mkstr attr))))
+                 (s-dot::to ,(mkdotstr (downcase (mkstr (attribute category)))))
                  (s-dot::label ,(format nil "~,2f" certainty))))
               graph))
     (reverse graph)))

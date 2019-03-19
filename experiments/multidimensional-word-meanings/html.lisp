@@ -17,14 +17,10 @@
      ,@(loop for object in (objects set)
              collect (make-html object :expand-initially t)))))
 
-#|
 ;; make html of mwm-category
 (defmethod make-html-for-entity-details ((category mwm-category) &key)
-  `(((div :class "entity-detail")
-     ,(if (listp (prototype category))
-        (format nil "prototype = (~{~,1f~^, ~})" (prototype category))
-        (format nil "prototype = ~,1f" (prototype category))))))
-|#
+  `(((div :class "entity-detail") ,(format nil "mean: ~a" (mean category)))
+    ((div :class "entity-detail") ,(format nil "variance: ~a" (variance category)))))
 
 (defmethod make-html-for-entity-details ((object clevr-object) &key)
   `(((div :class "entity-detail") ,(format nil "size: ~a" (size object)))

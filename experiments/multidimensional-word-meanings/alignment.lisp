@@ -10,9 +10,10 @@
   (let ((meaning
          (loop with initial-certainty = (get-configuration agent :initial-certainty)
                for attr in (get-configuration agent :attributes)
-               collect (list attr
-                             (get-attr-val topic attr)
-                             initial-certainty))))
+               collect (cons (make-category-from-object topic attr) initial-certainty))))
+               ;(list attr
+               ;      (get-attr-val topic attr)
+               ;      initial-certainty))))
     (loop for word in words
           for new-cxn = (add-lex-cxn agent word meaning)
           do (notify new-cxn-added new-cxn))))
@@ -33,25 +34,30 @@
 ;     (- (* (/ 5 2) similarity) 2)
 ;     (- (* (/ 5 8) similarity) (/ 1 2)))))
 
-(defun similarity->delta (similarity)
-  ;; y = 5x-4.5
-  ;; y = 0.5x-0.5
-  (float
-   (if (>= similarity 0.9)
-     (- (* 5 similarity) 4.5)
-     (- (* 0.55556 similarity) 0.5))))
+;(defun similarity->delta (similarity)
+;  (float
+;   (if (>= similarity 0.9)
+;     (- (* 5 similarity) 4.5)
+;     (- (* 0.55556 similarity) 0.5))))
+
+(defun distance->delta (distance)
+  (if (> distance 2.0)
+    -0.1
+    (+ (* (- 0.15) distance) 0.1)))
 
 (defun align-known-words (agent topic words)
   (loop for word in words
         for cxn = (find-cxn-with-form agent word)
         for meaning = (attr-val cxn :meaning)
         for all-attributes = (get-configuration agent :attributes)
-        for unused-attributes = (set-difference all-attributes (mapcar #'first meaning))
+        for unused-attributes = (set-difference all-attributes
+                                                (mapcar #'attribute (mapcar #'car meaning)))
         do (loop with rewarded
                  with punished
-                 for (attr value certainty) in meaning
-                 for sim = (attribute-similarity topic value attr)
-                 for delta = (similarity->delta sim)
+                 for (category . certainty) in meaning
+                 for attr = (attribute category)
+                 for d = (distance topic category)
+                 for delta = (distance->delta d)
                  if (>= delta 0)
                  do (progn (push attr rewarded)
                       (case (get-configuration agent :shift-prototype)
@@ -67,13 +73,7 @@
                  do (adjust-certainty agent cxn attr delta
                                       :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))
                  finally
-                 (notify scores-updated cxn rewarded punished))
-        ;unless (communicated-successfully agent)
-        ;do (loop for attr in unused-attributes
-                 ;; compute the smallest difference between the topic and other objects (for this attr)
-                 ;; if this distance is larger than X, add the attr again?
-                 ;; than again the problem of defining X.
-        ))
+                 (notify scores-updated cxn rewarded punished))))
           
         
 (defgeneric align-agent (agent topic)
@@ -101,8 +101,7 @@
           (loop for form in (utterance agent)
                 when (find-cxn-with-form agent form)
                 collect form))
-         (unknown-words (set-difference (utterance agent)
-                                        known-words
+         (unknown-words (set-difference (utterance agent) known-words
                                         :test #'string=)))
     (notify alignment-started agent)
     (when unknown-words

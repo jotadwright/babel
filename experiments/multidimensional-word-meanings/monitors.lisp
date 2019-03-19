@@ -122,15 +122,9 @@
 (defun show-learner-lexicon (agent)
   (loop for cxn in (constructions (grammar agent))
         for meaning = (attr-val cxn :meaning)
-        for strong = (mapcar #'first
-                             (find-all-if #'(lambda (certainty) (>= certainty 0.8))
-                                          meaning :key #'third))
-        for weak = (mapcar #'first
-                             (find-all-if #'(lambda (certainty) (< certainty 0.8))
-                                          meaning :key #'third))
         do (add-element `((div)
                           ,(s-dot->svg
-                            (cxn->s-dot cxn strong weak))))))
+                            (cxn->s-dot cxn))))))
 
 ;;;; Export learner lexicon
 (defun export-learner-lexicon (agent)
