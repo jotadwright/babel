@@ -922,7 +922,8 @@
                (?of-preposition-unit
                 --
                (syn-cat (lex-class preposition)
-                          (phrase-type PP)))
+                          (phrase-type PP))
+                (form ((string ?of-preposition-unit "of"))))
                (?y-of-x-unit
                 --
                 (HASH form ((precedes ?np-x2-rightmost-unit ?of-preposition-unit)
@@ -2291,7 +2292,9 @@
                <-
                (?in-unit
                 --
-                (HASH form ((string ?in-unit "in"))))
+                (syn-cat (lex-class preposition)
+                         (phrase-type PP))
+                (form ((string ?in-unit "in"))))
                (?np-subject-unit
                 --
                 (referent ?m)
