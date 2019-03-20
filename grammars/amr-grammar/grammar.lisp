@@ -1346,44 +1346,6 @@
                (HASH form ((precedes ?rightmost-np-a-unit ?vp-unit )
                            (precedes ?vp-unit ?leftmost-np-pr-unit))))))
 
-(def-fcg-cxn subject-verb-cxn
-             ((?subject-verb-unit
-               (meaning ((:arg0 ?verb ?subj)))
-               (subunits (?vp-unit ?subject-unit))
-               (referent ?verb)
-               (boundaries (rightmost-unit ?vp-unit)
-                           (leftmost-unit ?subject-unit))
-               (syn-cat (phrase-type VP)
-                        (compound -)
-                        (relative -)
-                        (subject-quantifier -)))
-              <-
-              (?vp-unit
-               --
-               (referent ?verb)
-               (syn-cat (lex-class verb)
-                        (finite +)
-                        (modal ?mod)
-                        (relative -)
-                        (transitive ?trans)
-                        (is-copular ?cop)
-                        (phrase-type VP)))
-              (?subject-unit
-               --
-               (referent ?subj)
-               (syn-cat (phrase-type NP)
-                        (number sg)
-                        (person 3)
-                        (compound -)
-                        (subject-quantifier -)
-                        (syn-function ?func))
-               (sem-cat (sem-class subject))
-               (boundaries
-                (leftmost-unit ?subject-leftmost-unit)
-                (rightmost-unit ?subject-rightmost-unit)))
-              (?subject-verb-unit
-               --
-               (HASH form ((precedes ?subject-rightmost-unit ?vp-unit))))))
 
 (def-fcg-cxn want-cxn
              ((?want-unit
@@ -1997,38 +1959,6 @@
                (?adjusted-unit
                 --
                 (HASH form ((string ?adjusted-unit "adjusted"))))))
- 
- (def-fcg-cxn active-transitive-np-object-cxn 
-             ((?active-transitive-np-object-unit
-               (subunits (?subject-verb ?np-direct-object-unit))
-               (meaning ((:arg1 ?verb ?direct-object)))
-               (boundaries (rightmost-unit ?np-direct-object-rightmost-unit)
-                           (leftmost-unit ?subject-verb-leftmost-unit))
-               (referent ?verb))
-              <-
-              (?subject-verb
-                --
-                (referent ?verb)
-                (syn-cat (subject-quantifier -)
-                         (phrase-type vp)
-                         (compound -)
-                         (relative -))
-               (boundaries (leftmost-unit ?subject-verb-leftmost-unit)
-                           (rightmost-unit ?subject-verb-rightmost-unit)))
-              (?np-direct-object-unit
-               --
-               (referent ?direct-object)
-               (syn-cat (number ?numb)
-                        (phrase-type np)
-                        (person 3)
-                        (subject-quantifier -)
-                        (syn-function accusative))
-               (sem-cat (sem-class direct-object))
-               (boundaries (leftmost-unit ?np-direct-object-leftmost-unit)
-                           (rightmost-unit ?np-direct-object-rightmost-unit)))
-              (?active-transitive-np-object-unit
-               --
-              (HASH form ((precedes ?subject-verb-rightmost-unit ?np-direct-object-leftmost-unit))))))
 
 (def-fcg-cxn judge-cxn
              ((?judge-unit
@@ -2399,13 +2329,51 @@
                 --
                 (HASH form ((string ?room-unit "room"))))))
 
- (def-fcg-cxn patient-cxn
+(def-fcg-cxn subject-verb-cxn
+             ((?subject-verb-unit
+               (meaning ((:arg0 ?verb ?subj)))
+               (subunits (?vp-unit ?subject-unit))
+               (referent ?verb)
+               (boundaries (rightmost-unit ?vp-unit)
+                           (leftmost-unit ?subject-unit))
+               (syn-cat (phrase-type VP)
+                        (compound -)
+                        (relative -)
+                        (subject-quantifier -)))
+              <-
+              (?vp-unit
+               --
+               (referent ?verb)
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal ?mod)
+                        (relative -)
+                        (transitive ?trans)
+                        (phrase-type VP)))
+              (?subject-unit
+               --
+               (referent ?subj)
+               (syn-cat (phrase-type NP)
+                        (number sg)
+                        (person 3)
+                        (compound -)
+                        (subject-quantifier -)
+                        (syn-function ?func))
+               (sem-cat (sem-class subject))
+               (boundaries
+                (leftmost-unit ?subject-leftmost-unit)
+                (rightmost-unit ?subject-rightmost-unit)))
+              (?subject-verb-unit
+               --
+               (HASH form ((precedes ?subject-rightmost-unit ?vp-unit))))))
+
+  (def-fcg-cxn patient-cxn
               ((?patient-unit
                 (referent ?patient)
                 (subunits (?patient-arg2-unit ?verb-unit))
                 (meaning ((:arg1 ?verb ?patient)))
-                (boundaries (rightmost-unit ?verb-unit)
-              (leftmost-unit ?patient-arg2-leftmost-unit)))
+                (boundaries (leftmost-unit ?verb-unit)
+                            (rightmost-unit ?patient-arg2-rightmost-unit)))
                <-
                (?patient-arg2-unit
                 --
@@ -2413,9 +2381,9 @@
                 (syn-cat (phrase-type np)
                          (number ?numb)
                          (person ?person)
-                         (syn-function ?func)
+                         (syn-function accusative)
                          (compound ?compound))
-                (boundaries (leftmost-unit ?patient-arg2-unit-leftmost-unit)
+                (boundaries (leftmost-unit ?patient-arg2-leftmost-unit)
                             (rightmost-unit ?patient-arg2-rightmost-unit)))
                (?verb-unit
                 --
@@ -2429,7 +2397,7 @@
                          (phrase-type VP)))
                (?patient-unit
                 --
-                (HASH form ((meets ?patient-arg2-rightmost-unit ?verb-unit))))))
+                (HASH form ((precedes ?verb-unit ?patient-arg2-rightmost-unit))))))
                  
 )
 
@@ -2438,6 +2406,38 @@
  '((DEFAULT-01 D) (NATION N) (DATE-ENTITY D2) (:ARG1 D N) (:TIME D D2) (:MONTH D2 6)))
 
 )
+
+ (def-fcg-cxn active-transitive-np-object-cxn 
+             ((?active-transitive-np-object-unit
+               (subunits (?subject-verb ?np-direct-object-unit))
+               (meaning ((:arg1 ?verb ?direct-object)))
+               (boundaries (rightmost-unit ?np-direct-object-rightmost-unit)
+                           (leftmost-unit ?subject-verb-leftmost-unit))
+               (referent ?verb))
+              <-
+              (?subject-verb
+                --
+                (referent ?verb)
+                (syn-cat (subject-quantifier -)
+                         (phrase-type vp)
+                         (compound -)
+                         (relative -))
+               (boundaries (leftmost-unit ?subject-verb-leftmost-unit)
+                           (rightmost-unit ?subject-verb-rightmost-unit)))
+              (?np-direct-object-unit
+               --
+               (referent ?direct-object)
+               (syn-cat (number ?numb)
+                        (phrase-type np)
+                        (person 3)
+                        (subject-quantifier -)
+                        (syn-function accusative))
+               (sem-cat (sem-class direct-object))
+               (boundaries (leftmost-unit ?np-direct-object-leftmost-unit)
+                           (rightmost-unit ?np-direct-object-rightmost-unit)))
+              (?active-transitive-np-object-unit
+               --
+              (HASH form ((precedes ?subject-verb-rightmost-unit ?np-direct-object-leftmost-unit))))))
 
   (def-fcg-cxn vp-modal-cxn ;;cannot go 
               ((?vp-modal-unit
