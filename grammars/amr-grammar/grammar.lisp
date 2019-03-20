@@ -751,30 +751,27 @@
                 (referent ?g)
                 (syn-cat (lex-class verb)
                          (finite -))
-                (sem-valence (arg0 ?b))
-                (meaning ((go-01 ?g)
-                          (:arg0 ?g ?b))))
+                (sem-valence (:domain ?p))
+                (meaning ((go-01 ?g))))
                <-
                (?go-unit
                 --
                 (HASH form ((string ?go-unit "go"))))))
  
- (def-fcg-cxn cannot-cxn
-              ((?cannot-unit
+(def-fcg-cxn cannot-cxn
+             ((?cannot-unit
                 (referent ?p)
                 (syn-cat (lex-class verb)
                          (finite +)
                          (modal +)
                          (phrase-type VP))
-                (sem-valence (:domain ?g))
+                (sem-valence (:domain ?p))
                 (meaning ((possible ?p)
-                          (:polarity ?p -)
-                          (:domain ?p ?g))))
-               <-
-               (?cannot-unit
-                --
-                (HASH form ((string ?cannot-unit "cannot"))))))
- 
+                          (:polarity ?p -))))
+              <-
+              (?cannot-unit
+               --
+               (HASH form ((string ?cannot-unit "cannot"))))))
 
 (def-fcg-cxn what-cxn 
              ((?what-unit
@@ -1879,38 +1876,6 @@
                (HASH form ((precedes ?quantifier-number-rightmost-unit ?of-prep-unit)
                            (precedes ?of-prep-unit ?quantified-unit))))))
 
-(def-fcg-cxn modal-negative-infinitif
-             ((?modal-negative-infinitif
-               (referent ?g)
-               (meaning ((:polarity ?inf -)))
-               (subunits (?not-unit ?modal-unit ?infinitif-unit))
-               (boundaries (rightmost-unit ?infinitif-unit)
-                           (leftmost-unit ?did-unit)))
-              <-
-              (?infinitif-negative-unit
-               --
-               (referent ?inf)
-               (syn-cat (lex-class verb)
-                         (finite -)
-                         (modal -)
-                         (phrase-type vp)
-                         (infinitif +)))
-              (?not-unit
-               --
-               (syn-cat (lex-class adverb))
-               (form ((string ?not-unit "not"))))
-              (?modal-unit
-               --
-                (referent ?p)
-                (syn-cat (lex-class verb)
-                        (finite +)
-                        (modal +)
-                        (phrase-type VP)))
-              (?modal-negative-infinitif
-               --
-               (HASH form ((precedes ?modal-unit ?not-unit)
-                           (precedes ?not-unit ?infinitif-unit))))))
-
 (def-fcg-cxn did-cxn
              ((?did-unit
                (syn-cat (lex-class aux)
@@ -2055,12 +2020,30 @@
                (syn-cat (lex-class verb)
                         (finite +)
                         (modal +)
+                        (polarity +)
                         (phrase-type VP))
+               (sem-valence (:arg2 ?arg2))
                (meaning ((obligate-01 ?p))))
               <-
               (?must-unit
                --
                (HASH form ((string ?must-unit "must"))))))
+
+(def-fcg-cxn need-cxn
+             ((?need-unit
+               (referent ?p)
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal +)
+                        (phrase-type VP))
+               (sem-valence (:arg2 ?arg2))
+               (meaning ((obligate-01 ?p)
+                         (polarity ?p -))))
+              <-
+              (?need-unit
+               --
+               (HASH form ((string ?need-unit "need"))))))
+
 
 (def-fcg-cxn subject-infinitif-cxn
              ((?subject-infinitif-unit
@@ -2229,7 +2212,44 @@
                 --
                 (HASH form ((precedes ?np-subject-rightmost-unit ?in-unit)
                             (precedes ?in-unit ?np-location-leftmost-unit))))))
+ ;;'((DEFAULT-01 D) (NATION N) (DATE-ENTITY D2) (:ARG1 D N) (:TIME D D2) (:MONTH D2 6)))
 
+(def-fcg-cxn in-time-cxn
+             ((?in-time-unit
+               (referent ?d)
+               (meaning ((:time ?d ?d2)))
+               (subunits (?vp-unit ?in-unit ?time-unit))
+               (boundaries (leftmost-unit ?vp-unit)
+                           (rightmost-unit ?time-unit)))
+               <-
+               (?in-unit
+                --
+                (syn-cat (lex-class preposition)
+                         (phrase-type PP))
+                (form ((string ?in-unit "in"))))
+               (?vp-unit
+                --
+               (referent ?d)
+                (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive -)
+                        (past-simple +)
+                        (relative -)
+                        (phrase-type VP)))
+               (?time-unit
+                --
+                (referent ?d2)
+                (syn-cat (lex-class noun)
+                         (phrase-type nominal)
+                         (number sg)
+                         (person 3)
+                         (syn-function ?func))
+                (sem-cat (sem-role date-entity)))
+               (?in-time-unit
+                --
+                (HASH form ((precedes ?vp-unit ?in-unit)
+                            (precedes ?in-unit ?time-unit))))))
 (def-fcg-cxn nation-cxn
              ((?nation-unit
                (referent ?n)
@@ -2249,6 +2269,7 @@
                (meaning ((:date-entity ?d2)
                          (:month ?d2 6)))
                (syn-cat (lex-class noun)
+                        (phrase-type nominal)
                         (number sg)
                         (syn-function ?func))
                (sem-cat (sem-role date-entity)))
@@ -2272,33 +2293,6 @@
                (?defaulted-unit
                 --
                 (HASH form ((string ?defaulted-unit "defaulted"))))))
-
- (def-fcg-cxn modal-infinitif-cxn
-             ((?modal-infinitif-unit
-               (referent ?p)
-               (subunits (?modal-unit ?infinitif-unit))
-               (meaning ((:arg2 ?p ?g)))
-               (boundaries (rightmost-unit ?infinitif-unit)
-                           (leftmost-unit ?modal-unit)))
-               <-
-               (?modal-unit
-                --
-                (referent ?p)
-                (syn-cat (lex-class verb)
-                        (finite +)
-                        (modal +)
-                        (phrase-type VP)))
-               (?infinitif-unit
-                --
-                (referent ?g)
-                (syn-cat (lex-class verb)
-                        (finite -)
-                        (modal -)
-                        (phrase-type VP)
-                        (infinitif +)))
-               (?modal-infinitif-unit
-                --
-                (HASH form ((precedes ?modal-unit ?infinitif-unit))))))
 
  (def-fcg-cxn destroyed-cxn
              ((?destroyed-unit
@@ -2398,11 +2392,131 @@
                (?patient-unit
                 --
                 (HASH form ((precedes ?verb-unit ?patient-arg2-rightmost-unit))))))
-                 
+
+  
+(def-fcg-cxn arg2-modal-infinitif-cxn
+             ((?arg2-modal-infinitif-unit
+               (referent ?p)
+               (subunits (?modal-unit ?infinitif-unit))
+               (meaning ((:arg2 ?p ?g)))
+               (boundaries (rightmost-unit ?infinitif-unit)
+                           (leftmost-unit ?modal-unit)))
+               <-
+               (?modal-unit
+                --
+                (referent ?p)
+                (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal +)
+                        (phrase-type VP))
+                (sem-valence (:arg2 ?arg2)))
+               (?infinitif-unit
+                --
+                (referent ?g)
+                (syn-cat (lex-class verb)
+                        (finite -)
+                        (modal -)
+                        (phrase-type VP)
+                        (infinitif +)))
+               (?arg2-modal-infinitif-unit
+                --
+                (HASH form ((precedes ?modal-unit ?infinitif-unit))))))
+
+(def-fcg-cxn domain-modal-infinitif-cxn
+             ((?domain-modal-infinitif-unit
+               (referent ?p)
+               (subunits (?modal-unit ?infinitif-unit))
+               (meaning ((:domain ?p ?g)))
+               (boundaries (rightmost-unit ?infinitif-unit)
+                           (leftmost-unit ?modal-unit)))
+               <-
+               (?modal-unit
+                --
+                (referent ?p)
+                (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal +)
+                        (phrase-type VP))
+                (sem-valence (:domain ?p)))
+               (?infinitif-unit
+                --
+                (referent ?g)
+                (syn-cat (lex-class verb)
+                        (finite -)
+                        (modal -)
+                        (phrase-type VP)
+                        (infinitif +)))
+               (?domain-modal-infinitif
+                --
+                (HASH form ((precedes ?modal-unit ?infinitif-unit))))))
+
+(def-fcg-cxn modal-negative-infinitif
+             ((?modal-negative-infinitif
+               (referent ?g)
+               (meaning ((:polarity ?inf -)))
+               (subunits (?not-unit ?modal-unit ?infinitif-unit))
+               (boundaries (rightmost-unit ?infinitif-unit)
+                           (leftmost-unit ?did-unit)))
+              <-
+              (?infinitif-negative-unit
+               --
+               (referent ?inf)
+               (syn-cat (lex-class verb)
+                         (finite -)
+                         (modal -)
+                         (phrase-type vp)
+                         (infinitif +)))
+              (?not-unit
+               --
+               (syn-cat (lex-class adverb))
+               (form ((string ?not-unit "not"))))
+              (?modal-unit
+               --
+                (referent ?p)
+                (syn-cat (lex-class verb)
+                         (finite +)
+                         (modal +)
+                         (polarity +)
+                         (phrase-type VP)))
+              (?modal-negative-infinitif
+               --
+               (HASH form ((precedes ?modal-unit ?not-unit)
+                           (precedes ?not-unit ?infinitif-unit))))))
+
+(def-fcg-cxn answer-cxn
+             ((?answer-unit
+               (referent ?a)
+               (meaning ((answer ?a)))
+               (syn-cat (lex-class noun)
+                        (number sg)
+                        (phrase-type NP)
+                        (syn-function accusative))
+               (sem-cat (sem-class direct-object)))
+               <-
+               (?answer-unit
+                --
+                (HASH form ((string ?answer-unit "answer"))))))
+
+(def-fcg-cxn looked-up-cxn
+             ((?looked-up-unit
+               (referent ?l)
+               (meaning ((look-05 ?l)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive +)
+                        (past-simple +)
+                        (relative -)
+                        (phrase-type VP)))
+               <-
+               (?looked-up-unit
+                --
+                (HASH form ((string ?looked-up-unit "looked"))))))
 )
 
 
 #|
+ 
  '((DEFAULT-01 D) (NATION N) (DATE-ENTITY D2) (:ARG1 D N) (:TIME D D2) (:MONTH D2 6)))
 
 )
