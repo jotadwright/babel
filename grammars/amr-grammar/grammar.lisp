@@ -2337,38 +2337,37 @@
                --
                (HASH form ((precedes ?subject-rightmost-unit ?vp-unit))))))
 
-(def-fcg-cxn patient-cxn
-             ((?patient-unit
-               (referent ?patient)
-               (subunits (?patient-arg2-unit ?verb-unit))
-               (meaning ((:arg1 ?verb ?patient)))
-               (boundaries (leftmost-unit ?verb-unit)
-                           (rightmost-unit ?patient-arg2-rightmost-unit)))
-              <-
-              (?patient-arg2-unit
-               --
-               (referent ?patient)
-               (syn-cat (phrase-type np)
-                        (number ?numb)
-                        (person ?person)
-                        (syn-function accusative)
-                        (compound ?compound))
-               (boundaries (leftmost-unit ?patient-arg2-leftmost-unit)
-                           (rightmost-unit ?patient-arg2-rightmost-unit)))
-              (?verb-unit
+  (def-fcg-cxn patient-cxn
+              ((?patient-unit
+                (referent ?patient)
+                (subunits (?patient-arg2-unit ?verb-unit))
+                (meaning ((:arg1 ?verb ?patient)))
+                (boundaries (leftmost-unit ?verb-unit)
+                            (rightmost-unit ?patient-arg2-rightmost-unit)))
+               <-
+               (?patient-arg2-unit
+                --
+                (referent ?patient)
+                (syn-cat (phrase-type np)
+                         (number ?numb)
+                         (person ?person)
+                         (syn-function accusative)
+                         (compound ?compound))
+                (boundaries (leftmost-unit ?patient-arg2-leftmost-unit)
+                            (rightmost-unit ?patient-arg2-rightmost-unit)))
+               (?verb-unit
                 --
                 (referent ?verb)
                 (syn-cat (lex-class verb)
                          (finite +)
-                         (modal -)
+                         (modal ?mod)
                          (past-simple ?pastsimple)
-                         (transitive -)
-                         (passive +)
+                         (transitive ?transitive)
                          (relative -)
                          (phrase-type VP)))
-              (?patient-unit
-               --
-               (HASH form ((precedes ?verb-unit ?patient-arg2-rightmost-unit))))))
+               (?patient-unit
+                --
+                (HASH form ((precedes ?verb-unit ?patient-arg2-rightmost-unit))))))
 
 (def-fcg-cxn defaulted-cxn
              ((?defaulted-unit
@@ -2645,11 +2644,20 @@
                 --
                 (HASH form ((precedes ?adverb-unit ?noun-unit))))))
 
+(def-fcg-cxn to-cxn
+             ((?to-unit
+               (syn-cat (lex-class preposition)
+                        (phrase-type PP)))
+              <-
+              (?to-unit
+               --
+               (HASH form ((string ?to-unit "to"))))))
+
 (def-fcg-cxn patient-infinitif-cxn
              ((?patient-infinitif-unit
                (meaning ((:arg1 ?inf ?g)))
                (referent ?g)
-               (subunits (?infinitif-unit ?noun-unit)))
+               (subunits (?infinitif-unit ?to-unit ?noun-unit)))
               <-
               (?infinitif-unit
                --
@@ -2661,6 +2669,11 @@
                        (infinitif +)
                        (syn-function ?func)
                        (phrase-type VP)))
+              (?to-unit
+               --
+               (syn-cat (lex-class preposition)
+                        (phrase-type PP))
+               (form ((string ?to-unit "to"))))
               (?noun-unit
                --
                (referent ?g)
@@ -2670,13 +2683,46 @@
                         (subject-quantifier -)))
               (?patient-infinitif-unit
                --
-               (HASH form ((meets ?noun-unit ?infinitif-unit))))))
+               (HASH form ((precedes ?noun-unit ?to-unit)
+                           (precedes ?to-unit ?infinitif-unit))))))
 
+(def-fcg-cxn patient-infinitif-order-different-cxn
+             ((?patient-infinitif-order-different-unit
+               (meaning ((:arg1 ?inf ?g)))
+               (referent ?g)
+               (subunits (?infinitif-unit ?to-unit ?noun-unit)))
+              <-
+              (?infinitif-unit
+               --
+              (referent ?inf)
+              (syn-cat (lex-class verb)
+                       (finite -)
+                       (modal -)
+                       (gerund -)
+                       (infinitif +)
+                       (syn-function ?func)
+                       (phrase-type VP)))
+              (?to-unit
+               --
+               (syn-cat (lex-class preposition)
+                        (phrase-type PP))
+               (form ((string ?to-unit "to"))))
+              (?noun-unit
+               --
+               (referent ?g)
+               (syn-cat (lex-class noun)
+                        (number pl)
+                        (syn-function ?func)
+                        (subject-quantifier -)))
+              (?patient-infinitif-order-different-unit
+               --
+               (HASH form ((precedes ?to-unit ?infinitif-unit)
+                           (precedes ?infinitif-unit ?girls-unit))))))
 
 )
 
-
 #|
+it is tough to please girls	((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)) 
 
 |#
             
