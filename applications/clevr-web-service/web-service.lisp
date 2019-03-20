@@ -40,19 +40,21 @@
                                       :silent t)
           (error (e)
             (http-condition 500 "Error in language processing module!" e)))
-      (encode-json-alist-to-string
-       `((:meaning . ,(when irl-program
-                        (cond
-                          ((string= irl-encoding "sexpr")
-                           (mkstr irl-program))
-                          ((string= irl-encoding "json")
-                           (encode-irl-program irl-program nil)))))
-         (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
-         (:applied--constructions . ,(when (applied-constructions cipn)
-                                       (mapcar #'downcase
-                                               (mapcar #'mkstr
-                                                       (mapcar #'fcg::name
-                                                               (applied-constructions cipn)))))))))))
+      (let ((fcg-status (first (statuses cipn))))
+        (encode-json-alist-to-string
+         `((:meaning . ,(when (and irl-program
+                                   (eql fcg-status 'fcg::succeeded))
+                          (cond
+                           ((string= irl-encoding "sexpr")
+                            (mkstr irl-program))
+                           ((string= irl-encoding "json")
+                            (encode-irl-program irl-program nil)))))
+           (:fcg--status . ,(downcase (mkstr fcg-status)))
+           (:applied--constructions . ,(when (applied-constructions cipn)
+                                         (mapcar #'downcase
+                                                 (mapcar #'mkstr
+                                                         (mapcar #'fcg::name
+                                                                 (applied-constructions cipn))))))))))))
 (defroute comprehend (:post :application/json)
  (handle-comprehend-route
    (handler-case
@@ -325,8 +327,9 @@
                               :silent t)
             (error (e)
               (http-condition 500 "Error in language processing module!")))
-        (let (answers id-subs)
-          (when (eql (first (statuses cipn)) 'fcg::succeeded)
+        (let ((fcg-status (first (statuses cipn)))
+              answers id-subs)
+          (when (eql fcg-status 'fcg::succeeded)
             ;; ccl requires to intern the symbols manually (why?)
             #+ccl (setf irl-program
                         (loop for predicate in irl-program
@@ -346,22 +349,23 @@
                     (loop for object in (objects context)
                           for i from 0
                           collect (cons (id object)
-                                        (format nil "obj-~a" i))))
-              (encode-json-alist-to-string
-               `((:meaning . ,(when irl-program
-                                (cond
-                                 ((string= irl-encoding "sexpr")
-                                  (mkstr irl-program id-subs))
-                                 ((string= irl-encoding "json")
-                                  (encode-irl-program irl-program id-subs (nodes evaluator))))))
-                 (:fcg--status . ,(downcase (mkstr (first (statuses cipn)))))
-                 (:applied--constructions . ,(when (applied-constructions cipn)
-                                               (mapcar #'downcase
-                                                       (mapcar #'mkstr
-                                                               (mapcar #'fcg::name
-                                                                       (applied-constructions cipn))))))
-                 (:irl--status . ,(if answers "succeeded" "failed"))
-                 (:solutions . ,(mapcar #'downcase answers)))))))))))
+                                        (format nil "obj-~a" i))))))
+          (encode-json-alist-to-string
+           `((:meaning . ,(when (and irl-program
+                                     (eql fcg-status 'fcg::succeeded))
+                            (cond
+                             ((string= irl-encoding "sexpr")
+                              (mkstr irl-program id-subs))
+                             ((string= irl-encoding "json")
+                              (encode-irl-program irl-program id-subs (nodes evaluator))))))
+             (:fcg--status . ,(downcase (mkstr fcg-status)))
+             (:applied--constructions . ,(when (applied-constructions cipn)
+                                           (mapcar #'downcase
+                                                   (mapcar #'mkstr
+                                                           (mapcar #'fcg::name
+                                                                   (applied-constructions cipn))))))
+             (:irl--status . ,(if answers "succeeded" "failed"))
+             (:solutions . ,(mapcar #'downcase answers)))))))))
 
 (defroute comprehend-and-execute (:post :application/json)
   (handle-comprehend-and-execute-route
