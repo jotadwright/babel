@@ -1223,6 +1223,40 @@
                 --
                 (HASH form ((string ?feared-unit "feared"))))))
 
+(def-fcg-cxn afraid-cxn
+             ((?afraid-unit
+               (referent ?f)
+               (meaning ((fear-01 ?f)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive +)
+                        (past-simple -)
+                        (relative -)
+                        (past-participle +)
+                        (phrase-type VP)))
+               <-
+               (?afraid-unit
+                --
+                (HASH form ((string ?afraid-unit "afraid"))))))
+
+(def-fcg-cxn had-a-fear-cxn
+             ((?had-a-fear-unit
+               (referent ?f)
+               (meaning ((fear-01 ?f)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive +)
+                        (past-simple -)
+                        (relative -)
+                        (past-participle +)
+                        (phrase-type VP)))
+               <-
+               (?had-a-fear-unit
+                --
+                (HASH form ((string ?had-a-fear-unit "fear"))))))
+
 (def-fcg-cxn battle-cxn
              ((?battle-unit
                (referent ?b)
@@ -1868,7 +1902,7 @@
                 --
                 (HASH form ((string ?machine-unit "machine"))))))
 
- (def-fcg-cxn adjusted-cxn
+(def-fcg-cxn adjusted-cxn
              ((?adjusted-unit
                (referent ?a)
                (meaning ((adjust-01 ?a)))
@@ -1884,6 +1918,21 @@
                 --
                 (HASH form ((string ?adjusted-unit "adjusted"))))))
 
+(def-fcg-cxn made-adjustments-cxn
+             ((?made-adjustments-unit
+               (referent ?a)
+               (meaning ((adjust-01 ?a)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (relative -)
+                        (transitive +)
+                        (past-simple +)
+                        (phrase-type VP)))
+              <-
+              (?made-adjustments-unit
+               --
+               (HASH form ((string ?made-adjustments-unit "adjustments"))))))
  
 (def-fcg-cxn judge-cxn
              ((?judge-unit
@@ -2722,7 +2771,6 @@
 )
 
 #|
-it is tough to please girls	((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)) 
 
 |#
             
