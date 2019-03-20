@@ -18,6 +18,7 @@
                :cl-mop)
   :serial t
   :components ((:file "package")
+               (:file "color-conversions")
                (:file "utils")
                (:file "fuzzy-operations")
                (:file "world")

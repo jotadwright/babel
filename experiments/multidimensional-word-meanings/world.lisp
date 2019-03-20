@@ -22,12 +22,24 @@
    (wh-ratio
     :documentation "width/height ratio"
     :type number :accessor wh-ratio :initarg :wh-ratio)
-   (mean-rgb
-    :documentation "mean rgb value"
-    :type list :accessor mean-rgb :initarg :mean-rgb)
-   (rgb-variance
-    :documentation "rgb variance"
-    :type list :accessor rgb-variance :initarg :rgb-variance)
+   ;(mean-rgb
+   ; :documentation "mean rgb value"
+   ; :type list :accessor mean-rgb :initarg :mean-rgb)
+   ;(rgb-variance
+   ; :documentation "rgb variance"
+   ; :type list :accessor rgb-variance :initarg :rgb-variance)
+   (L
+    :documentation "The lightness value"
+    :type number :accessor L :initarg :L)
+   (a*
+    :documentation "The red-green value"
+    :type number :accessor a* :initarg :a*)
+   (b*
+    :documentation "The yellow-blue value"
+    :type number :accessor b* :initarg :b*)
+   (roughness
+    :documentation "The roughness of the texture"
+    :type number :accessor roughness :initarg :roughness)
    (nr-of-sides
     :documentation "number of sides"
     :type number :accessor nr-of-sides :initarg :nr-of-sides)
@@ -114,26 +126,25 @@
 
 (defun object->color (object)
   "Return the color of the object"
-  (let ((color (case (color object)
-                 (gray '(87 87 87))
-                 (red '(173 35 35))
-                 (blue '(42 75 215))
-                 (green '(29 105 20))
-                 (brown '(129 74 25))
-                 (purple '(129 38 192))
-                 (cyan '(41 208 208))
-                 (yellow '(255 238 51)))))
-    (mapcar #'(lambda (c)
-                (add-noise c 0.0 10.0 :min-bound 0.0 :max-bound 255.0))
-            color)))
+  (let* ((rgb-color (case (color object)
+                     (gray '(87 87 87))
+                     (red '(173 35 35))
+                     (blue '(42 75 215))
+                     (green '(29 105 20))
+                     (brown '(129 74 25))
+                     (purple '(129 38 192))
+                     (cyan '(41 208 208))
+                     (yellow '(255 238 51))))
+         (rgb-with-noise (mapcar #'(lambda (c)
+                                     (add-noise c 0.0 10.0 :min-bound 0.0 :max-bound 255.0))
+                                 rgb-color)))
+    (rgb->lab rgb-with-noise)))
 
-(defun object->color-variance (object)
+(defun object->roughness (object)
   "Return the variance of the object"
   (case (material object)
-    (metal (loop repeat 3
-                 collect (add-noise 1.0 0.0 0.2)))
-    (rubber (loop repeat 3
-                  collect (add-noise 0.0 0.0 0.2 :min-bound 0.0)))))
+    (metal (add-noise 20.0 0.0 3.0))
+    (rubber (add-noise 3.0 0.0 3.0))))
 
 (defmethod clevr->mwm ((set clevr-object-set))
   (make-instance 'mwm-object-set
@@ -142,25 +153,31 @@
                                 collect (clevr->mwm obj))))
 
 (defmethod clevr->mwm ((object clevr-object))
-  "Create the object and scale at the same time."
+  "Create the object"
+  ;; noise is added and scaling is turned off
   (multiple-value-bind (width height) (object->width-and-height object)
     (multiple-value-bind (sides corners) (object->sides-and-corners object)
-      (make-instance 'mwm-object
-                     :id (id object) ;; !!!
-                     :x-pos (first (coordinates object)) ;(/ (first (coordinates object)) 500.0)
-                     :y-pos (second (coordinates object)) ;(/ (second (coordinates object)) 300.0)
-                     :width width ;(scale-value width 5 14) ;(/ (- width 5.0) (- 14.0 5.0))
-                     :height height; (scale-value height 7 20) ;(/ (- height 7.0) (- 20.0 7.0))
-                     :area (* width height) ;(scale-value (* width height) 50 200) ;(/ (- (* width height) 50.0) (- 200.0 50.0))
-                     :wh-ratio (/ width height) ;(float (/ width height))
-                     :mean-rgb (object->color object) ;(mapcar #'(lambda (c) (/ c 255.0)) (object->color object))
-                     :rgb-variance (object->color-variance object)
-                     :nr-of-sides sides ;(scale-value sides 1 6) ;(/ (- sides 1.0) (- 6.0 1.0))
-                     :nr-of-corners corners ;(/ corners 8.0)
-                     :description `(,(shape object)
-                                    ,(color object)
-                                    ,(size object)
-                                    ,(material object))))))
+      (let ((lab-color (object->color object)))
+        (make-instance 'mwm-object
+                       :id (id object) ;; !!!
+                       :x-pos (first (coordinates object)) ;(/ (first (coordinates object)) 500.0)
+                       :y-pos (second (coordinates object)) ;(/ (second (coordinates object)) 300.0)
+                       :width width ;(scale-value width 5 14) ;(/ (- width 5.0) (- 14.0 5.0))
+                       :height height; (scale-value height 7 20) ;(/ (- height 7.0) (- 20.0 7.0))
+                       :area (* width height) ;(scale-value (* width height) 50 200) ;(/ (- (* width height) 50.0) (- 200.0 50.0))
+                       :wh-ratio (/ width height) ;(float (/ width height))
+                       ;:mean-rgb (object->color object) ;(mapcar #'(lambda (c) (/ c 255.0)) (object->color object))
+                       ;:rgb-variance (object->color-variance object)
+                       :L (first lab-color)
+                       :a* (second lab-color)
+                       :b* (third lab-color)
+                       :roughness (object->roughness object)
+                       :nr-of-sides sides ;(scale-value sides 1 6) ;(/ (- sides 1.0) (- 6.0 1.0))
+                       :nr-of-corners corners ;(/ corners 8.0)
+                       :description `(,(shape object)
+                                      ,(color object)
+                                      ,(size object)
+                                      ,(material object)))))))
    
 (defmethod object->alist ((object clevr-object))
   (let ((x-pos (first (coordinates object)))
@@ -171,3 +188,4 @@
           (cons :material (material object))
           (cons :x-pos (if (> x-pos 240) 'right 'left))
           (cons :y-pos (if (> y-pos 160) 'front 'behind)))))
+

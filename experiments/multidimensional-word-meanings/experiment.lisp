@@ -17,7 +17,8 @@
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks) ; :tutor-speaks :learner-speaks :default
 (define-configuration-default-value :attributes '(x-pos y-pos
                                                   area width height wh-ratio
-                                                  mean-rgb rgb-variance nr-of-sides nr-of-corners))
+                                                  L a* b* roughness
+                                                  nr-of-sides nr-of-corners))
 (define-configuration-default-value :initial-certainty 0.5)
 (define-configuration-default-value :certainty-incf 0.1)
 (define-configuration-default-value :certainty-decf 0.1)

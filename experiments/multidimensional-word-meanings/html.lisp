@@ -19,8 +19,10 @@
 
 ;; make html of mwm-category
 (defmethod make-html-for-entity-details ((category mwm-category) &key)
-  `(((div :class "entity-detail") ,(format nil "mean: ~a" (mean category)))
-    ((div :class "entity-detail") ,(format nil "variance: ~a" (variance category)))))
+  `(((div :class "entity-detail") ,(format nil "attribute: ~a" (attribute category)))
+    ((div :class "entity-detail") ,(format nil "prototype: ~a" (prototype category)))
+    ((div :class "entity-detail") ,(format nil "lower-bound: ~a" (lower-bound category)))
+    ((div :class "entity-detail") ,(format nil "upper-bound: ~a" (upper-bound category)))))
 
 (defmethod make-html-for-entity-details ((object clevr-object) &key)
   `(((div :class "entity-detail") ,(format nil "size: ~a" (size object)))

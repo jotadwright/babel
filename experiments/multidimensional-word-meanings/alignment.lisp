@@ -11,9 +11,6 @@
          (loop with initial-certainty = (get-configuration agent :initial-certainty)
                for attr in (get-configuration agent :attributes)
                collect (cons (make-category-from-object topic attr) initial-certainty))))
-               ;(list attr
-               ;      (get-attr-val topic attr)
-               ;      initial-certainty))))
     (loop for word in words
           for new-cxn = (add-lex-cxn agent word meaning)
           do (notify new-cxn-added new-cxn))))
@@ -40,10 +37,10 @@
 ;     (- (* 5 similarity) 4.5)
 ;     (- (* 0.55556 similarity) 0.5))))
 
-(defun distance->delta (distance)
-  (if (> distance 2.0)
-    -0.1
-    (+ (* (- 0.15) distance) 0.1)))
+;(defun distance->delta (distance)
+;  (if (> distance 2.0)
+;    -0.1
+;    (+ (* (- 0.15) distance) 0.1)))
 
 (defun align-known-words (agent topic words)
   (loop for word in words
@@ -56,9 +53,17 @@
                  with punished
                  for (category . certainty) in meaning
                  for attr = (attribute category)
-                 for d = (distance topic category)
-                 for delta = (distance->delta d)
-                 if (>= delta 0)
+                 for sim = (similarity topic category)
+                 ;; HOW TO KNOW WHEN TO UPDATE THE CATEGORY AND WHEN NOT TO??
+                 ;; FIRST UPDATE CATEGORY AND THAN CERTAINTY? OR VICE-VERSA?
+
+                 ;; CHECK IF THE CATEGORY HAS A SINGLE ENTRY. IF IT HAS, USE THE PROTOTYPE DISTANCE.
+                 ;; IF THIS DISTANCE IS BELOW A THRESHOLD, DO THE UPDATE. OTHERWISE, DON'T.
+                 ;; FOR THIS, I NEED SENSORY/CONTEXT SCALING
+                 for delta = (if (plusp sim)
+                               (get-configuration agent :certainty-incf)
+                               (get-configuration agent :certainty-decf))
+                 if (> delta 0)
                  do (progn (push attr rewarded)
                       (case (get-configuration agent :shift-prototype)
                         (:on-success (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))

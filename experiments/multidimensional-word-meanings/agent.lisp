@@ -175,12 +175,12 @@
    and each of the objects in the context. The topic is the
    object for which this value is maximized."
   (when (parsed-meaning agent)
-    (let ((objects-with-distance
+    (let ((objects-with-similarity
            (loop for object in (objects (context agent))
-                 for weighted-d = (weighted-distance object (parsed-meaning agent))
-                 collect (cons object weighted-d))))
+                 for sim = (weighted-similarity object (parsed-meaning agent))
+                 collect (cons object sim))))
       (setf (topic agent)
-            (car (the-smallest #'cdr objects-with-distance)))))
+            (car (the-biggest #'cdr objects-with-similarity)))))
   (notify interpretation-finished agent)
   (topic agent))
               
