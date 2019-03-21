@@ -328,7 +328,7 @@
             (error (e)
               (http-condition 500 "Error in language processing module!")))
         (let ((fcg-status (first (statuses cipn)))
-              answers id-subs)
+              answers id-subs irl-evaluator)
           (when (eql fcg-status 'fcg::succeeded)
             ;; ccl requires to intern the symbols manually (why?)
             #+ccl (setf irl-program
@@ -349,7 +349,8 @@
                     (loop for object in (objects context)
                           for i from 0
                           collect (cons (id object)
-                                        (format nil "obj-~a" i))))))
+                                        (format nil "obj-~a" i))))
+              (setf irl-evaluator evaluator)))
           (encode-json-alist-to-string
            `((:meaning . ,(when (and irl-program
                                      (eql fcg-status 'fcg::succeeded))
@@ -357,7 +358,7 @@
                              ((string= irl-encoding "sexpr")
                               (mkstr irl-program id-subs))
                              ((string= irl-encoding "json")
-                              (encode-irl-program irl-program id-subs (nodes evaluator))))))
+                              (encode-irl-program irl-program id-subs (nodes irl-evaluator))))))
              (:fcg--status . ,(downcase (mkstr fcg-status)))
              (:applied--constructions . ,(when (applied-constructions cipn)
                                            (mapcar #'downcase
@@ -394,6 +395,5 @@
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?"}' http://localhost:9003/comprehend-and-formulate
 
-;; curl -H "Content-Type: text/plain" -d '{"utterance": "How many things are cubes or spheres?", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
-
+;; curl -H "Content-Type: text/plain" -d '{"utterance": "What is the color of the sphere?", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
 
