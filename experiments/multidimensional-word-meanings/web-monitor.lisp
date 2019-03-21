@@ -45,14 +45,13 @@
      ((tr)
       ((th) "CLEVR context"))
      ((tr)
-      ((td) ,(make-html context :expand-initially t)))))
-  ;; this works because there is no noise for the moment!
+      ((td) ,(make-html clevr-context :expand-initially t)))))
   (add-element
    `((table)
      ((tr)
       ((th) "MWM context"))
      ((tr)
-      ((td) ,(make-html (clevr->mwm context)))))))
+      ((td) ,(make-html mwm-context))))))
 
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-finished)
   (add-element `((h2) ,(format nil "The topic is ~a" (id (topic agent)))))
@@ -73,6 +72,30 @@
     ;; to do; learner side
     ))
 
+(defgeneric category->s-dot-node (category)
+  (:documentation "How to display a category as an s-dot node"))
+
+(defmethod category->s-dot-node ((category min-max-category))
+  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+    (s-dot::label ,(format nil "~a~%(~,2f - ~,2f)"
+                           (downcase (mkstr (attribute category)))
+                           (lower-bound category)
+                           (upper-bound category)))))
+
+(defmethod category->s-dot-node ((category prototype-category))
+  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+    (s-dot::label ,(format nil "~a~%~,2f"
+                           (downcase (mkstr (attribute category)))
+                           (prototype category)))))
+
+(defmethod category->s-dot-node ((category prototype-min-max-category))
+  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+    (s-dot::label ,(format nil "~a~%~,2f~%(~,2f - ~,2f)"
+                           (downcase (mkstr (attribute category)))
+                           (prototype category)
+                           (lower-bound category)
+                           (upper-bound category)))))
+
 (defun cxn->s-dot (cxn &optional highlight-green highlight-red)
   (let ((form (attr-val cxn :form))
         (meaning (attr-val cxn :meaning))
@@ -85,16 +108,7 @@
         (s-dot::fontcolor "#AA0000")))
      graph)
     (loop for (category . certainty) in meaning
-          for node-content = `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-                               (s-dot::label ,(if (listp (mean category))
-                                                (format nil "~a~%(~{~,2f~^, ~})~%(~{~,2f~^, ~})"
-                                                        (downcase (mkstr (attribute category)))
-                                                        (mean category)
-                                                        (variance category))
-                                                (format nil "~a~%(~,2f)~%(~,2f)"
-                                                        (downcase (mkstr (attribute category)))
-                                                        (mean category)
-                                                        (variance category)))))
+          for node-content = (category->s-dot-node category)
           when (member (attribute category) highlight-green)
           do (setf node-content
                    (append node-content
@@ -128,14 +142,7 @@
         (s-dot::label "")))
      graph)
     (loop for (category . certainty) in meaning
-          for node-content = `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-                               (s-dot::label ,(if (listp (mean category))
-                                                (format nil "~a~%(~{~,2f~^, ~})"
-                                                        (downcase (mkstr (attribute category)))
-                                                        (mean category))
-                                                (format nil "~a~%(~,2f)"
-                                                        (downcase (mkstr (attribute category)))
-                                                        (mean category)))))
+          for node-content = (category->s-dot-node category)
           when (> certainty 0.0)
           do (push
               `(s-dot::node ,node-content)
@@ -188,11 +195,8 @@
                          (cxn->s-dot cxn)))))
 
 (define-event-handler (trace-interaction-in-web-interface attr-value-shifted)
-  (if (listp new-value)
-    (add-element `((h2) ,(format nil "The protoypical value for ~a in the word \"~a\" was shifted from ~{~,2f~^, ~} to ~{~,2f~^, ~}"
-                               attr (attr-val cxn :form) old-value new-value)))
-    (add-element `((h2) ,(format nil "The protoypical value for ~a in the word \"~a\" was shifted from ~,2f to ~,2f"
-                                 attr (attr-val cxn :form) old-value new-value)))))
+  (add-element `((h2) ,(format nil "The ~a category for the word \"~a\" was updated"
+                               attr (attr-val cxn :form)))))
 
 (define-event-handler (trace-interaction-in-web-interface scores-updated)
   (add-element `((h2) ,(format nil "Attributes rewarded and punished for \"~a\"" (attr-val cxn :form))))

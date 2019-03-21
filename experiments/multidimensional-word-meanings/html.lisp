@@ -3,8 +3,7 @@
 ;; make html of mwm-object
 (defmethod make-html-for-entity-details ((object mwm-object) &key)
   (append
-   (loop for attr in '(x-pos y-pos area width height wh-ratio
-                             mean-rgb rgb-variance nr-of-sides nr-of-corners)
+   (loop for attr in '(x-pos y-pos area wh-ratio R G B roughness nr-of-sides nr-of-corners)
          append `(((div :class "entity-detail")
                    ,(let ((value (funcall (symbol-function attr) object)))
                       (if (listp value)
@@ -18,12 +17,22 @@
              collect (make-html object :expand-initially t)))))
 
 ;; make html of mwm-category
-(defmethod make-html-for-entity-details ((category mwm-category) &key)
+(defmethod make-html-for-entity-details ((category min-max-category) &key)
   `(((div :class "entity-detail") ,(format nil "attribute: ~a" (attribute category)))
-    ((div :class "entity-detail") ,(format nil "prototype: ~a" (prototype category)))
-    ((div :class "entity-detail") ,(format nil "lower-bound: ~a" (lower-bound category)))
-    ((div :class "entity-detail") ,(format nil "upper-bound: ~a" (upper-bound category)))))
+    ((div :class "entity-detail") ,(format nil "lower-bound: ~,2f" (lower-bound category)))
+    ((div :class "entity-detail") ,(format nil "upper-bound: ~,2f" (upper-bound category)))))
 
+(defmethod make-html-for-entity-details ((category prototype-category) &key)
+  `(((div :class "entity-detail") ,(format nil "attribute: ~a" (attribute category)))
+    ((div :class "entity-detail") ,(format nil "prototype: ~,2f" (prototype category)))))
+
+(defmethod make-html-for-entity-details ((category prototype-min-max-category) &key)
+  `(((div :class "entity-detail") ,(format nil "attribute: ~a" (attribute category)))
+    ((div :class "entity-detail") ,(format nil "prototype: ~,2f" (prototype category)))
+    ((div :class "entity-detail") ,(format nil "lower-bound: ~,2f" (lower-bound category)))
+    ((div :class "entity-detail") ,(format nil "upper-bound: ~,2f" (upper-bound category)))))
+
+;; make html of clevr object
 (defmethod make-html-for-entity-details ((object clevr-object) &key)
   `(((div :class "entity-detail") ,(format nil "size: ~a" (size object)))
     ((div :class "entity-detail") ,(format nil "color: ~a" (color object)))

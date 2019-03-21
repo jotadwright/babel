@@ -10,7 +10,8 @@
   (let ((meaning
          (loop with initial-certainty = (get-configuration agent :initial-certainty)
                for attr in (get-configuration agent :attributes)
-               collect (cons (make-category-from-object topic attr) initial-certainty))))
+               collect (cons (make-category-from-object topic attr (get-configuration agent :strategy))
+                             initial-certainty))))
     (loop for word in words
           for new-cxn = (add-lex-cxn agent word meaning)
           do (notify new-cxn-added new-cxn))))
@@ -21,26 +22,6 @@
 
 (define-event re-introduced-meaning (cxn fcg-construction)
   (attrs list))
-
-;(defun similarity->delta (similarity)
-;  (- similarity 0.5))
-
-;(defun similarity->delta (similarity)
-;  (float
-;   (if (>= similarity 0.8)
-;     (- (* (/ 5 2) similarity) 2)
-;     (- (* (/ 5 8) similarity) (/ 1 2)))))
-
-;(defun similarity->delta (similarity)
-;  (float
-;   (if (>= similarity 0.9)
-;     (- (* 5 similarity) 4.5)
-;     (- (* 0.55556 similarity) 0.5))))
-
-;(defun distance->delta (distance)
-;  (if (> distance 2.0)
-;    -0.1
-;    (+ (* (- 0.15) distance) 0.1)))
 
 (defun align-known-words (agent topic words)
   (loop for word in words
@@ -54,16 +35,7 @@
                  for (category . certainty) in meaning
                  for attr = (attribute category)
                  for sim = (similarity topic category)
-                 ;; HOW TO KNOW WHEN TO UPDATE THE CATEGORY AND WHEN NOT TO??
-                 ;; FIRST UPDATE CATEGORY AND THAN CERTAINTY? OR VICE-VERSA?
-
-                 ;; CHECK IF THE CATEGORY HAS A SINGLE ENTRY. IF IT HAS, USE THE PROTOTYPE DISTANCE.
-                 ;; IF THIS DISTANCE IS BELOW A THRESHOLD, DO THE UPDATE. OTHERWISE, DON'T.
-                 ;; FOR THIS, I NEED SENSORY/CONTEXT SCALING
-                 for delta = (if (plusp sim)
-                               (get-configuration agent :certainty-incf)
-                               (get-configuration agent :certainty-decf))
-                 if (> delta 0)
+                 if (plusp sim)
                  do (progn (push attr rewarded)
                       (case (get-configuration agent :shift-prototype)
                         (:on-success (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
@@ -74,9 +46,9 @@
                         (:on-failure (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
                         (:always (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))))
                  end
-                 unless (= delta 0)
-                 do (adjust-certainty agent cxn attr delta
-                                      :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))
+                 ;unless (= delta 0)
+                 ;do (adjust-certainty agent cxn attr delta
+                 ;                     :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))
                  finally
                  (notify scores-updated cxn rewarded punished))))
           

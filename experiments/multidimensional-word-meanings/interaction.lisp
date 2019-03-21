@@ -1,11 +1,11 @@
 (in-package :mwm)
 
-(defmethod initialize-agent ((agent mwm-agent) clevr-context)
+(defmethod initialize-agent ((agent mwm-agent) clevr-context mwm-context)
   "Set the context and possibly also the topic of the agent.
    Clear some slots to prepare for the interaction."
   (setf (context agent)
         (if (learnerp agent)
-          (clevr->mwm clevr-context)
+          mwm-context
           clevr-context))
   (setf (topic agent)
         (when (speakerp agent)
@@ -16,15 +16,16 @@
         (communicated-successfully agent) nil
         (parsed-meaning agent) nil))
 
-(define-event context-determined (context clevr-object-set))
+(define-event context-determined (clevr-context clevr-object-set) (mwm-context mwm-object-set))
 
 (defmethod initialize-interaction ((experiment mwm-experiment)
                                    interaction &key)
   "Initialize the interaction by choosing a random context"
-  (let ((context (random-elt (world experiment))))
-    (notify context-determined context)
+  (let* ((clevr-context (random-elt (world experiment)))
+         (mwm-context (clevr->mwm clevr-context)))
+    (notify context-determined clevr-context mwm-context)
     (loop for agent in (interacting-agents interaction)
-          do (initialize-agent agent context))))
+          do (initialize-agent agent clevr-context mwm-context))))
 
 (defmethod tutor-speaks ((experiment mwm-experiment)
                          interaction &key)

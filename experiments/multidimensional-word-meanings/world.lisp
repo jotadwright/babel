@@ -13,30 +13,18 @@
    (area
     :documentation "area of the object"
     :type number :accessor area :initarg :area)
-   (width
-    :documentation "width of the object"
-    :type number :accessor width :initarg :width)
-   (height
-    :documentation "height of the object"
-    :type number :accessor height :initarg :height)
    (wh-ratio
     :documentation "width/height ratio"
     :type number :accessor wh-ratio :initarg :wh-ratio)
-   ;(mean-rgb
-   ; :documentation "mean rgb value"
-   ; :type list :accessor mean-rgb :initarg :mean-rgb)
-   ;(rgb-variance
-   ; :documentation "rgb variance"
-   ; :type list :accessor rgb-variance :initarg :rgb-variance)
-   (L
+   (R
     :documentation "The lightness value"
-    :type number :accessor L :initarg :L)
-   (a*
+    :type number :accessor R :initarg :R)
+   (G
     :documentation "The red-green value"
-    :type number :accessor a* :initarg :a*)
-   (b*
+    :type number :accessor G :initarg :G)
+   (B
     :documentation "The yellow-blue value"
-    :type number :accessor b* :initarg :b*)
+    :type number :accessor B :initarg :B)
    (roughness
     :documentation "The roughness of the texture"
     :type number :accessor roughness :initarg :roughness)
@@ -67,20 +55,7 @@
 ;; + CLEVR -> MWM +
 ;; ----------------
 
-;;;; Converting discrete clevr objects to continuous mwm objects
-;;;; For now, these are always exactly the same value
-;;;; No noise is present, yet!
-
-;;;; The world is 500x300
-;;;; We take large objects to have an area of 200 and small ones 50
-;;;; The wh-ratio of a cylinder should be 0.5, while that of cubes and spheres should be 1
-;;;; Therefore, we put the width and height of large cylinders to 10x20 and small cylinders 5x10
-;;;; For large spheres and cubes, we use 14x14. For small ones 7x7.
-
-;;;; For the moment, sensory-scaling is being used. This takes into account the min/max boundaries
-;;;; of the world. Another option would be to use context-scaling (for some attributes), taking
-;;;; only into account the current context.
-
+#|
 (defun scale-value (value min max)
   (float
    (min
@@ -88,18 +63,6 @@
             (- max min))
          0.0)
     1.0)))
-
-(defun add-noise (value min-noise max-noise &key min-bound max-bound)
-  (let* ((func (random-elt (list #'+ #'-)))
-         (noise (random-from-range min-noise max-noise))
-         (new-value (funcall func value noise)))
-    (when min-bound
-      (if (< value min-bound)
-        (setf new-value min-bound)))
-    (when max-bound
-      (if (> value max-bound)
-        (setf new-value max-bound)))
-    new-value))
 
 (defun object->width-and-height (object)
   (let* ((w (if (eql (shape object) 'cylinder)
@@ -115,69 +78,129 @@
                 (add-noise 10.0 0.0 2.0))
               w)))
     (values w h)))
+|#
 
-(defun object->sides-and-corners (object)
+(defun add-random-value-from-range (value min-var max-var &key min-bound max-bound)
+  (let* ((func (random-elt (list #'+ #'-)))
+         (variance (random-from-range min-var max-var))
+         (new-value (funcall func value variance)))
+    (when min-bound
+      (if (< new-value min-bound)
+        (setf new-value min-bound)))
+    (when max-bound
+      (if (> new-value max-bound)
+        (setf new-value max-bound)))
+    new-value))
+
+(defun object->x-pos (object noise)
+  (let* ((x-pos (first (coordinates object)))
+         (scaled-x-pos (/ x-pos 420)))
+    (if noise
+      (if (< scaled-x-pos 0.5)
+        (max (min (random-from-range 0.0 (+ 0.5 noise)) 1.0) 0.0)
+        (max (min (random-from-range (- 0.5 noise) 1.0) 1.0) 0.0))
+      scaled-x-pos)))
+
+(defun object->y-pos (object noise)
+  (let* ((y-pos (second (coordinates object)))
+         (scaled-y-pos (/ y-pos 380)))
+    (if noise
+      (if (< scaled-y-pos 0.5)
+        (max (min (random-from-range 0.0 (+ 0.5 noise)) 1.0) 0.0)
+        (max (min (random-from-range (- 0.5 noise) 1.0) 1.0) 0.0))
+      scaled-y-pos)))
+
+(defun object->area (object noise)
+  (let* ((area (case (size object)
+                 (small 30) (large 70)))
+         (area-w-variance (add-random-value-from-range area 0.0 20.0))
+         (scaled-area (/ area-w-variance 100.0)))
+    (if noise
+      (add-random-value-from-range scaled-area 0.0 noise :min-bound 0.0 :max-bound 1.0)
+      scaled-area)))
+
+(defun object->sides-and-corners (object noise)
   "Return the number of sides (= vlakken)
    and the number of corners"
-  (case (shape object)
-    (cube (values 6 8))
-    (sphere (values 1 0))
-    (cylinder (values 3 0))))
+  (let ((sides (case (shape object)
+                 (cube 6) (sphere 1) (cylinder 3)))
+        (corners (case (shape object)
+                   (cube 8) (sphere 0) (cylinder 0))))
+    (values (/ (- sides 1) (- 6 1))
+            (/ corners 8))))
 
-(defun object->color (object)
+(defun object->color (object noise)
   "Return the color of the object"
   (let* ((rgb-color (case (color object)
-                     (gray '(87 87 87))
-                     (red '(173 35 35))
-                     (blue '(42 75 215))
-                     (green '(29 105 20))
-                     (brown '(129 74 25))
-                     (purple '(129 38 192))
-                     (cyan '(41 208 208))
-                     (yellow '(255 238 51))))
-         (rgb-with-noise (mapcar #'(lambda (c)
-                                     (add-noise c 0.0 10.0 :min-bound 0.0 :max-bound 255.0))
-                                 rgb-color)))
-    (rgb->lab rgb-with-noise)))
+                      (gray   '(87  87  87))
+                      (red    '(173 34  35))
+                      (blue   '(44  76  215))
+                      (green  '(29  105 20))
+                      (brown  '(126 72  25))
+                      (purple '(130 39  192))
+                      (cyan   '(40  208 208))
+                      (yellow '(255 238 51))))
+         (rgb-with-variance
+          (mapcar #'(lambda (c)
+                      (add-random-value-from-range c 0.0 2.0 :min-bound 0.0 :max-bound 255.0))
+                  rgb-color))
+         (scaled-rgb
+          (mapcar #'(lambda (c)
+                      (/ c 255.0))
+                  rgb-with-variance)))
+    (if noise
+      (mapcar #'(lambda (c)
+                  (add-random-value-from-range c 0.0 noise :min-bound 0.0 :max-bound 1.0))
+              scaled-rgb)
+      scaled-rgb)))
 
-(defun object->roughness (object)
+(defun object->roughness (object noise)
   "Return the variance of the object"
-  (case (material object)
-    (metal (add-noise 20.0 0.0 3.0))
-    (rubber (add-noise 3.0 0.0 3.0))))
+  (let* ((roughness (case (material object)
+                      (metal 8)
+                      (rubber 2)))
+         (with-variance (add-random-value-from-range roughness 0.0 3.0 :min-bound 0.0 :max-bound 11.0))
+         (scaled (/ with-variance 11)))
+    (if noise
+      (add-random-value-from-range scaled 0.0 noise :min-bound 0.0 :max-bound 1.0)
+      scaled)))
 
-(defmethod clevr->mwm ((set clevr-object-set))
+(defun object->wh-ratio (object noise)
+  (let* ((ratio (case (shape object)
+                  (cube 1.0)
+                  (sphere 1.0)
+                  (cylinder 0.5)))
+         (with-variance (add-random-value-from-range ratio 0.0 0.25 :min-bound 0.0 :max-bound 1.0)))
+    (if noise
+      (add-random-value-from-range with-variance 0.0 noise :min-bound 0.0 :max-bound 1.0)
+      with-variance)))
+
+(defmethod clevr->mwm ((set clevr-object-set) &key (noise nil))
   (make-instance 'mwm-object-set
                  :id (id set)
                  :objects (loop for obj in (objects set)
-                                collect (clevr->mwm obj))))
+                                collect (clevr->mwm obj :noise noise))))
 
-(defmethod clevr->mwm ((object clevr-object))
+(defmethod clevr->mwm ((object clevr-object) &key (noise nil))
   "Create the object"
-  ;; noise is added and scaling is turned off
-  (multiple-value-bind (width height) (object->width-and-height object)
-    (multiple-value-bind (sides corners) (object->sides-and-corners object)
-      (let ((lab-color (object->color object)))
-        (make-instance 'mwm-object
-                       :id (id object) ;; !!!
-                       :x-pos (first (coordinates object)) ;(/ (first (coordinates object)) 500.0)
-                       :y-pos (second (coordinates object)) ;(/ (second (coordinates object)) 300.0)
-                       :width width ;(scale-value width 5 14) ;(/ (- width 5.0) (- 14.0 5.0))
-                       :height height; (scale-value height 7 20) ;(/ (- height 7.0) (- 20.0 7.0))
-                       :area (* width height) ;(scale-value (* width height) 50 200) ;(/ (- (* width height) 50.0) (- 200.0 50.0))
-                       :wh-ratio (/ width height) ;(float (/ width height))
-                       ;:mean-rgb (object->color object) ;(mapcar #'(lambda (c) (/ c 255.0)) (object->color object))
-                       ;:rgb-variance (object->color-variance object)
-                       :L (first lab-color)
-                       :a* (second lab-color)
-                       :b* (third lab-color)
-                       :roughness (object->roughness object)
-                       :nr-of-sides sides ;(scale-value sides 1 6) ;(/ (- sides 1.0) (- 6.0 1.0))
-                       :nr-of-corners corners ;(/ corners 8.0)
-                       :description `(,(shape object)
-                                      ,(color object)
-                                      ,(size object)
-                                      ,(material object)))))))
+  (multiple-value-bind (sides corners) (object->sides-and-corners object noise)
+    (let ((rgb-color (object->color object noise)))
+      (make-instance 'mwm-object
+                     :id (id object) ;; !!!
+                     :x-pos (object->x-pos object noise)
+                     :y-pos (object->y-pos object noise)
+                     :area (object->area object noise)
+                     :wh-ratio (object->wh-ratio object noise)
+                     :R (first rgb-color)
+                     :G (second rgb-color)
+                     :B (third rgb-color)
+                     :roughness (object->roughness object noise)
+                     :nr-of-sides sides
+                     :nr-of-corners corners
+                     :description `(,(shape object)
+                                    ,(color object)
+                                    ,(size object)
+                                    ,(material object))))))
    
 (defmethod object->alist ((object clevr-object))
   (let ((x-pos (first (coordinates object)))

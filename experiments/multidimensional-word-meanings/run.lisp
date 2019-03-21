@@ -9,13 +9,16 @@
 
 ;; Creating the experiment might take a few seconds
 ;; since large amounts of data need to be loaded from file
+(defparameter *configuration*
+  (make-configuration
+   :entries '((:shift-prototype . :always)
+              (:strategy . :min-max)
+              (:noise . nil))))
+
 (defparameter *experiment*
-  (make-instance 'mwm-experiment))
+  (make-instance 'mwm-experiment :configuration *configuration*))
 
 (run-interaction *experiment*)
-
-;; indicative features (= features with a high score) vs. discriminatory features
-;; (= features that are sufficiently distant from other concepts)
 
 ;; TO DO; features reaching 0 certainty should be removed
 ;; However, there should be a way to add features again, when needed.
@@ -23,7 +26,7 @@
 ;; The features should be added again when the game fails.
 ;; How to decide which features to add again?
 
-(run-series *experiment* 3000)
+(run-series *experiment* 10)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -34,10 +37,12 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (baseline ())
+                   (baseline ((:shift-prototype . :always)
+                              (:strategy . :min-max)
+                              (:noise . nil)))
                   )
-                 :number-of-interactions 50000
-                 :number-of-series 1
+                 :number-of-interactions 10000
+                 :number-of-series 5
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
                                  "export-features-per-form"
