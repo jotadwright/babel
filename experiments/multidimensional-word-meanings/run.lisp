@@ -13,7 +13,7 @@
   (make-configuration
    :entries '((:shift-prototype . :always)
               (:strategy . :min-max)
-              (:noise . nil))))
+              (:noise . 0.2))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -26,7 +26,7 @@
 ;; The features should be added again when the game fails.
 ;; How to decide which features to add again?
 
-(run-series *experiment* 10)
+(run-series *experiment* 100)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -37,21 +37,35 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (baseline ((:shift-prototype . :always)
-                              (:strategy . :min-max)
-                              (:noise . nil)))
+                   (min-max
+                    ((:shift-prototype . :always)
+                     (:strategy . :min-max)
+                     (:noise . nil)))
+                   (min-max-noise-0.1
+                    ((:shift-prototype . :always)
+                     (:strategy . :min-max)
+                     (:noise . 0.1)))
+                   (min-max-noise-0.2
+                    ((:shift-prototype . :always)
+                     (:strategy . :min-max)
+                     (:noise . 0.2)))
+                   (min-max-noise-0.3
+                    ((:shift-prototype . :always)
+                     (:strategy . :min-max)
+                     (:noise . 0.3)))
                   )
                  :number-of-interactions 10000
-                 :number-of-series 5
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
                                  "export-features-per-form"
                                  "export-utterance-length"))
 
 (create-x-pos-convergence-graph :nr-of-interactions 100)
+(create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "baseline"
+ :experiment-name "min-max"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -65,4 +79,9 @@
  :y-axis '(1 1 1)
  :y1-max nil
  :xlabel "Number of games")
+
+(create-graph-comparing-strategies
+ :experiment-names '("min-max" "min-max-noise-0.1" "min-max-noise-0.2" "min-max-noise-0.3")
+ :measure-name "communicative-success"
+ :y-max 1 :xlabel "Number of games" :y1-label "Success")
   

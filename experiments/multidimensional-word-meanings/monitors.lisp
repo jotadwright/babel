@@ -4,6 +4,54 @@
 ;; + Monitors +
 ;; ------------
 
+;;;; Tutor used attribute
+;; a-list monitor that keeps track of the attribute used by the tutor
+;; (color, shape, size, material, x-pos or y-pos)
+(define-monitor record-tutor-attribute-use
+                :documentation "Record how often the tutor uses each type of attribute"
+                :class 'alist-recorder
+                :average-windows 1)
+
+(defvar word->attr
+  '((left . x-pos) (right . x-pos)
+    (front . y-pos) (behind . y-pos)
+    (large . size) (small . size)
+    (rubber . material) (metal . material)
+    (cube . shape) (sphere . shape) (cylinder . shape)
+    (gray . color) (red . color) (yellow . color) (purple . color)
+    (brown . color) (green . color) (blue . color) (cyan . color)))
+
+(define-event-handler (record-tutor-attribute-use interaction-finished)
+  (let* ((tutor (find 'tutor (population experiment) :key #'id))
+         (used-attr (rest (assoc (first (discriminative-set tutor)) word->attr))))
+    (loop for attr in '(x-pos y-pos size material shape color)
+          if (eql attr used-attr)
+          do (set-value-for-symbol monitor attr 1)
+          else
+          do (set-value-for-symbol monitor attr 0))))
+
+(define-monitor plot-tutor-attribute-use
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-tutor-attribute-use
+    :average-windows 1
+    :draw-y-1-grid t
+    :y-label "how often each attribute type is used"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "tutor-attribute-use"
+			       :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-tutor-attribute-use-graph (&key 
+                                       (configurations nil)
+                                       (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create a tutor attribute use graph." nr-of-interactions)
+  (activate-monitor plot-tutor-attribute-use)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-tutor-attribute-use)
+  (format t "~%Graphs have been created"))
+
 ;;;; A-list monitor to show the convergence of x-pos
 (define-monitor record-x-pos-convergence
                 :documentation "Record the convergence of x-pos for concepts left, right and green"
@@ -170,15 +218,6 @@
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
-
-#|
-(define-event-handler (record-communicative-success interaction-finished)
-  (let ((tutor (find 'tutor (population experiment) :key #'id)))
-    (record-value monitor
-                  (if (discriminative-set tutor)
-                    (if (communicated-successfully interaction) 1 0)
-                    1))))
-|#
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))

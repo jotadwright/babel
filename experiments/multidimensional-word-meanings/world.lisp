@@ -94,7 +94,7 @@
 
 (defun object->x-pos (object noise)
   (let* ((x-pos (first (coordinates object)))
-         (scaled-x-pos (/ x-pos 420)))
+         (scaled-x-pos (float (/ (- x-pos 31) (- 460 31)))))
     (if noise
       (if (< scaled-x-pos 0.5)
         (max (min (random-from-range 0.0 (+ 0.5 noise)) 1.0) 0.0)
@@ -103,7 +103,7 @@
 
 (defun object->y-pos (object noise)
   (let* ((y-pos (second (coordinates object)))
-         (scaled-y-pos (/ y-pos 380)))
+         (scaled-y-pos (float (/ (- y-pos 58) (- 296 58)))))
     (if noise
       (if (< scaled-y-pos 0.5)
         (max (min (random-from-range 0.0 (+ 0.5 noise)) 1.0) 0.0)
@@ -113,8 +113,8 @@
 (defun object->area (object noise)
   (let* ((area (case (size object)
                  (small 30) (large 70)))
-         (area-w-variance (add-random-value-from-range area 0.0 20.0))
-         (scaled-area (/ area-w-variance 100.0)))
+         (area-w-variance (add-random-value-from-range area 0 16))
+         (scaled-area (float (/ area-w-variance 100))))
     (if noise
       (add-random-value-from-range scaled-area 0.0 noise :min-bound 0.0 :max-bound 1.0)
       scaled-area)))
@@ -159,8 +159,8 @@
   (let* ((roughness (case (material object)
                       (metal 8)
                       (rubber 2)))
-         (with-variance (add-random-value-from-range roughness 0.0 3.0 :min-bound 0.0 :max-bound 11.0))
-         (scaled (/ with-variance 11)))
+         (with-variance (add-random-value-from-range roughness 0.0 2.5 :min-bound 0.0 :max-bound 10.0))
+         (scaled (/ with-variance 10.0)))
     (if noise
       (add-random-value-from-range scaled 0.0 noise :min-bound 0.0 :max-bound 1.0)
       scaled)))
@@ -209,6 +209,6 @@
           (cons :size (size object))
           (cons :shape (shape object))
           (cons :material (material object))
-          (cons :x-pos (if (> x-pos 240) 'right 'left))
-          (cons :y-pos (if (> y-pos 160) 'front 'behind)))))
+          (cons :x-pos (if (> x-pos 245.5) 'right 'left))
+          (cons :y-pos (if (> y-pos 177) 'front 'behind)))))
 

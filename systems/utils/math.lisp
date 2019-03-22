@@ -222,8 +222,8 @@ coefficient equal to r**2."
   (mapcar #'log vector))
 
 (defun random-from-range (start end)
-  "Generate a random integer/float in the range [start,end]"
-  (+ start (random (+ 1 (- end start)))))
+  "Generate a random integer/float in the range [start,end["
+  (+ start (random (- end start))))
 
 ;;;
 ;;; stuff not used
