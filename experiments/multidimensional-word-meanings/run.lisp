@@ -12,8 +12,8 @@
 (defparameter *configuration*
   (make-configuration
    :entries '((:shift-prototype . :always)
-              (:strategy . :min-max)
-              (:noise . 0.2))))
+              (:strategy . :prototype)
+              (:noise . nil))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -26,7 +26,7 @@
 ;; The features should be added again when the game fails.
 ;; How to decide which features to add again?
 
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -37,6 +37,7 @@
 ;; ---------------------------------
 
 (run-experiments '(
+                   #|
                    (min-max
                     ((:shift-prototype . :always)
                      (:strategy . :min-max)
@@ -53,6 +54,11 @@
                     ((:shift-prototype . :always)
                      (:strategy . :min-max)
                      (:noise . 0.3)))
+|#
+                  (prototypes
+                   ((:shift-prototype . :always)
+                    (:strategy . :prototype)
+                    (:noise . nil)))
                   )
                  :number-of-interactions 10000
                  :number-of-series 1
@@ -65,7 +71,7 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "min-max"
+ :experiment-name "prototypes"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
