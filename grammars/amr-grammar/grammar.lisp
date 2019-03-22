@@ -2149,7 +2149,7 @@
                         (syn-function ?func)))
                (?domain-adjective-infinitif-unit
                 --
-                (HASH form ((precedes ?modal-unit ?infinitif-unit))))))
+                (HASH form ((precedes ?adjective-unit ?infinitif-unit))))))
 
 (def-fcg-cxn auxiliar-infinitif-negative-cxn
              ((?auxiliar-infinitif-negative-unit
