@@ -84,9 +84,10 @@
 
 (defmethod category->s-dot-node ((category prototype-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a~%~,2f"
+    (s-dot::label ,(format nil "~a~%~,2f (~,2f)"
                            (downcase (mkstr (attribute category)))
-                           (prototype category)))))
+                           (prototype category)
+                           (variance category)))))
 
 (defmethod category->s-dot-node ((category prototype-min-max-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))

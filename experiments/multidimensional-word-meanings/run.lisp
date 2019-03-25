@@ -26,7 +26,7 @@
 ;; The features should be added again when the game fails.
 ;; How to decide which features to add again?
 
-(run-series *experiment* 10)
+(run-series *experiment* 20000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 

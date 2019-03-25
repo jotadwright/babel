@@ -20,8 +20,8 @@
                                                   R G B roughness
                                                   nr-of-sides nr-of-corners))
 (define-configuration-default-value :initial-certainty 0.5)
-(define-configuration-default-value :certainty-incf 0.1)
-(define-configuration-default-value :certainty-decf 0.1)
+(define-configuration-default-value :certainty-incf 0.025)
+(define-configuration-default-value :certainty-decf 0.025)
 (define-configuration-default-value :alpha 0.05)
 (define-configuration-default-value :max-tutor-utterance-length 1) ; nil or int
 (define-configuration-default-value :shift-prototype :always) ; :on-success :on-failure :always

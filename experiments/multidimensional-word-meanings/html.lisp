@@ -24,7 +24,8 @@
 
 (defmethod make-html-for-entity-details ((category prototype-category) &key)
   `(((div :class "entity-detail") ,(format nil "attribute: ~a" (attribute category)))
-    ((div :class "entity-detail") ,(format nil "prototype: ~,2f" (prototype category)))))
+    ((div :class "entity-detail") ,(format nil "prototype: ~,2f" (prototype category)))
+    ((div :class "entity-detail") ,(format nil "variance: ~,2f" (variance category)))))
 
 (defmethod make-html-for-entity-details ((category prototype-min-max-category) &key)
   `(((div :class "entity-detail") ,(format nil "attribute: ~a" (attribute category)))
