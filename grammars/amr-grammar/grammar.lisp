@@ -325,11 +325,10 @@
                (lex-id girl)
                (syn-cat (lex-class noun)
                         (number sg)
-                        (syn-function nominative)
-                        (compound -))
-              (boundaries (leftmost-unit ?boy-leftmost-unit)
-                          (rightmost-unit ?boy-rightmost-unit))
-             (sem-cat (sem-class subject)))
+                        (syn-function nominal)
+                        (part-of-phrase +))
+             (boundaries (leftmost-unit ?girl-leftmost-unit)
+                         (rightmost-unit ?girl-rightmost-unit)))
               <-
               (?girl-unit
                --
@@ -342,10 +341,11 @@
                (meaning ((girl ?g)))
                (syn-cat (lex-class noun)
                         (number pl)
-                        (syn-function ?func))
-                (boundaries (leftmost-unit ?boy-leftmost-unit)
-                            (rightmost-unit ?boy-rightmost-unit))
-               (sem-cat (sem-class arg1)))
+                        (syn-function nominal)
+                        (part-of-phrase +))
+               (sem-cat (sem-class arg1))
+               (boundaries (leftmost-unit ?girls-leftmost-unit)
+                         (rightmost-unit ?girls-rightmost-unit)))
               <-
               (?girls-unit
                --
@@ -402,7 +402,8 @@
                (meaning ((marble ?m)))
                (syn-cat (lex-class noun)
                         (number sg)
-                        (syn-function nominal))
+                        (syn-function nominal)
+                        (part-of-phrase +))
                 (sem-cat (sem-class subject))
                 (boundaries (leftmost-unit ?marble-leftmost-unit)
                           (rightmost-unit ?marble-rightmost-unit)))
@@ -530,12 +531,11 @@
                (meaning ((soldier ?s)))
                (syn-cat (lex-class noun)
                         (number sg)
-                        (syn-function ?func)
-                        (compound -)
-                        (subject-quantifier -))
+                        (syn-function nominal)
+                        (phrase-type +))
                (sem-cat (sem-class agent))
-                (boundaries (leftmost-unit ?marble-leftmost-unit)
-                            (rightmost-unit ?marble-rightmost-unit)))
+               (boundaries (leftmost-unit ?soldier-leftmost-unit)
+                           (rightmost-unit ?soldier-rightmost-unit)))
               <-
               (?soldier-unit
                --
@@ -1116,7 +1116,6 @@
 ;; ---------------------------------------------------------------------------------------------------
 ;; Proper Nouns Constructions 
 ;; ---------------------------------------------------------------------------------------------------
-
 (def-fcg-cxn proper-noun-entity-cxn ;; President Obama
              ((?named-entity-unit
                (referent ?p)
@@ -1171,7 +1170,6 @@
 ;; ---------------------------------------------------------------------------------------------------
 ;; Nominal Phrases Constructions
 ;; ---------------------------------------------------------------------------------------------------
-
  (def-fcg-cxn compound-noun-noun-source-cxn ;;source
               ((?compound-noun-noun-source-unit
                 (referent ?ref)
@@ -1205,7 +1203,6 @@
 ;; ---------------------------------------------------------------------------------------------------
 ;; Verbal Phrases Constructions
 ;; ---------------------------------------------------------------------------------------------------
-
 (def-fcg-cxn VP-cxn
              ((?vp-unit
                (referent ?inf)
@@ -1265,31 +1262,31 @@
 
 (def-fcg-cxn np-vp-np=arg0-cxn ;; active-intransitive-cxn
              ((?clause-unit
-               (meaning ((:arg0 ?g ?arg0)))
-               (subunits (?vp-unit ?arg0-unit))
-               (referent ?g)
+               (meaning ((:arg0 ?verb ?arg0)))
+               (subunits (?vp-unit ?agent-unit))
+               (referent ?verb)
                (boundaries (rightmost-unit ?vp-rightmost-unit)
-                           (leftmost-unit ?arg0-leftmost-unit))
-               (syn-cat (phrase-type VP)))
+                           (leftmost-unit ?agent-leftmost-unit)))
               <-
               (?vp-unit
                --
-               (referent ?g)
-               (syn-cat (phrase-type VP))
+               (referent ?verb)
+               (syn-cat (phrase-type vp)
+                        (syn-function verbal))
                (boundaries
                 (leftmost-unit ?vp-leftmost-unit)
                 (rightmost-unit ?vp-rightmost-unit)))
-              (?arg0-unit
+              (?agent-unit
                --
                (referent ?arg0)
-               (syn-cat (phrase-type NP))
+               (syn-cat (phrase-type np)
+                        (syn-function ?func))
                (boundaries
-                (leftmost-unit ?arg0-leftmost-unit)
-                (rightmost-unit ?arg0-rightmost-unit))
-               (sem-cat (sem-class ?class)))
+                (leftmost-unit ?agent-leftmost-unit)
+                (rightmost-unit ?agent-rightmost-unit)))
               (?clause-unit
                --
-               (HASH form ((meets ?arg0-rightmost-unit ?vp-leftmost-unit))))))
+               (HASH form ((precedes ?agent-rightmost-unit ?vp-leftmost-unit))))))
 
 (def-fcg-cxn AP-NP-np=arg0-cxn
              ((?adverbialclause-unit
@@ -1333,13 +1330,12 @@
               (?vp-unit
                --
                (syn-cat (lex-class verb)
-                        (is-copular +)
-                        (phrase-type VP)))
+                        (is-copular +)))
               (?nominal-predicative-unit
                --
                (referent ?domain)
                (syn-cat (syn-function predicative)))
-              (?referring-noun-unit
+               (?referring-noun-unit
                --
                (referent ?referring)
                (syn-cat (phrase-type ?phrase-type)
@@ -1558,8 +1554,12 @@
 )
 
 #|
-59 lexical
-19 phrasal|arg0
+ 
+66 lexical
+21 phrasal|arg0
+= 87
 
+135
+43 phrasal|arg0
 |#
 
