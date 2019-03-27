@@ -87,7 +87,7 @@
     (s-dot::label ,(format nil "~a~%~,2f (~,2f)"
                            (downcase (mkstr (attribute category)))
                            (prototype category)
-                           (variance category)))))
+                           (/ (M2 category) (nr-samples category))))))
 
 (defmethod category->s-dot-node ((category prototype-min-max-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))

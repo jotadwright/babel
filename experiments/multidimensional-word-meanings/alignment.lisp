@@ -55,17 +55,6 @@
                  finally
                  (notify scores-updated cxn rewarded punished))))
 
-(defun discriminating-attribute-p (agent category topic)
-  ;; if this attr gets a positive similarity for the topic
-  ;; and a negative similarity for every other object
-  ;; than it is discriminating
-  ;; 
-  (and (plusp (similarity topic category))
-       (loop with context = (remove topic (objects (context agent)))
-             for object in context
-             for sim = (similarity object category)
-             always (minusp sim))))
-
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words
                               (strategy (eql :prototype)))
   (loop for word in words

@@ -2574,28 +2574,27 @@
                (HASH form ((string ?find-unit "find"))))))
 
 (def-fcg-cxn arg1of-before-transitive-verb-cxn
-             ((?arg1of-before-transitive-verb-unit
+             ((?vp-unit
                (meaning ((:arg1-of ?t ?o)))
-               (subunits (?object-unit ?vp-unit)))
+               (subunits (?object-unit)))
               <-
               (?object-unit
                --
                (referent ?t)
-               (syn-cat (lex-class pronoun)
-                        (number ?numb)
-                        (syn-function ?func))
+               (syn-cat (lex-class pronoun))
                (sem-cat (sem-class object)))
                (?vp-unit
                --
                (referent ?o)
-               (syn-cat (lex-class verb)
-                        (finite +)
-                        (modal -)
-                        (past-simple +)
-                        (phrase-type VP)))
+               (syn-cat (phrase-type vp)
+                        (transitive +)))
+               (?np-unit
+               --
+               
               --
               (?arg1of-before-transitive-verb-unit
-               (HASH form ((precedes ?object-unit ?vp-unit))))))
+               (HASH form ((precedes ?object-unit ?np-unit)
+                           (?np-unit ?vp-unit))))))
 
 (def-fcg-cxn worker-cxn
              ((?worker-unit
