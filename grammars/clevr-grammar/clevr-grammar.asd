@@ -8,7 +8,9 @@
   :license "GPL 3.0"
   :depends-on (:utils
                :monitors
+               :irl
                :fcg
+               :clevr
                :cl-json)
   :serial t
   :components ((:file "package")

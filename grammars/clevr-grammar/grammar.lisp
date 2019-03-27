@@ -82,8 +82,6 @@
   (let ((root-meanings (extract-meaning (get-root (left-pole-structure (car-resulting-cfs (cipn-car node)))))))
     (not (find 'get-context root-meanings :key #'first))))
 
-(export '(*CLEVR*))
-
 (defparameter *CLEVR*
   (def-fcg-constructions clevr-grammar
     :feature-types ((args set-of-predicates)
