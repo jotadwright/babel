@@ -20,13 +20,7 @@
 
 (run-interaction *experiment*)
 
-;; TO DO; features reaching 0 certainty should be removed
-;; However, there should be a way to add features again, when needed.
-;; This will be necessary for the CLEVR COGENT experiment.
-;; The features should be added again when the game fails.
-;; How to decide which features to add again?
-
-(run-series *experiment* 20000)
+(run-series *experiment* 10)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
