@@ -55,31 +55,6 @@
 ;; + CLEVR -> MWM +
 ;; ----------------
 
-#|
-(defun scale-value (value min max)
-  (float
-   (min
-    (max (/ (- value min)
-            (- max min))
-         0.0)
-    1.0)))
-
-(defun object->width-and-height (object)
-  (let* ((w (if (eql (shape object) 'cylinder)
-              (if (eql (size object) 'large)
-                (add-noise 10.0 0.0 2.0)
-                (add-noise 5.0 0.0 2.0))
-              (if (eql (size object) 'large)
-                (add-noise 14.0 0.0 2.0)
-                (add-noise 7.0 0.0 2.0))))
-         (h (if (eql (shape object) 'cylinder)
-              (if (eql (size object) 'large)
-                (add-noise 20.0 0.0 2.0)
-                (add-noise 10.0 0.0 2.0))
-              w)))
-    (values w h)))
-|#
-
 (defun add-random-value-from-range (value min-var max-var &key min-bound max-bound)
   (let* ((func (random-elt (list #'+ #'-)))
          (variance (random-from-range min-var max-var))

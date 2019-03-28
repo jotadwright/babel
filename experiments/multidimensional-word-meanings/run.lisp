@@ -12,7 +12,9 @@
 (defparameter *configuration*
   (make-configuration
    :entries '((:shift-prototype . :always)
-              (:strategy . :prototype)
+              (:update-certainty . t)
+              (:category-representation . :prototype-min-max)
+              (:feature-selection . :all)
               (:noise . nil))))
 
 (defparameter *experiment*
@@ -31,30 +33,12 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   #|
-                   (min-max
+                   (prototypes-min-max
                     ((:shift-prototype . :always)
-                     (:strategy . :min-max)
-                     (:noise . nil)))
-                   (min-max-noise-0.1
-                    ((:shift-prototype . :always)
-                     (:strategy . :min-max)
-                     (:noise . 0.1)))
-                   (min-max-noise-0.2
-                    ((:shift-prototype . :always)
-                     (:strategy . :min-max)
-                     (:noise . 0.2)))
-                   (min-max-noise-0.3
-                    ((:shift-prototype . :always)
-                     (:strategy . :min-max)
-                     (:noise . 0.3)))
-|#
-                  (prototypes
-                   ((:shift-prototype . :always)
-                    (:strategy . :prototype)
-                    (:noise . nil)))
-                  )
-                 :number-of-interactions 10000
+                     (:category-representation . :prototype-min-max)
+                     (:update-certainty . t)))
+                   )
+                 :number-of-interactions 5000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
@@ -65,7 +49,7 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "prototypes"
+ :experiment-name "prototypes-min-max"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
