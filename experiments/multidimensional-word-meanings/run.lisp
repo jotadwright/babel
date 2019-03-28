@@ -38,7 +38,7 @@
                      (:category-representation . :prototype-min-max)
                      (:update-certainty . t)))
                    )
-                 :number-of-interactions 5000
+                 :number-of-interactions 2500
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"

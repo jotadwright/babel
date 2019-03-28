@@ -139,6 +139,17 @@
 ;; -----------
 ;; + Parsing +
 ;; -----------
+(defun sample-features (meaning)
+  "Sample a subset of the features according to the
+   certainty of that feature."
+  (loop for (category . certainty) in meaning
+        for r = (random 1.0)
+        when (< r certainty)
+        collect (cons category certainty) into meaning-sample
+        finally
+        (return meaning-sample)))
+
+
 (defgeneric parse-word (agent role)
   (:documentation "Parse an utterance"))
 
@@ -156,8 +167,13 @@
       (let ((all-meanings
              (loop for cxn in (applied-constructions cipn)
                    collect (attr-val cxn :meaning))))
-        (setf (applied-cxns agent) (applied-constructions cipn)
-              (parsed-meaning agent) (reduce #'fuzzy-union all-meanings))))
+        (setf (applied-cxns agent) (mapcar #'get-original-cxn
+                                           (applied-constructions cipn))
+              (parsed-meaning agent) (reduce #'fuzzy-union all-meanings))
+        ;; when :feature-selection is set to :sampling; do the sampling here
+        ;; and overwrite the parsed-meaning slot of the agent
+        (when (eql (get-configuration agent :feature-selection) :sampling)
+          (setf (parsed-meaning agent) (sample-features (parsed-meaning agent))))))
     (notify parsing-finished agent)
     (parsed-meaning agent)))
 

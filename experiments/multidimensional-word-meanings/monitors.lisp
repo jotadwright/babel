@@ -169,24 +169,17 @@
 ;;;; Show learner lexicon
 (defun show-learner-lexicon (agent)
   (loop for cxn in (constructions (grammar agent))
-        for meaning = (attr-val cxn :meaning)
         do (add-element `((div)
                           ,(s-dot->svg
                             (cxn->s-dot cxn))))))
 
 ;;;; Export learner lexicon
-(defun export-learner-lexicon (agent)
+(defun export-learner-lexicon (agent &key (experiment-name 'baseline))
   (loop for cxn in (constructions (grammar agent))
-        for meaning = (attr-val cxn :meaning)
-        for strong = (mapcar #'first
-                             (find-all-if #'(lambda (certainty) (>= certainty 0.8))
-                                          meaning :key #'third))
-        for weak = (mapcar #'first
-                             (find-all-if #'(lambda (certainty) (< certainty 0.8))
-                                          meaning :key #'third))
         do (s-dot->image
-            (cxn->s-dot cxn strong weak)
-            :path (babel-pathname :directory '(".tmp")
+            (cxn->s-dot cxn)
+            :path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                               "graphs" ,(mkstr experiment-name) "lexicon")
                                   :name (format nil "~a" (attr-val cxn :form))
                                   :type "pdf")
             :format "pdf"

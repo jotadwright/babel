@@ -30,35 +30,41 @@
   (:documentation "Align known words"))
 
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words strategy)
-  (loop for word in words
-        for cxn = (find-cxn-with-form agent word)
-        for meaning = (attr-val cxn :meaning)
-        for all-attributes = (get-configuration agent :attributes)
-        for unused-attributes = (set-difference all-attributes
-                                                (mapcar #'attribute (mapcar #'car meaning)))
-        do (loop with rewarded
-                 with punished
-                 for (category . certainty) in meaning
-                 for attr = (attribute category)
-                 ;; shift the prototype
-                 do (case (get-configuration agent :shift-prototype)
-                      (:on-success (when (communicated-successfully agent)
-                                     (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
-                      (:on-failure (unless (communicated-successfully agent)
-                                     (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
-                      (:always (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
-                      (:never nil))
-                 ;; adjust the certainty
-                 when (get-configuration agent :update-certainty)
-                 do (let ((sim (similarity topic category)))
-                      (if (plusp sim)
-                        (progn (push attr rewarded)
-                          (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
-                        (progn (push attr punished)
-                          (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf))))))
-                 ;; notify
-                 finally
-                 (notify scores-updated cxn rewarded punished))))          
+  (declare (ignorable words))
+  ;(loop for word in words
+  ;      for cxn = (find-cxn-with-form agent word)
+  ;      for meaning = (attr-val cxn :meaning)
+  ;      for all-attributes = (get-configuration agent :attributes)
+  ;      for unused-attributes = (set-difference all-attributes
+  ;                                              (mapcar #'attribute (mapcar #'car meaning)))
+  ;      do
+  (loop with rewarded
+        with punished
+        for (category . certainty) in (parsed-meaning agent) ;meaning
+        for cxn = (find category (applied-cxns agent)
+                        :key #'(lambda (cxn)
+                                 (mapcar #'car (attr-val cxn :meaning)))
+                        :test #'member)
+        for attr = (attribute category)
+        ;; shift the prototype
+        do (case (get-configuration agent :shift-prototype)
+             (:on-success (when (communicated-successfully agent)
+                            (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
+             (:on-failure (unless (communicated-successfully agent)
+                            (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
+             (:always (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
+             (:never nil))
+        ;; adjust the certainty
+        when (get-configuration agent :update-certainty)
+        do (let ((sim (similarity topic category)))
+             (if (plusp sim)
+               (progn (push attr rewarded)
+                 (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
+               (progn (push attr punished)
+                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf))))))
+        ;; notify
+        finally
+        (notify scores-updated cxn rewarded punished)))        
         
 (defgeneric align-agent (agent topic)
   (:documentation
