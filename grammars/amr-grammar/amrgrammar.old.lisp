@@ -2772,6 +2772,38 @@
 )
 #|
 
+(def-fcg-cxn x-of-y-cxn
+             ((?x-of-y-unit
+               (referent ?g)
+               (meaning ((:arg0 ?o ?g)))
+                (subunits (?np-x-unit ?np-y-unit ?of-preposition-unit))
+                (boundaries (leftmost-unit ?np-x-leftmost-unit)
+                            (rightmost-unit ?np-y-rightmost-unit)))
+               <-
+               (?np-x-unit
+               --
+               (referent ?o)
+               (syn-cat (phrase-type noun-phrase)
+                        (syn-function patient))
+               (boundaries
+                (leftmost-unit ?np-x-leftmost-unit)
+                (rightmost-unit ?np-x-rightmost-unit)))
+               (?np-y-unit
+               --
+               (referent ?g)
+               (syn-cat (phrase-type noun-phrase)
+                        (syn-function agent))
+               (boundaries
+                (leftmost-unit ?np-y-leftmost-unit)
+                (rightmost-unit ?np-y-rightmost-unit)))
+               (?of-preposition-unit
+                --
+               (syn-cat (lex-class preposition))
+               (form ((string ?of-preposition-unit "of"))))
+               (?x-of-y-unit
+                --
+                (HASH form ((precedes ?np-x-rightmost-unit ?of-preposition-unit)
+                            (precedes ?of-preposition-unit ?np-y-leftmost-unit))))))
 ;; '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
 
 |#
