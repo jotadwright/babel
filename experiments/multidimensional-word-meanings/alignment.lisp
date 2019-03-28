@@ -6,10 +6,10 @@
 
 (define-event new-cxn-added (cxn fcg-construction))
 
-(defgeneric adopt-unknown-words (agent topic words strategy)
+(defgeneric adopt-unknown-words (agent topic words)
   (:documentation "Adopt unknown words"))
 
-(defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) words strategy)
+(defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) words)
   (let ((meaning
          (loop with initial-certainty = (get-configuration agent :initial-certainty)
                for attr in (get-configuration agent :attributes)
@@ -26,27 +26,20 @@
 (define-event re-introduced-meaning (cxn fcg-construction)
   (attrs list))
 
-(defgeneric align-known-words (agent topic words strategy)
+(defgeneric align-known-words (agent topic words features-sampled-p)
   (:documentation "Align known words"))
 
-(defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words strategy)
+(defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words features-sampled-p)
   (declare (ignorable words))
-  ;(loop for word in words
-  ;      for cxn = (find-cxn-with-form agent word)
-  ;      for meaning = (attr-val cxn :meaning)
-  ;      for all-attributes = (get-configuration agent :attributes)
-  ;      for unused-attributes = (set-difference all-attributes
-  ;                                              (mapcar #'attribute (mapcar #'car meaning)))
-  ;      do
   (loop with rewarded
         with punished
-        for (category . certainty) in (parsed-meaning agent) ;meaning
+        for (category . certainty) in (parsed-meaning agent)
         for cxn = (find category (applied-cxns agent)
                         :key #'(lambda (cxn)
                                  (mapcar #'car (attr-val cxn :meaning)))
                         :test #'member)
         for attr = (attribute category)
-        ;; shift the prototype
+        ;; update the prototype (mostly set to always)
         do (case (get-configuration agent :shift-prototype)
              (:on-success (when (communicated-successfully agent)
                             (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
@@ -54,14 +47,23 @@
                             (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
              (:always (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
              (:never nil))
-        ;; adjust the certainty
+        ;; adjust the certainty, when enabled
         when (get-configuration agent :update-certainty)
-        do (let ((sim (similarity topic category)))
-             (if (plusp sim)
+        ;; if the features were sampled, update the certainty
+        ;; based on success. Otherwise, update the certainty
+        ;; based on similarity.
+        do (if features-sampled-p
+             (if (communicated-successfully agent)
                (progn (push attr rewarded)
                  (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
                (progn (push attr punished)
-                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf))))))
+                   (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf)))))
+             (let ((sim (similarity topic category)))
+               (if (plusp sim)
+                 (progn (push attr rewarded)
+                   (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
+                 (progn (push attr punished)
+                   (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf)))))))
         ;; notify
         finally
         (notify scores-updated cxn rewarded punished)))        
@@ -93,12 +95,13 @@
                 collect form))
          (unknown-words (set-difference (utterance agent) known-words
                                         :test #'string=))
-         (strategy (get-configuration agent :strategy)))
+         (feature-selection (get-configuration agent :feature-selection)))
     (notify alignment-started agent)
     (when unknown-words
       (notify adopting-words unknown-words)
-      (adopt-unknown-words agent topic unknown-words strategy))
+      (adopt-unknown-words agent topic unknown-words))
     (when known-words
       (notify aligning-words known-words)
-      (align-known-words agent topic known-words strategy))))
+      (align-known-words agent topic known-words
+                         (eql feature-selection :sampling)))))
   
