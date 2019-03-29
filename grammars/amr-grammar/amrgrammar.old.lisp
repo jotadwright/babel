@@ -812,9 +812,8 @@
                (syn-cat (lex-class noun)
                         (number sg)
                         (person 3)
-                        (phrase-type nominal)
-                        (syn-function ?func))
-              (sem-cat (sem-class possessed)))
+                        (syn-function nominal)
+                        (part-of-phrase +)))
                <-
                (?opinion-unit
                 --
