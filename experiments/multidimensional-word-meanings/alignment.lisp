@@ -52,13 +52,13 @@
         ;; if the features were sampled, update the certainty
         ;; based on success. Otherwise, update the certainty
         ;; based on similarity.
-        do (if features-sampled-p
-             (if (communicated-successfully agent)
-               (progn (push attr rewarded)
-                 (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
-               (progn (push attr punished)
+        do (let ((sim (similarity topic category)))
+             (if features-sampled-p
+               (if (communicated-successfully agent)
+                 (progn (push attr rewarded)
+                   (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
+                 (progn (push attr punished)
                    (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf)))))
-             (let ((sim (similarity topic category)))
                (if (plusp sim)
                  (progn (push attr rewarded)
                    (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))

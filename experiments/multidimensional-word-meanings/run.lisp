@@ -7,6 +7,9 @@
 
 (activate-monitor print-a-dot-for-each-interaction)
 
+(activate-monitor display-communicative-success)
+;(deactivate-monitor display-communicative-success)
+
 ;; Creating the experiment might take a few seconds
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
@@ -22,7 +25,9 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 1000)
+(run-series *experiment* 10)
+
+(run-series *experiment* 10000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -31,12 +36,14 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (prototypes-min-max
+                   (feature-sampling
                     ((:shift-prototype . :always)
                      (:category-representation . :prototype-min-max)
-                     (:update-certainty . t)))
+                     (:update-certainty . t)
+                     (:feature-selection . :all)
+                     (:noise . nil)))
                    )
-                 :number-of-interactions 2500
+                 :number-of-interactions 10000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
@@ -47,7 +54,7 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "prototypes-min-max"
+ :experiment-name "feature-sampling"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
