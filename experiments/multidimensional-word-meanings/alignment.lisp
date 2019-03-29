@@ -59,7 +59,7 @@
                    (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
                  (progn (push attr punished)
                    (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf)))))
-               (if (plusp sim)
+               (if (>= sim 0)
                  (progn (push attr rewarded)
                    (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
                  (progn (push attr punished)

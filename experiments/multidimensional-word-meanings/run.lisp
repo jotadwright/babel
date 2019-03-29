@@ -16,8 +16,8 @@
   (make-configuration
    :entries '((:shift-prototype . :always)
               (:update-certainty . t)
-              (:category-representation . :min-max)
-              (:feature-selection . :sampling)
+              (:category-representation . :prototype-min-max)
+              (:feature-selection . :all)
               (:noise . nil))))
 
 (defparameter *experiment*
@@ -25,9 +25,9 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 10) 
 
-(run-series *experiment* 10000)
+(run-series *experiment* 2000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
