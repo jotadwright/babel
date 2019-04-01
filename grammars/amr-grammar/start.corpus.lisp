@@ -60,7 +60,7 @@
 (equivalent-amr-predicate-networks (comprehend "a taxable fund")
             '((FUND F) (TAX-01 T) (:ARG1-OF F T)))
 
-(comprehend "the city of Zintan") ;; works but schema no  
+(comprehend "the city of Zintan") ;; works but problem with tree. Maybe new construction?
 (equivalent-amr-predicate-networks (comprehend  "the city of Zintan")
             '((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan")))
 
@@ -68,7 +68,7 @@
 (equivalent-amr-predicate-networks (comprehend "the boy cannot go")
             '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
 
-(comprehend "what the girl opined") ;; works 
+(comprehend "what the girl opined") ;; works
 (equivalent-amr-predicate-networks (comprehend "what the girl opined")
             '((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G)))
 
@@ -80,7 +80,7 @@
 (equivalent-amr-predicate-networks (comprehend "the marble is white")
              '((WHITE W) (MARBLE M) (:DOMAIN W M)))
 
-(comprehend "pleasing girls is tough") ;; not working 
+(comprehend-all "pleasing girls is tough") ;; works
 (equivalent-amr-predicate-networks (comprehend "pleasing girls is tough")
             '((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)))
 
@@ -88,7 +88,7 @@
 (equivalent-amr-predicate-networks (comprehend "the boy works hard")
             '((WORK-01 W) (BOY B) (HARD H) (:ARG0 W B) (:MANNER W H)))
 
-(comprehend "the soldier feared battle") ;; works 
+(comprehend "the soldier feared battle") ;; works
 (equivalent-amr-predicate-networks (comprehend  "the soldier feared battle")
             '((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
 
@@ -96,11 +96,11 @@
 (equivalent-amr-predicate-networks (comprehend "the comment is inappropriate")
              '((APPROPRIATE A) (COMMENT C) (:DOMAIN A C) (:POLARITY A -)))
 
-(comprehend "the opinion of the girl") ;; works but problem with order 
+(comprehend "the opinion of the girl") ;; works 
 (equivalent-amr-predicate-networks (comprehend "the opinion of the girl")
             '((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G)))
 
-(comprehend "Mollie Brown , who slew orcs") ;; works
+(comprehend "Mollie Brown , who slew orcs") ;; not working
 (equivalent-amr-predicate-networks (comprehend "Mollie Brown , who slew orcs")
        '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
@@ -108,15 +108,13 @@
 (equivalent-amr-predicate-networks (comprehend "the orc - slaying Mollie Brown")
            '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
-(comprehend "the woman is a lawyer") ;; not working
+(comprehend "the woman is a lawyer") ;; works but problem with the tree. Maybe two predicative constructions ? 
 (equivalent-amr-predicate-networks (comprehend "the woman is a lawyer")
             '((LAWYER L) (WOMAN W) (:DOMAIN L W)))
 
 (comprehend "the boy wants to go") ;; not working
 (equivalent-amr-predicate-networks (comprehend "the boy wants to go")
            '((WANT-01 W) (BOY B) (GO-01 G) (:ARG0 W B) (:ARG1 W G) (:ARG0 G B)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 28 sentences
-
 
 (comprehend "the college boy who sang") ;; 
 (equivalent-amr-predicate-networks (comprehend "the college boy who sang")
@@ -138,10 +136,6 @@
 (equivalent-amr-predicate-networks (comprehend "the number of pandas increased")
             '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
 
-(comprehend "the boy must not go") ;;
-(equivalent-amr-predicate-networks (comprehend "the boy must not go")
-           '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
-
 (comprehend "what did the girl find") ;;
 (equivalent-amr-predicate-networks (comprehend "what did the girl find")
            '((FIND-01 F) (GIRL G) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F A)))
@@ -149,6 +143,8 @@
 (comprehend "the girl adjusted the machine") ;; 
 (equivalent-amr-predicate-networks (comprehend "the girl adjusted the machine") 
              '((ADJUST-01 A) (GIRL G) (MACHINE M) (:ARG0 A G) (:ARG1 A M)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 35 sentences
 
 (comprehend "the judge saw the explosion") ;;
 (equivalent-amr-predicate-networks (comprehend "the judge saw the explosion")
