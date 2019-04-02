@@ -100,59 +100,56 @@
 (equivalent-amr-predicate-networks (comprehend "the opinion of the girl")
             '((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G)))
 
-(comprehend "Mollie Brown , who slew orcs") ;; not working
+(comprehend "Mollie Brown , who slew orcs") ;; works
 (equivalent-amr-predicate-networks (comprehend "Mollie Brown , who slew orcs")
        '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
-(comprehend "the orc - slaying Mollie Brown") ;; not working
+(comprehend "the orc-slaying Mollie Brown") ;; need to write new construction for the orc-slaying (not done)
 (equivalent-amr-predicate-networks (comprehend "the orc - slaying Mollie Brown")
            '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
-(comprehend "the woman is a lawyer") ;; works but problem with the tree. Maybe two predicative constructions ? 
+(comprehend "the woman is a lawyer") ;; works 
 (equivalent-amr-predicate-networks (comprehend "the woman is a lawyer")
             '((LAWYER L) (WOMAN W) (:DOMAIN L W)))
 
-(comprehend "the boy wants to go") ;; not working
+(comprehend "the boy wants to go") ;; sometimes "to" not connected in the tree + arg0 g b = new cxn "subject-infinitive" but only sometimes is working 
 (equivalent-amr-predicate-networks (comprehend "the boy wants to go")
            '((WANT-01 W) (BOY B) (GO-01 G) (:ARG0 W B) (:ARG1 W G) (:ARG0 G B)))
 
-(comprehend "the college boy who sang") ;; 
+(comprehend "the college boy who sang") ;; works
 (equivalent-amr-predicate-networks (comprehend "the college boy who sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
-(comprehend "the boy did not go") ;;
+(comprehend "the boy did not go") ;; not always working + schema not correct
 (equivalent-amr-predicate-networks (comprehend "the boy did not go")
             '((GO-01 G) (BOY B) (:ARG0 G B) (:POLARITY G -)))
 
-(comprehend "the number of pandas increased") ;; 
+(comprehend "the number of pandas increased") ;; not done 
 (equivalent-amr-predicate-networks (comprehend "the number of pandas increased")
             '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
 
-(comprehend "the boy must not go") ;;
+(comprehend "the boy must not go") ;;  not always working + schema not correct
 (equivalent-amr-predicate-networks (comprehend "the boy must not go")
            '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
 
-(comprehend "the number of pandas increased") ;; 
-(equivalent-amr-predicate-networks (comprehend "the number of pandas increased")
-            '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
-
-(comprehend "what did the girl find") ;;
+(comprehend "what did the girl find") ;; not done
 (equivalent-amr-predicate-networks (comprehend "what did the girl find")
            '((FIND-01 F) (GIRL G) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F A)))
 
-(comprehend "the girl adjusted the machine") ;; 
+(comprehend "the girl adjusted the machine") ;; works but problem with order 
 (equivalent-amr-predicate-networks (comprehend "the girl adjusted the machine") 
              '((ADJUST-01 A) (GIRL G) (MACHINE M) (:ARG0 A G) (:ARG1 A M)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 35 sentences
-
-(comprehend "the judge saw the explosion") ;;
+(comprehend "the judge saw the explosion") ;; works but problem with order 
 (equivalent-amr-predicate-networks (comprehend "the judge saw the explosion")
               '((SEE-01 S) (JUDGE J) (EXPLODE-01 E) (:ARG0 S J) (:ARG1 S E)))
 
-(comprehend "the judge read the proposal") ;; 
+(comprehend "the judge read the proposal") ;; works but problem with order 
 (equivalent-amr-predicate-networks (comprehend "the judge read the proposal")
              '((READ-01 R) (JUDGE J) (THING T) (:ARG0 R J) (:ARG1 R T)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 36 sentences
+
 
 (comprehend "girls are tough to please") ;;
 (equivalent-amr-predicate-networks (comprehend "girls are tough to please")
