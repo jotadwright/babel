@@ -4,7 +4,7 @@
 
 (defpackage :clevr-evaluation
   (:documentation "Evaluating the CLEVR grammar and primitives")
-  (:use :common-lisp :utils :fcg :clevr)
+  (:use :common-lisp :utils :fcg :clevr :clevr-primitives :clevr-grammar)
   (:import-from :monitors
                 :define-event
                 :define-monitor
@@ -22,7 +22,6 @@
                 :irl-program->svg
                 :get-target-var
                 :trace-irl-in-web-browser)
-  (:import-from :clevr-grammar :*CLEVR*)
   (:import-from :cl-json
                 :decode-json-from-source
                 :decode-json-from-string

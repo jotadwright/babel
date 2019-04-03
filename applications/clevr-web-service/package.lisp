@@ -4,7 +4,7 @@
 
 (defpackage :clevr-web-service
   (:documentation "Web service to access the CLEVR Grammar")
-  (:use :common-lisp :utils :clevr)
+  (:use :common-lisp :utils :clevr :clevr-primitives)
   (:import-from :irl
                 :evaluate-irl-program
                 :bind

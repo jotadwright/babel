@@ -1,12 +1,12 @@
 ;;;; filter.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; ------------------
 ;; FILTER primtive ;;
 ;; ------------------
 
-(export '(filter))
+;(export '(filter))
 
 (defgeneric filter-by-category (set category)
   (:documentation "Filter the set by the given category."))

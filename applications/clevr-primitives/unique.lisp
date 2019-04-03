@@ -1,12 +1,12 @@
 ;;;; unique.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; ------------------
 ;; UNIQUE primtive ;;
 ;; ------------------
 
-(export '(unique))
+;(export '(unique))
 
 (defprimitive unique ((target-object clevr-object)
                       (source-set clevr-object-set))

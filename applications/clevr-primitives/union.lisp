@@ -1,12 +1,12 @@
 ;;;; union.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; -----------------
 ;; UNION primtive ;;
 ;; -----------------
 
-(export '(union!))
+;(export '(union!))
 
 (defprimitive union! ((target-set clevr-object-set)
                       (source-set-1 clevr-object-set)

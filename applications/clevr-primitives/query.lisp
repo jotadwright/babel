@@ -1,12 +1,12 @@
 ;;;; query.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; -----------------
 ;; QUERY primtive ;;
 ;; -----------------
 
-(export '(query))
+;(export '(query))
 
 (defgeneric query-object-attribute (object attribute ontology)
   (:documentation "Extract the attribute from the object and

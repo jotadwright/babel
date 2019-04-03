@@ -1,12 +1,12 @@
 ;;;; relate.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; ------------------
 ;; RELATE primtive ;;
 ;; ------------------
 
-(export '(relate))
+;(export '(relate))
 
 (defgeneric apply-spatial-relation (object spatial-relation-category context)
   (:documentation "Apply the spatial relation to the object"))

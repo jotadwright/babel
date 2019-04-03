@@ -1,12 +1,12 @@
 ;;;; intersect.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; ---------------------
 ;; INTERSECT primtive ;;
 ;; ---------------------
 
-(export '(intersect))
+;(export '(intersect))
 
 (defprimitive intersect ((target-set clevr-object-set)
                          (source-set-1 clevr-object-set)

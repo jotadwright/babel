@@ -1,12 +1,12 @@
 ;;;; same.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; ----------------
 ;; SAME primtive ;;
 ;; ----------------
 
-(export '(same))
+;(export '(same))
 
 (defgeneric same-set-by-object-attribute (set object attribute)
   (:documentation "Filter the given set by the attribute of the given object;

@@ -1,8 +1,8 @@
 ;;;; equal-less-greater.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
-(export '(equal-integer less-than greater-than))
+;(export '(equal-integer less-than greater-than))
 
 ;; -------------------------
 ;; EQUAL-INTEGER primtive ;;
