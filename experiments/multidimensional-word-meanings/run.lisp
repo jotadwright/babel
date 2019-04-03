@@ -16,8 +16,8 @@
   (make-configuration
    :entries '((:shift-prototype . :always)
               (:update-certainty . t)
-              (:category-representation . :prototype-min-max)
-              (:feature-selection . :all)
+              (:category-representation . :test)
+              (:feature-selection . :sampling)
               (:noise . nil))))
 
 (defparameter *experiment*
