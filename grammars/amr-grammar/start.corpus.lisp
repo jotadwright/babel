@@ -112,7 +112,7 @@
 (equivalent-amr-predicate-networks (comprehend "the woman is a lawyer")
             '((LAWYER L) (WOMAN W) (:DOMAIN L W)))
 
-(comprehend "the boy wants to go") ;; sometimes "to" not connected in the tree + arg0 g b = new cxn "subject-infinitive" but only sometimes is working 
+(comprehend "the boy wants to go") ;; sometimes "to" not connected in the tree +  "subject-infinitive"  only sometimes is working 
 (equivalent-amr-predicate-networks (comprehend "the boy wants to go")
            '((WANT-01 W) (BOY B) (GO-01 G) (:ARG0 W B) (:ARG1 W G) (:ARG0 G B)))
 
@@ -148,9 +148,6 @@
 (equivalent-amr-predicate-networks (comprehend "the judge read the proposal")
              '((READ-01 R) (JUDGE J) (THING T) (:ARG0 R J) (:ARG1 R T)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 36 sentences
-
-
 (comprehend "girls are tough to please") ;;
 (equivalent-amr-predicate-networks (comprehend "girls are tough to please")
             '((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)))
@@ -159,18 +156,20 @@
 (equivalent-amr-predicate-networks (comprehend "the nation defaulted in June")
             '((DEFAULT-01 D) (NATION N) (DATE-ENTITY D2) (:ARG1 D N) (:TIME D D2) (:MONTH D2 6)))
 
-
-(comprehend "the comment is not appropriate") ;;
+(comprehend "the comment is not appropriate") ;; works
 (equivalent-amr-predicate-networks (comprehend "the comment is not appropriate")
            '((APPROPRIATE A) (COMMENT C) (:DOMAIN A C) (:POLARITY A -)))
 
-(comprehend "the marble in the jar") ;; 
+(comprehend "the marble in the jar") ;; not working 
 (equivalent-amr-predicate-networks (comprehend "the marble in the jar")
            '((MARBLE M) (JAR J) (:LOCATION M J)))
 
-(comprehend "the boy destroyed the room") ;; 
+(comprehend "the boy destroyed the room") ;; works but problem with order 
 (equivalent-amr-predicate-networks (comprehend  "the boy destroyed the room")
            '((DESTROY-01 D) (BOY B) (ROOM R) (:ARG0 D B) (:ARG1 D R)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 41 sentences
+
 
 (comprehend "the boy need not go") ;; 
 (equivalent-amr-predicate-networks (comprehend "the boy need not go")
