@@ -6,7 +6,7 @@
   (:documentation "Web service to access the CLEVR Grammar")
   (:use :common-lisp :utils :experiment-framework
         :plot-raw-data :monitors :web-interface
-        :irl :fcg :clevr)
+        :irl :fcg :clevr :clevr-primitives)
   (:import-from :clevr-grammar :*CLEVR*)
   (:import-from :clevr-evaluation
                 :preprocess-sentence

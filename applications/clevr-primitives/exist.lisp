@@ -1,12 +1,12 @@
 ;;;; exist.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; -----------------
 ;; EXIST primtive ;;
 ;; -----------------
 
-(export '(exist))
+;(export '(exist))
 
 (defprimitive exist ((target-bool boolean-category)
                      (source-set clevr-object-set))

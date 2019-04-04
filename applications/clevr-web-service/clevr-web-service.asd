@@ -4,14 +4,16 @@
 
 (defsystem #:clevr-web-service
   :description "Web service to access the CLEVR Grammar"
-  :author "Jens Nevens <jens@ai.vub.ac.be>"
-  :license "GPL 3.0"
+  :author "EHAI <ehai@ai.vub.ac.be>"
+  :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
+  :license "Babel Research License"
   :depends-on (:utils
                :irl
                :fcg
                :cl-json
                :snooze
                :clevr
+               :clevr-primitives
                :clevr-grammar
                :clevr-evaluation)
   :serial t

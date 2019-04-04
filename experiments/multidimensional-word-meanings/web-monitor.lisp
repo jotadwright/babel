@@ -97,6 +97,13 @@
                            (lower-bound category)
                            (upper-bound category)))))
 
+(defmethod category->s-dot-node ((category test-category))
+  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+    (s-dot::label ,(format nil "~a~%~,2f (~,2f)"
+                           (downcase (mkstr (attribute category)))
+                           (prototype category)
+                           (sigma category)))))
+
 (defun cxn->s-dot (cxn &optional highlight-green highlight-red)
   (let ((form (attr-val cxn :form))
         (meaning (attr-val cxn :meaning))

@@ -4,8 +4,9 @@
 
 (defsystem #:clevr-grammar
   :description "FCG grammar for CLEVR dataset"
-  :author "Jens Nevens <jens@ai.vub.ac.be>"
-  :license "GPL 3.0"
+  :author "EHAI <ehai@ai.vub.ac.be>"
+  :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
+  :license "Babel Research License"
   :depends-on (:utils
                :monitors
                :irl

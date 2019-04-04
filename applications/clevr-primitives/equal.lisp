@@ -1,12 +1,12 @@
 ;;;; equal.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; -----------------
 ;; EQUAL primtive ;;
 ;; -----------------
 
-(export '(equal?))
+;(export '(equal?))
 
 (defgeneric equal-attribute-p (category-1 category-2 attribute-category)
   (:documentation "Check if cat-1 and cat-2 are equal."))

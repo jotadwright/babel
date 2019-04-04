@@ -1,12 +1,12 @@
 ;;;; count.lisp
 
-(in-package :clevr)
+(in-package :clevr-primitives)
 
 ;; -----------------
 ;; COUNT primtive ;;
 ;; -----------------
 
-(export '(count!))
+;(export '(count!))
 
 ;; For the moment, this is implemented without using the integer
 ;; categories in the ontology. Let's see if it works like this.

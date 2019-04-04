@@ -4,14 +4,16 @@
 
 (defsystem #:clevr-evaluation
   :description "Evaluating the CLEVR grammar and primitives"
-  :author "Jens Nevens <jens@ai.vub.ac.be>"
-  :license "GPL 3.0"
+  :author "EHAI <ehai@ai.vub.ac.be>"
+  :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
+  :license "Babel Research License"
   :depends-on (:utils
                :web-interface
                :monitors
                :irl
                :fcg
                :clevr
+               :clevr-primitives
                :clevr-grammar
                :cl-json
                :cl-mop

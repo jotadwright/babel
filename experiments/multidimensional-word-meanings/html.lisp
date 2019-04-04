@@ -33,6 +33,11 @@
     ((div :class "entity-detail") ,(format nil "lower-bound: ~,2f" (lower-bound category)))
     ((div :class "entity-detail") ,(format nil "upper-bound: ~,2f" (upper-bound category)))))
 
+(defmethod make-html-for-entity-details ((category test-category) &key)
+  `(((div :class "entity-detail") ,(format nil "attribute: ~a" (attribute category)))
+    ((div :class "entity-detail") ,(format nil "prototype: ~,2f" (prototype category)))
+    ((div :class "entity-detail") ,(format nil "sigma: ~,2f" (sigma category)))))
+
 ;; make html of clevr object
 (defmethod make-html-for-entity-details ((object clevr-object) &key)
   `(((div :class "entity-detail") ,(format nil "size: ~a" (size object)))
