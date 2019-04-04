@@ -88,18 +88,27 @@
     (>= topic-sim best-object-sim)))
 
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words)
-  (if (communicated-successfully agent)
-    (loop for (category . certainty) in (parsed-meaning agent)
-          for cxn = (get-cxn-from-category agent category)
-          for attr = (attribute category)
-          if (discriminating-p agent category topic)
-          do (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
-          else
-          do (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf))))
-    (loop for (category . certainty) in (parsed-meaning agent)
-          for cxn = (get-cxn-from-category agent category)
-          for attr = (attribute category)
-          do (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf))))))
+  (let ((categories-w-cxns (loop for (category . certainty) in (parsed-meaning agent)
+                                 for cxn = (get-cxn-from-category agent category)
+                                 collect (cons category cxn)))
+        rewarded punished)
+    ;; maybe the prototype should be expanded more often!
+    (if (communicated-successfully agent)
+      (loop for (category . cxn) in categories-w-cxns
+            for attr = (attribute category)
+            if (discriminating-p agent category topic)
+            do (progn (push attr rewarded)
+                 (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
+                 (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
+            else
+            do (progn (push attr punished)
+                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf)))))
+      (loop for (category . cxn) in categories-w-cxns
+            for attr = (attribute category)
+            do (progn (push attr punished)
+                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf))))))
+    ;; shortcut!
+    (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))
       
         
   

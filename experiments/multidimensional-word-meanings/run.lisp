@@ -25,7 +25,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10) 
+(run-series *experiment* 100) 
 
 (run-series *experiment* 2000)
 
