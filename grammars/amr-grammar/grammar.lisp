@@ -1584,36 +1584,6 @@
                 --
                 (HASH form ((precedes ?aux ?infinitive-verb))))))
 
-(def-fcg-cxn modal-VP-negative-cxn
-             ((?vp-unit
-               (referent ?ref-inf)
-               (syn-cat (phrase-type VP)
-                        (number ?n)
-                        (person ?p)
-                        (syn-function verbal)
-                        (part-of-phrase +))
-               (meaning ((:polarity ?ref-inf -)))
-               (subunits (?modal-unit ?infinitive-verb-unit))
-               (boundaries (rightmost-unit ?infinitive-verb-unit)
-                           (leftmost-unit ?modal-unit)))
-               <-
-               (?modal-unit
-                --
-                (referent ?ref-modal)
-                (syn-cat (modal +)))
-               (?not-unit
-                --
-               (syn-cat (lex-class adverb))
-               (form ((string ?not-unit "not"))))
-                (?infinitive-verb-unit
-                --
-                (referent ?ref-inf)
-                (syn-cat (infinitive +)))
-                (?vp-unit
-                --
-                (HASH form ((precedes ?modal-unit ?infinitive-verb-unit))))))
-
-                                    
 ;; ---------------------------------------------------------------------------------------------------
 ;; Adverbial Phrases Constructions
 ;; ---------------------------------------------------------------------------------------------------
@@ -1707,12 +1677,15 @@
                --
                (HASH form ((meets ?subject-rightmost-unit ?vp-leftmost-unit))))))
 
-(def-fcg-cxn arg2-modal-infinitif-cxn
-             ((?arg2-modal-infinitif-unit
-               (referent ?p)
-               (subunits (?modal-unit ?infinitive-unit))
-               (meaning ((:arg2 ?p ?g)))
-               (boundaries (rightmost-unit ?infinitif-unit)
+(def-fcg-cxn arg2-modal-negative-infinitive-cxn
+             ((?arg2-modal-negative-infinitive-unit
+               (referent ?g)
+               (subunits (?modal-unit ?not-unit ?infinitive-unit))
+               (meaning ((:arg2 ?p ?g)
+                         (:polarity ?g -)))
+               (syn-cat (phrase-type vp)
+                        (part-of-phrase +))
+               (boundaries (rightmost-unit ?infinitive-unit)
                            (leftmost-unit ?modal-unit)))
                <-
                (?modal-unit
@@ -1722,14 +1695,19 @@
                          (finite +)
                          (modal +))
                 (sem-valence (:arg2 ?arg2)))
+               (?not-unit
+                --
+               (syn-cat (lex-class adverb))
+               (form ((string ?not-unit "not"))))
                (?infinitive-unit
                 --
                 (referent ?g)
                 (syn-cat (lex-class verb)
-                        (infinitive +)))
-               (?arg2-modal-infinitif-unit
+                         (infinitive +)))
+               (?arg2-modal-negative-infinitive-unit
                 --
-                (HASH form ((precedes ?modal-unit ?infinitif-unit))))))
+                (HASH form ((meets ?modal-unit ?not-unit)
+                            (meets ?not-unit ?infinitive-unit))))))
 
 (def-fcg-cxn predicative-cxn 
              ((?predicative-clause
@@ -2110,6 +2088,30 @@
 66 lexical-morph
 21 cxn
 = 87
+(def-fcg-cxn modal-VP-negative-cxn
+             ((?vp-unit
+               (referent ?ref-inf)
+               (syn-cat (phrase-type vp)
+                        (part-of-phrase +))
+               (meaning ((:polarity ?g -)))
+               (subunits (?arg-2-modal-infinitive-unit ?not-unit))
+               (boundaries (rightmost-unit ?arg-2-modal-infinitive-rightmost-unit)
+                           (leftmost-unit ?arg-2-modal-infinitif-leftmost-unit)))
+               <-
+               (?arg-2-modal-infinitive-unit
+                --
+                (referent ?g)
+                (syn-cat (phrase-type vp))
+                (boundaries (rightmost-unit ?arg-2-modal-infinitive-leftmost-unit)
+                            (leftmost-unit ?arg-2-modal-infinitive-rightmost-unit)))
+               (?not-unit
+                --
+               (syn-cat (lex-class adverb))
+               (form ((string ?not-unit "not"))))
+               (?vp-unit
+                --
+               (HASH form ((precedes ?arg-2-modal-infinitive-leftmost-unit ?not-unit)
+                            (precedes ?not-unit ?arg-2-modal-infinitive-rightmost-unit))))))
 
 (def-fcg-cxn np-vp-np=arg0-infinitiveverb-cxn
              ((?subject-infinitive-unit

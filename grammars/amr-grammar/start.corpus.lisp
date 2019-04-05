@@ -128,7 +128,7 @@
 (equivalent-amr-predicate-networks (comprehend "the number of pandas increased")
             '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
 
-(comprehend "the boy must not go") ;;  not always working + schema not correct
+(comprehend "the boy must not go") ;; works
 (equivalent-amr-predicate-networks (comprehend "the boy must not go")
            '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
 
