@@ -485,6 +485,20 @@
                --
                (HASH form ((string ?marble-unit "marble"))))))
 
+(def-fcg-cxn number-cxn
+             ((?number-unit
+               (referent ?n)
+               (meaning ((number ?n)))
+               (syn-cat (lex-class noun)
+                        (syn-function nominal)
+                        (part-of-phrase +))
+               (boundaries (leftmost-unit ?number-leftmost-unit)
+                           (rightmost-unit ?number-rightmost-unit)))
+              <-
+               (?number-unit
+                --
+                (HASH form ((string ?number-unit "number"))))))
+
 (def-fcg-cxn opinion-cxn
              ((?opinion-unit
                (referent ?o)
@@ -544,6 +558,16 @@
                --
                (HASH form ((string ?orc-slaying-unit "orc-slaying"))))))
 
+(def-fcg-cxn pandas-cxn
+             ((?pandas-unit
+               (referent ?p)
+               (meaning ((panda ?p)))
+               (syn-cat (lex-class noun)
+                        (syn-function nominal)))
+              <-
+              (?pandas-unit
+               --
+               (HASH form ((string ?pandas-unit "pandas"))))))
 
 (def-fcg-cxn president-capitalized-cxn
              ((?president-unit
@@ -922,6 +946,21 @@
                (?feared-unit
                 --
                 (HASH form ((string ?feared-unit "feared"))))))
+
+(def-fcg-cxn increased-cxn
+             ((?increased-unit
+               (referent ?i)
+               (meaning ((increase-01 ?i)))
+               (syn-cat (lex-class verb)
+                        (finite +)
+                        (modal -)
+                        (transitive +))
+               (boundaries (leftmost-unit ?increased-leftmost-unit)
+                           (rightmost-unit ?increased-rightmost-unit)))
+              <-
+              (?increased-unit
+               --
+               (HASH form ((string ?increased-unit "increased"))))))
 
 (def-fcg-cxn is-cxn
              ((?is-unit
@@ -1626,30 +1665,6 @@
                --
                (HASH form ((meets ?agent-rightmost-unit ?vp-leftmost-unit))))))
 
-(def-fcg-cxn np-vp-np=arg0-infinitiveverb-cxn
-             ((?subject-infinitive-unit
-               (meaning ((:arg0 ?inf ?b)))
-               (referent ?b)
-               (subunits (?infinitive-unit ?np-unit))
-               (boundaries (leftmost-unit ?np-leftmost-unit)
-                           (rightmost-unit ?infinitive-unit)))
-              <-
-              (?infinitive-unit
-               --
-              (referent ?inf)
-              (syn-cat (lex-class verb)
-                        (infinitive +)))
-              (?np-unit
-               --
-               (referent ?b)
-               (syn-cat (phrase-type noun-phrase)
-                        (part-of-phrase +))
-               (boundaries
-                (leftmost-unit ?np-leftmost-unit)
-                (rightmost-unit ?np-rightmost-unit)))
-              (?subject-infinitive-unit
-               --
-               (HASH form ((precedes ?np-rightmost-unit ?infinitive-unit))))))
 
 (def-fcg-cxn AP-NP-np=arg0-cxn
              ((?adverbialclause-unit
@@ -2016,7 +2031,8 @@
 
 (def-fcg-cxn V-to-infinitive-cxn
              ((?V-to-infinitive-unit
-              (meaning ((:arg1 ?verb ?inf)))
+              (meaning ((:arg1 ?verb ?inf)
+                        (:arg0 ?inf ?arg0)))
               (subunits (?finite-verb-unit ?infinitive-unit))
               (referent ?verb)
               (syn-cat (phrase-type vp)
@@ -2077,31 +2093,36 @@
 )
 
 #|
-
- (def-fcg-cxn orc-morph-cxn
-             ((?orc-unit
-               (referent ?o)
-               (lex-id orc)
-               (meaning ((orc ?o)))
-               (syn-cat (lex-class noun)
-                        (number sg)
-                        (syn-function nominal)
-                        (part-of-phrase +))
-               (boundaries (leftmost-unit ?orc-leftmost-unit)
-                           (rightmost-unit ?orc-rightmost-unit))
-              (sem-cat (sem-class arg1)))
-              <-
-              (?orc-unit
-               --
-               (HASH form ((string ?orc-unit "orc"))))))
-
- '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
-
+ '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
+ 
 66 lexical-morph
 21 cxn
 = 87
 
-
+(def-fcg-cxn np-vp-np=arg0-infinitiveverb-cxn
+             ((?subject-infinitive-unit
+               (meaning ((:arg0 ?inf ?b)))
+               (referent ?b)
+               (subunits (?infinitive-unit ?np-unit))
+               (boundaries (leftmost-unit ?np-leftmost-unit)
+                           (rightmost-unit ?infinitive-unit)))
+              <-
+              (?infinitive-unit
+               --
+              (referent ?inf)
+              (syn-cat (lex-class verb)
+                        (infinitive +)))
+              (?np-unit
+               --
+               (referent ?b)
+               (syn-cat (phrase-type noun-phrase)
+                        (part-of-phrase +))
+               (boundaries
+                (leftmost-unit ?np-leftmost-unit)
+                (rightmost-unit ?np-rightmost-unit)))
+              (?subject-infinitive-unit
+               --
+               (HASH form ((precedes ?np-rightmost-unit ?infinitive-unit))))))
 135 lexical-morph
 43 phrasal|arg0
 |#

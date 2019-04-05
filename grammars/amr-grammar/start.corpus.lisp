@@ -104,7 +104,7 @@
 (equivalent-amr-predicate-networks (comprehend "Mollie Brown , who slew orcs")
        '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
-(comprehend "the orc-slaying Mollie Brown") ;; need to write new construction for the orc-slaying (not done)
+(comprehend "the orc-slaying Mollie Brown") ;; new construction for the orc-slaying 
 (equivalent-amr-predicate-networks (comprehend "the orc - slaying Mollie Brown")
            '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
@@ -112,7 +112,7 @@
 (equivalent-amr-predicate-networks (comprehend "the woman is a lawyer")
             '((LAWYER L) (WOMAN W) (:DOMAIN L W)))
 
-(comprehend "the boy wants to go") ;; sometimes "to" not connected in the tree +  "subject-infinitive"  only sometimes is working 
+(comprehend "the boy wants to go") ;; to not always in the schema and arg0 not bound to anything
 (equivalent-amr-predicate-networks (comprehend "the boy wants to go")
            '((WANT-01 W) (BOY B) (GO-01 G) (:ARG0 W B) (:ARG1 W G) (:ARG0 G B)))
 
@@ -120,11 +120,11 @@
 (equivalent-amr-predicate-networks (comprehend "the college boy who sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
-(comprehend "the boy did not go") ;; not always working + schema not correct
+(comprehend "the boy did not go") ;; works but "not" not always in the schema  
 (equivalent-amr-predicate-networks (comprehend "the boy did not go")
             '((GO-01 G) (BOY B) (:ARG0 G B) (:POLARITY G -)))
 
-(comprehend "the number of pandas increased") ;; not done 
+(comprehend "the number of pandas increased") ;; not working active-transitive cxn 
 (equivalent-amr-predicate-networks (comprehend "the number of pandas increased")
             '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
 
@@ -148,11 +148,11 @@
 (equivalent-amr-predicate-networks (comprehend "the judge read the proposal")
              '((READ-01 R) (JUDGE J) (THING T) (:ARG0 R J) (:ARG1 R T)))
 
-(comprehend "girls are tough to please") ;;
+(comprehend "girls are tough to please") ;; not done 
 (equivalent-amr-predicate-networks (comprehend "girls are tough to please")
             '((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)))
 
-(comprehend "the nation defaulted in June") ;; 
+(comprehend "the nation defaulted in June") ;; not done 
 (equivalent-amr-predicate-networks (comprehend "the nation defaulted in June")
             '((DEFAULT-01 D) (NATION N) (DATE-ENTITY D2) (:ARG1 D N) (:TIME D D2) (:MONTH D2 6)))
 

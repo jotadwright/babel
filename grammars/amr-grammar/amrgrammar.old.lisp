@@ -1077,6 +1077,7 @@
                (?arg1-gerund-unit
                 --
                 (HASH form ((precedes ?gerund-unit ?arg1-unit))))))
+;; gerund also in top 
 
 (def-fcg-cxn predicative-gerund-referring-entity-cxn 
              ((?predicative-gerund-referring-entity
