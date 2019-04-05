@@ -460,9 +460,9 @@
                         (number sg)
                         (part-of-phrase +)
                         (syn-function nominal))
+               (sem-cat (sem-role direct-object))
                (boundaries (leftmost-unit ?machine-leftmost-unit)
                            (rightmost-unit ?machine-rightmost-unit)))
-                                          
                <-
                (?machine-unit
                 --
@@ -546,7 +546,7 @@
 (def-fcg-cxn orc-slaying-cxn
              ((?orc-slaying-unit
                (referent ?s)
-               (meaning ((slay-0 ?s)
+               (meaning ((slay-01 ?s)
                          (orc ?o)
                          (:arg1 ?s ?o)))
                (syn-cat (part-of-phrase +)
@@ -635,6 +635,7 @@
                (syn-cat (lex-class noun)
                         (part-of-phrase +)
                         (syn-function nominal))
+               (sem-cat (sem-role direct-object))
                (boundaries (leftmost-unit ?room-leftmost-unit)
                            (rightmost-unit ?room-rightmost-unit)))
                <-
@@ -881,16 +882,16 @@
                 --
                 (HASH form ((string ?adjusted-unit "adjusted"))))))
 
-(def-fcg-cxn go-cxn
-             ((?go-unit
-               (referent ?g)
+(def-fcg-cxn are-cxn
+             ((?are-unit
+               (referent ?are)
                (syn-cat (lex-class verb)
-                        (infinitive +))
-                (meaning ((go-01 ?g))))
+                        (is-copular +)
+                        (finite +)))
               <-
-              (?go-unit
-                --
-                (HASH form ((string ?go-unit "go"))))))
+              (?are-unit
+               --
+               (HASH form ((string ?are-unit "are"))))))
 
 (def-fcg-cxn cannot-cxn
              ((?cannot-unit
@@ -946,6 +947,17 @@
                (?feared-unit
                 --
                 (HASH form ((string ?feared-unit "feared"))))))
+
+(def-fcg-cxn go-cxn
+             ((?go-unit
+               (referent ?g)
+               (syn-cat (lex-class verb)
+                        (infinitive +))
+                (meaning ((go-01 ?g))))
+              <-
+              (?go-unit
+                --
+                (HASH form ((string ?go-unit "go"))))))
 
 (def-fcg-cxn increased-cxn
              ((?increased-unit
@@ -1552,7 +1564,7 @@
                         (syn-function verbal)
                         (part-of-phrase +))
                (meaning ((:polarity ?ref-inf -)))
-               (subunits (?aux ?infinitive-verb))
+               (subunits (?aux ?infinitive-verb ?not-unit))
                (boundaries (rightmost-unit ?infinitive-verb)
                            (leftmost-unit ?aux)))
                <-
@@ -1664,7 +1676,6 @@
               (?clause-unit
                --
                (HASH form ((meets ?agent-rightmost-unit ?vp-leftmost-unit))))))
-
 
 (def-fcg-cxn AP-NP-np=arg0-cxn
              ((?adverbialclause-unit
@@ -1937,6 +1948,7 @@
                (referent ?b)
                (syn-cat (phrase-type noun-phrase)
                         (syn-function nominal))
+               (sem-cat (sem-role direct-object))
                (boundaries (rightmost-unit ?direct-object-rightmost-unit)
                            (leftmost-unit ?direct-object-leftmost-unit)))
               (?active-transitive-unit
@@ -2033,7 +2045,7 @@
              ((?V-to-infinitive-unit
               (meaning ((:arg1 ?verb ?inf)
                         (:arg0 ?inf ?arg0)))
-              (subunits (?finite-verb-unit ?infinitive-unit))
+              (subunits (?finite-verb-unit ?to-unit ?infinitive-unit))
               (referent ?verb)
               (syn-cat (phrase-type vp)
                        (part-of-phrase +))
@@ -2067,9 +2079,9 @@
 (def-fcg-cxn arg0-of-verb-cxn 
              ((?arg0-of-verb-unit
                (meaning ((:arg0-of ?p ?s)))
-               (subunits (?vp-unit ?named-entity-unit))
+               (subunits (?arg0-of-verb ?named-entity-unit))
                (boundaries (leftmost-unit ?named-entity-leftmost-unit)
-                           (rightmost-unit ?vp-unit))
+                           (rightmost-unit ?arg0-of-verb-rightmost-unit))
                (referent ?p))
               <-
                (?named-entity-unit
@@ -2079,10 +2091,10 @@
                         (named-entity-type person))
                (boundaries (leftmost-unit ?named-entity-leftmost-unit)
                            (rightmost-unit ?named-entity-rightmost-unit)))
-              (?vp-unit
+              (?arg0-of-verb
                --
                (referent ?s)
-               (syn-cat (phrase-type noiun-phrase)
+               (syn-cat (phrase-type noun-phrase)
                         (part-of-phrase +))
                (boundaries (leftmost-unit ?arg0-of-verb-leftmost-unit)
                            (rightmost-unit ?arg0-of-verb-rightmost-unit)))

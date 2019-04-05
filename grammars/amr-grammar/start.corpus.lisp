@@ -104,15 +104,15 @@
 (equivalent-amr-predicate-networks (comprehend "Mollie Brown , who slew orcs")
        '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
-(comprehend "the orc-slaying Mollie Brown") ;; new construction for the orc-slaying 
-(equivalent-amr-predicate-networks (comprehend "the orc - slaying Mollie Brown")
+(comprehend "the orc-slaying Mollie Brown") ;; works
+(equivalent-amr-predicate-networks (comprehend "the orc-slaying Mollie Brown")
            '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
 (comprehend "the woman is a lawyer") ;; works 
 (equivalent-amr-predicate-networks (comprehend "the woman is a lawyer")
             '((LAWYER L) (WOMAN W) (:DOMAIN L W)))
 
-(comprehend "the boy wants to go") ;; to not always in the schema and arg0 not bound to anything
+(comprehend "the boy wants to go") ;;arg0 not bound to anything
 (equivalent-amr-predicate-networks (comprehend "the boy wants to go")
            '((WANT-01 W) (BOY B) (GO-01 G) (:ARG0 W B) (:ARG1 W G) (:ARG0 G B)))
 
@@ -120,7 +120,7 @@
 (equivalent-amr-predicate-networks (comprehend "the college boy who sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
-(comprehend "the boy did not go") ;; works but "not" not always in the schema  
+(comprehend "the boy did not go") ;; works 
 (equivalent-amr-predicate-networks (comprehend "the boy did not go")
             '((GO-01 G) (BOY B) (:ARG0 G B) (:POLARITY G -)))
 
