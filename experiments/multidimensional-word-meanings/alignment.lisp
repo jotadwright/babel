@@ -92,7 +92,9 @@
                                  for cxn = (get-cxn-from-category agent category)
                                  collect (cons category cxn)))
         rewarded punished)
-    ;; maybe the prototype should be expanded more often!
+    ;; now, only single features are tested for discriminatoriness (is that a word)
+    ;; however, combinations of features can be discriminative.
+    ;; this interacts with the feature sampling and interpretation...
     (if (communicated-successfully agent)
       (loop for (category . cxn) in categories-w-cxns
             for attr = (attribute category)
@@ -102,11 +104,15 @@
                  (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
             else
             do (progn (push attr punished)
-                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf)))))
+                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf)))
+                 ;(shift-value cxn attr topic :alpha (get-configuration agent :alpha))
+                 ))
       (loop for (category . cxn) in categories-w-cxns
             for attr = (attribute category)
             do (progn (push attr punished)
-                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf))))))
+                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf)))
+                 ;(shift-value cxn attr topic :alpha (get-configuration agent :alpha))
+                 )))
     ;; shortcut!
     (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))
       
