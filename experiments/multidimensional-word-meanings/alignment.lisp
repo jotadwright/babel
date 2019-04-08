@@ -26,12 +26,11 @@
 (define-event re-introduced-meaning (cxn fcg-construction)
   (attrs list))
 
-(defgeneric align-known-words (agent topic words)
+(defgeneric align-known-words (agent topic words category)
   (:documentation "Align known words"))
 
-#|
-(defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words)
-  (declare (ignorable words))
+(defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words category)
+  (declare (ignorable words category))
   (loop with rewarded
         with punished
         for (category . certainty) in (parsed-meaning agent)
@@ -54,7 +53,7 @@
         ;; based on success. Otherwise, update the certainty
         ;; based on similarity.
         do (let ((sim (similarity topic category)))
-             (if features-sampled-p
+             (if (eql (get-configuration agent :feature-selection) :sampling)
                (if (communicated-successfully agent)
                  (progn (push attr rewarded)
                    (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
@@ -68,9 +67,6 @@
         ;; notify
         finally
         (notify scores-updated cxn rewarded punished)))
-|#
-
-
 
 
 (defun get-cxn-from-category (agent category)
@@ -87,7 +83,8 @@
                                        collect (similarity obj category)))))
     (>= topic-sim best-object-sim)))
 
-(defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words)
+(defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words (category (eql :test)))
+  (declare (ignorable words))
   (let ((categories-w-cxns (loop for (category . certainty) in (parsed-meaning agent)
                                  for cxn = (get-cxn-from-category agent category)
                                  collect (cons category cxn)))
@@ -104,17 +101,20 @@
                  (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
             else
             do (progn (push attr punished)
-                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf)))
-                 ;(shift-value cxn attr topic :alpha (get-configuration agent :alpha))
-                 ))
+                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf)))))
       (loop for (category . cxn) in categories-w-cxns
             for attr = (attribute category)
             do (progn (push attr punished)
-                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf)))
-                 ;(shift-value cxn attr topic :alpha (get-configuration agent :alpha))
-                 )))
+                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf))))))
     ;; shortcut!
-    (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))
+    (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)
+    ;; unused attributes have a slow decay to them
+    (loop for cxn in (applied-cxns agent)
+          for categories = (mapcar #'car (attr-val cxn :meaning))
+          for unused-categories = (set-difference categories
+                                                  (mapcar #'car (parsed-meaning agent)))
+          do (loop for category in unused-categories
+                   do (adjust-certainty agent cxn (attribute category) (- (get-configuration agent :decay)))))))
       
         
   
@@ -146,14 +146,12 @@
                 collect form))
          (unknown-words (set-difference (utterance agent) known-words
                                         :test #'string=))
-         (feature-selection (get-configuration agent :feature-selection)))
+         (category-representation (get-configuration agent :category-representation)))
     (notify alignment-started agent)
     (when unknown-words
       (notify adopting-words unknown-words)
       (adopt-unknown-words agent topic unknown-words))
     (when known-words
       (notify aligning-words known-words)
-      (align-known-words agent topic known-words
-                         ;(eql feature-selection :sampling)))))
-                         ))))
+      (align-known-words agent topic known-words category-representation))))
   

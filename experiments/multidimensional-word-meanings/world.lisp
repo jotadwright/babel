@@ -67,54 +67,54 @@
         (setf new-value max-bound)))
     new-value))
 
-(defun object->x-pos (object noise)
-  (first (coordinates object)))
-  ;(let* ((x-pos (first (coordinates object)))
-  ;       (scaled-x-pos (float (/ (- x-pos 31) (- 460 31)))))
-  ;  (if noise
-  ;    (if (< scaled-x-pos 0.5)
-  ;      (max (min (random-from-range 0.0 (+ 0.5 noise)) 1.0) 0.0)
-  ;      (max (min (random-from-range (- 0.5 noise) 1.0) 1.0) 0.0))
-  ;    scaled-x-pos)))
+(defun object->x-pos (object noise scale)
+  (let* ((x-pos (first (coordinates object)))
+         (scaled-x-pos (float (/ (- x-pos 31) (- 460 31)))))
+    (if scale
+      (if noise
+        (if (< scaled-x-pos 0.5)
+          (max (min (random-from-range 0.0 (+ 0.5 noise)) 1.0) 0.0)
+          (max (min (random-from-range (- 0.5 noise) 1.0) 1.0) 0.0))
+        scaled-x-pos)
+      x-pos)))
 
-(defun object->y-pos (object noise)
-  (second (coordinates object)))
-  ;(let* ((y-pos (second (coordinates object)))
-  ;       (scaled-y-pos (float (/ (- y-pos 58) (- 296 58)))))
-  ;  (if noise
-  ;    (if (< scaled-y-pos 0.5)
-  ;      (max (min (random-from-range 0.0 (+ 0.5 noise)) 1.0) 0.0)
-  ;      (max (min (random-from-range (- 0.5 noise) 1.0) 1.0) 0.0))
-  ;    scaled-y-pos)))
+(defun object->y-pos (object noise scale)
+  (let* ((y-pos (second (coordinates object)))
+         (scaled-y-pos (float (/ (- y-pos 58) (- 296 58)))))
+    (if scale
+      (if noise
+        (if (< scaled-y-pos 0.5)
+          (max (min (random-from-range 0.0 (+ 0.5 noise)) 1.0) 0.0)
+          (max (min (random-from-range (- 0.5 noise) 1.0) 1.0) 0.0))
+        scaled-y-pos)
+      y-pos)))
 
-(defun object->area (object noise)
-  (case (size object)
+(defun object->area (object noise scale)
+  (let* ((area (case (size object)
                  (small 30) (large 70)))
-  ;(let* ((area (case (size object)
-  ;               (small 30) (large 70)))
-  ;       (area-w-variance (add-random-value-from-range area 0 16))
-  ;       (scaled-area (float (/ area-w-variance 100))))
-  ;  (if noise
-  ;    (add-random-value-from-range scaled-area 0.0 noise :min-bound 0.0 :max-bound 1.0)
-  ;    scaled-area)))
+         (area-w-variance (add-random-value-from-range area 0 16))
+         (scaled-area (float (/ area-w-variance 100))))
+    (if scale
+      (if noise
+        (add-random-value-from-range scaled-area 0.0 noise :min-bound 0.0 :max-bound 1.0)
+        scaled-area)
+      area-w-variance)))
 
-(defun object->sides-and-corners (object noise)
+(defun object->sides-and-corners (object noise scale)
   "Return the number of sides (= vlakken)
    and the number of corners"
-  (values (case (shape object)
-                 (cube 6) (sphere 1) (cylinder 3))
-          (case (shape object)
+  (let ((sides (case (shape object)
+                 (cube 6) (sphere 1) (cylinder 3)))
+        (corners (case (shape object)
                    (cube 8) (sphere 0) (cylinder 0))))
-  ;(let ((sides (case (shape object)
-  ;               (cube 6) (sphere 1) (cylinder 3)))
-  ;      (corners (case (shape object)
-  ;                 (cube 8) (sphere 0) (cylinder 0))))
-  ;  (values (/ (- sides 1) (- 6 1))
-  ;          (/ corners 8))))
+    (if scale
+      (values (/ (- sides 1) (- 6 1))
+              (/ corners 8))
+      (values sides corners))))
 
-(defun object->color (object noise)
+(defun object->color (object noise scale)
   "Return the color of the object"
-  (case (color object)
+  (let* ((rgb-color (case (color object)
                       (gray   '(87  87  87))
                       (red    '(173 34  35))
                       (blue   '(44  76  215))
@@ -123,77 +123,67 @@
                       (purple '(130 39  192))
                       (cyan   '(40  208 208))
                       (yellow '(255 238 51))))
-  ;(let* ((rgb-color (case (color object)
-  ;                    (gray   '(87  87  87))
-  ;                    (red    '(173 34  35))
-  ;                    (blue   '(44  76  215))
-  ;                    (green  '(29  105 20))
-  ;                    (brown  '(126 72  25))
-  ;                    (purple '(130 39  192))
-  ;                    (cyan   '(40  208 208))
-  ;                    (yellow '(255 238 51))))
-  ;       (rgb-with-variance
-  ;        (mapcar #'(lambda (c)
-  ;                    (add-random-value-from-range c 0.0 2.0 :min-bound 0.0 :max-bound 255.0))
-  ;                rgb-color))
-  ;       (scaled-rgb
-  ;        (mapcar #'(lambda (c)
-  ;                    (/ c 255.0))
-  ;                rgb-with-variance)))
-  ;  (if noise
-  ;    (mapcar #'(lambda (c)
-  ;                (add-random-value-from-range c 0.0 noise :min-bound 0.0 :max-bound 1.0))
-  ;            scaled-rgb)
-  ;    scaled-rgb)))
+         (rgb-with-variance
+          (mapcar #'(lambda (c)
+                      (add-random-value-from-range c 0.0 2.0 :min-bound 0.0 :max-bound 255.0))
+                  rgb-color))
+         (scaled-rgb
+          (mapcar #'(lambda (c)
+                      (/ c 255.0))
+                  rgb-with-variance)))
+    (if scale
+      (if noise
+        (mapcar #'(lambda (c)
+                    (add-random-value-from-range c 0.0 noise :min-bound 0.0 :max-bound 1.0))
+                scaled-rgb)
+        scaled-rgb)
+      rgb-with-variance)))
 
-(defun object->roughness (object noise)
+(defun object->roughness (object noise scale)
   "Return the variance of the object"
-  (case (material object)
+  (let* ((roughness (case (material object)
                       (metal 8)
                       (rubber 2)))
-  ;(let* ((roughness (case (material object)
-  ;                    (metal 8)
-  ;                    (rubber 2)))
-  ;       (with-variance (add-random-value-from-range roughness 0.0 2.5 :min-bound 0.0 :max-bound 10.0))
-  ;       (scaled (/ with-variance 10.0)))
-  ;  (if noise
-  ;    (add-random-value-from-range scaled 0.0 noise :min-bound 0.0 :max-bound 1.0)
-  ;    scaled)))
+         (with-variance (add-random-value-from-range roughness 0.0 2.5 :min-bound 0.0 :max-bound 10.0))
+         (scaled (/ with-variance 10.0)))
+    (if scale
+      (if noise
+        (add-random-value-from-range scaled 0.0 noise :min-bound 0.0 :max-bound 1.0)
+        scaled)
+      with-variance)))
 
-(defun object->wh-ratio (object noise)
-  (case (shape object)
+(defun object->wh-ratio (object noise scale)
+  (let* ((ratio (case (shape object)
                   (cube 1.0)
                   (sphere 1.0)
                   (cylinder 0.5)))
-  ;(let* ((ratio (case (shape object)
-  ;                (cube 1.0)
-  ;                (sphere 1.0)
-  ;                (cylinder 0.5)))
-  ;       (with-variance (add-random-value-from-range ratio 0.0 0.25 :min-bound 0.0 :max-bound 1.0)))
-  ;  (if noise
-  ;    (add-random-value-from-range with-variance 0.0 noise :min-bound 0.0 :max-bound 1.0)
-  ;    with-variance)))
+         (with-variance (add-random-value-from-range ratio 0.0 0.25 :min-bound 0.0)))
+    (if scale
+      (if noise
+        (add-random-value-from-range with-variance 0.0 noise :min-bound 0.0 :max-bound 1.0)
+        with-variance)
+      with-variance)))
 
-(defmethod clevr->mwm ((set clevr-object-set) &key (noise nil))
+(defmethod clevr->mwm ((set clevr-object-set) &key (noise nil) (scale nil))
   (make-instance 'mwm-object-set
                  :id (id set)
                  :objects (loop for obj in (objects set)
-                                collect (clevr->mwm obj :noise noise))))
+                                collect (clevr->mwm obj :noise noise :scale scale))))
 
-(defmethod clevr->mwm ((object clevr-object) &key (noise nil))
+(defmethod clevr->mwm ((object clevr-object) &key (noise nil) (scale nil))
   "Create the object"
-  (multiple-value-bind (sides corners) (object->sides-and-corners object noise)
-    (let ((rgb-color (object->color object noise)))
+  (multiple-value-bind (sides corners) (object->sides-and-corners object noise scale)
+    (let ((rgb-color (object->color object noise scale)))
       (make-instance 'mwm-object
                      :id (id object) ;; !!!
-                     :x-pos (object->x-pos object noise)
-                     :y-pos (object->y-pos object noise)
-                     :area (object->area object noise)
-                     :wh-ratio (object->wh-ratio object noise)
+                     :x-pos (object->x-pos object noise scale)
+                     :y-pos (object->y-pos object noise scale)
+                     :area (object->area object noise scale)
+                     :wh-ratio (object->wh-ratio object noise scale)
                      :R (first rgb-color)
                      :G (second rgb-color)
                      :B (third rgb-color)
-                     :roughness (object->roughness object noise)
+                     :roughness (object->roughness object noise scale)
                      :nr-of-sides sides
                      :nr-of-corners corners
                      :description `(,(shape object)

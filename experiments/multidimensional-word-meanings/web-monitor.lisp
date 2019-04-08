@@ -102,7 +102,7 @@
     (s-dot::label ,(format nil "~a~%~,2f (~,2f)"
                            (downcase (mkstr (attribute category)))
                            (prototype category)
-                           (sigma category)))))
+                           (/ (sigma category) (samples category))))))
 
 (defun cxn->s-dot (cxn &optional highlight-green highlight-red)
   (let ((form (attr-val cxn :form))

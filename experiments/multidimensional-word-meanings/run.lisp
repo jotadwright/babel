@@ -18,7 +18,8 @@
               (:update-certainty . t)
               (:category-representation . :test)
               (:feature-selection . :sampling)
-              (:noise . nil))))
+              (:noise . nil)
+              (:scale-world . t))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -27,7 +28,7 @@
 
 (run-series *experiment* 100) 
 
-(run-series *experiment* 2000)
+(run-series *experiment* 15000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -36,14 +37,14 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (feature-sampling
+                   (test
                     ((:shift-prototype . :always)
-                     (:category-representation . :prototype-min-max)
+                     (:category-representation . :test)
                      (:update-certainty . t)
-                     (:feature-selection . :all)
+                     (:feature-selection . :sampling)
                      (:noise . nil)))
                    )
-                 :number-of-interactions 10000
+                 :number-of-interactions 15000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
@@ -54,7 +55,7 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "feature-sampling"
+ :experiment-name "test"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1

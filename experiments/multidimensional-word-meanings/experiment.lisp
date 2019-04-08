@@ -30,6 +30,8 @@
 (define-configuration-default-value :category-representation :min-max) ; :min-max :prototype :prototype-min-max
 (define-configuration-default-value :feature-selection :all) ; :all or :sampling
 (define-configuration-default-value :noise nil) ; nil or float in [0,1]
+(define-configuration-default-value :scale-world nil)  ; t or nil
+(define-configuration-default-value :decay 0.001)
 
 ;; --------------
 ;; + Experiment +
