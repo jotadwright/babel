@@ -1603,7 +1603,7 @@
                (?vp-unit
                 --
                (referent ?d)
-               (syn-cat (phrase-type vp)
+               (syn-cat (phrase-type verb-phrase)
                         (part-of-phrase -))
                (boundaries (leftmost-unit ?vp-leftmost-unit)
                            (rightmost-unit ?vp-rightmost-unit)))
@@ -1627,11 +1627,11 @@
 ;; ---------------------------------------------------------------------------------------------------
 ;; Verbal Phrases Constructions
 ;; ---------------------------------------------------------------------------------------------------
-(def-fcg-cxn VP-cxn
+(def-fcg-cxn verb-phrase-cxn
              ((?vp-unit
                (referent ?ref)
                (syn-cat (syn-function verbal)
-                        (phrase-type vp)
+                        (phrase-type verb-phrase)
                         (transitive ?trans)
                         (part-of-phrase -)
                         (infinitive-clause -))
@@ -1647,10 +1647,10 @@
                          (NOT (aux +))
                          (NOT (modal +))))))
 
-(def-fcg-cxn modal-VP-cxn
+(def-fcg-cxn modal-verb-phrase-cxn
              ((?vp-unit
                (referent ?ref-inf)
-               (syn-cat (phrase-type VP)
+               (syn-cat (phrase-type verb-phrase)
                         (number ?n)
                         (person ?p)
                         (syn-function verbal)
@@ -1675,10 +1675,10 @@
                 --
                 (HASH form ((precedes ?aux ?infinitive-verb))))))
 
-(def-fcg-cxn modal-VP-negative-cxn
+(def-fcg-cxn modal-verb-phrase-negative-cxn
              ((?vp-unit
                (referent ?ref-inf)
-               (syn-cat (phrase-type VP)
+               (syn-cat (phrase-type verb-phrase)
                         (number ?n)
                         (person ?p)
                         (syn-function verbal)
@@ -1706,7 +1706,7 @@
 (def-fcg-cxn aux-VP-positive-cxn
              ((?vp-unit
                (referent ?ref-inf)
-               (syn-cat (phrase-type VP)
+               (syn-cat (phrase-type verb-phrase)
                         (number ?n)
                         (person ?p)
                         (syn-function verbal)
@@ -1732,7 +1732,7 @@
 (def-fcg-cxn aux-VP-negative-cxn
              ((?vp-unit
                (referent ?ref-inf)
-               (syn-cat (phrase-type VP)
+               (syn-cat (phrase-type verb-phrase)
                         (number ?n)
                         (person ?p)
                         (syn-function verbal)
@@ -1770,7 +1770,7 @@
                (syn-cat (syn-function verbal)
                         (part-of-phrase +)
                         (infinitive-clause -)
-                        (phrase-type vp))
+                        (phrase-type verb-phrase))
                (boundaries
                  (rightmost-unit ?vp-unit-leftmost)
                  (leftmost-unit ?adverb-unit)))
@@ -1801,12 +1801,12 @@
                (referent ?verb)
                (boundaries (rightmost-unit ?vp-rightmost-unit)
                            (leftmost-unit ?agent-leftmost-unit))
-               (syn-cat (phrase-type VP)))
+               (syn-cat (phrase-type verb-phrase)))
               <-
               (?vp-unit
                --
                (referent ?verb)
-               (syn-cat (phrase-type vp)
+               (syn-cat (phrase-type verb-phrase)
                         (part-of-phrase +)
                         (infinitive-clause -))
                (boundaries
@@ -1831,12 +1831,12 @@
                (referent ?verb)
                (boundaries (rightmost-unit ?vp-rightmost-unit)
                            (leftmost-unit ?agent-leftmost-unit))
-               (syn-cat (phrase-type VP)))
+               (syn-cat (phrase-type verb-phrase)))
               <-
               (?vp-infinitive-unit
                --
                (referent ?verb)
-               (syn-cat (phrase-type vp)
+               (syn-cat (phrase-type verb-phrase)
                         (part-of-phrase +)
                         (infinitive-clause +))
                (meaning ((:arg0 ?go ?arg0)))
@@ -1862,7 +1862,7 @@
                (referent ?g)
                (boundaries (rightmost-unit ?vp-rightmost-unit)
                            (leftmost-unit ?arg0-leftmost-unit))
-               (syn-cat (phrase-type VP)))
+               (syn-cat (phrase-type verb-phrase)))
               <-
               (?ap-unit
                --
@@ -1891,7 +1891,7 @@
                (subunits (?modal-unit ?not-unit ?infinitive-unit))
                (meaning ((:arg2 ?p ?g)
                          (:polarity ?g -)))
-               (syn-cat (phrase-type vp)
+               (syn-cat (phrase-type verb-phrase)
                         (part-of-phrase +)
                         (infinitive-clause ?inf))
                (boundaries (rightmost-unit ?infinitive-unit)
@@ -2030,7 +2030,7 @@
                 (syn-cat (lex-class verb)
                          (modal -)
                          (present-participle +)
-                         (phrase-type VP))
+                         (phrase-type verb-phrase))
                          (syn-function ?func))
                (?arg1-NP-unit
                (referent ?o)
@@ -2146,7 +2146,7 @@
              ((?active-transitive-unit
                (subunits (?vp-unit ?direct-object-unit))
                (meaning ((:arg1 ?verb ?b)))
-               (syn-cat (phrase-type vp)
+               (syn-cat (phrase-type verb-phrase)
                         (part-of-phrase +)
                         (infinitive-clause ?inf))
                (boundaries (rightmost-unit ?direct-object-righmost-unit)
@@ -2160,7 +2160,7 @@
                         ;; (aux ?+)
                          (part-of-phrase ?+)
                          (infinitive-clause ?inf)
-                         (phrase-type vp))
+                         (phrase-type verb-phrase))
                 (boundaries (leftmost-unit ?vp-leftmost-unit)
                             (rightmost-unit ?vp-rightmost-unit)))
               (?direct-object-unit
@@ -2278,7 +2278,7 @@
                 (?vp-unit
                  --
                  (referent ?verb)
-                  (syn-cat (phrase-type vp)
+                  (syn-cat (phrase-type verb-phrase)
                            (part-of-phrase ?+))
                  (boundaries (leftmost-unit ?vp-leftmost-unit)
                              (rightmost-unit ?vp-rightmost-unit)))
@@ -2294,7 +2294,7 @@
                         (:arg0 ?inf ?arg0)))
               (subunits (?finite-verb-unit ?to-unit ?infinitive-unit))
               (referent ?verb)
-              (syn-cat (phrase-type vp)
+              (syn-cat (phrase-type verb-phrase)
                        (part-of-phrase +)
                         (infinitive-clause +))
               (boundaries
@@ -2304,7 +2304,7 @@
               (?finite-verb-unit
                --
                (referent ?verb)
-               (syn-cat (phrase-type vp)
+               (syn-cat (phrase-type verb-phrase)
                         (part-of-phrase ?+)
                         (syn-function verbal)
                         (transitive ?trans))
@@ -2340,7 +2340,7 @@
                (?vp-unit
                 --
                 (referent ?d)
-                (syn-cat (phrase-type vp)
+                (syn-cat (phrase-type verb-phrase)
                          (part-of-phrase +))
                 (boundaries (rightmost-unit ?vp-rightmost-unit)
                             (leftmost-unit ?vp-lefttmost-unit)))
@@ -2352,59 +2352,6 @@
 
 #|
 
-  (:arg0 ?inf ?arg0)
-(def-fcg-cxn patient=subject-cxn 
-             ((?patient=subject-unit
-               (subunits (?vp-unit ?arg1-unit))
-               (meaning ((:arg1 ?verb ?arg1)))
-               (boundaries (rightmost-unit ?direct-object-righmost-unit)
-                           (leftmost-unit ?vp-leftmost-unit))
-               (referent ?verb))
-              <-
-              (?vp-unit
-                --
-                (referent ?verb)
-                (syn-cat (transitive +)
-                         (part-of-phrase ?+)
-                         (phrase-type vp))
-                (boundaries (leftmost-unit ?vp-leftmost-unit)
-                            (rightmost-unit ?vp-rightmost-unit)))
-              (?arg1-unit
-               --
-               (referent ?arg1)
-               (syn-cat (phrase-type noun-phrase)
-                        (syn-function nominal)
-                        (part-of-phrase +))
-               (boundaries (rightmost-unit ?arg1-rightmost-unit)
-                           (leftmost-unit ?arg1-leftmost-unit)))
-              (?patient=subject-unit
-               --
-              (HASH form ((meets ?arg1-rightmost-unit ?vp-leftmost-unit))))))
-
-(def-fcg-cxn subject-infinitive-cxn
-             ((?subject-infinitive-unit
-               (meaning ((:arg0 ?inf ?b)))
-               (referent ?b)
-               (subunits (?infinitive-unit ?np-unit))
-               (boundaries (leftmost-unit ?np-leftmost-unit)
-                           (rightmost-unit ?infinitive-unit)))
-              <-
-              (?infinitive-unit
-               --
-              (referent ?inf)
-              (syn-cat (lex-class verb)
-                        (infinitive +)))
-              (?np-unit
-               --
-               (referent ?b)
-               (syn-cat (phrase-type noun-phrase)
-                        (part-of-phrase +))
-               (boundaries
-                (leftmost-unit ?np-leftmost-unit)
-                (rightmost-unit ?np-rightmost-unit)))
-              (?subject-infinitive-unit
-               --
-               (HASH form ((precedes ?np-rightmost-unit ?infinitive-unit))))))
 
 90 lexical-morph
 34 cxn

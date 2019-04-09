@@ -60,7 +60,7 @@
 (equivalent-amr-predicate-networks (comprehend "a taxable fund")
             '((FUND F) (TAX-01 T) (:ARG1-OF F T)))
 
-(comprehend "the boy cannot go") ;; works
+(comprehend "the boy cannot go") ;;not working
 (equivalent-amr-predicate-networks (comprehend "the boy cannot go")
             '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
 
