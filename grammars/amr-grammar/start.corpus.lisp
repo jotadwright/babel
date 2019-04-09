@@ -20,11 +20,11 @@
 (equivalent-amr-predicate-networks (comprehend "small investor")
            '((PERSON P) (INVEST-01 I) (SMALL S) (:ARG0-OF P I) (:MANNER I S)))
 
-(comprehend "atomic bomb") ;; works
+(comprehend "atomic bomb") ;; not working
 (equivalent-amr-predicate-networks (comprehend "atomic bomb")
             '((BOMB B) (ATOM A) (:MOD B A)))
 
-(comprehend "atom bomb") ;;works
+(comprehend "atom bomb") ;;not working
 (equivalent-amr-predicate-networks (comprehend "atom bomb")
             '((BOMB B) (ATOM A) (:MOD B A)))
 
@@ -32,7 +32,7 @@
 (equivalent-amr-predicate-networks (comprehend "Mollie Brown")
             '((PERSON P) (NAME N) (:NAME P N) (:OP1 N "Mollie") (:OP2 N "Brown")))
 
-(comprehend "President Obama") ;; works 
+(comprehend "President Obama") ;; not working 
 (equivalent-amr-predicate-networks (comprehend "President Obama")
            '((PRESIDENT P) (NAME N) (:NAME P N) (:OP1 N "Obama")))
 
@@ -40,23 +40,23 @@
 (equivalent-amr-predicate-networks (comprehend "history teacher")
             '((PERSON P) (TEACH-01 T) (HISTORY H) (:ARG0-OF P T) (:ARG1 T H)))
 
-(comprehend "history professor") ;; works 
+(comprehend "history professor") ;; works
 (equivalent-amr-predicate-networks (comprehend "history professor")
             '((PERSON P) (TEACH-01 T) (HISTORY H) (:ARG0-OF P T) (:ARG1 T H)))
 
-(comprehend "Obama , the president") ;; works
+(comprehend "Obama , the president") ;; not working
 (equivalent-amr-predicate-networks (comprehend "Obama , the president")
            '((PRESIDENT P) (NAME N) (:NAME P N) (:OP1 N "Obama")))
 
-(comprehend-all "the attractive spy") ;; works
+(comprehend-all "the attractive spy") ;; not working
 (equivalent-amr-predicate-networks (comprehend "the attractive spy")
            '((SPY S) (ATTRACT-01 A) (:ARG0-OF S A)))
 
-(comprehend "an edible sandwich") ;; works
+(comprehend "an edible sandwich") ;; not working
 (equivalent-amr-predicate-networks (comprehend "an edible sandwich")
            '((SANDWICH S) (EAT-01 E) (POSSIBLE P) (:ARG1-OF S E) (:DOMAIN-OF E P)))
 
-(comprehend-all "a taxable fund") ;; works
+(comprehend-all "a taxable fund") ;; not working
 (equivalent-amr-predicate-networks (comprehend "a taxable fund")
             '((FUND F) (TAX-01 T) (:ARG1-OF F T)))
 
@@ -192,15 +192,15 @@
 (equivalent-amr-predicate-networks (comprehend "the boy from the college sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
-(comprehend "the boy looked the answer up") ;; not always working 
-(equivalent-amr-predicate-networks (comprehend "the boy looked the answer up")
-           '((LOOK-05 L) (BOY B) (ANSWER A) (:ARG0 L B) (:ARG1 L A)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 50 sentences
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 49 sentences
 
 (comprehend "whose toy did the girl find")
 (equivalent-amr-predicate-networks (comprehend "whose toy did the girl find")
            '((FIND-01 F) (GIRL G) (TOY T) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F T) (:POSS T A)))
+
+(comprehend "the boy looked the answer up") ;; not always working 
+(equivalent-amr-predicate-networks (comprehend "the boy looked the answer up")
+           '((LOOK-05 L) (BOY B) (ANSWER A) (:ARG0 L B) (:ARG1 L A)))
 
 (comprehend "the boy looked up the answer") ;; 
 (equivalent-amr-predicate-networks (comprehend "the boy looked up the answer")
@@ -210,13 +210,13 @@
 (equivalent-amr-predicate-networks (comprehend "the boy is a hard worker")
             '((WORK-01 W) (BOY B) (HARD H) (:ARG0 W B) (:MANNER W H)))
 
-(comprehend "yesterday's marble in the non-jar")
-(equivalent-amr-predicate-networks (comprehend "yesterday's marble in the non-jar")
-           '((MARBLE M) (JAR J) (YESTERDAY Y) (:LOCATION M J) (:TIME M Y) (:POLARITY J -)))
-
 (comprehend "the soldier was afraid of battle") ;; 
 (equivalent-amr-predicate-networks (comprehend "the soldier was afraid of battle")
             '((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
+
+(comprehend "yesterday's marble in the non-jar")
+(equivalent-amr-predicate-networks (comprehend "yesterday's marble in the non-jar")
+           '((MARBLE M) (JAR J) (YESTERDAY Y) (:LOCATION M J) (:TIME M Y) (:POLARITY J -)))
 
 (comprehend "the girl made adjustments to the machine") ;; 
 (equivalent-amr-predicate-networks (comprehend "the girl made adjustments to the machine")
@@ -226,7 +226,30 @@
 (equivalent-amr-predicate-networks (comprehend "the soldier had a fear of battle")
              '((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 57 sentences
+(comprehend "the boy doesn ' t have to go") ;;
+(equivalent-amr-predicate-networks (comprehend "the boy doesn ' t have to go") 
+             '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:POLARITY P -) (:ARG0 G B)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 58 sentences
+
+(comprehend "where did the girl find the boy")
+(equivalent-amr-predicate-networks (comprehend "where did the girl find the boy")
+              '((FIND-01 F) (GIRL G) (BOY B) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F B) (:LOCATION F A)))
+
+(comprehend  "the spy who is attractive to women")
+(equivalent-amr-predicate-networks (comprehend  "the spy who is attractive to women")
+             '((SPY S) (ATTRACT-01 A) (WOMAN W) (:ARG0-OF S A) (:ARG1 A W)))
+
+(comprehend "the boy has responsibility for the work")
+(equivalent-amr-predicate-networks (comprehend "the boy has responsibility for the work")
+              '((RESPONSIBLE-41 R) (BOY B) (WORK W) (:ARG1 R B) (:ARG2 R W)))
+
+(comprehend "the boy is responsible for the work")
+(equivalent-amr-predicate-networks (comprehend "the boy is responsible for the work")
+              '((RESPONSIBLE-41 R) (BOY B) (WORK W) (:ARG1 R B) (:ARG2 R W)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 62 sentences
 
 (evaluate-amr-grammar)
 
