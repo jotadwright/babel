@@ -116,7 +116,7 @@
 (equivalent-amr-predicate-networks (comprehend "the college boy who sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
-(comprehend "the number of pandas increased") ;; works
+(comprehend "the number of pandas increased") ;; arg1 not working
 (equivalent-amr-predicate-networks (comprehend "the number of pandas increased")
             '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
 
