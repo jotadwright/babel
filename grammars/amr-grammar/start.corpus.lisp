@@ -60,10 +60,6 @@
 (equivalent-amr-predicate-networks (comprehend "a taxable fund")
             '((FUND F) (TAX-01 T) (:ARG1-OF F T)))
 
-(comprehend "the city of Zintan") ;; works but problem with tree. Maybe new construction?
-(equivalent-amr-predicate-networks (comprehend  "the city of Zintan")
-            '((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan")))
-
 (comprehend "the boy cannot go") ;; works
 (equivalent-amr-predicate-networks (comprehend "the boy cannot go")
             '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
@@ -96,11 +92,11 @@
 (equivalent-amr-predicate-networks (comprehend "the comment is inappropriate")
              '((APPROPRIATE A) (COMMENT C) (:DOMAIN A C) (:POLARITY A -)))
 
-(comprehend "the opinion of the girl") ;; works 
+(comprehend "the opinion of the girl") ;; works
 (equivalent-amr-predicate-networks (comprehend "the opinion of the girl")
             '((THING T) (OPINE-01 O) (GIRL G) (:ARG1-OF T O) (:ARG0 O G)))
 
-(comprehend "Mollie Brown , who slew orcs") ;; works
+(comprehend "Mollie Brown , who slew orcs") ;; not working anymore
 (equivalent-amr-predicate-networks (comprehend "Mollie Brown , who slew orcs")
        '((PERSON P) (NAME N) (SLAY-01 S) (ORC O) (:NAME P N) (:ARG0-OF P S) (:OP1 N "Mollie") (:OP2 N "Brown") (:ARG1 S O)))
 
@@ -112,7 +108,7 @@
 (equivalent-amr-predicate-networks (comprehend "the woman is a lawyer")
             '((LAWYER L) (WOMAN W) (:DOMAIN L W)))
 
-(comprehend "the boy wants to go") ;;arg0 not bound to anything
+(comprehend "the boy wants to go") ;; arg0 not bound to anything
 (equivalent-amr-predicate-networks (comprehend "the boy wants to go")
            '((WANT-01 W) (BOY B) (GO-01 G) (:ARG0 W B) (:ARG1 W G) (:ARG0 G B)))
 
@@ -120,20 +116,20 @@
 (equivalent-amr-predicate-networks (comprehend "the college boy who sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
+(comprehend "the number of pandas increased") ;; arg1 not working
+(equivalent-amr-predicate-networks (comprehend "the number of pandas increased")
+            '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
+
 (comprehend "the boy did not go") ;; works 
 (equivalent-amr-predicate-networks (comprehend "the boy did not go")
             '((GO-01 G) (BOY B) (:ARG0 G B) (:POLARITY G -)))
-
-(comprehend "the number of pandas increased") ;; not working active-transitive cxn 
-(equivalent-amr-predicate-networks (comprehend "the number of pandas increased")
-            '((INCREASE-01 I) (NUMBER N) (PANDA P) (:ARG1 I N) (:QUANT-OF N P)))
 
 (comprehend "the boy must not go") ;; works
 (equivalent-amr-predicate-networks (comprehend "the boy must not go")
            '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
 
-(comprehend "what did the girl find") ;; not done
-(equivalent-amr-predicate-networks (comprehend "what did the girl find")
+(comprehend "what did the girl find ?") ;; problem with "?" and what is not the thing 
+(equivalent-amr-predicate-networks (comprehend "what did the girl find ?")
            '((FIND-01 F) (GIRL G) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F A)))
 
 (comprehend "the girl adjusted the machine") ;; works but problem with order 
@@ -148,40 +144,49 @@
 (equivalent-amr-predicate-networks (comprehend "the judge read the proposal")
              '((READ-01 R) (JUDGE J) (THING T) (:ARG0 R J) (:ARG1 R T)))
 
-(comprehend "girls are tough to please") ;; not done 
+(comprehend "girls are tough to please") ;; arg1 not apply
 (equivalent-amr-predicate-networks (comprehend "girls are tough to please")
             '((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)))
 
-(comprehend "the nation defaulted in June") ;; not done 
+(comprehend "the nation defaulted in June") ;; arg1 not working  
 (equivalent-amr-predicate-networks (comprehend "the nation defaulted in June")
             '((DEFAULT-01 D) (NATION N) (DATE-ENTITY D2) (:ARG1 D N) (:TIME D D2) (:MONTH D2 6)))
+
+(comprehend "the city of Zintan") ;; works but problem with tree. Maybe new construction?
+(equivalent-amr-predicate-networks (comprehend  "the city of Zintan")
+            '((CITY C) (NAME N) (:NAME C N) (:OP1 N "Zintan")))
 
 (comprehend "the comment is not appropriate") ;; works
 (equivalent-amr-predicate-networks (comprehend "the comment is not appropriate")
            '((APPROPRIATE A) (COMMENT C) (:DOMAIN A C) (:POLARITY A -)))
 
-(comprehend "the marble in the jar") ;; not working 
+(comprehend "the marble in the jar") ;; works  
 (equivalent-amr-predicate-networks (comprehend "the marble in the jar")
            '((MARBLE M) (JAR J) (:LOCATION M J)))
+
+(comprehend "meetings sanctioned by the state") ;; ? talk with Paul - disjunctive AMR 
+(equivalent-amr-predicate-networks (comprehend "meetings sanctioned by the state")
+           '((*OR* O) (TALK-01 T) (MEET-03 M) (*OR* O2) (OFFICIAL O3) (SANCTION-01 S) (STATE S2) (:OP1 O T) (:OP2 O M) (:OR O O2) (:MOD O2 O3) (:ARG1-OF O2 S) (:ARG0 S S2)))
+
+(comprehend "Dutch publishing group Elsevier N.V") ;; not done
+(equivalent-amr-predicate-networks (comprehend "Dutch publishing group Elsevier N.V")
+           '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N ""Elsevier"") (:OP2 N ""N.V."") (:NAME C N2) (:OP1 N2 ""Netherlands"")))
+
+(comprehend "Elsevier N.V., the Dutch publishing group") ;; not done
+(equivalent-amr-predicate-networks (comprehend "Elsevier N.V., the Dutch publishing group")
+           '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N ""Elsevier"") (:OP2 N ""N.V."") (:NAME C N2) (:OP1 N2 ""Netherlands"")))
 
 (comprehend "the boy destroyed the room") ;; works but problem with order 
 (equivalent-amr-predicate-networks (comprehend  "the boy destroyed the room")
            '((DESTROY-01 D) (BOY B) (ROOM R) (:ARG0 D B) (:ARG1 D R)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 41 sentences
-
-
-(comprehend "the boy need not go") ;; 
+(comprehend "the boy need not go") ;; polarity of P vs polarity of G. two different constructions?
 (equivalent-amr-predicate-networks (comprehend "the boy need not go")
            '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:POLARITY P -) (:ARG0 G B)))
 
-(comprehend "the boy looked the answer up") ;; 
-(equivalent-amr-predicate-networks (comprehend "the boy looked the answer up")
-           '((LOOK-05 L) (BOY B) (ANSWER A) (:ARG0 L B) (:ARG1 L A)))
-
-(comprehend "the boy looked up the answer") ;; 
-(equivalent-amr-predicate-networks (comprehend "the boy looked up the answer")
-           '((LOOK-05 L) (BOY B) (ANSWER A) (:ARG0 L B) (:ARG1 L A)))
+(comprehend "the nation defaulted after the war") ;;
+(equivalent-amr-predicate-networks (comprehend "the nation defaulted after the war")
+            '((DEFAULT-01 D) (NATION N) (AFTER A) (WAR-01 W) (:ARG1 D N) (:TIME D A) (:OP1 A W)))
 
 (comprehend "it is tough to please girls") ;; 
 (equivalent-amr-predicate-networks (comprehend "it is tough to please girls")
@@ -191,9 +196,27 @@
 (equivalent-amr-predicate-networks (comprehend "the boy from the college sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
+(comprehend "the boy looked the answer up") ;; works but problem with order 
+(equivalent-amr-predicate-networks (comprehend "the boy looked the answer up")
+           '((LOOK-05 L) (BOY B) (ANSWER A) (:ARG0 L B) (:ARG1 L A)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 50 sentences
+
+(comprehend "whose toy did the girl find")
+(equivalent-amr-predicate-networks (comprehend "whose toy did the girl find")
+           '((FIND-01 F) (GIRL G) (TOY T) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F T) (:POSS T A)))
+
+(comprehend "the boy looked up the answer") ;; 
+(equivalent-amr-predicate-networks (comprehend "the boy looked up the answer")
+           '((LOOK-05 L) (BOY B) (ANSWER A) (:ARG0 L B) (:ARG1 L A)))
+
 (comprehend "the boy is a hard worker") ;; 
 (equivalent-amr-predicate-networks (comprehend "the boy is a hard worker")
             '((WORK-01 W) (BOY B) (HARD H) (:ARG0 W B) (:MANNER W H)))
+
+(comprehend "yesterday's marble in the non-jar")
+(equivalent-amr-predicate-networks (comprehend "yesterday's marble in the non-jar")
+           '((MARBLE M) (JAR J) (YESTERDAY Y) (:LOCATION M J) (:TIME M Y) (:POLARITY J -)))
 
 (comprehend "the soldier was afraid of battle") ;; 
 (equivalent-amr-predicate-networks (comprehend "the soldier was afraid of battle")
@@ -207,6 +230,7 @@
 (equivalent-amr-predicate-networks (comprehend "the soldier had a fear of battle")
              '((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 57 sentences
 
 (evaluate-amr-grammar)
 
