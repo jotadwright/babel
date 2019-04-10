@@ -107,10 +107,11 @@
 
 (defmethod category->s-dot-node ((category test-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a~%~,2f (~,2f)"
+    (s-dot::label ,(format nil "~a~%~,2f (~,2f - ~,2f)"
                            (downcase (mkstr (attribute category)))
                            (prototype category)
-                           (/ (sigma category) (samples category))))))
+                           (left-bound category)
+                           (right-bound category)))))
 
 (defun cxn->s-dot (cxn &optional highlight-green highlight-red)
   (let ((form (attr-val cxn :form))

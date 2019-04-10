@@ -6,10 +6,10 @@
 
 (define-event new-cxn-added (cxn fcg-construction))
 
-(defgeneric adopt-unknown-words (agent topic words)
+(defgeneric adopt-unknown-words (agent topic words category)
   (:documentation "Adopt unknown words"))
 
-(defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) words)
+(defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) words (category (eql :test)))
   (let ((meaning
          (loop with initial-certainty = (get-configuration agent :initial-certainty)
                for attr in (get-configuration agent :attributes)
@@ -26,6 +26,12 @@
 (define-event re-introduced-meaning (cxn fcg-construction)
   (attrs list))
 
+(defun get-cxn-from-category (agent category)
+  (find category (applied-cxns agent)
+        :key #'(lambda (cxn)
+                 (mapcar #'car (attr-val cxn :meaning)))
+        :test #'member))
+
 (defgeneric align-known-words (agent topic words category)
   (:documentation "Align known words"))
 
@@ -34,10 +40,7 @@
   (loop with rewarded
         with punished
         for (category . certainty) in (parsed-meaning agent)
-        for cxn = (find category (applied-cxns agent)
-                        :key #'(lambda (cxn)
-                                 (mapcar #'car (attr-val cxn :meaning)))
-                        :test #'member)
+        for cxn = (get-cxn-from-category agent category)
         for attr = (attribute category)
         ;; update the prototype (mostly set to always)
         do (case (get-configuration agent :shift-prototype)
@@ -70,19 +73,23 @@
         (notify scores-updated cxn rewarded punished)))
 
 
-(defun get-cxn-from-category (agent category)
-  (find category (applied-cxns agent)
-        :key #'(lambda (cxn)
-                 (mapcar #'car (attr-val cxn :meaning)))
-        :test #'member))
 
-(defun discriminating-p (agent category topic)
+(defun discriminatingp (agent category topic)
   (let* ((context (remove topic (objects (context agent))))
          (topic-sim (similarity topic category))
          (best-object-sim (apply #'max
                                  (loop for obj in context
                                        collect (similarity obj category)))))
-    (>= topic-sim best-object-sim)))
+    (> topic-sim best-object-sim)))
+; ----^-----
+;; the equality above is the reason why everything works and its not good!
+;; This way it will never work with noise, since the similarties will all be 0
+;; and than this function will return t...
+
+;; need to find a way to make things work WITH noise...
+;; When to reward/punish?
+;; When to update the prototype/boundaries?
+;; when (and success discriminating) do reward and update??
 
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words (category (eql :test)))
   (declare (ignorable words))
@@ -90,32 +97,19 @@
                                  for cxn = (get-cxn-from-category agent category)
                                  collect (cons category cxn)))
         rewarded punished)
-    (if (communicated-successfully agent)
-      (loop for (category . cxn) in categories-w-cxns
-            for attr = (attribute category)
-            if (discriminating-p agent category topic)
-            do (progn (push attr rewarded)
-                 (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
-                 (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
-            else
-            do (progn (push attr punished)
-                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf)))))
-      (loop for (category . cxn) in categories-w-cxns
-            for attr = (attribute category)
-            do (progn (push attr punished)
-                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-incf))))))
+    (loop for (category . cxn) in categories-w-cxns
+          for attr = (attribute category)
+          if (discriminatingp agent category topic)
+          do (progn (push attr rewarded)
+               (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
+               (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
+          else
+          do (progn (push attr punished)
+               (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf))))
     ;; shortcut!
-    (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)
-    ;; unused attributes have a slow decay to them
-    (loop for cxn in (applied-cxns agent)
-          for categories = (mapcar #'car (attr-val cxn :meaning))
-          for unused-categories = (set-difference categories
-                                                  (mapcar #'car (parsed-meaning agent)))
-          do (loop for category in unused-categories
-                   do (adjust-certainty agent cxn (attribute category) (- (get-configuration agent :decay)))))))
-      
+    (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))   
         
-  
+ 
         
 (defgeneric align-agent (agent topic)
   (:documentation
@@ -148,7 +142,7 @@
     (notify alignment-started agent)
     (when unknown-words
       (notify adopting-words unknown-words)
-      (adopt-unknown-words agent topic unknown-words))
+      (adopt-unknown-words agent topic unknown-words category-representation))
     (when known-words
       (notify aligning-words known-words)
       (align-known-words agent topic known-words category-representation))))

@@ -16,9 +16,9 @@
   (make-configuration
    :entries '((:shift-prototype . :always)
               (:update-certainty . t)
-              (:category-representation . :parabola)
+              (:category-representation . :test)
               (:feature-selection . :all)
-              (:noise . nil)
+              (:noise . 0.1)
               (:scale-world . t))))
 
 (defparameter *experiment*
@@ -28,7 +28,7 @@
 
 (run-series *experiment* 100)
 
-(run-series *experiment* 5000)
+(run-series *experiment* 3000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -37,15 +37,15 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (parabola
+                   (test
                     ((:shift-prototype . :always)
-                     (:category-representation . :parabola)
+                     (:category-representation . :test)
                      (:update-certainty . t)
                      (:feature-selection . :all)
                      (:noise . nil)
                      (:scale-world . t)))
                    )
-                 :number-of-interactions 10000
+                 :number-of-interactions 5000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
@@ -56,12 +56,12 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "parabola"
+ :experiment-name "test"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
  :xlabel "Number of games"
- :y1-label "Success") 
+ :y1-label "Success")  
 
 (create-graph-for-single-strategy
  :experiment-name "baseline"

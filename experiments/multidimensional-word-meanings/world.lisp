@@ -173,17 +173,19 @@
 (defmethod clevr->mwm ((object clevr-object) &key (noise nil) (scale nil))
   "Create the object"
   (multiple-value-bind (sides corners) (object->sides-and-corners object noise scale)
-    (let ((rgb-color (object->color object noise scale)))
+    (let ((rgb-color (object->color object noise scale))
+          (roughness (object->roughness object noise scale))
+          (wh-ratio (object->wh-ratio object noise scale)))
       (make-instance 'mwm-object
                      :id (id object) ;; !!!
                      :x-pos (object->x-pos object noise scale)
                      :y-pos (object->y-pos object noise scale)
                      :area (object->area object noise scale)
-                     :wh-ratio (object->wh-ratio object noise scale)
+                     :wh-ratio wh-ratio
                      :R (first rgb-color)
                      :G (second rgb-color)
                      :B (third rgb-color)
-                     :roughness (object->roughness object noise scale)
+                     :roughness roughness
                      :nr-of-sides sides
                      :nr-of-corners corners
                      :description `(,(shape object)

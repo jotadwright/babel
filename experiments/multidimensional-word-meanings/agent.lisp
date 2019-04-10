@@ -190,12 +190,21 @@
    and each of the objects in the context. The topic is the
    object for which this value is maximized."
   (when (parsed-meaning agent)
-    (let ((objects-with-similarity
-           (loop for object in (objects (context agent))
-                 for sim = (weighted-similarity object (parsed-meaning agent))
-                 collect (cons object sim))))
+    (let* ((objects-with-similarity
+            (loop for object in (objects (context agent))
+                  for sim = (weighted-similarity object (parsed-meaning agent))
+                  collect (cons object sim)))
+           (highest-pair
+            (the-biggest #'cdr objects-with-similarity))
+           (maybe-topic (car highest-pair)))
+      ;; sanity check
+      ;; no guessing if multiple objects have the same 'highest' similarity
       (setf (topic agent)
-            (car (the-biggest #'cdr objects-with-similarity)))))
+            (unless (> (count (cdr highest-pair)
+                              objects-with-similarity
+                              :key #'cdr :test #'=)
+                       1)
+              maybe-topic))))
   (notify interpretation-finished agent)
   (topic agent))
               
