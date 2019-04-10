@@ -20,11 +20,11 @@
 (equivalent-amr-predicate-networks (comprehend "small investor")
            '((PERSON P) (INVEST-01 I) (SMALL S) (:ARG0-OF P I) (:MANNER I S)))
 
-(comprehend "atomic bomb") ;; not working
+(comprehend "atomic bomb") ;; not working 
 (equivalent-amr-predicate-networks (comprehend "atomic bomb")
             '((BOMB B) (ATOM A) (:MOD B A)))
 
-(comprehend "atom bomb") ;;not working
+(comprehend "atom bomb") ;; works
 (equivalent-amr-predicate-networks (comprehend "atom bomb")
             '((BOMB B) (ATOM A) (:MOD B A)))
 
@@ -32,7 +32,7 @@
 (equivalent-amr-predicate-networks (comprehend "Mollie Brown")
             '((PERSON P) (NAME N) (:NAME P N) (:OP1 N "Mollie") (:OP2 N "Brown")))
 
-(comprehend "President Obama") ;; not working 
+(comprehend "President Obama") ;; works
 (equivalent-amr-predicate-networks (comprehend "President Obama")
            '((PRESIDENT P) (NAME N) (:NAME P N) (:OP1 N "Obama")))
 
@@ -44,19 +44,19 @@
 (equivalent-amr-predicate-networks (comprehend "history professor")
             '((PERSON P) (TEACH-01 T) (HISTORY H) (:ARG0-OF P T) (:ARG1 T H)))
 
-(comprehend "Obama , the president") ;; not working
+(comprehend "Obama , the president") ;; works
 (equivalent-amr-predicate-networks (comprehend "Obama , the president")
            '((PRESIDENT P) (NAME N) (:NAME P N) (:OP1 N "Obama")))
 
-(comprehend-all "the attractive spy") ;; not working
+(comprehend-all "the attractive spy") ;; works
 (equivalent-amr-predicate-networks (comprehend "the attractive spy")
            '((SPY S) (ATTRACT-01 A) (:ARG0-OF S A)))
 
-(comprehend "an edible sandwich") ;; not working
+(comprehend "an edible sandwich") ;; works
 (equivalent-amr-predicate-networks (comprehend "an edible sandwich")
            '((SANDWICH S) (EAT-01 E) (POSSIBLE P) (:ARG1-OF S E) (:DOMAIN-OF E P)))
 
-(comprehend-all "a taxable fund") ;; not working
+(comprehend-all "a taxable fund") ;; works
 (equivalent-amr-predicate-networks (comprehend "a taxable fund")
             '((FUND F) (TAX-01 T) (:ARG1-OF F T)))
 

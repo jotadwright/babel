@@ -227,8 +227,8 @@
                (syn-cat (lex-class noun)
                         (number sg)
                         (person 3)
-                        (nominalisation -)
-                        (syn-function adjectival))
+                        (syn-function adjectival)
+                        (adjectival -))
                (sem-cat (sem-class pertainym)))
               <-
                (?atom-unit
@@ -407,7 +407,7 @@
                (syn-cat (lex-class noun)
                         (number sg)
                         (person 3)
-                        (syn-function nominal))
+                        (syn-function adjectival))
                (sem-cat (sem-class topic)
                         (sem-role patient)))
               <-
@@ -425,7 +425,8 @@
                (syn-cat (lex-class noun)
                         (person 3)
                         (number sg)
-                        (syn-function nominal))
+                        (syn-function nominal)
+                        (adjectival -))
                (sem-cat (sem-class person)))
               <-
               (?investor-unit
@@ -750,7 +751,8 @@
                 (syn-cat (lex-class noun)
                          (number sg)
                          (person 3)
-                         (syn-function nominal))
+                         (syn-function nominal)
+                         (adjectival -))
                 (sem-cat (sem-class title)))
               <-
               (?teacher-unit
@@ -1303,7 +1305,7 @@
              ((?adjective-nominal-unit 
                 (referent ?nominal)
                 (meaning ((:arg0-of ?nominal ?quality)))
-                (syn-cat (phrase-type nominal-phrase)
+                (syn-cat (phrase-type nominal)
                          (syn-function nominal))
                 (subunits (?adjective-unit ?nominal-unit))
                 (boundaries (leftmost-unit ?adjective-unit)
@@ -1351,9 +1353,9 @@
                --
               (referent ?person)
               (syn-cat (phrase-type nominal)
-                        (syn-function nominal))
+                       (syn-function nominal))
               (boundaries (leftmost-unit ?second-nominal-leftmost-unit)
-                           (rightmost-unit ?second-nominal-rightmost-unit))
+                          (rightmost-unit ?second-nominal-rightmost-unit))
               (sem-cat (sem-class ?class)))
               (?patient-of-nominal
                --
@@ -1391,39 +1393,35 @@
               ((?pertainym-adjective-nominal-unit
                 (referent ?ref)
                 (meaning ((:mod ?ref ?type)))
-                (syn-cat (syn-function nominal)
-                         (number ?nb))
-                (subunits (?adjective-unit ?nominal-unit))
-                (boundaires (leftmost-unit ?adjective-unit)
+                (subunits (?type-unit ?nominal-unit))
+                (boundaires (leftmost-unit ?type-unit)
                             (rightmost-unit ?nominal-rightmost-unit)))
                 <-
                 (?type-unit
                  --
                  (referent ?type)
-                 (syn-cat (phrase-type nominal))
+                 (syn-cat (syn-function adjectival))
                  (sem-cat (sem-class pertainym)))
                 (?nominal-unit
                  --
                  (referent ?ref)
                  (syn-cat (phrase-type nominal)
                           (syn-function nominal))
-                 (sem-cat (sem-class inanimate-object))
                  (boundaries (leftmost-unit ?nominal-leftmost-unit)
                              (rightmost-unit ?nominal-rightmost-unit)))
                 (?pertainym-adjective-nominal-unit
                  --
-                 (HASH form ((meets ?adjective-unit ?nominal-leftmost-unit))))))
+                 (HASH form ((precedes ?type-unit ?nominal-leftmost-unit))))))
 
 (def-fcg-cxn arg1of-noun-cxn ;; arg1-of
              ((?arg1of-noun-unit
                (referent ?noun)
                (meaning ((:arg1-of ?noun ?adj)))
-               (syn-cat (phrase-type nominal-phrase)
-                        (syn-function nominal)
-                        (part-of-phrase +))
-               (subunits (?adjective-unit ?noun-unit))
+               (syn-cat (phrase-type nominal)
+                        (syn-function nominal))
+               (subunits (?adjective-unit ?nominal-unit))
                (boundaries (leftmost-unit ?adjective-unit)
-                           (rightmost-unit ?noun-unit)))
+                           (rightmost-unit ?nominal-rightmost-unit)))
               <-
               (?adjective-unit
                --
@@ -1431,15 +1429,16 @@
                (syn-cat (lex-class adjective)
                         (syn-function adjectival))
                (sem-cat (sem-class possibility)))
-               (?noun-unit
+               (?nominal-unit
                 --
                 (referent ?noun)
-                (syn-cat  (lex-class noun)
-                          (number ?numb)
-                          (syn-function nominal)))
+                (syn-cat  (phrase-type nominal)
+                          (syn-function nominal))
+                (boundaries (leftmost-unit ?nominal-leftmost-unit)
+                            (rightmost-unit ?nominal-rightmost-unit)))
                (?arg1of-noun-unit
                 --
-                (HASH form ((meets ?adjective-unit ?noun-unit))))))
+                (HASH form ((meets ?adjective-unit ?nominal-leftmost-unit))))))
 
 (def-fcg-cxn nominal-nominal-unit-cxn
              ((?nominal-nominal-unit
@@ -1462,7 +1461,7 @@
                --
                (referent ?b)
                (syn-cat (phrase-type nominal)
-                        (syn-function ?adjectival))
+                        (syn-function adjectival))
                 (boundaries (leftmost-unit ?nominal-2-leftmost-unit)
                            (rightmost-unit ?nominal-2-rightmost-unit)))
               (?nominal-nominal-unit
@@ -1478,13 +1477,17 @@
                (meaning ((:name ?p ?n)))
                (subunits (?nominal-unit-1 ?nominal-unit-2))
                (syn-cat (phrase-type noun-phrase)
-                        (named-entity-type person)))
+                        (named-entity-type person))
+               (boundaries (leftmost-unit ?nominal-1-leftmost-unit)
+                           (rightmost-unit ?nominal-unit-2)))
               <-
               (?nominal-unit-1
                --
                (referent ?p)
-               (syn-cat (syn-function nominal))
-               (sem-cat (sem-class ?class)))
+               (syn-cat (phrase-type nominal)
+                        (syn-function nominal))
+               (boundaries (leftmost-unit ?nominal-1-leftmost-unit)
+                           (rightmost-unit ?nominal-1-rightmost-unit)))
               (?nominal-unit-2
                --
                (referent ?n)
@@ -1492,36 +1495,35 @@
                         (proper-noun +)))
               (?named-entity-unit
                --
-               (HASH form ((meets ?nominal-unit-1 ?nominal-unit-2))))))
+               (HASH form ((meets ?nominal-1-rightmost-unit ?nominal-unit-2))))))
 
  (def-fcg-cxn named-entity-title-article-person-cxn ;; Obama the president 
               ((?named-entity-article-person-unit
                 (referent ?p)
                 (meaning ((:name ?p ?n)))
-                (subunits (?nominal-unit-1 ?nominal-unit-2 ?article-unit))
+                (subunits (?nominal-unit-1 ?noun-phrase))
                 (syn-cat (phrase-type noun-phrase)
                          (named-entity-type person))
-                (sem-cat (sem-class ?class)))
+                (sem-cat (sem-class ?class))
+                (boundaries (leftmost-unit ?nominal-unit-1)
+                            (rightmost-unit ?noun-phrase-rightmost-unit)))
                <-
                (?nominal-unit-1
                 --
                 (referent ?n)
-                 (syn-cat (syn-function nominal))
+                 (syn-cat (proper-noun +)
+                          (syn-function nominal))
                  (sem-cat (sem-class person)))
-               (?article-unit
-                --
-                (syn-cat (lex-class article)
-                         (definite +)))
-               (?nominal-unit-2
+                (?noun-phrase
                 --
                 (referent ?p)
-                (sem-valence (name ?n))
-                (syn-cat (syn-function nominal))
-                (sem-cat (sem-class title)))
+                (syn-cat (phrase-type noun-phrase)
+                         (part-of-phrase +))
+                (boundaries (leftmost-unit ?noun-phrase-leftmost-unit)
+                            (rightmost-unit ?noun-phrase-rightmost-unit)))
                (?named-entity-article-person-unit
                 --
-                 (HASH form ((precedes ?nominal-unit-1 ?article-unit)
-                             (precedes ?article-unit ?nominal-unit-2))))))
+                (HASH form ((meets ?nominal-unit-1 ??noun-phrase-leftmost-unit))))))
 ;; ---------------------------------------------------------------------------------------------------
 ;; Noun Phrase Constructions
 ;; ---------------------------------------------------------------------------------------------------
