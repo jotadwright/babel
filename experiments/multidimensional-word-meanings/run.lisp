@@ -16,8 +16,8 @@
   (make-configuration
    :entries '((:shift-prototype . :always)
               (:update-certainty . t)
-              (:category-representation . :test)
-              (:feature-selection . :sampling)
+              (:category-representation . :parabola)
+              (:feature-selection . :all)
               (:noise . nil)
               (:scale-world . t))))
 
@@ -26,9 +26,9 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100) 
+(run-series *experiment* 100)
 
-(run-series *experiment* 15000)
+(run-series *experiment* 5000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -37,14 +37,15 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (test
+                   (parabola
                     ((:shift-prototype . :always)
-                     (:category-representation . :test)
+                     (:category-representation . :parabola)
                      (:update-certainty . t)
-                     (:feature-selection . :sampling)
-                     (:noise . nil)))
+                     (:feature-selection . :all)
+                     (:noise . nil)
+                     (:scale-world . t)))
                    )
-                 :number-of-interactions 15000
+                 :number-of-interactions 10000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
@@ -55,7 +56,7 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "test"
+ :experiment-name "parabola"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -71,7 +72,7 @@
  :xlabel "Number of games")
 
 (create-graph-comparing-strategies
- :experiment-names '("min-max" "min-max-noise-0.1" "min-max-noise-0.2" "min-max-noise-0.3")
+ :experiment-names '("new-prototype-w-sampling" "new-prototype-no-sampling")
  :measure-name "communicative-success"
  :y-max 1 :xlabel "Number of games" :y1-label "Success")
   

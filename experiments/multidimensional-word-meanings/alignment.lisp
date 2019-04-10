@@ -45,7 +45,8 @@
                             (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
              (:on-failure (unless (communicated-successfully agent)
                             (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
-             (:always (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
+             (:always (shift-value cxn attr topic :alpha (get-configuration agent :alpha)
+                                   :success (communicated-successfully agent)))
              (:never nil))
         ;; adjust the certainty, when enabled
         when (get-configuration agent :update-certainty)
@@ -89,9 +90,6 @@
                                  for cxn = (get-cxn-from-category agent category)
                                  collect (cons category cxn)))
         rewarded punished)
-    ;; now, only single features are tested for discriminatoriness (is that a word)
-    ;; however, combinations of features can be discriminative.
-    ;; this interacts with the feature sampling and interpretation...
     (if (communicated-successfully agent)
       (loop for (category . cxn) in categories-w-cxns
             for attr = (attribute category)

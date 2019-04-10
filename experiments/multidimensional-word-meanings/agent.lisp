@@ -149,7 +149,6 @@
         finally
         (return meaning-sample)))
 
-
 (defgeneric parse-word (agent role)
   (:documentation "Parse an utterance"))
 

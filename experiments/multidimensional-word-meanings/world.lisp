@@ -161,7 +161,7 @@
     (if scale
       (if noise
         (add-random-value-from-range with-variance 0.0 noise :min-bound 0.0 :max-bound 1.0)
-        with-variance)
+        (min with-variance 1.0))
       with-variance)))
 
 (defmethod clevr->mwm ((set clevr-object-set) &key (noise nil) (scale nil))

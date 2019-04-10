@@ -19,6 +19,7 @@
   :serial t
   :components ((:file "package")
                (:file "color-conversions")
+               (:file "parabola")
                (:file "utils")
                (:file "fuzzy-operations")
                (:file "world")
