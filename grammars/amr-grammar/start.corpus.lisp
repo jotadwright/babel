@@ -60,7 +60,7 @@
 (equivalent-amr-predicate-networks (comprehend "a taxable fund")
             '((FUND F) (TAX-01 T) (:ARG1-OF F T)))
 
-(comprehend "the boy cannot go") ;;works
+(comprehend "the boy cannot go") ;; works
 (equivalent-amr-predicate-networks (comprehend "the boy cannot go")
             '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
 
@@ -128,7 +128,7 @@
 (equivalent-amr-predicate-networks (comprehend "the boy must not go")
            '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
 
-(comprehend "what did the girl find ?") ;; what-interrogative-cxn not working. why?
+(comprehend "what did the girl find ?") ;; works 
 (equivalent-amr-predicate-networks (comprehend "what did the girl find ?")
            '((FIND-01 F) (GIRL G) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F A)))
 
@@ -144,11 +144,11 @@
 (equivalent-amr-predicate-networks (comprehend "the judge read the proposal")
              '((READ-01 R) (JUDGE J) (THING T) (:ARG0 R J) (:ARG1 R T)))
 
-(comprehend "girls are tough to please") ;; arg1 p g ?
+(comprehend "girls are tough to please") ;; works
 (equivalent-amr-predicate-networks (comprehend "girls are tough to please")
             '((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)))
 
-(comprehend "the nation defaulted in June") ;; meaning seems fine but NIL
+(comprehend "the nation defaulted in June") ;; works
 (equivalent-amr-predicate-networks (comprehend "the nation defaulted in June")
             '((DEFAULT-01 D) (NATION N) (DATE-ENTITY D2) (:ARG1 D N) (:TIME D D2) (:MONTH D2 6)))
 
@@ -184,11 +184,11 @@
 (equivalent-amr-predicate-networks (comprehend "the nation defaulted after the war")
             '((DEFAULT-01 D) (NATION N) (AFTER A) (WAR-01 W) (:ARG1 D N) (:TIME D A) (:OP1 A W)))
 
-(comprehend "it is tough to please girls") ;; arg1 p g ?
+(comprehend "it is tough to please girls") ;; works
 (equivalent-amr-predicate-networks (comprehend "it is tough to please girls")
            '((TOUGH T) (PLEASE-01 P) (GIRL G) (:DOMAIN T P) (:ARG1 P G)))
 
-(comprehend "the boy from the college sang") ;; how to exclude clause ?
+(comprehend "the boy from the college sang") ;; works
 (equivalent-amr-predicate-networks (comprehend "the boy from the college sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
@@ -196,34 +196,31 @@
 (equivalent-amr-predicate-networks (comprehend "whose toy did the girl find ? ")
            '((FIND-01 F) (GIRL G) (TOY T) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F T) (:POSS T A)))
 
-(comprehend "the boy looked the answer up") ;; works but need to fix schema
+(comprehend "the boy looked the answer up") ;; works but schema
 (equivalent-amr-predicate-networks (comprehend "the boy looked the answer up")
            '((LOOK-05 L) (BOY B) (ANSWER A) (:ARG0 L B) (:ARG1 L A)))
 
-(comprehend "the boy looked up the answer") ;; works but need to fix schema
+(comprehend "the boy looked up the answer") ;; works but schema
 (equivalent-amr-predicate-networks (comprehend "the boy looked up the answer")
            '((LOOK-05 L) (BOY B) (ANSWER A) (:ARG0 L B) (:ARG1 L A)))
 
-(comprehend "the boy is a hard worker") ;; :arg0 of a nominal? how to exclude the domain?
+(comprehend "the boy is a hard worker") ;; : how to exclude the predicative-cxn ?
 (equivalent-amr-predicate-networks (comprehend "the boy is a hard worker")
             '((WORK-01 W) (BOY B) (HARD H) (:ARG0 W B) (:MANNER W H)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 53 sentences
-
-
-(comprehend "the soldier was afraid of battle") ;; 
+(comprehend "the soldier was afraid of battle") ;; why clause not working ?
 (equivalent-amr-predicate-networks (comprehend "the soldier was afraid of battle")
             '((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
 
-(comprehend "yesterday's marble in the non-jar")
-(equivalent-amr-predicate-networks (comprehend "yesterday's marble in the non-jar")
+(comprehend "yesterday 's marble in the non-jar") ;; works
+(equivalent-amr-predicate-networks (comprehend "yesterday 's marble in the non-jar")
            '((MARBLE M) (JAR J) (YESTERDAY Y) (:LOCATION M J) (:TIME M Y) (:POLARITY J -)))
 
-(comprehend "the girl made adjustments to the machine") ;; 
+(comprehend "the girl made adjustments to the machine") ;;  why clause not working ?
 (equivalent-amr-predicate-networks (comprehend "the girl made adjustments to the machine")
             '((ADJUST-01 A) (GIRL G) (MACHINE M) (:ARG0 A G) (:ARG1 A M)))
 
-(comprehend "the soldier had a fear of battle") ;;  
+(comprehend "the soldier had a fear of battle") ;;  exclude quant-of
 (equivalent-amr-predicate-networks (comprehend "the soldier had a fear of battle")
              '((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
 
@@ -249,8 +246,6 @@
 (equivalent-amr-predicate-networks (comprehend "the boy is responsible for the work")
               '((RESPONSIBLE-41 R) (BOY B) (WORK W) (:ARG1 R B) (:ARG2 R W)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 62 sentences
-
 (comprehend "the man was sued in the case")
 (equivalent-amr-predicate-networks (comprehend "the man was sued in the case")
                '((SUE-01 S) (MAN M) (CASE C) (:ARG1 S M) (:PREP-IN S C)))
@@ -263,14 +258,30 @@
 (equivalent-amr-predicate-networks (comprehend "the boy isn't obliged to go")
                '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:POLARITY P -) (:ARG0 G B)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 65 sentences
+
+
 (comprehend  "it's obligatory that the boy not go")
 (equivalent-amr-predicate-networks (comprehend  "it's obligatory that the boy not go")
-               '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
+            '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
 
 (comprehend  "the man's description of the mission: disaster")
 (equivalent-amr-predicate-networks (comprehend  "the man's description of the mission: disaster")
-               '((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 67 sentences
+           '((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D)))
+
+(comprehend  "the man described the mission as a disaster")
+(equivalent-amr-predicate-networks (comprehend "the man described the mission as a disaster")
+           '((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D)))
+
+(comprehend  "the destruction of the room by the boy")
+(equivalent-amr-predicate-networks (comprehend "the destruction of the room by the boy")
+           '((DESTROY-01 D) (BOY B) (ROOM R) (:ARG0 D B) (:ARG1 D R)))
+
+(comprehend "the marble was not in the jar yesterday")
+(equivalent-amr-predicate-networks (comprehend "the marble was not in the jar yesterday")
+           '((BE-LOCATED-AT-91 B) (MARBLE M) (JAR J) (YESTERDAY Y) (:ARG1 B M) (:ARG2 B J) (:POLARITY B -) (:TIME B Y)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 70 sentences
 
 (evaluate-amr-grammar)
 
