@@ -9,6 +9,8 @@
                                                   (mapcar #'(lambda (symbol)
                                                               (cond ((stringp symbol)
                                                                      symbol)
+                                                                    ((numberp symbol)
+                                                                     symbol)
                                                                     ((or (equal symbol '-)
                                                                          (equal symbol '+))
                                                                      symbol)
