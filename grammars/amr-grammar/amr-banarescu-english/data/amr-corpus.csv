@@ -67,7 +67,7 @@
 "the man described the mission as a disaster	((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D))"
 "the destruction of the room by the boy	((DESTROY-01 D) (BOY B) (ROOM R) (:ARG0 D B) (:ARG1 D R)) "
 "the marble was not in the jar yesterday	((BE-LOCATED-AT-91 B) (MARBLE M) (JAR J) (YESTERDAY Y) (:ARG1 B M) (:ARG2 B J) (:POLARITY B -) (:TIME B Y))"
-"the boy thinks the team won't win	((THINK-01 T) (BOY B) (WIN-01 W) (TEAM T) (:ARG0 T B) (:ARG1 T W) (:ARG0 W T) (:POLARITY W -))"
+"the boy thinks the team won't win	((THINK-01 T-1) (BOY B) (WIN-01 W) (TEAM T-2) (:ARG0 T-1 B) (:ARG1 T-1 W) (:ARG0 W T-2) (:POLARITY W -))"
 "it's not possible for the boy to go	((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B))"
 "it's possible for the boy not to go	((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:ARG0 G B) (:POLARITY G -)) "
 "the boy doesn't think the team will win 	((THINK-01 T) (BOY B) (WIN-01 W) (TEAM T) (:ARG0 T B) (:ARG1 T W) (:ARG0 W T) (:POLARITY W -))"

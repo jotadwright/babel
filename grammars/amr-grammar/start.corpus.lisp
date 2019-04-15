@@ -192,8 +192,8 @@
 (equivalent-amr-predicate-networks (comprehend "the boy from the college sang")
            '((BOY B) (SING-01 S) (COLLEGE C) (:ARG0-OF B S) (:SOURCE B C)))
 
-(comprehend "whose toy did the girl find") ;; arg1 f t question mark problem meaning 
-(equivalent-amr-predicate-networks (comprehend "whose toy did the girl find")
+(comprehend "whose toy did the girl find ? ") ;; works
+(equivalent-amr-predicate-networks (comprehend "whose toy did the girl find ? ")
            '((FIND-01 F) (GIRL G) (TOY T) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F T) (:POSS T A)))
 
 (comprehend "the boy looked the answer up") ;; works but schema not completely correct
@@ -220,11 +220,11 @@
 (equivalent-amr-predicate-networks (comprehend "the girl made adjustments to the machine")
             '((ADJUST-01 A) (GIRL G) (MACHINE M) (:ARG0 A G) (:ARG1 A M)))
 
-(comprehend "the soldier had a fear of battle") ;;  escludere quant-of. come ? 
+(comprehend "the soldier had a fear of battle") ;;  not done  
 (equivalent-amr-predicate-networks (comprehend "the soldier had a fear of battle")
              '((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
 
-(comprehend "the boy doesn't have to go") ;; have to ? 
+(comprehend "the boy doesn't have to go") ;; works
 (equivalent-amr-predicate-networks (comprehend "the boy doesn't have to go") 
              '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:POLARITY P -) (:ARG0 G B)))
 
@@ -236,11 +236,11 @@
 (equivalent-amr-predicate-networks (comprehend  "the spy who is attractive to women")
              '((SPY S) (ATTRACT-01 A) (WOMAN W) (:ARG0-OF S A) (:ARG1 A W)))
 
-(comprehend "the boy has responsibility for the work") ;; arg1 ? 
+(comprehend "the boy has responsibility for the work") ;; works
 (equivalent-amr-predicate-networks (comprehend "the boy has responsibility for the work")
               '((RESPONSIBLE-41 R) (BOY B) (WORK W) (:ARG1 R B) (:ARG2 R W)))
 
-(comprehend "the boy is responsible for the work") ;; arg1 ?
+(comprehend "the boy is responsible for the work") ;; how to exclude predicative
 (equivalent-amr-predicate-networks (comprehend "the boy is responsible for the work")
               '((RESPONSIBLE-41 R) (BOY B) (WORK W) (:ARG1 R B) (:ARG2 R W)))
 
@@ -260,54 +260,51 @@
 (equivalent-amr-predicate-networks (comprehend  "it's obligatory that the boy not go")
             '((OBLIGATE-01 P) (GO-01 G) (BOY B) (:ARG2 P G) (:ARG0 G B) (:POLARITY G -)))
 
-(comprehend  "the man 's description of the mission : disaster") ;; problem with variable m2. ask.
+(comprehend  "the man 's description of the mission : disaster") ;; not working anymore 
 (equivalent-amr-predicate-networks (comprehend  "the man 's description of the mission : disaster")
            '((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D)))
 
-(comprehend  "the man described the mission as a disaster") ;; problem with variable m2. ask.
+(comprehend  "the man described the mission as a disaster") ;; works
 (equivalent-amr-predicate-networks (comprehend "the man described the mission as a disaster")
            '((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 67 sentences
-
-(comprehend  "the destruction of the room by the boy")
+(comprehend  "the destruction of the room by the boy") ;; works
 (equivalent-amr-predicate-networks (comprehend "the destruction of the room by the boy")
            '((DESTROY-01 D) (BOY B) (ROOM R) (:ARG0 D B) (:ARG1 D R)))
 
-(comprehend "the marble was not in the jar yesterday")
+(comprehend "the marble was not in the jar yesterday") ;; how ?? 
 (equivalent-amr-predicate-networks (comprehend "the marble was not in the jar yesterday")
            '((BE-LOCATED-AT-91 B) (MARBLE M) (JAR J) (YESTERDAY Y) (:ARG1 B M) (:ARG2 B J) (:POLARITY B -) (:TIME B Y)))
 
-(comprehend "the boy thinks the team won't win")
+(comprehend "the boy thinks the team won't win") ;; meaning seems fine but NIL
 (equivalent-amr-predicate-networks (comprehend "the boy thinks the team won't win")
-         '((THINK-01 T) (BOY B) (WIN-01 W) (TEAM T) (:ARG0 T B) (:ARG1 T W) (:ARG0 W T) (:POLARITY W -)))
+         '((THINK-01 T-1) (BOY B) (WIN-01 W) (TEAM T-2) (:ARG0 T-1 B) (:ARG1 T-1 W) (:ARG0 W T-2) (:POLARITY W -)))
 
-(comprehend "it's not possible for the boy to go")
+(comprehend "it's not possible for the boy to go") ;; need to exclude
 (equivalent-amr-predicate-networks (comprehend "it's not possible for the boy to go")
         '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
 
-(comprehend "it's possible for the boy not to go")
+(comprehend "it's possible for the boy not to go") ;; need to exclude
 (equivalent-amr-predicate-networks (comprehend "it's possible for the boy not to go")
        '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:ARG0 G B) (:POLARITY G -)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; domenica 72 sentences 
-
-(comprehend "the boy doesn't think the team will win")
+(comprehend "the boy doesn't think the team will win") ;; need to fix polarity 
 (equivalent-amr-predicate-networks (comprehend "the boy doesn't think the team will win")
-      '((THINK-01 T) (BOY B) (WIN-01 W) (TEAM T) (:ARG0 T B) (:ARG1 T W) (:ARG0 W T) (:POLARITY W -)))
+      '((THINK-01 T-1) (BOY B) (WIN-01 W) (TEAM T-2) (:ARG0 T-1 B) (:ARG1 T-1 W) (:ARG0 W T-2) (:POLARITY W -)))
 
-(comprehend "as the man described it, the mission was a disaster")
+(comprehend "as the man described it, the mission was a disaster") ;; problem variables
 (equivalent-amr-predicate-networks (comprehend "as the man described it, the mission was a disaster")
-    '((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D)))
+    '((DESCRIBE-01 D-1) (MAN M) (MISSION M2) (DISASTER D-2) (:ARG0 D-1 M) (:ARG1 D-1 M2) (:ARG2 D-1 D-2)))
 
-(comprehend "the soldier hummed to the girl as she walked to town")
+(comprehend "the soldier hummed to the girl as she walked to town") ;; soldier s2 ? but other sentences is just s
 (equivalent-amr-predicate-networks (comprehend "the soldier hummed to the girl as she walked to town")
-     '((HUM-02 S) (SOLDIER S2) (GIRL G) (WALK-01 W) (TOWN T) (:ARG0 S S2) (:BENEFICIARY S G) (:TIME S W) (:ARG0 W G) (:DESTINATION W T))"
+     '((HUM-02 S) (SOLDIER S2) (GIRL G) (WALK-01 W) (TOWN T) (:ARG0 S S2) (:BENEFICIARY S G) (:TIME S W) (:ARG0 W G) (:DESTINATION W T)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; lunedi 75 sentences + 2 elsevier not done + cleaning from to-cxn
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 75 sentences
+
+martedi : tutto va + report
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; martedi rivedi tutta grammatica e cambia nomi delle cxn + II report + risolvi eventuali problemi rimasti 
 
 (evaluate-amr-grammar)
 
