@@ -12,16 +12,15 @@
                                                (merge-pathnames
                                                 (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
                                                                :name "CLEVR_train_full_per_line" :type "json")
-                                                cl-user:*babel-corpora*))
-                                               )
+                                                cl-user:*babel-corpora*)))
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks) ; :tutor-speaks :learner-speaks :default
 (define-configuration-default-value :attributes '(x-pos y-pos
-                                                  area wh-ratio ;width height
+                                                  area wh-ratio
                                                   R G B roughness
                                                   nr-of-sides nr-of-corners))
 (define-configuration-default-value :initial-certainty 0.5)
 (define-configuration-default-value :certainty-incf 0.1)
-(define-configuration-default-value :certainty-decf -0.2)
+(define-configuration-default-value :certainty-decf -0.1)
 (define-configuration-default-value :alpha 0.05)
 (define-configuration-default-value :max-tutor-utterance-length 1) ; nil or int
 (define-configuration-default-value :shift-prototype :always) ; :on-success :on-failure :always
@@ -29,9 +28,9 @@
 (define-configuration-default-value :remove-on-lower-bound t) ; t or nil
 (define-configuration-default-value :category-representation :min-max) ; :min-max :prototype :prototype-min-max
 (define-configuration-default-value :feature-selection :all) ; :all or :sampling
-(define-configuration-default-value :noise nil) ; nil or float in [0,1]
+(define-configuration-default-value :noise-amount nil) ; nil or float in [0,1]
+(define-configuration-default-value :noise-prob nil) ; nil or float in [0,1]
 (define-configuration-default-value :scale-world nil)  ; t or nil
-(define-configuration-default-value :decay 0.001)
 
 ;; --------------
 ;; + Experiment +

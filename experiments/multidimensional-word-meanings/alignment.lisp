@@ -73,6 +73,10 @@
         (notify scores-updated cxn rewarded punished)))
 
 
+;; When you see a word again, compare the concept to the object
+;; The things that are similar should be rewarded and updated
+;; The things that are too different should be punished
+;; Problem: defining concept representation and similarity
 
 (defun discriminatingp (agent category topic)
   (let* ((context (remove topic (objects (context agent))))
@@ -81,15 +85,6 @@
                                  (loop for obj in context
                                        collect (similarity obj category)))))
     (> topic-sim best-object-sim)))
-; ----^-----
-;; the equality above is the reason why everything works and its not good!
-;; This way it will never work with noise, since the similarties will all be 0
-;; and than this function will return t...
-
-;; need to find a way to make things work WITH noise...
-;; When to reward/punish?
-;; When to update the prototype/boundaries?
-;; when (and success discriminating) do reward and update??
 
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words (category (eql :test)))
   (declare (ignorable words))
@@ -102,7 +97,10 @@
           if (discriminatingp agent category topic)
           do (progn (push attr rewarded)
                (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
-               (shift-value cxn attr topic :alpha (get-configuration agent :alpha)))
+               (update-category category topic
+                                :alpha (get-configuration agent :alpha)
+                                :success (communicated-successfully agent)
+                                :interpreted-object (topic agent)))
           else
           do (progn (push attr punished)
                (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf))))

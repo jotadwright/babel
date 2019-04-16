@@ -18,7 +18,8 @@
               (:update-certainty . t)
               (:category-representation . :test)
               (:feature-selection . :all)
-              (:noise . 0.1)
+              (:noise-amount . 0.1)
+              (:noise-prob . 0.1)
               (:scale-world . t))))
 
 (defparameter *experiment*
@@ -26,7 +27,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 1000)
 
 (run-series *experiment* 3000)
 

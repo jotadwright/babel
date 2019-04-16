@@ -22,8 +22,10 @@
                                    interaction &key)
   "Initialize the interaction by choosing a random context"
   (let* ((clevr-context (random-elt (world experiment)))
-         (mwm-context (clevr->mwm clevr-context :noise (get-configuration experiment :noise)
-                                  :scale (get-configuration experiment :scale-world))))
+         (mwm-context (clevr->mwm clevr-context
+                                  :noise-amount (get-configuration experiment :noise-amount)
+                                  :scale (get-configuration experiment :scale-world)
+                                  :noise-prob (get-configuration experiment :noise-prob))))
     (notify context-determined clevr-context mwm-context)
     (loop for agent in (interacting-agents interaction)
           do (initialize-agent agent clevr-context mwm-context))))
