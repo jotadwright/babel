@@ -168,7 +168,7 @@
 (equivalent-amr-predicate-networks (comprehend "Dutch publishing group Elsevier N.V.")
            '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N "Elsevier") (:OP2 N "N.V.") (:NAME C N2) (:OP1 N2 "Netherlands")))
 
-(comprehend "Elsevier N.V. , the Dutch publishing group") ;; not working
+(comprehend "Elsevier N.V. , the Dutch publishing group") ;; works
 (equivalent-amr-predicate-networks (comprehend "Elsevier N.V. , the Dutch publishing group")
            '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N "Elsevier") (:OP2 N "N.V.") (:NAME C N2) (:OP1 N2 "Netherlands")))
 
@@ -268,7 +268,7 @@
 (equivalent-amr-predicate-networks (comprehend "the man described the mission as a disaster")
            '((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D)))
 
-(comprehend  "the destruction of the room by the boy") ;; works
+(comprehend  "the destruction of the room by the boy") ;; not working anymore
 (equivalent-amr-predicate-networks (comprehend "the destruction of the room by the boy")
            '((DESTROY-01 D) (BOY B) (ROOM R) (:ARG0 D B) (:ARG1 D R)))
 
