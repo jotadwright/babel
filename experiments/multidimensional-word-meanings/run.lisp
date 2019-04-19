@@ -27,7 +27,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 1000)
+(run-series *experiment* 10)
 
 (run-series *experiment* 3000)
 
@@ -46,7 +46,7 @@
                      (:noise-amount . nil)
                      (:noise-prob . nil)
                      (:scale-world . t)))
-                   (new-strategy-noise01-prob01
+                    #|(new-strategy-noise01-prob01
                     ((:shift-prototype . :always)
                      (:category-representation . :test)
                      (:update-certainty . t)
@@ -77,20 +77,21 @@
                      (:feature-selection . :all)
                      (:noise-amount . 0.2)
                      (:noise-prob . 0.2)
-                     (:scale-world . t)))
+                     (:scale-world . t)))|#
                    )
-                 :number-of-interactions 5000
+                 :number-of-interactions 100000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
-                                 "export-lexicon-size"
-                                 "export-features-per-form"
-                                 "export-utterance-length"))
+                                 ;"export-lexicon-size"
+                                 ;"export-features-per-form"
+                                 ;"export-utterance-length"
+                                 ))
 
 (create-x-pos-convergence-graph :nr-of-interactions 100)
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "test"
+ :experiment-name "new-strategy-no-noise"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -106,7 +107,11 @@
  :xlabel "Number of games")
 
 (create-graph-comparing-strategies
- :experiment-names '("new-prototype-w-sampling" "new-prototype-no-sampling")
+ :experiment-names '("new-strategy-no-noise"
+                     "new-strategy-noise01-prob01"
+                     "new-strategy-noise01-prob02"
+                     "new-strategy-noise02-prob01"
+                     "new-strategy-noise02-prob02")
  :measure-name "communicative-success"
  :y-max 1 :xlabel "Number of games" :y1-label "Success")
   
