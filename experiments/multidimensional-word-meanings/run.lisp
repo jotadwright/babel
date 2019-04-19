@@ -18,8 +18,8 @@
               (:update-certainty . t)
               (:category-representation . :test)
               (:feature-selection . :all)
-              (:noise-amount . 0.1)
-              (:noise-prob . 0.1)
+              (:noise-amount . nil)
+              (:noise-prob . nil)
               (:scale-world . t))))
 
 (defparameter *experiment*
@@ -38,12 +38,45 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (test
+                   (new-strategy-no-noise
                     ((:shift-prototype . :always)
                      (:category-representation . :test)
                      (:update-certainty . t)
                      (:feature-selection . :all)
-                     (:noise . nil)
+                     (:noise-amount . nil)
+                     (:noise-prob . nil)
+                     (:scale-world . t)))
+                   (new-strategy-noise01-prob01
+                    ((:shift-prototype . :always)
+                     (:category-representation . :test)
+                     (:update-certainty . t)
+                     (:feature-selection . :all)
+                     (:noise-amount . 0.1)
+                     (:noise-prob . 0.1)
+                     (:scale-world . t)))
+                   (new-strategy-noise02-prob01
+                    ((:shift-prototype . :always)
+                     (:category-representation . :test)
+                     (:update-certainty . t)
+                     (:feature-selection . :all)
+                     (:noise-amount . 0.2)
+                     (:noise-prob . 0.1)
+                     (:scale-world . t)))
+                   (new-strategy-noise01-prob02
+                    ((:shift-prototype . :always)
+                     (:category-representation . :test)
+                     (:update-certainty . t)
+                     (:feature-selection . :all)
+                     (:noise-amount . 0.1)
+                     (:noise-prob . 0.2)
+                     (:scale-world . t)))
+                   (new-strategy-noise02-prob02
+                    ((:shift-prototype . :always)
+                     (:category-representation . :test)
+                     (:update-certainty . t)
+                     (:feature-selection . :all)
+                     (:noise-amount . 0.2)
+                     (:noise-prob . 0.2)
                      (:scale-world . t)))
                    )
                  :number-of-interactions 5000
