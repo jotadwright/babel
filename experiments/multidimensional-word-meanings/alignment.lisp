@@ -4,12 +4,13 @@
 ;; + Alignment +
 ;; -------------
 
+;;;; Adopting unknown words
 (define-event new-cxn-added (cxn fcg-construction))
 
-(defgeneric adopt-unknown-words (agent topic words category)
+(defgeneric adopt-unknown-words (agent topic words)
   (:documentation "Adopt unknown words"))
 
-(defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) words (category (eql :test)))
+(defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) words)
   (let ((meaning
          (loop with initial-certainty = (get-configuration agent :initial-certainty)
                for attr in (get-configuration agent :attributes)
@@ -19,6 +20,7 @@
           for new-cxn = (add-lex-cxn agent word meaning)
           do (notify new-cxn-added new-cxn))))
 
+;;;; Aligning known words
 (define-event scores-updated (cxn fcg-construction)
   (rewarded-attrs list)
   (punished-attrs list))
@@ -32,52 +34,36 @@
                  (mapcar #'car (attr-val cxn :meaning)))
         :test #'member))
 
-(defgeneric align-known-words (agent topic words category)
+(defgeneric align-known-words (agent topic strategy)
   (:documentation "Align known words"))
 
-(defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words category)
-  (declare (ignorable words category))
+;; similarity-based strategy
+(defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
+                              (strategy (eql :similarity-based)))
   (loop with rewarded
         with punished
         for (category . certainty) in (parsed-meaning agent)
         for cxn = (get-cxn-from-category agent category)
         for attr = (attribute category)
-        ;; update the prototype (mostly set to always)
-        do (case (get-configuration agent :shift-prototype)
-             (:on-success (when (communicated-successfully agent)
-                            (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
-             (:on-failure (unless (communicated-successfully agent)
-                            (shift-value cxn attr topic :alpha (get-configuration agent :alpha))))
-             (:always (shift-value cxn attr topic :alpha (get-configuration agent :alpha)
-                                   :success (communicated-successfully agent)))
-             (:never nil))
-        ;; adjust the certainty, when enabled
-        when (get-configuration agent :update-certainty)
+        ;; update the prototype
+        do (update-category category topic
+                            :alpha (get-configuration agent :alpha)
+                            :success (communicated-successfully agent)
+                            :interpreted-object (topic agent))
         ;; if the features were sampled, update the certainty
         ;; based on success. Otherwise, update the certainty
         ;; based on similarity.
         do (let ((sim (similarity topic category)))
-             (if (eql (get-configuration agent :feature-selection) :sampling)
-               (if (communicated-successfully agent)
-                 (progn (push attr rewarded)
-                   (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
-                 (progn (push attr punished)
-                   (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf)))))
-               (if (>= sim 0)
-                 (progn (push attr rewarded)
-                   (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
-                 (progn (push attr punished)
-                   (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf)))))))
+             (if (>= sim 0)
+               (progn (push attr rewarded)
+                 (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
+               (progn (push attr punished)
+                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf))))))
         ;; notify
         finally
         (notify scores-updated cxn rewarded punished)))
 
-
-;; When you see a word again, compare the concept to the object
-;; The things that are similar should be rewarded and updated
-;; The things that are too different should be punished
-;; Problem: defining concept representation and similarity
-
+;; discrimination-based strategy
 (defun discriminatingp (agent category topic)
   (let* ((context (remove topic (objects (context agent))))
          (topic-sim (similarity topic category))
@@ -86,8 +72,8 @@
                                        collect (similarity obj category)))))
     (> topic-sim best-object-sim)))
 
-(defmethod align-known-words ((agent mwm-agent) (topic mwm-object) words (category (eql :test)))
-  (declare (ignorable words))
+(defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
+                              (strategy (eql :discrimination-based)))
   (let ((categories-w-cxns (loop for (category . certainty) in (parsed-meaning agent)
                                  for cxn = (get-cxn-from-category agent category)
                                  collect (cons category cxn)))
@@ -112,7 +98,7 @@
     (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))   
         
  
-        
+;;;; Align Agent        
 (defgeneric align-agent (agent topic)
   (:documentation
    "The alignment procedure can be split in 2 cases:
@@ -138,14 +124,14 @@
           (loop for form in (utterance agent)
                 when (find-cxn-with-form agent form)
                 collect form))
-         (unknown-words (set-difference (utterance agent) known-words
-                                        :test #'string=))
-         (category-representation (get-configuration agent :category-representation)))
+         (unknown-words
+          (set-difference (utterance agent) known-words :test #'string=))
+         (alignment-strategy (get-configuration agent :alignment-strategy)))
     (notify alignment-started agent)
     (when unknown-words
       (notify adopting-words unknown-words)
-      (adopt-unknown-words agent topic unknown-words category-representation))
+      (adopt-unknown-words agent topic unknown-words))
     (when known-words
       (notify aligning-words known-words)
-      (align-known-words agent topic known-words category-representation))))
+      (align-known-words agent topic alignment-strategy))))
   
