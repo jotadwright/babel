@@ -105,7 +105,7 @@
                            (lower-bound category)
                            (upper-bound category)))))
 
-(defmethod category->s-dot-node ((category test-category))
+(defmethod category->s-dot-node ((category exponential-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
     (s-dot::label ,(format nil "~a~%~,2f (~,2f - ~,2f)"
                            (downcase (mkstr (attribute category)))

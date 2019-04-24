@@ -14,9 +14,8 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:shift-prototype . :always)
-              (:update-certainty . t)
-              (:category-representation . :test)
+   :entries '((:category-representation . :exponential)
+              (:alignment-strategy . :similarity-based)
               (:feature-selection . :all)
               (:noise-amount . nil)
               (:noise-prob . nil)
@@ -27,7 +26,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 200)
 
 (run-series *experiment* 3000)
 
