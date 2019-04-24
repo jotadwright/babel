@@ -46,7 +46,7 @@
                      (:noise-amount . nil)
                      (:noise-prob . nil)
                      (:scale-world . t)))
-                    #|(new-strategy-noise01-prob01
+                    (new-strategy-noise01-prob01
                     ((:shift-prototype . :always)
                      (:category-representation . :test)
                      (:update-certainty . t)
@@ -77,10 +77,10 @@
                      (:feature-selection . :all)
                      (:noise-amount . 0.2)
                      (:noise-prob . 0.2)
-                     (:scale-world . t)))|#
+                     (:scale-world . t)))
                    )
-                 :number-of-interactions 100000
-                 :number-of-series 1
+                 :number-of-interactions 20000
+                 :number-of-series 3
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"

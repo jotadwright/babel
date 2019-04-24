@@ -103,7 +103,11 @@
                                 :interpreted-object (topic agent)))
           else
           do (progn (push attr punished)
-               (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf))))
+               (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf))
+               (update-category category topic
+                                :alpha (get-configuration agent :alpha)
+                                :success (communicated-successfully agent)
+                                :interpreted-object (topic agent))))
     ;; shortcut!
     (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))   
         
