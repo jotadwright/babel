@@ -21,7 +21,7 @@
                                         amr-predicates)))
 
 
-(defparameter *amr-corpus* (utils:babel-pathname :directory '("grammars" "amr-grammar" "data")
+(defparameter *amr-corpus* (utils:babel-pathname :directory '("grammars" "amr-grammar" "amr-banarescu-english" "data")
                                                  :name "amr-corpus"
                                                  :type "csv"))
 
@@ -44,4 +44,3 @@
     (format t "=================================================================================~%")))
 
 ; (evaluate-amr-grammar)
-
