@@ -211,10 +211,6 @@
   (add-element `((div) ,(s-dot->svg
                          (cxn->s-dot cxn)))))
 
-(define-event-handler (trace-interaction-in-web-interface attr-value-shifted)
-  (add-element `((h2) ,(format nil "The ~a category for the word \"~a\" was updated"
-                               attr (attr-val cxn :form)))))
-
 (define-event-handler (trace-interaction-in-web-interface scores-updated)
   (add-element `((h2) ,(format nil "Attributes rewarded and punished for \"~a\"" (attr-val cxn :form))))
   (add-element `((div) ,(s-dot->svg
