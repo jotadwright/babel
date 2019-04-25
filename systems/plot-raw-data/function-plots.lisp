@@ -3,7 +3,9 @@
 (export '(create-function-plot))
 
 (defun create-function-plot (equations
-                             &key (title nil) (captions nil)
+                             &key
+                             (function-definitions nil)
+                             (title nil) (captions nil)
                              (plot-file-name nil)
                              (plot-directory nil)
                              (graphic-type "pdf")
@@ -19,16 +21,15 @@
                              (fsize 10)
                              (typeface "Helvetica"))
   "Plot several functions using gnuplot. This function expects a list
-   of function equations (in a list of strings) specified with x as a variable
-   and in a format that can be handled by gnuplot (e.g. 4*x instead of 4x).
-   Example: (create-function-plot '(\"2*x\" \"3*x\" \"4*x\"))"
+   of function definitions (in a list of strings) specified with x as the variable
+   and in a format that can be handled by gnuplot (e.g. f(x)=4*x instead of f(x)=4x).
+   See examples in the comments below."
   (let ((colors (loop for color in colors
                       for other-color in *great-gnuplot-colors*
                       collect (or color other-color)))
         (captions (loop for f in equations
                         for i from 0
-                        collect (or (nth i captions)
-                                    (format nil "f~a(x)=~a" (+ i 1) f))))
+                        collect (or (nth i captions) f)))
         (file-path (babel-pathname :name (or plot-file-name "function-plot")
                                    :type (if (equal graphic-type "postscript") "ps" graphic-type)
                                    :directory (or plot-directory '(".tmp")))))
@@ -47,17 +48,22 @@
     
       (format stream "~cset ytics nomirror" #\linefeed)
       (format stream "~cset style fill transparent solid 0.20 border" #\linefeed)
+
+      (when function-definitions
+        (loop for def in function-definitions
+              do (format stream "~c~a" #\linefeed def)))
       
       (loop for f in equations
-            for i from 1
-            do (format stream "~cf~a(x) = ~a" #\linefeed i f))
+            do (format stream "~c~a" #\linefeed f))
 
       (format stream "~cplot " #\linefeed)
       (loop for f in equations
             for source-number from 0
+            for function-name = (when (find #\= f)
+                                  (remove-spurious-spaces (first (split f #\=))))
             for color = (nth (mod source-number (length colors)) colors)
-            do (format stream "f~a(x) title ~s dt ~a lc rgb ~s ~:[~;, ~]"
-                       (+ source-number 1)
+            do (format stream "~a title ~s dt ~a lc rgb ~s ~:[~;, ~]"
+                       (or function-name f)
                        (nth source-number captions) ;; caption
                        (+ 2 (mod source-number 8)) ;; dash type
                        color ;; color
@@ -71,4 +77,9 @@
         (sleep 0.5)
         (open-file-in-os file-path)))))
 
-;(create-function-plot '("2*x" "3*x" "4*x") :title "pretty functions")    
+;; creating two simple functions
+;(create-function-plot '("f1(x)=2*x" "f2(x)=3*x"))
+
+;; creating two functions using an additional function definition
+;(create-function-plot '("normal(x,0,1)") :function-definitions '("normal(x, mu, sd) = (1/(sd*sqrt(2*pi)))*exp(-(x-mu)**2/(2*sd**2))") :x-min -3 :x-max 3 :y-min 0 :y-max nil)
+;(create-function-plot '("f(x)=normal(x,0,1)") :function-definitions '("normal(x, mu, sd) = (1/(sd*sqrt(2*pi)))*exp(-(x-mu)**2/(2*sd**2))") :x-min -3 :x-max 3 :y-min 0 :y-max nil)
