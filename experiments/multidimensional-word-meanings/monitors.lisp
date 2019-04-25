@@ -175,15 +175,16 @@
 
 ;;;; Export learner lexicon
 (defun export-learner-lexicon (agent &key (experiment-name 'baseline))
-  (loop for cxn in (constructions (grammar agent))
-        do (s-dot->image
-            (cxn->s-dot cxn)
-            :path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
-                                               "graphs" ,(mkstr experiment-name) "lexicon")
-                                  :name (format nil "~a" (attr-val cxn :form))
-                                  :type "pdf")
-            :format "pdf"
-            :open nil)))
+  (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                                "graphs" ,(downcase (mkstr experiment-name)) "lexicon"))))
+    (ensure-directories-exist base-path)
+    (loop for cxn in (constructions (grammar agent))
+          do (s-dot->image
+              (cxn->s-dot cxn)
+              :path (merge-pathnames (make-pathname :name (format nil "~a-cxn" (attr-val cxn :form)) :type "pdf")
+                                     base-path)
+              :format "pdf"
+              :open nil))))
 
 ;;;; Communicative success
 (define-monitor record-communicative-success

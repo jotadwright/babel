@@ -90,12 +90,12 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "new-strategy-no-noise"
+ :experiment-name "prototype-min-max-similarity-based"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
  :xlabel "Number of games"
- :y1-label "Success")  
+ :y1-label "Success")
 
 (create-graph-for-single-strategy
  :experiment-name "baseline"
