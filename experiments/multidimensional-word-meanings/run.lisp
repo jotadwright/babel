@@ -90,7 +90,7 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "prototype-min-max-similarity-based"
+ :experiment-name "exponential-discrimination-based"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
