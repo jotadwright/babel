@@ -4,6 +4,127 @@
 ;; + Monitors +
 ;; ------------
 
+(defun lexicon->function-plots (agent)
+  (loop for cxn in (constructions (grammar agent)) 
+        for experiment-name = (list-of-strings->string (list (downcase (mkstr (get-configuration agent :category-representation)))
+                                                             (downcase (mkstr (get-configuration agent :alignment-strategy))))
+                                                       :separator "-")
+        do (cxn->function-plot cxn (get-configuration agent :category-representation)
+                               :directory `("experiments" "multidimensional-word-meanings"
+                                            "graphs" ,experiment-name "function-plots"))))
+
+;;;; Export concepts (= cxns) as functions
+(defgeneric cxn->function-plot (cxn category-representation &key directory)
+  (:documentation "Plot the functions that are stored in the categories"))
+
+(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :min-max))
+                               &key (directory '(".tmp")))
+  (let ((equations
+         (loop for (category . certainty) in (attr-val cxn :meaning)
+               collect (format nil "box(x,~a,~a)"
+                               (lower-bound category)
+                               (upper-bound category)))))
+    (create-function-plot equations
+                          :function-definitions '("box(x,a,b)=(x>a && x<b) ? 1 : -1")
+                          :title (format nil "~a" (downcase (mkstr (name cxn))))
+                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          collect (format nil "~a" (downcase (mkstr (attribute category)))))
+                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
+                          :plot-directory directory
+                          :x-label nil :y-min -1.1 :y-max 1.1
+                          :open nil)))
+
+(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype))
+                                &key (directory '(".tmp")))
+  (let ((equations
+         (loop for (category . certainty) in (attr-val cxn :meaning)
+               collect (format nil "normal(x,~a,~a)"
+                               (prototype category)
+                               (sqrt (/ (M2 category) (nr-samples category)))))))
+    (create-function-plot equations
+                          :function-definitions '("normal(x,mu,sd) = (1/(sd*sqrt(2*pi)))*exp(-(x-mu)**2/(2*sd**2))")
+                          :title (format nil "~a" (downcase (mkstr (name cxn))))
+                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          collect (format nil "~a" (downcase (mkstr (attribute category)))))
+                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
+                          :plot-directory directory
+                          :x-label nil :y-min 0 :y-max nil
+                          :open nil)))
+
+(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype-min-max))
+                                &key (directory '(".tmp")))
+  (let ((equations
+         (loop for (category . certainty) in (attr-val cxn :meaning)
+               append (list (if (null (lower-m category))
+                              (format nil "box(x,~a)"
+                                      (prototype category))
+                              (format nil "lin(x,~a,~a)"
+                                      (lower-m category) (lower-b category)))
+                            (if (null (upper-m category))
+                              (format nil "box(x,~a)"
+                                      (prototype category))
+                              (format nil "lin(x,~a,~a)"
+                                      (upper-m category) (upper-b category)))))))
+    (create-function-plot equations
+                          :function-definitions '("lin(x,m,b) = m*x+b"
+                                                  "box(x,a) = (x > a-0.1 && x < a+0.1) ? 1 : -1")
+                          :title (format nil "~a" (downcase (mkstr (name cxn))))
+                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          append (list (format nil "~a-lower" (downcase (mkstr (attribute category))))
+                                                       (format nil "~a-upper" (downcase (mkstr (attribute category))))))
+                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
+                          :plot-directory directory
+                          :x-label nil :y-min -0.1
+                          :open nil)))
+
+#|
+(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :exponential))
+                                &key (directory '(".tmp")))
+  (let ((equations
+         (loop for (category . certainty) in (attr-val cxn :meaning)
+               append (list (format nil "decay(x,~a)"
+                                    (left-sigma category))
+                            (format nil "decay(x,~a)"
+                                    (- (right-sigma category)))))))
+    (create-function-plot equations
+                          :function-definitions '("decay(x,s)=exp(s*x)")
+                          :title (format nil "~a" (downcase (mkstr (name cxn))))
+                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          append (list (format nil "~a-lower" (downcase (mkstr (attribute category))))
+                                                       (format nil "~a-upper" (downcase (mkstr (attribute category))))))
+                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
+                          :plot-directory directory
+                          :x-label nil :y-min 0 :x-min -0.5 :x-max 0.5
+                          :open nil)))
+|#
+
+
+(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :exponential))
+                               &key (directory '(".tmp")))
+  (let* ((p-values
+          (loop for (category . certainty) in (attr-val cxn :meaning)
+                append (list (sqrt (/ 1.0 (expt 2 (/ (* (- (left-sigma category)) (prototype category)) (log 2)))))
+                             (sqrt (/ 1.0 (expt 2 (/ (* (- (right-sigma category)) (prototype category)) (log 2))))))))
+         (equations
+          (loop for (category . certainty) in (attr-val cxn :meaning)
+                for i from 0
+                append (list (format nil "decay(x,~a,~a)"
+                                     (left-sigma category)
+                                     (- (nth (* 2 i) p-values)))
+                             (format nil "decay(x,~a,~a)"
+                                     (- (right-sigma category))
+                                     (nth (+ (* 2 i) 1) p-values))))))
+    (create-function-plot equations
+                          :function-definitions '("decay(x,s,p)=2**(((s*x)/log(2))+p)")
+                          :title (format nil "~a" (downcase (mkstr (name cxn))))
+                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          append (list (format nil "~a-lower" (downcase (mkstr (attribute category))))
+                                                       (format nil "~a-upper" (downcase (mkstr (attribute category))))))
+                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
+                          :plot-directory directory
+                          :x-label nil :y-min 0
+                          :open nil)))
+
 ;;;; Tutor used attribute
 ;; a-list monitor that keeps track of the attribute used by the tutor
 ;; (color, shape, size, material, x-pos or y-pos)

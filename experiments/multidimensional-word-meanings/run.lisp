@@ -15,7 +15,7 @@
 (defparameter *configuration*
   (make-configuration
    :entries '((:category-representation . :exponential)
-              (:alignment-strategy . :similarity-based)
+              (:alignment-strategy . :discrimination-based)
               (:feature-selection . :all)
               (:noise-amount . nil)
               (:noise-prob . nil)
@@ -31,6 +31,7 @@
 (run-series *experiment* 3000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
+(lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
 
 ;; ---------------------------------
 ;; + Running series of experiments +
