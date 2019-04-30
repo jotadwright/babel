@@ -127,12 +127,27 @@
 
 (define-event production-finished (agent mwm-agent))
 
+(defparameter *synonyms*
+  '((cube . ("cube" "block")) (sphere . ("sphere" "ball")) (cylinder . ("cylinder"))
+    (gray . ("gray")) (red . ("red")) (blue . ("blue")) (green . ("green"))
+    (brown . ("brown")) (purple . ("purple")) (cyan . ("cyan")) (yellow . ("yellow"))
+    (left . ("left")) (right . ("right")) (front . ("front")) (behind . ("behind"))
+    (small . ("small" "tiny")) (large . ("large" "big"))
+    (metal . ("metal" "metallic" "shiny")) (rubber . ("rubber" "matte"))))
+
+
 ;;; Tutor production
 (defmethod produce-word ((agent mwm-agent) (role (eql 'tutor)))
-  "Simply make strings from the symbols"
+  "Simply make strings from the symbols. When lexical variation is
+   enabled, the tutor randomly chooses one of the available
+   synonyms."
   (setf (utterance agent)
-        (mapcar (compose #'downcase #'mkstr)
-                (discriminative-set agent)))
+        (if (get-configuration agent :lexical-variation)
+          (loop for attr in (discriminative-set agent)
+                for synonyms = (rest (assoc attr *synonyms*))
+                collect (random-elt synonyms))
+          (mapcar (compose #'downcase #'mkstr)
+                  (discriminative-set agent))))
   (notify production-finished agent)
   (utterance agent))
 

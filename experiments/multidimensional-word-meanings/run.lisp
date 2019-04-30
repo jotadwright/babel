@@ -16,6 +16,7 @@
   (make-configuration
    :entries '((:category-representation . :exponential)
               (:alignment-strategy . :discrimination-based)
+              (:lexical-variation . t)
               (:feature-selection . :all)
               (:noise-amount . nil)
               (:noise-prob . nil)
@@ -28,7 +29,7 @@
 
 (run-series *experiment* 200)
 
-(run-series *experiment* 3000)
+(run-series *experiment* 10000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
@@ -38,51 +39,27 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (new-strategy-no-noise
-                    ((:shift-prototype . :always)
-                     (:category-representation . :test)
-                     (:update-certainty . t)
+                   (exponential-discrimination-no-variation
+                    ((:category-representation . :exponential)
+                     (:alignment-strategy . :discrimination-based)
+                     (:lexical-variation . nil)
                      (:feature-selection . :all)
                      (:noise-amount . nil)
                      (:noise-prob . nil)
                      (:scale-world . t)))
-                    (new-strategy-noise01-prob01
-                    ((:shift-prototype . :always)
-                     (:category-representation . :test)
-                     (:update-certainty . t)
+                   (exponential-discrimination-with-variation
+                    ((:category-representation . :exponential)
+                     (:alignment-strategy . :discrimination-based)
+                     (:lexical-variation . t)
                      (:feature-selection . :all)
-                     (:noise-amount . 0.1)
-                     (:noise-prob . 0.1)
-                     (:scale-world . t)))
-                   (new-strategy-noise02-prob01
-                    ((:shift-prototype . :always)
-                     (:category-representation . :test)
-                     (:update-certainty . t)
-                     (:feature-selection . :all)
-                     (:noise-amount . 0.2)
-                     (:noise-prob . 0.1)
-                     (:scale-world . t)))
-                   (new-strategy-noise01-prob02
-                    ((:shift-prototype . :always)
-                     (:category-representation . :test)
-                     (:update-certainty . t)
-                     (:feature-selection . :all)
-                     (:noise-amount . 0.1)
-                     (:noise-prob . 0.2)
-                     (:scale-world . t)))
-                   (new-strategy-noise02-prob02
-                    ((:shift-prototype . :always)
-                     (:category-representation . :test)
-                     (:update-certainty . t)
-                     (:feature-selection . :all)
-                     (:noise-amount . 0.2)
-                     (:noise-prob . 0.2)
+                     (:noise-amount . nil)
+                     (:noise-prob . nil)
                      (:scale-world . t)))
                    )
                  :number-of-interactions 20000
-                 :number-of-series 3
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
-                                 ;"export-lexicon-size"
+                                 "export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-utterance-length"
                                  ))
@@ -107,11 +84,14 @@
  :xlabel "Number of games")
 
 (create-graph-comparing-strategies
- :experiment-names '("new-strategy-no-noise"
-                     "new-strategy-noise01-prob01"
-                     "new-strategy-noise01-prob02"
-                     "new-strategy-noise02-prob01"
-                     "new-strategy-noise02-prob02")
+ :experiment-names '("exponential-discrimination-no-variation"
+                     "exponential-discrimination-with-variation")
  :measure-name "communicative-success"
  :y-max 1 :xlabel "Number of games" :y1-label "Success")
+
+(create-graph-comparing-strategies
+ :experiment-names '("exponential-discrimination-no-variation"
+                     "exponential-discrimination-with-variation")
+ :measure-name "lexicon-size"
+ :y-max nil :xlabel "Number of games" :y1-label "Success")
   
