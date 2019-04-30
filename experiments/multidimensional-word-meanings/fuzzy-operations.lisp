@@ -37,8 +37,7 @@
              ((and a-entry b-entry
                    (> (cdr b-entry) (cdr a-entry)))
               b-entry)
-             (a-entry a-entry)
-             (b-entry b-entry))
+             (t (or a-entry b-entry)))
             result)
         finally
         (return result)))
@@ -52,13 +51,3 @@
 
 (defun fuzzy-difference (a b)
   (set-difference a b :key #'first))
-
-(defun overlap (combined-meaning object-categories)
-  "Compute the overlap between the combined meaning
-   of an utterance and the fuzzy-set representation
-   of an object"
-  (float (/ (- (* (fuzzy-cardinality (fuzzy-intersection combined-meaning object-categories))
-                  (fuzzy-cardinality (fuzzy-intersection object-categories combined-meaning)))
-               (* (fuzzy-cardinality (fuzzy-difference combined-meaning object-categories))
-                  (fuzzy-cardinality (fuzzy-difference object-categories combined-meaning))))
-            (* (fuzzy-cardinality combined-meaning) (fuzzy-cardinality object-categories)))))

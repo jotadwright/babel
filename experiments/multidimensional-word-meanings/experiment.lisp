@@ -14,6 +14,7 @@
                                                                :name "CLEVR_train_full_per_line" :type "json")
                                                 cl-user:*babel-corpora*)))
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks) ; :tutor-speaks :learner-speaks :default
+;; what attributes to use
 (define-configuration-default-value :attributes '(x-pos y-pos
                                                   area wh-ratio
                                                   R G B roughness
@@ -22,8 +23,6 @@
 (define-configuration-default-value :certainty-incf 0.1)
 (define-configuration-default-value :certainty-decf -0.1)
 (define-configuration-default-value :alpha 0.05)
-(define-configuration-default-value :lexical-variation nil) ; nil or t
-(define-configuration-default-value :max-tutor-utterance-length 1) ; nil or int
 (define-configuration-default-value :remove-on-lower-bound t) ; t or nil
 (define-configuration-default-value :category-representation :exponential) ; :min-max :prototype :prototype-min-max :exponential
 (define-configuration-default-value :alignment-strategy :discrimination-based)
@@ -31,6 +30,11 @@
 (define-configuration-default-value :noise-amount nil) ; nil or float in [0,1]
 (define-configuration-default-value :noise-prob nil) ; nil or float in [0,1]
 (define-configuration-default-value :scale-world t)  ; t or nil
+
+(define-configuration-default-value :max-tutor-utterance-length 1) ; nil or int
+(define-configuration-default-value :lexical-variation nil) ; nil or t
+(define-configuration-default-value :perceptual-deviation nil) ; nil or t
+(define-configuration-default-value :tutor-lexicon :symbolic) ; symbolic or continuous
 
 ;; --------------
 ;; + Experiment +

@@ -63,11 +63,6 @@
                         (subunits set)
                         (footprints set))))))
 
-;; ------------------
-;; + Discrimination +
-;; ------------------
-
-
 ;; ---------------------
 ;; + Conceptualisation +
 ;; ---------------------
@@ -118,6 +113,45 @@
       (setf (discriminative-set agent) discriminative-set))
     (notify conceptualisation-finished agent)
     (discriminative-set agent)))
+
+
+;;; Tutor conceptualisation with continuous values.
+
+;;; According to Wellens' adaptive strategy:
+;;; loop with utterance = nil
+;;;      while t
+;;;      for best-new-word = (argmax for word in words (overlap (union word utterance) topic))
+;;;      for new-similarity = (overlap (union utterance best-new-word) topic)
+;;;      if new-similarity > previous-similarity >= 0
+;;;      do (setf utterance (union best-new-word utterance))
+;;;      else (return utterance)
+
+;;; This immediately allows for multi-word utterances.
+;;; To constrain for single word, only take the first best word.
+;;; Should the concept of discrimination be used?
+;;; Should the concept of re-entrance be used?
+
+(defmethod conceptualise ((agent mwm-agent))
+  (loop with utterance = nil ; list of cxns
+        with utterance-meaning = nil ; combined meaning
+        with best-similarity = 0
+        ; utterance has a max length
+        while (length< utterance (get-configuration agent :max-tutor-utterance-length))
+        for best-new-word = (extremum (constructions (grammar agent))
+                                      :key #'(lambda (cxn)
+                                               (let* ((cxn-meaning (attr-val cxn :meaning))
+                                                      (total-meaning (fuzzy-union cxn-meaning utterance-meaning)))
+                                                 (weighted-similarity (topic agent) total-meaning)))  
+                                      :test #'>)
+        for new-similarity = (let* ((cxn-meaning (attr-val best-new-word :meaning))
+                                    (extended-meaning (fuzzy-union cxn-meaning utterance-meaning)))
+                               (weighted-similarity (topic agent) extended-meaning))
+        if (> new-similarity best-similarity)
+        do (progn (push best-new-word utterance)
+             (setf utterance-meaning (fuzzy-union (attr-val best-new-word :meaning) utterance-meaning))
+             (setf best-similarity new-similarity))
+        else
+        do (return utterance)))
 
 ;; --------------
 ;; + Production +
