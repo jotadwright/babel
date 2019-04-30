@@ -28,9 +28,11 @@
 (defun evaluate-amr-grammar (&key (filepath *amr-corpus*) (series 5) (cxn-inventory *fcg-constructions*))
   (let ((amr-sentences-meanings (with-open-file (inputstream filepath)
                                   (loop for line = (read-line inputstream nil nil)
+                                        for i from 0
                                         while line
+                                        do (format t "Reading line ~a~%" i)
                                         collect (list (first (split-sequence:split-sequence #\Tab line))
-                                                      (read-from-string (second (split-sequence:split-sequence #\Tab line))))))))
+                                                      (read-from-string (last-elt (split-sequence:split-sequence #\Tab line))))))))
     (format t "~%======== The following sentences were not always comprehended correctly ========~%~%")
     (loop for sentence-meaning in amr-sentences-meanings
           for sentence = (first sentence-meaning)

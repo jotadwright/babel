@@ -11,8 +11,9 @@
                   (footprints set))
   :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-first)
                        (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
-                       (:max-nr-of-nodes . 1000))
+                       (:max-nr-of-nodes . 5000))
 
+  
 ;; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;; 1. Lexical and Morphological Constructions
 ;; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1021,6 +1022,7 @@
 ;; -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ;; 1.8. Proper Nouns
 ;; -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 (def-fcg-cxn Dutch-cxn
              ((?Dutch-unit
                (referent ?c)
@@ -1042,8 +1044,8 @@
                          (:op1 ?n "Elsevier")))
                (syn-cat (lex-class proper-noun)
                         (syn-function nominal))
-               (boundaries (leftmost-unit ?Elsevier-unit)
-                           (rightmost-unit ?Elsevier-unit)))
+               (sem-cat (sem-class person))
+               (sem-valence (name ?m)))
               <-
               (?Elsevier-unit
                --
@@ -1072,7 +1074,9 @@
                           (:op1 ?n "Obama")))
                 (syn-cat (syn-function nominal)
                          (lex-class proper-noun))
-                (sem-cat (sem-class person)))
+                (sem-cat (sem-class person))
+                (boundaries (leftmost-unit ?obama-unit)
+                            (rightmost-unit ?obama-unit)))
                <-
                (?Obama-unit
                 --
@@ -1099,11 +1103,21 @@
 
 (def-fcg-cxn its-contracted-cxn
              ((?its-contracted-unit
-              (syn-cat (syn-function subject)))
+              (syn-cat (syn-function subject)
+                        (lex-class verb)
+                        (light +)))
               <-
               (?its-contracted-unit
                --
                (HASH form ((string ?its-contracted-unit "it's"))))))
+
+(def-fcg-cxn that-cxn 
+             ((?that-unit
+               (syn-cat (lex-class pronoun)))
+              <-
+              (?that-unit
+               --
+               (HASH form ((string ?that-unit "that"))))))
 
 (def-fcg-cxn what-thing-cxn 
              ((?what-thing-unit
@@ -1254,8 +1268,9 @@
              ((?doesnt-unit
                (syn-cat (lex-class verb)
                         (finite +)
+                        (polarity -)
                         (auxiliary +)
-                        (positive +)))
+                        (positive -)))
               <-
               (?doesnt-unit
                --
@@ -1342,6 +1357,7 @@
                         (lex-class verb)
                         (finite +)
                         (modal +))
+               (sem-valence (:arg2 ?arg2))
                (boundaries (leftmost-unit ?have-unit)
                            (rightmost-unit ?to-unit))
                 (subunits (?to-unit ?have-unit)))
@@ -1382,7 +1398,19 @@
                --
                (HASH form ((string ?increased-unit "increased"))))))
 
-(def-fcg-cxn is-copular-cxn
+(def-fcg-cxn is-domain-cxn
+             ((?is-copular-unit
+               (referent ?is)
+               (syn-cat (lex-class verb)
+                        (is-copular +)
+                        (light +)
+                        (arg1-preposition -)))
+              <-
+              (?is-copular-unit
+               --
+               (HASH form ((string ?is-copular-unit "is"))))))
+
+(def-fcg-cxn is-arg1-cxn
              ((?is-copular-unit
                (referent ?is)
                (syn-cat (lex-class verb)
@@ -1398,8 +1426,9 @@
              ((?isnt-unit
                (syn-cat (lex-class verb)
                         (finite +)
-                        (auxiliary +)
-                        (positive -)))
+                        (polarity -)
+                        (auxiliary +)))
+                        ;;(positive -)))
               <-
               (?isnt-unit
                --
@@ -1430,11 +1459,11 @@
 (def-fcg-cxn must-cxn
              ((?must-unit
                (referent ?p)
-               (meaning ((obligate-01 ?p))
+               (meaning ((obligate-01 ?p)))
                (syn-cat (lex-class verb)
                         (finite +)
                         (polarity +)
-                        (modal +)))
+                        (modal +))
                (sem-valence (:arg2 ?arg2)))
               <-
               (?must-unit
@@ -1458,27 +1487,51 @@
 (def-fcg-cxn obliged-cxn
              ((?obliged-unit
                (referent ?p)
-               (meaning ((obligate-01 ?p))
                (syn-cat (lex-class verb)
                         (finite +)
                         (passive +)
+                        (modal +)
                         (main +)
-                        (to-infinitive +)))
+                        (to-infinitive +))
                (sem-valence (:arg2 ?arg2)))
               <-
               (?obliged-unit
                --
                (HASH form ((string ?obliged-unit "obliged"))))))
 
+(def-fcg-cxn obliged-to-cxn
+             ((?obliged-to-unit
+               (referent ?p)
+               (meaning ((obligate-01 ?p)))
+               (syn-cat ((meaning (obligate-01 ?p)))
+                        (lex-class verb)
+                        (finite +)
+                        (modal +))
+               (sem-valence (:arg2 ?arg2))
+               (boundaries (leftmost-unit ?obliged-unit)
+                           (rightmost-unit ?to-unit))
+                (subunits (?to-unit ?obliged-unit)))
+              <-
+              (?to-unit
+              --
+              (form ((string ?to-unit "to"))))
+              (?obliged-unit
+               --
+               (form ((string ?obliged-unit "obliged"))))
+              (?obliged-to-unit
+               --
+               (HASH form ((meets ?obliged-unit ?to-unit))))))
+
 (def-fcg-cxn obligatory-cxn
              ((?obligatory-unit
-               (referent ?o)
+               (referent ?p)
                (meaning ((obligate-01 ?p)))
                (syn-cat (lex-class verb)
                         (finite +)
                         (positive +)
-                        (modal +))
-               (sem-valence (:arg2 ?arg2)))
+                        (modal +)
+                        (syn-function verbal)
+                        (arg2 -)))
               <-
               (?obligatory-unit
                --
@@ -1497,7 +1550,7 @@
                 --
                 (HASH form ((string ?opined-unit "opined"))))))
 
-(def-fcg-cxn pleasing-morph-cxn
+(def-fcg-cxn pleasing-cxn
              ((?pleasing-unit
                (referent ?p)
                (meaning ((please-01 ?p)))
@@ -1511,7 +1564,7 @@
                 --
                 (HASH form ((string ?pleasing-unit "pleasing"))))))
 
-(def-fcg-cxn please-morph-cxn
+(def-fcg-cxn please-cxn
              ((?please-unit
                (referent ?p)
                (meaning ((please-01 ?p)))
@@ -1641,6 +1694,7 @@
                (meaning ((think-01 ?t-1)))
                (syn-cat (lex-class verb)
                         (finite -)
+                        (main +)
                         (transitive -)))
                <-
                (?think-unit
@@ -1703,7 +1757,7 @@
                (meaning ((?be-located-at-91 ?b)))
                (syn-cat (lex-class verb)
                         (finite +)
-                        (auxiliary +)
+                        (auxiliary -)
                         (light -)
                         (syn-function location)))
               <-
@@ -1714,9 +1768,10 @@
 (def-fcg-cxn win-cxn
              ((?win-unit
                (referent ?w)
-               (meaning ((?win-01 ?w)))
+               (meaning ((win-01 ?w)))
                (syn-cat (lex-class verb)
-                        (finite -)))
+                        (finite -)
+                        (main +)))
               <-
               (?win-unit
                --
@@ -1869,18 +1924,49 @@
                (referent ?verb)
                (syn-cat (lex-class verb)
                         (finite ?+)
+                        ;(finite (NOT +))
                         (NOT (auxiliary +))
                         (NOT (ergative +))
                         (NOT (modal +))
                         (NOT (light +))))))
 
+(def-fcg-cxn aux-VP-positive-cxn  ;; auxiliary negative not contracted (not-unit present)
+             ((?vp-unit
+               (referent ?ref-inf)
+               (syn-cat (phrase-type verb-phrase)
+                        (number ?n)
+                        (person ?p)
+                        (syn-function verbal)
+                        (passive -)
+                        (infinitive-clause -))
+               (subunits (?aux ?infinitive-verb))
+               (boundaries (rightmost-unit ?infinitive-rightmost-verb)
+                           (leftmost-unit ?aux)))
+               <-
+               (?aux
+                --
+                (referent ?ref-aux)
+                (syn-cat (auxiliary +)
+                         (positive +)))
+                (?infinitive-verb
+                --
+                (referent ?ref-inf)
+                (syn-cat (phrase-type verb-phrase))
+                (boundaries (leftmost-unit ?infinitive-verb-leftmost-unit)
+                            (rightmost-unit ?infinitive-verb-rightmost-unit))
+                (subunits (?verb-unit)))
+                (?verb-unit
+                --
+                (syn-cat (finite -)))
+                (?vp-unit
+                --
+                (HASH form ((precedes ?aux ?infinitive-leftmost-verb))))))
+
 (def-fcg-cxn compound-tense-cxn
              ((?compound-tense-unit
                (referent ?non-fin)
-               (syn-cat (phrase-type verb-phrase)
-                        (passive -)
-                        (infinitive-clause -))
-               (boundaries (rightmost-unit ?non-finite-verb-unit)
+               (syn-cat (lex-class verb))
+               (boundaries (rightmost-unit ?non-finite-verb-rightmost-unit)
                            (leftmost-unit ?auxiliary-unit))
                (subunits (?auxiliary-unit ?non-finite-verb-unit)))
               <-
@@ -1892,7 +1978,9 @@
               (?non-finite-verb-unit
                --
                (referent ?non-fin)
-               (syn-cat (finite -)))
+               (syn-cat (compound-tense +))
+               (boundaries (rightmost-unit ?non-finite-verb-rightmost-unit)
+                           (leftmost-unit ?non-finite-verb-leftmost-unit)))
               (?compound-tense-unit
                --
                (HASH form ((meets ?auxiliary-unit ?non-finite-verb))))))
@@ -2000,7 +2088,7 @@
 (def-fcg-cxn inverse-agent-of-a-nominal-is-an-adjective-cxn ;; arg1-of of an adjective is adjective
              ((?inverse-agent-of-adjective-unit 
                 (referent ?nominal)
-                (meaning ((:arg0-of ?nominal ?arg0of)))
+                (meaning ((:arg0-of ?nominal ?a)))
                 (syn-cat (phrase-type nominal)
                          (syn-function nominal))
                 (boundaries (leftmost-unit ?adjective-unit)
@@ -2009,7 +2097,7 @@
               <-
               (?adjective-unit
                --
-               (referent ?arg0o)
+               (referent ?a)
                (syn-cat (lex-class adjective)
                         (syn-function ?adjectival))
                (sem-cat (sem-class quality)))
@@ -2180,7 +2268,7 @@
 ;; -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 (def-fcg-cxn agent-y-of-x-cxn ;; arg0 preposition
-             ((? agent-y-of-x-unit
+             ((?agent-y-of-x-unit
                (referent ?g)
                (meaning ((:arg0 ?o ?g)))
                 (subunits (?np-x2-unit ?np-y2-unit ?of-preposition-unit))
@@ -2207,7 +2295,7 @@
                 --
                (syn-cat (lex-class preposition))
                 (form ((string ?of-preposition-unit "of"))))
-               (? agent-y-of-x-unit
+               (?agent-y-of-x-unit
                 --
                 (HASH form ((meets ?np-x2-rightmost-unit ?of-preposition-unit)
                             (meets ?of-preposition-unit ?np-y2-leftmost-unit))))))
@@ -2283,6 +2371,104 @@
                 --
                 (HASH form ((meets ?nominal-rightmost-unit ?preposition-unit)
                             (meets ?preposition-unit ?arg2-leftmost-unit))))))
+
+(def-fcg-cxn not-be-located-at-cxn ;; not :arg1 (the marble is in the not jar)
+             ((?not-be-located-at-unit
+               (referent ?b)
+               (syn-cat (phrase-type verb-phrase))
+               (meaning ((:arg1 ?b ?m)
+                         (:arg2 ?b ?j)
+                         (:polarity ?b -)))
+               (subunits (?patient-unit ?be-located-unit ?not-unit ?arg2-unit ?in-preposition-unit))
+               (boundaries (leftmost-unit ?patient-leftmost-unit)
+                           (rightmost-unit ?arg2-rightmost-unit)))
+               <-
+               (?patient-unit
+               --
+               (referent ?m)
+               (syn-cat (phrase-type noun-phrase))
+               (boundaries (leftmost-unit ?patient-leftmost-unit)
+                           (rightmost-unit ?patient-rightmost-unit)))
+               (?not-unit
+                --
+                (syn-cat (lex-class adverb))
+                (form ((string ?not-unit "not"))))
+               (?be-located-unit
+                --
+                (referent ?b)
+                (meaning ((be-located-at-91 ?b))))
+               (?in-preposition-unit
+               --
+               (syn-cat (lex-class preposition))
+               (form ((string ?in-preposition-unit "in"))))
+               (?arg2-unit
+               --
+               (referent ?j)
+               (syn-cat (phrase-type noun-phrase))
+               (boundaries (leftmost-unit ?arg2-leftmost-unit)
+                           (rightmost-unit ?arg2-rightmost-unit)))
+               (?not-be-located-at-unit
+                --
+                (HASH form ((meets ?patient-rightmost-unit ?be-located-unit)
+                            (meets ?be-located-unit ?not-unit)
+                            (meets ?not-unit ?in-preposition-unit)
+                            (meets ?in-preposition-unit ?arg2-leftmost-unit))))))
+
+(def-fcg-cxn passive-nominal-cxn ;; by preposition 
+            ((?passive-nominal-unit
+              (meaning ((:arg0 ?d ?b)))
+              (referent ?b)
+              (subunits (?agent-unit ?preposition-unit ?clause-unit))
+              (boundaries (rightmost-unit ?agent-rightmost-unit)
+                           (leftmost-unit ?clause-leftmost-unit)))
+             <-
+             (?agent-unit
+              --
+              (referent ?b)
+              (syn-cat (phrase-type noun-phrase))
+              (boundaries (leftmost-unit ?agent-leftmost-unit)
+                          (rightmost-unit ?agent-rightmost-unit)))
+              (?preposition-unit
+              --
+              (form ((string ?preposition-unit "by"))))
+              (?clause-unit
+              --
+              (referent ?d)
+              (syn-cat (main-clause +))
+              (boundaries (leftmost-unit ?clause-leftmost-unit)
+                          (rightmost-unit ?clause-rightmost-unit)))
+              (?passive-nominal-unit
+               --
+               (HASH form ((meets ?clause-rightmost-unit ?preposition-unit)
+                           (meets ?preposition-unit ?agent-leftmost-unit))))))
+
+(def-fcg-cxn arg2-cxn ;;arg2 preposition 
+         ((?comparative-unit
+           (meaning ((:arg2 ?d ?d)))
+            (referent ?d)
+            (subunits (?conclusion-unit ?linking-unit ?clause-unit))
+            (boundaries (rightmost-unit ?conclusion-rightmost-unit)
+                        (leftmost-unit ?clause-leftmost-unit)))
+            <-
+            (?conclusion-unit
+            --
+            (referent ?d)
+            (syn-cat (phrase-type ?nominal))
+            (boundaries (leftmost-unit ?conclusion-leftmost-unit)
+                        (rightmost-unit ?conclusion-rightmost-unit)))
+            (?linking-unit
+            --
+            (syn-cat (syn-function preposition-arg2)))
+            (?clause-unit
+            --
+            (referent ?d)
+            (syn-cat (main-clause +))
+            (boundaries (leftmost-unit ?clause-leftmost-unit)
+                        (rightmost-unit ?clause-rightmost-unit)))
+            (?comparative-unit
+             --
+             (HASH form ((meets ?clause-rightmost-unit ?linking-unit)
+                         (meets ?linking-unit ?conclusion-leftmost-unit))))))
 
 
 
@@ -2474,10 +2660,11 @@
                (referent ?p)
                (meaning ((:name ?p ?n)))
                (subunits (?nominal-1-unit ?nominal-2-unit))
-               (syn-cat (phrase-type noun-phrase)
+               (syn-cat (lex-class proper-noun)
+                        (inverse-arg0 +)
                         (named-entity-type person))
                (boundaries (leftmost-unit ?nominal-1-leftmost-unit)
-                           (rightmost-unit ?nominal-2-unit)))
+                           (rightmost-unit ?nominal-2-rightmostunit)))
               <-
               (?nominal-1-unit
                --
@@ -2490,10 +2677,14 @@
                --
                (referent ?n)
                (syn-cat (syn-function nominal)
-                        (lex-class proper-noun)))
+                        (lex-class proper-noun))
+               (sem-cat (sem-class person))
+               (boundaries (leftmost-unit ?nominal-2-leftmost-unit)
+                           (rightmost-unit ?nominal-2-rightmost-unit)))
               (?proper-noun-entity-unit
                --
-               (HASH form ((meets ?nominal-1-rightmost-unit ?nominal-2-unit))))))
+               (HASH form ((meets ?nominal-1-rightmost-unit ?nominal-2-leftmost-unit))))))
+
 
 (def-fcg-cxn named-entity-title-cxn ;; Obama the president
               ((?named-entity-title-unit
@@ -2503,7 +2694,7 @@
                 (syn-cat (phrase-type noun-phrase)
                          (named-entity-type person))
                 (sem-cat (sem-class ?class))
-                (boundaries (leftmost-unit ?nominal-1-unit)
+                (boundaries (leftmost-unit ?nominal-1-leftmost-unit)
                             (rightmost-unit ?noun-phrase-rightmost-unit)))
                <-
                (?nominal-1-unit
@@ -2511,7 +2702,9 @@
                 (referent ?n)
                  (syn-cat (lex-class proper-noun)
                           (syn-function nominal))
-                 (sem-cat (sem-class person)))
+                 (sem-cat (sem-class person))
+                 (boundaries (leftmost-unit ?nominal-1-leftmost-unit)
+                             (rightmost-unit ?nominal-2-rightmost-unit)))
                 (?noun-phrase
                 --
                 (referent ?p)
@@ -2520,7 +2713,7 @@
                             (rightmost-unit ?noun-phrase-rightmost-unit)))
                (?named-entity-title-unit
                 --
-                (HASH form ((precedes ?nominal-1-unit ?noun-phrase-leftmost-unit))))))
+                (HASH form ((precedes ?nominal-1-rightmost-unit ?noun-phrase-leftmost-unit))))))
 
 (def-fcg-cxn nominal-source-nominal-cxn ;; source of nominal is another nominal 
              ((?nominal-source-nominal-unit 
@@ -2717,7 +2910,70 @@
                             (precedes ?preposition-unit ?article-unit)
                             (precedes ?article-unit ?source-unit))))))  
 
+;; -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;; 3.2.5. Proper Nouns  - General Semantic Relations Constructions
+;; -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+;; I needed to create two dufferent constructions since Elsevier group and group Elsevier are in two different order 
+
  
+(def-fcg-cxn group-Elsevier-cxn
+             ((?group-Elsevier-unit
+               (subunits (?group-unit ?first-name-unit))
+               (referent ?g)
+               (syn-cat (phrase-type noun-phrase)
+                        (syn-function nominal)
+                        (inverse-arg0 +))
+               (boundaries (rightmost-unit ?first-name-rightmost-unit)
+                           (leftmost-unit ?group-leftmost-unit))
+               (meaning ((:name ?g ?n)))
+                (sem-cat (sem-class person))
+                (syn-cat (lex-class proper-noun)
+                         (syn-function nominal)))
+              <-
+              (?first-name-unit
+               --
+               (referent ?n)
+               (syn-cat (phrase-type noun-phrase)
+                        (named-entity-type group))
+               (boundaries (leftmost-unit ?first-name-leftmost-unit)
+                           (rightmost-unit ?first-name-rightmost-unit)))
+               (?group-unit
+                --
+                (referent ?g)
+                (syn-cat (phrase-type nominal))
+                (boundaries (leftmost-unit ?group-leftmost-unit)
+                            (rightmost-unit ?group-rightmost-unit)))
+               (?group-Elsevier-unit
+                --
+                (HASH form ((meets ?group-rightmost-unit ?first-name-leftmost-unit))))))
+
+
+(def-fcg-cxn Elsevier-group-cxn
+             ((?Elsevier-group-unit
+               (subunits (?group-unit ?first-name-unit))
+               (referent ?g)
+               (boundaries (rightmost-unit ?group-rightmost-unit)
+                           (leftmost-unit ?first-name-leftmost-unit))
+               (meaning ((:name ?g ?n))))
+              <-
+              (?first-name-unit
+               --
+               (referent ?n)
+               (syn-cat (phrase-type noun-phrase)
+                        (named-entity-type group))
+               (boundaries (leftmost-unit ?first-name-leftmost-unit)
+                           (rightmost-unit ?first-name-rightmost-unit)))
+               (?group-unit
+                --
+                (referent ?g)
+                (syn-cat (phrase-type noun-phrase))
+                (boundaries (leftmost-unit ?group-leftmost-unit)
+                            (rightmost-unit ?group-rightmost-unit)))
+               (?Elsevier-group-unit
+                --
+                (HASH form ((precedes ?first-name-rightmost-unit ?group-leftmost-unit))))))
+
 ;;************************************************************************************************************************************************************************************
 ;; 4.  Relations for Lists Constructions
 ;;************************************************************************************************************************************************************************************
@@ -2758,18 +3014,25 @@
              ((?named-entity-unit
                (referent ?n)
                (syn-cat (lex-class proper-noun)
-                          (syn-function nominal))
+                         (syn-function nominal)
+                         (named-entity-type person))
                (sem-cat (sem-class person))
-               (meaning ((:op2 ?n "N.V.")))
                (boundaries (leftmost-unit ?first-name-unit)
                            (rightmost-unit ?NV-unit))
                (subunits (?NV-unit ?first-name-unit)))
+              (?NV-unit
+               (referent ?n)
+               (meaning ((:op2 ?n "N.V.")))
+                (sem-cat (sem-class person))
+                (syn-cat (lex-class proper-noun)
+                         (syn-function nominal)))
               <-
               (?first-name-unit
                --
-               (referent ?g)
-               (sem-valence (name ?n))
-               (sem-cat (sem-class person)))
+               (referent ?n)
+               (sem-cat  (sem-class person))
+               (syn-cat  (lex-class proper-noun))
+               (sem-valence (name ?m)))
                (?NV-unit
                 --
                 (HASH form ((string ?NV-unit "N.V."))))
@@ -2817,7 +3080,7 @@
                         (passive -))
                (meaning ((:polarity ?w -)))
                (subunits (?aux ?main-verb))
-               (boundaries (rightmost-unit ?infinitive-verb)
+               (boundaries (rightmost-unit ?main-verb-rightmost-unit)
                            (leftmost-unit ?aux)))
                <-
                (?aux
@@ -2828,10 +3091,16 @@
                 (?main-verb
                 --
                 (referent ?w)
+                (syn-cat (phrase-type verb-phrase))
+                (boundaries (leftmost-unit ?main-verb-leftmost-unit)
+                            (rightmost-unit ?main-verb-rightmost-unit))
+                (subunits (?verb-unit)))
+                (?verb-unit
+                --
                 (syn-cat (main +)))
                 (?aux-VP-negative-contracted-unit
                 --
-                (HASH form ((meets ?aux ?infinitive-verb))))))
+                (HASH form ((meets ?aux ?main-verb-leftmost-unit))))))
 
 (def-fcg-cxn aux-VP-negative-cxn  ;; auxiliary negative not contracted (not-unit present)
              ((?vp-unit
@@ -2893,36 +3162,7 @@
               (HASH form ((meets ?patient-unit-rightmost-unit ?vp-ergative-unit))))))
 
 ;; ===================================================================================================================================================================================
-;; 6.3. Gerunds 
-;; ===================================================================================================================================================================================
-
-(def-fcg-cxn gerund-patient-cxn ;; patient of gerund
-             ((?gerund-patient-unit
-               (referent ?ger)
-               (meaning ((:arg1 ?ger ?ref)))
-               (syn-cat (syn-function nominal)
-                        (gerund +))
-               (subunits (?gerund-unit ?arg1-unit))
-               (boundaries (leftmost-unit ?gerund-phrase-leftmost-unit)
-                           (rightmost-unit ?gerund-phrase-rightmost-unit)))
-               <-
-               (?gerund-unit
-                --
-                (referent ?ger)
-                (syn-cat (lex-class verb)
-                         (gerund +)))
-               (?arg1-unit
-                --
-                (referent ?ref)
-                (syn-cat (phrase-type nominal))
-                (boundaries (leftmost-unit ?arg1-leftmost-unit)
-                            (rightmost-unit ?arg1-rightmost-unit)))
-               (?gerund-patient-unit
-                --
-                (HASH form ((meets ?gerund-unit ?arg1-leftmost-unit))))))
-
-;; ===================================================================================================================================================================================
-;; 6.4. Modal Verbs 
+;; 6.3. Modal Verbs 
 ;; ===================================================================================================================================================================================
 
 (def-fcg-cxn modal-verb-cxn ;; positive modal verb
@@ -2982,41 +3222,10 @@
                 --
                 (HASH form ((precedes ?aux ?infinitive-verb))))))
 
-(def-fcg-cxn modal-verb-negative-arg2-cxn ;; modal-negative :arg2
-             ((?modal-verb-negative-arg2-unit
-               (referent ?ref-inf)
-               (syn-cat (phrase-type verb-phrase)
-                        (passive -)
-                        (infinitive-clause -))
-               (meaning ((:polarity ?p -)
-                         (:arg2 ?p ?ref-inf)))
-               (subunits (?aux-unit ?modal-unit ?infinitive-verb))
-               (boundaries (rightmost-unit ?infinitive-verb)
-                           (leftmost-unit ?aux)))
-               <-
-               (?aux-unit
-                --
-                (referent ?ref-aux)
-                (syn-cat (auxiliary +)))
-               (?modal-unit
-                --
-                (referent ?p)
-                (syn-cat (modal +))
-                (boundaries (leftmost-unit ?modal-leftmost-unit)
-                            (rightmost-unit ?modal-rightmost-unit)))
-                (?infinitive-verb
-                --
-                (referent ?ref-inf)
-                (syn-cat (finite -)))
-                (?modal-verb-negative-arg2-unit
-                --
-                (HASH form ((meets ?aux ?modal-leftmost-unit)
-                            (meets ?modal-rightmost-unit ?infinitive-verb))))))
+;; I needed to implement another modal-verb-negative constructions since in one sentence  is the polarity of the infinitive which is negative in the other sentence the polarity of the modal. I distinguished the two constructions with the boolean polarity in the modal-unit
 
-;; I needed to implement another modal-verb-negative constructions since this time is the polarity of the infinitive which is negative (VS previous constructions where the polarity of the modal was negative)
-
-(def-fcg-cxn infinitive-modal-verb-negative-arg2-cxn
-             ((?infinitive-modal-verb-negative-arg2-unit
+(def-fcg-cxn arg2-modal-negativeinfinitive-cxn ;; infinitive is negative + arg2
+             ((?arg2-modal-negativeinfinitive-unit
                (referent ?g)
                (subunits (?modal-unit ?not-unit ?infinitive-unit))
                (meaning ((:arg2 ?p ?g)
@@ -3024,30 +3233,72 @@
                (syn-cat (phrase-type verb-phrase)
                         (infinitive-clause ?inf)
                         (passive -))
-               (boundaries (rightmost-unit ?infinitive-unit)
+               (boundaries (rightmost-unit ?infinitive-rightmost-unit)
                            (leftmost-unit ?modal-unit)))
                <-
                (?modal-unit
                 --
                 (referent ?p)
-                (syn-cat (lex-class verb)
-                         (finite +)
-                         (polarity +)
+                (syn-cat (polarity +)
                          (modal +))
                 (sem-valence (:arg2 ?arg2)))
                (?not-unit
                 --
-               (syn-cat (lex-class adverb))
-               (form ((string ?not-unit "not"))))
+               (syn-cat  (lex-class adverb)
+                         (polarity -)))
                (?infinitive-unit
                 --
                 (referent ?g)
-                (syn-cat (lex-class verb)
-                         (finite -)))
-               (?infinitive-modal-verb-negative-arg2-unit
+                (syn-cat (phrase-type verb-phrase))
+                (boundaries (leftmost-unit ?infinitive-leftmost-unit)
+                            (rightmost-unit ?infinitive-rightmost-unit))
+                (subunits (?verb-unit)))
+                --
+                (?verb-unit
+                --
+                (syn-cat (finite -)))
+               (?arg2-modal-negativeinfinitive-unit
                 --
                 (HASH form ((meets ?modal-unit ?not-unit)
-                            (meets ?not-unit ?infinitive-unit))))))
+                            (meets ?not-unit ?infinitive-leftmost-unit))))))
+
+(def-fcg-cxn arg2-modalnegative-infinitive-cxn ;; modal is negative + arg2 
+             ((?arg2-modalnegative-infinitive-unit
+               (referent ?g)
+               (subunits (?modal-unit ?not-unit ?infinitive-unit))
+               (meaning ((:arg2 ?p ?g)
+                         (:polarity ?p -)))
+               (syn-cat (phrase-type verb-phrase)
+                        (infinitive-clause ?inf)
+                        (passive -))
+               (boundaries (rightmost-unit ?infinitive-rightmost-unit)
+                           (leftmost-unit ?modal-unit)))
+               <-
+               (?modal-unit
+                --
+                (referent ?p)
+                (syn-cat (polarity -)
+                         (modal +))
+                (sem-valence (:arg2 ?arg2)))
+               (?not-unit
+                --
+               (syn-cat  (lex-class adverb)
+                         (polarity -)))
+               (?infinitive-unit
+                --
+                (referent ?g)
+                (syn-cat (phrase-type verb-phrase))
+                (boundaries (leftmost-unit ?infinitive-leftmost-unit)
+                            (rightmost-unit ?infinitive-rightmost-unit))
+                (subunits (?verb-unit)))
+                --
+                (?verb-unit
+                --
+                (syn-cat (finite -)))
+               (?arg2-modalnegative-infinitive-unit
+                --
+                (HASH form ((meets ?modal-unit ?not-unit)
+                            (meets ?not-unit ?infinitive-leftmost-unit))))))
 
 ;; I needed to implement another modal-verb-negative constructions since, even if the meaning is the same as the previous constructions, the order of the units is different. 
 
@@ -3058,18 +3309,17 @@
                (meaning ((:arg2 ?p ?g)
                          (:polarity ?p -)))
                (syn-cat (phrase-type verb-phrase)
-                        (infinitive-clause ?inf)
                         (passive -))
-               (boundaries (rightmost-unit ?infinitive-unit)
+               (boundaries (rightmost-unit ?infinitive-rightmost-unit)
                            (leftmost-unit ?not-unit)))
                <-
                (?modal-unit
                 --
                 (referent ?p)
-                (syn-cat (lex-class verb)
-                         (finite +)
-                         (polarity -)
+                (syn-cat (finite +)
                          (modal +))
+                (boundaries (leftmost-unit ?modal-leftmost-unit)
+                            (rightmost-unit ?modal-rightmost-unit))
                 (sem-valence (:arg2 ?arg2)))
                (?not-unit
                 --
@@ -3077,12 +3327,18 @@
                (?infinitive-unit
                 --
                 (referent ?g)
-                (syn-cat (lex-class verb)
-                         (finite -)))
+                (syn-cat (phrase-type verb-phrase))
+                (boundaries (leftmost-unit ?infinitive-leftmost-unit)
+                            (rightmost-unit ?infinitive-rightmost-unit))
+                (subunits (?verb-unit)))
+                --
+                (?verb-unit
+                --
+                (syn-cat (finite -)))
                (?different-order-arg2-modalnegative-infinitive-unit
                 --
-                (HASH form ((meets ?not-unit ?modal-unit)
-                            (meets ?modal-unit ?infinitive-unit))))))
+                (HASH form ((meets ?not-unit ?modal-leftmost-unit)
+                            (meets ?modal-rightmost-unit ?infinitive-leftmost-unit))))))
 
 (def-fcg-cxn modal-to-infinitive-cxn  ;; modal with to + infinitive (necessary ?)
              ((?V-to-infinitive-unit
@@ -3117,7 +3373,7 @@
                           (precedes ?to-unit ?infinitive-unit))))))
 
 ;; ===================================================================================================================================================================================
-;; 6.5. Prepositional Verbs 
+;; 6.4. Prepositional Verbs 
 ;; ===================================================================================================================================================================================
 
 (def-fcg-cxn prepositional-verb-patient-cxn ;; arg1 of a prepositional verb
@@ -3154,7 +3410,7 @@
                             (meets ?preposition-unit ?arg1-leftmost-unit))))))
 
 ;; ===================================================================================================================================================================================
-;; 6.6. Transitive Verbs
+;; 6.5. Transitive Verbs
 ;; ===================================================================================================================================================================================
 
 (def-fcg-cxn patient-transitive-cxn  ;; patient of a transitive vp
@@ -3226,6 +3482,30 @@
                 --
                 (HASH form ((precedes ?arg1-NP-unit-rightmost-unit ?present-participle-unit))))))
 
+(def-fcg-cxn gerund-patient-cxn ;; patient of gerund
+             ((?gerund-patient-unit
+               (referent ?ger)
+               (meaning ((:arg1 ?ger ?ref)))
+               (syn-cat (syn-function nominal)
+                        (gerund +))
+               (subunits (?gerund-unit ?arg1-unit))
+               (boundaries (leftmost-unit ?gerund-phrase-leftmost-unit)
+                           (rightmost-unit ?gerund-phrase-rightmost-unit)))
+               <-
+               (?gerund-unit
+                --
+                (referent ?ger)
+                (syn-cat (lex-class verb)
+                         (gerund +)))
+               (?arg1-unit
+                --
+                (referent ?ref)
+                (syn-cat (phrase-type nominal))
+                (boundaries (leftmost-unit ?arg1-leftmost-unit)
+                            (rightmost-unit ?arg1-rightmost-unit)))
+               (?gerund-patient-unit
+                --
+                (HASH form ((meets ?gerund-unit ?arg1-leftmost-unit))))))
 
 ;;************************************************************************************************************************************************************************************
 ;; 7.  Type of Clauses : General Semantic Relations and Frame Arguments Constructions
@@ -3290,51 +3570,23 @@
                  --
                  (HASH form ((precedes ?np-rightmost-unit ?vp-leftmost-unit))))))
 
-(def-fcg-cxn arg0-inverse-clause-nominal-cxn  ;; inverse agent is a nominal  
-             ((?arg0-inverse-clause-nominal-unit
-               (meaning ((:arg0-of ?g ?p)))
-               (subunits (?vp-unit ?nominal-unit))
-               (boundaries (rightmost-unit ?nominal-rightmost-unit)
-                           (leftmost-unit ?vp-leftmost-unit))
-               (referent ?g))
-              <-
-               (?nominal-unit
-               --
-               (referent ?g)
-               (syn-cat (phrase-type nominal))
-               (subunits (?noun-unit))
-               (boundaries (leftmost-unit ?nominal-leftmost-unit)
-                           (rightmost-unit ?nominal-rightmost-unit)))
-               (?noun-unit
-               --
-               (syn-cat (inverse-arg0 +)))
-                (?vp-unit
-                 --
-                 (referent ?p)
-                 (syn-cat (phrase-type verb-phrase))
-                 (boundaries (leftmost-unit ?vp-leftmost-unit)
-                             (rightmost-unit ?vp-rightmost-unit)))
-                (?arg0-inverse-clause-nominal-unit
-                 --
-                 (HASH form ((meets ?vp-rightmost-unit ?nominal-leftmost-unit ))))))
-
-(def-fcg-cxn arg0-of-precedes-verb-cxn ;; the inverse agent precedes the finite verb (necessary?)
+(def-fcg-cxn arg0-of-precedes-verb-cxn ;; same as previous ones but different order vp before np
              ((?arg0-of-precedes-verb-unit
                (meaning ((:arg0-of ?arg0-of ?verb)))
-               (subunits (?vp-unit ?np-unit))
+               (subunits (?vp-unit ?proper-noun-unit))
                (syn-cat  (phrase-type clause)
                          (syn-function mod))
                (boundaries (leftmost-unit ?vp-leftmost-unit)
-                           (rightmost-unit ?np-rightmost-unit))
+                           (rightmost-unit ?proper-noun-rightmost-unit))
                (referent ?arg0-of))
               <-
-               (?np-unit
+               (?proper-noun-unit
                --
                (referent ?arg0-of)
-               (syn-cat (phrase-type ?noun-phrase)
+               (syn-cat (lex-class proper-noun)
                         (inverse-arg0 +))
-               (boundaries (leftmost-unit ?np-leftmost-unit)
-                           (rightmost-unit ?np-rightmost-unit)))
+               (boundaries (leftmost-unit ?proper-noun-leftmost-unit)
+                           (rightmost-unit ?proper-noun-rightmost-unit)))
                 (?vp-unit
                  --
                  (referent ?verb)
@@ -3343,7 +3595,7 @@
                              (rightmost-unit ?vp-rightmost-unit)))
                 (?arg0-of-precedes-verb-unit
                  --
-                 (HASH form ((precedes ?vp-rightmost-unit ?np-leftmost-unit))))))
+                 (HASH form ((meets ?vp-rightmost-unit ?proper-noun-leftmost-unit))))))
 
 (def-fcg-cxn arg1of-before-np-cxn ;; patient before the agent-clause
              ((?clause-arg1of-unit
@@ -3367,6 +3619,29 @@
                (?clause-arg1of-unit
                --
                (HASH form ((meets ?object-unit ?clause-leftmost-unit))))))
+
+(def-fcg-cxn mod-of-a-clause-cxn ;; :mod of a clause 
+             ((?mod-of-a-clause-unit
+               (referent ?g)
+               (meaning ((:mod ?g ?c)))
+               (subunits (?clause-unit ?nominal-unit))
+               (boundaires (leftmost-unit ?nominal-unit)
+                           (rightmost-unit ?clause-rightmost-unit)))
+              <-
+              (?clause-unit
+               --
+               (referent ?g)
+               (syn-cat (phrase-type clause)
+                         (syn-function mod))
+               (boundaries (leftmost-unit ?clause-leftmost-unit)
+                           (rightmost-unit ?clause-rightmost-unit)))
+              (?nominal-unit
+               --
+               (referent ?c)
+               (syn-cat (lex-class proper-noun)))
+              (?mod-of-a-clause-unit
+               --
+               (HASH form ((meets ?nominal-unit ?clause-leftmost-unit))))))
 
 ;; ===================================================================================================================================================================================
 ;; 7.1. Infinitive Clause 
@@ -3412,7 +3687,7 @@
                         (infinitive-clause +))
               (boundaries
                (leftmost-unit ?finite-verb-leftmost-unit)
-               (rightmost-unit ?infinitive-unit)))
+               (rightmost-unit ?infinitive-rightmost-unit)))
               <-
               (?finite-verb-unit
                --
@@ -3429,12 +3704,18 @@
               (?infinitive-unit
               --
               (referent ?inf)
+              (syn-cat (phrase-type verb-phrase))
+              (boundaries (leftmost-unit ?infinitive-leftmost-unit)
+                          (rightmost-unit ?infinitive-rightmost-unit))
+              (subunits (?verb-unit)))
+              (?verb-unit
+              --
               (syn-cat (lex-class verb)
                         (finite -)))
               (?V-to-infinitive-unit
               --
               (HASH form ((precedes ?finite-verb-rightmost-unit ?to-unit)
-                          (precedes ?to-unit ?infinitive-unit))))))
+                          (precedes ?to-unit ??infinitive-leftmost-unit))))))
 
 ;; ===================================================================================================================================================================================
 ;; 7.3. Interrogative Clause 
@@ -3574,7 +3855,7 @@
 ;; I needed to implement two predicative constructions with the same meaning since in some sentences of my corpus the predicative unit was an np and in some others an adjective. 
 
 (def-fcg-cxn predicative-domain-np-cxn ;; the :domain is a predicative np
-             ((?predicative-domain-np-clause
+             ((?predicative-domain-np-unit
                (subunits (?vp-unit ?predicative-unit ?referring-noun-unit))
                (syn-cat (phrase-type clausal))
                (meaning ((:domain ?domain ?referring)))
@@ -3585,7 +3866,8 @@
               (?vp-unit
                --
                (syn-cat (lex-class verb)
-                        (is-copular +)))
+                        (is-copular +)
+                        (arg1-preposition -)))
               (?predicative-unit
                --
                (referent ?domain)
@@ -3607,13 +3889,13 @@
                         (syn-function nominal))
                (boundaries (leftmost-unit ?referring-noun-leftmost-unit)
                            (rightmost-unit ?referring-noun-rightmost-unit)))
-              (?predicative-domain-np-clause
+              (?predicative-domain-np-unit
                --
                (HASH form ((meets ?referring-noun-rightmost-unit ?vp-unit )
                            (meets ?vp-unit ?predicative-leftmost-unit))))))
 
-(def-fcg-cxn predicative-domain-np-negative-cxn  ;; the :domain is a predicative np but the copula is negative 
-             ((? predicative-domain-np-negative-unit
+(def-fcg-cxn predicative-domain-np-negative-cxn  ;; the :domain is a predicative np but the copula is negativ 
+             ((?predicative-domain-np-negative-unit
                (subunits (?vp-unit ?predicative-unit ?not-unit ?referring-noun-unit))
                (syn-cat (phrase-type clausal))
                (meaning ((:domain ?domain ?referring)
@@ -3642,7 +3924,7 @@
                         (syn-function nominal))
                (boundaries (leftmost-unit ?referring-noun-leftmost-unit)
                            (rightmost-unit ?referring-noun-rightmost-unit)))
-              (? predicative-domain-np-negative-unit
+              (?predicative-domain-np-negative-unit
                --
                (HASH form ((meets ?referring-noun-rightmost-unit ?vp-unit )
                            (meets ?vp-unit ?not-unit)
@@ -3814,256 +4096,8 @@
                           (precedes ?to-unit ?infinitive-unit))))))
 
 ;; ===================================================================================================================================================================================
-;; 7.6. Relative Clause
+;; 7.6. Presentative Clause
 ;; ===================================================================================================================================================================================
-
-(def-fcg-cxn arg0-inverse-role-relative-cxn ;;arg-of relative-clause
-             ((?arg0-of-relative-unit
-               (meaning ((:arg0-of ?arg0-of ?verb)))
-               (subunits (?vp-unit ?relative-unit ?named-entity-unit))
-               (boundaries (leftmost-unit ?named-entity-leftmost-unit)
-                           (rightmost-unit ?vp-rightmost-unit))
-               (referent ?arg0-of))
-              <-
-               (?named-entity-unit
-               --
-               (referent ?arg0-of)
-               (syn-cat (phrase-type noun-phrase))
-               (boundaries (leftmost-unit ?named-entity-leftmost-unit)
-                           (rightmost-unit ?named-entity-rightmost-unit)))
-                (?relative-unit
-                --
-                (syn-cat (lex-class pronoun)
-                         (relative +)))
-                (?vp-unit
-                 --
-                 (referent ?verb)
-                 (syn-cat (phrase-type verb-phrase))
-                 (boundaries (leftmost-unit ?vp-leftmost-unit)
-                             (rightmost-unit ?vp-rightmost-unit)))
-                (?arg0-of-relative-unit
-                 --
-                 (HASH form ((precedes ?named-entity-rightmost-unit ?relative-unit)
-                             (precedes ?relative-unit ?vp-leftmost-unit))))))
-
-;; ===================================================================================================================================================================================
-;; 7.7. Subordinate Clause
-;; ===================================================================================================================================================================================
-
-(def-fcg-cxn subordinate-positive-cxn ;; subordinate clause 
-           ((?subordinate-positive-unit
-             (referent ?t-1)
-             (meaning ((:arg1 ?t-1 ?w)))
-             (subunits (?main-clause ?subordinate-clause))
-             (boundaries (rightmost-unit ?subordinate-clause-rightmost-unit)
-                         (leftmost-unit ?main-clause-leftmost-unit)))
-            <-
-            (?main-clause
-              --
-              (referent ?t-1)
-              (syn-cat (phrase-type verb-phrase)
-                       (syn-function main-clause))
-              (boundaries (leftmost-unit ?main-clause-leftmost-unit)
-                          (rightmost-unit ?main-clause-rightmost-unit)))
-             (?subordinate-clause
-              --
-              (referent ?w)
-              (syn-cat (phrase-type verb-phrase)
-                       (syn-function main-clause))
-              (boundaries (leftmost-unit ?subordinate-clause-leftmost-unit)
-                          (rightmost-unit ?subordinate-clause-rightmost-unit)))
-             (?subordinate-positive-unit
-             --
-             (HASH form ((meets ?main-clause-rightmost-unit ?subordinate-clause-leftmost-unit))))))
-
-;; ===================================================================================================================================================================================
-;; 7.8. Temporal Clause
-;; ===================================================================================================================================================================================
-
-(def-fcg-cxn temporal-clause-adverb-cxn
-             ((?temporal-clause-adverb-unit
-               (subunits (?time-unit ?clause-unit))
-               (meaning ((:time ?d ?a)))
-               (boundaries (rightmost-unit ?vp-rightmost-unit)
-                           (leftmost-unit ?adverb-of-time-unit))
-               (referent ?d))
-               <-
-               (?time-unit
-                --
-                (referent ?a)
-                (syn-cat (syn-function adverbial-time))
-                (sem-cat (sem-class time))
-                (boundaries (rightmost-unit ?time-rightmost-unit)
-                            (leftmost-unit ?rime-leftmost-unit)))
-               (?clause-unit
-                --
-                (referent ?d)
-                (syn-cat (phrase-type verb-phrase))
-                (boundaries (rightmost-unit ?clause-rightmost-unit)
-                            (leftmost-unit ?clause-leftmost-unit)))
-               (?temporal-clause-adverb-unit
-                --
-                (HASH form ((meets ?clause-unit-rightmost-unit ?adverb-of-time-unit))))))
-
-
-;; ===================================================================================================================================================================================
-;; not classified
-;; ===================================================================================================================================================================================
-
-(def-fcg-cxn arg1-of-np-preposition-cxn
-             ((?arg1-of-np-preposition-unit
-               (meaning ((:arg1 ?r ?b)))
-               (referent ?r)
-               (subunits (?np-unit ?auxiliar-unit ?np-preposition-unit))
-               (boundaries (leftmost-unit ?np-leftmost-unit)
-                           (rightmost-unit ?np-preposition-rightmost-unit)))
-              <-
-              (?np-unit
-               --
-               (referent ?b)
-               (syn-cat (phrase-type noun-phrase))
-               (boundaries (leftmost-unit ?np-leftmost-unit)
-                           (rightmost-unit ?np-rightmost-unit)))
-              (?auxiliar-unit
-               --
-               (syn-cat (lex-class verb)
-                        (arg1-preposition +)))
-               (?np-preposition-unit
-               --
-               (referent ?r)
-               (syn-cat (phrase-type noun-phrase)
-                        (syn-function patient))
-               (boundaries (leftmost-unit ?np-preposition-leftmost-unit)
-                           (rightmost-unit ?np-preposition-rightmost-unit)))
-               (?arg1-of-np-preposition-unit
-               --
-               (HASH form ((meets ?np-rightmost-unit ?auxiliar-unit)
-                           (meets ?auxiliar-unit ?np-preposition-leftmost-unit))))))
-
-(def-fcg-cxn arg2-cxn
-         ((?comparative-unit
-           (meaning ((:arg2 ?d ?d)))
-            (referent ?d)
-            (subunits (?conclusion-unit ?linking-unit ?clause-unit))
-            (boundaries (rightmost-unit ?conclusion-rightmost-unit)
-                        (leftmost-unit ?clause-leftmost-unit)))
-            <-
-            (?conclusion-unit
-            --
-            (referent ?d)
-            (syn-cat (phrase-type ?nominal))
-            (boundaries (leftmost-unit ?conclusion-leftmost-unit)
-                        (rightmost-unit ?conclusion-rightmost-unit)))
-            (?linking-unit
-            --
-            (syn-cat (syn-function preposition-arg2)))
-            (?clause-unit
-            --
-            (referent ?d)
-            (syn-cat (main-clause +))
-            (boundaries (leftmost-unit ?clause-leftmost-unit)
-                        (rightmost-unit ?clause-rightmost-unit)))
-            (?comparative-unit
-             --
-             (HASH form ((meets ?clause-rightmost-unit ?linking-unit)
-                         (meets ?linking-unit ?conclusion-leftmost-unit))))))
-
-(def-fcg-cxn passive-nominal-cxn
-            ((?passive-nominal-unit
-              (meaning ((:arg0 ?d ?b)))
-              (referent ?b)
-              (subunits (?agent-unit ?preposition-unit ?clause-unit))
-              (boundaries (rightmost-unit ?agent-rightmost-unit)
-                           (leftmost-unit ?clause-leftmost-unit)))
-             <-
-             (?agent-unit
-              --
-              (referent ?b)
-              (syn-cat (phrase-type noun-phrase))
-              (boundaries (leftmost-unit ?agent-leftmost-unit)
-                          (rightmost-unit ?agent-rightmost-unit)))
-              (?preposition-unit
-              --
-              (syn-cat (lex-class preposition))
-              (form ((string ?preposition-unit "by"))))
-              (?clause-unit
-              --
-              (referent ?d)
-              (syn-cat (phrase-type verb-phrase)
-                       (passive -))
-              (meaning ((:arg1 ?d ?r)))
-              (boundaries (leftmost-unit ?clause-leftmost-unit)
-                          (rightmost-unit ?clause-rightmost-unit)))
-              (?passive-nominal-unit
-               --
-               (HASH form ((meets ?clause-rightmost-unit ?preposition-unit)
-                           (meets ?preposition-unit ?agent-leftmost-unit))))))
-
-(def-fcg-cxn be-located-at-cxn
-             ((?be-located-at-unit
-               (referent ?b)
-               (syn-cat (phrase-type verb-phrase))
-               (meaning ((:arg1 ?b ?m)
-                         (:arg2 ?b ?j)
-                         (:polarity ?b -)))
-               (subunits (?patient-unit ?be-located-unit ?not-unit ?arg2-unit ?in-preposition-unit))
-               (boundaries (leftmost-unit ?patient-leftmost-unit)
-                           (rightmost-unit ?arg2-rightmost-unit)))
-               <-
-               (?patient-unit
-               --
-               (referent ?m)
-               (syn-cat (phrase-type noun-phrase))
-               (boundaries (leftmost-unit ?patient-leftmost-unit)
-                           (rightmost-unit ?patient-rightmost-unit)))
-               (?not-unit
-                --
-                (syn-cat (lex-class adverb))
-                (form ((string ?not-unit "not"))))
-               (?be-located-unit
-                --
-                (referent ?b)
-                (meaning ((be-located-at-91 ?b))))
-               (?in-preposition-unit
-               --
-               (syn-cat (lex-class preposition))
-               (form ((string ?in-preposition-unit "in"))))
-               (?arg2-unit
-               --
-               (referent ?j)
-               (syn-cat (phrase-type noun-phrase))
-               (boundaries (leftmost-unit ?arg2-leftmost-unit)
-                           (rightmost-unit ?arg2-rightmost-unit)))
-               (?be-located-at-unit
-                --
-                (HASH form ((meets ?patient-rightmost-unit ?be-located-unit)
-                            (meets ?be-located-unit ?not-unit)
-                            (meets ?not-unit ?in-preposition-unit)
-                            (meets ?in-preposition-unit ?arg2-leftmost-unit))))))
-
-
-(def-fcg-cxn mod-of-a-clause-cxn 
-             ((?mod-of-a-clause-unit
-               (referent ?g)
-               (meaning ((:mod ?g ?c)))
-               (subunits (?clause-unit ?nominal-unit))
-               (boundaires (leftmost-unit ?nominal-unit)
-                           (rightmost-unit ?clause-rightmost-unit)))
-              <-
-              (?clause-unit
-               --
-               (referent ?g)
-               (syn-cat (phrase-type clause)
-                         (syn-function mod))
-               (boundaries (leftmost-unit ?clause-leftmost-unit)
-                           (rightmost-unit ?clause-rightmost-unit)))
-              (?nominal-unit
-               --
-               (referent ?c)
-               (syn-cat (lex-class proper-noun)))
-              (?mod-of-a-clause-unit
-               --
-               (HASH form ((meets ?nominal-unit ?clause-leftmost-unit))))))
 
 (def-fcg-cxn presentative-cxn
              ((?presentative-unit
@@ -4100,6 +4134,186 @@
                 (HASH form ((precedes ?article-unit ?proper-noun-unit)
                             (precedes ?proper-noun-unit ?vp-leftmost-unit)
                             (precedes ?vp-rightmost-unit ?group-leftmost-unit))))))
+
+;; ===================================================================================================================================================================================
+;; 7.7. Relative Clause
+;; ===================================================================================================================================================================================
+
+(def-fcg-cxn arg0-inverse-role-relative-cxn ;;arg-of relative-clause
+             ((?arg0-of-relative-unit
+               (meaning ((:arg0-of ?arg0-of ?verb)))
+               (subunits (?vp-unit ?relative-unit ?named-entity-unit))
+               (boundaries (leftmost-unit ?named-entity-leftmost-unit)
+                           (rightmost-unit ?vp-rightmost-unit))
+               (referent ?arg0-of))
+              <-
+               (?named-entity-unit
+               --
+               (referent ?arg0-of)
+               (syn-cat (phrase-type noun-phrase))
+               (boundaries (leftmost-unit ?named-entity-leftmost-unit)
+                           (rightmost-unit ?named-entity-rightmost-unit)))
+                (?relative-unit
+                --
+                (syn-cat (lex-class pronoun)
+                         (relative +)))
+                (?vp-unit
+                 --
+                 (referent ?verb)
+                 (syn-cat (phrase-type verb-phrase))
+                 (boundaries (leftmost-unit ?vp-leftmost-unit)
+                             (rightmost-unit ?vp-rightmost-unit)))
+                (?arg0-of-relative-unit
+                 --
+                 (HASH form ((precedes ?named-entity-rightmost-unit ?relative-unit)
+                             (precedes ?relative-unit ?vp-leftmost-unit))))))
+
+;; ===================================================================================================================================================================================
+;; 7.8. Subordinate Clause
+;; ===================================================================================================================================================================================
+
+(def-fcg-cxn subordinate-positive-cxn ;; subordinate clause 
+           ((?subordinate-positive-unit
+             (referent ?t-1)
+             (meaning ((:arg1 ?t-1 ?w)))
+             (subunits (?main-clause ?subordinate-clause))
+             (boundaries (rightmost-unit ?subordinate-clause-rightmost-unit)
+                         (leftmost-unit ?main-clause-leftmost-unit)))
+            <-
+            (?main-clause
+              --
+              (referent ?t-1)
+              (syn-cat (phrase-type verb-phrase)
+                       (syn-function main-clause))
+              (boundaries (leftmost-unit ?main-clause-leftmost-unit)
+                          (rightmost-unit ?main-clause-rightmost-unit)))
+             (?subordinate-clause
+              --
+              (referent ?w)
+              (syn-cat (phrase-type verb-phrase)
+                       (syn-function main-clause))
+              (boundaries (leftmost-unit ?subordinate-clause-leftmost-unit)
+                          (rightmost-unit ?subordinate-clause-rightmost-unit)))
+             (?subordinate-positive-unit
+             --
+             (HASH form ((meets ?main-clause-rightmost-unit ?subordinate-clause-leftmost-unit))))))
+
+(def-fcg-cxn that-clause-negative-cxn
+             ((?that-clause-negative-unit
+               (subunits (?vp-main-unit ?that-unit ?np-unit ?not-unit ?vp-unit))
+               (meaning ((:arg2 ?p ?g)
+                         (:arg0 ?g ?b)
+                         (:polarity ?g -)))
+               (boundaries (leftmost-unit ?vp-main-leftmost-unit)
+                           (rightmost-unit ?vp-rightmost-unit))
+              (referent ?p))
+              <-
+              (?vp-main-unit
+              --
+              (referent ?p)
+              (syn-cat (phrase-type verb-phrase))
+              (boundaries (leftmost-unit ?vp-main-leftmost-unit)
+                          (rightmost-unit ?vp-main-rightmost-unit))
+              (subunits (?verb-unit)))
+              (?verb-unit
+              --
+              (form ((string ?verb-unit "obligatory"))))
+              (?that-unit
+              --
+              (syn-cat (lex-class pronoun))
+              (form ((string ?that-unit "that"))))
+              (?np-unit
+              --
+              (referent ?b)
+              (syn-cat (phrase-type noun-phrase))
+              (boundaries (leftmost-unit ?np-leftmost-unit)
+                          (rightmost-unit ?np-rightmost-unit)))
+              (?not-unit
+              --
+              (syn-cat (lex-class adverb))
+              (form ((string ?not-unit "not"))))
+              (?vp-unit
+              --
+              (referent ?g)
+              (syn-cat (phrase-type verb-phrase))
+              (boundaries (leftmost-unit ?vp-leftmost-unit)
+                          (rightmost-unit ?vp-rightmost-unit)))
+              (?that-clause-negative-unit
+               --
+               (HASH form ((meets ?vp-main-rightmost-unit ?that-unit)
+                           (meets ?that-unit ?np-leftmost-unit)
+                           (meets ?np-rightmost-unit ?not-unit)
+                           (meets ?not-unit ?vp-leftmost-unit))))))
+          
+;; ===================================================================================================================================================================================
+;; 7.9. Temporal Clause
+;; ===================================================================================================================================================================================
+
+(def-fcg-cxn temporal-clause-adverb-cxn
+             ((?temporal-clause-adverb-unit
+               (subunits (?time-unit ?clause-unit))
+               (meaning ((:time ?d ?a)))
+               (boundaries (rightmost-unit ?vp-rightmost-unit)
+                           (leftmost-unit ?adverb-of-time-unit))
+               (referent ?d))
+               <-
+               (?time-unit
+                --
+                (referent ?a)
+                (syn-cat (syn-function adverbial-time))
+                (sem-cat (sem-class time))
+                (boundaries (rightmost-unit ?time-rightmost-unit)
+                            (leftmost-unit ?rime-leftmost-unit)))
+               (?clause-unit
+                --
+                (referent ?d)
+                (syn-cat (phrase-type verb-phrase))
+                (boundaries (rightmost-unit ?clause-rightmost-unit)
+                            (leftmost-unit ?clause-leftmost-unit)))
+               (?temporal-clause-adverb-unit
+                --
+                (HASH form ((meets ?clause-unit-rightmost-unit ?adverb-of-time-unit))))))
+
+
+;; ===================================================================================================================================================================================
+;; not classified
+;; ===================================================================================================================================================================================
+
+
+(def-fcg-cxn arg1-of-np-preposition-cxn 
+             ((?arg1-of-np-preposition-unit
+               (meaning ((:arg1 ?r ?b)))
+               (referent ?r)
+               (subunits (?np-unit ?auxiliar-unit ?np-preposition-unit))
+               (boundaries (leftmost-unit ?np-leftmost-unit)
+                           (rightmost-unit ?np-preposition-rightmost-unit)))
+              <-
+              (?np-unit
+               --
+               (referent ?b)
+               (syn-cat (phrase-type noun-phrase))
+               (boundaries (leftmost-unit ?np-leftmost-unit)
+                           (rightmost-unit ?np-rightmost-unit)))
+              (?auxiliar-unit
+               --
+               (syn-cat (arg1-preposition +)))
+              (?np-preposition-unit
+               --
+               (referent ?r)
+               (subunits (?noun-unit))
+               (syn-cat (phrase-type noun-phrase)
+                        (syn-function patient))
+               (boundaries (leftmost-unit ?np-preposition-leftmost-unit)
+                           (rightmost-unit ?np-preposition-rightmost-unit)))
+               (?noun-unit
+                --
+                (syn-cat (derived-from-verb +)))
+               (?arg1-of-np-preposition-unit
+               --
+               (HASH form ((meets ?np-rightmost-unit ?auxiliar-unit)
+                           (meets ?auxiliar-unit ?np-preposition-leftmost-unit))))))
+
+
                
 )
                       
@@ -4149,96 +4363,35 @@ inutili apparentemente :
                --
                (HASH form ((meets ?second-nominal-rightmost-unit ?nominal-leftmost-unit))))))
 
-(def-fcg-cxn group-Elsevier-cxn
-             ((?group-Elsevier-unit
-               (subunits (?group-unit ?first-name-unit))
-               (referent ?g)
-               (syn-cat (phrase-type noun-phrase)
-                        (syn-function nominal)
-                        (inverse-arg0 +))
-               (boundaries (rightmost-unit ?first-name-rightmost-unit)
-                           (leftmost-unit ?group-leftmost-unit))
-               (meaning ((:name ?g ?n)))
-                (sem-cat (sem-class person))
-                (syn-cat (lex-class proper-noun)
-                         (syn-function nominal)))
+
+
+(def-fcg-cxn arg0-inverse-clause-nominal-cxn  ;; inverse agent is a nominal  
+             ((?arg0-inverse-clause-nominal-unit
+               (meaning ((:arg0-of ?g ?p)))
+               (subunits (?vp-unit ?nominal-unit))
+               (boundaries (rightmost-unit ?nominal-rightmost-unit)
+                           (leftmost-unit ?vp-leftmost-unit))
+               (referent ?g))
               <-
-              (?first-name-unit
+               (?nominal-unit
                --
-               (referent ?n)
-               (syn-cat (phrase-type noun-phrase)
-                        (named-entity-type group))
-               (boundaries (leftmost-unit ?first-name-leftmost-unit)
-                           (rightmost-unit ?first-name-rightmost-unit)))
-               (?group-unit
-                --
-                (referent ?g)
-                (syn-cat (phrase-type nominal))
-                (boundaries (leftmost-unit ?group-leftmost-unit)
-                            (rightmost-unit ?group-rightmost-unit)))
-               (?group-Elsevier-unit
-                --
-                (HASH form ((meets ?group-rightmost-unit ?first-name-leftmost-unit))))))
-
-
-(def-fcg-cxn Elsevier-group-cxn
-             ((?Elsevier-group-unit
-               (subunits (?group-unit ?first-name-unit))
                (referent ?g)
-               (boundaries (rightmost-unit ?group-rightmost-unit)
-                           (leftmost-unit ?first-name-leftmost-unit))
-               (meaning ((:name ?g ?n))))
-              <-
-              (?first-name-unit
+               (syn-cat (phrase-type nominal))
+               (subunits (?noun-unit))
+               (boundaries (leftmost-unit ?nominal-leftmost-unit)
+                           (rightmost-unit ?nominal-rightmost-unit)))
+               (?noun-unit
                --
-               (referent ?n)
-               (syn-cat (phrase-type noun-phrase)
-                        (named-entity-type group))
-               (boundaries (leftmost-unit ?first-name-leftmost-unit)
-                           (rightmost-unit ?first-name-rightmost-unit)))
-               (?group-unit
-                --
-                (referent ?g)
-                (syn-cat (phrase-type noun-phrase))
-                (boundaries (leftmost-unit ?group-leftmost-unit)
-                            (rightmost-unit ?group-rightmost-unit)))
-               (?Elsevier-group-unit
-                --
-                (HASH form ((precedes ?first-name-rightmost-unit ?group-leftmost-unit))))))
-
-(def-fcg-cxn arg2-modalnegative-infinitive-cxn
-             ((?arg2-modalnegative-infinitive-unit
-               (referent ?g)
-               (subunits (?modal-unit ?not-unit ?infinitive-unit))
-               (meaning ((:arg2 ?p ?g)
-                         (:polarity ?p -)))
-               (syn-cat (phrase-type verb-phrase)
-                        (infinitive-clause ?inf)
-                        (passive -))
-               (boundaries (rightmost-unit ?infinitive-unit)
-                           (leftmost-unit ?modal-unit)))
-               <-
-               (?modal-unit
-                --
-                (referent ?p)
-                (syn-cat (lex-class verb)
-                         (finite +)
-                         (polarity -)
-                         (modal +))
-                (sem-valence (:arg2 ?arg2)))
-               (?not-unit
-                --
-               (syn-cat (polarity -)))
-               (?infinitive-unit
-                --
-                (referent ?g)
-                (syn-cat (lex-class verb)
-                         (finite -)))
-               (?arg2-modalnegative-infinitive-unit
-                --
-                (HASH form ((meets ?modal-unit ?not-unit)
-                            (meets ?not-unit ?infinitive-unit))))))
-
+               (syn-cat (inverse-arg0 +)))
+                (?vp-unit
+                 --
+                 (referent ?p)
+                 (syn-cat (phrase-type verb-phrase))
+                 (boundaries (leftmost-unit ?vp-leftmost-unit)
+                             (rightmost-unit ?vp-rightmost-unit)))
+                (?arg0-inverse-clause-nominal-unit
+                 --
+                 (HASH form ((meets ?vp-rightmost-unit ?nominal-leftmost-unit ))))))
                         
 
 |#

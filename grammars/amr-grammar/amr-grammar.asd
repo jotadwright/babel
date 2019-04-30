@@ -4,7 +4,7 @@
   :license ""
   :homepage "https://gitlab.ai.vub.ac.be/ehai/amr-grammar"
   :serial t
-  :depends-on (:fcg :amr :irl)
+  :depends-on (:utils :fcg :amr :irl)
   :components ((:file "package")
                (:file "grammar")
                (:module evaluation
