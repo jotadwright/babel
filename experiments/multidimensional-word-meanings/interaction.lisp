@@ -4,9 +4,12 @@
   "Set the context and possibly also the topic of the agent.
    Clear some slots to prepare for the interaction."
   (setf (context agent)
-        (if (learnerp agent)
-          mwm-context
-          clevr-context))
+        (cond ((learnerp agent) mwm-context)
+              ((and (tutorp agent)
+                    (eql (get-configuration agent :tutor-lexicon)
+                         :continuous))
+               mwm-context)
+              (t clevr-context)))
   (setf (topic agent)
         (when (speakerp agent)
           (random-elt (objects (context agent)))))
@@ -21,6 +24,7 @@
 (defmethod initialize-interaction ((experiment mwm-experiment)
                                    interaction &key)
   "Initialize the interaction by choosing a random context"
+  ;; integrate perceptual deviation here; do both agents get the same noise
   (let* ((clevr-context (random-elt (world experiment)))
          (mwm-context (clevr->mwm clevr-context
                                   :noise-amount (get-configuration experiment :noise-amount)
@@ -89,5 +93,6 @@
   (let* ((tutor (find 'tutor (interacting-agents interaction) :key #'id))
          (learner (find 'learner (interacting-agents interaction) :key #'id))
          (topic (find (id (topic tutor)) (objects (context learner)) :key #'id)))
-    (when (discriminative-set tutor)
+    (when (or (discriminative-set tutor)
+              (applied-cxns tutor))
       (align-agent learner topic))))

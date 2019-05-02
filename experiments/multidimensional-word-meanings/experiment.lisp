@@ -14,7 +14,6 @@
                                                                :name "CLEVR_train_full_per_line" :type "json")
                                                 cl-user:*babel-corpora*)))
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks) ; :tutor-speaks :learner-speaks :default
-;; what attributes to use
 (define-configuration-default-value :attributes '(x-pos y-pos
                                                   area wh-ratio
                                                   R G B roughness

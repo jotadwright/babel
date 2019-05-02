@@ -14,9 +14,10 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:category-representation . :exponential)
+   :entries '((:tutor-lexicon . :continuous)
+              (:category-representation . :exponential)
               (:alignment-strategy . :discrimination-based)
-              (:lexical-variation . t)
+              (:lexical-variation . nil)
               (:feature-selection . :all)
               (:noise-amount . nil)
               (:noise-prob . nil)
@@ -29,7 +30,7 @@
 
 (run-series *experiment* 200)
 
-(run-series *experiment* 10000)
+(run-series *experiment* 2000)
 
 (show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->function-plots (find 'learner (population *experiment*) :key #'id))

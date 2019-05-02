@@ -25,6 +25,7 @@
                (:file "world")
                (:file "ontology")
                (:file "lexicon")
+               (:file "tutor-lexicon")
                (:file "agent")
                (:file "alignment")
                (:file "experiment")

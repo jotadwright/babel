@@ -8,7 +8,7 @@
 ;  (mapcar #'first set))
 
 (defun fuzzy-set-channels (set)
-  (mapcar #'attributes (mapcar #'car set)))
+  (mapcar #'attribute (mapcar #'car set)))
 
 (defun fuzzy-set-values (set)
   (mapcar #'second set))

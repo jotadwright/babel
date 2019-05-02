@@ -8,10 +8,6 @@
     :documentation "The agent's grammar"
     :type fcg-construction-inventory :accessor grammar
     :initform (make-agent-grammar))
-   (ontology
-    :documentation "The agent's ontology"
-    :type blackboard :accessor ontology
-    :initform (make-blackboard))
    (context
     :documentation "The current context"
     :accessor context :initform nil)
@@ -45,8 +41,11 @@
   (eql (id agent) 'tutor))
 
 (defun make-tutor-agent (experiment)
-  (make-instance 'mwm-agent :id 'tutor
-                 :experiment experiment))
+  (let ((tutor (make-instance 'mwm-agent :id 'tutor
+                              :experiment experiment)))
+    (when (eql (get-configuration experiment :tutor-lexicon) :continuous)
+      (make-tutor-lexicon tutor))
+    tutor))
 
 (defun make-learner-agent (experiment)
   (make-instance 'mwm-agent :id 'learner
@@ -96,6 +95,11 @@
 
 ;;; Tutor conceptualisation
 (defmethod conceptualise ((agent mwm-agent) (role (eql 'tutor)))
+  (case (get-configuration agent :tutor-lexicon)
+    (:symbolic (conceptualise-symbolic agent))
+    (:continuous (conceptualise-continuous agent))))
+
+(defmethod conceptualise-symbolic ((agent mwm-agent))
   "The tutor uses a symbolic representation of the context and
    computes the minimal discriminative set of attributes"
   (let* ((all-objects-as-alist
@@ -127,22 +131,45 @@
 ;;;      else (return utterance)
 
 ;;; This immediately allows for multi-word utterances.
-;;; To constrain for single word, only take the first best word.
+;;; To constrain for single word, add it to the while-test.
 ;;; Should the concept of discrimination be used?
 ;;; Should the concept of re-entrance be used?
 
-(defmethod conceptualise ((agent mwm-agent))
+(defun choose-best-word (topic cxns meaning-so-far)
+  "Choose the best word to add to the utterance. This function
+   simply takes the word with the highest similarity."
+  (extremum cxns
+            :key #'(lambda (cxn)
+                     (let* ((cxn-meaning (attr-val cxn :meaning))
+                            (meaning (fuzzy-union cxn-meaning meaning-so-far)))
+                       (weighted-similarity topic meaning)))
+            :test #'>))
+
+(defun choose-discriminating-word (topic context cxns meaning-so-far)
+  (loop with best-cxn = nil
+        with best-similarity = 0
+        for cxn in cxns
+        for cxn-meaning = (attr-val cxn :meaning)
+        for meaning = (fuzzy-union cxn-meaning meaning-so-far)
+        for topic-similarity = (weighted-similarity topic meaning)
+        for best-other-similarity = (loop for object in context
+                                          maximizing (weighted-similarity object meaning))
+        when (and (> topic-similarity best-other-similarity)
+                  (> topic-similarity best-similarity))
+        do (setf best-cxn cxn
+                 best-similarity topic-similarity)
+        finally
+        do (return best-cxn)))
+
+(defmethod conceptualise-continuous ((agent mwm-agent))
   (loop with utterance = nil ; list of cxns
         with utterance-meaning = nil ; combined meaning
         with best-similarity = 0
+        with continue = t
         ; utterance has a max length
-        while (length< utterance (get-configuration agent :max-tutor-utterance-length))
-        for best-new-word = (extremum (constructions (grammar agent))
-                                      :key #'(lambda (cxn)
-                                               (let* ((cxn-meaning (attr-val cxn :meaning))
-                                                      (total-meaning (fuzzy-union cxn-meaning utterance-meaning)))
-                                                 (weighted-similarity (topic agent) total-meaning)))  
-                                      :test #'>)
+        while (and (length< utterance (get-configuration agent :max-tutor-utterance-length))
+                   continue)
+        for best-new-word = (choose-best-word (topic agent) (constructions (grammar agent)) utterance-meaning)
         for new-similarity = (let* ((cxn-meaning (attr-val best-new-word :meaning))
                                     (extended-meaning (fuzzy-union cxn-meaning utterance-meaning)))
                                (weighted-similarity (topic agent) extended-meaning))
@@ -151,7 +178,11 @@
              (setf utterance-meaning (fuzzy-union (attr-val best-new-word :meaning) utterance-meaning))
              (setf best-similarity new-similarity))
         else
-        do (return utterance)))
+        do (setf continue nil)
+        finally
+        do (progn (setf (applied-cxns agent) utterance)
+             (notify conceptualisation-finished agent)
+             (return utterance))))
 
 ;; --------------
 ;; + Production +
@@ -176,12 +207,15 @@
    enabled, the tutor randomly chooses one of the available
    synonyms."
   (setf (utterance agent)
-        (if (get-configuration agent :lexical-variation)
-          (loop for attr in (discriminative-set agent)
-                for synonyms = (rest (assoc attr *synonyms*))
-                collect (random-elt synonyms))
-          (mapcar (compose #'downcase #'mkstr)
-                  (discriminative-set agent))))
+        (if (eql (get-configuration agent :tutor-lexicon) :symbolic)
+          (if (get-configuration agent :lexical-variation)
+            (loop for attr in (discriminative-set agent)
+                  for synonyms = (rest (assoc attr *synonyms*))
+                  collect (random-elt synonyms))
+            (mapcar (compose #'downcase #'mkstr)
+                    (discriminative-set agent)))
+          (mapcar #'(lambda (cxn) (attr-val cxn :form))
+                  (applied-cxns agent))))
   (notify production-finished agent)
   (utterance agent))
 

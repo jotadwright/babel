@@ -56,10 +56,16 @@
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-finished)
   (add-element `((h2) ,(format nil "The topic is ~a" (id (topic agent)))))
   (if (tutorp agent)
-    (if (discriminative-set agent)
-      (progn (add-element '((h2) "Tutor found discriminating attributes:"))
-        (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent))))))
-      (add-element '((h2) "Tutor did not find discriminating attributes.")))
+    (if (eql (get-configuration agent :tutor-lexicon) :symbolic)
+      (if (discriminative-set agent)
+        (progn (add-element '((h2) "Tutor found discriminating attributes:"))
+          (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent))))))
+        (add-element '((h2) "Tutor did not find discriminating attributes.")))
+      (if (applied-cxns agent)
+        (progn (add-element '((h2) "Tutor conceptualised the topic:"))
+          (loop for cxn in (applied-cxns agent)
+                do (add-element (make-html cxn))))
+        (add-element '((h2) "Tutor could not conceptualise the topic."))))
     ;; to do; learner side
     ))
 
@@ -97,6 +103,7 @@
                            (lower-bound category)
                            (upper-bound category)))))
 
+#|
 (defmethod category->s-dot-node ((category parabola-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
     (s-dot::label ,(format nil "~a~%~,2f~%(~,2f - ~,2f)"
@@ -104,6 +111,7 @@
                            (centre category)
                            (lower-bound category)
                            (upper-bound category)))))
+|#
 
 (defmethod category->s-dot-node ((category exponential-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
