@@ -115,10 +115,11 @@
  :xlabel "Number of games")
 
 (create-graph-comparing-strategies
- :experiment-names '("exponential-discrimination-no-variation"
-                     "exponential-discrimination-with-variation")
+ :experiment-names '("exponential-discrimination-based"
+                     "continuous-tutor-exponential")
  :measure-name "communicative-success"
- :y-max 1 :xlabel "Number of games" :y1-label "Success")
+ :y-max 1 :xlabel "Number of games" :y1-label "Success"
+ :captions '("symbolic tutor" "continuous tutor"))
 
 (create-graph-comparing-strategies
  :experiment-names '("exponential-discrimination-no-variation"
