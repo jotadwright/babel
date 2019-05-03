@@ -220,7 +220,7 @@
 (equivalent-amr-predicate-networks (comprehend "the girl made adjustments to the machine")
             '((ADJUST-01 A) (GIRL G) (MACHINE M) (:ARG0 A G) (:ARG1 A M)))
 
-(comprehend "the soldier had a fear of battle") ;;  not working
+(comprehend "the soldier had a fear of battle") ;;  works
 (equivalent-amr-predicate-networks (comprehend "the soldier had a fear of battle")
              '((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B)))
 
@@ -280,21 +280,22 @@
 (equivalent-amr-predicate-networks (comprehend "the boy thinks the team won't win")
          '((THINK-01 T-1) (BOY B) (WIN-01 W) (TEAM T-2) (:ARG0 T-1 B) (:ARG1 T-1 W) (:ARG0 W T-2) (:POLARITY W -)))
 
-(comprehend "it's not possible for the boy to go") ;; need to exclude
+(comprehend "it's not possible for the boy to go") ;; works
 (equivalent-amr-predicate-networks (comprehend "it's not possible for the boy to go")
         '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:POLARITY P -) (:ARG0 G B)))
 
-(comprehend "it's possible for the boy not to go") ;; need to exclude
+(comprehend "it's possible for the boy not to go") ;; need to exclude prepositional-phrase ?
 (equivalent-amr-predicate-networks (comprehend "it's possible for the boy not to go")
        '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:ARG0 G B) (:POLARITY G -)))
 
-(comprehend "the boy doesn't think the team will win") ;; it will never works. 
+(comprehend "the boy doesn't think the team will win") ;; works
 (equivalent-amr-predicate-networks (comprehend "the boy doesn't think the team will win")
       '((THINK-01 T-1) (BOY B) (WIN-01 W) (TEAM T-2) (:ARG0 T-1 B) (:ARG1 T-1 W) (:ARG0 W T-2) (:POLARITY W -))) ;; see meaning for the report, add cxn and then discussion, so two possible solution
+   ;; per avere vecchia construzione cambia positive +
 
 (comprehend "as the man described it, the mission was a disaster") ;; arg2 d d 
 (equivalent-amr-predicate-networks (comprehend "as the man described it, the mission was a disaster")
-    '((DESCRIBE-01 D) (MAN M) (MISSION M2) (DISASTER D) (:ARG0 D M) (:ARG1 D M2) (:ARG2 D D)))
+    '((DESCRIBE-01 D-1) (MAN M) (MISSION M2) (DISASTER D-2) (:ARG0 D-1 M) (:ARG1 D-1 M2) (:ARG2 D-1 D-2)))
 
 (comprehend "the soldier hummed to the girl as she walked to town") ;; soldier s2 ? but other sentences is just s
 (equivalent-amr-predicate-networks (comprehend "the soldier hummed to the girl as she walked to town")
