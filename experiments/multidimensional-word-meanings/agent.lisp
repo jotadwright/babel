@@ -147,7 +147,7 @@
         do (setf best-cxn cxn
                  best-similarity topic-similarity)
         finally
-        do (return best-cxn)))
+        (return best-cxn)))
 
 (defmethod conceptualise-continuous ((agent mwm-agent))
   (loop with utterance = nil ; list of cxns
@@ -171,9 +171,9 @@
         else
         do (setf continue nil)
         finally
-        do (progn (setf (applied-cxns agent) utterance)
-             (notify conceptualisation-finished agent)
-             (return utterance))))
+        (progn (setf (applied-cxns agent) utterance)
+          (notify conceptualisation-finished agent)
+          (return utterance))))
 
 ;; --------------
 ;; + Production +
