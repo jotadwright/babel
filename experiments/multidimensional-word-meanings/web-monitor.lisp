@@ -56,16 +56,13 @@
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-finished)
   (add-element `((h2) ,(format nil "The topic is ~a" (id (topic agent)))))
   (if (tutorp agent)
-    (if (eql (get-configuration agent :tutor-lexicon) :symbolic)
-      (if (discriminative-set agent)
-        (progn (add-element '((h2) "Tutor found discriminating attributes:"))
-          (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent))))))
-        (add-element '((h2) "Tutor did not find discriminating attributes.")))
-      (if (applied-cxns agent)
-        (progn (add-element '((h2) "Tutor conceptualised the topic:"))
-          (loop for cxn in (applied-cxns agent)
-                do (add-element (make-html cxn))))
-        (add-element '((h2) "Tutor could not conceptualise the topic."))))
+    (cond ((discriminative-set agent)
+           (progn (add-element '((h2) "Tutor found discriminating attributes:"))
+             (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent)))))))
+          ((applied-cxns agent)
+           (progn (add-element '((h2) "Tutor conceptualised the topic:"))
+             (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (mapcar #'name (applied-cxns agent))))))))
+          (t (add-element '((h2) "Tutor did not find discriminating attributes."))))
     ;; to do; learner side
     ))
 
@@ -183,23 +180,17 @@
     (reverse graph)))
 
 (define-event-handler (trace-interaction-in-web-interface parsing-finished)
-  (if (learnerp agent)
-    (if (parsed-meaning agent)
-      (progn (add-element '((h2) "Learner parsed the utterance:"))
-        (add-element `((div) ,(s-dot->svg
-                               (meaning->s-dot (parsed-meaning agent))))))
-      (add-element '((h2) "Learner could not parse the utterance.")))
-    ;; to do; tutor side
-    ))
+  (if (parsed-meaning agent)
+    (progn (add-element '((h2) "Agent parsed the utterance:"))
+      (add-element `((div) ,(s-dot->svg
+                             (meaning->s-dot (parsed-meaning agent))))))
+    (add-element '((h2) "Agent could not parse the utterance."))))
 
 (define-event-handler (trace-interaction-in-web-interface interpretation-finished)
-  (if (learnerp agent)
-    (if (topic agent)
-      (progn (add-element '((h2) "Learner interpreted the utterance:"))
-        (add-element (make-html (topic agent) :expand-initially t)))
-      (add-element '((h2) "Learner could not interpret the utterance.")))
-    ;; to do; tutor side
-    ))
+  (if (topic agent)
+    (progn (add-element '((h2) "Agent interpreted the utterance:"))
+      (add-element (make-html (topic agent) :expand-initially t)))
+    (add-element '((h2) "Agent could not interpret the utterance."))))
 
 (define-event-handler (trace-interaction-in-web-interface alignment-started)
   (add-element '((hr)))

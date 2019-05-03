@@ -34,6 +34,7 @@
 (define-configuration-default-value :lexical-variation nil) ; nil or t
 (define-configuration-default-value :perceptual-deviation nil) ; nil or t
 (define-configuration-default-value :tutor-lexicon :symbolic) ; symbolic or continuous
+(define-configuration-default-value :game-mode :tutor-learner) ; :tutor-tutor :tutor-learner
 
 ;; --------------
 ;; + Experiment +
@@ -48,16 +49,17 @@
   "Create the population and load the scenes from file"
   (activate-monitor print-a-dot-for-each-interaction)
   (setf (population experiment)
-        (list (make-tutor-agent experiment)
-              (make-learner-agent experiment)))
-  (warn "Loading large data files into memory. This could take a few seconds...")
+        (case (get-configuration experiment :game-mode)
+          (:tutor-learner (list (make-tutor-agent experiment)
+                                (make-learner-agent experiment)))
+          (:tutor-tutor (list (make-tutor-agent experiment)
+                              (make-tutor-agent experiment)))))
   (unless *world*
     (setf *world*
           (loop for file in (get-configuration experiment :contexts)
                 for scenes = (read-contexts-from-file file)
                 append scenes)))
-  (setf (world experiment) *world*)
-  (warn "Done loading!"))
+  (setf (world experiment) *world*))
 
 ;; --------------------------------
 ;; + Determine interacting agents +

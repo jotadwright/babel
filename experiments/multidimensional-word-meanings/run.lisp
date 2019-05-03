@@ -14,7 +14,9 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:tutor-lexicon . :continuous)
+   :entries '((:game-mode . :tutor-tutor)
+              (:determine-interacting-agents-mode . :default)
+              (:tutor-lexicon . :continuous)
               (:category-representation . :exponential)
               (:alignment-strategy . :discrimination-based)
               (:lexical-variation . nil)
@@ -40,27 +42,55 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (exponential-discrimination-no-variation
-                    ((:category-representation . :exponential)
+                   (tttest-min-max
+                    ((:game-mode . :tutor-tutor)
+                     (:determine-interacting-agents-mode . :default)
+                     (:tutor-lexicon . :continuous)
+                     (:category-representation . :min-max)
+                     (:alignment-strategy . :similarity-based)
+                     (:lexical-variation . nil)
+                     (:feature-selection . :all)
+                     (:noise-amount . nil)
+                     (:noise-prob . nil)
+                     (:scale-world . t)))
+                   (tttest-prototype
+                    ((:game-mode . :tutor-tutor)
+                     (:determine-interacting-agents-mode . :default)
+                     (:tutor-lexicon . :continuous)
+                     (:category-representation . :prototype)
                      (:alignment-strategy . :discrimination-based)
                      (:lexical-variation . nil)
                      (:feature-selection . :all)
                      (:noise-amount . nil)
                      (:noise-prob . nil)
                      (:scale-world . t)))
-                   (exponential-discrimination-with-variation
-                    ((:category-representation . :exponential)
+                   (tttest-pmm
+                    ((:game-mode . :tutor-tutor)
+                     (:determine-interacting-agents-mode . :default)
+                     (:tutor-lexicon . :continuous)
+                     (:category-representation . :prototype-min-max)
                      (:alignment-strategy . :discrimination-based)
-                     (:lexical-variation . t)
+                     (:lexical-variation . nil)
+                     (:feature-selection . :all)
+                     (:noise-amount . nil)
+                     (:noise-prob . nil)
+                     (:scale-world . t)))
+                   (tttest-exponential
+                    ((:game-mode . :tutor-tutor)
+                     (:determine-interacting-agents-mode . :default)
+                     (:tutor-lexicon . :continuous)
+                     (:category-representation . :exponential)
+                     (:alignment-strategy . :discrimination-based)
+                     (:lexical-variation . nil)
                      (:feature-selection . :all)
                      (:noise-amount . nil)
                      (:noise-prob . nil)
                      (:scale-world . t)))
                    )
-                 :number-of-interactions 20000
+                 :number-of-interactions 1000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
-                                 "export-lexicon-size"
+                                 ;"export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-utterance-length"
                                  ))
@@ -69,7 +99,7 @@
 (create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
- :experiment-name "exponential-discrimination-based"
+ :experiment-name "test"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
