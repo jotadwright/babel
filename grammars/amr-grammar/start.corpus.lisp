@@ -288,10 +288,9 @@
 (equivalent-amr-predicate-networks (comprehend "it's possible for the boy not to go")
        '((POSSIBLE P) (GO-01 G) (BOY B) (:DOMAIN P G) (:ARG0 G B) (:POLARITY G -)))
 
-(comprehend "the boy doesn't think the team will win") ;; works
+(comprehend "the boy doesn't think the team will win") ;; works but nver with the function --> two meaning 
 (equivalent-amr-predicate-networks (comprehend "the boy doesn't think the team will win")
       '((THINK-01 T-1) (BOY B) (WIN-01 W) (TEAM T-2) (:ARG0 T-1 B) (:ARG1 T-1 W) (:ARG0 W T-2) (:POLARITY W -))) ;; see meaning for the report, add cxn and then discussion, so two possible solution
-   ;; per avere vecchia construzione cambia positive +
 
 (comprehend "as the man described it, the mission was a disaster") ;; how to exclude disaster patient transitive and yes mission ? 
 (equivalent-amr-predicate-networks (comprehend "as the man described it, the mission was a disaster")
