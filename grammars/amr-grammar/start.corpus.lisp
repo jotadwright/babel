@@ -293,11 +293,11 @@
       '((THINK-01 T-1) (BOY B) (WIN-01 W) (TEAM T-2) (:ARG0 T-1 B) (:ARG1 T-1 W) (:ARG0 W T-2) (:POLARITY W -))) ;; see meaning for the report, add cxn and then discussion, so two possible solution
    ;; per avere vecchia construzione cambia positive +
 
-(comprehend "as the man described it, the mission was a disaster") ;; arg2 d d 
+(comprehend "as the man described it, the mission was a disaster") ;; how to exclude disaster patient transitive and yes mission ? 
 (equivalent-amr-predicate-networks (comprehend "as the man described it, the mission was a disaster")
     '((DESCRIBE-01 D-1) (MAN M) (MISSION M2) (DISASTER D-2) (:ARG0 D-1 M) (:ARG1 D-1 M2) (:ARG2 D-1 D-2)))
 
-(comprehend "the soldier hummed to the girl as she walked to town") ;; soldier s2 ? but other sentences is just s
+(comprehend "the soldier hummed to the girl as she walked to town") ;; arg0 w g ?
 (equivalent-amr-predicate-networks (comprehend "the soldier hummed to the girl as she walked to town")
      '((HUM-02 S) (SOLDIER S2) (GIRL G) (WALK-01 W) (TOWN T) (:ARG0 S S2) (:BENEFICIARY S G) (:TIME S W) (:ARG0 W G) (:DESTINATION W T)))
 
