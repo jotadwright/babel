@@ -7,7 +7,6 @@
   (theproject)
   (np-constructions)
   (lists)
-  (complements)
   (agentandpatient)
   (complicateclause)
   )
@@ -29,9 +28,8 @@
   (add-element '((h3)  ((a :href "theproject") "II. AMR notation formalism")))  
   (add-element '((h3)  ((a :href "#np-constructions") "III. A Simple Noun-Phrase-Construction")))
     (add-element '((h3)  ((a :href "#lists") "IV. Proper Names and Lists")))
-       (add-element '((h3)  ((a :href "#complements") "V. Complements : time, location and manner."))) 
-  (add-element '((h3)  ((a :href "#agentandpatient") "VI. Comprehending a Clause")))
-  (add-element '((h3)  ((a :href "#complicateclause") "VII. More complicated clause: generalization of the constructions"))))
+  (add-element '((h3)  ((a :href "#agentandpatient") "V. Comprehending a Clause")))
+  (add-element '((h3)  ((a :href "#complicateclause") "VI. More complicated clause: generalization of the constructions"))))
 
 
 (defun amr-notation ()
@@ -65,26 +63,20 @@ It is important to highlight that a certain number of syntactic elements have no
   (add-element '((h2 :id "lists") "IV.Proper Names and Lists"))
   (add-element '((p) "Abstract Meaning Representation has Meaning Representation for proper nouns. The operators list :op1 and :op2 in fact, they can bound the meaning of the proper names to the semantic concept represented by the commen noun entity. The Fluid Construction Grammar toolkit can pretty well deal also with these particular types of meaning representations. For example, in the construction named-entity-title-unit-cxn the :op1 is implemented in the comprehension lock of Obama-cxn. For really short sentence this is really easy, but for more complex sentence as 'Elsevier N.V. , the Dutch publishing group' representing the operator list can be really challenging. In fact, this sentence is represented in AMR as : '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N "Elsevier") (:OP2 N N.V.) (:NAME C N2) (:OP1 N2 "Netherlands"))' where both Netherlands and Country are not in the lexicon, so there is nota lexicon entry for these two words. For Fluid Construction Grammar this is not really seems a problem since allowing the linguist to be the real master of its own grammar and its own feature with a quite flexible framework both the two meanings are implemented in the comprehension lck of 'dutch'"))
    (comprehend "Obama the President")
-   (comprehend "Elsevier N.V. , the Dutch publishing group"))
-
-(defun complements ()
-  (add-element '((h3)  ((a :href "#complements") "V. Complements : time, location and manner.")))
-  (add-element '((p) "In the corpusof the 75 sentences")))
-
-  
+   (comprehend "Elsevier N.V. , the Dutch publishing group"))  
 
 (defun agentandpatient ()
-  (add-element '((h2 :id "agentandpatient") "VI. A simple clause"))
+  (add-element '((h2 :id "agentandpatient") "V. A simple clause"))
     (add-element '((p) "The more semantic concepts there are in a sentence, the more complicated is its meaning representation and the more fcg-constructions are involved. Let's start with a simple transitive sentence : the soldier feared battle which has the following Abstract Meaning Representation : ((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B))). In this simple example, an agent-cxn and a patient-cxn will be needed to convey respectively the two meanings :arg0 of ?verb is ?nominal and the :arg1 of the ?verb is a ?nominal. The search process goes asfollow : first of all, the nominal construction is bound to the lexical construction for soldier, the new nominal is bound to the article 'the' thanks to the noun-phrase-cxn; at this point the search engine bound the nominal-cxn to a second noun battle-cxn; feared-cxn is bound as well to the verbal phrase construction forming a verb-unit. At this point the patient-cxn can apply; this construction adds the last necessary meaning."))
      (comprehend "the soldier feared battle"))
 
 (defun complicateclause ()
-    (add-element '((h2 :id "complicateclause") "VII. More complicated clauses : generalization of the constructions"))
-      (add-element '((h3 :id "complicateclause") "VII.I. Generalization is possible"))
+    (add-element '((h2 :id "complicateclause") "VI. More complicated clauses : generalization of the constructions"))
+      (add-element '((h3 :id "complicateclause") "VI.I. Generalization is possible"))
     (add-element '((p) "It is important to highlight that the agent-cxn and the patient-cxn are very general with a purpose ; in fact, these constructions apply to many others syntactically different sentences in my corpus. For example, in the comprehension of the sentence where did the girl find the boy?, with AMR '((FIND-01 F) (GIRL G) (BOY B) (AMR-UNKNOWN A) (:ARG0 F G) (:ARG1 F B) (:LOCATION F A))), the same constructions agent-cxn and patient-cxn apply. The search process is the same as the precedent sentence, but the main-clause-unit created by theagent-unit is bound to the interrogative pronoun, the interrogative clause  and the auxiliary form to form a new unit : the interrogative-clause-location-unit. The same happen with 'the boy thinks the team won-t win where the agent-cxn is applied to both to the agent of the main clause and the subordinate clause and a new constrctuions subordinate-cxn combine the two agent-cxn building a new unit."))
          (comprehend "where did the girl find the boy ?")
          (comprehend "the boy thinks the team won't win")
-(add-element '((h3 :id "complicateclause") "VII.II. Generalization is not possible"))
+(add-element '((h3 :id "complicateclause") "VI.II. Generalization is not possible"))
        (add-element '((p) " In other cases, generalizing a construction was not possible and many constructions needed to be created ; for example,  The semantic relation :locationis used in other sentences as yesterday 's marble in the non-jar with the AMR ((MARBLE M) (JAR J) (YESTERDAY Y) (:LOCATION M J) (:TIME M Y) (:POLARITY J -))), but writing only one constructions for these two meanings do not appear to be possible a cause of both the syntactic structure of the semantic concepts, but also for their position in the root-structure. In fact, if in the first sentence, the location is attributed to the interrogative pronoun where, in the second case it is a prepositional phrase"))
      (comprehend "yesterday 's marble in the non-jar"))
  
