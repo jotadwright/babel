@@ -948,6 +948,14 @@
                --
                (HASH form ((string ?colon-unit ":"))))))
 
+(def-fcg-cxn comma-cxn
+             ((?comma-unit
+               (syn-cat(syn-function orthographic-sign)))
+              <-
+              (?comma-unit
+               --
+               (HASH form ((string ?comma-unit ","))))))
+
 (def-fcg-cxn interrogative-cxn
              ((?interrogative-unit
                (syn-cat (syn-function interrogative-form)))
@@ -2535,8 +2543,8 @@
 
 ;; I needed to implement two different constructions for the meaning :mod since I needed two different constructions for the noun atom and the adjective atomic bomb.
 
-(def-fcg-cxn pertainym-adjective-nominal-cxn  ;; :mod of a nominal
-             ((?pertainym-adjective-nominal-unit
+(def-fcg-cxn pertainymy-adjective-nominal-cxn  ;; :mod of a nominal
+             ((?pertainymy-adjective-nominal-unit
                (referent ?ref)
                (meaning ((:mod ?ref ?type)))
                (boundaires (leftmost-unit ?type-unit)
@@ -2555,12 +2563,12 @@
                         (syn-function nominal))
                (boundaries (leftmost-unit ?nominal-leftmost-unit)
                            (rightmost-unit ?nominal-rightmost-unit)))
-              (?pertainym-adjective-nominal-unit
+              (?pertainymy-adjective-nominal-unit
                --
                (HASH form ((precedes ?type-unit ?nominal-leftmost-unit))))))
 
-(def-fcg-cxn pertainym-nominal-nominal-cxn ;; :mod of an adjective
-             ((?pertainym-nominal-nominal-unit
+(def-fcg-cxn pertainymy-nominal-nominal-cxn ;; :mod of an adjective
+             ((?pertainymy-nominal-nominal-unit
                (referent ?nominal)
                (meaning ((:mod ?nominal ?type)))
                (subunits (?type-unit ?nominal-unit))
@@ -2582,7 +2590,7 @@
                         (syn-function nominal))
                (boundaries (leftmost-unit ?nominal-leftmost-unit)
                            (rightmost-unit ?nominal-rightmost-unit)))
-              (?pertainym-nominal-nominal-unit
+              (?pertainymy-nominal-nominal-unit
                --
                (HASH form ((meets ?type-rightmost-unit ?nominal-leftmost-unit))))))
 
@@ -3088,7 +3096,7 @@
                 (HASH form ((meets ?first-name-unit ?brown-unit))))))
 
 (def-fcg-cxn NV-Elsevier-cxn
-             ((?named-entity-unit
+             ((?nv-elsevier-unit
                (referent ?n)
                (syn-cat (lex-class proper-noun)
                         (syn-function nominal)
@@ -3113,7 +3121,7 @@
               (?NV-unit
                 --
                 (HASH form ((string ?NV-unit "N.V."))))
-              (?named-entity-unit
+              (?nv-elsevier-unit
                --
                 (HASH form ((meets ?first-name-unit ?NV-unit))))))
 
@@ -4341,10 +4349,14 @@
                (meaning ((:arg0-of ?g ?p)
                          (:mod ?g ?c)))
                (syn-cat (phrase-type noun-phrase))
-               (subunits (?article-unit ?proper-noun-unit ?vp-unit ?group-unit))
+               (subunits (?article-unit ?proper-noun-unit ?comma-unit ?vp-unit ?group-unit))
                (boundaries (leftmost-unit ?article-unit)
                            (rightmost-unit ?group-rightmost-unit)))
               <-
+              (?comma-unit
+               --
+               (syn-cat (syn-function orthographic-sign))
+               (form ((string ?comma-unit ","))))
                (?article-unit
                 --
                 (syn-cat (lex-class article)
@@ -4367,9 +4379,10 @@
                             (rightmost-unit ?group-rightmost-unit)))
                 (?presentative-unit
                  --
-                (HASH form ((precedes ?article-unit ?proper-noun-unit)
-                            (precedes ?proper-noun-unit ?vp-leftmost-unit)
-                            (precedes ?vp-rightmost-unit ?group-leftmost-unit))))))
+                (HASH form ((meets ?comma-unit ?article-unit)
+                            (meets ?article-unit ?proper-noun-unit)
+                            (meets ?proper-noun-unit ?vp-leftmost-unit)
+                            (meets ?vp-rightmost-unit ?group-leftmost-unit))))))
 
 ;; ===================================================================================================================================================================================
 ;; 7.7. Relative Clause
