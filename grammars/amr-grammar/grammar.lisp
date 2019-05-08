@@ -4048,9 +4048,9 @@
                 (form ((string ?interrogative-unit "?"))))
                (?interrogative-clause-location-vp-unit
                 --
-               (HASH form ((precedes ?object-unit ?auxiliar-unit)
-                           (precedes ?auxiliar-unit ?clause-leftmost-unit)
-                           (precedes ?clause-rightmost-unit ?interrogative-unit))))))
+               (HASH form ((meets ?object-unit ?auxiliar-unit)
+                           (meets ?auxiliar-unit ?clause-leftmost-unit)
+                           (meets ?clause-rightmost-unit ?interrogative-unit))))))
 
 ;; ===================================================================================================================================================================================
 ;; 7.4. Passive Clause
