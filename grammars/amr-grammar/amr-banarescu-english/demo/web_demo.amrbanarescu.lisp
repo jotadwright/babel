@@ -1,15 +1,7 @@
 (ql:quickload :amr-grammar)
 (in-package :amr-grammar)
 
-(create-static-html-page "Semantic Parsing with Amr-Grammar"
-  (header)
-  (intro)
-  (thegrammar)
-  (somecases)
-  (generalization)
-  (discussionoftheresults)
-  (references)
-  )
+
 
 (defun header ()
   (clear-page)
@@ -33,17 +25,17 @@
 
 
 (defun intro ()
- (add-element '((h2 :id "intro") "I. Background information"))
+  (add-element '((h2 :id "intro") "I. Background information"))
  
- (add-element '((h3 :id "intro") "I.I Goals of the project and Research Questions"))
- (add-element '((p) "The project was dedicated to investigate how Abstract Meaning Representation is well suited as a meaning representation for Fluid Construction Grammar and how it can perform compared to Frame Semantics. It had a practical approach, since a construction grammar had been implemented using the Fluid Construction Grammar toolkit with the goal of answering the following questions :"))
- (add-element '((ol)
-                ((li) "To what extent Abstract Meaning Representation can be considered a good meaning representation for Computational Construction grammar? Is Computational Construction Grammar well suited for parsing AMR annotated sentences?")
-                ((li) "Which conflicts which can arise between the Fluid Construction Grammar Toolkit and Abstract Meaning Representation? Which are the advantages and disadvantages of using AMR as a meaning representation for Fluid Construction Grammar?")))
- (add-element '((p) "The project had been divided into four tasks. The first task was to acquire the grips of the basics of the Fluid Construction Grammar and AMR, following tutorial files and example grammars. Secondly, a corpus of seventy-five annotated Abstract Meaning Representation sentences had been selected as a development corpus. Thirdly, a Construction Grammar covering the selected sentences had to be implemented by a continuous evaluation cycle that made use of established Abstract Meaning Representation metrics. Finally, a discussion of the results and a comparison with Frame Semantics needed to be written"))
+  (add-element '((h3 :id "intro") "I.I Goals of the project and Research Questions"))
+  (add-element '((p) "The project was dedicated to investigate how Abstract Meaning Representation is well suited as a meaning representation for Fluid Construction Grammar and how it can perform compared to Frame Semantics. It had a practical approach, since a construction grammar had been implemented using the Fluid Construction Grammar toolkit with the goal of answering the following questions :"))
+  (add-element '((ol)
+                 ((li) "To what extent Abstract Meaning Representation can be considered a good meaning representation for Computational Construction grammar? Is Computational Construction Grammar well suited for parsing AMR annotated sentences?")
+                 ((li) "Which conflicts which can arise between the Fluid Construction Grammar Toolkit and Abstract Meaning Representation? Which are the advantages and disadvantages of using AMR as a meaning representation for Fluid Construction Grammar?")))
+  (add-element '((p) "The project had been divided into four tasks. The first task was to acquire the grips of the basics of the Fluid Construction Grammar and AMR, following tutorial files and example grammars. Secondly, a corpus of seventy-five annotated Abstract Meaning Representation sentences had been selected as a development corpus. Thirdly, a Construction Grammar covering the selected sentences had to be implemented by a continuous evaluation cycle that made use of established Abstract Meaning Representation metrics. Finally, a discussion of the results and a comparison with Frame Semantics needed to be written"))
 
- (add-element '((h3 :id "intro") "I.II. Abstract Meaning Representation notation formalism"))
- (add-element '((p)"Semantic Parsing is the task of representing the meaning of a sentence in a formal language which is understandable by a computer (1). There are multiple ways of parsing the meaning of a sentence as Frame Semantics or First Order Logic. In 2013, a team of ten researchers (2) invented a new semantic representation language: Abstract Meaning Representation with the purpose 'to support natural language generation (NLG) and to provide a logical semantic input'(3).
+  (add-element '((h3 :id "intro") "I.II. Abstract Meaning Representation notation formalism"))
+  (add-element '((p)"Semantic Parsing is the task of representing the meaning of a sentence in a formal language which is understandable by a computer (1). There are multiple ways of parsing the meaning of a sentence as Frame Semantics or First Order Logic. In 2013, a team of ten researchers (2) invented a new semantic representation language: Abstract Meaning Representation with the purpose 'to support natural language generation (NLG) and to provide a logical semantic input'(3).
 In fact, AMR is a graph-structured language where the logical meaning of the sentences is mapped into a single rooted, labelled, a-cycled and directed graph.
 The AMR formalism is quite straight-forward: it is based on PENMAN notation where the semantic concepts are the nodes of the graph and the edges represent the relations that bound the different nodes. Every semantic concept in the graph is linked to a variable and it can be represented by English words (ex: boy ?b), by PropBank notation (ex: say-01 ?s)  or, in certain case, by special keywords (ex: amr-unknown ?a). The possible relations between the edges can be represented by Frame Arguments (ex: :arg0), general semantic relations (ex: :polarity), relations for quantities (ex: :quant), for time (ex: :time) and for lists (ex: :op1).
 There are three fundamental characteristics that distinguish Abstract Meaning Representation from the others meaning representations. First of all, Abstract Meaning Representation  'it is geared toward English and the vocabulary of English'(4), even if some efforts had been made towards other languages (5). Secondly, in Abstract Meaning Representation 'there are no nouns and verbs'(6), since both of these syntactic categories are treated as the same by AMR. Finally, a certain number of syntactic elements have no meaning in AMR. In fact, AMR does not represent any meaning for quantifiers, tense, number and aspect")))
@@ -68,14 +60,15 @@ Finally, the third and last category is composed by the Grammatical Construction
   (add-element '((h2 :id "somecases") "III. Some more complex examples"))
   
   (add-element '((h3 :id "somecases") "III.I.Relations for Lists"))
-  (add-element '((p) "AMR has a particular Meaning Representation for proper nouns, as the ':op1 and :op2' lists. The Fluid Construction Grammar toolkit can pretty well deal also with these particular types of meaning representations. In fact, for short nominal phrases as 'Obama the president' comprehending the AMR of proper nouns can be relatively easy and, even for more complex phrases as 'Elsevier N.V. , the Dutch publishing group', representing the operator list the comprehension process can be challenging, but still possible. More precisely, if we look at the comprehension process of the first one, we can see that the noun-phrase-cxn bounds the two units nominal-cxn and the-cxn; the :op1 meaning is added directly to the lexical construction for Obama-cxn and finally the named-entity-title-unit is created binding a nominal ('Obama-cxn') with (sem-class person) and a noun-phrase ('The President').
-The AMR of the second sentence is : '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N "Elsevier") (:OP2 N N.V.) (:NAME C N2) (:OP1 N2 "Netherlands"))'. We can instantly notice that both 'Netherlands' and 'Country' are not words in the sentence, but this is not a problem for the Fluid Construction Grammar toolkit which enables the linguist to deal with these types of incosistencies, thanks to its flexibility. In fact, the two amr-meanings 'Country ?c' and ':op1 Netherlands' are added directly to the lexical construction for 'Dutch'. The presentative-unit and the named-entity-unit are created thanks to the presentative-cxn and the nv-elsevier-cxn. Finally, the Amr-Grammar applies the same construction that comprehended 'Obama the president' (the named-entity-title-cxn),to these two units adding the last meaning necessary to comprehend the sentence: name of a certain ?group is a certain ?name".))
+  (add-element '((p) "AMR has a particular Meaning Representation for proper nouns, as the :op1 and :op2 lists. The Fluid Construction Grammar toolkit can pretty well deal also with these particular types of meaning representations. In fact, for short nominal phrases as &quot;Obama the president&quot; comprehending the AMR of proper nouns can be relatively easy and, even for more complex phrases as &quot;Elsevier N.V., the Dutch publishing group&quot;, representing the operator list the comprehension process can be challenging, but still possible. More precisely, if we look at the comprehension process of the first one, we can see that the noun-phrase-cxn bounds the two units nominal-cxn and the-cxn; the :op1 meaning is added directly to the lexical construction for Obama-cxn and finally the named-entity-title-unit is created binding a nominal ('Obama-cxn') with (sem-class person) and a noun-phrase ('The President')."))
+
+  (add-element '((p) "The AMR of the second sentence is : ((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N &quot;Elsevier&quot;) (:OP2 N N.V.) (:NAME C N2) (:OP1 N2 &quot;Netherlands&quot;)). We can instantly notice that both 'Netherlands' and 'Country' are not words in the sentence, but this is not a problem for the Fluid Construction Grammar toolkit which enables the linguist to deal with these types of incosistencies, thanks to its flexibility. In fact, the two amr-meanings 'Country ?c' and ':op1 Netherlands' are added directly to the lexical construction for 'Dutch'. The presentative-unit and the named-entity-unit are created thanks to the presentative-cxn and the nv-elsevier-cxn. Finally, the Amr-Grammar applies the same construction that comprehended 'Obama the president' (the named-entity-title-cxn),to these two units adding the last meaning necessary to comprehend the sentence: name of a certain ?group is a certain ?name."))
   (comprehend "Obama the President")
   (comprehend "Elsevier N.V. , the Dutch publishing group")
   
-(add-element '((h3 :id "somecases") "III.II. Comprehending a simple clause"))
-(add-element '((p) "Fluid Construction Grammar permits not only to comprehend AMR annotated nominal phrases, but also clauses. Let's start with a simple transitive sentence : 'the soldier feared battle', which has the following Abstract Meaning Representation : ((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B))). In this simple example, an agent-cxn and a patient-cxn are needed to convey respectively the two meanings :arg0 of ?verb is ?nominal and the :arg1 of the ?verb is a ?nominal. The search process goes as follow : firstly, the nominal construction is bound to the lexical construction for soldier, then the new nominal is bound to the article 'the' thanks to the noun-phrase-cxn; at this point the search engine bound the nominal-cxn to a second noun battle-cxn; feared-cxn is bound as well to the verbal phrase construction forming a verb-unit. Finally, the patient-cxn can apply, adding the last necessary meaning. The sentence is then comprehended correctly."))
-(comprehend "the soldier feared battle"))
+  (add-element '((h3 :id "somecases") "III.II. Comprehending a simple clause"))
+  (add-element '((p) "Fluid Construction Grammar permits not only to comprehend AMR annotated nominal phrases, but also clauses. Let's start with a simple transitive sentence : 'the soldier feared battle', which has the following Abstract Meaning Representation : ((FEAR-01 F) (SOLDIER S) (BATTLE-01 B) (:ARG0 F S) (:ARG1 F B))). In this simple example, an agent-cxn and a patient-cxn are needed to convey respectively the two meanings :arg0 of ?verb is ?nominal and the :arg1 of the ?verb is a ?nominal. The search process goes as follow : firstly, the nominal construction is bound to the lexical construction for soldier, then the new nominal is bound to the article 'the' thanks to the noun-phrase-cxn; at this point the search engine bound the nominal-cxn to a second noun battle-cxn; feared-cxn is bound as well to the verbal phrase construction forming a verb-unit. Finally, the patient-cxn can apply, adding the last necessary meaning. The sentence is then comprehended correctly."))
+  (comprehend "the soldier feared battle"))
 
 (defun generalization ()
   (add-element '((h2)  ((a :href "#generalization") "IV. Is the generalizaiton of the constructions always possible?")))
@@ -107,3 +100,14 @@ The AMR of the second sentence is : '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (
                  ((li) "(5) For further references see : 'Annotating the Little Prince with Chinese AMRs', B. Li, Y. Wen, L. Bu, W. Qu, and N. Xue, Proc. 10th Linguistic Annotation Workshop (LAW X), 2016; 'An AMR parser for English, French, German, Spanish and Japanese and a new AMR-annotated corpus, Lucy Vanderwende, Arul Menezes and Chris Quirk, Proc. NAACL (Demo session), 2015; ;Cross-lingual Abstract Meaning Representation Parsing', Marco Damonte and Shay B. Cohen; 'A Study Towards Spanish Abstract Meaning Representation', Noelia Migueles-Abraira, MSc thesis, University of the Basque Country, 2017")
                  ((li) "(6) Abstract Meaning Representation (AMR) 1.2 Specification, Laura Banarescu, Claire Bonial, Shu Cai, Madalina Georgescu, Kira Griffitt, Ulf Hermjakob, Kevin Knight, Philipp Koehn, Martha Palmer, Nathan Schneider, John Benjamins Publishing Company, Amsterdam, 2011")
                  )))
+
+
+(create-static-html-page "Semantic Parsing with Amr-Grammar"
+  (header)
+  (intro)
+  (thegrammar)
+  (somecases)
+  (generalization)
+  (discussionoftheresults)
+  (references)
+  )
