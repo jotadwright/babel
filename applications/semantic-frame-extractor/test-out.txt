@@ -1,0 +1,2 @@
+{"cause":"this","effect":"that"}
+{"cause":"co2 emissions","effect":"global warming"}
