@@ -50,9 +50,6 @@
                             :alpha (get-configuration agent :alpha)
                             :success (communicated-successfully agent)
                             :interpreted-object (topic agent))
-        ;; if the features were sampled, update the certainty
-        ;; based on success. Otherwise, update the certainty
-        ;; based on similarity.
         do (let ((sim (similarity topic category)))
              (if (>= sim 0)
                (progn (push attr rewarded)
@@ -95,7 +92,7 @@
                                 :success (communicated-successfully agent)
                                 :interpreted-object (topic agent))))
     ;; shortcut!
-    (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))   
+    (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))
         
  
 ;;;; Align Agent        

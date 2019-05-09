@@ -155,10 +155,10 @@
         with best-similarity = 0
         with continue = t
         ; utterance has a max length
-        while (and (length< utterance (get-configuration agent :max-tutor-utterance-length))
-                   continue)
+        while (and (length< utterance (get-configuration agent :max-tutor-utterance-length)) continue)
         for best-new-word = (choose-discriminating-word (topic agent) (remove (topic agent) (objects (context agent)))
                                                         (constructions (grammar agent)) utterance-meaning)
+        ;for best-new-word = (choose-best-word (topic agent) (constructions (grammar agent)) utterance-meaning)
         for new-similarity = (if best-new-word
                                (let* ((cxn-meaning (attr-val best-new-word :meaning))
                                       (extended-meaning (fuzzy-union cxn-meaning utterance-meaning)))
@@ -174,6 +174,38 @@
         (progn (setf (applied-cxns agent) utterance)
           (notify conceptualisation-finished agent)
           (return utterance))))
+
+
+;; ---------------
+;; + Re-entrance +
+;; ---------------
+
+(defgeneric re-entrance (agent)
+  (:documentation "Do re-entrance"))
+
+(defmethod re-entrance ((agent mwm-agent))
+  (when (and (eql (get-configuration agent :game-mode) :tutor-learner)
+             (eql (get-configuration agent :tutor-lexicon) :continuous)
+             (applied-cxns agent))
+    ;; construct the utterance
+    (let ((utterance (mapcar #'(lambda (cxn) (attr-val cxn :form))
+                             (applied-cxns agent)))
+          interpreted-object
+          success)
+      (setf (utterance agent) utterance)
+      ;; disable monitors
+      (with-disabled-monitors
+        ;; parse and interpret
+        (parse-word agent)
+        (setf interpreted-object
+              (interpret agent)))
+      ;; compare equality
+      (setf success (eql (topic agent) interpreted-object))
+      ;; clear slots
+      (setf (utterance agent) nil
+            (parsed-meaning agent) nil)
+      success)))
+    
 
 ;; --------------
 ;; + Production +
@@ -265,24 +297,26 @@
   "The agent computes the weighted similarity between the parsed-meaning
    and each of the objects in the context. The topic is the
    object for which this value is maximized."
-  (when (parsed-meaning agent)
-    (let* ((objects-with-similarity
-            (loop for object in (objects (context agent))
-                  for sim = (weighted-similarity object (parsed-meaning agent))
-                  collect (cons object sim)))
-           (highest-pair
-            (the-biggest #'cdr objects-with-similarity))
-           (maybe-topic (car highest-pair)))
-      ;; sanity check
-      ;; no guessing if multiple objects have the same 'highest' similarity
-      (setf (topic agent)
-            (unless (> (count (cdr highest-pair)
-                              objects-with-similarity
-                              :key #'cdr :test #'=)
-                       1)
-              maybe-topic))))
-  (notify interpretation-finished agent)
-  (topic agent))
+  (let (interpreted-topic)
+    (when (parsed-meaning agent)
+      (let* ((objects-with-similarity
+              (loop for object in (objects (context agent))
+                    for sim = (weighted-similarity object (parsed-meaning agent))
+                    collect (cons object sim)))
+             (highest-pair
+              (the-biggest #'cdr objects-with-similarity))
+             (maybe-topic (car highest-pair))
+             (duplicatesp (> (count (cdr highest-pair)
+                                    objects-with-similarity
+                                    :key #'cdr :test #'=)
+                             1)))
+        (if (hearerp agent)
+          (setf (topic agent)
+                (unless duplicatesp maybe-topic))
+          (setf interpreted-topic
+                (unless duplicatesp maybe-topic)))))
+    (notify interpretation-finished agent)
+    (if (hearerp agent) (topic agent) interpreted-topic)))
               
 
 ;; ---------------------

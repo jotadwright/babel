@@ -98,6 +98,22 @@
         (setf (communicated-successfully speaker) t
               (communicated-successfully hearer) t)))))
 
+(defun conceptualise-until-success (agent game-mode agents-mode tutor-mode)
+  (loop while t
+        for mwm-context = (context agent)
+        for clevr-context = (clevr-context agent)
+        for concept-success
+        = (and (setf (context agent) clevr-context)
+               (conceptualise-symbolic agent)
+               (setf (context agent) mwm-context)
+               (conceptualise agent))
+        if concept-success
+        return concept-success
+        else
+        do (before-interaction (experiment agent) game-mode
+                               agents-mode tutor-mode)))
+                                
+
 (defmethod do-interaction ((experiment mwm-experiment)
                            (game-mode (eql :tutor-learner))
                            (agents-mode (eql :tutor-speaks))
@@ -108,14 +124,14 @@
    the interpretation is correct, the interaction is
    a success. Adoption is handled together with
    alignment."
+  ;; In some scenes, the tutor is unable to discriminate a
+  ;; topic using a single word on the symbolic level,
+  ;; but is able to do so using the continuous categories
+  ;; by stretching some concept. The learner gets very
+  ;; confused by this, so we remove these scenes...
   (let ((speaker (speaker experiment))
         (hearer (hearer experiment)))
-    (loop while t
-          for success = (conceptualise speaker)
-          if success
-          return success
-          else
-          do (before-interaction experiment game-mode agents-mode tutor-mode))
+    (conceptualise-until-success speaker game-mode agents-mode tutor-mode)
     (produce-word speaker)
     (when (utterance speaker)
       (setf (utterance hearer) (utterance speaker))
