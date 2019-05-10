@@ -56,13 +56,14 @@
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-finished)
   (add-element `((h2) ,(format nil "The topic is ~a" (id (topic agent)))))
   (if (tutorp agent)
-    (cond ((discriminative-set agent)
-           (progn (add-element '((h2) "Tutor found discriminating attributes:"))
-             (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent)))))))
-          ((applied-cxns agent)
-           (progn (add-element '((h2) "Tutor conceptualised the topic:"))
-             (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (mapcar #'name (applied-cxns agent))))))))
-          (t (add-element '((h2) "Tutor did not find discriminating attributes."))))
+    (case (get-configuration agent :tutor-lexicon)
+      (:symbolic
+       (progn (add-element '((h2) "Tutor found discriminating attributes:"))
+         (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent)))))))
+      (:continuous
+       (progn (add-element '((h2) "Tutor conceptualised the topic:"))
+         (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (mapcar #'name (applied-cxns agent))))))))
+      (otherwise (add-element '((h2) "Tutor did not find discriminating attributes."))))
     ;; to do; learner side
     ))
 
@@ -86,11 +87,16 @@
                            (upper-bound category)))))
 
 (defmethod category->s-dot-node ((category prototype-category))
-  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a~%~,2f (~,2f)"
-                           (downcase (mkstr (attribute category)))
-                           (prototype category)
-                           (/ (M2 category) (nr-samples category))))))
+  (let* ((variance (/ (M2 category) (nr-samples category)))
+         (stdev (sqrt variance))
+         (lower-bound (max (- (prototype category) stdev) 0.0))
+         (upper-bound (min (+ (prototype category) stdev) 1.0)))
+    `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+      (s-dot::label ,(format nil "~a~%(~,2f - ~,2f - ~,2f)"
+                             (downcase (mkstr (attribute category)))
+                             lower-bound
+                             (prototype category)
+                             upper-bound)))))
 
 (defmethod category->s-dot-node ((category prototype-min-max-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))

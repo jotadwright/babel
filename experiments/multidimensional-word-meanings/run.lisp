@@ -17,8 +17,8 @@
    :entries '((:game-mode . :tutor-learner)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :min-max)
-              (:alignment-strategy . :similarity-based)
+              (:category-representation . :prototype)
+              (:alignment-strategy . :discrimination-based)
               (:lexical-variation . nil)
               (:feature-selection . :all)
               (:noise-amount . nil)
@@ -32,9 +32,10 @@
 
 (run-series *experiment* 100)
 
-(run-series *experiment* 1000)
+(run-series *experiment* 3000)
 
-(show-learner-lexicon (find 'learner (population *experiment*) :key #'id))
+(display-lexicon (find 'learner (population *experiment*) :key #'id))
+(display-lexicon (find 'tutor (population *experiment*) :key #'id))
 (lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
 
 ;; ---------------------------------
@@ -46,8 +47,8 @@
                     ((:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
-                     (:category-representation . :min-max)
-                     (:alignment-strategy . :similarity-based)
+                     (:category-representation . :prototype)
+                     (:alignment-strategy . :discrimination-based)
                      (:lexical-variation . nil)
                      (:feature-selection . :all)
                      (:noise-amount . nil)
@@ -55,9 +56,9 @@
                      (:scale-world . t)))
                    )
                  :number-of-interactions 10000
-                 :number-of-series 3
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
-                                 "export-lexicon-size"
+                                 ;"export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-utterance-length"
                                  ))
@@ -81,14 +82,6 @@
  :xlabel "Number of games"
  :y1-label "Success")
 
-(create-graph-for-single-strategy
- :experiment-name "baseline"
- :measure-names '("features-per-form"
-                  "utterance-length")
- :y-axis '(1 1 1)
- :y1-max nil
- :xlabel "Number of games")
-
 (create-graph-comparing-strategies
  :experiment-names '("exponential-discrimination-based"
                      "continuous-tutor-exponential")
@@ -97,8 +90,15 @@
  :captions '("symbolic tutor" "continuous tutor"))
 
 (create-graph-comparing-strategies
- :experiment-names '("exponential-discrimination-no-variation"
-                     "exponential-discrimination-with-variation")
- :measure-name "lexicon-size"
- :y-max nil :xlabel "Number of games" :y1-label "Success")
+ :experiment-names '("continuous-tutor-min-max"
+                     "continuous-tutor-prototype"
+                     "continuous-tutor-pmm"
+                     "continuous-tutor-exponential")
+ :measure-name "communicative-success"
+ :y-min 0.95 :y-max 1 :xlabel "Number of games" :y1-label "Success"
+ :captions '("min-max" "prototype" "pmm" "exponential")
+ :start 40000 :end 50000)
+ 
+
+
   

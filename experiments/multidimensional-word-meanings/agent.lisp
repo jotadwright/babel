@@ -230,17 +230,18 @@
    enabled, the tutor randomly chooses one of the available
    synonyms."
   (setf (utterance agent)
-        (cond ((discriminative-set agent)
-               (if (get-configuration agent :lexical-variation)
-                 (loop for attr in (discriminative-set agent)
-                       for synonyms = (rest (assoc attr *synonyms*))
-                       collect (random-elt synonyms))
-                 (mapcar (compose #'downcase #'mkstr)
-                         (discriminative-set agent))))
-              ((applied-cxns agent)
-               (mapcar #'(lambda (cxn) (attr-val cxn :form))
-                       (applied-cxns agent)))
-              (t nil)))
+        (case (get-configuration agent :tutor-lexicon)
+          (:symbolic
+           (if (get-configuration agent :lexical-variation)
+             (loop for attr in (discriminative-set agent)
+                   for synonyms = (rest (assoc attr *synonyms*))
+                   collect (random-elt synonyms))
+             (mapcar (compose #'downcase #'mkstr)
+                     (discriminative-set agent))))
+          (:continuous
+           (mapcar #'(lambda (cxn) (attr-val cxn :form))
+                   (applied-cxns agent)))
+          (otherwise nil)))
   (notify production-finished agent)
   (utterance agent))
 

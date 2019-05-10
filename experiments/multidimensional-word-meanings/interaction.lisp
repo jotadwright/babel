@@ -104,11 +104,13 @@
         for clevr-context = (clevr-context agent)
         for concept-success
         = (and (setf (context agent) clevr-context)
-               (conceptualise-symbolic agent)
+               (with-disabled-monitors
+                 (conceptualise-symbolic agent))
                (setf (context agent) mwm-context)
                (conceptualise agent))
         if concept-success
-        return concept-success
+        do (progn (setf (discriminative-set agent) nil)
+             (return concept-success))
         else
         do (before-interaction (experiment agent) game-mode
                                agents-mode tutor-mode)))

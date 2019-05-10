@@ -288,7 +288,7 @@
   (record-value monitor (lexicon-quality (hearer interaction))))
 
 ;;;; Show learner lexicon
-(defun show-learner-lexicon (agent)
+(defun display-lexicon (agent)
   (loop for cxn in (constructions (grammar agent))
         do (add-element `((div)
                           ,(s-dot->svg
