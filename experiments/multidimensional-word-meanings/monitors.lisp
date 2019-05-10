@@ -287,7 +287,7 @@
 (define-event-handler (record-lexicon-quality interaction-finished)
   (record-value monitor (lexicon-quality (hearer interaction))))
 
-;;;; Show learner lexicon
+;;;; Show lexicon in web interface
 (defun display-lexicon (agent)
   (loop for cxn in (constructions (grammar agent))
         do (add-element `((div)
@@ -295,7 +295,7 @@
                             (cxn->s-dot cxn))))))
 
 ;;;; Export learner lexicon
-(defun export-learner-lexicon (agent &key (experiment-name 'baseline))
+(defun export-lexicon (agent &key (experiment-name 'baseline))
   (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
                                                 "graphs" ,(downcase (mkstr experiment-name)) "lexicon"))))
     (ensure-directories-exist base-path)

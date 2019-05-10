@@ -92,15 +92,15 @@
          (lower-bound (max (- (prototype category) stdev) 0.0))
          (upper-bound (min (+ (prototype category) stdev) 1.0)))
     `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-      (s-dot::label ,(format nil "~a~%(~,2f - ~,2f - ~,2f)"
+      (s-dot::label ,(format nil "~a (~,2f)~%(~,2f - ~,2f)"
                              (downcase (mkstr (attribute category)))
-                             lower-bound
                              (prototype category)
+                             lower-bound
                              upper-bound)))))
 
 (defmethod category->s-dot-node ((category prototype-min-max-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a~%~,2f~%(~,2f - ~,2f)"
+    (s-dot::label ,(format nil "~a (~,2f)~%(~,2f - ~,2f)"
                            (downcase (mkstr (attribute category)))
                            (prototype category)
                            (lower-bound category)
@@ -118,7 +118,7 @@
 
 (defmethod category->s-dot-node ((category exponential-category))
   `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a~%~,2f (~,2f - ~,2f)"
+    (s-dot::label ,(format nil "~a (~,2f)~%(~,2f - ~,2f)"
                            (downcase (mkstr (attribute category)))
                            (prototype category)
                            (left-sigma category)

@@ -87,7 +87,8 @@
                      "continuous-tutor-exponential")
  :measure-name "communicative-success"
  :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("symbolic tutor" "continuous tutor"))
+ :captions '("symbolic tutor" "continuous tutor")
+ :end 3000)
 
 (create-graph-comparing-strategies
  :experiment-names '("continuous-tutor-min-max"
@@ -95,7 +96,7 @@
                      "continuous-tutor-pmm"
                      "continuous-tutor-exponential")
  :measure-name "communicative-success"
- :y-min 0.95 :y-max 1 :xlabel "Number of games" :y1-label "Success"
+ :y-min 0.8 :y-max 1 :xlabel "Number of games" :y1-label "Success"
  :captions '("min-max" "prototype" "pmm" "exponential")
  :start 40000 :end 50000)
  
