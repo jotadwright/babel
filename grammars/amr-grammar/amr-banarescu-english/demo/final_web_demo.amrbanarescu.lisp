@@ -1,15 +1,6 @@
 (ql:quickload :amr-grammar)
 (in-package :amr-grammar)
 
-(create-static-html-page "Semantic Parsing with Amr-Grammar"
-  (header)
-  (intro)
-  (thegrammar)
-  (somecases)
-  (generalization)
-  (discussionoftheresults)
-  (references)
-  )
 
 (defun header ()
   (clear-page)
@@ -69,7 +60,7 @@ Finally, the third and last category is composed by the Grammatical Construction
   
   (add-element '((h3 :id "somecases") "III.I.Relations for Lists"))
   (add-element '((p) "AMR has a particular Meaning Representation for proper nouns, as the ':op1 and :op2' lists. The Fluid Construction Grammar toolkit can pretty well deal also with these particular types of meaning representations. In fact, for short nominal phrases as 'Obama the president' comprehending the AMR of proper nouns can be relatively easy and, even for more complex phrases as 'Elsevier N.V. , the Dutch publishing group', representing the operator list the comprehension process can be challenging, but still possible. More precisely, if we look at the comprehension process of the first one, we can see that the noun-phrase-cxn bounds the two units nominal-cxn and the-cxn; the :op1 meaning is added directly to the lexical construction for Obama-cxn and finally the named-entity-title-unit is created binding a nominal ('Obama-cxn') with (sem-class person) and a noun-phrase ('The President').
-The AMR of the second sentence is : '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N "Elsevier") (:OP2 N N.V.) (:NAME C N2) (:OP1 N2 "Netherlands"))'. We can instantly notice that both 'Netherlands' and 'Country' are not words in the sentence, but this is not a problem for the Fluid Construction Grammar toolkit which enables the linguist to deal with these types of incosistencies, thanks to its flexibility. In fact, the two amr-meanings 'Country ?c' and ':op1 Netherlands' are added directly to the lexical construction for 'Dutch'. The presentative-unit and the named-entity-unit are created thanks to the presentative-cxn and the nv-elsevier-cxn. Finally, the Amr-Grammar applies the same construction that comprehended 'Obama the president' (the named-entity-title-cxn),to these two units adding the last meaning necessary to comprehend the sentence: name of a certain ?group is a certain ?name".))
+The AMR of the second sentence is : '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (PUBLISH-01 P) (:NAME G N) (:MOD G C) (:ARG0-OF G P) (:OP1 N "Elsevier") (:OP2 N N.V.) (:NAME C N2) (:OP1 N2 "Netherlands"))'. We can instantly notice that both 'Netherlands' and 'Country' are not words in the sentence, but this is not a problem for the Fluid Construction Grammar toolkit which enables the linguist to deal with these types of incosistencies, thanks to its flexibility. In fact, the two amr-meanings 'Country ?c' and ':op1 Netherlands' are added directly to the lexical construction for 'Dutch'. The presentative-unit and the named-entity-unit are created thanks to the presentative-cxn and the nv-elsevier-cxn. Finally, the Amr-Grammar applies the same construction that comprehended 'Obama the president' (the named-entity-title-cxn),to these two units adding the last meaning necessary to comprehend the sentence: name of a certain ?group is a certain ?name"))
   (comprehend "Obama the President")
   (comprehend "Elsevier N.V. , the Dutch publishing group")
   
@@ -107,3 +98,14 @@ The AMR of the second sentence is : '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (
                  ((li) "(5) For further references see : 'Annotating the Little Prince with Chinese AMRs', B. Li, Y. Wen, L. Bu, W. Qu, and N. Xue, Proc. 10th Linguistic Annotation Workshop (LAW X), 2016; 'An AMR parser for English, French, German, Spanish and Japanese and a new AMR-annotated corpus, Lucy Vanderwende, Arul Menezes and Chris Quirk, Proc. NAACL (Demo session), 2015; ;Cross-lingual Abstract Meaning Representation Parsing', Marco Damonte and Shay B. Cohen; 'A Study Towards Spanish Abstract Meaning Representation', Noelia Migueles-Abraira, MSc thesis, University of the Basque Country, 2017")
                  ((li) "(6) Abstract Meaning Representation (AMR) 1.2 Specification, Laura Banarescu, Claire Bonial, Shu Cai, Madalina Georgescu, Kira Griffitt, Ulf Hermjakob, Kevin Knight, Philipp Koehn, Martha Palmer, Nathan Schneider, John Benjamins Publishing Company, Amsterdam, 2011")
                  )))
+
+
+(create-static-html-page "Semantic Parsing with Amr-Grammar"
+  (header)
+  (intro)
+  (thegrammar)
+  (somecases)
+  (generalization)
+  (discussionoftheresults)
+  (references)
+  )

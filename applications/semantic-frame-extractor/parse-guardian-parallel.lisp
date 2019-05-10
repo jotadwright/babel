@@ -1,6 +1,7 @@
 
 (in-package :frame-extractor)
 ;(ql:quickload :frame-extractor)
+
 (defun pie-comprehend-with-timeout (utterance timeout)
   (handler-case (trivial-timeout:with-timeout (timeout)
                   (pie-comprehend utterance
@@ -9,6 +10,26 @@
     (trivial-timeout:timeout-error (error)
       'timeout)))
 
+(defun process-entry (sentence &key (time-out 5))
+  "Sentence from The Guardian corpus, already preprocessed with lexical units."
+  
+      (format t ".")
+      
+      (let ((frame-set (pie-comprehend-with-timeout sentence time-out)))
+        
+        (unless (eql frame-set 'timeout)
+        
+          (when (and frame-set
+                     (pie::entities frame-set))
+            
+            (let ((cause (frame-extractor::cause (first (pie::entities frame-set))))
+                  (effect (frame-extractor::effect (first (pie::entities frame-set)))))
+              
+              (when (or cause effect)
+                (encode-json-alist-to-string `(
+                                               ("cause" . ,(or cause " "))
+                                               ("effect" . ,(or effect " "))))))))))
+#|
 (defun process-entry (decoded-json-object &key (time-out 30))
   ""
   (let* ((sentence (cdr (assoc :sentence decoded-json-object)))
@@ -63,22 +84,23 @@
       `((:sentence . ,comment)
         (:frames . ,aggregated-frame-set)))))
 
+|#
+
+;;spacy api lokaal runnen!!
+
+(defun evaluate-guardian-grammar-in-parallel (inputfile outputfile &optional (time-out 5))   
+  (process-corpus :function #'process-entry
+                  :function-kwargs (list :time-out time-out)
+                  :inputfile inputfile
+                  :outputfile outputfile
+                  :number-of-threads 1
+                  :number-of-lines-per-thread 2000))
 
 
-(defun evaluate-guardian-grammar-in-parallel (inputfile outputfile &optional (time-out 30))   
-  (json-stream-process :function #'process-entry-comments
-                       :function-kwargs (list :time-out time-out)
-                       :input-file inputfile
-                       :output-file outputfile
-                       :output-format :lines
-                       :number-of-threads 1
-                       :number-of-objects-per-thread 2000))
-
-(evaluate-guardian-grammar-in-parallel "/Users/Shared/big-data-and-society/comments_x.txt"
-                                       "/Users/Shared/big-data-and-society/commments_x_frames.json")
-
-(evaluate-guardian-grammar-in-parallel "/Users/Shared/big-data-and-society/comments_y.txt"
-                                       "/Users/Shared/big-data-and-society/commments_y_frames.json")
-
-(activate-monitor trace-fcg)
-(pie-comprehend "@Rob Honeycutt - You are compelled to follow me around and post empty knee-jerk rejections of everything I say, but you can't or you refuse to answer simple questions: \n97% of climate scientists agree that some amount of A in AGW is caused by humans. \nIs that the conclusion of the Cook paper, or ain't it? If the Cook paper stated a quantity for A, tell us what it is. (watch rob squirm)")
+(evaluate-guardian-grammar-in-parallel (babel-pathname :directory '("applications" "semantic-frame-extractor")
+                                                       :name "test"
+                                                       :type "txt")
+                                       (babel-pathname :directory '("applications" "semantic-frame-extractor")
+                                                       :name "test-out"
+                                                       :type "txt"))
+ 
