@@ -55,7 +55,7 @@
                      (:noise-prob . nil)
                      (:scale-world . t)))
                    )
-                 :number-of-interactions 10000
+                 :number-of-interactions 3000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
