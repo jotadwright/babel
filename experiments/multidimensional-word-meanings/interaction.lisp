@@ -133,6 +133,24 @@
         else
         do (before-interaction (experiment agent) game-mode
                                agents-mode tutor-mode)))
+
+(defun conceptualise-with-re-entrance (agent game-mode agents-mode tutor-mode)
+  (loop while t
+        for mwm-context = (context agent)
+        for clevr-context = (clevr-context agent)
+        for concept-success
+        = (and (setf (context agent) clevr-context)
+               (with-disabled-monitors
+                 (conceptualise-symbolic agent))
+               (setf (context agent) mwm-context)
+               (conceptualise agent)
+               (re-entrance agent))
+        if concept-success
+        do (progn (setf (discriminative-set agent) nil)
+             (return concept-success))
+        else
+        do (before-interaction (experiment agent) game-mode
+                               agents-mode tutor-mode)))
                                 
 
 (defmethod do-interaction ((experiment mwm-experiment)

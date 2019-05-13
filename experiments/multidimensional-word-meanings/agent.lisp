@@ -198,8 +198,7 @@
     ;; construct the utterance
     (let ((utterance (mapcar #'(lambda (cxn) (attr-val cxn :form))
                              (applied-cxns agent)))
-          interpreted-object
-          success)
+          interpreted-object success)
       (setf (utterance agent) utterance)
       ;; disable monitors
       (with-disabled-monitors

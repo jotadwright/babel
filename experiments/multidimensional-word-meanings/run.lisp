@@ -15,11 +15,11 @@
 (defparameter *configuration*
   (make-configuration
    :entries '((:perceptual-deviation . t)
-              (:game-mode . :tutor-tutor)
-              (:determine-interacting-agents-mode . :default)
+              (:game-mode . :tutor-learner)
+              (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :min-max)
-              (:alignment-strategy . :similarity-based)
+              (:category-representation . :exponential)
+              (:alignment-strategy . :discrimination-based)
               (:lexical-variation . nil)
               (:feature-selection . :all)
               (:noise-amount . nil)
@@ -46,10 +46,10 @@
 (run-experiments '(
                    (test
                     ((:perceptual-deviation . t)
-                     (:game-mode . :tutor-tutor)
-                     (:determine-interacting-agents-mode . :default)
+                     (:game-mode . :tutor-learner)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
-                     (:category-representation . :prototype)
+                     (:category-representation . :exponential)
                      (:alignment-strategy . :discrimination-based)
                      (:lexical-variation . nil)
                      (:feature-selection . :all)
@@ -64,9 +64,6 @@
                                  ;"export-features-per-form"
                                  ;"export-utterance-length"
                                  ))
-
-(create-x-pos-convergence-graph :nr-of-interactions 100)
-(create-tutor-attribute-use-graph :nr-of-interactions 500)
 
 (create-graph-for-single-strategy
  :experiment-name "test"
