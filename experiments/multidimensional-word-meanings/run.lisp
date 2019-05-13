@@ -14,11 +14,12 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:game-mode . :tutor-learner)
-              (:determine-interacting-agents-mode . :tutor-speaks)
+   :entries '((:perceptual-deviation . t)
+              (:game-mode . :tutor-tutor)
+              (:determine-interacting-agents-mode . :default)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :prototype)
-              (:alignment-strategy . :discrimination-based)
+              (:category-representation . :min-max)
+              (:alignment-strategy . :similarity-based)
               (:lexical-variation . nil)
               (:feature-selection . :all)
               (:noise-amount . nil)
@@ -44,8 +45,9 @@
 
 (run-experiments '(
                    (test
-                    ((:game-mode . :tutor-learner)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
+                    ((:perceptual-deviation . t)
+                     (:game-mode . :tutor-tutor)
+                     (:determine-interacting-agents-mode . :default)
                      (:tutor-lexicon . :continuous)
                      (:category-representation . :prototype)
                      (:alignment-strategy . :discrimination-based)

@@ -74,9 +74,7 @@
       (if noise-prob
         (let ((r (random 1.0)))
           (if (< r noise-prob)
-            (if (< scaled-x-pos 0.5)
-              (max (min (random-from-range 0.0 (+ 0.5 noise-amount)) 1.0) 0.0)
-              (max (min (random-from-range (- 0.5 noise-amount) 1.0) 1.0) 0.0))
+            (add-random-value-from-range scaled-x-pos 0.0 noise-amount :min-bound 0.0 :max-bound 1.0)
             scaled-x-pos))
         scaled-x-pos)
       x-pos)))
@@ -88,9 +86,7 @@
       (if noise-prob
         (let ((r (random 1.0)))
           (if (< r noise-prob)
-            (if (< scaled-y-pos 0.5)
-              (max (min (random-from-range 0.0 (+ 0.5 noise-amount)) 1.0) 0.0)
-              (max (min (random-from-range (- 0.5 noise-amount) 1.0) 1.0) 0.0))
+            (add-random-value-from-range scaled-y-pos 0.0 noise-amount :min-bound 0.0 :max-bound 1.0)
             scaled-y-pos))
         scaled-y-pos)
       y-pos)))

@@ -4,6 +4,46 @@
 ;; + Monitors +
 ;; ------------
 
+;;export learner lexicon
+(define-monitor export-lexicon-evolution)
+
+(define-event-handler (export-lexicon-evolution interaction-finished)
+  (export-lexicon-evolution experiment interaction))
+
+(defun export-lexicon-evolution (experiment interaction)
+  (let ((i-number (interaction-number interaction))
+        (interval (get-configuration experiment :export-lexicon-interval)))
+    (when (= (mod i-number interval) 0)
+      (let ((learner (find 'learner (population experiment) :key #'id)))
+        (export-lexicon learner :experiment-name
+                        (list-of-strings->string (list (mkstr (get-configuration experiment :category-representation))
+                                                       (mkstr (get-configuration experiment :alignment-strategy))
+                                                       (mkstr i-number))
+                                                 :separator "-"))))))
+
+;;;; Show lexicon in web interface
+(defun display-lexicon (agent)
+  (loop for cxn in (constructions (grammar agent))
+        do (add-element `((div)
+                          ,(s-dot->svg
+                            (cxn->s-dot cxn))))))
+
+;;;; Export learner lexicon
+(defun export-lexicon (agent &key (experiment-name 'baseline))
+  (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                                "graphs" ,(downcase (mkstr experiment-name)) "lexicon"))))
+    (ensure-directories-exist base-path)
+    (loop for cxn in (constructions (grammar agent))
+          do (s-dot->image
+              (cxn->s-dot cxn)
+              :path (merge-pathnames (make-pathname :name (format nil "~a-cxn" (attr-val cxn :form))
+                                                    :type "pdf")
+                                     base-path)
+              :format "pdf"
+              :open nil))))
+
+;; lexicon -> function plots
+
 (defun lexicon->function-plots (agent)
   (loop for cxn in (constructions (grammar agent)) 
         for experiment-name = (list-of-strings->string (list (downcase (mkstr (get-configuration agent :category-representation)))
@@ -21,6 +61,7 @@
                                &key (directory '(".tmp")))
   (let ((equations
          (loop for (category . certainty) in (attr-val cxn :meaning)
+               when (< (abs (- (lower-bound category) (upper-bound category))) 0.5)
                collect (format nil "box(x,~a,~a)"
                                (lower-bound category)
                                (upper-bound category)))))
@@ -28,6 +69,7 @@
                           :function-definitions '("box(x,a,b)=(x>a && x<b) ? 1 : -1")
                           :title (format nil "~a" (downcase (mkstr (name cxn))))
                           :captions (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          when (< (abs (- (lower-bound category) (upper-bound category))) 0.5)
                                           collect (format nil "~a" (downcase (mkstr (attribute category)))))
                           :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
                           :plot-directory directory
@@ -74,29 +116,8 @@
                                                        (format nil "~a-upper" (downcase (mkstr (attribute category))))))
                           :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
                           :plot-directory directory
-                          :x-label nil :y-min -0.1
+                          :x-label nil :y-min 0
                           :open nil)))
-
-#|
-(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :exponential))
-                                &key (directory '(".tmp")))
-  (let ((equations
-         (loop for (category . certainty) in (attr-val cxn :meaning)
-               append (list (format nil "decay(x,~a)"
-                                    (left-sigma category))
-                            (format nil "decay(x,~a)"
-                                    (- (right-sigma category)))))))
-    (create-function-plot equations
-                          :function-definitions '("decay(x,s)=exp(s*x)")
-                          :title (format nil "~a" (downcase (mkstr (name cxn))))
-                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
-                                          append (list (format nil "~a-lower" (downcase (mkstr (attribute category))))
-                                                       (format nil "~a-upper" (downcase (mkstr (attribute category))))))
-                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
-                          :plot-directory directory
-                          :x-label nil :y-min 0 :x-min -0.5 :x-max 0.5
-                          :open nil)))
-|#
 
 
 (defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :exponential))
@@ -286,26 +307,6 @@
 
 (define-event-handler (record-lexicon-quality interaction-finished)
   (record-value monitor (lexicon-quality (hearer interaction))))
-
-;;;; Show lexicon in web interface
-(defun display-lexicon (agent)
-  (loop for cxn in (constructions (grammar agent))
-        do (add-element `((div)
-                          ,(s-dot->svg
-                            (cxn->s-dot cxn))))))
-
-;;;; Export learner lexicon
-(defun export-lexicon (agent &key (experiment-name 'baseline))
-  (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
-                                                "graphs" ,(downcase (mkstr experiment-name)) "lexicon"))))
-    (ensure-directories-exist base-path)
-    (loop for cxn in (constructions (grammar agent))
-          do (s-dot->image
-              (cxn->s-dot cxn)
-              :path (merge-pathnames (make-pathname :name (format nil "~a-cxn" (attr-val cxn :form)) :type "pdf")
-                                     base-path)
-              :format "pdf"
-              :open nil))))
 
 ;;;; Communicative success
 (define-monitor record-communicative-success

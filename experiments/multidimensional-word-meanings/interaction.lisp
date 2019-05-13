@@ -11,7 +11,7 @@
 (defgeneric before-interaction (experiment game-mode agents-mode tutor-mode)
   (:documentation "Initialize the interaction, depending on the configuration settings"))
 
-(define-event context-determined (clevr-context clevr-object-set) (mwm-context mwm-object-set))
+(define-event context-determined (experiment mwm-experiment))
 
 (defmethod before-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
@@ -22,7 +22,7 @@
                                   :noise-amount (get-configuration experiment :noise-amount)
                                   :scale (get-configuration experiment :scale-world)
                                   :noise-prob (get-configuration experiment :noise-prob))))
-    (notify context-determined clevr-context mwm-context)
+    (notify context-determined experiment)
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
                    (if (learnerp agent) mwm-context clevr-context))
@@ -35,14 +35,23 @@
                                (game-mode (eql :tutor-learner))
                                (agents-mode (eql :tutor-speaks))
                                (tutor-mode (eql :continuous)))
-  (let* ((clevr-context (random-elt (world experiment)))
-         (mwm-context (clevr->mwm clevr-context
-                                  :noise-amount (get-configuration experiment :noise-amount)
-                                  :scale (get-configuration experiment :scale-world)
-                                  :noise-prob (get-configuration experiment :noise-prob))))
-    (notify context-determined clevr-context mwm-context)
+  (let ((clevr-context (random-elt (world experiment))))
+    (if (get-configuration experiment :perceptual-deviation)
+      (loop for agent in (interacting-agents experiment)
+            for context = (setf (context agent)
+                                (clevr->mwm clevr-context
+                                            :noise-amount (get-configuration experiment :noise-amount)
+                                            :scale (get-configuration experiment :scale-world)
+                                            :noise-prob (get-configuration experiment :noise-prob)))
+            do (setf (context agent) context))
+      (loop with context = (clevr->mwm clevr-context
+                                       :noise-amount (get-configuration experiment :noise-amount)
+                                       :scale (get-configuration experiment :scale-world)
+                                       :noise-prob (get-configuration experiment :noise-prob))
+            for agent in (interacting-agents experiment)
+            do (setf (context agent) context)))
+    (notify context-determined experiment)
     (loop for agent in (interacting-agents experiment)
-          do (setf (context agent) mwm-context)
           do (setf (clevr-context agent) clevr-context)
           do (setf (topic agent)
                    (when (speakerp agent) (random-elt (objects (context agent)))))
@@ -52,18 +61,28 @@
                                (game-mode (eql :tutor-tutor))
                                agents-mode
                                (tutor-mode (eql :continuous)))
-  (let* ((clevr-context (random-elt (world experiment)))
-         (mwm-context (clevr->mwm clevr-context
-                                  :noise-amount (get-configuration experiment :noise-amount)
-                                  :scale (get-configuration experiment :scale-world)
-                                  :noise-prob (get-configuration experiment :noise-prob))))
-    (notify context-determined clevr-context mwm-context)
+  (let ((clevr-context (random-elt (world experiment))))
+    (if (get-configuration experiment :perceptual-deviation)
+      (loop for agent in (interacting-agents experiment)
+            for context = (setf (context agent)
+                                (clevr->mwm clevr-context
+                                            :noise-amount (get-configuration experiment :noise-amount)
+                                            :scale (get-configuration experiment :scale-world)
+                                            :noise-prob (get-configuration experiment :noise-prob)))
+            do (setf (context agent) context))
+      (loop with context = (clevr->mwm clevr-context
+                                       :noise-amount (get-configuration experiment :noise-amount)
+                                       :scale (get-configuration experiment :scale-world)
+                                       :noise-prob (get-configuration experiment :noise-prob))
+            for agent in (interacting-agents experiment)
+            do (setf (context agent) context)))
     (loop for agent in (interacting-agents experiment)
-          do (setf (context agent) mwm-context)
           do (setf (clevr-context agent) clevr-context)
           do (setf (topic agent)
-                   (when (speakerp agent) (random-elt (objects (context agent)))))
-          do (clear-agent agent))))
+                   (when (speakerp agent)
+                     (random-elt (objects (context agent)))))
+          do (clear-agent agent))
+    (notify context-determined experiment)))
 
 
 ;;;; do-interaction
@@ -149,12 +168,7 @@
                            (tutor-mode (eql :continuous)))
   (let ((speaker (speaker experiment))
         (hearer (hearer experiment)))
-    (loop while t
-          for success = (conceptualise speaker)
-          if success
-          return success
-          else
-          do (before-interaction experiment game-mode agents-mode tutor-mode))
+    (conceptualise-until-success speaker game-mode agents-mode tutor-mode)
     (produce-word speaker)
     (when (utterance speaker)
       (setf (utterance hearer) (utterance speaker))

@@ -36,6 +36,8 @@
 (define-configuration-default-value :tutor-lexicon :symbolic) ; symbolic or continuous
 (define-configuration-default-value :game-mode :tutor-learner) ; :tutor-tutor :tutor-learner
 
+(define-configuration-default-value :export-lexicon-interval 500)
+
 ;; --------------
 ;; + Experiment +
 ;; --------------
@@ -48,6 +50,7 @@
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Create the population and load the scenes from file"
   (activate-monitor print-a-dot-for-each-interaction)
+  (deactivate-monitor export-lexicon-evolution)
   (setf (population experiment)
         (case (get-configuration experiment :game-mode)
           (:tutor-learner (list (make-tutor-agent experiment)
