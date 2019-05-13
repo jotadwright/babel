@@ -15,16 +15,16 @@
 (defparameter *configuration*
   (make-configuration
    :entries '((:perceptual-deviation . t)
-              (:game-mode . :tutor-learner)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:tutor-lexicon . :continuous)
-              (:category-representation . :exponential)
-              (:alignment-strategy . :discrimination-based)
-              (:lexical-variation . nil)
-              (:feature-selection . :all)
-              (:noise-amount . nil)
-              (:noise-prob . nil)
-              (:scale-world . t))))
+                     (:game-mode . :tutor-tutor)
+                     (:determine-interacting-agents-mode . :default)
+                     (:tutor-lexicon . :continuous)
+                     (:category-representation . :min-max)
+                     (:alignment-strategy . :similarity-based)
+                     (:lexical-variation . nil)
+                     (:feature-selection . :all)
+                     (:noise-amount . nil)
+                     (:noise-prob . nil)
+                     (:scale-world . t))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -46,8 +46,8 @@
 (run-experiments '(
                    (test
                     ((:perceptual-deviation . t)
-                     (:game-mode . :tutor-learner)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:game-mode . :tutor-tutor)
+                     (:determine-interacting-agents-mode . :default)
                      (:tutor-lexicon . :continuous)
                      (:category-representation . :exponential)
                      (:alignment-strategy . :discrimination-based)

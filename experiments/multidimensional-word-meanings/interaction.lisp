@@ -187,6 +187,7 @@
   (let ((speaker (speaker experiment))
         (hearer (hearer experiment)))
     (conceptualise-until-success speaker game-mode agents-mode tutor-mode)
+    ;(conceptualise-with-re-entrance speaker game-mode agents-mode tutor-mode)
     (produce-word speaker)
     (when (utterance speaker)
       (setf (utterance hearer) (utterance speaker))

@@ -192,8 +192,7 @@
   (:documentation "Do re-entrance"))
 
 (defmethod re-entrance ((agent mwm-agent))
-  (when (and (eql (get-configuration agent :game-mode) :tutor-learner)
-             (eql (get-configuration agent :tutor-lexicon) :continuous)
+  (when (and (eql (get-configuration agent :tutor-lexicon) :continuous)
              (applied-cxns agent))
     ;; construct the utterance
     (let ((utterance (mapcar #'(lambda (cxn) (attr-val cxn :form))

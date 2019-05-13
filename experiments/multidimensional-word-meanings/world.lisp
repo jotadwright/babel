@@ -94,7 +94,7 @@
 (defun object->area (object noise-amount noise-prob scale)
   (let* ((area (case (size object)
                  (small 30) (large 70)))
-         (area-w-variance (add-random-value-from-range area 0 10))
+         (area-w-variance (add-random-value-from-range area 0 16))
          (scaled-area (float (/ area-w-variance 100))))
     (if scale
       (if noise-prob
