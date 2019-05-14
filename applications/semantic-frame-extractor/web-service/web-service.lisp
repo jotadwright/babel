@@ -107,8 +107,8 @@
     (let* ((text-frame-sets (loop for text in texts
                                   for utterances = (get-penelope-sentence-tokens text)
                                   append (loop for utterance in utterances
-                                               for cleaned-utterance = (cl-ppcre:regex-replace-all "[“’–”…€$£•]" utterance " " )
-                                               for frame-set = (unless (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" cleaned-utterance)
+                                               for cleaned-utterance = (cl-ppcre:regex-replace-all "[‘“’–”…€$£•]" utterance " " )
+                                               for frame-set = (when (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" cleaned-utterance)
                                                                    (handler-case (pie-comprehend cleaned-utterance :silent silent :cxn-inventory *fcg-constructions*)
                                                                  (error (e)
                                                                    (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" cleaned-utterance) e))))
