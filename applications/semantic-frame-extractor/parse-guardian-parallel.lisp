@@ -25,7 +25,7 @@
             (let ((cause (frame-extractor::cause (first (pie::entities frame-set))))
                   (effect (frame-extractor::effect (first (pie::entities frame-set)))))
               
-              (when (or cause effect)
+              (when (and cause effect)
                 (encode-json-alist-to-string `(
                                                ("cause" . ,(or cause " "))
                                                ("effect" . ,(or effect " "))))))))))
@@ -93,14 +93,14 @@
                   :function-kwargs (list :time-out time-out)
                   :inputfile inputfile
                   :outputfile outputfile
-                  :number-of-threads 1
+                  :number-of-threads 4
                   :number-of-lines-per-thread 2000))
 
 
-(evaluate-guardian-grammar-in-parallel (babel-pathname :directory '("applications" "semantic-frame-extractor")
-                                                       :name "test"
+(evaluate-guardian-grammar-in-parallel (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                       :name "causation_sentences_comments_2017"
                                                        :type "txt")
-                                       (babel-pathname :directory '("applications" "semantic-frame-extractor")
-                                                       :name "test-out"
+                                       (babel-pathname :directory '("applications" "semantic-frame-extractor" "data")
+                                                       :name "causation_frames_comments_2017"
                                                        :type "txt"))
  
