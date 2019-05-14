@@ -14,7 +14,7 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:perceptual-deviation . nil)
+   :entries '((:perceptual-deviation . t)
               (:game-mode . :tutor-learner)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
