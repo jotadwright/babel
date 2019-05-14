@@ -87,6 +87,42 @@
       (encode-json-alist-to-string
        `((:frame-sets . ,text-frame-sets))))))
 
+
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'texts-extract-causes-effects)))
+  (let* ((json (handler-case
+                   (cl-json:decode-json-from-string
+                    (snooze:payload-as-string))
+                 (error (e)
+                   (snooze:http-condition 400 "Malformed JSON (~a)!" e))))
+         (missing-keys (keys-present-p json :texts))
+         (texts (rest (assoc :texts json)))
+         (silent (if (assoc :silent json) (rest (assoc :silent json)) t)))
+    (when missing-keys
+      (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
+    (unless (listp texts)
+      (snooze:http-condition 400 "Texts is not a list! Instead, received something of type ~a" (type-of texts)))
+    
+    (load-frames '("Causation"))
+
+    (let* ((text-frame-sets (loop for text in texts
+                                  for utterances = (get-penelope-sentence-tokens text)
+                                  append (loop for utterance in utterances
+                                               for frame-set = (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
+                                                                 (error (e)
+                                                                   (snooze:http-condition 500 "Error in precision language processing module!" e)))
+                                               when frame-set
+                                               collect it)))
+           (utterances-with-causes-and-effects (loop for frameset in text-frame-sets
+                                                     for utterance = (utterance frameset)
+                                                     append (loop for entity in (pie::entities frameset)
+                                                                   collect `((:utterance . ,utterance)
+                                                                             (:cause . ,(cause entity))
+                                                                             (:effect . ,(effect entity)))))))
+      
+      (encode-json-alist-to-string
+       `((:causal-relations . ,utterances-with-causes-and-effects))))))
+
+
 (snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'causation-tracker)))
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
@@ -110,6 +146,12 @@
       (effect->cause-graph phrase data))))
 
 (snooze:defroute semantic-frame-extractor (:options :text/* (op (eql 'causation-tracker))))
+
+
+;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that.", "This is a sentence. This causes that."]}' http://localhost:9004/semantic-frame-extractor/texts-extract-causes-effects
+
+;; {"frameSets":[[[{"id":"causationFrame15","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame30","frameEvokingElement":"cause","cause":"they","effect":"damage to their own clothes","actor":null,"affected":null}],[{"id":"causationFrame16","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]],[[{"id":"causationFrame17","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]]]}
+
 
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.", "frames" : ["Causation"]}' http://localhost:9004/semantic-frame-extractor/extract-frames
