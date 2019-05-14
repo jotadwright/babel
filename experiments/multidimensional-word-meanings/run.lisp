@@ -14,17 +14,17 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:perceptual-deviation . t)
-                     (:game-mode . :tutor-tutor)
-                     (:determine-interacting-agents-mode . :default)
-                     (:tutor-lexicon . :continuous)
-                     (:category-representation . :min-max)
-                     (:alignment-strategy . :similarity-based)
-                     (:lexical-variation . nil)
-                     (:feature-selection . :all)
-                     (:noise-amount . nil)
-                     (:noise-prob . nil)
-                     (:scale-world . t))))
+   :entries '((:perceptual-deviation . nil)
+              (:game-mode . :tutor-learner)
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:tutor-lexicon . :continuous)
+              (:category-representation . :exponential)
+              (:alignment-strategy . :discrimination-based)
+              (:lexical-variation . nil)
+              (:feature-selection . :all)
+              (:noise-amount . nil)
+              (:noise-prob . nil)
+              (:scale-world . t))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -33,7 +33,7 @@
 
 (run-series *experiment* 100)
 
-(run-series *experiment* 3000)
+(run-series *experiment* 5000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
@@ -46,8 +46,8 @@
 (run-experiments '(
                    (test
                     ((:perceptual-deviation . t)
-                     (:game-mode . :tutor-tutor)
-                     (:determine-interacting-agents-mode . :default)
+                     (:game-mode . :tutor-learner)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
                      (:category-representation . :exponential)
                      (:alignment-strategy . :discrimination-based)
@@ -57,7 +57,7 @@
                      (:noise-prob . nil)
                      (:scale-world . t)))
                    )
-                 :number-of-interactions 3000
+                 :number-of-interactions 5000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
@@ -82,22 +82,22 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("exponential-discrimination-based"
-                     "continuous-tutor-exponential")
+ :experiment-names '("continuous-tutor-exponential"
+                     "exponential-perceptual-deviation")
  :measure-name "communicative-success"
  :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("symbolic tutor" "continuous tutor")
- :end 3000)
+ :captions '("same perspective" "different perspective")
+ :end 20000)
 
 (create-graph-comparing-strategies
- :experiment-names '("continuous-tutor-min-max"
-                     "continuous-tutor-prototype"
-                     "continuous-tutor-pmm"
-                     "continuous-tutor-exponential")
+ :experiment-names '("min-max-perceptual-deviation"
+                     "prototype-perceptual-deviation"
+                     "pmm-perceptual-deviation"
+                     "exponential-perceptual-deviation")
  :measure-name "communicative-success"
  :y-min 0.8 :y-max 1 :xlabel "Number of games" :y1-label "Success"
  :captions '("min-max" "prototype" "pmm" "exponential")
- :start 40000 :end 50000)
+ :end 20000)
  
 
 
