@@ -103,18 +103,21 @@
       (snooze:http-condition 400 "Texts is not a list! Instead, received something of type ~a" (type-of texts)))
     
     (load-frames '("Causation"))
-
+    
     (let* ((text-frame-sets (loop for text in texts
                                   for utterances = (get-penelope-sentence-tokens text)
                                   append (loop for utterance in utterances
-                                               for frame-set = (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
+                                               for cleaned-utterance = (cl-ppcre:regex-replace-all "[“’–”…€$£•]" utterance " " )
+                                               for frame-set = (unless (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" cleaned-utterance)
+                                                                   (handler-case (pie-comprehend cleaned-utterance :silent silent :cxn-inventory *fcg-constructions*)
                                                                  (error (e)
-                                                                   (snooze:http-condition 500 "Error in precision language processing module!" e)))
+                                                                   (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" cleaned-utterance) e))))
                                                when frame-set
                                                collect it)))
            (utterances-with-causes-and-effects (loop for frameset in text-frame-sets
                                                      for utterance = (utterance frameset)
                                                      append (loop for entity in (pie::entities frameset)
+                                                                  when (or (cause entity) (effect entity))
                                                                    collect `((:utterance . ,utterance)
                                                                              (:cause . ,(cause entity))
                                                                              (:effect . ,(effect entity)))))))
