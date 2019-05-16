@@ -87,14 +87,6 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("noise-no-re-entrance"
-                     "noise-with-re-entrance")
- :measure-name "communicative-success"
- :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("noise+no-re-entrance" "noise+re-entrance")
- :end nil)
-
-(create-graph-comparing-strategies
  :experiment-names '("min-max-perceptual-deviation"
                      "prototype-perceptual-deviation"
                      "pmm-perceptual-deviation"
