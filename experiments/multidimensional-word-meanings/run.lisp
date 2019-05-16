@@ -15,16 +15,15 @@
 (defparameter *configuration*
   (make-configuration
    :entries '((:perceptual-deviation . t)
-              (:game-mode . :tutor-learner)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:tutor-lexicon . :continuous)
-              (:category-representation . :exponential)
-              (:alignment-strategy . :discrimination-based)
-              (:lexical-variation . nil)
-              (:feature-selection . :all)
-              (:noise-amount . nil)
-              (:noise-prob . nil)
-              (:scale-world . t))))
+                     (:game-mode . :tutor-learner)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:tutor-lexicon . :continuous)
+                     (:category-representation . :prototype)
+                     (:lexical-variation . nil)
+                     (:feature-selection . :all)
+                     (:noise-amount . nil)
+                     (:noise-prob . nil)
+                     (:scale-world . t))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -33,7 +32,7 @@
 
 (run-series *experiment* 100)
 
-(run-series *experiment* 5000)
+(run-series *experiment* 3000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
@@ -49,8 +48,7 @@
                      (:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
-                     (:category-representation . :exponential)
-                     (:alignment-strategy . :discrimination-based)
+                     (:category-representation . :prototype)
                      (:lexical-variation . nil)
                      (:feature-selection . :all)
                      (:noise-amount . nil)

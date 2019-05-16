@@ -67,28 +67,44 @@
         (setf new-value max-bound)))
     new-value))
 
+;; when x-pos and y-pos are exactly equal to 0.5
+;; they are considered to be left!
 (defun object->x-pos (object noise-amount noise-prob scale)
   (let* ((x-pos (first (coordinates object)))
-         (scaled-x-pos (float (/ (- x-pos 31) (- 460 31)))))
+         (scaled-x-pos (float (/ (- x-pos 31) (- 460 31))))
+         (x-pos-w-variance (add-random-value-from-range scaled-x-pos 0.0 0.1
+                                                        :min-bound
+                                                        (cond ((<= scaled-x-pos 0.5) 0.0)
+                                                              ((> scaled-x-pos 0.5) 0.51))
+                                                        :max-bound
+                                                        (cond ((<= scaled-x-pos 0.5) 0.5)
+                                                              ((> scaled-x-pos 0.5) 1.0)))))
     (if scale
       (if noise-prob
         (let ((r (random 1.0)))
           (if (< r noise-prob)
-            (add-random-value-from-range scaled-x-pos 0.0 noise-amount :min-bound 0.0 :max-bound 1.0)
-            scaled-x-pos))
-        scaled-x-pos)
+            (add-random-value-from-range x-pos-w-variance 0.0 noise-amount :min-bound 0.0 :max-bound 1.0)
+            x-pos-w-variance))
+        x-pos-w-variance)
       x-pos)))
 
 (defun object->y-pos (object noise-amount noise-prob scale)
   (let* ((y-pos (second (coordinates object)))
-         (scaled-y-pos (float (/ (- y-pos 58) (- 296 58)))))
+         (scaled-y-pos (float (/ (- y-pos 58) (- 296 58))))
+         (y-pos-w-variance (add-random-value-from-range scaled-y-pos 0.0 0.1
+                                                        :min-bound
+                                                        (cond ((<= scaled-y-pos 0.5) 0.0)
+                                                              ((> scaled-y-pos 0.5) 0.51))
+                                                        :max-bound
+                                                        (cond ((<= scaled-y-pos 0.5) 0.5)
+                                                              ((> scaled-y-pos 0.5) 1.0)))))
     (if scale
       (if noise-prob
         (let ((r (random 1.0)))
           (if (< r noise-prob)
-            (add-random-value-from-range scaled-y-pos 0.0 noise-amount :min-bound 0.0 :max-bound 1.0)
-            scaled-y-pos))
-        scaled-y-pos)
+            (add-random-value-from-range y-pos-w-variance 0.0 noise-amount :min-bound 0.0 :max-bound 1.0)
+            y-pos-w-variance))
+        y-pos-w-variance)
       y-pos)))
 
 (defun object->area (object noise-amount noise-prob scale)

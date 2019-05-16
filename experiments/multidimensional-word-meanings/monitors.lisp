@@ -17,7 +17,6 @@
       (let ((learner (find 'learner (population experiment) :key #'id)))
         (export-lexicon learner :experiment-name
                         (list-of-strings->string (list (mkstr (get-configuration experiment :category-representation))
-                                                       (mkstr (get-configuration experiment :alignment-strategy))
                                                        (mkstr i-number))
                                                  :separator "-"))))))
 
@@ -46,9 +45,7 @@
 
 (defun lexicon->function-plots (agent)
   (loop for cxn in (constructions (grammar agent)) 
-        for experiment-name = (list-of-strings->string (list (downcase (mkstr (get-configuration agent :category-representation)))
-                                                             (downcase (mkstr (get-configuration agent :alignment-strategy))))
-                                                       :separator "-")
+        for experiment-name = (downcase (mkstr (get-configuration agent :category-representation)))
         do (cxn->function-plot cxn (get-configuration agent :category-representation)
                                :directory `("experiments" "multidimensional-word-meanings"
                                             "graphs" ,experiment-name "function-plots"))))

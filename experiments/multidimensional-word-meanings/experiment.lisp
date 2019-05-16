@@ -24,7 +24,6 @@
 (define-configuration-default-value :alpha 0.05)
 (define-configuration-default-value :remove-on-lower-bound t) ; t or nil
 (define-configuration-default-value :category-representation :exponential) ; :min-max :prototype :prototype-min-max :exponential
-(define-configuration-default-value :alignment-strategy :discrimination-based)
 (define-configuration-default-value :feature-selection :all) ; :all or :sampling
 (define-configuration-default-value :noise-amount nil) ; nil or float in [0,1]
 (define-configuration-default-value :noise-prob nil) ; nil or float in [0,1]

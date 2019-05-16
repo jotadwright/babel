@@ -34,12 +34,12 @@
                  (mapcar #'car (attr-val cxn :meaning)))
         :test #'member))
 
-(defgeneric align-known-words (agent topic strategy)
+(defgeneric align-known-words (agent topic categories)
   (:documentation "Align known words"))
 
 ;; similarity-based strategy
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
-                              (strategy (eql :similarity-based)))
+                              (categories (eql :min-max)))
   (loop with rewarded
         with punished
         for (category . certainty) in (parsed-meaning agent)
@@ -70,7 +70,8 @@
     (> topic-sim best-object-sim)))
 
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
-                              (strategy (eql :discrimination-based)))
+                              categories)
+  (declare (ignorable categories))
   (let ((categories-w-cxns (loop for (category . certainty) in (parsed-meaning agent)
                                  for cxn = (get-cxn-from-category agent category)
                                  collect (cons category cxn)))
@@ -123,12 +124,12 @@
                 collect form))
          (unknown-words
           (set-difference (utterance agent) known-words :test #'string=))
-         (alignment-strategy (get-configuration agent :alignment-strategy)))
+         (category-representation (get-configuration agent :category-representation)))
     (notify alignment-started agent)
     (when unknown-words
       (notify adopting-words unknown-words)
       (adopt-unknown-words agent topic unknown-words))
     (when known-words
       (notify aligning-words known-words)
-      (align-known-words agent topic alignment-strategy))))
+      (align-known-words agent topic category-representation))))
   
