@@ -34,6 +34,7 @@
 (define-configuration-default-value :perceptual-deviation nil) ; nil or t
 (define-configuration-default-value :tutor-lexicon :symbolic) ; symbolic or continuous
 (define-configuration-default-value :game-mode :tutor-learner) ; :tutor-tutor :tutor-learner
+(define-configuration-default-value :tutor-re-entrance nil)
 
 (define-configuration-default-value :export-lexicon-interval 500)
 

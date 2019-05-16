@@ -14,15 +14,15 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:perceptual-deviation . t)
+   :entries '((:perceptual-deviation . nil)
                      (:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
                      (:category-representation . :prototype)
                      (:lexical-variation . nil)
                      (:feature-selection . :all)
-                     (:noise-amount . nil)
-                     (:noise-prob . nil)
+                     (:noise-amount . 0.1)
+                     (:noise-prob . 0.5)
                      (:scale-world . t))))
 
 (defparameter *experiment*
@@ -43,20 +43,27 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (test
-                    ((:perceptual-deviation . t)
+                   (noise-no-re-entrance
+                    ((:perceptual-deviation . nil)
                      (:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
                      (:category-representation . :prototype)
-                     (:lexical-variation . nil)
-                     (:feature-selection . :all)
-                     (:noise-amount . nil)
-                     (:noise-prob . nil)
-                     (:scale-world . t)))
+                     (:noise-amount . 0.1)
+                     (:noise-prob . 0.5)
+                     (:tutor-re-entrance . nil)))
+                   (noise-with-re-entrance
+                    ((:perceptual-deviation . nil)
+                     (:game-mode . :tutor-learner)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:tutor-lexicon . :continuous)
+                     (:category-representation . :prototype)
+                     (:noise-amount . 0.1)
+                     (:noise-prob . 0.5)
+                     (:tutor-re-entrance . t)))
                    )
-                 :number-of-interactions 5000
-                 :number-of-series 1
+                 :number-of-interactions 3000
+                 :number-of-series 10
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
@@ -80,12 +87,12 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("continuous-tutor-exponential"
-                     "exponential-perceptual-deviation")
+ :experiment-names '("noise-no-re-entrance"
+                     "noise-with-re-entrance")
  :measure-name "communicative-success"
  :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("same perspective" "different perspective")
- :end 20000)
+ :captions '("noise+no-re-entrance" "noise+re-entrance")
+ :end nil)
 
 (create-graph-comparing-strategies
  :experiment-names '("min-max-perceptual-deviation"
