@@ -48,7 +48,7 @@
 
 (defun create-graph-comparing-strategies (&key experiment-names measure-name
                                                (y-min 0) (y-max 1) xlabel y1-label y2-label
-                                               captions start end)
+                                               captions title start end)
   ;; This function allows you to compare a given measure accross different
   ;; experiments, e.g. comparing lexicon size
   (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
@@ -58,6 +58,7 @@
           collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name))
     :average-windows 500
     :captions (if captions captions experiment-names)
+    :title title
     :plot-directory '("experiments" "multidimensional-word-meanings" "graphs")
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)

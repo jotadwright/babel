@@ -87,14 +87,23 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("min-max-perceptual-deviation"
-                     "prototype-perceptual-deviation"
-                     "pmm-perceptual-deviation"
-                     "exponential-perceptual-deviation")
+ :experiment-names '("continuous-tutor-exponential"
+                     "exponential-noise-no-re-entrance"
+                     "exponential-noise-with-re-entrance")
+ :measure-name "communicative-success"
+ :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
+ :captions '("baseline" "noise" "noise+re-entrance")
+ :title "exponential (p=0.5, n=0.1)" :end 20000)
+
+(create-graph-comparing-strategies
+ :experiment-names '("min-max-noise-with-re-entrance"
+                     "prototype-noise-with-re-entrance"
+                     "pmm-noise-with-re-entrance"
+                     "exponential-noise-with-re-entrance")
  :measure-name "communicative-success"
  :y-min 0.8 :y-max 1 :xlabel "Number of games" :y1-label "Success"
  :captions '("min-max" "prototype" "pmm" "exponential")
- :end 20000)
+ :end 20000 :title "noise+re-entrance (p=0.5, n=0.1)")
  
 
 
