@@ -18,7 +18,7 @@
               (:game-mode . :tutor-learner)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :prototype)
+              (:category-representation . :exponential)
               (:lexical-variation . nil)
               (:feature-selection . :all)
               (:noise-amount . 0.1)
@@ -79,11 +79,12 @@
 
 (create-graph-comparing-strategies
  :experiment-names '("continuous-tutor-exponential"
+                     "exponential-perceptual-deviation"
                      "exponential-noise-no-re-entrance"
-                     "exponential-noise-with-re-entrance")
+                     "exponential-deviation-noise")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("baseline" "noise" "noise+re-entrance")
+ :captions '("baseline" "perceptual deviation" "noise" "noise + perceptual deviation")
  :title "exponential (p=0.5, n=0.1)" :end 20000)
 
 (create-graph-comparing-strategies
