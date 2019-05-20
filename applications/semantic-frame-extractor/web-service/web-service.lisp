@@ -107,9 +107,9 @@
     (let* ((text-frame-sets (loop for text in texts
                                   for utterances = (get-penelope-sentence-tokens text)
                                   append (loop for utterance in utterances
-                                               for cleaned-utterance = (cl-ppcre:regex-replace-all "[‘“’–”…€$£•]" utterance " " )
-                                               for frame-set = (when (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" cleaned-utterance)
-                                                                   (handler-case (pie-comprehend cleaned-utterance :silent silent :cxn-inventory *fcg-constructions*)
+                                             ;;  for cleaned-utterance = (cl-ppcre:regex-replace-all "[‘“’–”…$£]" utterance " " )
+                                               for frame-set = (when (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" utterance)
+                                                                   (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
                                                                  (error (e)
                                                                    (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" cleaned-utterance) e))))
                                                when frame-set
@@ -151,7 +151,7 @@
 (snooze:defroute semantic-frame-extractor (:options :text/* (op (eql 'causation-tracker))))
 
 
-;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that.", "This is a sentence. This causes that."]}' http://localhost:9004/semantic-frame-extractor/texts-extract-causes-effects
+;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that • if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that and costs 10 €.", "This is a sentence with weird signs: ‘. This causes that."]}' http://localhost:9004/semantic-frame-extractor/texts-extract-causes-effects
 
 ;; {"frameSets":[[[{"id":"causationFrame15","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame30","frameEvokingElement":"cause","cause":"they","effect":"damage to their own clothes","actor":null,"affected":null}],[{"id":"causationFrame16","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]],[[{"id":"causationFrame17","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]]]}
 
