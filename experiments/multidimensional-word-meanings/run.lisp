@@ -14,16 +14,16 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:perceptual-deviation . nil)
-                     (:game-mode . :tutor-learner)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:tutor-lexicon . :continuous)
-                     (:category-representation . :prototype)
-                     (:lexical-variation . nil)
-                     (:feature-selection . :all)
-                     (:noise-amount . 0.1)
-                     (:noise-prob . 0.5)
-                     (:scale-world . t))))
+   :entries '((:perceptual-deviation . t)
+              (:game-mode . :tutor-learner)
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:tutor-lexicon . :continuous)
+              (:category-representation . :prototype)
+              (:lexical-variation . nil)
+              (:feature-selection . :all)
+              (:noise-amount . 0.1)
+              (:noise-prob . 0.5)
+              (:scale-world . t))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -43,27 +43,18 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (noise-no-re-entrance
-                    ((:perceptual-deviation . nil)
+                   (test
+                    ((:perceptual-deviation . t)
                      (:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
-                     (:category-representation . :prototype)
-                     (:noise-amount . 0.1)
-                     (:noise-prob . 0.5)
-                     (:tutor-re-entrance . nil)))
-                   (noise-with-re-entrance
-                    ((:perceptual-deviation . nil)
-                     (:game-mode . :tutor-learner)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:tutor-lexicon . :continuous)
-                     (:category-representation . :prototype)
+                     (:category-representation . :exponential)
                      (:noise-amount . 0.1)
                      (:noise-prob . 0.5)
                      (:tutor-re-entrance . t)))
                    )
                  :number-of-interactions 3000
-                 :number-of-series 10
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
