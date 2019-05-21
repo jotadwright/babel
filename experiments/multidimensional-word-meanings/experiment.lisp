@@ -27,11 +27,11 @@
 (define-configuration-default-value :feature-selection :all) ; :all or :sampling
 (define-configuration-default-value :noise-amount nil) ; nil or float in [0,1]
 (define-configuration-default-value :noise-prob nil) ; nil or float in [0,1]
+(define-configuration-default-value :perceptual-deviation nil) ; nil or t
 (define-configuration-default-value :scale-world t)  ; t or nil
 
 (define-configuration-default-value :max-tutor-utterance-length 1) ; nil or int
 (define-configuration-default-value :lexical-variation nil) ; nil or t
-(define-configuration-default-value :perceptual-deviation nil) ; nil or t
 (define-configuration-default-value :tutor-lexicon :symbolic) ; symbolic or continuous
 (define-configuration-default-value :game-mode :tutor-learner) ; :tutor-tutor :tutor-learner
 (define-configuration-default-value :tutor-re-entrance nil)

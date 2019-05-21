@@ -14,16 +14,12 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:perceptual-deviation . t)
-              (:game-mode . :tutor-learner)
+   :entries '((:game-mode . :tutor-learner)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :exponential)
-              (:lexical-variation . nil)
-              (:feature-selection . :all)
-              (:noise-amount . 0.1)
-              (:noise-prob . 0.5)
-              (:scale-world . t))))
+              (:category-representation . :prototype)
+              (:noise-amount . 0.05)
+              (:noise-prob . 0.5))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
