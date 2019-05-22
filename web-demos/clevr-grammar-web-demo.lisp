@@ -19,7 +19,7 @@
   (add-element
    '((h1) "Computational Construction Grammar for Visual Question Answering"))
   (add-element '((p) "This web demonstration accompanies the paper:"))
-  (add-element '((p) "Nevens, J., Van Eecke, P. &amp; Beuls, K. (2019). "((a :href "#") "Computational Construction Grammar for Visual Question Answering.")" "((i) " Submitted to Linguistics Vanguard") "."))
+  (add-element '((p) ((b) "Anonymous Authors ") " (2019). "((a :href "#") "Computational Construction Grammar for Visual Question Answering.")" "((i) " Submitted to Linguistics Vanguard") "."))
   (add-element '((p) "Explanations on how to use this demo can be found " ((a :href "https://www.fcg-net.org/projects/web-demonstration-guide/" :target "_blank") "here.")))
   (add-element '((hr)))
   (add-element '((p) "This demonstration has the following parts:"))
