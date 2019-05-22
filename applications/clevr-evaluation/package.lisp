@@ -11,11 +11,14 @@
                 :define-event-handler
                 :notify
                 :activate-monitor
-                :deactivate-monitor)
+                :deactivate-monitor
+                :deactivate-all-monitors)
   (:import-from :web-interface
                 :add-element
                 :s-dot->svg
-                :s-dot->image)
+                :s-dot->image
+                :define-css
+                :clear-page)
   (:import-from :irl
                 :bind :var
                 :evaluate-irl-program
