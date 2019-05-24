@@ -116,10 +116,18 @@
            (utterances-with-causes-and-effects (loop for frameset in text-frame-sets
                                                      for utterance = (utterance frameset)
                                                      append (loop for entity in (pie::entities frameset)
-                                                                  when (or (cause entity) (effect entity))
-                                                                   collect `((:utterance . ,utterance)
-                                                                             (:cause . ,(cause entity))
-                                                                             (:effect . ,(effect entity)))))))
+                                                                  for cause = (if (or (eql (cause entity) nil)
+                                                                                      (stringp (cause entity)))
+                                                                                (cause entity)
+                                                                                (utterance (cause entity)))
+                                                                  for effect = (if (or (eql (effect entity) nil)
+                                                                                       (stringp (effect entity)))
+                                                                                (effect entity)
+                                                                                (utterance (effect entity)))
+                                                                  when (or cause effect)
+                                                                  collect `((:utterance . ,utterance)
+                                                                             (:cause . ,cause)
+                                                                             (:effect . ,effect))))))
       
       (encode-json-alist-to-string
        `((:causal-relations . ,utterances-with-causes-and-effects))))))
