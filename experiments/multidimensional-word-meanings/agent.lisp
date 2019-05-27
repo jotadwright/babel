@@ -161,7 +161,7 @@
 (defmethod conceptualise-continuous ((agent mwm-agent))
   (loop with utterance = nil ; list of cxns
         with utterance-meaning = nil ; combined meaning
-        with best-similarity = 0
+        with best-similarity = most-negative-fixnum
         with continue = t
         ; utterance has a max length
         while (and (length< utterance (get-configuration agent :max-tutor-utterance-length)) continue)
@@ -171,8 +171,9 @@
                                (let* ((cxn-meaning (attr-val best-new-word :meaning))
                                       (extended-meaning (fuzzy-union cxn-meaning utterance-meaning)))
                                  (weighted-similarity (topic agent) extended-meaning))
-                               0)
-        if (> new-similarity best-similarity)
+                               nil)
+        if (and new-similarity
+                (> new-similarity best-similarity))
         do (progn (push best-new-word utterance)
              (setf utterance-meaning (fuzzy-union (attr-val best-new-word :meaning) utterance-meaning))
              (setf best-similarity new-similarity))
