@@ -17,17 +17,17 @@
    :entries '((:game-mode . :tutor-learner)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :prototype)
-              (:max-tutor-utterance-length . 4)
-              (:noise-amount . nil)
-              (:noise-prob . nil))))
+              (:category-representation . :prototype-min-max)
+              (:max-tutor-utterance-length . 1)
+              (:noise-amount . 0.1)
+              (:noise-prob . 0.5))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 100)
 
 (run-series *experiment* 3000)
 
@@ -46,8 +46,8 @@
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
                      (:category-representation . :min-max)
-                     (:noise-amount . nil)
-                     (:noise-prob . nil)
+                     (:noise-amount . 0.1)
+                     (:noise-prob . 0.5)
                      (:tutor-re-entrance . nil)))
                    )
                  :number-of-interactions 3000

@@ -97,14 +97,12 @@
                    do (progn (push attr rewarded)
                         (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
                         (update-category category topic
-                                         :alpha (get-configuration agent :alpha)
                                          :success (communicated-successfully agent)
                                          :interpreted-object (topic agent)))
                    else
                    do (progn (push attr punished)
                         (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf))
                         (update-category category topic
-                                         :alpha (get-configuration agent :alpha)
                                          :success (communicated-successfully agent)
                                          :interpreted-object (topic agent))))
           do (notify scores-updated cxn rewarded punished))))
