@@ -18,6 +18,7 @@
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
               (:category-representation . :prototype)
+              (:max-tutor-utterance-length . 4)
               (:noise-amount . nil)
               (:noise-prob . nil))))
 
@@ -26,7 +27,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
 (run-series *experiment* 3000)
 
@@ -40,10 +41,11 @@
 
 (run-experiments '(
                    (test
-                    ((:game-mode . :tutor-learner)
+                    ((:max-tutor-utterance-length . 1)
+                     (:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
-                     (:category-representation . :prototype)
+                     (:category-representation . :min-max)
                      (:noise-amount . nil)
                      (:noise-prob . nil)
                      (:tutor-re-entrance . nil)))

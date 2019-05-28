@@ -123,30 +123,27 @@
     (discriminative-set agent)))
 
 ; continuous
-(defun choose-best-word (topic cxns meaning-so-far)
+(defun choose-best-word (agent meaning-so-far cxns-to-consider)
   "Choose the best word to add to the utterance. This function
    simply takes the word with the highest similarity."
-  (extremum cxns
+  (extremum cxns-to-consider
             :key #'(lambda (cxn)
                      (let* ((cxn-meaning (attr-val cxn :meaning))
                             (meaning (fuzzy-union cxn-meaning meaning-so-far)))
-                       (weighted-similarity topic meaning)))
+                       (weighted-similarity (topic agent) meaning)))
             :test #'>))
 
-(defun choose-discriminating-word (agent meaning-so-far)
+(defun choose-discriminating-word (agent meaning-so-far cxns-to-consider)
   (loop with best-cxn = nil
         with best-similarity = 0
         with best-difference = 0
-        for cxn in (shuffle (constructions (grammar agent)))
+        for cxn in (shuffle cxns-to-consider)
         for cxn-meaning = (attr-val cxn :meaning)
         for meaning = (fuzzy-union cxn-meaning meaning-so-far)
         for topic-similarity = (weighted-similarity (topic agent) meaning)
         for best-other-similarity = (loop for object in (remove (topic agent) (objects (context agent)))
                                           maximizing (weighted-similarity object meaning))
         for difference = (- topic-similarity best-other-similarity)
-        ;; the test used here is related to the strategy used by the learner
-        ;; min-max benefits most from 1+2
-        ;; prototype benefits most from 1+3
         when (case (get-configuration agent :category-representation)
                (:min-max (and (> topic-similarity best-other-similarity)
                               (> topic-similarity best-similarity)))
@@ -165,15 +162,20 @@
         with continue = t
         ; utterance has a max length
         while (and (length< utterance (get-configuration agent :max-tutor-utterance-length)) continue)
-        for best-new-word = (choose-discriminating-word agent utterance-meaning)
-        ;for best-new-word = (choose-best-word (topic agent) (constructions (grammar agent)) utterance-meaning)
-        for new-similarity = (if best-new-word
+        for best-new-word
+        = (choose-discriminating-word agent utterance-meaning
+                                                        (remove-if #'(lambda (cxn)
+                                                                       (member cxn utterance))
+                                                                   (constructions (grammar agent))))
+        ;= (choose-best-word agent utterance-meaning
+        ;                                      (remove-if #'(lambda (cxn)
+        ;                                                     (member cxn utterance))
+        ;                                                 (constructions (grammar agent))))
+        for new-similarity = (when best-new-word
                                (let* ((cxn-meaning (attr-val best-new-word :meaning))
                                       (extended-meaning (fuzzy-union cxn-meaning utterance-meaning)))
-                                 (weighted-similarity (topic agent) extended-meaning))
-                               nil)
-        if (and new-similarity
-                (> new-similarity best-similarity))
+                                 (weighted-similarity (topic agent) extended-meaning)))
+        if (and new-similarity (> new-similarity best-similarity))
         do (progn (push best-new-word utterance)
              (setf utterance-meaning (fuzzy-union (attr-val best-new-word :meaning) utterance-meaning))
              (setf best-similarity new-similarity))

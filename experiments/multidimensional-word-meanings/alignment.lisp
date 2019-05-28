@@ -29,10 +29,16 @@
   (attrs list))
 
 (defun get-cxn-from-category (agent category)
-  (find category (applied-cxns agent)
-        :key #'(lambda (cxn)
-                 (mapcar #'car (attr-val cxn :meaning)))
-        :test #'member))
+  "Find the cxn that the category belongs to"
+  (let ((found (find-all category (applied-cxns agent)
+                         :key #'(lambda (cxn)
+                                  (mapcar #'car (attr-val cxn :meaning)))
+                         :test #'member)))
+    (if (length= found 1)
+      (first found)
+      (the-biggest #'(lambda (cxn)
+                       (cdr (find category (attr-val cxn :meaning) :key #'car)))
+                   found))))
 
 (defgeneric align-known-words (agent topic categories)
   (:documentation "Align known words"))
@@ -71,29 +77,38 @@
 
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
                               categories)
-  (declare (ignorable categories))
-  (let ((categories-w-cxns (loop for (category . certainty) in (parsed-meaning agent)
-                                 for cxn = (get-cxn-from-category agent category)
-                                 collect (cons category cxn)))
-        rewarded punished)
-    (loop for (category . cxn) in categories-w-cxns
-          for attr = (attribute category)
-          if (discriminatingp agent category topic)
-          do (progn (push attr rewarded)
-               (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
-               (update-category category topic
-                                :alpha (get-configuration agent :alpha)
-                                :success (communicated-successfully agent)
-                                :interpreted-object (topic agent)))
-          else
-          do (progn (push attr punished)
-               (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf))
-               (update-category category topic
-                                :alpha (get-configuration agent :alpha)
-                                :success (communicated-successfully agent)
-                                :interpreted-object (topic agent))))
-    ;; shortcut!
-    (notify scores-updated (cdr (first categories-w-cxns)) rewarded punished)))
+  (declare (ignorable categories))        
+  (let ((cxns-with-categories
+         (loop with result = nil
+               for (category . certainty) in (parsed-meaning agent)
+               for cxn = (get-cxn-from-category agent category)
+               if (assoc cxn result)
+               do (push category (cdr (assoc cxn result)))
+               else
+               do (push (cons cxn (list category)) result)
+               finally
+               (return result))))
+    (loop for (cxn . categories) in cxns-with-categories
+          for punished = nil
+          for rewarded = nil
+          do (loop for category in categories
+                   for attr = (attribute category)
+                   if (discriminatingp agent category topic)
+                   do (progn (push attr rewarded)
+                        (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
+                        (update-category category topic
+                                         :alpha (get-configuration agent :alpha)
+                                         :success (communicated-successfully agent)
+                                         :interpreted-object (topic agent)))
+                   else
+                   do (progn (push attr punished)
+                        (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf))
+                        (update-category category topic
+                                         :alpha (get-configuration agent :alpha)
+                                         :success (communicated-successfully agent)
+                                         :interpreted-object (topic agent))))
+          do (notify scores-updated cxn rewarded punished))))
+    
         
  
 ;;;; Align Agent        
