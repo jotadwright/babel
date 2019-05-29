@@ -17,11 +17,11 @@
    :entries '((:game-mode . :tutor-learner)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :prototype-min-max)
+              (:category-representation . :prototype)
               (:max-tutor-utterance-length . 1)
-              (:noise-amount . nil)
-              (:noise-prob . nil)
-              (:remove-on-lower-bound . t))))
+              (:noise-amount . 0.2)
+              (:noise-prob . 0.5)
+              (:remove-on-lower-bound . nil))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -30,7 +30,7 @@
 
 (run-series *experiment* 100)
 
-(run-series *experiment* 3000)
+(run-series *experiment* 5000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
@@ -42,17 +42,17 @@
 
 (run-experiments '(
                    (test
-                    ((:remove-on-lower-bound . t)
+                    ((:remove-on-lower-bound . nil)
                      (:max-tutor-utterance-length . 1)
                      (:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
-                     (:category-representation . :prototype-min-max)
-                     (:noise-amount . nil)
-                     (:noise-prob . nil)
+                     (:category-representation . :prototype)
+                     (:noise-amount . 0.5)
+                     (:noise-prob . 0.5)
                      (:tutor-re-entrance . nil)))
                    )
-                 :number-of-interactions 10000
+                 :number-of-interactions 5000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
@@ -68,46 +68,13 @@
  :xlabel "Number of games"
  :y1-label "Success")
 
-(create-graph-for-single-strategy
- :experiment-name "test"
- :measure-names '("lexicon-size")
- :y-axis '(1)
- :y1-max nil
- :xlabel "Number of games"
- :y1-label "Success")
-
 (create-graph-comparing-strategies
- :experiment-names '("continuous-tutor-prototype"
-                     "noise-amount-0.05"
-                     "noise-amount-0.1"
-                     "noise-amount-0.2"
-                     "noise-amount-0.3"
-                     "noise-amount-0.4"
-                     "noise-amount-0.5")
+ :experiment-names '("tutor-re-entrance-nil-noise-amount-0.5-category-representation-prototype"
+                     "test")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("baseline" "n=0.05" "n=0.1" "n=0.2" "n=0.3" "n=0.4" "n=0.5")
- :title "prototype (p=0.5)" :end 5000)
-
-(create-graph-comparing-strategies
- :experiment-names '("continuous-tutor-exponential"
-                     "exponential-perceptual-deviation"
-                     "exponential-noise-no-re-entrance"
-                     "exponential-deviation-noise")
- :measure-name "communicative-success"
- :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("baseline" "perceptual deviation" "noise" "noise + perceptual deviation")
- :title "exponential (p=0.5, n=0.1)" :end 20000)
-
-(create-graph-comparing-strategies
- :experiment-names '("min-max-noise-with-re-entrance"
-                     "prototype-noise-with-re-entrance"
-                     "pmm-noise-with-re-entrance"
-                     "exponential-noise-with-re-entrance")
- :measure-name "communicative-success"
- :y-min 0.8 :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("min-max" "prototype" "pmm" "exponential")
- :end 20000 :title "noise+re-entrance (p=0.5, n=0.1)")
+ :captions '("removed" "not-removed")
+ :title "prototype (p=0.5, n=0.5)" :end 5000)
  
 
 

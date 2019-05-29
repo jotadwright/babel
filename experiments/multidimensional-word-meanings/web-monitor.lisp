@@ -170,7 +170,7 @@
                  s-dot::graph)))
     (push
      `(s-dot::record  
-       ((s-dot::style "dashed")
+       ((s-dot::style "solid")
         (s-dot::fontsize "9.5")
         (s-dot::fontname #+(or :win32 :windows) "Sans"
                          #-(or :win32 :windows) "Arial")
@@ -208,7 +208,7 @@
                  s-dot::graph)))
     (push
      `(s-dot::record  
-       ((s-dot::style "dashed")
+       ((s-dot::style "solid")
         (s-dot::fontsize "9.5")
         (s-dot::fontname #+(or :win32 :windows) "Sans"
                          #-(or :win32 :windows) "Arial")
