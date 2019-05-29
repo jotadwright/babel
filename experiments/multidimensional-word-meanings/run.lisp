@@ -19,8 +19,9 @@
               (:tutor-lexicon . :continuous)
               (:category-representation . :prototype-min-max)
               (:max-tutor-utterance-length . 1)
-              (:noise-amount . 0.1)
-              (:noise-prob . 0.5))))
+              (:noise-amount . nil)
+              (:noise-prob . nil)
+              (:remove-on-lower-bound . t))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -41,16 +42,17 @@
 
 (run-experiments '(
                    (test
-                    ((:max-tutor-utterance-length . 1)
+                    ((:remove-on-lower-bound . t)
+                     (:max-tutor-utterance-length . 1)
                      (:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
-                     (:category-representation . :min-max)
-                     (:noise-amount . 0.1)
-                     (:noise-prob . 0.5)
+                     (:category-representation . :prototype-min-max)
+                     (:noise-amount . nil)
+                     (:noise-prob . nil)
                      (:tutor-re-entrance . nil)))
                    )
-                 :number-of-interactions 3000
+                 :number-of-interactions 10000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"

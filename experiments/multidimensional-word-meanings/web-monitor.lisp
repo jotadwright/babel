@@ -78,112 +78,159 @@
     ;; to do; learner side
     ))
 
-(defgeneric category->s-dot-node (category)
+(defgeneric category->s-dot-node (category &key)
   (:documentation "How to display a category as an s-dot node"))
 
-(defmethod category->s-dot-node ((category min-max-category))
-  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a~%(~,2f - ~,2f)"
-                           (downcase (mkstr (attribute category)))
-                           (lower-bound category)
-                           (upper-bound category)))))
+(defmethod category->s-dot-node ((category min-max-category) &key green red)
+  (let ((record-properties (cond (green '((s-dot::style "filled")
+                                           (s-dot::fillcolor "#AAFFAA")))
+                                  (red '((s-dot::style "filled")
+                                         (s-dot::fillcolor "#AA0000")))
+                                  (t '((s-dot::style "dashed"))))))
+    `(s-dot::record
+      ,(append record-properties
+               '((s-dot::fontsize "9.5")
+                 (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                  #-(or :win32 :windows) "Arial")
+                 (s-dot::height "0.01")))
+      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+                    (s-dot::label ,(format nil "~a, [~,2f - ~,2f]"
+                                           (downcase (mkstr (attribute category)))
+                                           (lower-bound category)
+                                           (upper-bound category))))))))
 
-(defmethod category->s-dot-node ((category prototype-category))
+(defmethod category->s-dot-node ((category prototype-category) &key green red)
   (let* ((variance (/ (M2 category) (nr-samples category)))
          (stdev (sqrt variance))
-         (lower-bound (max (- (prototype category) stdev) 0.0))
-         (upper-bound (min (+ (prototype category) stdev) 1.0)))
-    `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-      (s-dot::label ,(format nil "~a (~,2f)~%(~,2f - ~,2f)"
-                             (downcase (mkstr (attribute category)))
-                             (prototype category)
-                             lower-bound
-                             upper-bound)))))
+         (lower-bound (max (- (prototype category) (* 2 stdev)) 0.0))
+         (upper-bound (min (+ (prototype category) (* 2 stdev)) 1.0))
+         (record-properties (cond (green '((s-dot::style "filled")
+                                           (s-dot::fillcolor "#AAFFAA")))
+                                  (red '((s-dot::style "filled")
+                                         (s-dot::fillcolor "#AA0000")))
+                                  (t '((s-dot::style "dashed"))))))
+    `(s-dot::record
+      ,(append record-properties
+               '((s-dot::fontsize "9.5")
+                 (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                  #-(or :win32 :windows) "Arial")
+                 (s-dot::height "0.01")))
+      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+                    (s-dot::label ,(format nil "~a: ~,2f, [~,2f - ~,2f]"
+                                           (downcase (mkstr (attribute category)))
+                                           (prototype category)
+                                           lower-bound
+                                           upper-bound)))))))
 
-(defmethod category->s-dot-node ((category prototype-min-max-category))
-  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a (~,2f)~%(~,2f - ~,2f)"
-                           (downcase (mkstr (attribute category)))
-                           (prototype category)
-                           (lower-bound category)
-                           (upper-bound category)))))
+(defmethod category->s-dot-node ((category prototype-min-max-category) &key green red)
+  (let ((record-properties (cond (green '((s-dot::style "filled")
+                                           (s-dot::fillcolor "#AAFFAA")))
+                                  (red '((s-dot::style "filled")
+                                         (s-dot::fillcolor "#AA0000")))
+                                  (t '((s-dot::style "dashed"))))))
+    `(s-dot::record
+      ,(append record-properties
+               '((s-dot::fontsize "9.5")
+                 (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                  #-(or :win32 :windows) "Arial")
+                 (s-dot::height "0.01")))
+      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+                    (s-dot::label ,(format nil "~a: ~,2f, [~,2f - ~,2f]"
+                                           (downcase (mkstr (attribute category)))
+                                           (prototype category)
+                                           (lower-bound category)
+                                           (upper-bound category))))))))
 
-#|
-(defmethod category->s-dot-node ((category parabola-category))
-  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a~%~,2f~%(~,2f - ~,2f)"
-                           (downcase (mkstr (attribute category)))
-                           (centre category)
-                           (lower-bound category)
-                           (upper-bound category)))))
-|#
-
-(defmethod category->s-dot-node ((category exponential-category))
-  `((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-    (s-dot::label ,(format nil "~a (~,2f)~%(~,2f - ~,2f)"
-                           (downcase (mkstr (attribute category)))
-                           (prototype category)
-                           (left-sigma category)
-                           (right-sigma category)))))
+(defmethod category->s-dot-node ((category exponential-category) &key green red)
+  (let ((record-properties (cond (green '((s-dot::style "filled")
+                                           (s-dot::fillcolor "#AAFFAA")))
+                                  (red '((s-dot::style "filled")
+                                         (s-dot::fillcolor "#AA0000")))
+                                  (t '((s-dot::style "dashed"))))))
+    `(s-dot::record
+      ,(append record-properties
+               '((s-dot::fontsize "9.5")
+                 (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                  #-(or :win32 :windows) "Arial")
+                 (s-dot::height "0.01")))
+      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+                    (s-dot::label ,(format nil "~a: ~,2f, [~,2f - ~,2f]"
+                                           (downcase (mkstr (attribute category)))
+                                           (prototype category)
+                                           (left-sigma category)
+                                           (right-sigma category))))))))
 
 (defun cxn->s-dot (cxn &optional highlight-green highlight-red)
   (let ((form (attr-val cxn :form))
         (meaning (attr-val cxn :meaning))
-        (graph '(((s-dot::margin "0")
-                  (s-dot::rankdir "LR")) s-dot::graph)))
+        (graph '(((s-dot::ranksep "0.3")
+                  (s-dot::nodesep "0.5")
+                  (s-dot::margin "0")
+                  (s-dot::rankdir "LR"))
+                 s-dot::graph)))
     (push
-     `(s-dot::node
-       ((s-dot::id ,(format nil "~a" form))
-        (s-dot::label ,form)
-        (s-dot::fontcolor "#AA0000")))
+     `(s-dot::record  
+       ((s-dot::style "dashed")
+        (s-dot::fontsize "9.5")
+        (s-dot::fontname #+(or :win32 :windows) "Sans"
+                         #-(or :win32 :windows) "Arial")
+        (s-dot::height "0.01"))
+       (s-dot::node ((s-dot::id ,(format nil "~a" form))
+                     (s-dot::label ,form)
+                     (s-dot::fontcolor "#AA0000"))))
      graph)
     (loop for (category . certainty) in meaning
-          for node-content = (category->s-dot-node category)
-          when (member (attribute category) highlight-green)
-          do (setf node-content
-                   (append node-content
-                           '((s-dot::style "filled")
-                             (s-dot::fillcolor "#AAFFAA"))))
-          when (member (attribute category) highlight-red)
-          do (setf node-content
-                   (append node-content
-                           '((s-dot::style "filled")
-                             (s-dot::fillcolor "#AA0000"))))
+          for record
+          = (category->s-dot-node category
+                                  :green (member (attribute category) highlight-green)
+                                  :red (member (attribute category) highlight-red))
           when (> certainty 0.0)
-          do (push
-              `(s-dot::node ,node-content)
-              graph))
+          do (push record graph))
     (loop for (category . certainty) in meaning
           when (> certainty 0.0)
           do (push
               `(s-dot::edge
                 ((s-dot::from ,(format nil "~a" form))
                  (s-dot::to ,(mkdotstr (downcase (mkstr (attribute category)))))
-                 (s-dot::label ,(format nil "~,2f" certainty))))
+                 (s-dot::label ,(format nil "~,2f" certainty))
+                 (s-dot::labelfontname #+(or :win32 :windows) "Sans"
+                                       #-(or :win32 :windows) "Arial")
+                 (s-dot::fontsize "8.5")
+                 (s-dot::arrowsize "0.5")))
               graph))
     (reverse graph)))
 
 (defun meaning->s-dot (meaning)
-  (let ((graph '(((s-dot::margin "0")
-                  (s-dot::rankdir "LR")) s-dot::graph)))
+  (let ((graph '(((s-dot::ranksep "0.3")
+                  (s-dot::nodesep "0.5")
+                  (s-dot::margin "0")
+                  (s-dot::rankdir "LR"))
+                 s-dot::graph)))
     (push
-     `(s-dot::node
-       ((s-dot::id ,"root")
-        (s-dot::label "")))
+     `(s-dot::record  
+       ((s-dot::style "dashed")
+        (s-dot::fontsize "9.5")
+        (s-dot::fontname #+(or :win32 :windows) "Sans"
+                         #-(or :win32 :windows) "Arial")
+        (s-dot::height "0.01"))
+       (s-dot::node ((s-dot::id "root")
+                     (s-dot::label ""))))
      graph)
     (loop for (category . certainty) in meaning
-          for node-content = (category->s-dot-node category)
+          for record = (category->s-dot-node category)
           when (> certainty 0.0)
-          do (push
-              `(s-dot::node ,node-content)
-              graph))
+          do (push record graph))
     (loop for (category . certainty) in meaning
           when (> certainty 0.0)
           do (push
               `(s-dot::edge
                 ((s-dot::from ,"root")
                  (s-dot::to ,(mkdotstr (downcase (mkstr (attribute category)))))
-                 (s-dot::label ,(format nil "~,2f" certainty))))
+                 (s-dot::label ,(format nil "~,2f" certainty))
+                 (s-dot::labelfontname #+(or :win32 :windows) "Sans"
+                                       #-(or :win32 :windows) "Arial")
+                 (s-dot::fontsize "8.5")
+                 (s-dot::arrowsize "0.5")))
               graph))
     (reverse graph)))
 

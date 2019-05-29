@@ -158,19 +158,19 @@
 (defmethod conceptualise-continuous ((agent mwm-agent))
   (loop with utterance = nil ; list of cxns
         with utterance-meaning = nil ; combined meaning
-        with best-similarity = most-negative-fixnum
+        with best-similarity = 0
         with continue = t
         ; utterance has a max length
         while (and (length< utterance (get-configuration agent :max-tutor-utterance-length)) continue)
         for best-new-word
         = (choose-discriminating-word agent utterance-meaning
-                                                        (remove-if #'(lambda (cxn)
-                                                                       (member cxn utterance))
-                                                                   (constructions (grammar agent))))
+                                      (remove-if #'(lambda (cxn)
+                                                     (member cxn utterance))
+                                                 (constructions (grammar agent))))
         ;= (choose-best-word agent utterance-meaning
-        ;                                      (remove-if #'(lambda (cxn)
-        ;                                                     (member cxn utterance))
-        ;                                                 (constructions (grammar agent))))
+        ;                    (remove-if #'(lambda (cxn)
+        ;                                   (member cxn utterance))
+        ;                               (constructions (grammar agent))))
         for new-similarity = (when best-new-word
                                (let* ((cxn-meaning (attr-val best-new-word :meaning))
                                       (extended-meaning (fuzzy-union cxn-meaning utterance-meaning)))

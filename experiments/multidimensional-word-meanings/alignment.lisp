@@ -59,9 +59,11 @@
         do (let ((sim (similarity topic category)))
              (if (>= sim 0)
                (progn (push attr rewarded)
-                 (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)))
+                 (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))
                (progn (push attr punished)
-                 (adjust-certainty agent cxn attr (- (get-configuration agent :certainty-decf))))))
+                 (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf)
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))))))
         ;; notify
         finally
         (notify scores-updated cxn rewarded punished)))
@@ -79,15 +81,19 @@
                               categories)
   (declare (ignorable categories))        
   (let ((cxns-with-categories
-         (loop with result = nil
-               for (category . certainty) in (parsed-meaning agent)
-               for cxn = (get-cxn-from-category agent category)
-               if (assoc cxn result)
-               do (push category (cdr (assoc cxn result)))
-               else
-               do (push (cons cxn (list category)) result)
-               finally
-               (return result))))
+         (if (length= (applied-cxns agent) 1)
+           (list
+            (cons (first (applied-cxns agent))
+                  (mapcar #'car (parsed-meaning agent))))
+           (loop with result = nil
+                 for (category . certainty) in (parsed-meaning agent)
+                 for cxn = (get-cxn-from-category agent category)
+                 if (assoc cxn result)
+                 do (push category (cdr (assoc cxn result)))
+                 else
+                 do (push (cons cxn (list category)) result)
+                 finally
+                 (return result)))))
     (loop for (cxn . categories) in cxns-with-categories
           for punished = nil
           for rewarded = nil
@@ -95,13 +101,15 @@
                    for attr = (attribute category)
                    if (discriminatingp agent category topic)
                    do (progn (push attr rewarded)
-                        (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf))
+                        (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)
+                                          :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))
                         (update-category category topic
                                          :success (communicated-successfully agent)
                                          :interpreted-object (topic agent)))
                    else
                    do (progn (push attr punished)
-                        (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf))
+                        (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf)
+                                          :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))
                         (update-category category topic
                                          :success (communicated-successfully agent)
                                          :interpreted-object (topic agent))))
