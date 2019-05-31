@@ -61,7 +61,7 @@
                                 (required-context-size problem))))
       (:nl (speak agent (format nil "Oeps! Ik kan geen ~a monsters vinden"
                                 (required-context-size problem)))))
-    (head-touch-middle agent)
+    (detect-head-touch agent :middle)
     (restart-object object nil)
     (make-instance 'fix)))
 
@@ -76,7 +76,7 @@
    If not, the repair will generate a new scene and restart this process."
   (let ((context-size (get-configuration agent :context-size))
         scene process-result)
-    (multiple-value-bind (data img-path) (observe-scene agent :open nil)
+    (multiple-value-bind (data img-path) (observe-world agent :open nil)
       (setf scene (json->object-set data))
       (setf process-result (make-process-result 1 (list (cons 'scene scene)
                                                         (cons 'required-size context-size))
@@ -413,7 +413,7 @@
                         agent)
   "Get an utterance from the human using speech processing"
   (let* ((vocab (rest (assoc (get-configuration agent :input-lang)
-                       (get-configuration agent :robot-vocabulary))))
+                             (get-configuration agent :robot-vocabulary))))
          (input-form (get-configuration agent :input-form))
          (words (mapcar (lambda (cxn)
                           (attr-val cxn :form))
@@ -425,10 +425,10 @@
       (:en (speak agent "Choose an object and say its color"))
       (:nl (speak agent "Kies een monster en benoem zijn kleur" :speed 75)))
     (case input-form
-      (:speech (when (head-touch-middle agent)
+      (:speech (when (detect-head-touch agent :middle)
                  (loop with this-utterance = ""
                        while (= (length this-utterance) 0)
-                       do (setf this-utterance (first (recognise-words agent vocab)))
+                       do (setf this-utterance (first (hear agent vocab)))
                        when (= (length this-utterance) 0)
                        do (case (get-configuration agent :input-lang)
                             (:en (speak agent "I did not understand. Could you repeat please?"))
@@ -472,8 +472,8 @@
         (:en (speak agent (format nil "Please show me the object you would call ~a" utterance)))
         (:nl (speak agent (format nil "Toon mij het monster dat jij ~a zou noemen" utterance) :speed 75))))
     (loop while (null observedp)
-          when (head-touch-middle agent)
-          do (multiple-value-bind (data img) (observe-scene agent :open nil)
+          when (detect-head-touch agent :middle)
+          do (multiple-value-bind (data img) (observe-world agent :open nil)
                (declare (ignorable img))
                (let ((object-set (json->object-set data)))
                  (when (= (length (entities object-set)) 1)

@@ -25,7 +25,7 @@
 (defun make-embodied-agent (experiment)
   "Make an instance of an agent and connect it to the robot"
   (let* ((robot-ip (get-configuration experiment :robot-ip))
-         (robot-port (get-configuration experiment :robot-port))
+         (robot-port (get-configuration experiment :robot-port))    
          (container-name (format nil "nao-~a-~a" robot-ip robot-port))
          (agent (make-instance 'embodied-agent
                                :experiment experiment

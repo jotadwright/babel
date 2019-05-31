@@ -168,5 +168,5 @@
         do (progn (run-interaction experiment)
              (notify interaction-in-series-finished interaction number-of-interactions)
              (unless (= interaction number-of-interactions)
-               (head-touch-middle (first (population experiment))))))
+               (detect-head-touch (first (population experiment)) :middle))))
   (notify run-series-finished experiment))

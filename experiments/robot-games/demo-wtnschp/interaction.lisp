@@ -10,10 +10,7 @@
   "Reset the agent, set the context-size and nr-of-topics and
    generate a scene before every interaction"
   (let ((agent (first (interacting-agents interaction))))
-    (reset agent)
-    ;(when (find-data (ontology agent) 'color-categories)
-    ;  (display-category-set (get-data (ontology agent) 'color-categories)))
-    ))
+    (reset agent)))
 
 (defmethod interact ((experiment demo-experiment) interaction &key)
   "Run a single interaction"
@@ -27,7 +24,3 @@
     
     (setf (communicated-successfully agent) success)
     (setf (communicated-successfully interaction) success)))
-
-;(defmethod interact :after ((experiment demo-experiment) interaction &key)
-;  "Do some things after every interaction"
-;  nil)

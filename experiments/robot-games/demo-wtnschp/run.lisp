@@ -15,40 +15,41 @@
 
 (deactivate-all-monitors)
 
-(defvar *exp* (make-instance 'demo-experiment))
-(setf *exp* (make-instance 'demo-experiment))
+(defparameter *experiment* (make-instance 'demo-experiment))
 
-(set-configuration *exp* :input-form :text)
-(set-configuration *exp* :input-form :speech)
+(set-configuration *experiment* :input-form :text)
+(set-configuration *experiment* :input-form :speech)
 
-(set-configuration *exp* :determine-interacting-agents-mode :robot-speaker-often)
-(set-configuration *exp* :determine-interacting-agents-mode :always-hearer)
-(set-configuration *exp* :determine-interacting-agents-mode :always-speaker)
-(set-configuration *exp* :determine-interacting-agents-mode :robot-hearer-often)
-(set-configuration *exp* :determine-interacting-agents-mode :random-role-for-single-agent)
-(set-configuration *exp* :determine-interacting-agents-mode :alternating)
+(set-configuration *experiment* :determine-interacting-agents-mode :robot-speaker-often)
+(set-configuration *experiment* :determine-interacting-agents-mode :always-hearer)
+(set-configuration *experiment* :determine-interacting-agents-mode :always-speaker)
+(set-configuration *experiment* :determine-interacting-agents-mode :robot-hearer-often)
+(set-configuration *experiment* :determine-interacting-agents-mode :random-role-for-single-agent)
+(set-configuration *experiment* :determine-interacting-agents-mode :alternating)
 
-(run-interaction *exp*)
+(run-interaction *experiment*)
 
-(run-series *exp* 5)
+(run-series *experiment* 5)
 
-(print-robot-lexicon *exp*)
+(print-robot-lexicon *experiment*)
 
-(destroy *exp*)
+(destroy *experiment*)
 
 
 ;; For setting up the robot
-(setf *robot* (make-robot :ip "192.168.1.4" :server-port "7850"))
+(setf *robot* (make-robot :type 'nao :ip "192.168.1.4" :server-port "7850"))
 
-(stand *robot*)
-(crouch *robot*)
-(sit *robot*)
+(hear *robot* '("red" "green" "blue" "yellow"))
+
+(go-to-posture *robot* :stand)
+(go-to-posture *robot* :crouch)
+(go-to-posture *robot* :sit)
 
 (take-picture *robot*)
-(observe-scene *robot* :open t)
+(observe-world *robot* :open t)
 
-(look-up *robot* 12)
-(look-down *robot* 12)
+(look-direction *robot* :up 12)
+(look-direction *robot* :down 12)
 
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)
