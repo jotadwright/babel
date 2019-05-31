@@ -1,6 +1,6 @@
 (in-package :nao-interface)
 
-(export '(speak observe-word))
+(export '(speak hear))
 
 ;;;; speak
 (defmethod speak :before ((nao nao) (utterance string) &key (speed 100))
@@ -13,9 +13,9 @@
                   utterance)))
     (rest (assoc :success
                  (nao-send-http nao :endpoint "/speech/say"
-                                :data `((speech . ,utterance)))))))
+                                :data `((speech . ,speech)))))))
 
-;;;; listen
+;;;; hear
 (defgeneric nao-start-speech-recognition (nao vocabulary)
   (:documentation "Start the speech recognition process, given a certain vocabulary of words"))
 
@@ -32,10 +32,10 @@
                (nao-send-http nao :endpoint "/speech/stop_recognition"
                               :data `((subscriber . ,subscriber))))))
 
-(defmethod observe-word :before ((nao nao) (vocabulary list))
+(defmethod hear :before ((nao nao) (vocabulary list))
   (assert (apply #'always (mapcar #'stringp vocabulary))))
 
-(defmethod observe-word ((nao nao) (vocabulary list))
+(defmethod hear ((nao nao) (vocabulary list))
   (let ((subscriber (nao-start-speech-recognition nao vocabulary)))
     (when (detect-head-touch nao :middle)
-      (nao-stop-speech-recognition))))
+      (nao-stop-speech-recognition nao subscriber))))

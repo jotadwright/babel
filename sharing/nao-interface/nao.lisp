@@ -151,7 +151,7 @@
 (defmethod nao-send-http ((nao nao) &key endpoint data)
   (assert (alistp data))
   (assert (stringp endpoint))
-  (let ((json-data (encode-json-to-string data))
+  (let ((json-data (encode-json-alist-to-string data))
         (uri (format nil "http://~a:~a~a"
                      (server-host nao) (server-port nao) endpoint)))
     (with-open-stream

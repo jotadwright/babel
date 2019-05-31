@@ -7,9 +7,11 @@
                 :exec-and-return :run-prog
                 :babel-pathname :always
                 :list-of-strings->string
-                :stream->list :deg-to-rad)
+                :stream->list :deg-to-rad
+                :mkstr :downcase)
   (:import-from :cl-json
                 :encode-json-to-string
+                :encode-json-alist-to-string
                 :decode-json-from-string)
   (:import-from :drakma :http-request)
   (:import-from :assoc-utils :alistp)
