@@ -69,13 +69,10 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("tutor-re-entrance-nil-noise-amount-0.5-category-representation-prototype"
-                     "test")
+ :experiment-names '("continuous-tutor-exponential"
+                     "tutor-re-entrance-t-noise-amount-0.5-category-representation-exponential"
+                     "remove-on-lower-bound-nil-noise-amount-0.5-category-representation-exponential")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("removed" "not-removed")
- :title "prototype (p=0.5, n=0.5)" :end 5000)
- 
-
-
-  
+ :captions '("baseline" "noise" "keep-categories")
+ :title "exponential (p=0.5, n=0.5)" :end 20000)
