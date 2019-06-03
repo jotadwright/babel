@@ -17,10 +17,10 @@
    :entries '((:game-mode . :tutor-learner)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :prototype)
+              (:category-representation . :min-max)
               (:max-tutor-utterance-length . 1)
-              (:noise-amount . 0.2)
-              (:noise-prob . 0.5)
+              (:noise-amount . nil)
+              (:noise-prob . nil)
               (:remove-on-lower-bound . nil))))
 
 (defparameter *experiment*
