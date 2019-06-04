@@ -144,11 +144,8 @@
         for best-other-similarity = (loop for object in (remove (topic agent) (objects (context agent)))
                                           maximizing (weighted-similarity object meaning))
         for difference = (- topic-similarity best-other-similarity)
-        when (case (get-configuration agent :category-representation)
-               (:min-max (and (> topic-similarity best-other-similarity)
-                              (> topic-similarity best-similarity)))
-               (otherwise (and (> topic-similarity best-other-similarity)
-                               (> difference best-difference))))
+        when (and (> topic-similarity best-other-similarity)
+                  (> difference best-difference))
         do (setf best-cxn cxn
                  best-similarity topic-similarity
                  best-difference difference)

@@ -50,7 +50,6 @@
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Create the population and load the scenes from file"
   (activate-monitor print-a-dot-for-each-interaction)
-  (deactivate-monitor export-lexicon-evolution)
   (setf (population experiment)
         (case (get-configuration experiment :game-mode)
           (:tutor-learner (list (make-tutor-agent experiment)
