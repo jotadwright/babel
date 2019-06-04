@@ -60,10 +60,10 @@
              (if (>= sim 0)
                (progn (push attr rewarded)
                  (adjust-certainty agent cxn attr (get-configuration agent :certainty-incf)
-                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
                (progn (push attr punished)
                  (adjust-certainty agent cxn attr (get-configuration agent :certainty-decf)
-                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound))))))
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))))
         ;; notify
         finally
         (notify scores-updated cxn rewarded punished)))

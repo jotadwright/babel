@@ -17,10 +17,10 @@
    :entries '((:game-mode . :tutor-learner)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:tutor-lexicon . :continuous)
-              (:category-representation . :min-max)
+              (:category-representation . :prototype-min-max)
               (:max-tutor-utterance-length . 1)
-              (:noise-amount . nil)
-              (:noise-prob . nil)
+              (:noise-amount . 0.2)
+              (:noise-prob . 0.5)
               (:remove-on-lower-bound . nil))))
 
 (defparameter *experiment*
@@ -47,12 +47,12 @@
                      (:game-mode . :tutor-learner)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:tutor-lexicon . :continuous)
-                     (:category-representation . :prototype)
-                     (:noise-amount . 0.5)
+                     (:category-representation . :prototype-min-max)
+                     (:noise-amount . 0.2)
                      (:noise-prob . 0.5)
                      (:tutor-re-entrance . nil)))
                    )
-                 :number-of-interactions 5000
+                 :number-of-interactions 10000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
