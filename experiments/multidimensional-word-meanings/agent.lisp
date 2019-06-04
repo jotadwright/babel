@@ -146,6 +146,11 @@
         for difference = (- topic-similarity best-other-similarity)
         when (and (> topic-similarity best-other-similarity)
                   (> difference best-difference))
+        ;when (case (get-configuration agent :category-representation)
+        ;       (:min-max (and (> topic-similarity best-other-similarity)
+        ;                      (> topic-similarity best-similarity)))
+        ;       (otherwise (and (> topic-similarity best-other-similarity)
+        ;                       (> difference best-difference))))
         do (setf best-cxn cxn
                  best-similarity topic-similarity
                  best-difference difference)
