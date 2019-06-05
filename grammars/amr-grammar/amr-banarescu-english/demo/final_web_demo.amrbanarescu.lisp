@@ -8,17 +8,14 @@
   (activate-monitor trace-fcg)
   (add-element
    '((h1) "Semantic parsing with Fluid Construction Grammar and Abstract Meaning Representation"))
-  (add-element '((p) "This is a web demo that supplements the Research Thesis:"))
+  (add-element '((p) "This web demo supplements the research internship:"))
   (add-element
-   '((p) ((i)"Galletti, Martina. (June 2019). "
-          ((a :href 
-              "?")
-           "Semantic parsing with Fluid Construction Grammar and Abstract Meaning Representation"))))
+   '((p) "Galletti, Martina. (2019). " ((i) "Semantic parsing with Fluid Construction Grammar and Abstract Meaning Representation. ") "Supervisors: Katrien Beuls &amp; Paul Van Eecke."))
   (add-element '((p) "This demonstration has the following parts:"))
   (add-element '((h3)  ((a :href "intro") "I. Background information")))
   (add-element '((h3)  ((a :href "#thegrammar") "II. The Grammar Implemented")))
   (add-element '((h3)  ((a :href "#somecases") "III. Some more complex examples")))
-  (add-element '((h3)  ((a :href "#generalization") "IV. Is the generalizaiton of the constructions always possible?")))
+  (add-element '((h3)  ((a :href "#generalization") "IV. Is the generalization of the constructions always possible?")))
   (add-element '((h3)  ((a :href "#discussionoftheresults") "V. Conclusions and further research")))
   (add-element '((h3)  ((a :href "#references") "VI. References"))))
 
@@ -37,7 +34,7 @@
  (add-element '((p)"Semantic Parsing is the task of representing the meaning of a sentence in a formal language which is understandable by a computer (1). There are multiple ways of parsing the meaning of a sentence as Frame Semantics or First Order Logic. In 2013, a team of ten researchers (2) invented a new semantic representation language: Abstract Meaning Representation with the purpose 'to support natural language generation (NLG) and to provide a logical semantic input'(3).
 In fact, AMR is a graph-structured language where the logical meaning of the sentences is mapped into a single rooted, labelled, a-cycled and directed graph.
 The AMR formalism is quite straight-forward: it is based on PENMAN notation where the semantic concepts are the nodes of the graph and the edges represent the relations that bound the different nodes. Every semantic concept in the graph is linked to a variable and it can be represented by English words (ex: boy ?b), by PropBank notation (ex: say-01 ?s)  or, in certain case, by special keywords (ex: amr-unknown ?a). The possible relations between the edges can be represented by Frame Arguments (ex: :arg0), general semantic relations (ex: :polarity), relations for quantities (ex: :quant), for time (ex: :time) and for lists (ex: :op1).
-There are three fundamental characteristics that distinguish Abstract Meaning Representation from the others meaning representations. First of all, Abstract Meaning Representation  'it is geared toward English and the vocabulary of English'(4), even if some efforts had been made towards other languages (5). Secondly, in Abstract Meaning Representation 'there are no nouns and verbs'(6), since both of these syntactic categories are treated as the same by AMR. Finally, a certain number of syntactic elements have no meaning in AMR. In fact, AMR does not represent any meaning for quantifiers, tense, number and aspect")))
+There are three fundamental characteristics that distinguish Abstract Meaning Representation from the others meaning representations. First of all, Abstract Meaning Representation  'it is geared toward English and the vocabulary of English'(4), even if some efforts had been made towards other languages (5). Secondly, in Abstract Meaning Representation 'there are no nouns and verbs'(6), since both of these syntactic categories are treated as the same by AMR. Finally, a certain number of syntactic elements have no meaning in AMR. In fact, AMR does not represent any meaning for quantifiers, tense, number and aspect.")))
 
 (defun thegrammar ()
   (add-element '((h2 :id "thegrammar") "II. An Overview of the Amr-Grammar Implemented"))
@@ -69,7 +66,7 @@ The AMR of the second sentence is : '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (
 (comprehend "the soldier feared battle"))
 
 (defun generalization ()
-  (add-element '((h2)  ((a :href "#generalization") "IV. Is the generalizaiton of the constructions always possible?")))
+  (add-element '((h2)  ((a :href "#generalization") "IV. Is the generalization of the constructions always possible?")))
   (add-element '((h3 :id "generalization") "IV.I. The Generalization is possible"))
   (add-element '((p) "The agent-cxn and the patient-cxn had been implemented as general as possible since these constructions needed to apply to many others different sentences in my corpus. For example, in the comprehension of the sentence 'the boy thinks the team won't win', (with AMR ((THINK-01 T-1) (BOY B) (WIN-01 W) (TEAM T-2) (:ARG0 T-1 B) (:ARG1 T-1 W) (:ARG0 W T-2) (:POLARITY W -))) the agent-cxn applies two times, each for each clause and it forms two subunits required by the subordinate-positive-cxn which then coordinates the two sentences. Another example of generalization can be the comprehension process of the two sentences 'the girl adjusted the machine' and 'the judge saw the explosion' where exactly the same constructions apply in the comprehension process"))
      (comprehend "the girl adjusted the machine")
@@ -86,7 +83,7 @@ The AMR of the second sentence is : '((GROUP G) (NAME N) (COUNTRY C) (NAME N2) (
 
 (defun discussionoftheresults ()
  (add-element '((h3)  ((a :href "#discussionoftheresults") "V. Conclusions and further research")))
- (add-element '((p) "In conclusion, AMR is a good meaning representation for Fluid Construction Grammar and I think that it can perform better than frame semantics. In fact, as an abstract meaning representation, AMR is not only more intuitive from a logical point of view, but also it's easier to implement, being more scalable. As far as I saw in my corpus, there are not particularly unavoidable conflicts between AMR and the FCG toolkit, being FCG a quite flexible framework. Moreover, computational construction grammar seems be sued for parsing Abstract Meaning Representation since it permits to adds extra meaning predicates also in the lexical and morphological constructions, as we saw with the :operators examples. A further and even more challenging project could be the implementation of a bidirectional Amr-Grammar using the FCG toolkit.")))
+ (add-element '((p) "In conclusion, AMR is a good meaning representation for Fluid Construction Grammar and I think that it can perform better than frame semantics. In fact, as an abstract meaning representation, AMR is not only more intuitive from a logical point of view, but also it's easier to implement, being more scalable. As far as I saw in my corpus, there are no particularly unavoidable conflicts between AMR and the FCG toolkit, FCG being a quite flexible framework. Moreover, computational construction grammar seems be sued for parsing Abstract Meaning Representation since it permits to adds extra meaning predicates also in the lexical and morphological constructions, as we saw with the :operators examples. A further and even more challenging project could be the implementation of a bidirectional Amr-Grammar using the FCG toolkit.")))
 
 (defun references ()
   (add-element '((h3)  ((a :href "#references") "VI. References")))
