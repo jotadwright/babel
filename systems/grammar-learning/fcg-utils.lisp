@@ -55,3 +55,28 @@
         when (and (equal (first feature-value) 'HASH)
                   (equal (second feature-value) feature))
         return (third feature-value)))
+
+(defmethod comprehend (utterance &key
+                                 (cxn-inventory *fcg-constructions*)
+                                 (gold-standard-meaning nil)
+                                 (silent nil))
+  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
+        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+    ;; Add utterance and meaning to blackboard
+    (set-data initial-cfs :utterance utterance)
+    (set-data initial-cfs :gold-standard-meaning gold-standard-meaning)
+    ;; Notification
+    (unless silent (notify parse-started (listify utterance) initial-cfs))
+    ;; Construction application
+    (multiple-value-bind (solution cip)
+        (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent))
+      (let ((meaning (and solution
+                          (extract-meanings
+                           (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
+        ;; Notification
+        (unless silent (notify parse-finished meaning processing-cxn-inventory))
+        ;; Return value
+        (values meaning solution cip)))))
+
+
+
