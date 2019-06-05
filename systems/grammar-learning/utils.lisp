@@ -59,6 +59,20 @@
 
 ;; (form-constraints-with-variables "what is the color of the cube" :de-render-string-meets-precedes)
 
+(defun meaning-predicates-with-variables (meaning)
+  "Extract form constraints from utterance in the format they would appear in a construction."
+    (loop for predicate in meaning
+          collect (if (equalp (first predicate) 'bind)
+                    (list (first predicate)
+                          (second predicate)
+                          (variablify (third predicate))
+                          (fourth predicate))
+                    (cons (first predicate)
+                          (mapcar #'variablify (rest predicate))))))
+        
+
+ ;; (meaning-predicates-with-variables '((get-context source) (bind attribute-category attribute color) (bind shape-category shape cube) (unique object cubes) (filter cubes source shape) (query response object attribute)))
+                              
 (defun variablify (symbol)
   "Turn a symbol into a variable if it isn't one yet."
   (if (variable-p symbol)

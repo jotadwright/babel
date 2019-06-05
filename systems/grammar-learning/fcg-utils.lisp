@@ -63,8 +63,8 @@
   (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
         (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     ;; Add utterance and meaning to blackboard
-    (set-data initial-cfs :utterance utterance)
-    (set-data initial-cfs :gold-standard-meaning gold-standard-meaning)
+    (set-data initial-cfs :utterances (listify utterance))
+    (set-data initial-cfs :meanings (if (atom (caar gold-standard-meaning)) (list gold-standard-meaning) gold-standard-meaning))
     ;; Notification
     (unless silent (notify parse-started (listify utterance) initial-cfs))
     ;; Construction application
@@ -77,6 +77,33 @@
         (unless silent (notify parse-finished meaning processing-cxn-inventory))
         ;; Return value
         (values meaning solution cip)))))
+
+(defmethod formulate (meaning &key
+                            (cxn-inventory *fcg-constructions*)
+                            (gold-standard-utterance nil)
+                            (silent nil))
+  (let ((initial-cfs (create-initial-structure meaning
+                                               (get-configuration cxn-inventory :create-initial-structure-mode)))
+        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+    ;; Add utterance and meaning to blackboard
+    (set-data initial-cfs :meanings (if (atom (caar meaning)) (list meaning) meaning))
+    (set-data initial-cfs :utterances (listify gold-standard-utterance))
+    ;; Notification
+    (unless silent (notify produce-started meaning cxn-inventory initial-cfs))
+    ;; Construction application
+    (multiple-value-bind (solution cip)
+        (fcg-apply processing-cxn-inventory initial-cfs '-> :notify (not silent))
+      (let ((utterance
+             (and solution
+                  (or (find-data (goal-test-data solution) 'utterance)
+                      (render 
+                       (car-resulting-cfs (cipn-car solution)) 
+                       (get-configuration cxn-inventory :render-mode)
+                      :node solution)))))
+        ;; Notification
+        (unless silent (notify produce-finished utterance))
+        ;; Return value
+        (values utterance solution cip)))))
 
 
 
