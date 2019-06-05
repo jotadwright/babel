@@ -19,9 +19,7 @@
                                (tutor-mode (eql :symbolic)))
   (let* ((clevr-context (random-elt (world experiment)))
          (mwm-context (clevr->mwm clevr-context
-                                  :noise-amount (get-configuration experiment :noise-amount)
-                                  :scale (get-configuration experiment :scale-world)
-                                  :noise-prob (get-configuration experiment :noise-prob))))
+                                  :scale (get-configuration experiment :scale-world))))
     (notify context-determined experiment)
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
