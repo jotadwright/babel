@@ -45,7 +45,7 @@
      ((tr)
       ((th) "CLEVR context"))
      ((tr)
-      ((td) ,(make-html (clevr-context (speaker experiment)) :expand-initially t)))))
+      ((td) ,(make-html (symbolic-context (speaker experiment)) :expand-initially t)))))
   (if (and (get-configuration experiment :noise-prob)
            (get-configuration experiment :noise-amount))
     (progn (add-element `((table) ((tr) ((th) "MWM context (speaker)"))
@@ -65,18 +65,14 @@
       (:continuous
        (progn (add-element '((h2) "Tutor conceptualised the topic:"))
          (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (mapcar #'name (applied-cxns agent))))))))
-      (otherwise (add-element '((h2) "Tutor did not find discriminating attributes."))))
-    ;; to do; learner side
-    ))
+      (otherwise (add-element '((h2) "Tutor did not find discriminating attributes."))))))
 
 (define-event-handler (trace-interaction-in-web-interface production-finished)
   (if (tutorp agent)
     (if (utterance agent)
       (progn (add-element '((h2) "Tutor produced an utterance:"))
         (add-element `((h3) ((i) ,(format nil "~{\"~a\"~^, ~}" (utterance agent))))))
-      (add-element '((h2) "Tutor could not produce an utterance.")))
-    ;; to do; learner side
-    ))
+      (add-element '((h2) "Tutor could not produce an utterance.")))))
 
 (defgeneric category->s-dot-node (category &key)
   (:documentation "How to display a category as an s-dot node"))

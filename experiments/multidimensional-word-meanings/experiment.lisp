@@ -4,38 +4,21 @@
 ;; + Configurations +
 ;; ------------------
 (define-configuration-default-value :dot-interval 100)
-(define-configuration-default-value :contexts (list
-                                               (merge-pathnames
-                                                (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
-                                                               :name "CLEVR_val_full_per_line" :type "json")
-                                                cl-user:*babel-corpora*)
-                                               (merge-pathnames
-                                                (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
-                                                               :name "CLEVR_train_full_per_line" :type "json")
-                                                cl-user:*babel-corpora*)))
-(define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks) ; :tutor-speaks :learner-speaks :default
-(define-configuration-default-value :attributes '(x-pos y-pos
-                                                  area wh-ratio
-                                                  R G B roughness
-                                                  nr-of-sides nr-of-corners))
+(define-configuration-default-value :data-sets (list "val"))
+(define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks)
 (define-configuration-default-value :initial-certainty 0.5)
 (define-configuration-default-value :certainty-incf 0.1)
 (define-configuration-default-value :certainty-decf -0.1)
-(define-configuration-default-value :alpha 0.05)
-(define-configuration-default-value :remove-on-lower-bound t) ; t or nil
-(define-configuration-default-value :category-representation :exponential) ; :min-max :prototype :prototype-min-max :exponential
-(define-configuration-default-value :feature-selection :all) ; :all or :sampling
-(define-configuration-default-value :noise-amount nil) ; nil or float in [0,1]
-(define-configuration-default-value :noise-prob nil) ; nil or float in [0,1]
-(define-configuration-default-value :perceptual-deviation nil) ; nil or t
-(define-configuration-default-value :scale-world t)  ; t or nil
-
-(define-configuration-default-value :max-tutor-utterance-length 1) ; nil or int
-(define-configuration-default-value :lexical-variation nil) ; nil or t
-(define-configuration-default-value :tutor-lexicon :symbolic) ; symbolic or continuous
-(define-configuration-default-value :game-mode :tutor-learner) ; :tutor-tutor :tutor-learner
+(define-configuration-default-value :remove-on-lower-bound nil)
+(define-configuration-default-value :category-representation :prototype)
+(define-configuration-default-value :noise-amount nil) 
+(define-configuration-default-value :noise-prob nil) 
+(define-configuration-default-value :scale-world t)
+(define-configuration-default-value :max-tutor-utterance-length 1) 
+(define-configuration-default-value :lexical-variation nil)
+(define-configuration-default-value :tutor-lexicon :continuous)
+(define-configuration-default-value :game-mode :tutor-learner)
 (define-configuration-default-value :tutor-re-entrance nil)
-
 (define-configuration-default-value :export-lexicon-interval 500)
 
 ;; --------------
@@ -58,9 +41,7 @@
                               (make-tutor-agent experiment)))))
   (unless *world*
     (setf *world*
-          (loop for file in (get-configuration experiment :contexts)
-                for scenes = (read-contexts-from-file file)
-                append scenes)))
+          (make-instance 'clevr-world :data-sets (get-configuration experiment :data-sets))))
   (setf (world experiment) *world*))
 
 ;; --------------------------------

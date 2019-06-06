@@ -4,9 +4,6 @@
 ;; + Fuzzy Set Operations +
 ;; ------------------------
 
-;(defun fuzzy-set-channels (set)
-;  (mapcar #'first set))
-
 (defun fuzzy-set-channels (set)
   (mapcar #'attribute (mapcar #'car set)))
 

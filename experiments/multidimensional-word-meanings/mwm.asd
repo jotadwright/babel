@@ -14,12 +14,11 @@
                :meta-layer-learning
                :irl
                :fcg
-               :clevr
+               :clevr-world
                :cl-mop)
   :serial t
   :components ((:file "package")
                (:file "color-conversions")
-               (:file "parabola")
                (:file "utils")
                (:file "fuzzy-operations")
                (:file "world")
