@@ -611,10 +611,11 @@ solution."
                do (push (type-of problem) (statuses node)))
          (push 'diagnostic-triggered (statuses node)))
        ;; Loop through the new-fixes (they should have a list of construction-application-results in
-       ;; their data-field 'fixed-cars), make nodes of them, add them as children, and enqueue them 
+       ;; their data-field 'fixed-cars), make nodes of them, add them as children, and enqueue them
+       ;; Note: fixes don't need to have this field, they may also directly affect the CIP
        (loop for fix in new-fixes ;;
-             for fixed-cars = (get-data fix 'fixed-cars)
-             do (loop for fixed-car in fixed-cars
+             when (field? fix 'fixed-cars)
+             do (loop for fixed-car in (get-data fix 'fixed-cars)
                       do
                       (let ((fixed-child (cip-add-child node fixed-car)))
                         (push (type-of (issued-by fix)) (statuses fixed-child))
@@ -907,12 +908,17 @@ added here. Preprocessing is only used in parsing currently."
                     (type-of x))))))
 
 (defun consolidate-repair-cxns (node)
-  (let ((applied-cxns (applied-constructions node))
-        (fcg-construction-set (original-cxn-set (construction-inventory node))))
-    (dolist (cxn applied-cxns)
-      (let ((fcg-cxn (get-original-cxn cxn)))
-        (unless (find-cxn fcg-cxn fcg-construction-set)
-          (add-cxn fcg-cxn fcg-construction-set))))))
+  "conolidate the constructions added by repairs"
+  ;; fix-cxns field is used by repair
+  (when (field? (car-resulting-cfs (cipn-car node)) :fix-cxns)
+    (loop for cxn in (get-data (car-resulting-cfs (cipn-car node)) :fix-cxns)
+          do (add-cxn cxn (original-cxn-set (construction-inventory node)))))
+  ;; also add all applied cxns
+  (loop with fcg-cxn-set = (original-cxn-set (construction-inventory node))
+        for cxn in (applied-constructions node)
+        for fcg-cxn = (get-original-cxn cxn)
+        unless (find-cxn fcg-cxn fcg-cxn-set)
+        do (add-cxn fcg-cxn fcg-cxn-set)))
 
 (defun solution-p (node)
   "returns true if a node is a solution (succeeded)"

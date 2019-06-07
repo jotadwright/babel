@@ -31,9 +31,6 @@
 
 (export '(meets precedes first-el))
 
-(defmethod render ((node cip-node) (mode (eql :generate-and-test)) &key &allow-other-keys)
-  (render (car-resulting-cfs (cipn-car node)) :generate-and-test))
-
 (defmethod render ((cfs coupled-feature-structure) (mode (eql :generate-and-test)) &key &allow-other-keys)
   (render (extract-forms (left-pole-structure cfs)) :generate-and-test))
 
