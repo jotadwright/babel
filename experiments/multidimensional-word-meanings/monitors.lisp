@@ -42,7 +42,6 @@
               :open nil))))
 
 ;; lexicon -> function plots
-
 (defun lexicon->function-plots (agent)
   (loop for cxn in (constructions (grammar agent)) 
         for experiment-name = (downcase (mkstr (get-configuration agent :category-representation)))

@@ -13,9 +13,9 @@
 (defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) words)
   (let ((meaning
          (loop with initial-certainty = (get-configuration agent :initial-certainty)
-               for attr in (get-configuration agent :attributes)
-               collect (cons (make-category-from-object topic attr (get-configuration agent :category-representation))
-                             initial-certainty))))
+               with category-representation = (get-configuration agent :category-representation)
+               for (attr . val) in (attributes topic)
+               collect (cons (make-category attr val category-representation) initial-certainty))))
     (loop for word in words
           for new-cxn = (add-lex-cxn agent word meaning)
           do (notify new-cxn-added new-cxn))))
@@ -43,7 +43,7 @@
 (defgeneric align-known-words (agent topic categories)
   (:documentation "Align known words"))
 
-;; similarity-based strategy
+;; for the min-max strategy
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
                               (categories (eql :min-max)))
   (loop with rewarded
@@ -53,9 +53,9 @@
         for attr = (attribute category)
         ;; update the prototype
         do (update-category category topic
-                            :alpha (get-configuration agent :alpha)
                             :success (communicated-successfully agent)
                             :interpreted-object (topic agent))
+        ;; punish or reward based on similarity
         do (let ((sim (similarity topic category)))
              (if (>= sim 0)
                (progn (push attr rewarded)
@@ -68,8 +68,10 @@
         finally
         (notify scores-updated cxn rewarded punished)))
 
-;; discrimination-based strategy
+;; for the other strategies
 (defun discriminatingp (agent category topic)
+  "A category is discriminating for the topic if its similarity
+   to the topic is higher than for any other object in the context"
   (let* ((context (remove topic (objects (context agent))))
          (topic-sim (similarity topic category))
          (best-object-sim (apply #'max
@@ -79,7 +81,9 @@
 
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
                               categories)
-  (declare (ignorable categories))        
+  (declare (ignorable categories))
+  ;; compute for each attribute in the meaning the cxn
+  ;; where it came from
   (let ((cxns-with-categories
          (if (length= (applied-cxns agent) 1)
            (list
@@ -94,9 +98,12 @@
                  do (push (cons cxn (list category)) result)
                  finally
                  (return result)))))
+    ;; loop over all cxns with their categories
     (loop for (cxn . categories) in cxns-with-categories
           for punished = nil
           for rewarded = nil
+          ;; for each category, reward if it is discriminating
+          ;; and otherwise punish. The value is always updated
           do (loop for category in categories
                    for attr = (attribute category)
                    if (discriminatingp agent category topic)
@@ -122,7 +129,7 @@
   (:documentation
    "The alignment procedure can be split in 2 cases:
    1. Adopting unknown words. The meaning of these unknown words
-      will be a cloud containg all attributes of the object. The
+      will be a cloud containing all attributes of the object. The
       value for each attribute will be the exact value of the
       topic (pointed to by the tutor). These values are linked with
       the new word using an initial certainty score.
@@ -130,9 +137,7 @@
       agent will reward and punish certain attributes, based on
       the similarity measure. The attributes with positive similarity
       will not only be rewarded; their value will also be shifted
-      towards the topic, using rate alpha. When the game failed, the
-      agent will again extend the meaning of the word, but with a
-      low initial certainty."))
+      towards the topic."))
 
 (define-event alignment-started (agent mwm-agent))
 (define-event adopting-words (words list))

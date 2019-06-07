@@ -10,7 +10,7 @@
         :experiment-framework
         :irl
         :fcg
-        :clevr)
+        :clevr-world)
   (:import-from :cl-mop
                 :slot-names
                 :map-slots))

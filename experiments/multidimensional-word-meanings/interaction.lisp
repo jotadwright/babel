@@ -8,32 +8,30 @@
         (parsed-meaning agent) nil))
 
 ;;;; before-interaction
-(defgeneric before-interaction (experiment game-mode agents-mode tutor-mode)
+(defgeneric before-interaction (experiment game-mode tutor-mode)
   (:documentation "Initialize the interaction, depending on the configuration settings"))
 
 (define-event context-determined (experiment mwm-experiment))
 
 (defmethod before-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
-                               (agents-mode (eql :tutor-speaks))
                                (tutor-mode (eql :symbolic)))
-  (let* ((clevr-context (random-elt (world experiment)))
+  (let* ((clevr-context (next-scene (world experiment)))
          (mwm-context (clevr->mwm clevr-context
                                   :scale (get-configuration experiment :scale-world))))
     (notify context-determined experiment)
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
                    (if (learnerp agent) mwm-context clevr-context))
-          do (setf (clevr-context agent) clevr-context)
+          do (setf (symbolic-context agent) clevr-context)
           do (setf (topic agent)
                    (when (speakerp agent) (random-elt (objects (context agent)))))
           do (clear-agent agent))))
 
 (defmethod before-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
-                               (agents-mode (eql :tutor-speaks))
                                (tutor-mode (eql :continuous)))
-  (let* ((clevr-context (random-elt (world experiment)))
+  (let* ((clevr-context (next-scene (world experiment)))
          (mwm-context (clevr->mwm clevr-context
                                   :scale (get-configuration experiment :scale-world))))
     (if (and (get-configuration experiment :noise-amount)
@@ -47,7 +45,7 @@
       (loop for agent in (interacting-agents experiment)
             do (setf (context agent) mwm-context)))
     (loop for agent in (interacting-agents experiment)
-          do (setf (clevr-context agent) clevr-context)
+          do (setf (symbolic-context agent) clevr-context)
           do (setf (topic agent)
                    (when (speakerp agent) (random-elt (objects (context agent)))))
           do (clear-agent agent))
@@ -55,9 +53,8 @@
 
 (defmethod before-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-tutor))
-                               agents-mode
                                (tutor-mode (eql :continuous)))
-  (let* ((clevr-context (random-elt (world experiment)))
+  (let* ((clevr-context (next-scene (world experiment)))
          (mwm-context (clevr->mwm clevr-context
                                   :scale (get-configuration experiment :scale-world))))
     (if (and (get-configuration experiment :noise-amount)
@@ -70,7 +67,7 @@
       (loop for agent in (interacting-agents experiment)
             do (setf (context agent) mwm-context)))
     (loop for agent in (interacting-agents experiment)
-          do (setf (clevr-context agent) clevr-context)
+          do (setf (symbolic-context agent) clevr-context)
           do (setf (topic agent)
                    (when (speakerp agent)
                      (random-elt (objects (context agent)))))
@@ -79,13 +76,12 @@
 
 
 ;;;; do-interaction
-(defgeneric do-interaction (experiment game-mode agents-mode tutor-mode)
+(defgeneric do-interaction (experiment game-mode tutor-mode)
   (:documentation "Run the appropriate interaction script, depending on the
    configuration settings"))
 
 (defmethod do-interaction ((experiment mwm-experiment)
                            (game-mode (eql :tutor-learner))
-                           (agents-mode (eql :tutor-speaks))
                            (tutor-mode (eql :symbolic)))
   "The tutor conceptualises the topic and produces
    one or multiple words. The hearer tries to parse
@@ -100,7 +96,7 @@
           if success
           return success
           else
-          do (before-interaction experiment game-mode agents-mode tutor-mode))
+          do (before-interaction experiment game-mode tutor-mode))
     (produce-word speaker)
     (when (utterance speaker)
       (setf (utterance hearer) (utterance speaker))
@@ -110,10 +106,14 @@
         (setf (communicated-successfully speaker) t
               (communicated-successfully hearer) t)))))
 
-(defun conceptualise-until-success (agent game-mode agents-mode tutor-mode)
+(defun conceptualise-until-success (agent game-mode tutor-mode)
+  "The tutor will always first try to conceptualise on the
+   symbolic level. If this already fails, the scene is skipped
+   and another one is loaded. If it succeeds, the tutor
+   conceptualises using its continuous-valued lexion."
   (loop while t
         for mwm-context = (context agent)
-        for clevr-context = (clevr-context agent)
+        for clevr-context = (symbolic-context agent)
         for concept-success
         = (and (setf (context agent) clevr-context)
                (with-disabled-monitors
@@ -124,13 +124,15 @@
         do (progn (setf (discriminative-set agent) nil)
              (return concept-success))
         else
-        do (before-interaction (experiment agent) game-mode
-                               agents-mode tutor-mode)))
+        do (before-interaction (experiment agent) game-mode tutor-mode)))
 
-(defun conceptualise-with-re-entrance (agent game-mode agents-mode tutor-mode)
+(defun conceptualise-with-re-entrance (agent game-mode tutor-mode)
+  "The tutor first tries to conceptualise on the symbolic level,
+   next on the continuous level and finally the tutor also does
+   re-entrance."
   (loop while t
         for mwm-context = (context agent)
-        for clevr-context = (clevr-context agent)
+        for clevr-context = (symbolic-context agent)
         for concept-success
         = (and (setf (context agent) clevr-context)
                (with-disabled-monitors
@@ -142,13 +144,11 @@
         do (progn (setf (discriminative-set agent) nil)
              (return concept-success))
         else
-        do (before-interaction (experiment agent) game-mode
-                               agents-mode tutor-mode)))
+        do (before-interaction (experiment agent) game-mode tutor-mode)))
                                 
 
 (defmethod do-interaction ((experiment mwm-experiment)
                            (game-mode (eql :tutor-learner))
-                           (agents-mode (eql :tutor-speaks))
                            (tutor-mode (eql :continuous)))
   "The tutor conceptualises the topic and produces
    one or multiple words. The hearer tries to parse
@@ -156,16 +156,11 @@
    the interpretation is correct, the interaction is
    a success. Adoption is handled together with
    alignment."
-  ;; In some scenes, the tutor is unable to discriminate a
-  ;; topic using a single word on the symbolic level,
-  ;; but is able to do so using the continuous categories
-  ;; by stretching some concept. The learner gets very
-  ;; confused by this, so we remove these scenes...
   (let ((speaker (speaker experiment))
         (hearer (hearer experiment)))
     (if (get-configuration experiment :tutor-re-entrance)
-      (conceptualise-with-re-entrance speaker game-mode agents-mode tutor-mode)
-      (conceptualise-until-success speaker game-mode agents-mode tutor-mode))
+      (conceptualise-with-re-entrance speaker game-mode tutor-mode)
+      (conceptualise-until-success speaker game-mode tutor-mode))
     (produce-word speaker)
     (when (utterance speaker)
       (setf (utterance hearer) (utterance speaker))
@@ -177,13 +172,12 @@
 
 (defmethod do-interaction ((experiment mwm-experiment)
                            (game-mode (eql :tutor-tutor))
-                           agents-mode
                            (tutor-mode (eql :continuous)))
   (let ((speaker (speaker experiment))
         (hearer (hearer experiment)))
     (if (get-configuration experiment :tutor-re-entrance)
-      (conceptualise-with-re-entrance speaker game-mode agents-mode tutor-mode)
-      (conceptualise-until-success speaker game-mode agents-mode tutor-mode))
+      (conceptualise-with-re-entrance speaker game-mode tutor-mode)
+      (conceptualise-until-success speaker game-mode tutor-mode))
     (produce-word speaker)
     (when (utterance speaker)
       (setf (utterance hearer) (utterance speaker))
@@ -196,12 +190,11 @@
 
 
 ;;;; after-interaction
-(defgeneric after-interaction (experiment game-mode agents-mode tutor-mode)
+(defgeneric after-interaction (experiment game-mode tutor-mode)
   (:documentation "Finalize the interaction, depending on the configuration settings"))
 
 (defmethod after-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
-                               (agents-mode (eql :tutor-speaks))
                                (tutor-mode (eql :symbolic)))
   (let* ((tutor (find 'tutor (interacting-agents experiment) :key #'id))
          (learner (find 'learner (interacting-agents experiment) :key #'id))
@@ -211,7 +204,6 @@
 
 (defmethod after-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
-                               (agents-mode (eql :tutor-speaks))
                                (tutor-mode (eql :continuous)))
   (let* ((tutor (find 'tutor (interacting-agents experiment) :key #'id))
          (learner (find 'learner (interacting-agents experiment) :key #'id))
@@ -221,7 +213,6 @@
 
 (defmethod after-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-tutor))
-                               agents-mode
                                tutor-mode)
   ;; do nothing
   nil)
@@ -230,15 +221,8 @@
 ;;;; Interact
 (defmethod interact ((experiment mwm-experiment)
                      interaction &key)
-  (before-interaction experiment
-                      (get-configuration experiment :game-mode)
-                      (get-configuration experiment :determine-interacting-agents-mode)
-                      (get-configuration experiment :tutor-lexicon))
-  (do-interaction experiment
-                  (get-configuration experiment :game-mode)
-                  (get-configuration experiment :determine-interacting-agents-mode)
-                  (get-configuration experiment :tutor-lexicon))
-  (after-interaction experiment
-                     (get-configuration experiment :game-mode)
-                     (get-configuration experiment :determine-interacting-agents-mode)
-                     (get-configuration experiment :tutor-lexicon)))
+  (let ((game-mode (get-configuration experiment :game-mode))
+        (tutor-mode (get-configuration experiment :tutor-lexicon)))
+    (before-interaction experiment game-mode tutor-mode)
+    (do-interaction experiment game-mode tutor-mode)
+    (after-interaction experiment game-mode tutor-mode)))

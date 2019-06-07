@@ -11,9 +11,9 @@
    (context
     :documentation "The current context (continuous values)"
     :accessor context :initform nil)
-   (clevr-context
+   (symbolic-context
     :documentation "The symbolic clevr context"
-    :accessor clevr-context :initform nil)
+    :accessor symbolic-context :initform nil)
    (topic
     :documentation "The current topic"
     :accessor topic :initform nil)
@@ -134,6 +134,12 @@
             :test #'>))
 
 (defun choose-discriminating-word (agent meaning-so-far cxns-to-consider)
+  "Choose the most discriminating word to add to the utterance.
+   The word has to have a similarity to the topic that is higher
+   than the similarity to any other object. If this is
+   the case for multiple words, the one with the biggest difference
+   between best-word<->topic and best-word<->best-other-object
+   is chosen."
   (loop with best-cxn = nil
         with best-similarity = 0
         with best-difference = 0
@@ -146,11 +152,6 @@
         for difference = (- topic-similarity best-other-similarity)
         when (and (> topic-similarity best-other-similarity)
                   (> difference best-difference))
-        ;when (case (get-configuration agent :category-representation)
-        ;       (:min-max (and (> topic-similarity best-other-similarity)
-        ;                      (> topic-similarity best-similarity)))
-        ;       (otherwise (and (> topic-similarity best-other-similarity)
-        ;                       (> difference best-difference))))
         do (setf best-cxn cxn
                  best-similarity topic-similarity
                  best-difference difference)
@@ -158,6 +159,11 @@
         (return best-cxn)))
 
 (defmethod conceptualise-continuous ((agent mwm-agent))
+  "Conceptualisation according to Pieter Wellens' adaptive strategy.
+   Keep adding words to the utterance as long as they improve the
+   similarity between the utterance and the topic. It is possible
+   that the lexicon is not good enough to describe the topic and
+   not a single discriminating word is found"
   (loop with utterance = nil ; list of cxns
         with utterance-meaning = nil ; combined meaning
         with best-similarity = 0
@@ -169,10 +175,6 @@
                                       (remove-if #'(lambda (cxn)
                                                      (member cxn utterance))
                                                  (constructions (grammar agent))))
-        ;= (choose-best-word agent utterance-meaning
-        ;                    (remove-if #'(lambda (cxn)
-        ;                                   (member cxn utterance))
-        ;                               (constructions (grammar agent))))
         for new-similarity = (when best-new-word
                                (let* ((cxn-meaning (attr-val best-new-word :meaning))
                                       (extended-meaning (fuzzy-union cxn-meaning utterance-meaning)))
@@ -197,6 +199,8 @@
   (:documentation "Do re-entrance"))
 
 (defmethod re-entrance ((agent mwm-agent))
+  "The tutor checks whether interpreting his own utterance
+   will lead him to the topic."
   (when (and (eql (get-configuration agent :tutor-lexicon) :continuous)
              (applied-cxns agent))
     ;; construct the utterance
@@ -259,16 +263,6 @@
 ;; -----------
 ;; + Parsing +
 ;; -----------
-(defun sample-features (meaning)
-  "Sample a subset of the features according to the
-   certainty of that feature."
-  (loop for (category . certainty) in meaning
-        for r = (random 1.0)
-        when (< r certainty)
-        collect (cons category certainty) into meaning-sample
-        finally
-        (return meaning-sample)))
-
 (defgeneric parse-word (agent)
   (:documentation "Parse an utterance"))
 
@@ -281,18 +275,13 @@
   (multiple-value-bind (meaning cipn)
       (comprehend (utterance agent)
                   :cxn-inventory (grammar agent))
-    (declare (ignorable meaning))
     (when meaning
       (let ((all-meanings
              (loop for cxn in (applied-constructions cipn)
                    collect (attr-val cxn :meaning))))
         (setf (applied-cxns agent) (mapcar #'get-original-cxn
                                            (applied-constructions cipn))
-              (parsed-meaning agent) (reduce #'fuzzy-union all-meanings))
-        ;; when :feature-selection is set to :sampling; do the sampling here
-        ;; and overwrite the parsed-meaning slot of the agent
-        (when (eql (get-configuration agent :feature-selection) :sampling)
-          (setf (parsed-meaning agent) (sample-features (parsed-meaning agent))))))
+              (parsed-meaning agent) (reduce #'fuzzy-union all-meanings))))
     (notify parsing-finished agent)
     (parsed-meaning agent)))
 
@@ -315,6 +304,8 @@
               (loop for object in (objects (context agent))
                     for sim = (weighted-similarity object (parsed-meaning agent))
                     collect (cons object sim)))
+             ;; if two objects have exactly the same
+             ;; maximum similarity, interpretation fails
              (highest-pair
               (the-biggest #'cdr objects-with-similarity))
              (maybe-topic (car highest-pair))
