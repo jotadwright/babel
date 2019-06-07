@@ -105,5 +105,9 @@
         ;; Return value
         (values utterance solution cip)))))
 
+(defmethod render ((node cip-node) (mode (eql :generate-and-test)) &key &allow-other-keys)
+  (render (car-resulting-cfs (cipn-car node)) :generate-and-test))
 
-
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :add-to-front)))
+  (push node (queue cip)))
