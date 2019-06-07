@@ -16,38 +16,61 @@
 (defmethod before-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
                                (tutor-mode (eql :symbolic)))
-  (let* ((clevr-context (next-scene (world experiment)))
+  (let* ((data-source (get-configuration experiment :data-source))
+         (clevr-context (next-scene (world experiment)))
          (mwm-context (clevr->mwm clevr-context
-                                  :scale (get-configuration experiment :scale-world))))
+                                  :scale (get-configuration experiment :scale-world)))
+         (continuous-context
+          (when (eql data-source :continuous-clevr)
+            (clevr->continuous clevr-context
+                               :directory (get-configuration experiment :data-path)))))
     (notify context-determined experiment)
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
-                   (if (learnerp agent) mwm-context clevr-context))
+                   (if (learnerp agent)
+                     (if (eql data-source :clevr)
+                       mwm-context
+                       continuous-context)
+                     clevr-context))
           do (setf (symbolic-context agent) clevr-context)
           do (setf (topic agent)
-                   (when (speakerp agent) (random-elt (objects (context agent)))))
+                   (when (speakerp agent)
+                     (random-elt (objects (context agent)))))
           do (clear-agent agent))))
 
 (defmethod before-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
                                (tutor-mode (eql :continuous)))
-  (let* ((clevr-context (next-scene (world experiment)))
-         (mwm-context (clevr->mwm clevr-context
-                                  :scale (get-configuration experiment :scale-world))))
+  (let* ((data-source (get-configuration experiment :data-source))
+         (clevr-context (next-scene (world experiment)))
+         (mwm-context (clevr->mwm clevr-context :scale (get-configuration experiment :scale-world)))
+         (continuous-context
+          (when (eql data-source :continuous-clevr)
+            (clevr->continuous clevr-context
+                               :directory (get-configuration experiment :data-path)))))
+    ;; if using clevr and noise, add noise
     (if (and (get-configuration experiment :noise-amount)
-             (get-configuration experiment :noise-prob))
+             (get-configuration experiment :noise-prob)
+             (eql data-source :clevr))
       (loop for agent in (interacting-agents experiment)
             for context = (copy-object mwm-context)
             do (add-noise context
                           (get-configuration experiment :noise-prob)
                           (get-configuration experiment :noise-amount))
             do (setf (context agent) context))
-      (loop for agent in (interacting-agents experiment)
-            do (setf (context agent) mwm-context)))
+      ;; else if using clevr, give both agents the same scene
+      ;; otherwise, give tutor the clevr-scene and learner
+      ;; the continuous scene
+      (if (eql data-source :clevr)
+        (loop for agent in (interacting-agents experiment)
+              do (setf (context agent) mwm-context))
+        (setf (context (tutor experiment)) mwm-context
+              (context (learner experiment)) continuous-context)))
     (loop for agent in (interacting-agents experiment)
           do (setf (symbolic-context agent) clevr-context)
           do (setf (topic agent)
-                   (when (speakerp agent) (random-elt (objects (context agent)))))
+                   (when (speakerp agent)
+                     (random-elt (objects (context agent)))))
           do (clear-agent agent))
     (notify context-determined experiment)))
 
@@ -205,9 +228,11 @@
 (defmethod after-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
                                (tutor-mode (eql :continuous)))
-  (let* ((tutor (find 'tutor (interacting-agents experiment) :key #'id))
-         (learner (find 'learner (interacting-agents experiment) :key #'id))
-         (topic (find (id (topic tutor)) (objects (context learner)) :key #'id)))
+  (let* ((tutor (tutor experiment))
+         (learner (learner experiment))
+         (topic (if (eql (get-configuration experiment :data-source) :clevr)
+                  (find (id (topic tutor)) (objects (context learner)) :key #'id)
+                  (closest-to-topic tutor (context learner)))))
     (when (applied-cxns tutor)
       (align-agent learner topic))))
 

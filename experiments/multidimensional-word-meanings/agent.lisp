@@ -37,8 +37,18 @@
 (defmethod hearerp ((agent mwm-agent))
   (eql (discourse-role agent) 'hearer))
 
+(defmethod learner ((experiment mwm-experiment))
+  (find 'learner (population experiment) :key #'id))
+(defmethod learner ((interaction interaction))
+  (find 'learner (interacting-agents interaction) :key #'id))
+
 (defmethod learnerp ((agent mwm-agent))
   (eql (id agent) 'learner))
+
+(defmethod tutor ((experiment mwm-experiment))
+  (find 'tutor (population experiment) :key #'id))
+(defmethod tutor ((interaction interaction))
+  (find 'tutor (interacting-agents interaction) :key #'id))
 
 (defmethod tutorp ((agent mwm-agent))
   (eql (id agent) 'tutor))
@@ -325,14 +335,25 @@
 ;; ---------------------
 ;; + Determine success +
 ;; ---------------------
+(defun closest-to-topic (speaker hearer-context)
+  (let ((topic-x (get-attr-val (topic speaker) 'x-pos))
+        (topic-y (get-attr-val (topic speaker) 'y-pos)))
+    (the-smallest #'(lambda (object)
+                      (euclidean (list topic-x topic-y)
+                                 (list (get-attr-val object 'xpos)
+                                       (get-attr-val object 'ypos))))
+                  (objects hearer-context))))
+
 (defgeneric determine-success (speaker hearer)
   (:documentation "Determine the success of the interaction"))
 
 (defmethod determine-success ((speaker mwm-agent) (hearer mwm-agent))
   "Compare the IDs of the topics of both agents"
-  (when (and (topic speaker)
-             (topic hearer))
-    (eql (id (topic speaker))
-         (id (topic hearer)))))
+  (if (eql (get-configuration speaker :data-source) :clevr)
+    (when (and (topic speaker) (topic hearer))
+      (eql (id (topic speaker)) (id (topic hearer))))
+    (when (and (topic speaker) (topic hearer))
+      (eql (closest-to-topic speaker (context hearer))
+           (topic hearer)))))
   
 

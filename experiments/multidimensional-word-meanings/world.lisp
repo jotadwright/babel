@@ -184,17 +184,15 @@
     (make-instance 'mwm-object :id (make-id 'object)
                    :attributes alist)))
 
-(defun continous-clevr->mwm-set (filename)
-  "Load a single scene from the given file"
-  (make-instance 'mwm-object-set :id (make-id 'scene)
-                 :objects (with-open-file (stream filename :direction :input)
-                            (mapcar #'continuous-clevr->mwm-object
-                                    (mapcar #'decode-json-from-string
-                                            (stream->list stream))))))
-
-(defun load-continous-clevr (directory)
-  "Load all scenes from the given directory"
-  (loop for file in (directory
-                     (merge-pathnames (make-pathname :name :wild :type "json")
-                                      (parse-namestring directory)))
-        collect (continous-clevr->mwm-set file)))
+(defmethod clevr->continuous ((scene clevr-scene) &key directory)
+  ;; take the name of the scene
+  ;; look it up in 'directory'
+  ;; and load the data
+  (let ((path (merge-pathnames
+               (make-pathname :name (name scene) :type "json")
+               directory)))
+    (make-instance 'mwm-object-set :id (make-id 'scene)
+                   :objects (with-open-file (stream path :direction :input)
+                              (mapcar #'continuous-clevr->mwm-object
+                                      (mapcar #'decode-json-from-string
+                                              (stream->list stream)))))))

@@ -14,7 +14,9 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:category-representation . :prototype-min-max)
+   :entries '((:data-source . :continuous-clevr)
+              (:scale-world . nil)
+              (:category-representation . :prototype)
               (:noise-amount . nil)
               (:noise-prob . nil))))
 
@@ -25,7 +27,11 @@
 
 (run-series *experiment* 100)
 
-(run-series *experiment* 5000)
+
+;;;; SEEMS TO BE WORKING WITH BJORN'S DATA, HOWEVER SOME SCENES
+;;;; HAVE ONLY A SINGLE OBJECT. HAVE TO ADD A LOOP SUCH THAT THESE
+;;;; ARE SKIPPED
+(run-series *experiment* 1000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))

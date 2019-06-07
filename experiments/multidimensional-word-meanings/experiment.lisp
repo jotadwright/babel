@@ -4,7 +4,15 @@
 ;; + Configurations +
 ;; ------------------
 (define-configuration-default-value :dot-interval 100)
+
+;; when :data-source is :clevr, load the clevr dataset(s) specified
+;: using :data-sets. Otherwise, load the continuous clevr data
+;; specified using :data-path
+(define-configuration-default-value :data-source :clevr)
 (define-configuration-default-value :data-sets (list "val"))
+(define-configuration-default-value :data-path
+   "/Users/jensnevens/SVN/Babel2-corpora/CLEVR/CLEVR-v1.0/scenes/cval/")
+
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks)
 (define-configuration-default-value :initial-certainty 0.5)
 (define-configuration-default-value :certainty-incf 0.1)
@@ -41,7 +49,8 @@
                               (make-tutor-agent experiment)))))
   (unless *world*
     (setf *world*
-          (make-instance 'clevr-world :data-sets (get-configuration experiment :data-sets))))
+          (make-instance 'clevr-world :data-sets
+                         (get-configuration experiment :data-sets))))
   (setf (world experiment) *world*))
 
 ;; --------------------------------
