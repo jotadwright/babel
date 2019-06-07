@@ -159,3 +159,42 @@
     (:material . ,(material object))
     (:x-pos . ,(if (> (x-pos object) 245.5) 'right 'left))
     (:y-pos . ,(if (> (y-pos object) 177) 'front 'behind))))
+
+;; ------------------------
+;; + Continous CLEVR data +
+;; ------------------------
+
+(defun continuous-clevr->mwm-object (alist)
+  "Load a single object"
+  (let ((mean-color (rest (assoc :color-mean alist)))
+        (std-color (rest (assoc :color-std alist))))
+    (setf alist
+          (mapcar #'(lambda (pair)
+                      (cons (internal-symb (car pair)) (cdr pair)))
+                  alist))
+    (setf alist
+          (append `((mean-h . ,(first mean-color))
+                    (mean-s . ,(second mean-color))
+                    (mean-v . ,(third mean-color))
+                    (std-h . ,(first std-color))
+                    (std-s . ,(second std-color))
+                    (std-v . ,(third std-color))) alist))
+    (setf alist (remove 'color-mean alist :key #'car))
+    (setf alist (remove 'color-std alist :key #'car))
+    (make-instance 'mwm-object :id (make-id 'object)
+                   :attributes alist)))
+
+(defun continous-clevr->mwm-set (filename)
+  "Load a single scene from the given file"
+  (make-instance 'mwm-object-set :id (make-id 'scene)
+                 :objects (with-open-file (stream filename :direction :input)
+                            (mapcar #'continuous-clevr->mwm-object
+                                    (mapcar #'decode-json-from-string
+                                            (stream->list stream))))))
+
+(defun load-continous-clevr (directory)
+  "Load all scenes from the given directory"
+  (loop for file in (directory
+                     (merge-pathnames (make-pathname :name :wild :type "json")
+                                      (parse-namestring directory)))
+        collect (continous-clevr->mwm-set file)))

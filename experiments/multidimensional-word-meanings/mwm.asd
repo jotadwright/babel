@@ -15,7 +15,8 @@
                :irl
                :fcg
                :clevr-world
-               :cl-mop)
+               :cl-mop
+               :cl-json)
   :serial t
   :components ((:file "package")
                (:file "color-conversions")

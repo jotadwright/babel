@@ -13,4 +13,6 @@
         :clevr-world)
   (:import-from :cl-mop
                 :slot-names
-                :map-slots))
+                :map-slots)
+  (:import-from :cl-json
+   :decode-json-from-string))
