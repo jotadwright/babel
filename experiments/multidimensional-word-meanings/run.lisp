@@ -56,7 +56,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "test"
+ :experiment-name "continuous-clevr-prototype"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
