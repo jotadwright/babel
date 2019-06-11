@@ -325,14 +325,31 @@
 ;; ---------------------
 ;; + Determine success +
 ;; ---------------------
+(defun closest-to-topic (speaker hearer-context)
+  (let* ((topic (topic speaker))
+         (topic-x (typecase topic
+                    (clevr-object (x-pos topic))
+                    (mwm-object (get-attr-val topic 'x-pos))))
+         (topic-y (typecase topic
+                    (clevr-object (y-pos topic))
+                    (mwm-object (get-attr-val topic 'y-pos)))))
+    (the-smallest #'(lambda (object)
+                      (abs
+                       (euclidean (list topic-x topic-y)
+                                  (list (get-attr-val object 'xpos)
+                                        (get-attr-val object 'ypos)))))
+                  (objects hearer-context))))
+
 (defgeneric determine-success (speaker hearer)
   (:documentation "Determine the success of the interaction"))
 
 (defmethod determine-success ((speaker mwm-agent) (hearer mwm-agent))
   "Compare the IDs of the topics of both agents"
-  (when (and (topic speaker)
-             (topic hearer))
-    (eql (id (topic speaker))
-         (id (topic hearer)))))
+  (if (eql (get-configuration speaker :data-source) :clevr)
+    (when (and (topic speaker) (topic hearer))
+      (eql (id (topic speaker)) (id (topic hearer))))
+    (when (and (topic speaker) (topic hearer))
+      (eql (closest-to-topic speaker (context hearer))
+           (topic hearer)))))
   
 
