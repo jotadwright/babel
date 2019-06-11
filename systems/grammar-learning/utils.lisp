@@ -1,6 +1,12 @@
 
 (in-package :grammar-learning)
 
+(defun lex-class (unit)
+  (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
+         (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
+    (when lex-class
+      (second lex-class))))
+
 (defun non-overlapping-meaning (meaning cxn &key (nom-cxn nil) (nom-observation nil))
   (when (and nom-cxn nom-observation) (error "only nom-cxn or nom-observeration can be true"))
   (multiple-value-bind (non-overlapping-meaning-observation non-overlapping-meaning-cxn)
@@ -60,13 +66,26 @@
 ;; (form-constraints-with-variables "what is the color of the cube" :de-render-string-meets-precedes)
 
 (defun meaning-predicates-with-variables (meaning)
-  "Extract form constraints from utterance in the format they would appear in a construction."
+  "Transform meaning network with constants to meaning network with variables."
     (loop for predicate in meaning
           collect (if (equalp (first predicate) 'bind)
                     (list (first predicate)
                           (second predicate)
                           (variablify (third predicate))
                           (fourth predicate))
+                    (cons (first predicate)
+                          (mapcar #'variablify (rest predicate))))))
+        
+
+ ;; (meaning-predicates-with-variables '((get-context source) (bind attribute-category attribute color) (bind shape-category shape cube) (unique object cubes) (filter cubes source shape) (query response object attribute)))
+
+(defun form-predicates-with-variables (form-predicates)
+  "Transform form constraints with constants to form constraints with variables."
+    (loop for predicate in form-predicates
+          collect (if (equalp (first predicate) 'string)
+                    (list (first predicate)
+                          (variablify (second predicate))
+                          (third predicate))
                     (cons (first predicate)
                           (mapcar #'variablify (rest predicate))))))
         
