@@ -17,7 +17,7 @@
    :entries '((:tutor-lexicon . :symbolic)
               (:data-source . :continuous-clevr)
               (:scale-world . nil)
-              (:category-representation . :prototype)
+              (:category-representation . :exponential)
               (:noise-amount . nil)
               (:noise-prob . nil))))
 
