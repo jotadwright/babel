@@ -138,7 +138,7 @@
    (name        :type string   :initarg :name        :accessor name)
    (source-path :type pathname :initarg :source-path :accessor source-path)
    (data-set    :type string   :initarg :data-set    :accessor data-set)
-   (image       :type string   :initarg :image       :accessor image))
+   (image       :type pathname :initarg :image       :accessor image))
   (:documentation "A scene in the CLEVR world"))
 
 (defmethod initialize-instance :around ((scene clevr-scene) &rest initargs &key id)
@@ -178,7 +178,10 @@
          (all-relationships (rest (assoc :relationships s-expr)))
          (id-dict (loop for i from 0 below (length all-objects)
                         collect (cons i (make-id 'obj))))
-         (data-set (last-elt (pathname-directory directory))))
+         (data-set (last-elt (pathname-directory directory)))
+         (image-filename-and-type (split (rest (assoc :image--filename s-expr)) #\.))
+         (img-filename (first image-filename-and-type))
+         (img-filetype (second image-filename-and-type)))
     (make-instance 'clevr-scene
                    :index (rest (assoc :image--index s-expr))
                    :source-path directory
@@ -186,7 +189,7 @@
                    :data-set (last-elt (pathname-directory directory))
                    :image (merge-pathnames
                            (make-pathname :directory `(:relative "images" ,data-set)
-                                          :name (rest (assoc :image--filename s-expr)))
+                                          :name img-filename :type img-filetype)
                            *clevr-data-path*)
                    :objects (loop for object in all-objects
                                   for (index . id) in id-dict
@@ -524,4 +527,4 @@
 
 
 ;;;; Testing
-;(defparameter *world* (make-instance 'clevr-world :data-sets '("val") :load-questions t))
+;(defparameter *world* (make-instance 'clevr-world :data-sets '("val") :load-questions nil))
