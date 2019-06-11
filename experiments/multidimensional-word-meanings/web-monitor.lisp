@@ -60,12 +60,15 @@
   (if (tutorp agent)
     (case (get-configuration agent :tutor-lexicon)
       (:symbolic
-       (progn (add-element '((h2) "Tutor found discriminating attributes:"))
-         (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent)))))))
+       (if (discriminative-set agent)
+         (progn (add-element '((h2) "Tutor found discriminating attributes:"))
+           (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent))))))
+         (add-element '((h2) "Tutor did not find discriminating attributes."))))
       (:continuous
-       (progn (add-element '((h2) "Tutor conceptualised the topic:"))
-         (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (mapcar #'name (applied-cxns agent))))))))
-      (otherwise (add-element '((h2) "Tutor did not find discriminating attributes."))))))
+       (if (applied-cxns agent)
+         (progn (add-element '((h2) "Tutor conceptualised the topic:"))
+           (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (mapcar #'name (applied-cxns agent)))))))
+         (add-element '((h2) "Tutor did not find discriminating attributes.")))))))
 
 (define-event-handler (trace-interaction-in-web-interface production-finished)
   (if (tutorp agent)

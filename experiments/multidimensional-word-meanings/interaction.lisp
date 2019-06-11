@@ -24,19 +24,22 @@
           (when (eql data-source :continuous-clevr)
             (clevr->continuous clevr-context
                                :directory (get-configuration experiment :data-path)))))
-    (notify context-determined experiment)
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
                    (if (learnerp agent)
                      (if (eql data-source :clevr)
                        mwm-context
-                       continuous-context)
+                       (if (> (length (objects continuous-context)) 1)
+                         continuous-context nil))
                      clevr-context))
           do (setf (symbolic-context agent) clevr-context)
           do (setf (topic agent)
                    (when (speakerp agent)
                      (random-elt (objects (context agent)))))
-          do (clear-agent agent))))
+          do (clear-agent agent))
+    (unless (context (hearer experiment))
+      (before-interaction experiment game-mode tutor-mode))
+    (notify context-determined experiment)))
 
 (defmethod before-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-learner))
@@ -61,11 +64,14 @@
       ;; else if using clevr, give both agents the same scene
       ;; otherwise, give tutor the clevr-scene and learner
       ;; the continuous scene
+      ;; some continuous scenes have only one object. Skip these...
       (if (eql data-source :clevr)
         (loop for agent in (interacting-agents experiment)
               do (setf (context agent) mwm-context))
-        (setf (context (tutor experiment)) mwm-context
-              (context (learner experiment)) continuous-context)))
+        (if (> (length (objects continuous-context)) 1)
+          (setf (context (tutor experiment)) mwm-context
+                (context (learner experiment)) continuous-context)
+          (before-interaction experiment game-mode tutor-mode))))
     (loop for agent in (interacting-agents experiment)
           do (setf (symbolic-context agent) clevr-context)
           do (setf (topic agent)
@@ -221,7 +227,9 @@
                                (tutor-mode (eql :symbolic)))
   (let* ((tutor (find 'tutor (interacting-agents experiment) :key #'id))
          (learner (find 'learner (interacting-agents experiment) :key #'id))
-         (topic (find (id (topic tutor)) (objects (context learner)) :key #'id)))
+         (topic (if (eql (get-configuration experiment :data-source) :clevr)
+                  (find (id (topic tutor)) (objects (context learner)) :key #'id)
+                  (closest-to-topic tutor (context learner)))))
     (when (discriminative-set tutor)
       (align-agent learner topic))))
 

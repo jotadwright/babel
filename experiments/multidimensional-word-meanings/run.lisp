@@ -14,7 +14,8 @@
 ;; since large amounts of data need to be loaded from file
 (defparameter *configuration*
   (make-configuration
-   :entries '((:data-source . :continuous-clevr)
+   :entries '((:tutor-lexicon . :symbolic)
+              (:data-source . :continuous-clevr)
               (:scale-world . nil)
               (:category-representation . :prototype)
               (:noise-amount . nil)
@@ -25,13 +26,9 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
-
-;;;; SEEMS TO BE WORKING WITH BJORN'S DATA, HOWEVER SOME SCENES
-;;;; HAVE ONLY A SINGLE OBJECT. HAVE TO ADD A LOOP SUCH THAT THESE
-;;;; ARE SKIPPED
-(run-series *experiment* 1000)
+(run-series *experiment* 3000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
@@ -43,15 +40,12 @@
 
 (run-experiments '(
                    (test
-                    ((:remove-on-lower-bound . nil)
-                     (:max-tutor-utterance-length . 1)
-                     (:game-mode . :tutor-learner)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:tutor-lexicon . :continuous)
-                     (:category-representation . :prototype-min-max)
-                     (:noise-amount . 0.2)
-                     (:noise-prob . 0.5)
-                     (:tutor-re-entrance . nil)))
+                    ((:tutor-lexicon . :symbolic)
+                     (:data-source . :continuous-clevr)
+                     (:scale-world . nil)
+                     (:category-representation . :prototype)
+                     (:noise-amount . nil)
+                     (:noise-prob . nil)))
                    )
                  :number-of-interactions 10000
                  :number-of-series 1

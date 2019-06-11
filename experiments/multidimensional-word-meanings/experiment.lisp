@@ -53,6 +53,16 @@
                          (get-configuration experiment :data-sets))))
   (setf (world experiment) *world*))
 
+(defmethod learner ((experiment mwm-experiment))
+  (find 'learner (population experiment) :key #'id))
+(defmethod learner ((interaction interaction))
+  (find 'learner (interacting-agents interaction) :key #'id))
+
+(defmethod tutor ((experiment mwm-experiment))
+  (find 'tutor (population experiment) :key #'id))
+(defmethod tutor ((interaction interaction))
+  (find 'tutor (interacting-agents interaction) :key #'id))
+
 ;; --------------------------------
 ;; + Determine interacting agents +
 ;; --------------------------------
