@@ -629,7 +629,7 @@ solution."
        (when (and (get-configuration cip :use-meta-layer)
                   (get-configuration cip :consolidate-repairs)
                   (repairs node))
-           (consolidate-repair-cxns node))) ;; consolidate repairs!
+           (consolidate-repairs node))) ;; consolidate repairs!
        
      (unless (or (fully-expanded? node) ;;there are other children in the making
                  goal-test-succeeded?) ;;and the node did NOT pass the goal test
@@ -907,12 +907,20 @@ added here. Preprocessing is only used in parsing currently."
      (error (format nil "Add a case for type ~a to #'fcg-get-applied-cxn."
                     (type-of x))))))
 
-(defun consolidate-repair-cxns (node)
-  "conolidate the constructions added by repairs"
+(defun consolidate-repairs (node)
+  "conolidate the constructions and th-links added by repairs"
   ;; fix-cxns field is used by repair
   (when (field? (car-resulting-cfs (cipn-car node)) :fix-cxns)
     (loop for cxn in (get-data (car-resulting-cfs (cipn-car node)) :fix-cxns)
           do (add-cxn cxn (original-cxn-set (construction-inventory node)))))
+  ;; fix-th-links
+  #+:type-hierarchies 
+  (when (field? (car-resulting-cfs (cipn-car node)) :fix-th-links)
+    (loop for th-link in (get-data (car-resulting-cfs (cipn-car node)) :fix-th-links)
+          do (type-hierarchies:add-categories (list (car th-link) (cdr th-link))
+                                              (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory node))))
+          (type-hierarchies:add-link (car th-link) (cdr th-link) 
+                                     (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory node))))))
   ;; also add all applied cxns
   (loop with fcg-cxn-set = (original-cxn-set (construction-inventory node))
         for cxn in (applied-constructions node)
