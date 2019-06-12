@@ -6,6 +6,17 @@
 (activate-monitor trace-fcg)
 (clear-page)
 
+(set-configuration (visualization-configuration *fcg-constructions*) :hide-features '(footprints syn-valence ))
+(pie-comprehend "Journalists reported from Ethiopia about a famine caused by widespread drought.")
+
+(length (find-all 'morph (constructions *fcg-constructions*) :key #'(lambda (cxn) (attr-val cxn :label)))) ;;17
+
+(length (find-all 'lex (constructions *fcg-constructions*) :key #'(lambda (cxn) (attr-val cxn :label)))) ;;11
+
+(length (find-all 'cxn (constructions *fcg-constructions*) :key #'(lambda (cxn) (attr-val cxn :label)))) ;;30
+
+(length (constructions *fcg-constructions*))
+
 
 ;; Lead to
 ;;-----------------
@@ -20,7 +31,14 @@
 
 (pie-comprehend "Shell warned environmentalists and ethical investors yesterday that failure to exploit tar sands and other unconventional oil products would worsen climate change because it would lead to the world burning even more carbon-heavy coal.")
 
+(pie-comprehend
+"To overcome this market failure, they argue, we need to internalise the costs of future environmental damage by putting a price on the thing that causes it.")
+
+(pie-comprehend "This flooding is a sharp reminder that everyone, sceptic or not, has to think about the risk of flooding, whatever they think causes it")
+
+
 (pie-comprehend "Because the phenomenon causes less rain to fall in many areas of the tropics, forests become especially vulnerable to man-made fires, which accelerate carbon dioxide buildup in the atmosphere and reduce air quality.")
+
 
 
 ;; Due to
