@@ -391,13 +391,13 @@
 ;; clevr world
 ;; ################################
 
-(export '(clevr-world scenes questions data-sets current-scene
+(export '(clevr-world scenes question-sets data-sets current-scene
           next-scene questions-for-scene))
 
 (defclass clevr-world (entity)
-  ((scenes        :type list :initarg :scenes    :accessor scenes)
-   (questions     :type list :initarg :questions :accessor questions :initform nil)
-   (data-sets     :type list :initarg :data-sets :accessor data-sets)
+  ((scenes        :type list :initarg :scenes        :accessor scenes)
+   (question-sets :type list :initarg :question-sets :accessor question-sets :initform nil)
+   (data-sets     :type list :initarg :data-sets     :accessor data-sets)
    (current-scene :type (or null clevr-scene) :initform nil :accessor current-scene))
   (:documentation "The CLEVR world"))
 
@@ -442,7 +442,7 @@
                             *clevr-data-path*)))
       (unless (probe-file clevr-questions-path)
         (error "Could not find a 'questions' subdirectory in ~a~%" *clevr-data-path*))
-      (setf (slot-value world 'questions)
+      (setf (slot-value world 'question-sets)
             (loop with files
                   = (loop for data-set in data-sets
                           for set-directory = (merge-pathnames (make-pathname :directory `(:relative ,data-set))
@@ -472,9 +472,9 @@
   ;; Scenes from different data-sets can have the same ID (since these)
   ;; are simply numbers counting from 0. Therefore, if multiple scenes
   ;; with the given ID are found, check the data-set slot
-  (unless (questions world)
+  (unless (question-sets world)
     (error "No questions were loaded."))
-  (let ((found (find-all (index scene) (questions world) :key #'scene-index)))
+  (let ((found (find-all (index scene) (question-sets world) :key #'scene-index :test #'=)))
     (if (length> found 1)
       (find (data-set scene) found :key #'data-set :test #'string=)
       (first found))))
@@ -500,10 +500,10 @@
 (defmethod print-object ((world clevr-world) stream)
   (if *print-pretty*
       (pprint-logical-block (stream nil)
-        (if (questions world)
+        (if (question-sets world)
           (format stream "<clevr-world:~:_ scenes: ~a,~:_ questions: ~a,~:_ current-scene: ~a,~:_ "
                   (mapcar #'name (scenes world))
-                  (mapcar #'id (questions world))
+                  (mapcar #'id (question-sets world))
                   (when (current-scene world)
                     (id (current-scene world))))
           (format stream "<clevr-world:~:_ scenes: ~a,~:_ current-scene: ~a,~:_ "
