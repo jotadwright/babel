@@ -225,34 +225,35 @@
 ;;-----------------------------------------------------------------
 
 
-(def-fcg-cxn X-caused-by-Y
+(def-fcg-cxn X-caused-by-Y-cxn
              (
+              (?cause-unit
+               (referent ?cause))
+              (?effect-unit
+               (referent ?effect))
               <-
+              
               (?caused-unit
-               (referent ?frame)
                --
+               (head ?effect-unit)
+               (dependents (?by-unit))
+               (dependency (pos-tag vbn)
+                           (edge acl))
                (sem-cat (frame causation))
                (meaning ((slot cause ?frame ?cause)
-                         (slot effect ?frame ?effect)))
-               (dependency (pos-tag vbn)
-                           (edge acl)) 
-               (head ?effect-unit)
-               (dependents (?by-unit)))
+                         (slot effect ?frame ?effect))))
               (?by-unit
                --
                (head ?caused-unit)
-               (dependents (?cause-unit))
-               (form ((string ?by-unit "by"))))
+               (form ((string ?by-unit "by")))
+               (dependents (?cause-unit)))
               (?cause-unit
-               (referent ?cause)
                --
                (head ?by-unit)
                (dependency (edge pobj)))
               (?effect-unit
-               (referent ?effect)
                --
-               (dependents (?caused-unit)))
-              )
+               (dependents (?caused-unit))))
              :cxn-set cxn)
 
 ;;Constructions needed for "due to":
@@ -655,7 +656,8 @@
               (?effect-unit
                (referent ?effect)
                --
-               (head ?to-unit))))
+               (head ?to-unit)))
+             :cxn-set cxn)
 
 (def-fcg-cxn causation-frame-to-Y2
              (<-
@@ -676,7 +678,8 @@
               (?to-unit
                --
                (head ?effect-unit)
-               (form ((string ?to-unit "to"))))))
+               (form ((string ?to-unit "to")))))
+             :cxn-set cxn)
 
 (def-fcg-cxn subject-ellipsis-main-verb-vbd-cxn
              (<-
@@ -695,7 +698,8 @@
                (sem-cat (frame causation))
                (dependency (edge conj)
                            (pos-tag vbd))
-               (sem-valence (actor ?actor)))))
+               (sem-valence (actor ?actor))))
+             :cxn-set cxn)
 
 (def-fcg-cxn subject-ellipsis-main-verb-vb-cxn
              (<-
@@ -714,7 +718,8 @@
                (sem-cat (frame causation))
                (dependency (edge conj)
                            (pos-tag vb))
-               (sem-valence (actor ?actor)))))             
+               (sem-valence (actor ?actor))))
+             :cxn-set cxn)             
 
 ;; Constructions needed for "result in"
 ;;-----------------------------------------------
@@ -795,7 +800,8 @@
                (referent ?effect)
                --
                (dependency (edge pobj))
-               (head ?to-unit))))
+               (head ?to-unit)))
+             :cxn-set cxn)
 
 (def-fcg-cxn to-give-rise-to-Y
              (<-
@@ -820,7 +826,8 @@
               (?effect-unit
                (referent ?effect)
                --
-               (head ?give-unit))))
+               (head ?give-unit)))
+             :cxn-set cxn)
 
 ;; X is bound to give rise to Y
 (def-fcg-cxn X-aux-past-participle-to-causation-frame-to-Y
@@ -829,7 +836,7 @@
                --
                (dependency (edge auxpass))
                (head ?past-participle-unit))
-              (?past-participle-unit
+               (?past-participle-unit
                --
                (dependency (pos-tag vbn))
                (dependents (?aux-unit ?cause-unit ?frame-unit)))
@@ -855,6 +862,5 @@
               (?effect-unit
                (referent ?effect)
                --
-               (head ?to-unit))))
-             
-             
+               (head ?to-unit)))
+             :cxn-set cxn)

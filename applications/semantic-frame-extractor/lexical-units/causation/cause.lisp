@@ -1,19 +1,17 @@
 
 (in-package :frame-extractor)
 
-(def-fcg-cxn cause-verb-lex
-             (
-              <-
-              (?cause-unit
-               (referent ?frame)
-               (sem-cat (frame causation))
-               (syn-valence (subject ?subject-unit)
-                            (object ?object-unit))
-               (sem-valence (actor ?cause)
-                            (theme ?effect))
+(def-fcg-cxn cause-verb-lex-cxn
+             ((?cause-unit
                (meaning ((frame causation cause ?frame) 
                          (slot cause ?frame ?cause)
                          (slot effect ?frame ?effect)))
+               (sem-cat (frame causation))
+               (sem-valence (actor ?cause)
+                            (theme ?effect))
+               (referent ?frame))
+              <-
+              (?cause-unit
                --
                (syn-cat (lex-class verb))
                (lex-id cause)))
@@ -23,13 +21,7 @@
              (
               <-
               (?causes-unit
-               (syn-cat (lex-class verb)
-                        (finite +)
-                        (agreement (- - + -))
-                        (tam (tense present)
-                             (aspect (perfect -)
-                                     (progressive -))
-                             (modality indicative)))
+               (syn-cat (lex-class verb))
                (lex-id cause)
                --
                (form ((string ?causes-unit "causes")))))
@@ -65,15 +57,12 @@
                (form ((string ?cause-unit "cause")))))
             :cxn-set morph)
 
-(def-fcg-cxn cause->caused-morph
-             (
+(def-fcg-cxn caused-morph-cxn
+             ((?caused-unit
+               (syn-cat (lex-class verb))
+               (lex-id cause))
               <-
               (?caused-unit
-               (syn-cat (lex-class verb)
-                        (tam (tense ?tense)
-                             (aspect ?aspect)
-                             (modality ?m)))
-               (lex-id cause)
                --
                (form ((string ?caused-unit "caused")))))
             :cxn-set morph)

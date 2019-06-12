@@ -112,7 +112,7 @@
                                                                    (dependents ,subunits)
                                                                    (form ((string ,(word-dependency-spec-unit-name word-spec)
                                                                                   ,(word-dependency-spec-string word-spec))
-                                                                          (first ,(first subunits))))
+                                                                          ))
                                                                    (dependency
                                                                     ((pos-tag
                                                                       ,(intern (upcase (word-dependency-spec-pos-tag word-spec)) :fcg))
