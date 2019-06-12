@@ -87,7 +87,6 @@
       (encode-json-alist-to-string
        `((:frame-sets . ,text-frame-sets))))))
 
-
 (snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'texts-extract-causes-effects)))
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
@@ -157,7 +156,6 @@
 
 (snooze:defroute semantic-frame-extractor (:options :text/* (op (eql 'causation-tracker))))
 
-
 ;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that • if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that and costs 10 €.", "This is a sentence with weird signs: ‘. This causes that."]}' http://localhost:9004/semantic-frame-extractor/texts-extract-causes-effects
 
 ;;(pie-comprehend "Perhaps the concerns of many revolve around the fact that nuclear power became substantially safer only after the disaster.\nBQEND\nYou would have something to complain about if there was not a major review of nuclear safety right around the world. What exactly are you complaining about? I will remind you that the Fukusihima accident caused zero deaths or serious injuries due to radiation exposure and the main harm was caused by an overblown evacuation and fear of radiation totally out of proportion to risk spread by unscrupulous organizations. Greenpeace is still at it.\nYou might like to compare these consequences to those of the Bhopal disaster if you want to see what a really, really bad industrial accident with release of hazardous materials looks like.\nHeres a collection of scientific papers that cast a great deal of doubt upon the scale of evacuation ordered by the Japanese government.\nCoping with a big nuclear accident; Closing papers from the NREFS project\nAs for your reference - it is not observations by the Office for Nuclear Regulation. It is not authored by the Office for Nuclear Regulation. It is in fact a submission from a member of the public for the report into the Implications of the Fukushima Nuclear Accident. The ONR takes public submissions and responds to them. Among other things it contains climate change denier garbage: \n40% of a one-degree centigrade rise in the Earth’s surface temperature may be attributed directly to heat output [of thermal power plants].\nThis submission is authored by one John Urquhart who appears to be a fruit cake. Heres some more of his work:\nGuest Blog: Why the Nuclear Industry is Killing Off the Human Race by John Urquhart\nNow that\'s quite fruity. I will remind you that the Fukusihima accident caused zero deaths or serious injuries due to radiation exposure and the main harm was caused by an overblown evacuation and fear of radiation totally out of proportion to risk spread by unscrupulous organizations")
@@ -165,7 +163,6 @@
 
 
 ;; {"frameSets":[[[{"id":"causationFrame15","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame30","frameEvokingElement":"cause","cause":"they","effect":"damage to their own clothes","actor":null,"affected":null}],[{"id":"causationFrame16","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]],[[{"id":"causationFrame17","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]]]}
-
 
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.", "frames" : ["Causation"]}' http://localhost:9004/semantic-frame-extractor/extract-frames

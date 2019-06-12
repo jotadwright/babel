@@ -29,7 +29,7 @@
 
 (pie-comprehend "As a consequence, the Newtok Traditional Council is not now eligible for disaster relief funding despite the fact that erosion is causing an ongoing disaster and a humanitarian crisis in the community.")
 
-(pie-comprehend "This includes the extinction of the dinosaurs 65m years ago, thought to have been caused by the impact of a large asteroid on the Yucatan peninsula and beneath the Gulf of Mexico.")
+(pie-comprehend "This includes the extinction of the dinosaurs 65m years ago , thought to have been caused by the impact of a large asteroid on the Yucatan peninsula and beneath the Gulf of Mexico.")
 
 
 
