@@ -48,7 +48,7 @@
                      (:noise-prob . nil)))
                    )
                  :number-of-interactions 10000
-                 :number-of-series 1
+                 :number-of-series 5
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
@@ -56,7 +56,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "continuous-clevr-prototype"
+ :experiment-name "test"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -64,11 +64,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("continuous-clevr-min-max"
-                     "continuous-clevr-prototype"
-                     "continuous-clevr-prototype-min-max"
-                     "continuous-clevr-exponential")
+ :experiment-names '("continuous-tutor-min-max"
+                     "continuous-tutor-prototype"
+                     "continuous-tutor-prototype-min-max"
+                     "continuous-tutor-exponential")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
  :captions '("min-max" "prototype" "prototype-min-max" "exponential")
- :title "continuous-clevr")
+ :title "baseline" :end 5000)
