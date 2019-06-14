@@ -17,7 +17,7 @@
                                (game-mode (eql :tutor-learner))
                                (tutor-mode (eql :symbolic)))
   (let* ((data-source (get-configuration experiment :data-source))
-         (clevr-context (next-scene (world experiment)))
+         (clevr-context (random-scene (world experiment)))
          (mwm-context (clevr->mwm clevr-context
                                   :scale (get-configuration experiment :scale-world)))
          (continuous-context
