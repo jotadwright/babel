@@ -45,7 +45,7 @@
                                (game-mode (eql :tutor-learner))
                                (tutor-mode (eql :continuous)))
   (let* ((data-source (get-configuration experiment :data-source))
-         (clevr-context (next-scene (world experiment)))
+         (clevr-context (random-scene (world experiment)))
          (mwm-context (clevr->mwm clevr-context :scale (get-configuration experiment :scale-world)))
          (continuous-context
           (when (eql data-source :continuous-clevr)
@@ -83,7 +83,7 @@
 (defmethod before-interaction ((experiment mwm-experiment)
                                (game-mode (eql :tutor-tutor))
                                (tutor-mode (eql :continuous)))
-  (let* ((clevr-context (next-scene (world experiment)))
+  (let* ((clevr-context (random-scene (world experiment)))
          (mwm-context (clevr->mwm clevr-context
                                   :scale (get-configuration experiment :scale-world))))
     (if (and (get-configuration experiment :noise-amount)

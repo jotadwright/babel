@@ -15,7 +15,7 @@
         (interval (get-configuration experiment :export-lexicon-interval)))
     (when (= (mod i-number interval) 0)
       (let ((learner (find 'learner (population experiment) :key #'id)))
-        (export-lexicon learner :experiment-name
+        (lexicon->pdf learner :experiment-name
                         (list-of-strings->string (list (mkstr (get-configuration experiment :category-representation))
                                                        (mkstr i-number))
                                                  :separator "-"))))))

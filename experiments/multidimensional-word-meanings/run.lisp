@@ -26,13 +26,15 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 100)
 
 (run-series *experiment* 3000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
 (lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
+
+(make-table *experiment*)
 
 ;; ---------------------------------
 ;; + Running series of experiments +

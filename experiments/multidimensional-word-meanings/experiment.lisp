@@ -78,9 +78,11 @@
 
 (defun best-word (object cxns)
   ;; determine the best cxn for the object
-  (the-biggest #'(lambda (cxn)
-                   (weighted-similarity object (attr-val cxn :meaning)))
-               cxns))
+  (attr-val
+   (the-biggest #'(lambda (cxn)
+                    (weighted-similarity object (attr-val cxn :meaning)))
+                cxns)
+   :form))
 
 (defun build-json-object (color shape size material xpos ypos)
   ;; create a JSON object from the symbols returned by the lexicon
@@ -110,8 +112,8 @@
   (loop for relation in '(:left :right :front :behind)
         collect (cons relation
                       (loop for obj-1 in objects
-                            collect (loop for obj-2 in objects
-                                          for i from 0
+                            collect (loop for obj-2 in (remove obj-1 objects)
+                                          for i = (position obj-2 objects)
                                           when (relation-holds-p obj-1 obj-2 relation)
                                           collect i)))))
 
@@ -120,7 +122,8 @@
   `((:image--index . ,(index clevr-scene))
     (:objects . ,objects)
     (:relationships . ,relationships)
-    (:image--filename . ,(image clevr-scene))
+    (:image--filename . ,(mkstr (pathname-name (image clevr-scene))
+                                "." (pathname-type (image clevr-scene))))
     (:split . ,(data-set clevr-scene))))
 
 (defmethod make-table ((experiment mwm-experiment))
@@ -132,23 +135,30 @@
         (shapes (extract-from-lexicon 'shapes (learner experiment)))
         (sizes (extract-from-lexicon 'sizes (learner experiment)))
         (materials (extract-from-lexicon 'materials (learner experiment))))
-  (do-for-scenes (world experiment)
-      (lambda (clevr-scene)
-        (let* ((context (clevr->continuous clevr-scene :directory (get-configuration experiment :data-path)))
-               (objects
-                (loop for object in (objects context)
-                      collect (build-json-object (best-word object colors)
-                                                 (best-word object shapes)
-                                                 (best-word object sizes)
-                                                 (best-word object materials)
-                                                 (get-attr-val object 'xpos)
-                                                 (get-attr-val object 'ypos))))
-               (relationships
-                (build-relationships (objects context)))
-               (scene
-                (build-scene clevr-scene objects relationships)))
-          ;; write scene to file
-          scene)))))
+    (labels ((scene->table (clevr-scene)
+               (let* ((context (clevr->continuous clevr-scene :directory (get-configuration experiment :data-path)))
+                      (objects
+                       (loop for object in (objects context)
+                             collect (build-json-object (best-word object colors)
+                                                        (best-word object shapes)
+                                                        (best-word object sizes)
+                                                        (best-word object materials)
+                                                        (get-attr-val object 'xpos)
+                                                        (get-attr-val object 'ypos))))
+                      (relationships
+                       (build-relationships (objects context)))
+                      (scene
+                       (build-scene clevr-scene objects relationships))
+                      (output-path
+                       (merge-pathnames
+                        (make-pathname :directory '(:relative "scenes" "new")
+                                       :name (name clevr-scene) :type "json")
+                        *clevr-data-path*)))
+                 (ensure-directories-exist output-path)
+                 (with-open-file (stream output-path :direction :output)
+                   (write-string (encode-json-alist-to-string scene)
+                                 stream)))))
+      (do-for-scenes (world experiment) #'scene->table))))
                 
         
 
