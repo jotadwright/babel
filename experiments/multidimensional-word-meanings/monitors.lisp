@@ -27,8 +27,8 @@
                           ,(s-dot->svg
                             (cxn->s-dot cxn))))))
 
-;;;; Export learner lexicon
-(defun export-lexicon (agent &key (experiment-name 'baseline))
+;;;; Export learner lexicon to pdf
+(defun lexicon->pdf (agent &key (experiment-name 'baseline))
   (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
                                                 "graphs" ,(downcase (mkstr experiment-name)) "lexicon"))))
     (ensure-directories-exist base-path)
@@ -40,6 +40,72 @@
                                      base-path)
               :format "pdf"
               :open nil))))
+
+;;;; Export learner lexicon to json
+(defun lexicon->json (agent &key (experiment-name 'baseline))
+  (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                                "raw-data" ,(downcase (mkstr experiment-name)) "lexicon"))))
+    (ensure-directories-exist base-path)
+    (let ((json
+           (loop for cxn in (constructions (grammar agent))
+                 for json = (cxn->json cxn (get-configuration agent :category-representation))
+                 collect json))
+          (output-path (merge-pathnames
+                        (make-pathname :name (mkstr (id agent) "-lexicon") :type "json")
+                        base-path)))
+      (with-open-file (stream output-path :direction :output)
+        (write-string (encode-json-alist-to-string json) stream)))))
+
+;;;; cxn -> json
+(defgeneric cxn->json (cxn category-representation)
+  (:documentation "Export the cxn to json such that it can be used later"))
+
+(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :min-max)))
+  `((:form . ,(attr-val cxn :form))
+    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
+                       collect `((:attribute . ,(mkstr (attribute category)))
+                                 (:lower--bound . ,(lower-bound category))
+                                 (:upper--bound . ,(upper-bound category))
+                                 (:certainty . ,certainty))))
+    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
+
+(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype)))
+  `((:form . ,(attr-val cxn :form))
+    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
+                       collect `((:attribute . ,(mkstr (attribute category)))
+                                 (:prototype . ,(prototype category))
+                                 (:nr--samples . ,(nr-samples category))
+                                 (:M2 . ,(M2 category))
+                                 (:certainty . ,certainty))))
+    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
+
+(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype-min-max)))
+  `((:form . ,(attr-val cxn :form))
+    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
+                       collect `((:attribute . ,(mkstr (attribute category)))
+                                 (:lower--bound . ,(lower-bound category))
+                                 (:upper--bound . ,(upper-bound category))
+                                 (:prototype . ,(prototype category))
+                                 (:nr--samples . ,(nr-samples category))
+                                 (:M2 . ,(M2 category))
+                                 (:lower--m . ,(lower-m category))
+                                 (:lower--b . ,(lower-b category))
+                                 (:upper--m . ,(upper-m category))
+                                 (:lower--b . ,(lower-b category))
+                                 (:certainty . ,certainty))))
+    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
+
+(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :exponential)))
+  `((:form . ,(attr-val cxn :form))
+    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
+                       collect `((:attribute . ,(mkstr (attribute category)))
+                                 (:prototype . ,(prototype category))
+                                 (:nr--samples . ,(nr-samples category))
+                                 (:M2 . ,(M2 category))
+                                 (:left--sigma . ,(left-sigma category))
+                                 (:right--sigma . ,(right-sigma category))
+                                 (:certainty . ,certainty))))
+    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
 
 ;; lexicon -> function plots
 (defun lexicon->function-plots (agent)

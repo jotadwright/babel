@@ -15,4 +15,6 @@
                 :slot-names
                 :map-slots)
   (:import-from :cl-json
-   :decode-json-from-string))
+   :decode-json-from-string
+   :encode-json-to-string
+   :encode-json-alist-to-string))
