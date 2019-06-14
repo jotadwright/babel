@@ -37,8 +37,6 @@
   ()
   (:documentation "The experiment class"))
 
-(defparameter *world* nil)
-
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Create the population and load the scenes from file"
   (activate-monitor print-a-dot-for-each-interaction)
@@ -48,11 +46,9 @@
                                 (make-learner-agent experiment)))
           (:tutor-tutor (list (make-tutor-agent experiment)
                               (make-tutor-agent experiment)))))
-  (unless *world*
-    (setf *world*
-          (make-instance 'clevr-world :data-sets
+  (setf (world experiment)
+        (make-instance 'clevr-world :data-sets
                          (get-configuration experiment :data-sets))))
-  (setf (world experiment) *world*))
 
 (defmethod learner ((experiment mwm-experiment))
   (find 'learner (population experiment) :key #'id))
@@ -63,6 +59,98 @@
   (find 'tutor (population experiment) :key #'id))
 (defmethod tutor ((interaction interaction))
   (find 'tutor (interacting-agents interaction) :key #'id))
+
+;; --------------
+;; + Make Table +
+;; --------------
+
+(defparameter *words-for-categories*
+  '((colors "blue" "green" "yellow" "red" "gray" "cyan" "purple" "brown")
+    (shapes "cube" "sphere" "cylinder")
+    (sizes "large" "small")
+    (materials "rubber" "metal")))
+
+(defun extract-from-lexicon (category agent)
+  (let ((words (rest (assoc category *words-for-categories*))))
+    (loop for cxn in (constructions (grammar agent))
+          when (member (attr-val cxn :form) words :test #'string=)
+          collect cxn)))
+
+(defun best-word (object cxns)
+  ;; determine the best cxn for the object
+  (the-biggest #'(lambda (cxn)
+                   (weighted-similarity object (attr-val cxn :meaning)))
+               cxns))
+
+(defun build-json-object (color shape size material xpos ypos)
+  ;; create a JSON object from the symbols returned by the lexicon
+  `((:color . ,color) (:shape . ,shape) (:size . ,size)
+    (:material . ,material) (:pixel--coords ,(list xpos ypos))
+    (:rotation . 0)))
+
+(defmethod relation-holds-p ((obj-1 mwm-object) (obj-2 mwm-object)
+                             (relation (eql :left)))
+  ;; is obj-2 left of obj-1?
+  (< (get-attr-val obj-2 'xpos) (get-attr-val obj-1 'xpos)))
+(defmethod relation-holds-p ((obj-1 mwm-object) (obj-2 mwm-object)
+                             (relation (eql :right)))
+  ;; is obj-2 right of obj-1?
+  (> (get-attr-val obj-2 'xpos) (get-attr-val obj-1 'xpos)))
+(defmethod relation-holds-p ((obj-1 mwm-object) (obj-2 mwm-object)
+                             (relation (eql :front)))
+  ;; is obj-2 in front of obj-1?
+  (> (get-attr-val obj-2 'ypos) (get-attr-val obj-1 'ypos)))
+(defmethod relation-holds-p ((obj-1 mwm-object) (obj-2 mwm-object)
+                             (relation (eql :behind)))
+  ;; is obj-2 behind obj-1?
+  (< (get-attr-val obj-2 'ypos) (get-attr-val obj-1 'ypos)))
+
+(defun build-relationships (objects)
+  ;; create the list of relationships from the x-y-pos of the objects
+  (loop for relation in '(:left :right :front :behind)
+        collect (cons relation
+                      (loop for obj-1 in objects
+                            collect (loop for obj-2 in objects
+                                          for i from 0
+                                          when (relation-holds-p obj-1 obj-2 relation)
+                                          collect i)))))
+
+(defun build-scene (clevr-scene objects relationships)
+  ;; create a complete scene, identical to the clevr dataset
+  `((:image--index . ,(index clevr-scene))
+    (:objects . ,objects)
+    (:relationships . ,relationships)
+    (:image--filename . ,(image clevr-scene))
+    (:split . ,(data-set clevr-scene))))
+
+(defmethod make-table ((experiment mwm-experiment))
+  ;; After playing a number of interactions,
+  ;; use the lexicon to build a table for each scene.
+  ;; To do this, we hand-coded which words belong to
+  ;; which categories
+  (let ((colors (extract-from-lexicon 'colors (learner experiment)))
+        (shapes (extract-from-lexicon 'shapes (learner experiment)))
+        (sizes (extract-from-lexicon 'sizes (learner experiment)))
+        (materials (extract-from-lexicon 'materials (learner experiment))))
+  (do-for-scenes (world experiment)
+      (lambda (clevr-scene)
+        (let* ((context (clevr->continuous clevr-scene :directory (get-configuration experiment :data-path)))
+               (objects
+                (loop for object in (objects context)
+                      collect (build-json-object (best-word object colors)
+                                                 (best-word object shapes)
+                                                 (best-word object sizes)
+                                                 (best-word object materials)
+                                                 (get-attr-val object 'xpos)
+                                                 (get-attr-val object 'ypos))))
+               (relationships
+                (build-relationships (objects context)))
+               (scene
+                (build-scene clevr-scene objects relationships)))
+          ;; write scene to file
+          scene)))))
+                
+        
 
 ;; --------------------------------
 ;; + Determine interacting agents +
