@@ -6,7 +6,6 @@
   :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
   :license "Babel Research License"
   :depends-on (:utils
-               :monitors
                :web-interface
                :irl
                :fcg
@@ -16,5 +15,4 @@
                (:file "clevr-symbols")
                (:file "clevr-world")
                (:file "clevr-ontology")
-               (:file "html")
-               ))
+               (:file "html")))

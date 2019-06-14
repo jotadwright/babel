@@ -216,6 +216,12 @@ div.clevr-scene-table {
     display:inline-block;position:relative;overflow:hidden;}
 ")
 
+(defmethod make-html-for-entity-details ((set clevr-object-set) &key)
+  ;; table of objects
+  `(((div :class "entity-detail") 
+     ,@(loop for object in (objects set)
+             collect (make-html object :expand-initially t)))))
+
 (defmethod make-html-for-entity-details ((scene clevr-scene)
                                          &key (width 500)
                                          (height 300)

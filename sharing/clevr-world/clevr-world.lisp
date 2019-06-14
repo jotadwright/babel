@@ -1,26 +1,9 @@
 (in-package :clevr-world)
 
-;; This package provides an interface to work with CLEVR data
-;; This can be the original CLEVR dataset, the CLEVR CoGenT set
-;; or any other generated CLEVR-like dataset, as long as the
-;; file structure is identical.
-
-;; As a starting point, this package defines the global variable
-;; *clevr-data-path*
-
-;; The location of this folder is relative to the *babel-corpora*
-;; path, so make sure this is set in your init-babel-user.lisp
-;; file. The default *clevr-data-path* is
-;; /path/to/babel-corpora/CLEVR/CLEVR-v1.0
-
-;; The packages assumes this directory has scenes/, questions/
-;; and images/ subdirectories. Each of these should again have
-;; subfolders for the different splits of the data, e.g.
-;; train/, val/ and test/. The scenes are assumed to be stored
-;; one scene per file, one a single line. The questions are
-;; assumted to be stored per question set, grouping together
-;; all questions for a scene in one file, also having one
-;; question per line.
+;; The :clevr-world package provides a high-level API
+;; for handling the clevr data. See the README for
+;; information about the data storage format, the API
+;; and the class structure.
 
 ;; ################################
 ;; global variables
@@ -129,40 +112,44 @@
 ;; clevr scene
 ;; ################################
 
-(export '(clevr-scene objects index name source-path data-set image
-          equal-entity find-entity-by-id empty-set-p))
+(export '(clevr-object-set objects equal-entity find-entity-by-id empty-set-p
+          clevr-scene index name source-path data-set image))
 
-(defclass clevr-scene (entity)
-  ((objects     :type list     :initarg :objects     :accessor objects)
-   (index       :type number   :initarg :index       :accessor index)
+(defclass clevr-object-set (entity)
+  ((objects :type list :initarg :objects :accessor objects))
+  (:documentation "A set of clevr-object instances"))
+
+(defclass clevr-scene (clevr-object-set)
+  ((index       :type number   :initarg :index       :accessor index)
    (name        :type string   :initarg :name        :accessor name)
    (source-path :type pathname :initarg :source-path :accessor source-path)
    (data-set    :type string   :initarg :data-set    :accessor data-set)
    (image       :type pathname :initarg :image       :accessor image))
   (:documentation "A scene in the CLEVR world"))
 
+(defmethod initialize-instance :around ((set clevr-object-set) &rest initargs &key id)
+  (apply #'call-next-method set :id (or id (make-id 'set)) initargs))
+
 (defmethod initialize-instance :around ((scene clevr-scene) &rest initargs &key id)
   (apply #'call-next-method scene :id (or id (make-id 'scene)) initargs))
 
-(defmethod equal-entity ((scene-1 clevr-scene)
-                         (scene-2 clevr-scene))
-  "Two scenes are equal if they are a permutation of each other.
+(defmethod equal-entity ((set-1 clevr-object-set)
+                         (set-2 clevr-object-set))
+  "Two sets are equal if they are a permutation of each other.
    #'equal-entity compares the IDs of the objects"
-  (permutation-of? (objects scene-1) (objects scene-1) :test #'equal-entity))
+  (permutation-of? (objects set-1) (objects set-2) :test #'equal-entity))
 
-(defmethod find-entity-by-id ((scene clevr-scene) (id symbol))
-  (find id (objects scene) :key #'id))
+(defmethod find-entity-by-id ((set clevr-object-set) (id symbol))
+  "Find an entity in the set"
+  (find id (objects set) :key #'id))
 
-(defmethod empty-set-p ((scene clevr-scene))
-  "Check if a given scene is empty"
-  (null (objects scene)))
+(defmethod empty-set-p ((set clevr-object-set))
+  "Check if a given set is empty"
+  (null (objects set)))
 
 (defmethod load-object ((type (eql 'scene)) filename &key)
   "Load a scene from file"
-  (let ((s-expr
-         (with-open-file (stream filename :direction :input)
-           (first (mapcar #'decode-json-from-string
-                          (stream->list stream))))))
+  (let ((s-expr (decode-json-from-source filename)))
     (s-expr->object 'scene s-expr :directory filename)))
 
 (defun collect-relations-for-object (all-relationships index)
@@ -392,13 +379,16 @@
 ;; ################################
 
 (export '(clevr-world scenes question-sets data-sets current-scene
-          next-scene questions-for-scene))
+          current-question-set random-scene all-scenes all-questions
+          all-scenes-and-questions do-for-scenes
+          do-for-scenes-and-questions))
 
 (defclass clevr-world (entity)
   ((scenes        :type list :initarg :scenes        :accessor scenes)
    (question-sets :type list :initarg :question-sets :accessor question-sets :initform nil)
    (data-sets     :type list :initarg :data-sets     :accessor data-sets)
-   (current-scene :type (or null clevr-scene) :initform nil :accessor current-scene))
+   (current-scene :type (or null clevr-scene) :initform nil :accessor current-scene)
+   (current-question-set :type (or null clevr-question-set) :initform nil :accessor current-question-set))
   (:documentation "The CLEVR world"))
 
 (defmethod initialize-instance :around ((world clevr-world)
@@ -422,20 +412,16 @@
     (unless (probe-file clevr-scenes-path)
       (error "Could not find a 'scenes' subdirectory in ~a~%" *clevr-data-path*))
     (setf (slot-value world 'scenes)
-          (loop with files
-                = (loop for data-set in data-sets
-                        for set-directory = (merge-pathnames (make-pathname :directory `(:relative ,data-set))
-                                                             clevr-scenes-path)
-                        unless (probe-file set-directory)
-                        do (error "~a is not a subdirectory of ~%~a" data-set clevr-scenes-path)
-                        append (directory (make-pathname :directory (pathname-directory set-directory)
-                                                         :name :wild :type "json")))
-                for file in files
-                for scene-name = (pathname-name file)
-                for scene = (unless (find scene-name exclude-scenes :test #'equal)
-                              (load-object 'scene file))
-                when scene collect scene)))
-  ;; load the questions
+          (loop for data-set in data-sets
+                for set-directory = (merge-pathnames (make-pathname :directory `(:relative ,data-set))
+                                                     clevr-scenes-path)
+                unless (probe-file set-directory)
+                do (error "~a is not a subdirectory of ~%~a" data-set clevr-scenes-path)
+                append (sort (directory
+                              (make-pathname :directory (pathname-directory set-directory)
+                                             :name :wild :type "json"))
+                             #'string< :key #'namestring))))                
+  ;; load the questions, if requested
   (when load-questions
     (let ((clevr-questions-path
            (merge-pathnames (make-pathname :directory '(:relative "questions"))
@@ -443,57 +429,83 @@
       (unless (probe-file clevr-questions-path)
         (error "Could not find a 'questions' subdirectory in ~a~%" *clevr-data-path*))
       (setf (slot-value world 'question-sets)
-            (loop with files
-                  = (loop for data-set in data-sets
-                          for set-directory = (merge-pathnames (make-pathname :directory `(:relative ,data-set))
-                                                               clevr-questions-path)
-                          unless (probe-file set-directory)
-                          do (error "~a is not a subdirectory of ~%~a" data-set clevr-questions-path)
-                          append (directory (make-pathname :directory (pathname-directory set-directory)
-                                                           :name :wild :type "json")))
-                  for file in files
-                  for question-set = (load-object 'question-set file)
-                  when question-set collect question-set))))
+            (loop for data-set in data-sets
+                  for set-directory = (merge-pathnames (make-pathname :directory `(:relative ,data-set))
+                                                       clevr-questions-path)
+                  unless (probe-file set-directory)
+                  do (error "~a is not a subdirectory of ~%~a" data-set clevr-questions-path)
+                  append (sort (directory
+                                (make-pathname :directory (pathname-directory set-directory)
+                                               :name :wild :type "json"))
+                               #'string< :key #'namestring)))))
+  ;; exclude scenes
+  (loop for scene in exclude-scenes
+        for scene-position = (position scene (scenes world) :key #'pathname-name :test #'string=)
+        for exclude-question = (nth scene-position (questions world))
+        do (setf (scenes world) (remove scene (scenes world) :key #'pathname-name :test #'string=))
+        do (setf (questions world) (remove exclude-question (questions world))))
   ;; set the current scene
   (if (scenes world)
-    (setf (current-scene world) (random-elt (scenes world)))
-    (warn "No scenes were loaded.")))
+    (setf (current-scene world)
+          (load-object 'scene (random-elt (scenes world))))
+    (warn "No scenes were loaded."))
+  ;; set the current question set
+  (when load-questions
+    (if (question-sets world)
+      (let* ((scene-index (position (source-path (current-scene world)) (scenes world)))
+             (question-set-path (nth scene-index (question-sets world))))
+        (setf (current-question-set world)
+              (load-object 'question-set question-set-path)))
+      (warn "No question sets loaded."))))
 
-(defmethod next-scene ((world clevr-world))
-  "Return a random scene"
+(defmethod random-scene ((world clevr-world))
+  "Choose a random scene and load it into memory.
+   If possible, load the associated question-set
+   as well."
   (setf (current-scene world)
-        (random-elt (scenes world)))
-  (current-scene world))
+        (load-object 'scene (random-elt (scenes world))))
+  (when (question-sets world)
+    (let* ((scene-index (position (source-path (current-scene world)) (scenes world)))
+           (question-set-path (nth scene-index (question-sets world))))
+      (setf (current-question-set world)
+            (load-object 'question-set question-set-path))))
+  (values (current-scene world)
+          (current-question-set world)))
 
-(defgeneric questions-for-scene (world scene)
-  (:documentation "Fetch all questions for the given scene"))
+(defmethod all-scenes ((world clevr-world))
+  "Loads all scenes into memory and returns them in a flat list"
+  (loop for scene-path in (scenes world)
+        collect (load-object 'scene scene-path)))
 
-(defmethod questions-for-scene ((world clevr-world) (scene clevr-scene))
-  ;; Scenes from different data-sets can have the same ID (since these)
-  ;; are simply numbers counting from 0. Therefore, if multiple scenes
-  ;; with the given ID are found, check the data-set slot
-  (unless (question-sets world)
-    (error "No questions were loaded."))
-  (let ((found (find-all (index scene) (question-sets world) :key #'scene-index :test #'=)))
-    (if (length> found 1)
-      (find (data-set scene) found :key #'data-set :test #'string=)
-      (first found))))
+(defmethod all-questions ((world clevr-world))
+  "Loads all questions into memory and returns them in a flat list"
+  (loop for q-set-path in (question-sets world)
+        for q-set = (load-object 'question-set q-set-path)
+        append (questions q-set)))
 
-(defmethod questions-for-scene ((world clevr-world) (scene symbol))
-  ;; when using the scene-id
-  (let ((scene-object (find scene (scenes world) :key #'id)))
-    (questions-for-scene world scene-object)))
+(defmethod all-scenes-and-questions ((world clevr-world))
+  "Loads all scenes and all questions into memory.
+   Returns a list of (scene . question-set) pairs"
+  (loop for scene-path in (scenes world)
+        for q-set-path in (question-sets world)
+        collect (cons (load-object 'scene scene-path)
+                      (load-object 'question-set q-set-path))))
 
-(defmethod questions-for-scene ((world clevr-world) (scene string))
-  ;; when using the scene-name
-  (let ((scene-object (find scene (scenes world) :key #'name :test #'string=)))
-    (questions-for-scene world scene-object)))
+(defmethod do-for-scenes ((world clevr-world) fn)
+  "Do function 'fn' for each scene"
+  ;; this could be a macro
+  (loop for scene-file in (scenes world)
+        for scene = (load-object 'scene scene-file)
+        do (funcall fn scene)))
 
-(defmethod questions-for-scene ((world clevr-world) (scene number))
-  ;; when using the scene-index
-  (let ((scene-object (find scene (scenes world) :key #'index :test #'=)))
-    (questions-for-scene world scene-object)))
-
+(defmethod do-for-scenes-and-questions ((world clevr-world) fn)
+  "Do function 'fn' for each scene and question-set"
+  ;; this could be a macro
+  (loop for scene-file in (scenes world)
+        for q-set-file in (question-sets world)
+        for scene = (load-object 'scene scene-file)
+        for q-set = (load-object 'question-set q-set-file)
+        do (funcall fn scene q-set)))
 
 (defmethod copy-object ((world clevr-world)) world)
 
@@ -502,10 +514,10 @@
       (pprint-logical-block (stream nil)
         (if (question-sets world)
           (format stream "<clevr-world:~:_ scenes: ~a,~:_ questions: ~a,~:_ current-scene: ~a,~:_ "
-                  (mapcar #'name (scenes world))
-                  (mapcar #'id (question-sets world))
+                  (mapcar #'namestring (scenes world))
+                  (mapcar #'namestring (question-sets world))
                   (when (current-scene world)
-                    (id (current-scene world))))
+                    (name (current-scene world))))
           (format stream "<clevr-world:~:_ scenes: ~a,~:_ current-scene: ~a,~:_ "
                   (mapcar #'name (scenes world))
                   (when (current-scene world)
@@ -520,9 +532,11 @@
 (export '(load-clevr-scene load-clevr-question-set))
 
 (defun load-clevr-scene (filename)
+  "utility function for loading a scene separately"
   (load-object 'scene filename))
 
 (defun load-clevr-question-set (filename)
+  "utility function for loading a question-set separately"
   (load-object 'question-set filename))
 
 
