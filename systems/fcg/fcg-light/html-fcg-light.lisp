@@ -1,3 +1,17 @@
+;; Copyright 2019 AI Lab, Vrije Universiteit Brussel - Sony CSL Paris
+
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+
+;;     http://www.apache.org/licenses/LICENSE-2.0
+
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+;;=========================================================================
 (in-package :fcg)
 
 ;; #########################################################
@@ -69,7 +83,7 @@ div.empty-contributing-part { padding-left:10px; padding-right:10px;font-size:20
   (let ((feature-type nil))
     (loop for ft in feature-types
           do
-          (when (equal feature-name (first ft))
+          (when (string= feature-name (first ft))
             (setf feature-type (second ft))))
     feature-type))
 
@@ -80,7 +94,7 @@ div.empty-contributing-part { padding-left:10px; padding-right:10px;font-size:20
   (let ((expansion-op nil))
     (loop for ft in feature-types
           do
-          (when (equal feature-name (first ft))
+          (when (string= feature-name (first ft))
             (setf expansion-op (third ft))))
     expansion-op))
 
