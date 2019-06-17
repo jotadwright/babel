@@ -71,13 +71,14 @@
     (materials "rubber" "metal")))
 
 (defun extract-from-lexicon (category agent)
+  "Extract all words for the given category from the lexicon"
   (let ((words (rest (assoc category *words-for-categories*))))
     (loop for cxn in (constructions (grammar agent))
           when (member (attr-val cxn :form) words :test #'string=)
           collect cxn)))
 
 (defun best-word (object cxns)
-  ;; determine the best cxn for the object
+  "determine the best cxn for the object"
   (attr-val
    (the-biggest #'(lambda (cxn)
                     (weighted-similarity object (attr-val cxn :meaning)))
@@ -85,57 +86,61 @@
    :form))
 
 (defun build-json-object (color shape size material xpos ypos)
-  ;; create a JSON object from the symbols returned by the lexicon
+  "create a JSON object from the symbols returned by the lexicon"
   `((:color . ,color) (:shape . ,shape) (:size . ,size)
-    (:material . ,material) (:pixel--coords ,(list xpos ypos))
+    (:material . ,material) (:pixel--coords . ,(list xpos ypos))
     (:rotation . 0)))
 
 (defmethod relation-holds-p ((obj-1 mwm-object) (obj-2 mwm-object)
                              (relation (eql :left)))
-  ;; is obj-2 left of obj-1?
+  "is obj-2 left of obj-1?"
   (< (get-attr-val obj-2 'xpos) (get-attr-val obj-1 'xpos)))
 (defmethod relation-holds-p ((obj-1 mwm-object) (obj-2 mwm-object)
                              (relation (eql :right)))
-  ;; is obj-2 right of obj-1?
+  "is obj-2 right of obj-1?"
   (> (get-attr-val obj-2 'xpos) (get-attr-val obj-1 'xpos)))
 (defmethod relation-holds-p ((obj-1 mwm-object) (obj-2 mwm-object)
                              (relation (eql :front)))
-  ;; is obj-2 in front of obj-1?
+  "is obj-2 in front of obj-1?"
   (> (get-attr-val obj-2 'ypos) (get-attr-val obj-1 'ypos)))
 (defmethod relation-holds-p ((obj-1 mwm-object) (obj-2 mwm-object)
                              (relation (eql :behind)))
-  ;; is obj-2 behind obj-1?
+  "is obj-2 behind obj-1?"
   (< (get-attr-val obj-2 'ypos) (get-attr-val obj-1 'ypos)))
 
 (defun build-relationships (objects)
-  ;; create the list of relationships from the x-y-pos of the objects
+  "create the list of relationships from the x-y-pos of the objects"
   (loop for relation in '(:left :right :front :behind)
-        collect (cons relation
-                      (loop for obj-1 in objects
-                            collect (loop for obj-2 in (remove obj-1 objects)
-                                          for i = (position obj-2 objects)
-                                          when (relation-holds-p obj-1 obj-2 relation)
-                                          collect i)))))
+        collect `((,relation ,@(loop for obj-1 in objects
+                                     collect (loop for obj-2 in (remove obj-1 objects)
+                                                   for i = (position obj-2 objects)
+                                                   when (relation-holds-p obj-1 obj-2 relation)
+                                                   collect i)))
+                  (:dummy . 0))))
 
 (defun build-scene (clevr-scene objects relationships)
-  ;; create a complete scene, identical to the clevr dataset
+  "create a complete scene, identical to the clevr dataset"
   `((:image--index . ,(index clevr-scene))
     (:objects . ,objects)
     (:relationships . ,relationships)
     (:image--filename . ,(mkstr (pathname-name (image clevr-scene))
                                 "." (pathname-type (image clevr-scene))))
-    (:split . ,(data-set clevr-scene))))
+    (:split . "new")))
 
 (defmethod make-table ((experiment mwm-experiment))
-  ;; After playing a number of interactions,
-  ;; use the lexicon to build a table for each scene.
-  ;; To do this, we hand-coded which words belong to
-  ;; which categories
+  "After playing a number of interactions,
+   use the lexicon to build a table for each scene.
+   To do this, we hand-coded which words belong to
+   which categories"
   (let ((colors (extract-from-lexicon 'colors (learner experiment)))
         (shapes (extract-from-lexicon 'shapes (learner experiment)))
         (sizes (extract-from-lexicon 'sizes (learner experiment)))
-        (materials (extract-from-lexicon 'materials (learner experiment))))
+        (materials (extract-from-lexicon 'materials (learner experiment)))
+        (nr-of-scenes (length (scenes (world experiment))))
+        (i 0))
     (labels ((scene->table (clevr-scene)
+               (format t "Processing scene ~a/~a~%" i nr-of-scenes)
+               (incf i)
                (let* ((context (clevr->continuous clevr-scene :directory (get-configuration experiment :data-path)))
                       (objects
                        (loop for object in (objects context)
