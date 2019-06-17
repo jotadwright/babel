@@ -23,11 +23,17 @@
           (values nil nil)))
     (values irl-program cipn)))
 
-(defun read-questions-from-dir (dir &key image-index)
+(defun complete-digits (index)
+  (let* ((nr-of-zeros (- 6 (length index)))
+         (zeros (loop repeat nr-of-zeros collect "0")))
+    (list-of-strings->string (append zeros (list index)) :separator "")))
+        
+
+(defun read-questions-from-dir (dir &key image-index split)
   "Get the correct file from dir, according to image-index.
    Read and process the file."
   (assert (not (null image-index)))
-  (let* ((filename (format nil "CLEVR_questions_scene_~a_per_line" image-index))
+  (let* ((filename (format nil "CLEVR_~a_~a" split (complete-digits (mkstr image-index))))
          (filepath (merge-pathnames (make-pathname :name filename :type "json") dir)))
     (with-open-file (stream filepath :direction :input)
       (mapcar #'decode-json-from-string
@@ -145,8 +151,11 @@
           (format t "~%Looking for corresponding questions...~%")
           (let* ((json-context (decode-json-from-string (read-line stream nil nil)))
                  (image-index (rest (assoc :image--index json-context)))
+                 (split (rest (assoc :split json-context)))
                  (context (process-json-context json-context))
-                 (questions (read-questions-from-dir questions-dir :image-index image-index)))
+                 (questions (read-questions-from-dir questions-dir
+                                                     :image-index image-index
+                                                     :split split)))
           ;; limit the number of questions per context
           (when nr-of-questions
             (setf questions (random-elts questions nr-of-questions)))
