@@ -160,7 +160,10 @@
                       (output-path
                        (merge-pathnames
                         (make-pathname :directory '(:relative "scenes" "new")
-                                       :name (name clevr-scene) :type "json")
+                                       :name (format nil "CLEVR_new_~a"
+                                                     (complete-digits
+                                                      (mkstr (index clevr-scene))))
+                                       :type "json")
                         *clevr-data-path*)))
                  (ensure-directories-exist output-path)
                  (with-open-file (stream output-path :direction :output)
