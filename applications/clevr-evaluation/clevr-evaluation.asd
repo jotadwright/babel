@@ -12,7 +12,7 @@
                :monitors
                :irl
                :fcg
-               :clevr
+               :clevr-world
                :clevr-primitives
                :clevr-grammar
                :cl-json

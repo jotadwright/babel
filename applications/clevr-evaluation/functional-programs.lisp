@@ -5,70 +5,19 @@
 (export '(program->rpn program->program-tree
           program-tree->alist program-tree->image))
 
-(defclass clevr-program-tree (tree) ()
-  ;; Note that the tree is in some sense upside down. The last node in the program
-  ;; is the root of the tree
-  (:documentation "Complete clevr program represented as a tree data structure"))
-
-(defclass clevr-program-node (tree-node)
-  ((id
-    :accessor id :type integer :initarg :id :initform 0
-    :documentation "id of the node")
-   (function
-    :accessor clevr-function :type (or null symbol) :initarg :function :initform nil
-    :documentation "the name of the function")
-   (inputs
-    :accessor inputs :type list :initarg :inputs :initform nil
-    :documentation "a list of inputs")
-   (value-inputs
-    :accessor value-inputs :type list :initarg :value-inputs :initform nil
-    :documentation "a list of value inputs"))
-  (:documentation "A node in the functional program. Also a tree node"))
-
-;;;; json functional program -> clevr program tree
-(defun nodes->program-tree (list-of-nodes)
-  "Transform the list of nodes into an upside down tree"
-  (let ((program (make-instance 'clevr-program-tree)))
-    (labels ((tree-insert (node parent)
-               (let* ((children-ids (inputs node))
-                      (children (loop for id in children-ids
-                                      collect (find id list-of-nodes :key #'id :test #'=))))
-                 (unless (find-node program (id node) :key #'id :test #'=)
-                   (add-node program node :parent parent))
-                 (loop for child in children
-                       do (tree-insert child node)))))
-      (tree-insert (first list-of-nodes) nil)
-      program)))
-
-(defun json->program-tree (json-input)
-  "Transform JSON data into a clevr-program-tree"
-  (let* ((list-of-nodes 
-          (loop for id from 0 below (length json-input)
-                for node in json-input
-                for inputs = (rest (assoc :inputs node))
-                for function = (rest (assoc :function node))
-                for value-inputs = (rest (assoc :value--inputs node))
-                for program-node = (make-instance 'clevr-program-node
-                                                  :id id
-                                                  :function (internal-symb (upcase function))
-                                                  :inputs inputs
-                                                  :value-inputs (mapcar #'internal-symb (mapcar #'upcase value-inputs)))
-                collect program-node)))
-    (nodes->program-tree (reverse list-of-nodes))))
-
 ;;;; comparing clevr program trees
 (defun equal-program-node (clevr-node fcg-node)
   "Two nodes are equal when they have the same function,
    the same value inputs and the same number of children"
-  (and (equalp (mkstr (clevr-function clevr-node))
-               (mkstr (clevr-function fcg-node)))
-       (equalp (value-inputs clevr-node)
-               (value-inputs fcg-node))
+  (and (equalp (mkstr (function-name clevr-node))
+               (mkstr (function-name fcg-node)))
+       (equalp (args clevr-node)
+               (args fcg-node))
        (length= (children clevr-node)
                 (children fcg-node))))
 
-(defmethod traverse-compare ((clevr-node clevr-program-node)
-                             (fcg-node clevr-program-node)
+(defmethod traverse-compare ((clevr-node clevr-function)
+                             (fcg-node clevr-function)
                              &key test)
   "This function will recursively go down the tree and check if all nodes are
    equal. If the tree branches, all combinations are tried. The actual node equality
@@ -144,7 +93,7 @@
    and returns a program tree"
   (let* ((target-predicate (get-target-predicate irl-program))
          (stack (list (cons target-predicate nil)))
-         (program-tree (make-instance 'clevr-program-tree))
+         (program-tree (make-instance 'clevr-program))
          rpn)
     (loop for id from 0
           while stack
@@ -187,7 +136,7 @@
 (defun program->program-tree (irl-program)
   (let* ((target-predicate (get-target-predicate irl-program))
          (stack (list (cons target-predicate nil)))
-         (program-tree (make-instance 'clevr-program-tree)))
+         (program-tree (make-instance 'clevr-program)))
     (loop for id from 0
           while stack
           for stack-elem = (pop stack)
@@ -215,14 +164,15 @@
     (s-dot->image (make-s-dot program-tree
                               :key (lambda (node)
                                      (format nil "~a(~{~a~^, ~})"
-                                             (clevr-function node)
-                                             (value-inputs node)))
+                                             (function-name node)
+                                             (args node)))
                               :arrowdir "back")
                   :path out-path
                   :format format
                   :open open)
     out-path))
 
+#|
 (defun program-tree->alist (program-tree)
   (let ((node-count 0)
         (num-nodes (length (nodes program-tree))))
@@ -235,9 +185,8 @@
                                      (sort inputs #'<)))))
     (let ((nodes (sort (nodes program-tree) #'< :key #'id)))
       (loop for node in nodes
-            collect `((:type . ,(mkstr (clevr-function node)))
-                      (:inputs . ,(inputs node))
-                      (:value--inputs . ,(mapcar #'mkstr (value-inputs node))))))))
+            collect `((:type . ,(mkstr (function-name node)))
+                      (:value--inputs . ,(mapcar #'mkstr (args node))))))))
 
 (defmethod encode-for-json ((node clevr-program-node))
   `((:id . ,(id node))
@@ -267,3 +216,4 @@
                 collect (encode-for-json node)))
          stream)))
     out-path))
+|#

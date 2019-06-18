@@ -6,33 +6,31 @@
 
 (define-event-handler (clevr-web-monitor question-entry-evaluation-started)
   ;; parameters: image-filename, split, question and question-index
-  (let* ((name-and-type (split image-filename #\.))
-         (image-source-path (merge-pathnames (make-pathname :directory `(:relative "CLEVR" "CLEVR-v1.0" "images" ,split)
-                                                            :name (first name-and-type)
-                                                            :type (second name-and-type))
-                                             cl-user::*babel-corpora*))
-         (image-dest-path (make-pathname :directory `(:absolute "Users" ,(who-am-i) "Sites")
-                                         :name (first name-and-type)
-                                         :type (second name-and-type))))
+  (let ((image-source-path (merge-pathnames (make-pathname :directory `(:relative "CLEVR" "CLEVR-v1.0" "images" ,split)
+                                                           :name image-filename
+                                                           :type "png")
+                                            cl-user::*babel-corpora*))
+        (image-dest-path (make-pathname :directory `(:absolute "Users" ,(who-am-i) "Sites")
+                                        :name image-filename
+                                        :type "png")))
     ;; if necessary, copy the image to the Sites folder
     (unless (probe-file image-dest-path)
       (copy-file image-source-path image-dest-path))
     ;; display on the web interface
-    (add-element '((hr)))
-    (add-element `((h1) ,(format nil "Question ~a" question-index)))
     (add-element
      `((table)
        ((tr)
         ((th) "Current scene:"))
        ((tr)
         ((td) ((img :src ,(string-append cl-user::*localhost-user-dir* image-filename)))))))
-    (add-element `((h2) ,(format nil "Question: \"~a\"" question)))))
+    (add-element `((h2) ,(format nil "(~a) Question: \"~a\"" question-index question)))))
     
 (define-event-handler (clevr-web-monitor question-entry-evaluation-finished)
   ;; parameters: success
   (add-element `((h2) ,(if success
                          `((b :style "color:green") "Success!")
-                         `((b :style "color:red") "Failure!")))))
+                         `((b :style "color:red") "Failure!"))))
+  (add-element '((hr))))
 
 (define-event-handler (clevr-web-monitor question-entry-compare-answers)
   ;; parameters: irl-answer, ground-truth-answer
@@ -42,9 +40,10 @@
 
 (define-event-handler (clevr-web-monitor clevr-evaluation-started)
   (add-element '((h1) "Evaluation Started"))
-  (add-element '((h2) "Loading data...")))
+  (add-element '((hr))))
 
 (define-event-handler (clevr-web-monitor clevr-evaluation-finished)
+  (add-element '((hr)))
   (add-element '((h1) "Evaluation Finished"))
   (add-element `((h2) ,(format nil "Comprehension success: ~$\%" (* 100 comprehension-success))))
   (add-element `((h2) ,(format nil "Equal Program success: ~$\%" (* 100 equal-program-success))))
