@@ -4,7 +4,7 @@
 
 (defpackage :clevr-grammar
   (:documentation "FCG grammar for CLEVR dataset with IRL primitives")
-  (:use :common-lisp :utils :fcg :clevr)
+  (:use :common-lisp :utils :fcg :clevr-world)
   (:import-from :monitors
                 :activate-monitor)
   (:import-from :irl :bind)

@@ -11,7 +11,7 @@
                :monitors
                :irl
                :fcg
-               :clevr
+               :clevr-world
                :cl-json)
   :serial t
   :components ((:file "package")
