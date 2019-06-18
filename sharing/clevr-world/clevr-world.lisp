@@ -394,7 +394,14 @@
 (defmethod initialize-instance :around ((world clevr-world)
                                         &key (data-sets nil)
                                         (exclude-scenes nil)
-                                        (load-questions nil))
+                                        (load-questions nil)
+                                        (question-data-sets nil))
+  "Initialize the clevr world. Specify which data sets to load (e.g. (\"val\" \"train\"))
+   You can specify which scenes to exclude by their name (e.g. CLEVR_val_000002)
+   You can specify whether or not to also load the questions.
+   By default, the questions will be loaded from the same data-sets/sub-folders as
+   specified in data-sets. If this should be different, these can be specified
+   using question-data-sets."
   ;; check for *clevr-data-path*
   (unless (probe-file *clevr-data-path*)
     (error "Could not find the 'clevr-data-path' directory in ~%~a" *clevr-data-path*))
@@ -403,6 +410,12 @@
                (length> data-sets 0)
                (apply #'always (mapcar #'stringp data-sets)))
     (error "Keyword argument :data-sets should be a list of strings"))
+  ;; when provided, check question-data-sets
+  (when question-data-sets
+    (unless (and (listp question-data-sets)
+                 (length> question-data-sets 0)
+                 (apply #'always (mapcar #'stringp data-sets)))
+      (error "Keyword argument :question-data-sets should be a list of strings")))
   ;; initialize the instance
   (call-next-method)
   ;; load the scenes
@@ -429,7 +442,7 @@
       (unless (probe-file clevr-questions-path)
         (error "Could not find a 'questions' subdirectory in ~a~%" *clevr-data-path*))
       (setf (slot-value world 'question-sets)
-            (loop for data-set in data-sets
+            (loop for data-set in (or question-data-sets data-sets)
                   for set-directory = (merge-pathnames (make-pathname :directory `(:relative ,data-set))
                                                        clevr-questions-path)
                   unless (probe-file set-directory)
@@ -529,7 +542,14 @@
 ;; utils
 ;; ################################
 
-(export '(load-clevr-scene load-clevr-question-set))
+(export '(complete-digits load-clevr-scene load-clevr-question-set))
+
+(defun complete-digits (index)
+  "Given an index (as string), prepend zeros
+   until it is 6 digits long"
+  (let* ((nr-of-zeros (- 6 (length index)))
+         (zeros (loop repeat nr-of-zeros collect "0")))
+    (list-of-strings->string (append zeros (list index)) :separator "")))
 
 (defun load-clevr-scene (filename)
   "utility function for loading a scene separately"
