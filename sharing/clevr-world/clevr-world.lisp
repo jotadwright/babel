@@ -116,7 +116,7 @@
           clevr-scene index name source-path data-set image))
 
 (defclass clevr-object-set (entity)
-  ((objects :type list :initarg :objects :accessor objects))
+  ((objects :type list :initarg :objects :accessor objects :initform nil))
   (:documentation "A set of clevr-object instances"))
 
 (defclass clevr-scene (clevr-object-set)
@@ -216,8 +216,8 @@
 (export '(clevr-function function-name args))
 
 (defclass clevr-function (entity tree-node)
-  ((function-name :type string :initarg :function-name :accessor function-name)
-   (args          :type list   :initarg :args          :accessor args))
+  ((function-name :type symbol :initarg :function-name :accessor function-name)
+   (args          :type list   :initarg :args          :accessor args          :initform nil))
   (:documentation "A function in a CLEVR program"))
 
 (defmethod initialize-instance :around ((function clevr-function) &rest initargs &key id)
@@ -225,8 +225,10 @@
 
 (defmethod s-expr->object ((type (eql 'function)) s-expr &key i)
   (make-instance 'clevr-function :id i
-                 :function-name (rest (assoc :function s-expr))
-                 :args (rest (assoc :value--inputs s-expr))
+                 :function-name (internal-symb (upcase (rest (assoc :function s-expr))))
+                 :args (mapcar #'internal-symb
+                               (mapcar #'upcase
+                                       (rest (assoc :value--inputs s-expr))))
                  :children (rest (assoc :inputs s-expr))))
 
 ;; to do
@@ -321,7 +323,7 @@
 ;; clevr question set
 ;; ################################
 
-(export '(clevr-question-set question scene-index source-path data-set))
+(export '(clevr-question-set questions scene-index source-path data-set))
 
 (defclass clevr-question-set (entity)
   ((questions    :type list     :initarg :questions   :accessor questions)
@@ -505,11 +507,13 @@
                       (load-object 'question-set q-set-path))))
 
 (defmethod do-for-scenes ((world clevr-world) fn &key shuffled)
-  "Do function 'fn' for each scene"
+  "Do function 'fn' for each scene. Stop when 'fn' returns NIL"
   ;; this could be a macro
   (loop for scene-file in (if shuffled (shuffle (scenes world)) (scenes world))
         for scene = (load-object 'scene scene-file)
-        do (funcall fn scene)))
+        for result = (funcall fn scene)
+        unless result
+        return nil))
 
 (defun identical-shuffle (&rest lists)
   "Shuffle a number of lists in an identical manner"
@@ -526,7 +530,8 @@
                                collect (nth i list))))))
 
 (defmethod do-for-scenes-and-questions ((world clevr-world) fn &key shuffled)
-  "Do function 'fn' for each scene and question-set"
+  "Do function 'fn' for each scene and question-set.
+   Stop when 'fn' returns NIL."
   ;; this could be a macro
   (multiple-value-bind (scenes question-sets)
       (if shuffled
@@ -536,7 +541,9 @@
           for q-set-file in question-sets
           for scene = (load-object 'scene scene-file)
           for q-set = (load-object 'question-set q-set-file)
-          do (funcall fn scene q-set))))
+          for result = (funcall fn scene q-set)
+          unless result
+          return nil)))
 
 (defmethod copy-object ((world clevr-world)) world)
 
