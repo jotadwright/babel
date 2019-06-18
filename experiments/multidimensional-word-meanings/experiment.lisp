@@ -110,13 +110,16 @@
 
 (defun build-relationships (objects)
   "create the list of relationships from the x-y-pos of the objects"
-  (loop for relation in '(:left :right :front :behind)
-        collect `((,relation ,@(loop for obj-1 in objects
+  (loop with object = '((:dummy . 0))
+        for relation in '(:left :right :front :behind)
+        do (push `(,relation ,@(loop for obj-1 in objects
                                      collect (loop for obj-2 in (remove obj-1 objects)
                                                    for i = (position obj-2 objects)
                                                    when (relation-holds-p obj-1 obj-2 relation)
                                                    collect i)))
-                  (:dummy . 0))))
+                 object)
+        finally
+        (return object)))
 
 (defun build-scene (clevr-scene objects relationships)
   "create a complete scene, identical to the clevr dataset"

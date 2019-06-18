@@ -26,7 +26,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 20000)
+(run-series *experiment* 3000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
