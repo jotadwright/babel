@@ -10,11 +10,9 @@
                :irl
                :fcg
                :cl-json
-               :clevr)
+               :clevr-world)
   :serial t
   :components ((:file "package")
-               ;(:file "world")
-               ;(:file "html")
                (:file "get-context")
                (:file "filter")
                (:file "query")
