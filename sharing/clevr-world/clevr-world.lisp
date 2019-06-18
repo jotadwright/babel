@@ -504,21 +504,39 @@
         collect (cons (load-object 'scene scene-path)
                       (load-object 'question-set q-set-path))))
 
-(defmethod do-for-scenes ((world clevr-world) fn)
+(defmethod do-for-scenes ((world clevr-world) fn &key shuffled)
   "Do function 'fn' for each scene"
   ;; this could be a macro
-  (loop for scene-file in (scenes world)
+  (loop for scene-file in (if shuffled (shuffle (scenes world)) (scenes world))
         for scene = (load-object 'scene scene-file)
         do (funcall fn scene)))
 
-(defmethod do-for-scenes-and-questions ((world clevr-world) fn)
+(defun identical-shuffle (&rest lists)
+  "Shuffle a number of lists in an identical manner"
+  (assert
+      (loop with len = (length (first lists))
+            for list in lists
+            always (= (length list) len)))
+  (let* ((list-1 (first lists))
+         (index (iota (length list-1)))
+         (shuffled-index (shuffle index)))
+    (apply #'values
+           (loop for list in lists
+                 collect (loop for i in shuffled-index
+                               collect (nth i list))))))
+
+(defmethod do-for-scenes-and-questions ((world clevr-world) fn &key shuffled)
   "Do function 'fn' for each scene and question-set"
   ;; this could be a macro
-  (loop for scene-file in (scenes world)
-        for q-set-file in (question-sets world)
-        for scene = (load-object 'scene scene-file)
-        for q-set = (load-object 'question-set q-set-file)
-        do (funcall fn scene q-set)))
+  (multiple-value-bind (scenes question-sets)
+      (if shuffled
+        (identical-shuffle (scenes world) (question-sets world))
+        (values (scenes world) (question-sets world)))
+    (loop for scene-file in scenes
+          for q-set-file in question-sets
+          for scene = (load-object 'scene scene-file)
+          for q-set = (load-object 'question-set q-set-file)
+          do (funcall fn scene q-set))))
 
 (defmethod copy-object ((world clevr-world)) world)
 
