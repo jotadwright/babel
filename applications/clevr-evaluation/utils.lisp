@@ -61,17 +61,17 @@
 (defmethod predicate->clevr-program-node (predicate bind-statement node-id input-ids (type (eql 'equal-integer)))
   (declare (ignorable predicate bind-statement))
   (make-instance 'clevr-function :id node-id
-                 :function-name 'equal-integer))
+                 :function-name 'equal_integer))
 
 (defmethod predicate->clevr-program-node (predicate bind-statement node-id input-ids (type (eql 'less-than)))
   (declare (ignorable predicate bind-statement))
   (make-instance 'clevr-function :id node-id
-                 :function-name 'less-than))
+                 :function-name 'less_than))
 
 (defmethod predicate->clevr-program-node (predicate bind-statement node-id input-ids (type (eql 'greater-than)))
   (declare (ignorable predicate bind-statement))
   (make-instance 'clevr-function :id node-id
-                 :function-name 'greater-than))
+                 :function-name 'greater_than))
 
 (defmethod predicate->clevr-program-node (predicate bind-statement node-id input-ids (type (eql 'same)))
   (let ((same-type (internal-symb (upcase (string-append "same_" (mkstr (bind-statement-value bind-statement)))))))

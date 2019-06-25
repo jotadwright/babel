@@ -14,7 +14,7 @@
 
 (evaluate-clevr
  (make-instance 'clevr-world :data-sets '("val") :load-questions t)
- :nr-of-contexts 5 :nr-of-questions 5)
+ :nr-of-contexts 10 :nr-of-questions 10)
 
 ;;;; Manually create a scene for in the paper
 (defparameter *scene-from-paper*

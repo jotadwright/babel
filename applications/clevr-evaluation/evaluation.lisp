@@ -46,16 +46,16 @@
         (setf comprehension-success 1))
       ;; compare programs
       (when processed-irl-network
-        (multiple-value-bind (rpn fcg-program) (program->rpn+tree processed-irl-network)
-          (declare (ignorable rpn))
-          (let* ((clevr-program (program q))
-                 ;; to do: fix program tree comparison!
-                 (compare-program-success (and fcg-program clevr-program (equal-program-tree clevr-program fcg-program))))
-            (when compare-program-success
-              (setf equal-program-success 1)))))
+        (let* ((fcg-program (program->program-tree processed-irl-network))
+               (clevr-program (program q))
+               (compare-program-success (and fcg-program clevr-program
+                                             (equal-program-tree clevr-program fcg-program))))
+          (when compare-program-success
+            (setf equal-program-success 1))))
       ;; compare answers
       (let* ((solutions (evaluate-irl-program irl-program *clevr-ontology*))
-             (equal-answer (compare-answers (first solutions) irl-program (answer q))))
+             (equal-answer (when solutions
+                             (compare-answers (first solutions) irl-program (answer q)))))
         (when equal-answer
           (setf equal-answer-success 1))))
     (notify question-entry-evaluation-finished (= equal-answer-success 1))
