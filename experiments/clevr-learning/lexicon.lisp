@@ -26,6 +26,7 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
+                   :fcg-configurations ((:cxn-supplier-mode . :scores))
                    :visualization-configurations ((:show-constructional-dependencies . nil)))))) 
     cxn-inventory))
 
@@ -136,7 +137,7 @@
    remove it when it reaches 0"
   (decf (attr-val cxn :score) delta)
   (notify cxn-punished cxn)
-  (when (< (attr-val cxn :score) lower-bound)
+  (when (<= (attr-val cxn :score) lower-bound)
     (if remove-on-lower-bound
       (progn (notify lexicon-changed)
         (delete-cxn cxn (grammar agent)))

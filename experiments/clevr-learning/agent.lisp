@@ -211,30 +211,30 @@
 (defmethod adopt ((agent holophrase-agent) answer)
   "Compose a program that results in the given answer
    and store this in the grammar of the agent."
-  (notify adoption-started)
-  ;; use the learning strategy
-  (when (eql (get-configuration agent :learning-strategy) :keep-trash)
-    (add-trash agent))
-  ;; compose a new solution
-  (let* ((cxn-w-utterance (find (utterance agent) (constructions (grammar agent))
-                                :key #'(lambda (cxn) (attr-val cxn :form)) :test #'string=))
-         (solution (compose-new-program agent answer
-                                        (get-configuration agent :learning-strategy)))
-         (chunk (solution->chunk solution :initial-score (get-configuration agent :initial-chunk-score)))
-         (equivalent-chunk (find-equivalent-chunk agent chunk))
-         (interaction-nr (interaction-number (current-interaction (experiment agent)))))
-    (notify composition-solution-found solution)
-    ;; add the chunk (or re-use an existing one)
-    (unless equivalent-chunk
-      (add-chunk (ontology agent) chunk))
-    ;; remove the previous cxn for this utterance
-    (when cxn-w-utterance
-      (remove-holophrase-cxn agent cxn-w-utterance))
-    ;; create and add a new holophrase cxn
-    (add-holophrase-cxn (grammar agent) (utterance agent)
-                        (if equivalent-chunk equivalent-chunk chunk)
-                        interaction-nr
-                        :initial-score (get-configuration agent :initial-cxn-score))))
+  (let ((learning-strategy (get-configuration agent :learning-strategy)))
+    (notify adoption-started)
+    ;; use the learning strategy
+    (when (eql learning-strategy :keep-trash)
+      (add-trash agent))
+    ;; compose a new solution
+    (let* ((cxn-w-utterance (find (utterance agent) (constructions (grammar agent))
+                                  :key #'(lambda (cxn) (attr-val cxn :form)) :test #'string=))
+           (solution (compose-new-program agent answer learning-strategy))
+           (chunk (solution->chunk solution :initial-score (get-configuration agent :initial-chunk-score)))
+           (equivalent-chunk (find-equivalent-chunk agent chunk))
+           (interaction-nr (interaction-number (current-interaction (experiment agent)))))
+      (notify composition-solution-found solution)
+      ;; add the chunk (or re-use an existing one)
+      (unless equivalent-chunk
+        (add-chunk (ontology agent) chunk))
+      ;; remove the previous cxn for this utterance
+      (when (and cxn-w-utterance (not (eql learning-strategy :lateral-inhibition)))
+        (remove-holophrase-cxn agent cxn-w-utterance))
+      ;; create and add a new holophrase cxn
+      (add-holophrase-cxn (grammar agent) (utterance agent)
+                          (if equivalent-chunk equivalent-chunk chunk)
+                          interaction-nr
+                          :initial-score (get-configuration agent :initial-cxn-score)))))
 
 
 ;;;; Determine success

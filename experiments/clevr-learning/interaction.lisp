@@ -91,10 +91,9 @@
   ;; consolidation on the hearer side based on success
   (loop for agent in (interacting-agents experiment)
         do (align-agent agent (get-configuration experiment :alignment-strategy)))
-  ;; store sample whens strategy is active
+  ;; store sample when strategy is active
   (when (eql (get-configuration experiment :learning-strategy) :keep-samples)
     (let ((learner (find 'learner (interacting-agents experiment) :key #'id)))
       (when (hearerp learner)
-        (store-sample learner))))
-  )
+        (store-sample learner)))))
 

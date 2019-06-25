@@ -98,7 +98,7 @@
                  ;; available primitives
                  :chunks (mapcar #'create-chunk-from-primitive (primitives agent))
                  ;; search depth (depending on question types)
-                 :max-search-depth 25
+                 :max-search-depth 10
                  ;; available categories (for bind statements)
                  :ontology (ontology agent)
                  ;; filter out bad chunks
@@ -119,6 +119,40 @@
                        return s))
         finally
         (return solution)))
+
+;;;; LATERAL INHIBTION
+(define-event check-chunks-started (list-of-chunks list))
+
+(defun different-meaning (solution list-of-chunks)
+  "Check if the composed irl-program is never equivalent
+   to any of the chunks."
+  (let ((irl-program (append (irl-program (chunk solution))
+                             (bind-statements solution))))
+    (notify check-chunks-started list-of-chunks)
+    (loop for chunk in list-of-chunks
+          never (equivalent-irl-programs? irl-program (irl-program chunk)))))
+
+(defmethod compose-new-program (agent target-category (strategy (eql :lateral-inhibition)))
+  "The :lateral-inhibition strategy will compose a new program that is different
+   from the other programs that already exist for this question. Than, lateral
+   inhibition should make sure that only the best one remains"
+  (let* ((composer (make-default-composer agent target-category))
+         (consider-chunk-ids
+          (mapcar #'(lambda (cxn)
+                      (attr-val cxn :meaning))
+                  (find-all (utterance agent) (constructions (grammar agent))
+                            :key #'(lambda (cxn) (attr-val cxn :form))
+                            :test #'string=)))
+         (consider-chunks
+          (mapcar #'(lambda (id)
+                      (get-chunk agent id))
+                  consider-chunk-ids)))
+    (if consider-chunks
+      (compose-until composer
+                     (lambda (s)
+                       (different-meaning s consider-chunks)))
+      (random-elt (get-next-solutions composer)))))
+  
 
 ;;;; SAMPLE STRATEGY
 (define-event check-samples-started (list-of-samples list))

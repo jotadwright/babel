@@ -25,8 +25,9 @@
    `((data-sets . ("num_objects_4"))
      (available-primitives . (count! exist query get-context unique filter))
      (determine-interacting-agents-mode . :tutor-learner)
-     (learning-strategy . :keep-samples)
-     (alignment-strategy . :no-alignment))))
+     (who-aligns? . :learner)
+     (learning-strategy . :lateral-inhibition)
+     (alignment-strategy . :no-form-competitors-punished))))
 
 (defparameter *single-or-configuration*
   (make-configuration
@@ -46,35 +47,48 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 50)
+(run-series *experiment* 100)
 
 (deactivate-all-monitors)
 
 ;; Run batches for different configurations
 (run-experiments `(
-                   (sample-strategy-learner-hears
-                    ((:available-primitives . (count! exist query
-                                                      get-context unique filter))
-                     (:determine-interacting-agents-mode . :default)
-                     (:learning-strategy . :keep-samples)
-                     (:alignment-strategy . :no-meaning-competitors-punished)))
+                   (test
+                    ((data-sets . ("num_objects_4"))
+                     (available-primitives . (count! exist query get-context unique filter))
+                     (determine-interacting-agents-mode . :tutor-learner)
+                     (who-aligns? . :learner)
+                     (learning-strategy . :keep-trash)
+                     (alignment-strategy . :no-alignment)))
                    )
-                 :number-of-interactions 100
+                 :number-of-interactions 1000
                  :number-of-series 1
                  :monitors '("export-communicative-success"
-                             ;"export-lexicon-size"
-                             ;"export-ontology-size"
-                             ;"export-meanings-per-form"
+                             "export-lexicon-size"
+                             "export-ontology-size"
+                             "export-meanings-per-form"
                              ;"export-forms-per-meaning"
                              ;"export-lexicon-change"
                              ;"export-ontology-change"
                              ;"export-memory-size"
                              ;"export-memory-entry-per-form"
                              ;"export-program-correctness"
-                             ;"export-avg-cxn-score"
+                             "export-avg-cxn-score"
                              ;"export-incorrect-program-questions"
                              ;"export-form-competitors"
                              ))
+
+(create-graph-for-single-strategy
+ :experiment-name "test"
+ :measure-names '("communicative-success"
+                  "lexicon-size"
+                  "ontology-size"
+                  "meanings-per-form"
+                  "avg-cxn-score")
+ :y-axis '(1 2 2 2 1)
+ :y1-max 1
+ :xlabel "# Games"
+ :y1-label "Success")
 
 ;; plots for single strategy
 (let* ((context-size 4)
