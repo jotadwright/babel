@@ -26,9 +26,6 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:render-mode . :generate-and-test)
-                                        ;(:parse-goal-tests :no-applicable-cxns :evaluate-on-scene)
-                                        )
                    :visualization-configurations ((:show-constructional-dependencies . nil)))))) 
     cxn-inventory))
 
@@ -37,9 +34,14 @@
 (defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
-  (make-const (substitute #\- #\Space (upcase (if add-cxn-suffix
-                                                 (string-append string "-cxn")
-                                                 string)))))
+  (make-const
+   (substitute #\- #\Space
+               (remove-spurious-spaces
+                (upcase
+                 (remove-punctuation
+                  (if add-cxn-suffix
+                    (string-append string "-cxn")
+                    string)))))))
 
 (defun variablify (symbol)
   "Turn a symbol into a variable if it isn't one yet."

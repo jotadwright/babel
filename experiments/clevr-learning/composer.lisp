@@ -139,9 +139,10 @@
     (notify check-samples-started list-of-samples)
     (setf success
           (loop for sample in list-of-samples
-                for context = (let ((found (find (first sample) (contexts world) :key #'image-index)))
-                                (set-data (ontology agent) 'clevr-context found)
-                                found)
+                for context = (let* ((path (nth (first sample) (scenes world)))
+                                     (scene (load-clevr-scene path)))
+                                (set-data (ontology agent) 'clevr-context scene)
+                                scene)
                 for solutions = (evaluate-irl-program irl-program (ontology agent))
                 for solution = (when (length= solutions 1) (first solutions))
                 for found-answer = (when solution (get-target-value irl-program solution))

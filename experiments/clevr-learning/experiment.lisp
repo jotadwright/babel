@@ -1,30 +1,16 @@
 (in-package :clevr-learning)
 
-(defclass vqa-experiment (experiment)
-  ()
-  (:documentation "QA Game"))
+;; ##################
+;; + Configurations +
+;; ##################
 
 (define-configuration-default-value :dot-interval 100)
-
-(define-configuration-default-value :context-size 4)
-(define-configuration-default-value :contexts-file
-                                    (merge-pathnames
-                                     (make-pathname :directory '(:relative "CLEVR" "CLEVR-learning-data")
-                                                    :name "CLEVR_scenes_num_objects_X_per_line" :type "json")
-                                     cl-user:*babel-corpora*))
-(define-configuration-default-value :questions-file
-                                    (merge-pathnames
-                                     (make-pathname :directory '(:relative "CLEVR" "CLEVR-learning-data" "base-zero-hop-questions")
-                                                    :name "CLEVR_questions_num_objects_X_per_line_enhanced" :type "json")
-                                     cl-user:*babel-corpora*))
-(define-configuration-default-value :images-dir
-                                    (merge-pathnames
-                                     (make-pathname :directory '(:relative "CLEVR" "CLEVR-learning-data" "images" "num_objects_X"))
-                                     cl-user:*babel-corpora*))
-
+(define-configuration-default-value :clevr-data-path
+    (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-holophrase-learning"))
+                     cl-user:*babel-corpora*))
+(define-configuration-default-value :data-sets '("num_objects_4"))
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
-
 ;; Available alignment strategies:
 ;; :no-alignment, :no-competitors-punished,
 ;; :no-form-competitors-punished,
@@ -36,14 +22,12 @@
 (define-configuration-default-value :cxn-decf-score 0.1)
 (define-configuration-default-value :chunk-incf-score 0.1)
 (define-configuration-default-value :chunk-decf-score 0.1)
-
 ;; Available learning strategies:
 ;; :keep-samples (history of scenes)
 ;; :keep-trash (history of failed programs)
 (define-configuration-default-value :learning-strategy :keep-samples)
 ;; :sample-window is used for both samples and trash
 (define-configuration-default-value :sample-window nil)
-
 (define-configuration-default-value :available-primitives
                                     '(count! equal-integer less-than greater-than
                                       equal? exist filter get-context intersect
@@ -51,40 +35,34 @@
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :learner-speaks-after-interaction 1000)
 
+;; ##############
+;; + Experiment +
+;; ##############
 
-(defun set-file-paths (experiment)
-  "Set the paths for contexts-file, questions-file and images-dir depending
-   on the context size of the experiment"
-  (let ((context-size (get-configuration experiment :context-size)))
-    (set-configuration experiment :contexts-file
-                       (parse-namestring (string-replace (namestring (get-configuration experiment :contexts-file))
-                                                         "X" (mkstr context-size)))
-                       :replace t)
-    (set-configuration experiment :questions-file
-                       (parse-namestring (string-replace (namestring (get-configuration experiment :questions-file))
-                                                         "X" (mkstr context-size)))
-                       :replace t)
-    (set-configuration experiment :images-dir
-                       (parse-namestring (string-replace (namestring (get-configuration experiment :images-dir))
-                                                         "X" (mkstr context-size)))
-                       :replace t)))
+(defclass holophrase-experiment (experiment)
+  ()
+  (:documentation "QA Game"))
 
-(defmethod initialize-instance :after ((experiment vqa-experiment) &key)
+(defmethod initialize-instance :after ((experiment holophrase-experiment) &key)
   "Create the world and the population of the experiment"
-  (set-file-paths experiment)
+  (setf clevr-world:*clevr-data-path* (get-configuration experiment :clevr-data-path))
   (setf (world experiment)
-        (make-vqa-world (get-configuration experiment :contexts-file)
-                        (get-configuration experiment :questions-file)))
+        (make-instance 'clevr-world :data-sets (get-configuration experiment :data-sets)
+                       :load-questions t))
   (setf (population experiment)
-        (list (make-instance 'vqa-agent :id 'tutor :experiment experiment
-                             :grammar *clevr* :ontology *clevr-ontology*
+        (list (make-instance 'holophrase-agent :id 'tutor :experiment experiment
+                             :grammar *clevr* :ontology (copy-object *clevr-ontology*)
                              :primitives (get-configuration experiment :available-primitives))
-              (make-instance 'vqa-agent :id 'learner :experiment experiment
+              (make-instance 'holophrase-agent :id 'learner :experiment experiment
                              :grammar (make-agent-cxn-set) :ontology (copy-object *clevr-ontology*)
                              :primitives (get-configuration experiment :available-primitives))))
   (activate-monitor print-a-dot-for-each-interaction))
 
-(defmethod determine-interacting-agents ((experiment vqa-experiment)
+;; ################################
+;; + Determine Interacting Agents +
+;; ################################
+
+(defmethod determine-interacting-agents ((experiment holophrase-experiment)
                                          interaction
                                          (mode (eql :default))
                                          &key)
@@ -95,7 +73,7 @@
       (determine-interacting-agents experiment interaction nil)
       (determine-interacting-agents experiment interaction :tutor-learner))))
 
-(defmethod determine-interacting-agents ((experiment vqa-experiment)
+(defmethod determine-interacting-agents ((experiment holophrase-experiment)
                                          interaction
                                          (mode (eql :tutor-learner))
                                          &key)
@@ -110,7 +88,7 @@
           do (setf (communicated-successfully agent) nil))
     (notify interacting-agents-determined experiment interaction)))
 
-(defmethod determine-interacting-agents ((experiment vqa-experiment)
+(defmethod determine-interacting-agents ((experiment holophrase-experiment)
                                          interaction
                                          (mode (eql :learner-speaks))
                                          &key)

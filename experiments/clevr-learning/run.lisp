@@ -22,7 +22,7 @@
 (defparameter *zero-hop-configuration*
   (make-configuration
    :entries
-   `((context-size . 4)
+   `((data-sets . ("num_objects_4"))
      (available-primitives . (count! exist query get-context unique filter))
      (determine-interacting-agents-mode . :tutor-learner)
      (learning-strategy . :keep-samples)
@@ -42,7 +42,7 @@
                          cl-user:*babel-corpora*)))))
 
 (defparameter *experiment*
-  (make-instance 'vqa-experiment :configuration *zero-hop-configuration*))
+  (make-instance 'holophrase-experiment :configuration *zero-hop-configuration*))
 
 (run-interaction *experiment*)
 

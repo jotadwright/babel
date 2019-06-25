@@ -1,9 +1,6 @@
 (in-package :clevr-learning)
 
-(define-event context-determined (images-dir pathname) (context clevr-object-set))
-(define-event question-determined (question-obj clevr-question))
-
-(defun initialize-agent (agent &key question context)
+(defun initialize-agent (agent &key context question)
   "Prepare the agent for the interaction"
   (setf (question-object agent) question
         (utterance agent) (question question)
@@ -15,27 +12,29 @@
         (communicated-successfully agent) t)
   ;; set the current context in the ontology
   (set-data (ontology agent) 'clevr-context context)
-  
   ;; set the ontology in the blackboard of the grammar (used for goal test)
-  ;; (set-data (blackboard (grammar agent)) 'ontology (ontology agent))
-  
+  ;(set-data (blackboard (grammar agent)) 'ontology (ontology agent))
   ;; give the speaker the correct answer
   (when (speakerp agent)
     (setf (found-answer agent)
-          (answer->category (ontology agent) (answer question)))))
+          (answer->category (ontology agent)
+                            (answer question)))))
 
-(defmethod interact :before ((experiment vqa-experiment) interaction &key)
+(define-event context-determined (image-path pathname))
+(define-event question-determined (question-object clevr-question))
+
+(defmethod interact :before ((experiment holophrase-experiment) interaction &key)
   "Choose the context and question (utterance) for the current interaction."
-  (let* ((context (random-context (world experiment)))
-         (question-obj (random-question (world experiment) context)))
-    (notify context-determined (get-configuration experiment :images-dir) context)
-    (notify question-determined question-obj)
-    (loop for agent in (interacting-agents experiment)
-          do (initialize-agent agent :question question-obj :context context))))
+  (multiple-value-bind (context question-set) (random-scene (world experiment))
+    (let ((question (random-elt (questions question-set))))
+      (notify context-determined (image context))
+      (notify question-determined question)
+      (loop for agent in (interacting-agents experiment)
+            do (initialize-agent agent :context context :question question)))))
 
 ;; tutor = speaker
 ;; learner = hearer
-(defmethod learner-hears ((experiment vqa-experiment) interaction)
+(defmethod learner-hears ((experiment holophrase-experiment) interaction)
   (let ((speaker (speaker interaction))
         (hearer (hearer interaction)))
     (if (and (parse-question hearer)
@@ -50,7 +49,7 @@
 
 ;; tutor = hearer
 ;; learner = speaker
-(defmethod learner-speaks ((experiment vqa-experiment) interaction)
+(defmethod learner-speaks ((experiment holophrase-experiment) interaction)
   (let ((speaker (speaker interaction))
         (hearer (hearer interaction)))
     (if (and (conceptualise speaker)
@@ -64,7 +63,7 @@
             (communicated-successfully hearer) nil))))
       
 ;;;; Interact
-(defmethod interact ((experiment vqa-experiment) interaction &key)
+(defmethod interact ((experiment holophrase-experiment) interaction &key)
   "Interaction script"
   (let ((speaker (speaker interaction)))
     (if (tutorp speaker)
@@ -73,7 +72,7 @@
 
 (defun store-sample (agent)
   (let* ((context (find-data (ontology agent) 'clevr-context))
-         (context-id (image-index context))
+         (context-id (index context))
          (answer (answer->category (ontology agent) (answer (question-object agent))))
          (sample (list context-id (utterance agent) answer))
          (sample-window (get-configuration agent :sample-window)))
@@ -87,7 +86,7 @@
               (cons sample (butlast (samples agent))))
         (push sample (samples agent))))))
 
-(defmethod interact :after ((experiment vqa-experiment) interaction &key)
+(defmethod interact :after ((experiment holophrase-experiment) interaction &key)
   "Consolidation after the interaction"
   ;; consolidation on the hearer side based on success
   (loop for agent in (interacting-agents experiment)
@@ -96,5 +95,6 @@
   (when (eql (get-configuration experiment :learning-strategy) :keep-samples)
     (let ((learner (find 'learner (interacting-agents experiment) :key #'id)))
       (when (hearerp learner)
-        (store-sample learner)))))
+        (store-sample learner))))
+  )
 

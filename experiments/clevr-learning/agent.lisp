@@ -1,6 +1,6 @@
 (in-package :clevr-learning)
 
-(defclass vqa-agent (agent)
+(defclass holophrase-agent (agent)
   ((grammar
     :documentation "The agent's grammar"
     :accessor grammar :initarg :grammar :initform nil :type fcg-construction-set)
@@ -61,7 +61,7 @@
 (define-event conceptualisation-started (answer t) (possible-chunks list))
 (define-event conceptualisation-finished (applied-chunk t))
 
-(defmethod conceptualise ((agent vqa-agent))
+(defmethod conceptualise ((agent holophrase-agent))
   ;; the learner gets an answer and needs to find a chunk in its
   ;; ontology that returns that given answer in the current scene
   ;;   --> how to speed this up? by looking at the type of the answer and the last primitive in the chunk
@@ -88,7 +88,7 @@
 ;;;; Production
 (define-event production-finished (applied-cxn t))
 
-(defmethod produce-question ((agent vqa-agent))
+(defmethod produce-question ((agent holophrase-agent))
   ;; the learner has an applied-chunk and now looks for a cxn
   ;; that has that chunk as meaning --> using fcg:formulate
   (multiple-value-bind (utterance cipn)
@@ -106,7 +106,7 @@
 
 
 ;;;; Tutor validates success
-(defmethod tutor-validates-success ((tutor vqa-agent) (learner vqa-agent))
+(defmethod tutor-validates-success ((tutor holophrase-agent) (learner holophrase-agent))
   ;; Tutor gets the utterance from the learner
   ;; Tutors parses this into a program and executes this on the scene
   ;; The answers of tutor and learner are compared (using determine-success)
@@ -129,7 +129,7 @@
 ;; --> the speaker fetches the utterance linked to this program and proposes this to the tutor
 ;; --> the tutor validates
 ;; --> if correct, the speaker treats this as a success and rewards it
-(defmethod speaker-learning ((speaker vqa-agent) (hearer vqa-agent))
+(defmethod speaker-learning ((speaker holophrase-agent) (hearer holophrase-agent))
   (let* ((possible-final-primitives (get-possible-primitives (found-answer speaker)))
          (all-chunks (find-data (ontology speaker) 'programs))
          (consider-chunks (remove-if-not #'(lambda (chunk)
@@ -153,13 +153,18 @@
                         (return-from speaker-learning t))))))
 
 
+
+
+
+
+
+
+
 ;;;; Parsing
 (define-event parsing-finished (applied-cxn t))
 
-(defmethod parse-question ((agent vqa-agent))
-  "Comprehend the utterance. Goal test will make sure that
-   the associated program can be executed in the scene and
-   returns a single solution"
+(defmethod parse-question ((agent holophrase-agent))
+  "Comprehend the utterance."
   (multiple-value-bind (irl-program cipn)
       (comprehend (utterance agent) :cxn-inventory (grammar agent))
     (when (and irl-program (eql (first (statuses cipn)) 'fcg::succeeded))
@@ -172,21 +177,8 @@
 ;;;; Interpretation
 (define-event interpretation-finished (found-answer t))
 
-#|
-(defmethod interpret ((agent vqa-agent))
-  "The program was already executed in the goal test.
-   Retrieve the answer and set the appropriate slots
-   of the agent."
-  (let* ((chunk-id (attr-val (applied-cxn agent) :meaning))
-         (chunk (find chunk-id (get-data (ontology agent) 'programs) :key #'id))
-         (answer (find-data (blackboard (grammar agent)) 'answer)))
-    (setf (applied-chunk agent) chunk
-          (found-answer agent) answer)
-    (notify interpretation-finished (found-answer agent))
-    (found-answer agent)))
-|#
-
-(defmethod interpret ((agent vqa-agent))
+(defmethod interpret ((agent holophrase-agent))
+  "Interpret the meaning in the context"
   (let* ((chunk (get-chunk agent (attr-val (applied-cxn agent) :meaning)))
          (solutions (evaluate-irl-program (irl-program chunk) (ontology agent))))
     (when (length= solutions 1)
@@ -204,7 +196,7 @@
 (define-event added-to-trash (irl-program list))
 (define-event composition-solution-found (solution chunk-evaluation-result))
 
-(defmethod add-trash ((agent vqa-agent))
+(defmethod add-trash ((agent holophrase-agent))
   ;; trash strategy: add program to trash, so the composer can take this into account
   (let ((cxn-w-utterance (find (utterance agent) (constructions (grammar agent))
                                 :key #'(lambda (cxn) (attr-val cxn :form)) :test #'string=)))
@@ -216,7 +208,7 @@
           (push irl-program (cdr found))
           (push (cons (utterance agent) (list irl-program)) (trash agent)))))))
 
-(defmethod adopt ((agent vqa-agent) answer)
+(defmethod adopt ((agent holophrase-agent) answer)
   "Compose a program that results in the given answer
    and store this in the grammar of the agent."
   (notify adoption-started)
@@ -248,7 +240,7 @@
 ;;;; Determine success
 (define-event success-determined (success t) (learner-role symbol))
 
-(defmethod determine-success ((tutor vqa-agent) (learner vqa-agent))
+(defmethod determine-success ((tutor holophrase-agent) (learner holophrase-agent))
   "Determine success of the current interaction"
   (when (applied-cxn learner)
     (let ((success (equal-entity (found-answer tutor)
