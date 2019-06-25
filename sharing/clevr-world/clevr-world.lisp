@@ -225,7 +225,12 @@
 
 (defmethod s-expr->object ((type (eql 'function)) s-expr &key i)
   (make-instance 'clevr-function :id i
-                 :function-name (internal-symb (upcase (rest (assoc :function s-expr))))
+                 :function-name (internal-symb
+                                 (upcase
+                                  (cond ((assoc :function s-expr)
+                                         (rest (assoc :function s-expr)))
+                                        ((assoc :type s-expr)
+                                         (rest (assoc :type s-expr))))))
                  :args (mapcar #'internal-symb
                                (mapcar #'upcase
                                        (rest (assoc :value--inputs s-expr))))

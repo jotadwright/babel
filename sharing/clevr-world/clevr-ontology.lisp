@@ -94,3 +94,42 @@
 (export '(*clevr-ontology*))
 
 (defparameter *clevr-ontology* (build-clevr-ontology))
+
+;; ################################
+;; copy object
+;; ################################
+
+(defmethod copy-object ((shape-cat shape-category))
+  (make-instance 'shape-category
+                 :id (id shape-cat)
+                 :shape (shape shape-cat)))
+
+(defmethod copy-object ((size-cat size-category))
+  (make-instance 'size-category
+                 :id (id size-cat)
+                 :size (size size-cat)))
+
+(defmethod copy-object ((color-cat color-category))
+  (make-instance 'color-category
+                 :id (id color-cat)
+                 :color (color color-cat)))
+
+(defmethod copy-object ((material-cat material-category))
+  (make-instance 'material-category
+                 :id (id material-cat)
+                 :material (material material-cat)))
+
+(defmethod copy-object ((spatial-cat spatial-relation-category))
+  (make-instance 'spatial-relation-category
+                 :id (id spatial-cat)
+                 :spatial-relation (spatial-relation spatial-cat)))
+
+(defmethod copy-object ((bool-cat boolean-category))
+  (make-instance 'boolean-category
+                 :id (id bool-cat)
+                 :bool (bool bool-cat)))
+
+(defmethod copy-object ((attribute-cat attribute-category))
+  (make-instance 'attribute-category
+                 :id (id attribute-cat)
+                 :attribute (attribute attribute-cat)))
