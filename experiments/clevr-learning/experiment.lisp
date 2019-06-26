@@ -12,9 +12,7 @@
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
 ;; Available alignment strategies:
-;; :no-alignment, :no-competitors-punished,
-;; :no-form-competitors-punished,
-;; :no-meaning-competitors-punished,
+;; :no-alignment
 ;; :lateral-inhibition
 (define-configuration-default-value :alignment-strategy :no-alignment) 
 (define-configuration-default-value :who-aligns? :learner)
@@ -25,6 +23,7 @@
 ;; Available learning strategies:
 ;; :keep-samples (history of scenes)
 ;; :keep-trash (history of failed programs)
+;; :lateral-inhibiyion
 (define-configuration-default-value :learning-strategy :keep-samples)
 ;; :sample-window is used for both samples and trash
 (define-configuration-default-value :sample-window nil)

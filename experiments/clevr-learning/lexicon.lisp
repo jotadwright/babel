@@ -97,17 +97,12 @@
   "Remove the given cxn and possibly also remove
    the chunk associated with it (if it is no longer
    used by other cxns)"
-  (delete-cxn cxn (grammar agent))
+  (setf (constructions (grammar agent))
+        (remove cxn (constructions (grammar agent))))
+  (set-data (blackboard (grammar agent)) 'trash
+            (cons cxn (find-data (blackboard (grammar agent)) 'trash)))
   (notify lexicon-changed)
-  (notify question-cxn-removed cxn)
-  (let* ((chunk-id (attr-val cxn :meaning))
-         (chunk (get-chunk agent chunk-id))
-         (used-chunk-ids (mapcar #'(lambda (cxn)
-                                     (attr-val cxn :meaning))
-                                 (constructions (grammar agent)))))
-    (unless (find chunk-id used-chunk-ids)
-      (remove-chunk (ontology agent) chunk)))
-  t)
+  (notify question-cxn-removed cxn))
 
 (defun get-form-competitors (agent cxn)
   "Get cxns with the same meaning as cxn"
@@ -139,7 +134,6 @@
   (notify cxn-punished cxn)
   (when (<= (attr-val cxn :score) lower-bound)
     (if remove-on-lower-bound
-      (progn (notify lexicon-changed)
-        (delete-cxn cxn (grammar agent)))
+      (remove-holophrase-cxn agent cxn)
       (setf (attr-val cxn :score) lower-bound)))
   (grammar agent))

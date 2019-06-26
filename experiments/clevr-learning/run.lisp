@@ -24,10 +24,10 @@
    :entries
    `((data-sets . ("num_objects_4"))
      (available-primitives . (count! exist query get-context unique filter))
-     (determine-interacting-agents-mode . :tutor-learner)
+     (determine-interacting-agents-mode . :default)
      (who-aligns? . :learner)
      (learning-strategy . :lateral-inhibition)
-     (alignment-strategy . :no-form-competitors-punished))))
+     (alignment-strategy . :lateral-inhibition))))
 
 (defparameter *single-or-configuration*
   (make-configuration
@@ -47,7 +47,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
 (deactivate-all-monitors)
 
@@ -56,12 +56,12 @@
                    (test
                     ((data-sets . ("num_objects_4"))
                      (available-primitives . (count! exist query get-context unique filter))
-                     (determine-interacting-agents-mode . :tutor-learner)
+                     (determine-interacting-agents-mode . :none)
                      (who-aligns? . :learner)
-                     (learning-strategy . :keep-trash)
-                     (alignment-strategy . :no-alignment)))
+                     (learning-strategy . :lateral-inhibition)
+                     (alignment-strategy . :lateral-inhibition)))
                    )
-                 :number-of-interactions 1000
+                 :number-of-interactions 5000
                  :number-of-series 1
                  :monitors '("export-communicative-success"
                              "export-lexicon-size"
@@ -83,12 +83,18 @@
  :measure-names '("communicative-success"
                   "lexicon-size"
                   "ontology-size"
-                  "meanings-per-form"
                   "avg-cxn-score")
- :y-axis '(1 2 2 2 1)
+ :y-axis '(1 2 2 1)
  :y1-max 1
  :xlabel "# Games"
  :y1-label "Success")
+
+(create-graph-for-single-strategy
+ :experiment-name "test"
+ :measure-names '("meanings-per-form")
+ :y-axis '(1)
+ :xlabel "# Games"
+ :y1-label "Meaning/Form")
 
 ;; plots for single strategy
 (let* ((context-size 4)

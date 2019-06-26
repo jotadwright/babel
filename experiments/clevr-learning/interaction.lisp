@@ -1,13 +1,15 @@
 (in-package :clevr-learning)
 
+;; ####################
+;; + Initialize Agent +
+;; ####################
 (defun initialize-agent (agent &key context question)
   "Prepare the agent for the interaction"
   (setf (question-object agent) question
         (utterance agent) (question question)
         (applied-cxn agent) nil
         (applied-chunk agent) nil
-        (alternative-cxn agent) nil
-        (alternative-chunk agent) nil
+        (applicable-chunks agent) nil
         (found-answer agent) nil
         (communicated-successfully agent) t)
   ;; set the current context in the ontology
@@ -20,6 +22,9 @@
           (answer->category (ontology agent)
                             (answer question)))))
 
+;; ###############
+;; + Interaction +
+;; ###############
 (define-event context-determined (image-path pathname))
 (define-event question-determined (question-object clevr-question))
 
@@ -55,8 +60,8 @@
     (if (and (conceptualise speaker)
              (produce-question speaker))
       (progn (setf (utterance hearer) (utterance speaker))
-        (unless (tutor-validates-success hearer speaker)
-          (speaker-learning speaker hearer)
+        (tutor-interprets hearer)
+        (unless (determine-success hearer speaker)
           (setf (communicated-successfully speaker) nil
                 (communicated-successfully hearer) nil)))
       (setf (communicated-successfully speaker) nil

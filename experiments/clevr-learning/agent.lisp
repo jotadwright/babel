@@ -1,5 +1,8 @@
 (in-package :clevr-learning)
 
+;; #########
+;; + Agent +
+;; #########
 (defclass holophrase-agent (agent)
   ((grammar
     :documentation "The agent's grammar"
@@ -10,18 +13,15 @@
    (primitives
     :documentation "The available primitive operations"
     :accessor primitives :initarg :primitives :initform nil :type list)
+   (applicable-chunks
+    :documentation "The chunks that can be used for production"
+    :accessor applicable-chunks :initarg :applicable-chunks :initform nil :type list)
    (applied-cxn
     :documentation "The cxn used in the current interaction"
     :accessor applied-cxn :initarg :applied-cxn :initform nil :type (or null fcg-construction))
    (applied-chunk
     :documentation "The chunk used in the current interaction"
     :accessor applied-chunk :initarg :applied-chunk :initform nil :type (or null chunk))
-   (alternative-cxn
-    :documentation "The alternative cxn used"
-    :accessor alternative-cxn :initarg :alternative-cxn :initform nil :type (or null fcg-construction))
-   (alternative-chunk
-    :documentation "The alternative chunk used"
-    :accessor alternative-chunk :initarg :alternative-chunk :initform nil :type (or null chunk))
    (found-answer
     :documentation "The answer found by executing the program"
     :accessor found-answer :initarg :found-answer :initform nil :type (or null category number))
@@ -44,23 +44,49 @@
   (eql (id agent) 'tutor))
 
 
-;;;; Conceptualisation
+;; #####################
+;; + Conceptualisation +
+;; #####################
 (defun get-possible-primitives (answer)
-  ;; get all the primitives that might return the given answer
+  "get all the primitives that might return the given answer"
   (etypecase answer
     (number '(count!))
     (boolean-category '(exist equal? less-than greater-than equal-integer))
     (attribute '(query))))
 
 (defun get-final-primitive (chunk)
+  "Get the final primitive from the chunk"
   (first
    (find (car (target-var chunk))
          (irl-program chunk)
          :test #'member)))
 
 (define-event conceptualisation-started (answer t) (possible-chunks list))
-(define-event conceptualisation-finished (applied-chunk t))
+(define-event conceptualisation-finished (applicable-chunks list))
 
+(defmethod conceptualise ((agent holophrase-agent))
+  "The agent looks for all chunks that lead to the given answer
+   in the current scene."
+  (let* ((possible-final-primitives (get-possible-primitives (found-answer agent)))
+         (all-chunks (find-data (ontology agent) 'programs))
+         (consider-chunks (remove-if-not #'(lambda (chunk)
+                                             (member (get-final-primitive chunk)
+                                                     possible-final-primitives))
+                                         all-chunks)))
+    (notify conceptualisation-started (found-answer agent) consider-chunks)
+    (when consider-chunks
+      (setf (applicable-chunks agent)
+            (loop for chunk in (shuffle consider-chunks)
+                  for solution = (with-disabled-monitors
+                                   (first (evaluate-irl-program (irl-program chunk) (ontology agent))))
+                  for answer = (when solution
+                                 (get-target-value (irl-program chunk) solution))
+                  when (equal-entity answer (found-answer agent))
+                  collect chunk))))
+  (notify conceptualisation-finished (applicable-chunks agent))
+  (applicable-chunks agent))
+
+#|
 (defmethod conceptualise ((agent holophrase-agent))
   ;; the learner gets an answer and needs to find a chunk in its
   ;; ontology that returns that given answer in the current scene
@@ -83,11 +109,38 @@
                 return chunk))
     (notify conceptualisation-finished (applied-chunk agent))
     (applied-chunk agent)))
+|#
 
-
-;;;; Production
+;; ##############
+;; + Production +
+;; ##############
 (define-event production-finished (applied-cxn t))
 
+(defmethod produce-question ((agent holophrase-agent))
+  "For each of the applicable chunks, the learer gets
+   all cxns that have this chunk as meaning. The learner produces
+   the utterance with the highest score. If multiple cxns have the
+   same highest score, take one at random."
+  (when (and (applicable-chunks agent)
+             (constructions (grammar agent)))
+    (let ((consider-cxns
+           (remove-duplicates
+            (loop for chunk in (applicable-chunks agent)
+                  for cxns = (find-all (id chunk) (constructions (grammar agent))
+                                       :key #'(lambda (cxn) (attr-val cxn :meaning)))
+                  append cxns))))
+      (when consider-cxns
+        (setf (applied-cxn agent)
+              (the-biggest #'(lambda (cxn) (attr-val cxn :score))
+                           consider-cxns))
+        (setf (applied-chunk agent)
+              (get-chunk agent (attr-val (applied-cxn agent) :meaning)))
+        (setf (utterance agent)
+              (attr-val (applied-cxn agent) :form)))))
+  (notify production-finished (applied-cxn agent))
+  (utterance agent))
+
+#|
 (defmethod produce-question ((agent holophrase-agent))
   ;; the learner has an applied-chunk and now looks for a cxn
   ;; that has that chunk as meaning --> using fcg:formulate
@@ -103,25 +156,28 @@
       (setf (utterance agent) (list-of-strings->string utterance)))
     (notify production-finished (applied-cxn agent)))
   (utterance agent))
+|#
 
-
-;;;; Tutor validates success
-(defmethod tutor-validates-success ((tutor holophrase-agent) (learner holophrase-agent))
-  ;; Tutor gets the utterance from the learner
-  ;; Tutors parses this into a program and executes this on the scene
-  ;; The answers of tutor and learner are compared (using determine-success)
-  (let* ((irl-program (comprehend (preprocess-sentence (utterance learner))
-                                  :cxn-inventory (grammar tutor)))
+;; ###########################
+;; + Tutor validates success +
+;; ###########################
+(defmethod tutor-interprets ((agent holophrase-agent))
+  "The tutor gets the utterance from the learner, parses it and
+   executes the result in the scene. The answers of both tutor
+   and learner are compared."
+  (let* ((irl-program (comprehend (preprocess-sentence (utterance agent))
+                                  :cxn-inventory (grammar agent)))
          (solutions (with-disabled-monitors
-                     (evaluate-irl-program irl-program (ontology tutor))))
+                     (evaluate-irl-program irl-program (ontology agent))))
          solution)
     (when (and solutions (= (length solutions) 1))
       (setf solution (first solutions))
-      (setf (found-answer tutor)
+      (setf (found-answer agent)
             (get-target-value irl-program solution)))
-    (determine-success tutor learner)))
+    (found-answer agent)))
 
 
+#|
 ;;;; Speaker learning
 ;; This function is called when the speaker was able to conceptualise and produce, but
 ;; the hearer (tutor) found a different answer to the question given by the speaker.
@@ -151,6 +207,7 @@
                    do (progn (setf (alternative-chunk speaker) chunk
                                    (alternative-cxn speaker) cxn)
                         (return-from speaker-learning t))))))
+|#
 
 
 
@@ -159,8 +216,9 @@
 
 
 
-
-;;;; Parsing
+;; ###########
+;; + Parsing +
+;; ###########
 (define-event parsing-finished (applied-cxn t))
 
 (defmethod parse-question ((agent holophrase-agent))
@@ -174,7 +232,9 @@
   (applied-cxn agent))
 
 
-;;;; Interpretation
+;; ##################
+;; + Interpretation +
+;; ##################
 (define-event interpretation-finished (found-answer t))
 
 (defmethod interpret ((agent holophrase-agent))
@@ -188,10 +248,10 @@
               (found-answer agent) answer)))
     (notify interpretation-finished (found-answer agent))
     (found-answer agent)))
-         
 
-
-;;;; Adoption
+;; ############
+;; + Adoption +
+;; ############
 (define-event adoption-started)
 (define-event added-to-trash (irl-program list))
 (define-event composition-solution-found (solution chunk-evaluation-result))
@@ -236,8 +296,9 @@
                           interaction-nr
                           :initial-score (get-configuration agent :initial-cxn-score)))))
 
-
-;;;; Determine success
+;; #####################
+;; + Determine success +
+;; #####################
 (define-event success-determined (success t) (learner-role symbol))
 
 (defmethod determine-success ((tutor holophrase-agent) (learner holophrase-agent))

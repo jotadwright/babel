@@ -1,5 +1,6 @@
 (in-package :clevr-learning)
 
+;; + Composer Class +
 (defclass program-composer (single-topic-composer)
   (;:expand-chunk-fns
    ;:check-chunk-fns
@@ -11,7 +12,7 @@
    )
   (:documentation "The program composer"))
 
-;;;; CHECK-CHUNK-FNS
+;; + Check-chunk functions +
 (defun counts-allowed-p (primitive-counts)
   (let ((allowed t))
     (loop for (primitive . count) in primitive-counts
@@ -42,7 +43,7 @@
                                  collect (cons primitive (count primitive irl-program :key #'first)))))
     (counts-allowed-p primitive-counts)))
 
-;;;; EXPAND-CHUNK-FNS
+; + Expand-chunk functions +
 (defun add-context-var-to-open-vars (chunk)
   "The get-context var is allowed to occur 3 times in the irl-program,
    even though the get-context primitive is allowed to occur once.
@@ -85,7 +86,7 @@
           (expand-chunk-combine-program chunk composer)))
 
 
-;;;; MAKE DEFAULT COMPOSER
+;; + Make default composer +
 (defun make-default-composer (agent target-category)
   "Make the composer"
   (make-instance 'program-composer
@@ -106,7 +107,7 @@
                  ;; how to expand chunks
                  :expand-chunk-fns (list #'expand-chunk-for-clevr)))
 
-;;;; COMPOSE UNTIL
+;; + compose-until +
 (defun compose-until (composer fn)
   "Generate composer solutions until the
    function 'fn' returns t on the solution"
@@ -120,7 +121,7 @@
         finally
         (return solution)))
 
-;;;; LATERAL INHIBTION
+;; + Lateral Inhibition Strategy +
 (define-event check-chunks-started (list-of-chunks list))
 
 (defun different-meaning (solution list-of-chunks)
@@ -138,11 +139,17 @@
    inhibition should make sure that only the best one remains"
   (let* ((composer (make-default-composer agent target-category))
          (consider-chunk-ids
-          (mapcar #'(lambda (cxn)
-                      (attr-val cxn :meaning))
-                  (find-all (utterance agent) (constructions (grammar agent))
-                            :key #'(lambda (cxn) (attr-val cxn :form))
-                            :test #'string=)))
+          (append
+           (mapcar #'(lambda (cxn)
+                       (attr-val cxn :meaning))
+                   (find-all (utterance agent) (constructions (grammar agent))
+                             :key #'(lambda (cxn) (attr-val cxn :form))
+                             :test #'string=))
+           (mapcar #'(lambda (cxn)
+                       (attr-val cxn :meaning))
+                   (find-all (utterance agent) (find-data (blackboard (grammar agent)) 'trash)
+                             :key #'(lambda (cxn) (attr-val cxn :form))
+                             :test #'string=))))
          (consider-chunks
           (mapcar #'(lambda (id)
                       (get-chunk agent id))
@@ -154,18 +161,13 @@
       (random-elt (get-next-solutions composer)))))
   
 
-;;;; SAMPLE STRATEGY
+;; + Sample Strategy +
 (define-event check-samples-started (list-of-samples list))
 
 (defun check-all-samples (solution list-of-samples agent)
   "A sample is a triple of (context-id utterance answer). The irl-program
   of the evaluation result has to return the correct answer for all samples
   of the same utterance."
-  ;; load the context using ID from world
-  ;; set the context in the ontology (keep the original context for later!)
-  ;; evaluate the irl program
-  ;; check if it leads to a single solution
-  ;; check if it leads to the correct solution
   (let ((original-context (find-data (ontology agent) 'clevr-context))
         (irl-program (append (irl-program (chunk solution)) (bind-statements solution)))
         (world (world (experiment agent)))
@@ -198,7 +200,7 @@
       (random-elt (get-next-solutions composer)))))
 
 
-;;;; TRASH STRATEGY
+;; + Trash Strategy +
 (define-event check-trash-started (list-of-trash-programs list))
 
 (defun check-trash (solution list-of-trash-programs)
