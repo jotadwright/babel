@@ -23,7 +23,8 @@
          (continuous-context
           (when (eql data-source :continuous-clevr)
             (clevr->continuous clevr-context
-                               :directory (get-configuration experiment :data-path)))))
+                               :directory (get-configuration experiment :data-path)
+                               :scale (get-configuration experiment :scale-world)))))
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
                    (if (learnerp agent)
@@ -50,7 +51,8 @@
          (continuous-context
           (when (eql data-source :continuous-clevr)
             (clevr->continuous clevr-context
-                               :directory (get-configuration experiment :data-path)))))
+                               :directory (get-configuration experiment :data-path)
+                               :scale (get-configuration experiment :scale-world)))))
     ;; if using clevr and noise, add noise
     (if (and (get-configuration experiment :noise-amount)
              (get-configuration experiment :noise-prob)
@@ -85,6 +87,7 @@
                                (tutor-mode (eql :continuous)))
   (let* ((clevr-context (random-scene (world experiment)))
          (mwm-context (clevr->mwm clevr-context
+                                  :scale (get-configuration experiment :scale-world)
                                   :scale (get-configuration experiment :scale-world))))
     (if (and (get-configuration experiment :noise-amount)
              (get-configuration experiment :noise-prob))

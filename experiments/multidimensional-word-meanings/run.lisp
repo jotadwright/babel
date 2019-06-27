@@ -16,7 +16,7 @@
   (make-configuration
    :entries '((:tutor-lexicon . :symbolic)
               (:data-source . :continuous-clevr)
-              (:scale-world . nil)
+              (:scale-world . t)
               (:category-representation . :prototype)
               (:noise-amount . nil)
               (:noise-prob . nil))))

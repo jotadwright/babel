@@ -164,14 +164,45 @@
 ;; + Continous CLEVR data +
 ;; ------------------------
 
+(defparameter *continuous-clevr-boundaries*
+  '((xpos . ((min . 12) (max . 464)))
+    (ypos . ((min . 43) (max . 304)))
+    (width . ((min . 10) (max . 260)))
+    (height . ((min . 11) (max . 247)))
+    (size-ratio . nil)
+    (angle . ((min . 0) (max . 90)))
+    (corners . ((min . 3) (max . 16)))
+    (hamming-distance . ((min . 0.5) (max . 1)))
+    (area . ((min . 5) (max . 26414)))
+    (relative-area . nil)
+    (bb-area . ((min . 100) (max . 45314)))
+    (area-ratio . nil)
+    (white-level . ((min . 0) (max . 3)))
+    (mean-h . ((min . 0) (max . 180)))
+    (mean-s . ((min . 0) (max . 255)))
+    (mean-v . ((min . 0) (max . 255)))
+    (std-h . ((min . 0) (max . 85)))
+    (std-s . ((min . 0) (max . 85)))
+    (std-v . ((min . 0) (max . 85)))))
+
+(defun scale-continuous-clevr (object)
+  (loop for (key . value) in (attributes object)
+        for boundaries = (rest (assoc key *continuous-clevr-boundaries*))
+        when boundaries
+        do (setf (cdr (assoc key (attributes object)))
+                 (/ (- value (cdr (assoc 'min boundaries)))
+                    (- (cdr (assoc 'max boundaries)) (cdr (assoc 'min boundaries)))))))
+
 (defun continuous-clevr->mwm-object (alist)
   "Load a single object"
   (let ((mean-color (rest (assoc :color-mean alist)))
         (std-color (rest (assoc :color-std alist))))
+    ;; create an alist
     (setf alist
           (mapcar #'(lambda (pair)
                       (cons (internal-symb (car pair)) (cdr pair)))
                   alist))
+    ;; split the color channels
     (setf alist
           (append `((mean-h . ,(first mean-color))
                     (mean-s . ,(second mean-color))
@@ -181,18 +212,26 @@
                     (std-v . ,(third std-color))) alist))
     (setf alist (remove 'color-mean alist :key #'car))
     (setf alist (remove 'color-std alist :key #'car))
+    ;; flip the sign for angle
+    (setf (cdr (assoc 'angle alist))
+          (- (cdr (assoc 'angle alist))))
+    ;; create an object
     (make-instance 'mwm-object :id (make-id 'object)
                    :attributes alist)))
 
-(defmethod clevr->continuous ((scene clevr-scene) &key directory)
+(defmethod clevr->continuous ((scene clevr-scene) &key directory (scale nil))
   ;; take the name of the scene
   ;; look it up in 'directory'
   ;; and load the data
-  (let ((path (merge-pathnames
-               (make-pathname :name (name scene) :type "json")
-               directory)))
+  (let* ((path (merge-pathnames
+                (make-pathname :name (name scene) :type "json")
+                directory))
+         (objects (with-open-file (stream path :direction :input)
+                    (mapcar #'continuous-clevr->mwm-object
+                            (mapcar #'decode-json-from-string
+                                    (stream->list stream))))))
+    (when scale
+      (loop for object in objects
+            do (scale-continuous-clevr object)))
     (make-instance 'mwm-object-set :id (make-id 'scene)
-                   :objects (with-open-file (stream path :direction :input)
-                              (mapcar #'continuous-clevr->mwm-object
-                                      (mapcar #'decode-json-from-string
-                                              (stream->list stream)))))))
+                   :objects objects)))
