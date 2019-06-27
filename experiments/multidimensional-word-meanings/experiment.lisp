@@ -11,7 +11,7 @@
 (define-configuration-default-value :data-source :clevr)
 (define-configuration-default-value :data-sets (list "val"))
 (define-configuration-default-value :data-path
-                                    (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "cval"))
+                                    (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "bjorn"))
                                                      cl-user:*babel-corpora*))
 
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks)
