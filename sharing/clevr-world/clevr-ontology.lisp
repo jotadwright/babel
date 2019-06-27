@@ -7,7 +7,8 @@
 (export '(category attribute shape-category size-category
           color-category material-category spatial-relation-category
           spatial-relation boolean-category bool
-          attribute-category attribute))
+          attribute-category attribute
+          shapes sizes colors materials spatial-relations attributes))
 
 (defclass category (entity) ()
   (:documentation "Abstract base class for all categories"))

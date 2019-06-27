@@ -12,4 +12,5 @@
                 :preprocess-sentence
                 :get-target-value
                 :answer->str
-                :program->program-tree))
+                :program->program-tree)
+  (:shadowing-import-from :fcg :size))

@@ -47,7 +47,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 100)
 
 (deactivate-all-monitors)
 

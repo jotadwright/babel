@@ -223,8 +223,8 @@
 (defmethod initialize-instance :around ((function clevr-function) &rest initargs &key id)
   (apply #'call-next-method function :id (or id (make-id 'function)) initargs))
 
-(defmethod s-expr->object ((type (eql 'function)) s-expr &key i)
-  (make-instance 'clevr-function :id i
+(defmethod s-expr->object ((type (eql 'function)) s-expr &key)
+  (make-instance 'clevr-function
                  :function-name (internal-symb
                                  (upcase
                                   (cond ((assoc :function s-expr)
@@ -253,11 +253,12 @@
   (apply #'call-next-method program :id (or id (make-id 'program)) initargs))
 
 (defun tree-insert (program all-functions node &optional parent)
-  (let* ((children-ids (children node))
-         (children (loop for id in children-ids
-                         collect (find id all-functions :key #'id :test #'=))))
+  (let* ((children-indexes (children node))
+         (children (loop for index in children-indexes
+                         collect (nth index all-functions))))
+                         ;collect (find id all-functions :key #'id :test #'=))))
     (setf (children node) nil)
-    (unless (find-node program (id node) :key #'id :test #'=)
+    (unless (find-node program (id node) :key #'id)
       (add-node program node :parent parent))
     (loop for child in children
           do (tree-insert program all-functions child node))))
@@ -265,8 +266,7 @@
 (defmethod s-expr->object ((type (eql 'program)) s-expr &key)
   (let ((list-of-functions
          (loop for function in s-expr
-               for i from 0
-               collect (s-expr->object 'function function :i i)))
+               collect (s-expr->object 'function function)))
         (program (make-instance 'clevr-program)))
     (tree-insert program list-of-functions
                  (first (reverse list-of-functions)))
@@ -285,7 +285,7 @@
 (defclass clevr-question (entity)
   ((question        :type string :initarg :question        :accessor question)
    (answer                       :initarg :answer          :accessor answer)
-   (program         :type list   :initarg :program         :accessor program)
+   (program                      :initarg :program         :accessor program)
    (index           :type number :initarg :index           :accessor index)
    (scene-index     :type number :initarg :scene-index     :accessor scene-index)
    (template        :type string :initarg :template        :accessor template)
