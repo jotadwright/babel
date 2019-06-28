@@ -68,14 +68,8 @@
                              "export-ontology-size"
                              "export-meanings-per-form"
                              "export-forms-per-meaning"
-                             ;"export-lexicon-change"
-                             ;"export-ontology-change"
-                             ;"export-memory-size"
-                             ;"export-memory-entry-per-form"
                              "export-program-correctness"
                              "export-avg-cxn-score"
-                             ;"export-incorrect-program-questions"
-                             ;"export-form-competitors"
                              "expand-percentage-of-unique-questions-learned"
                              ))
 
