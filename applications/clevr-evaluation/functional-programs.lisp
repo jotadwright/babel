@@ -67,9 +67,9 @@
                     :test #'equal-program-node))
 
 ;;;; irl programs to RPN and program tree
-(defun predicate->program-node (predicate linked-binding node-id input-ids)
+(defun predicate->program-node (predicate linked-binding)
   "Create a CLEVR program node from a given predicate"
-  (predicate->clevr-program-node predicate linked-binding node-id input-ids (predicate-name predicate)))
+  (predicate->clevr-program-node predicate linked-binding (predicate-name predicate)))
 
 (defun predicate->polish (predicate bind-statement)
   "Write a predicate in polish notation"
@@ -95,8 +95,7 @@
          (stack (list (cons target-predicate nil)))
          (program-tree (make-instance 'clevr-program))
          rpn)
-    (loop for id from 0
-          while stack
+    (loop while stack
           for stack-elem = (pop stack)
           for current-predicate = (car stack-elem)
           for parent-node = (cdr stack-elem)
@@ -104,9 +103,7 @@
           for bind-statement = (linked-bind-statement current-predicate irl-program)
           do (let ((node (predicate->program-node
                           current-predicate
-                          bind-statement
-                          id
-                          (when parent-node (list (id parent-node))))))
+                          bind-statement)))
                (push (predicate->polish current-predicate bind-statement) rpn)
                (add-node program-tree node :parent parent-node)
                (dolist (var in-vars)
@@ -120,8 +117,7 @@
   (let* ((target-predicate (get-target-predicate irl-program))
          (stack (list target-predicate))
          rpn)
-    (loop for id from 0
-          while stack
+    (loop while stack
           for current-predicate = (pop stack)
           for in-vars = (input-vars current-predicate)
           for bind-statement = (linked-bind-statement current-predicate irl-program)
@@ -137,17 +133,14 @@
   (let* ((target-predicate (get-target-predicate irl-program))
          (stack (list (cons target-predicate nil)))
          (program-tree (make-instance 'clevr-program)))
-    (loop for id from 0
-          while stack
+    (loop while stack
           for stack-elem = (pop stack)
           for current-predicate = (car stack-elem)
           for parent-node = (cdr stack-elem)
           for in-vars = (input-vars current-predicate)
           do (let ((node (predicate->program-node
                           current-predicate
-                          (linked-bind-statement current-predicate irl-program)
-                          id
-                          (when parent-node (list (id parent-node))))))
+                          (linked-bind-statement current-predicate irl-program))))
                (add-node program-tree node :parent parent-node)
                (dolist (var in-vars)
                  (when (variable-p var)
