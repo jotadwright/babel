@@ -64,11 +64,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("continuous-tutor-min-max"
-                     "continuous-tutor-prototype"
-                     "continuous-tutor-prototype-min-max"
-                     "continuous-tutor-exponential")
+ :experiment-names '("continuous-clevr-min-max-scaling"
+                     "continuous-clevr-prototype-scaling"
+                     "continuous-clevr-prototype-min-max-scaling"
+                     "continuous-clevr-exponential-scaling")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
  :captions '("min-max" "prototype" "prototype-min-max" "exponential")
- :title "baseline" :end 5000)
+ :title "continuous-clevr with scaling" :end nil)

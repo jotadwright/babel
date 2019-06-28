@@ -61,23 +61,25 @@
                      (learning-strategy . :lateral-inhibition)
                      (alignment-strategy . :lateral-inhibition)))
                    )
-                 :number-of-interactions 5000
+                 :number-of-interactions 500
                  :number-of-series 1
                  :monitors '("export-communicative-success"
                              "export-lexicon-size"
                              "export-ontology-size"
                              "export-meanings-per-form"
-                             ;"export-forms-per-meaning"
+                             "export-forms-per-meaning"
                              ;"export-lexicon-change"
                              ;"export-ontology-change"
                              ;"export-memory-size"
                              ;"export-memory-entry-per-form"
-                             ;"export-program-correctness"
+                             "export-program-correctness"
                              "export-avg-cxn-score"
                              ;"export-incorrect-program-questions"
                              ;"export-form-competitors"
+                             "expand-percentage-of-unique-questions-learned"
                              ))
 
+;;; single strategy
 (create-graph-for-single-strategy
  :experiment-name "learner-never-speaks"
  :measure-names '("communicative-success"
@@ -95,3 +97,13 @@
  :y-axis '(1)
  :xlabel "# Games"
  :y1-label "Meaning/Form")
+
+;;; comparing strategies
+(create-graph-comparing-strategies
+ :experiment-names '("50k-learner-never-speaks"
+                     "50k-default-lateral-inhibition")
+ :measure-name "avg-cxn-score"
+ :y-max nil
+ :xlabel "#Games"
+ :y1-label "cxn score"
+ :captions '("learner-never-speaks" "lateral-inhibition"))
