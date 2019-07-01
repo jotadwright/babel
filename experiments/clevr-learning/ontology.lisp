@@ -5,7 +5,9 @@
 
 (defun get-chunk (agent chunk-id)
   "Get the chunk with the given ID from the agent's ontology"
-  (find chunk-id (get-data (ontology agent) 'programs) :key #'id))
+  (find chunk-id
+        (get-data (ontology agent) 'programs)
+        :key #'id))
 
 (defun answer->category (ontology answer)
   "Find the category in the ontology that corresponds
@@ -40,6 +42,11 @@
   (set-data ontology 'programs
             (remove chunk (get-data ontology 'programs))))
 
+(defun chunk-in-use-p (agent chunk)
+  "Check if the chunk is in use in some cxn"
+  (find (id chunk) (constructions (grammar agent))
+        :key #'(lambda (cxn) (attr-val cxn :meaning))))
+
 (defun solution->chunk (solution &key (initial-score 0.5))
   "Store the irl-program AND the bind statements in a chunk"
   (make-instance 'chunk
@@ -54,7 +61,7 @@
 
 (defun find-equivalent-chunk (agent chunk)
   "Find a chunk in the ontology of the agent that has
-   the same irl-program as the new chunk"
+   the same irl-program as the new chunk."
   (let ((all-chunks (find-data (ontology agent) 'programs)))
     (find (irl-program chunk) all-chunks
           :key #'irl-program

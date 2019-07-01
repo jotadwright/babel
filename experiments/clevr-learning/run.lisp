@@ -75,7 +75,7 @@
 
 ;;; single strategy
 (create-graph-for-single-strategy
- :experiment-name "learner-never-speaks"
+ :experiment-name "50k-learner-never-speaks"
  :measure-names '("communicative-success"
                   "lexicon-size"
                   "ontology-size"
@@ -83,7 +83,8 @@
  :y-axis '(1 2 2 1)
  :y1-max 1
  :xlabel "# Games"
- :y1-label "Success")
+ :y1-label "Success/Score"
+ :y2-label "Size")
 
 (create-graph-for-single-strategy
  :experiment-name "test"
@@ -94,10 +95,10 @@
 
 ;;; comparing strategies
 (create-graph-comparing-strategies
- :experiment-names '("50k-learner-never-speaks"
-                     "50k-default-lateral-inhibition")
- :measure-name "avg-cxn-score"
- :y-max nil
+ :experiment-names '("100k-learner-never-speaks"
+                     "100k-default-lateral-inhibition")
+ :measure-name "unique-question-percentage"
+ :y-max 1
  :xlabel "#Games"
- :y1-label "cxn score"
+ :y1-label "unique questions learned"
  :captions '("learner-never-speaks" "lateral-inhibition"))

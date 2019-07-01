@@ -99,8 +99,7 @@
    used by other cxns)"
   (setf (constructions (grammar agent))
         (remove cxn (constructions (grammar agent))))
-  (set-data (blackboard (grammar agent)) 'trash
-            (cons cxn (find-data (blackboard (grammar agent)) 'trash)))
+  (push-data (blackboard (grammar agent)) 'trash cxn)
   (notify lexicon-changed)
   (notify question-cxn-removed cxn))
 
