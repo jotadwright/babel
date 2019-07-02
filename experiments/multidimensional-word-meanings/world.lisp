@@ -123,7 +123,7 @@
   (make-instance 'mwm-object-set :id (id scene)
                  :image (image scene)
                  :objects (loop for obj in (objects scene)
-                                collect (clevr->mwm obj :scale scale))))
+                                collect (clevr->simulated obj :scale scale))))
 
 (defmethod clevr->simulated ((object clevr-object)
                              &key (scale nil))
