@@ -1,6 +1,7 @@
 (in-package :mwm)
 
 (defun clear-agent (agent)
+  "Clear the slots of the agent for the next interaction."
   (setf (applied-cxns agent) nil
         (discriminative-set agent) nil
         (utterance agent) nil
@@ -8,113 +9,53 @@
         (parsed-meaning agent) nil))
 
 ;;;; before-interaction
-(defgeneric before-interaction (experiment game-mode tutor-mode)
-  (:documentation "Initialize the interaction, depending on the configuration settings"))
+(defgeneric before-interaction (experiment)
+  (:documentation "Initialize the interaction"))
 
 (define-event context-determined (experiment mwm-experiment))
 
-(defmethod before-interaction ((experiment mwm-experiment)
-                               (game-mode (eql :tutor-learner))
-                               (tutor-mode (eql :symbolic)))
+(defmethod before-interaction ((experiment mwm-experiment))
   (let* ((data-source (get-configuration experiment :data-source))
-         (clevr-context (random-scene (world experiment)))
-         (mwm-context (clevr->mwm clevr-context
-                                  :scale (get-configuration experiment :scale-world)))
-         (continuous-context
-          (when (eql data-source :continuous-clevr)
-            (clevr->continuous clevr-context
-                               :directory (get-configuration experiment :data-path)
-                               :scale (get-configuration experiment :scale-world)))))
+         (symbolic-clevr-context (random-scene (world experiment)))
+         (simulated-clevr-context
+          (clevr->simulated symbolic-clevr-context :scale (get-configuration experiment :scale-world)))
+         (extracted-clevr-context
+          (when (eql data-source :extracted)
+            (clevr->extracted symbolic-clevr-context
+                              :directory (get-configuration experiment :data-path)
+                              :scale (get-configuration experiment :scale-world)))))
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
                    (if (learnerp agent)
                      (if (eql data-source :clevr)
-                       mwm-context
-                       (if (> (length (objects continuous-context)) 1)
-                         continuous-context nil))
-                     clevr-context))
-          do (setf (symbolic-context agent) clevr-context)
+                       simulated-clevr-context
+                       (if (> (length (objects extracted-clevr-context)) 1)
+                         extracted-clevr-context
+                         nil))
+                     symbolic-clevr-context))
+          do (setf (symbolic-context agent) symbolic-clevr-context)
           do (setf (topic agent)
                    (when (speakerp agent)
                      (random-elt (objects (context agent)))))
           do (clear-agent agent))
     (unless (context (hearer experiment))
-      (before-interaction experiment game-mode tutor-mode))
-    (notify context-determined experiment)))
-
-(defmethod before-interaction ((experiment mwm-experiment)
-                               (game-mode (eql :tutor-learner))
-                               (tutor-mode (eql :continuous)))
-  (let* ((data-source (get-configuration experiment :data-source))
-         (clevr-context (random-scene (world experiment)))
-         (mwm-context (clevr->mwm clevr-context :scale (get-configuration experiment :scale-world)))
-         (continuous-context
-          (when (eql data-source :continuous-clevr)
-            (clevr->continuous clevr-context
-                               :directory (get-configuration experiment :data-path)
-                               :scale (get-configuration experiment :scale-world)))))
-    ;; if using clevr and noise, add noise
-    (if (and (get-configuration experiment :noise-amount)
-             (get-configuration experiment :noise-prob)
-             (eql data-source :clevr))
-      (loop for agent in (interacting-agents experiment)
-            for context = (copy-object mwm-context)
-            do (add-noise context
-                          (get-configuration experiment :noise-prob)
-                          (get-configuration experiment :noise-amount))
-            do (setf (context agent) context))
-      ;; else if using clevr, give both agents the same scene
-      ;; otherwise, give tutor the clevr-scene and learner
-      ;; the continuous scene
-      ;; some continuous scenes have only one object. Skip these...
-      (if (eql data-source :clevr)
-        (loop for agent in (interacting-agents experiment)
-              do (setf (context agent) mwm-context))
-        (if (> (length (objects continuous-context)) 1)
-          (setf (context (tutor experiment)) mwm-context
-                (context (learner experiment)) continuous-context)
-          (before-interaction experiment game-mode tutor-mode))))
-    (loop for agent in (interacting-agents experiment)
-          do (setf (symbolic-context agent) clevr-context)
-          do (setf (topic agent)
-                   (when (speakerp agent)
-                     (random-elt (objects (context agent)))))
-          do (clear-agent agent))
-    (notify context-determined experiment)))
-
-(defmethod before-interaction ((experiment mwm-experiment)
-                               (game-mode (eql :tutor-tutor))
-                               (tutor-mode (eql :continuous)))
-  (let* ((clevr-context (random-scene (world experiment)))
-         (mwm-context (clevr->mwm clevr-context
-                                  :scale (get-configuration experiment :scale-world)
-                                  :scale (get-configuration experiment :scale-world))))
-    (if (and (get-configuration experiment :noise-amount)
-             (get-configuration experiment :noise-prob))
-      (loop for agent in (interacting-agents experiment)
-            for context = (add-noise (copy-object mwm-context)
-                                     (get-configuration experiment :noise-prob)
-                                     (get-configuration experiment :noise-amount))
-            do (setf (context agent) context))
-      (loop for agent in (interacting-agents experiment)
-            do (setf (context agent) mwm-context)))
-    (loop for agent in (interacting-agents experiment)
-          do (setf (symbolic-context agent) clevr-context)
-          do (setf (topic agent)
-                   (when (speakerp agent)
-                     (random-elt (objects (context agent)))))
-          do (clear-agent agent))
+      (before-interaction experiment))
     (notify context-determined experiment)))
 
 
 ;;;; do-interaction
-(defgeneric do-interaction (experiment game-mode tutor-mode)
-  (:documentation "Run the appropriate interaction script, depending on the
-   configuration settings"))
+(defgeneric do-interaction (experiment)
+  (:documentation "Run the appropriate interaction script"))
 
-(defmethod do-interaction ((experiment mwm-experiment)
-                           (game-mode (eql :tutor-learner))
-                           (tutor-mode (eql :symbolic)))
+(defun conceptualise-until-success (agent)
+  (loop while t
+        for success = (conceptualise agent (id agent))
+        if success
+        return success
+        else
+        do (before-interaction (experiment agent))))
+
+(defmethod do-interaction ((experiment mwm-experiment))
   "The tutor conceptualises the topic and produces
    one or multiple words. The hearer tries to parse
    and interpret the utterance. If both succeed and
@@ -123,142 +64,50 @@
    alignment."
   (let ((speaker (speaker experiment))
         (hearer (hearer experiment)))
-    (loop while t
-          for success = (conceptualise speaker)
-          if success
-          return success
-          else
-          do (before-interaction experiment game-mode tutor-mode))
-    (produce-word speaker)
+    (case (id speaker)
+      (tutor (conceptualise-until-success speaker))
+      (learner (conceptualise speaker (id speaker))))
+    (produce-word speaker (id speaker))
     (when (utterance speaker)
       (setf (utterance hearer) (utterance speaker))
-      (when (and (parse-word hearer)
-                 (interpret hearer)
+      (when (and (parse-word hearer (id hearer))
+                 (interpret hearer (id hearer))
                  (determine-success speaker hearer))
         (setf (communicated-successfully speaker) t
               (communicated-successfully hearer) t)))))
-
-(defun conceptualise-until-success (agent game-mode tutor-mode)
-  "The tutor will always first try to conceptualise on the
-   symbolic level. If this already fails, the scene is skipped
-   and another one is loaded. If it succeeds, the tutor
-   conceptualises using its continuous-valued lexion."
-  (loop while t
-        for mwm-context = (context agent)
-        for clevr-context = (symbolic-context agent)
-        for concept-success
-        = (and (setf (context agent) clevr-context)
-               (with-disabled-monitors
-                 (conceptualise-symbolic agent))
-               (setf (context agent) mwm-context)
-               (conceptualise agent))
-        if concept-success
-        do (progn (setf (discriminative-set agent) nil)
-             (return concept-success))
-        else
-        do (before-interaction (experiment agent) game-mode tutor-mode)))
-
-(defun conceptualise-with-re-entrance (agent game-mode tutor-mode)
-  "The tutor first tries to conceptualise on the symbolic level,
-   next on the continuous level and finally the tutor also does
-   re-entrance."
-  (loop while t
-        for mwm-context = (context agent)
-        for clevr-context = (symbolic-context agent)
-        for concept-success
-        = (and (setf (context agent) clevr-context)
-               (with-disabled-monitors
-                 (conceptualise-symbolic agent))
-               (setf (context agent) mwm-context)
-               (conceptualise agent)
-               (re-entrance agent))
-        if concept-success
-        do (progn (setf (discriminative-set agent) nil)
-             (return concept-success))
-        else
-        do (before-interaction (experiment agent) game-mode tutor-mode)))
-                                
-
-(defmethod do-interaction ((experiment mwm-experiment)
-                           (game-mode (eql :tutor-learner))
-                           (tutor-mode (eql :continuous)))
-  "The tutor conceptualises the topic and produces
-   one or multiple words. The hearer tries to parse
-   and interpret the utterance. If both succeed and
-   the interpretation is correct, the interaction is
-   a success. Adoption is handled together with
-   alignment."
-  (let ((speaker (speaker experiment))
-        (hearer (hearer experiment)))
-    (if (get-configuration experiment :tutor-re-entrance)
-      (conceptualise-with-re-entrance speaker game-mode tutor-mode)
-      (conceptualise-until-success speaker game-mode tutor-mode))
-    (produce-word speaker)
-    (when (utterance speaker)
-      (setf (utterance hearer) (utterance speaker))
-      (when (and (parse-word hearer)
-                 (interpret hearer)
-                 (determine-success speaker hearer))
-        (setf (communicated-successfully speaker) t
-              (communicated-successfully hearer) t)))))
-
-(defmethod do-interaction ((experiment mwm-experiment)
-                           (game-mode (eql :tutor-tutor))
-                           (tutor-mode (eql :continuous)))
-  (let ((speaker (speaker experiment))
-        (hearer (hearer experiment)))
-    (if (get-configuration experiment :tutor-re-entrance)
-      (conceptualise-with-re-entrance speaker game-mode tutor-mode)
-      (conceptualise-until-success speaker game-mode tutor-mode))
-    (produce-word speaker)
-    (when (utterance speaker)
-      (setf (utterance hearer) (utterance speaker))
-      (when (and (parse-word hearer)
-                 (interpret hearer)
-                 (determine-success speaker hearer))
-        (setf (communicated-successfully speaker) t
-              (communicated-successfully hearer) t)))))
-    
-
 
 ;;;; after-interaction
-(defgeneric after-interaction (experiment game-mode tutor-mode)
-  (:documentation "Finalize the interaction, depending on the configuration settings"))
+(defgeneric after-interaction (experiment)
+  (:documentation "Finalize the interaction"))
 
-(defmethod after-interaction ((experiment mwm-experiment)
-                               (game-mode (eql :tutor-learner))
-                               (tutor-mode (eql :symbolic)))
-  (let* ((tutor (find 'tutor (interacting-agents experiment) :key #'id))
-         (learner (find 'learner (interacting-agents experiment) :key #'id))
-         (topic (if (eql (get-configuration experiment :data-source) :clevr)
-                  (find (id (topic tutor)) (objects (context learner)) :key #'id)
-                  (closest-to-topic tutor (context learner)))))
-    (when (discriminative-set tutor)
-      (align-agent learner topic))))
-
-(defmethod after-interaction ((experiment mwm-experiment)
-                               (game-mode (eql :tutor-learner))
-                               (tutor-mode (eql :continuous)))
-  (let* ((tutor (tutor experiment))
-         (learner (learner experiment))
-         (topic (if (eql (get-configuration experiment :data-source) :clevr)
-                  (find (id (topic tutor)) (objects (context learner)) :key #'id)
-                  (closest-to-topic tutor (context learner)))))
-    (when (applied-cxns tutor)
-      (align-agent learner topic))))
-
-(defmethod after-interaction ((experiment mwm-experiment)
-                               (game-mode (eql :tutor-tutor))
-                               tutor-mode)
-  ;; do nothing
-  nil)
-
+(defmethod after-interaction ((experiment mwm-experiment))
+  (when (get-configuration experiment :learning-active)
+    (case (id (speaker experiment))
+      (tutor (let ((tutor (speaker experiment))
+                   (learner (hearer experiment)))
+               (when (discriminative-set tutor)
+                 (let ((topic (if (eql (get-configuration experiment :data-source) :clevr)
+                                (find (id (topic tutor)) (objects (context learner)) :key #'id)
+                                (closest-to-topic tutor (context learner)))))
+                   (align-agent learner topic)))))
+      (learner nil))))
+                 
+;; how to align when the learner was speaker?
+;; let the tutor produce for the topic and align using that word-object pair?
+;; this could be a completely different utterance than the one produced by the learner
+;; it could even be null...
 
 ;;;; Interact
 (defmethod interact ((experiment mwm-experiment)
                      interaction &key)
-  (let ((game-mode (get-configuration experiment :game-mode))
-        (tutor-mode (get-configuration experiment :tutor-lexicon)))
-    (before-interaction experiment game-mode tutor-mode)
-    (do-interaction experiment game-mode tutor-mode)
-    (after-interaction experiment game-mode tutor-mode)))
+  ;; for the cogent test:
+  (let ((test-after-n-interactions (get-configuration experiment :test-after-n-interactions)))
+    (when (and test-after-n-interactions (= (interaction-number interaction) test-after-n-interactions))
+      (set-configuration experiment :learning-active nil :replace t)
+      (setf (world experiment)
+            (make-instance 'clevr-world :data-sets '("valB")))
+      (format t "~%~%SWITCHING FROM CONDITION A TO CONDITION B. SWITCHED OFF LEARNING~%~%")))
+  ;; regular interaction
+  (before-interaction experiment)
+  (do-interaction experiment)
+  (after-interaction experiment))

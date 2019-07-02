@@ -10,16 +10,27 @@
 (activate-monitor display-communicative-success)
 ;(deactivate-monitor display-communicative-success)
 
-;; Creating the experiment might take a few seconds
-;; since large amounts of data need to be loaded from file
+
+;; ----------
+;; + CoGenT +
+;; ----------
+
+(setf *clevr-data-path*
+      (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT"))
+                       cl-user:*babel-corpora*))
+
+(reset-clevr-data-path)
+
+;; --------------------
+;; + Run interactions +
+;; --------------------
+
 (defparameter *configuration*
   (make-configuration
-   :entries '((:tutor-lexicon . :symbolic)
-              (:data-source . :continuous-clevr)
-              (:scale-world . t)
+   :entries '((:data-source . :clevr)
+              (:scale-world . nil)
               (:category-representation . :prototype)
-              (:noise-amount . nil)
-              (:noise-prob . nil))))
+              (:determine-interacting-agents-mode . :tutor-speaks))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -40,15 +51,14 @@
 
 (run-experiments '(
                    (test
-                    ((:tutor-lexicon . :symbolic)
-                     (:data-source . :continuous-clevr)
+                    ((:data-source . :clevr)
                      (:scale-world . nil)
                      (:category-representation . :prototype)
-                     (:noise-amount . nil)
-                     (:noise-prob . nil)))
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:test-after-n-interactions . 10)))
                    )
-                 :number-of-interactions 10000
-                 :number-of-series 5
+                 :number-of-interactions 1000
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"

@@ -118,15 +118,15 @@
     `((wh-ratio . ,(if scale-p (min ratio-with-variance 1.0) ratio-with-variance)))))
 
 ;;;; clevr -> mwm
-(defmethod clevr->mwm ((scene clevr-scene)
-                       &key (scale nil))
+(defmethod clevr->simulated ((scene clevr-scene)
+                             &key (scale nil))
   (make-instance 'mwm-object-set :id (id scene)
                  :image (image scene)
                  :objects (loop for obj in (objects scene)
                                 collect (clevr->mwm obj :scale scale))))
 
-(defmethod clevr->mwm ((object clevr-object)
-                       &key (scale nil))
+(defmethod clevr->simulated ((object clevr-object)
+                             &key (scale nil))
   (make-instance 'mwm-object :id (id object) ;; !!!
                  :attributes (append (to-value object 'x-pos scale)
                                      (to-value object 'y-pos scale)
@@ -193,7 +193,7 @@
                  (/ (- value (cdr (assoc 'min boundaries)))
                     (- (cdr (assoc 'max boundaries)) (cdr (assoc 'min boundaries)))))))
 
-(defun continuous-clevr->mwm-object (alist)
+(defun extracted->mwm-object (alist)
   "Load a single object"
   (let ((mean-color (rest (assoc :color-mean alist)))
         (std-color (rest (assoc :color-std alist))))
@@ -219,7 +219,7 @@
     (make-instance 'mwm-object :id (make-id 'object)
                    :attributes alist)))
 
-(defmethod clevr->continuous ((scene clevr-scene) &key directory (scale nil))
+(defmethod clevr->extracted ((scene clevr-scene) &key directory (scale nil))
   ;; take the name of the scene
   ;; look it up in 'directory'
   ;; and load the data

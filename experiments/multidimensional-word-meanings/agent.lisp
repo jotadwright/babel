@@ -93,17 +93,10 @@
 
 (define-event conceptualisation-finished (agent mwm-agent))
 
-;;; Tutor conceptualisation
-(defgeneric conceptualise (agent)
+(defgeneric conceptualise (agent role)
   (:documentation "Conceptualise the topic"))
 
-(defmethod conceptualise ((agent mwm-agent))
-  (case (get-configuration agent :tutor-lexicon)
-    (:symbolic (conceptualise-symbolic agent))
-    (:continuous (conceptualise-continuous agent))))
-
-; symbolic
-(defmethod conceptualise-symbolic ((agent mwm-agent))
+(defmethod conceptualise ((agent mwm-agent) (role (eql 'tutor)))
   "The tutor uses a symbolic representation of the context and
    computes the minimal discriminative set of attributes"
   (let* ((all-objects-as-alist
@@ -122,110 +115,35 @@
     (notify conceptualisation-finished agent)
     (discriminative-set agent)))
 
-; continuous
-(defun choose-best-word (agent meaning-so-far cxns-to-consider)
-  "Choose the best word to add to the utterance. This function
-   simply takes the word with the highest similarity."
-  (extremum cxns-to-consider
-            :key #'(lambda (cxn)
-                     (let* ((cxn-meaning (attr-val cxn :meaning))
-                            (meaning (fuzzy-union cxn-meaning meaning-so-far)))
-                       (weighted-similarity (topic agent) meaning)))
-            :test #'>))
-
-(defun choose-discriminating-word (agent meaning-so-far cxns-to-consider)
-  "Choose the most discriminating word to add to the utterance.
+(defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
+  "Choose the most discriminating word.
    The word has to have a similarity to the topic that is higher
    than the similarity to any other object. If this is
    the case for multiple words, the one with the biggest difference
    between best-word<->topic and best-word<->best-other-object
    is chosen."
   (loop with best-cxn = nil
-        with best-similarity = 0
         with best-difference = 0
-        for cxn in (shuffle cxns-to-consider)
+        for cxn in (shuffle (constructions (grammar agent)))
         for cxn-meaning = (attr-val cxn :meaning)
-        for meaning = (fuzzy-union cxn-meaning meaning-so-far)
-        for topic-similarity = (weighted-similarity (topic agent) meaning)
+        for topic-similarity = (weighted-similarity (topic agent) cxn-meaning)
         for best-other-similarity = (loop for object in (remove (topic agent) (objects (context agent)))
-                                          maximizing (weighted-similarity object meaning))
+                                          maximizing (weighted-similarity object cxn-meaning))
         for difference = (- topic-similarity best-other-similarity)
         when (and (> topic-similarity best-other-similarity)
                   (> difference best-difference))
         do (setf best-cxn cxn
-                 best-similarity topic-similarity
                  best-difference difference)
         finally
-        (return best-cxn)))
-
-(defmethod conceptualise-continuous ((agent mwm-agent))
-  "Conceptualisation according to Pieter Wellens' adaptive strategy.
-   Keep adding words to the utterance as long as they improve the
-   similarity between the utterance and the topic. It is possible
-   that the lexicon is not good enough to describe the topic and
-   not a single discriminating word is found"
-  (loop with utterance = nil ; list of cxns
-        with utterance-meaning = nil ; combined meaning
-        with best-similarity = 0
-        with continue = t
-        ; utterance has a max length
-        while (and (length< utterance (get-configuration agent :max-tutor-utterance-length)) continue)
-        for best-new-word
-        = (choose-discriminating-word agent utterance-meaning
-                                      (remove-if #'(lambda (cxn)
-                                                     (member cxn utterance))
-                                                 (constructions (grammar agent))))
-        for new-similarity = (when best-new-word
-                               (let* ((cxn-meaning (attr-val best-new-word :meaning))
-                                      (extended-meaning (fuzzy-union cxn-meaning utterance-meaning)))
-                                 (weighted-similarity (topic agent) extended-meaning)))
-        if (and new-similarity (> new-similarity best-similarity))
-        do (progn (push best-new-word utterance)
-             (setf utterance-meaning (fuzzy-union (attr-val best-new-word :meaning) utterance-meaning))
-             (setf best-similarity new-similarity))
-        else
-        do (setf continue nil)
-        finally
-        (progn (setf (applied-cxns agent) utterance)
+        (progn (setf (applied-cxns agent)
+                     (when best-cxn (list best-cxn)))
           (notify conceptualisation-finished agent)
-          (return utterance))))
-
-
-;; ---------------
-;; + Re-entrance +
-;; ---------------
-
-(defgeneric re-entrance (agent)
-  (:documentation "Do re-entrance"))
-
-(defmethod re-entrance ((agent mwm-agent))
-  "The tutor checks whether interpreting his own utterance
-   will lead him to the topic."
-  (when (and (eql (get-configuration agent :tutor-lexicon) :continuous)
-             (applied-cxns agent))
-    ;; construct the utterance
-    (let ((utterance (mapcar #'(lambda (cxn) (attr-val cxn :form))
-                             (applied-cxns agent)))
-          interpreted-object success)
-      (setf (utterance agent) utterance)
-      ;; disable monitors
-      (with-disabled-monitors
-        ;; parse and interpret
-        (parse-word agent)
-        (setf interpreted-object
-              (interpret agent)))
-      ;; compare equality
-      (setf success (eql (topic agent) interpreted-object))
-      ;; clear slots
-      (setf (utterance agent) nil
-            (parsed-meaning agent) nil)
-      success)))
-    
+          (return best-cxn))))
 
 ;; --------------
 ;; + Production +
 ;; --------------
-(defgeneric produce-word (agent)
+(defgeneric produce-word (agent role)
   (:documentation "Produce an utterance"))
 
 (define-event production-finished (agent mwm-agent))
@@ -238,9 +156,7 @@
     (small . ("small" "tiny")) (large . ("large" "big"))
     (metal . ("metal" "metallic" "shiny")) (rubber . ("rubber" "matte"))))
 
-
-;;; Tutor production
-(defmethod produce-word ((agent mwm-agent))
+(defmethod produce-word ((agent mwm-agent) (role (eql 'tutor)))
   "Simply make strings from the symbols. When lexical variation is
    enabled, the tutor randomly chooses one of the available
    synonyms."
@@ -260,16 +176,24 @@
   (notify production-finished agent)
   (utterance agent))
 
+(defmethod produce-word ((agent mwm-agent) (role (eql 'learner)))
+  (when (applied-cxns agent)
+    (setf (utterance agent) (attr-val (first (applied-cxns agent)) :form)))
+  (notify production-finished agent)
+  (utterance agent))
+
 ;; -----------
 ;; + Parsing +
 ;; -----------
-(defgeneric parse-word (agent)
+(defgeneric parse-word (agent role)
   (:documentation "Parse an utterance"))
 
 (define-event parsing-finished (agent mwm-agent))
 
-;;; Learner parsing
-(defmethod parse-word ((agent mwm-agent))
+(defmethod parse-word ((agent mwm-agent) (role (eql 'tutor)))
+  t)
+
+(defmethod parse-word ((agent mwm-agent) (role (eql 'learner)))
   "Parse as much words as possible and compute the combined meaning
    using the fuzzy-union operation. Set the applied-cxns and parsed-meaning."
   (multiple-value-bind (meaning cipn)
@@ -288,38 +212,55 @@
 ;; ------------------
 ;; + Interpretation +
 ;; ------------------
-(defgeneric interpret (agent)
+(defgeneric interpret (agent role)
   (:documentation "Interpret a meaning"))
 
 (define-event interpretation-finished (agent mwm-agent))
 
-;;; Learner interpretation
-(defmethod interpret ((agent mwm-agent))
+(defmethod interpret ((agent mwm-agent) (role (eql 'tutor)))
+  ;; how will the symbolic tutor interpret the learner's utterance??
+  ;; let's say the learner says 'blue'
+  ;; the tutor finds all objects that have 'blue' as an attribute
+  ;; but this can be more than one
+  ;; how to determine which one to choose as topic? at random??
+  (let* ((all-objects-as-alist
+          (loop for object in (objects (context agent))
+                collect (cons (id object) (object->alist object))))
+         (objects-with-utterance
+          (loop for (id . object) in all-objects-as-alist
+                when (member (utterance agent) (mapcar #'mkstr (mapcar #'cdr object)) :test #'string=)
+                collect id)))
+    (when objects-with-utterance
+      (setf (topic agent)
+            (find (random-elt objects-with-utterance)
+                  (objects (context agent))
+                  :key #'id))))
+  (notify interpretation-finished agent)
+  (topic agent))
+    
+          
+(defmethod interpret ((agent mwm-agent) (role (eql 'learner)))
   "The agent computes the weighted similarity between the parsed-meaning
    and each of the objects in the context. The topic is the
    object for which this value is maximized."
-  (let (interpreted-topic)
-    (when (parsed-meaning agent)
-      (let* ((objects-with-similarity
-              (loop for object in (objects (context agent))
-                    for sim = (weighted-similarity object (parsed-meaning agent))
-                    collect (cons object sim)))
-             ;; if two objects have exactly the same
-             ;; maximum similarity, interpretation fails
-             (highest-pair
-              (the-biggest #'cdr objects-with-similarity))
-             (maybe-topic (car highest-pair))
-             (duplicatesp (> (count (cdr highest-pair)
-                                    objects-with-similarity
-                                    :key #'cdr :test #'=)
-                             1)))
-        (if (hearerp agent)
-          (setf (topic agent)
-                (unless duplicatesp maybe-topic))
-          (setf interpreted-topic
-                (unless duplicatesp maybe-topic)))))
-    (notify interpretation-finished agent)
-    (if (hearerp agent) (topic agent) interpreted-topic)))
+  (when (parsed-meaning agent)
+    (let* ((objects-with-similarity
+            (loop for object in (objects (context agent))
+                  for sim = (weighted-similarity object (parsed-meaning agent))
+                  collect (cons object sim)))
+           ;; if two objects have exactly the same
+           ;; maximum similarity, interpretation fails
+           (highest-pair
+            (the-biggest #'cdr objects-with-similarity))
+           (maybe-topic (car highest-pair))
+           (duplicatesp (> (count (cdr highest-pair)
+                                  objects-with-similarity
+                                  :key #'cdr :test #'=)
+                           1)))
+      (setf (topic agent)
+            (unless duplicatesp maybe-topic))))
+  (notify interpretation-finished agent)
+  (topic agent))
               
 
 ;; ---------------------

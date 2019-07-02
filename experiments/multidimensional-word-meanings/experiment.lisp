@@ -4,31 +4,26 @@
 ;; + Configurations +
 ;; ------------------
 (define-configuration-default-value :dot-interval 100)
-
 ;; when :data-source is :clevr, load the clevr dataset(s) specified
 ;: using :data-sets. Otherwise, load the continuous clevr data
 ;; specified using :data-path
-(define-configuration-default-value :data-source :clevr)
+(define-configuration-default-value :data-source :clevr) ;; :clevr or :extracted
 (define-configuration-default-value :data-sets (list "val"))
 (define-configuration-default-value :data-path
-                                    (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "bjorn"))
-                                                     cl-user:*babel-corpora*))
-
+   (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-extracted"))
+                    cl-user:*babel-corpora*))
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks)
 (define-configuration-default-value :initial-certainty 0.5)
 (define-configuration-default-value :certainty-incf 0.1)
 (define-configuration-default-value :certainty-decf -0.1)
 (define-configuration-default-value :remove-on-lower-bound nil)
-(define-configuration-default-value :category-representation :prototype)
-(define-configuration-default-value :noise-amount nil) 
-(define-configuration-default-value :noise-prob nil) 
+(define-configuration-default-value :category-representation :prototype) 
 (define-configuration-default-value :scale-world t)
-(define-configuration-default-value :max-tutor-utterance-length 1) 
+(define-configuration-default-value :max-tutor-utterance-length 1)
 (define-configuration-default-value :lexical-variation nil)
-(define-configuration-default-value :tutor-lexicon :continuous)
-(define-configuration-default-value :game-mode :tutor-learner)
-(define-configuration-default-value :tutor-re-entrance nil)
 (define-configuration-default-value :export-lexicon-interval 500)
+(define-configuration-default-value :learning-active t)
+(define-configuration-default-value :test-after-n-interactions 1000)
 
 ;; --------------
 ;; + Experiment +
@@ -41,14 +36,11 @@
   "Create the population and load the scenes from file"
   (activate-monitor print-a-dot-for-each-interaction)
   (setf (population experiment)
-        (case (get-configuration experiment :game-mode)
-          (:tutor-learner (list (make-tutor-agent experiment)
-                                (make-learner-agent experiment)))
-          (:tutor-tutor (list (make-tutor-agent experiment)
-                              (make-tutor-agent experiment)))))
+        (list (make-tutor-agent experiment)
+              (make-learner-agent experiment)))
   (setf (world experiment)
         (make-instance 'clevr-world :data-sets
-                         (get-configuration experiment :data-sets))))
+                       (get-configuration experiment :data-sets))))
 
 (defmethod learner ((experiment mwm-experiment))
   (find 'learner (population experiment) :key #'id))
