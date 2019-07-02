@@ -77,13 +77,13 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("cogent-prototype-train-10"
-                     "cogent-prototype-train-50"
-                     "cogent-prototype-train-100"
-                     "cogent-prototype-train-200"
-                     "cogent-prototype-train-500"
-                     "cogent-prototype-train-1000")
+ :experiment-names '("cogent-exponential-train-10"
+                     "cogent-exponential-train-50"
+                     "cogent-exponential-train-100"
+                     "cogent-exponential-train-200"
+                     "cogent-exponential-train-500"
+                     "cogent-exponential-train-1000")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
  :captions '("train=10" "train=50" "train=100" "train=200" "train=500" "train=1000")
- :title "CLEVR CoGenT (prototype)" :end nil)
+ :title "CLEVR CoGenT (exponential)" :end nil)
