@@ -30,14 +30,16 @@
    :entries '((:data-source . :clevr)
               (:scale-world . nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks))))
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:test-after-n-interactions . 100)
+              (:data-sets . ("valA")))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 200)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
@@ -55,12 +57,13 @@
                      (:scale-world . nil)
                      (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:test-after-n-interactions . 10)))
+                     (:test-after-n-interactions . 10)
+                     (:data-sets . ("valA"))))
                    )
-                 :number-of-interactions 1000
+                 :number-of-interactions 20
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
-                                 ;"export-lexicon-size"
+                                 "export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-utterance-length"
                                  ))
@@ -74,11 +77,13 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("continuous-clevr-min-max-scaling"
-                     "continuous-clevr-prototype-scaling"
-                     "continuous-clevr-prototype-min-max-scaling"
-                     "continuous-clevr-exponential-scaling")
+ :experiment-names '("cogent-prototype-train-10"
+                     "cogent-prototype-train-50"
+                     "cogent-prototype-train-100"
+                     "cogent-prototype-train-200"
+                     "cogent-prototype-train-500"
+                     "cogent-prototype-train-1000")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("min-max" "prototype" "prototype-min-max" "exponential")
- :title "continuous-clevr with scaling" :end nil)
+ :captions '("train=10" "train=50" "train=100" "train=200" "train=500" "train=1000")
+ :title "CLEVR CoGenT (prototype)" :end nil)

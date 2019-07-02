@@ -227,7 +227,7 @@
                 (make-pathname :name (name scene) :type "json")
                 directory))
          (objects (with-open-file (stream path :direction :input)
-                    (mapcar #'continuous-clevr->mwm-object
+                    (mapcar #'extracted->mwm-object
                             (mapcar #'decode-json-from-string
                                     (stream->list stream))))))
     (when scale
