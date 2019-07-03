@@ -23,7 +23,7 @@
 (define-configuration-default-value :lexical-variation nil)
 (define-configuration-default-value :export-lexicon-interval 500)
 (define-configuration-default-value :learning-active t)
-(define-configuration-default-value :test-after-n-interactions 1000)
+(define-configuration-default-value :test-after-n-interactions nil)
 
 ;; --------------
 ;; + Experiment +
