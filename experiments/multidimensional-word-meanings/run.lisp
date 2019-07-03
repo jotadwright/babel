@@ -29,10 +29,10 @@
   (make-configuration
    :entries '((:data-source . :clevr)
               (:scale-world . nil)
-              (:category-representation . :prototype)
+              (:category-representation . :exponential)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:test-after-n-interactions . 100)
-              (:data-sets . ("valA")))))
+              (:test-after-n-interactions . nil)
+              (:data-sets . ("val")))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
@@ -52,15 +52,15 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (cogent-test
+                   (test
                     ((:data-source . :clevr)
                      (:scale-world . nil)
-                     (:category-representation . :min-max)
+                     (:category-representation . :exponential)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:test-after-n-interactions . 5000)
-                     (:data-sets . ("valA"))))
+                     (:test-after-n-interactions . nil)
+                     (:data-sets . ("val"))))
                    )
-                 :number-of-interactions 10000
+                 :number-of-interactions 5000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
@@ -69,7 +69,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "cogent-test"
+ :experiment-name "test"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -77,14 +77,12 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("cogent-min-max-train-10"
-                     "cogent-min-max-train-50"
-                     "cogent-min-max-train-100"
-                     "cogent-min-max-train-200"
-                     "cogent-min-max-train-500"
-                     "cogent-min-max-train-1000"
-                     "cogent-min-max-train-2000")
- :measure-name "communicative-success"
- :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
- :captions '("train=10" "train=50" "train=100" "train=200" "train=500" "train=1000" "train=2000") ;
- :title "CLEVR CoGenT (min-max)" :end nil)
+ :experiment-names '("cogent-exponential-train-100"
+                     "cogent-exponential-train-500"
+                     "cogent-exponential-train-1000"
+                     "cogent-exponential-train-2500"
+                     "cogent-exponential-train-5000")
+ :measure-name "lexicon-size"
+ :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Lexicon Size"
+ :captions '("train=100" "500" "1000" "2500" "5000")
+ :title "CLEVR CoGenT (exponential)" :end 10000)
