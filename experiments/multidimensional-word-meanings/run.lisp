@@ -77,12 +77,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("cogent-exponential-train-100"
-                     "cogent-exponential-train-500"
-                     "cogent-exponential-train-1000"
-                     "cogent-exponential-train-2500"
-                     "cogent-exponential-train-5000")
- :measure-name "lexicon-size"
- :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Lexicon Size"
- :captions '("train=100" "500" "1000" "2500" "5000")
- :title "CLEVR CoGenT (exponential)" :end 10000)
+ :experiment-names '("baseline-min-max-not-scaled"
+                     "baseline-prototype-not-scaled"
+                     "baseline-pmm-not-scaled"
+                     "baseline-exponential-not-scaled")
+ :measure-name "communicative-success"
+ :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Success"
+ :captions '("min-max" "prototype" "prototype-min-max" "exponential")
+ :title nil :end 10000)
