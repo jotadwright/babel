@@ -22,7 +22,7 @@
          (extracted-clevr-context
           (when (eql data-source :extracted)
             (clevr->extracted symbolic-clevr-context
-                              :directory (get-configuration experiment :data-path)
+                              :directory (find-data experiment :data-path)
                               :scale (get-configuration experiment :scale-world)))))
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
@@ -109,11 +109,10 @@
             (make-instance 'clevr-world :data-sets '("valB")))
       (when (eql (get-configuration experiment :data-source) :extracted)
         ;; set the data path
-        (set-configuration experiment :data-path 
-                           (make-pathname :directory
-                                          (append (butlast (pathname-directory (get-configuration experiment :data-path)))
-                                                  (list "valB-extracted")))
-                           :replace t))
+        (set-data experiment :data-path
+                  (make-pathname :directory
+                                 (append (butlast (pathname-directory (find-data experiment :data-path)))
+                                         (list "valB-extracted")))))
       (format t "~%~%SWITCHING FROM CONDITION A TO CONDITION B. SWITCHED OFF LEARNING~%~%")))
   ;; regular interaction
   (before-interaction experiment)

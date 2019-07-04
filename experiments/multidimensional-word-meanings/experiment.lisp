@@ -35,12 +35,16 @@
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Create the population and load the scenes from file"
   (activate-monitor print-a-dot-for-each-interaction)
+  ;; set the population
   (setf (population experiment)
         (list (make-tutor-agent experiment)
               (make-learner-agent experiment)))
+  ;; set the world
   (setf (world experiment)
         (make-instance 'clevr-world :data-sets
-                       (get-configuration experiment :data-sets))))
+                       (get-configuration experiment :data-sets)))
+  ;; set the data path
+  (set-data experiment :data-path (get-configuration experiment :data-path)))
 
 (defmethod learner ((experiment mwm-experiment))
   (find 'learner (population experiment) :key #'id))
