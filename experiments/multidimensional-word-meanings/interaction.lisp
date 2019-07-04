@@ -104,8 +104,16 @@
   (let ((test-after-n-interactions (get-configuration experiment :test-after-n-interactions)))
     (when (and test-after-n-interactions (= (interaction-number interaction) test-after-n-interactions))
       (set-configuration experiment :learning-active nil :replace t)
+      ;; reload the world with a different dataset
       (setf (world experiment)
             (make-instance 'clevr-world :data-sets '("valB")))
+      (when (eql (get-configuration experiment :data-source) :extracted)
+        ;; set the data path
+        (set-configuration experiment :data-path 
+                           (make-pathname :directory
+                                          (append (butlast (pathname-directory (get-configuration experiment :data-path)))
+                                                  (list "valB-extracted")))
+                           :replace t))
       (format t "~%~%SWITCHING FROM CONDITION A TO CONDITION B. SWITCHED OFF LEARNING~%~%")))
   ;; regular interaction
   (before-interaction experiment)

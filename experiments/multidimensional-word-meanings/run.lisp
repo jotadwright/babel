@@ -27,19 +27,22 @@
 
 (defparameter *configuration*
   (make-configuration
-   :entries '((:data-source . :clevr)
-              (:scale-world . nil)
-              (:category-representation . :exponential)
+   :entries `((:data-source . :extracted)
+              (:scale-world . ,nil)
+              (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:test-after-n-interactions . nil)
-              (:data-sets . ("val")))))
+              (:test-after-n-interactions . ,3)
+              (:data-sets . ("valA"))
+              (:data-path . ,(merge-pathnames
+                              (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-extracted"))
+                              cl-user:*babel-corpora*)))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 200)
+(run-series *experiment* 6)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
@@ -52,7 +55,7 @@
 ;; ---------------------------------
 
 (run-experiments '(
-                   (test
+                   (exponential-no-scaling
                     ((:data-source . :clevr)
                      (:scale-world . nil)
                      (:category-representation . :exponential)
@@ -60,7 +63,7 @@
                      (:test-after-n-interactions . nil)
                      (:data-sets . ("val"))))
                    )
-                 :number-of-interactions 5000
+                 :number-of-interactions 50000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
@@ -69,7 +72,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "test"
+ :experiment-name "exponential-no-scaling"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
