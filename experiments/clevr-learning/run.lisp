@@ -61,7 +61,7 @@
                      (learning-strategy . :lateral-inhibition)
                      (alignment-strategy . :lateral-inhibition)))
                    )
-                 :number-of-interactions 500
+                 :number-of-interactions 50000
                  :number-of-series 1
                  :monitors '("export-communicative-success"
                              "export-lexicon-size"
@@ -71,11 +71,13 @@
                              "export-program-correctness"
                              "export-avg-cxn-score"
                              "expand-percentage-of-unique-questions-learned"
+                             "export-lexicon-change"
+                             "export-ontology-change"
                              ))
 
 ;;; single strategy
 (create-graph-for-single-strategy
- :experiment-name "50k-learner-never-speaks"
+ :experiment-name "test"
  :measure-names '("communicative-success"
                   "lexicon-size"
                   "ontology-size"

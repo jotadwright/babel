@@ -155,9 +155,10 @@
                       (get-chunk agent id))
                   consider-chunk-ids)))
     (if consider-chunks
-      (compose-until composer
-                     (lambda (s)
-                       (different-meaning s consider-chunks)))
+      (progn (format t "~%Composing a new program. Checking against ~a older programs" (length consider-chunks))
+        (compose-until composer
+                       (lambda (s)
+                         (different-meaning s consider-chunks))))
       (random-elt (get-next-solutions composer)))))
   
 
