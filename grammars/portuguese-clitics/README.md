@@ -1,3 +1,3 @@
 # portuguese-clitics
 
-FCG grammar supporting the following publication: Santos Marques, T. F., & Beuls, K. (2016). A Construction Grammar Approach for Pronominal Clitics in European Portuguese. PROPOR 2016, Tomar, Portugal, July 13-15, 2016, Proceedings (pp. 239-244). 
+Santos Marques, T. F., & Beuls, K. (2016). Evaluation Strategies for Computational Construction Grammars. In Proceedings of COLING 2016: the 26th International Conference on Computational Linguistics: Technical Papers (pp. 1137-1146). Osaka, Japan: The COLING 2016 Organizing Committee. 
