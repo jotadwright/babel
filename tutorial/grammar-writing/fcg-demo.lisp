@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; DEMONSTRATION OF SEMANTIC PARSING WITH FCG AND AMR ;;
+;; DEMONSTRATION OF FLUID CONSTRUCTION GRAMMAR        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; 1. Load and set up FCG 
@@ -9,9 +9,9 @@
 (in-package :fcg)
 (activate-monitor trace-fcg)
 
-;;;; 2. Load the following FCG Light Example Grammar
-;;;;    by executing def-fcg-light-constructions
-;;;;    and def-fcg-light-cxn definitions
+;;;; 2. Load the following FCG Example Grammar
+;;;;    by executing def-fcg-constructions
+;;;;    and def-fcg-cxn definitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fcg-constructions simple-english-grammar
