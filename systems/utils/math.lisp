@@ -223,7 +223,9 @@ coefficient equal to r**2."
 
 (defun random-from-range (start end)
   "Generate a random integer/float in the range [start,end["
-  (+ start (random (- end start))))
+  (if (= start end)
+    start
+    (+ start (random (- end start)))))
 
 ;;;
 ;;; stuff not used
