@@ -61,14 +61,14 @@
 
 (defun area->value (area)
   (case area
-    (large (random-from-range 100 125))
-    (small (random-from-range 25 50))))
+    (large (random-from-range 110 135))
+    (small (random-from-range 35 60))))
 
 (defun combo->value (combo)
-  (list (color->value (first combo))
-        (ypos->value (second combo))
-        (xpos->value (third combo))
-        (area->value (third combo))))
+  (list (color->value (second combo))
+        (ypos->value (third combo))
+        (xpos->value (fourth combo))
+        (area->value (first combo))))
 
 (defun combos->values (combos)
   (loop for combo in combos
