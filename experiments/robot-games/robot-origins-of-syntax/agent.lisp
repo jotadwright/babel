@@ -15,40 +15,34 @@
     :documentation "The agent's ontology, storing known categories")
    (grammar
     :type construction-set :accessor grammar :initform (make-agent-cxn-set)
-    :documentation "The agent's grammar, storing grammatical constructions"))
+    :documentation "The agent's grammar, storing grammatical constructions")
+   (robot
+    :type nao :accessor robot :initarg :robot
+    :documentation "The robot linked to the agent"))
   (:documentation "An agent in the robot-origins-of-syntax experiment"))
-
-(defclass embodied-agent (roos-agent nao)
-  ()
-  (:documentation "A roos-agent embodied in a nao robot"))
 
 (defun make-embodied-agent (experiment)
   "Make an instance of an agent and connect it to the robot"
   (let* ((simulation-mode (get-configuration experiment :simulation-mode))
          (robot-ip (get-configuration experiment :robot-ip))
          (robot-port (get-configuration experiment :robot-port))
-         (container-name (format nil "nao-~a-~a" robot-ip robot-port))
-         (agent (make-instance 'embodied-agent
-                               :experiment experiment
-                               :connect-automatically nil)))
-    (setf (nao-interface::ip agent) robot-ip)
-    (setf (nao-interface::server-port agent) robot-port)
-    (setf (nao-interface::container-name agent) container-name)
+         (robot (make-robot :type 'nao :ip robot-ip :server-port robot-port
+                            :connect-automatically nil)))
     (unless simulation-mode
-      (make-new-connection agent :test-connection t))
-    agent))
+      (make-new-connection robot :test-connection t))
+    (make-instance 'roos-agent :experiment experiment :robot robot)))
 
-(defmethod reset ((agent embodied-agent))
+(defmethod reset ((agent roos-agent))
   "Reset the slots of the agent that change in every interaction"
   (setf (applied-cxn agent) nil)
   (setf (utterance agent) nil)
   (setf (communicated-successfully agent) nil))
 
-(defmethod speaker? ((agent embodied-agent))
+(defmethod speaker? ((agent roos-agent))
   "Check if the agent is the speaker"
   (eql (discourse-role agent) 'speaker))
 
-(defmethod hearer? ((agent embodied-agent))
+(defmethod hearer? ((agent roos-agent))
   "Check if the agent is the hearer"
   (eql (discourse-role agent) 'hearer))
 
@@ -77,7 +71,7 @@
 (defgeneric run-lexical-speaker-task (agent)
   (:documentation "Entry point for when the agent is the speaker"))
 
-(defmethod run-lexical-speaker-task ((agent embodied-agent))
+(defmethod run-lexical-speaker-task ((agent roos-agent))
   "Run the speaker task and return the communicative success"
   (let ((task (make-instance 'lexical-speaker-task
                              :owner agent
@@ -113,7 +107,7 @@
 (defgeneric run-grammatical-speaker-task (agent)
   (:documentation "Entry point for when the agent is the speaker"))
 
-(defmethod run-grammatical-speaker-task ((agent embodied-agent))
+(defmethod run-grammatical-speaker-task ((agent roos-agent))
   "Run the speaker task and return communcative success"
   (let ((task (make-instance 'grammatical-speaker-task
                              :owner agent
@@ -151,7 +145,7 @@
 (defgeneric run-lexical-hearer-task (agent)
   (:documentation "Entry point for when the agent is the hearer"))
 
-(defmethod run-lexical-hearer-task ((agent embodied-agent))
+(defmethod run-lexical-hearer-task ((agent roos-agent))
   "Run the hearer task and return the communicative success"
   (let ((task (make-instance 'lexical-hearer-task
                              :owner agent
@@ -186,7 +180,7 @@
 (defgeneric run-grammatical-hearer-task (agent)
   (:documentation "Entry point for when the agent is the hearer"))
 
-(defmethod run-grammatical-hearer-task ((agent embodied-agent))
+(defmethod run-grammatical-hearer-task ((agent roos-agent))
   "Run the speaker task and return communcative success"
   (let ((task (make-instance 'grammatical-hearer-task
                              :owner agent

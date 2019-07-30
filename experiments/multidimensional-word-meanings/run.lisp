@@ -25,7 +25,15 @@
 ;; + Run interactions +
 ;; --------------------
 
-(defparameter *configuration*
+(defparameter *baseline-configuration*
+  (make-configuration
+   :entries `((:data-source . :clevr)
+              (:scale-world . ,nil)
+              (:category-representation . :prototype)
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:data-sets . ("val")))))
+
+(defparameter *cogent-configuration*
   (make-configuration
    :entries `((:data-source . :extracted)
               (:scale-world . ,nil)
@@ -38,11 +46,11 @@
                               cl-user:*babel-corpora*)))))
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *configuration*))
+  (make-instance 'mwm-experiment :configuration *baseline-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 6)
+(run-series *experiment* 10)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))

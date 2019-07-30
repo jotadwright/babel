@@ -7,7 +7,7 @@
 (progn
   (activate-monitor trace-interaction-in-web-interface)
   (activate-monitor trace-tasks-and-processes)
-  ;(activate-monitor trace-fcg)
+  (activate-monitor trace-fcg)
   ;(activate-monitor trace-fcg-search-process)
   )
 
@@ -23,8 +23,7 @@
 
 (deactivate-all-monitors)
 
-(defvar *exp* (make-instance 'roos-experiment))
-(setf *exp* (make-instance 'roos-experiment))
+(defparameter *exp* (make-instance 'roos-experiment))
 
 ;; input as :text or :speech
 (set-configuration *exp* :input-form :text)
@@ -62,10 +61,11 @@
 
 
 ;; For setting up the robot
-(setf *robot* (make-robot :ip "192.168.1.2" :server-port "1570"))
+(setf *robot* (make-robot :type 'nao :ip "192.168.1.4" :server-port "1570"))
 (crouch *robot*)
 (sit *robot*)
-(take-picture *robot*)
+(take-picture *robot* :open t)
+(observe-world *robot* :open t)
 (look-up-down *robot* 12)
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)

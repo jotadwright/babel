@@ -179,7 +179,7 @@
                                                     (cons 'utterance utterance))
                                             :process process))
   (unless (notify-learning process-result :trigger 'production)
-    (speak agent (format nil "I call the topic ~a" utterance))
+    (speak (robot agent) (format nil "I call the topic ~a" utterance))
     (notify lex-produce-finished utterance applied-cxn)
     process-result)))
 
@@ -202,7 +202,7 @@
       (notify lex-parse-succeeded applied-cxn)
       (notify lex-parse-failed))
     (unless applied-cxn
-      (speak agent (format nil "I do not know the word ~a" utterance)))
+      (speak (robot agent) (format nil "I do not know the word ~a" utterance)))
     (make-process-result 1 (list (cons 'applied-cxn applied-cxn))
                          :process process)))
 

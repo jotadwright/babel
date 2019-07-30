@@ -95,7 +95,7 @@
                              :process process))
       (progn
         (notify could-not-conceptualise)
-        (speak agent "I could not conceptualize the topics")
+        (speak (robot agent) "I could not conceptualize the topics")
         nil))))
 
 ;; -----------
@@ -603,7 +603,7 @@
     (if (null categories)
       (progn
         (notify could-not-discriminate)
-        (speak agent "I could not find unique topics")
+        (speak (robot agent) "I could not find unique topics")
         (make-instance 'fix))
       (progn
         ;; Add new cxns

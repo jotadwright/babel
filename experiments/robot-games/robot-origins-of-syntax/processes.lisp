@@ -13,8 +13,8 @@
   "Dummy process for restart situations. Use this to make the
    robot say whether it is speaker or hearer."
   (declare (ignorable process task agent process-label))
-  (speak agent (format nil "I am the ~a"
-                       (discourse-role agent)))
+  (speak (robot agent) (format nil "I am the ~a"
+                               (discourse-role agent)))
   (make-process-result 1 nil :process process))
 
 ;; -----------------
@@ -66,13 +66,13 @@
   (let ((context-size (get-configuration agent :context-size))
         scene
         process-result)
-    (multiple-value-bind (data img-path) (observe-scene agent :open nil)
+    (multiple-value-bind (data img-path) (observe-world (robot agent) :open nil)
       (setf scene (alist->object-set data))
       (setf process-result (make-process-result 1 (list (cons 'observed-scene scene)
                                                         (cons 'required-size context-size))
                                                 :process process))
       (unless (notify-learning process-result :trigger 'detection)
-        (speak agent (format nil "I detected ~a objects" context-size))
+        (speak (robot agent) (format nil "I detected ~a objects" context-size))
         (when img-path
           (notify observe-scene-finished img-path scene))
         process-result))))
@@ -120,8 +120,8 @@
          (nr-of-topics (get-configuration agent :nr-of-topics))
          (topic-ids (random-elts all-ids nr-of-topics)))
     (if (= nr-of-topics 1)
-      (speak agent "I chose the topic.")
-      (speak agent (format nil "I chose ~a topics" nr-of-topics)))
+      (speak (robot agent) "I chose the topic.")
+      (speak (robot agent) (format nil "I chose ~a topics" nr-of-topics)))
     (notify choose-topics-finished topic-ids)
     (make-process-result 1 (list (cons 'topic-ids topic-ids))
                          :process process)))
@@ -219,31 +219,31 @@
          (game-stage (get-configuration agent :game-stage))
          utterance)
     (if (= nr-of-topics 1)
-      (speak agent "Choose a word for the topic")
-      (speak agent "Choose words for the topics"))
+      (speak (robot agent) "Choose a word for the topic")
+      (speak (robot agent) "Choose words for the topics"))
   (case input-form
     (:speech (case game-stage
-               (:lexical (when (head-touch-middle agent)
+               (:lexical (when (detect-head-touch (robot agent) :middle)
                            (loop with this-utterance = ""
                                  while (= (length this-utterance) 0)
-                                 do (setf this-utterance (first (recognise-words agent vocab)))
+                                 do (setf this-utterance (first (hear (robot agent) vocab)))
                                  when (= (length this-utterance) 0)
-                                 do (speak agent "I did not understand. Could you repeat please?")
+                                 do (speak (robot agent) "I did not understand. Could you repeat please?")
                                  finally
                                  do (push this-utterance utterance))))
                (:grammatical (loop
-                              if (head-yes-no agent)
+                              if (yes-no-feedback (robot agent))
                               do (loop with this-utterance = ""
                                        while (= (length this-utterance) 0)
-                                       do (setf this-utterance (first (recognise-words agent vocab)))
+                                       do (setf this-utterance (first (hear (robot agent) vocab)))
                                        when (= (length this-utterance) 0)
-                                       do (speak agent "I did not understand. Could you repeat please?")
+                                       do (speak (robot agent) "I did not understand. Could you repeat please?")
                                        finally
                                        do (push this-utterance utterance))
                               else
                               do (if (or (null utterance)
                                          (< (length utterance) nr-of-topics))
-                                   (speak agent "I did not receive enough words")
+                                   (speak (robot agent) "I did not receive enough words")
                                    (progn
                                      (setf utterance (reverse utterance))
                                      (return)))
@@ -275,17 +275,17 @@
          (nr-of-topics (get-configuration agent :nr-of-topics))
          (set-len 0)
          set)
-  (speak agent (format nil "Please show me ~a ~a you would call" nr-of-topics (if (> nr-of-topics 1) "objects" "object")))
-  (speak agent (format nil "~a" utterance) :speed 75)
+  (speak (robot agent) (format nil "Please show me ~a ~a you would call" nr-of-topics (if (> nr-of-topics 1) "objects" "object")))
+  (speak (robot agent) (format nil "~a" utterance) :speed 75)
   (loop while (not (= set-len nr-of-topics))
-        when (head-touch-middle agent)
+        when (detect-head-touch (robot agent) :middle)
         do (progn
-             (multiple-value-bind (data img) (observe-scene agent :open nil)
+             (multiple-value-bind (data img) (observe-world (robot agent) :open nil)
                (declare (ignorable img))
                (setf set (alist->object-set data))
                (setf set-len (length (entities set))))
              (when (not (= set-len nr-of-topics))
-               (speak agent (format nil "Sorry, I detected ~a objects." set-len))
+               (speak (robot agent) (format nil "Sorry, I detected ~a objects." set-len))
                (when (< set-len nr-of-topics) (put-back-scene)))))
   (make-process-result 1 (list (cons 'observed-topics (entities set)))
                        :process process)))
@@ -340,10 +340,10 @@
     (setf success (permutation-of? topic-ids observed-topic-ids))
     (if (speaker? agent)
       (if success
-        (speak agent "You are correct!")
-        (speak agent "You are wrong!"))
+        (speak (robot agent) "You are correct!")
+        (speak (robot agent) "You are wrong!"))
       (if success
-        (speak agent "I am correct!")
-        (speak agent "I am learning!")))
+        (speak (robot agent) "I am correct!")
+        (speak (robot agent) "I am learning!")))
     (make-process-result 1 (list (cons 'communicated-successfully success))
                          :process process)))

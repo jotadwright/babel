@@ -7,12 +7,12 @@
 ;; -----------------------------
 
 ;; Robot stuff
-(define-configuration-default-value :robot-ip "192.168.1.2")
+(define-configuration-default-value :robot-ip "192.168.1.4")
 (define-configuration-default-value :robot-port "1570")
 (define-configuration-default-value :english-vocabulary '("left" "right" ;"middle"
                                                         "top" "bottom" ;"center" "up" "down"
                                                         "red" "blue" ;"yellow" "green" "pink" "cyan"
-                                                        ; "large" "small"
+                                                         "large" "small"
                                                         ))
 (define-configuration-default-value :input-form :text) ; :speech or :text
 
@@ -27,15 +27,15 @@
 ;; Configurations for word/category learning
 (define-configuration-default-value :lexical-context-size 3)
 (define-configuration-default-value :lexical-nr-of-topics 1)
-(define-configuration-default-value :features '(:xpos :ypos :color))
+(define-configuration-default-value :features '(:xpos :ypos :color :area))
 (define-configuration-default-value :feature-bounds '((:xpos (min . 50)
                                                              (max . 650))
                                                       (:ypos (min . 50)
                                                              (max . 450))
                                                       (:color (min . (0 0 0))
                                                               (max . (255 255 255)))
-                                                      ;(:area (min . 0)
-                                                      ;       (max . 22000))
+                                                      (:area (min . 0)
+                                                             (max . 22000))
                                                       ))
 
 ;; Configurations for grammar learning
@@ -81,7 +81,7 @@
   (stop-scene-server)
   ;; stop the connection to the robot
   (loop for agent in (population experiment)
-        do (disconnect-robot agent)))
+        do (disconnect-robot (robot agent))))
 
 
 ;;;; Determine Interacting Agents
@@ -194,7 +194,7 @@
              (run-interaction experiment)
              (notify interaction-in-series-finished interaction number-of-interactions)
              (unless (= interaction number-of-interactions)
-               (head-touch-middle (first (population experiment))))))
+               (detect-head-touch (robot (first (population experiment))) :middle))))
   (notify run-series-finished experiment))
 
 ;; ---------------
@@ -211,8 +211,8 @@
          (top (make-ypos-category 0))
          ;(ymiddle (make-ypos-category 0.5))
          (bottom (make-ypos-category 1))
-         ;(large (make-area-category 1))
-         ;(small (make-area-category 0))
+         (large (make-area-category 1))
+         (small (make-area-category 0))
          (red (make-color-category '(1 0 0)))
          ;(green (make-color-category '(0 1 0)))
          (blue (make-color-category '(0 0 1)))
@@ -224,7 +224,7 @@
     (setf (ontology agent) ontology)
     (set-data ontology :xpos (list left right))
     (set-data ontology :ypos (list top bottom))
-    ;(set-data ontology :area (list large small))
+    (set-data ontology :area (list large small))
     (set-data ontology :color (list red blue))
     (add-lex-cxn agent "left" left)
     ;(add-lex-cxn agent "middle" xmiddle)
@@ -232,8 +232,8 @@
     (add-lex-cxn agent "top" top)
     ;(add-lex-cxn agent "center" ymiddle)
     (add-lex-cxn agent "bottom" bottom)
-    ;(add-lex-cxn agent "large" large)
-    ;(add-lex-cxn agent "small" small)
+    (add-lex-cxn agent "large" large)
+    (add-lex-cxn agent "small" small)
     (add-lex-cxn agent "red" red)
     (add-lex-cxn agent "blue" blue)
     ;(add-lex-cxn agent "green" green)

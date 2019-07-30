@@ -6,9 +6,6 @@
 ;; + Interaction +
 ;; ---------------
 
-(defun random-from-range (start end)
-  (+ start (random (+ 1 (- end start)))))
-
 (defmethod interact :before ((experiment roos-experiment) interaction &key)
   "Reset the agent, set the context-size and nr-of-topics and
    generate a scene before every interaction"

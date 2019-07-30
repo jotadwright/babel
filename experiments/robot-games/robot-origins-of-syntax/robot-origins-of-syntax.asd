@@ -19,7 +19,7 @@
                :scene-generator
                :cl-json
                :closer-mop
-               :type-hierarchies)
+               :category-hierarchies)
   :serial t
   :components ((:file "package")
                (:file "utils")
