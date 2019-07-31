@@ -17,15 +17,6 @@
 
 (export '(json-stream-process))
 
-(defun all-threads-dead (thread-list)
-  "Returns t if all processes in thread-list are of status dead."
-  (let ((all-dead t)
-        (statuses (mapcar #'mp:process-whostate thread-list)))
-    (dolist (status statuses)
-      (unless (equalp "dead" status)
-        (setf all-dead nil)))
-    all-dead))
-
 (defun append-to-file (stream list-of-lines output-format first-batch-p)
   "Appends list-of-lines to the stream according to the output format.
    In the end, wait for all the output to arrive through the stream."
@@ -107,12 +98,12 @@
         (with-open-file (out-stream output-file :direction :output :if-exists :append)
           (dotimes (n number-of-complete-batches)
             (format t "~%Started complete batch ~a/~a..." (+ 1 n) number-of-complete-batches)
-            (process-batch-multi-threaded function function-kwargs in-stream out-stream output-format process-batch-fn
-                                          number-of-threads number-of-objects-per-batch write-empty-lines-p (= n 0)))
+            (process-json-batch-multi-threaded function function-kwargs in-stream out-stream output-format process-batch-fn
+                                               number-of-threads number-of-objects-per-batch write-empty-lines-p (= n 0)))
           (when (> number-of-objects-in-last-batch 0)
             (format t "~%Started extra batch...")
-            (process-batch-multi-threaded function function-kwargs in-stream out-stream output-format process-batch-fn
-                                          number-of-threads number-of-objects-in-last-batch write-empty-lines-p nil)))))
+            (process-json-batch-multi-threaded function function-kwargs in-stream out-stream output-format process-batch-fn
+                                               number-of-threads number-of-objects-in-last-batch write-empty-lines-p nil)))))
 
     ;; When the output-format is :json,
     ;; add the closing square bracket to the output file
@@ -128,16 +119,16 @@
         (format t "~%~%Processing took ~a hours, ~a minutes and ~a seconds." h m s)))
     (format t "~%~%***************** Finished Corpus Processing *****************")))
 
-(defun process-batch-multi-threaded (function
-                                     function-kwargs
-                                     in-stream
-                                     out-stream
-                                     output-format
-                                     process-batch-fn
-                                     number-of-threads
-                                     number-of-objects
-                                     write-empty-lines-p
-                                     first-batch-p)
+(defun process-json-batch-multi-threaded (function
+                                          function-kwargs
+                                          in-stream
+                                          out-stream
+                                          output-format
+                                          process-batch-fn
+                                          number-of-threads
+                                          number-of-objects
+                                          write-empty-lines-p
+                                          first-batch-p)
   (let ((list-of-thread-batches nil))
     ;; Divide objects over threads
     (multiple-value-bind (entries-per-thread entries-last-thread)
