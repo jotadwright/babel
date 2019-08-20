@@ -73,7 +73,7 @@
   (let ((sides (case (shape object)
                  (cube 6) (sphere 1) (cylinder 3)))
         (corners (case (shape object)
-                   (cube 8) (sphere 0) (cylinder 0))))
+                   (cube 8) (sphere 0) (cylinder 2))))
     `((nr-of-sides . ,(if scale-p (/ (- sides 1) 5) sides))
       (nr-of-corners . ,(if scale-p (/ corners 8) corners)))))
 
