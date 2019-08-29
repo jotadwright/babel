@@ -10,14 +10,14 @@
 (define-configuration-default-value :data-source :clevr) ;; :clevr or :extracted
 (define-configuration-default-value :data-sets (list "val"))
 (define-configuration-default-value :data-path
-   (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-extracted"))
+   (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
                     cl-user:*babel-corpora*))
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks)
 (define-configuration-default-value :initial-certainty 0.5)
 (define-configuration-default-value :certainty-incf 0.1)
 (define-configuration-default-value :certainty-decf -0.1)
 (define-configuration-default-value :remove-on-lower-bound nil)
-(define-configuration-default-value :category-representation :prototype) 
+(define-configuration-default-value :category-representation :prototype)
 (define-configuration-default-value :scale-world t)
 (define-configuration-default-value :max-tutor-utterance-length 1)
 (define-configuration-default-value :lexical-variation nil)

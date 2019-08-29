@@ -25,13 +25,22 @@
 ;; + Run interactions +
 ;; --------------------
 
-(defparameter *baseline-configuration*
+(defparameter *baseline-simulated-configuration*
   (make-configuration
    :entries `((:data-source . :clevr)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:data-sets . ("val")))))
+
+(defparameter *baseline-extracted-configuration*
+  (make-configuration
+   :entries `((:data-source . :extracted)
+              (:scale-world . ,nil)
+              (:category-representation . :prototype)
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:data-path . ,(merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
+                                              cl-user:*babel-corpora*)))))
 
 (defparameter *cogent-configuration*
   (make-configuration
@@ -46,11 +55,11 @@
                               cl-user:*babel-corpora*)))))
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *baseline-configuration*))
+  (make-instance 'mwm-experiment :configuration *baseline-extracted-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 1000)
+(run-series *experiment* 10000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (display-lexicon (find 'tutor (population *experiment*) :key #'id))
@@ -62,14 +71,15 @@
 ;; + Running series of experiments +
 ;; ---------------------------------
 
-(run-experiments '(
-                   (exponential-no-scaling
-                    ((:data-source . :clevr)
-                     (:scale-world . nil)
-                     (:category-representation . :exponential)
+(run-experiments `(
+                   (protoype-ns-vqa
+                    ((:data-source . :extracted)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:test-after-n-interactions . nil)
-                     (:data-sets . ("val"))))
+                     (:data-path . ,(merge-pathnames
+                                     (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
+                                     cl-user:*babel-corpora*))))
                    )
                  :number-of-interactions 50000
                  :number-of-series 1
@@ -80,7 +90,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "exponential-no-scaling"
+ :experiment-name "protoype-ns-vqa"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
