@@ -110,9 +110,10 @@
       (when (eql (get-configuration experiment :data-source) :extracted)
         ;; set the data path
         (set-data experiment :data-path
-                  (make-pathname :directory
-                                 (append (butlast (pathname-directory (find-data experiment :data-path)))
-                                         (list "valB-extracted")))))
+                  (parse-namestring (replace-char (namestring (find-data experiment :data-path)) #\A #\B))))
+                  ;(make-pathname :directory
+                  ;               (append (butlast (pathname-directory (find-data experiment :data-path)))
+                  ;                       (list "valB-extracted")))))
       (format t "~%~%SWITCHING FROM CONDITION A TO CONDITION B. SWITCHED OFF LEARNING~%~%")))
   ;; regular interaction
   (before-interaction experiment)
