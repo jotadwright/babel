@@ -98,11 +98,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("baseline-min-max-not-scaled"
-                     "baseline-prototype-not-scaled"
-                     "baseline-pmm-not-scaled"
-                     "baseline-exponential-not-scaled")
+ :experiment-names '("ns-vqa-min-max"
+                     "ns-vqa-prototype"
+                     "ns-vqa-pmm"
+                     "ns-vqa-exponential")
  :measure-name "lexicon-size"
- :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Lexicon Size"
+ :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Communicative Success"
  :captions '("min-max" "prototype" "prototype-min-max" "exponential")
- :title nil :end 10000)
+ :title nil :end nil)
