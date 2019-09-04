@@ -25,7 +25,10 @@
     :type list :accessor discriminative-set :initform nil)
    (parsed-meaning
     :documentation "The meaning obtained after parsing"
-    :type list :accessor parsed-meaning :initform nil))
+    :type list :accessor parsed-meaning :initform nil)
+   (cxn-history
+    :documentation "Maintaining versions of cxns"
+    :type list :accessor cxn-history :initform nil))
   (:documentation "The agent class"))
 
 ;; ---------------------------
@@ -63,6 +66,52 @@
                         (meaning set-of-predicates)
                         (subunits set)
                         (footprints set))))))
+
+(defun add-to-cxn-history (agent cxn)
+  "Keep the 5 latest versions of each cxn, in json format"
+  (let* ((form (attr-val cxn :form))
+         (entry (assoc form (cxn-history agent) :test #'string=)))
+    (if entry
+      (progn
+        (when (> (length (rest entry)) 5)
+          (setf (rest entry) (butlast (rest entry))))
+        (push (cxn->json cxn (get-configuration agent :category-representation))
+              (rest entry)))
+      (push (cons form (list (cxn->json cxn (get-configuration agent :category-representation))))
+            (cxn-history agent)))))
+
+(defun average-over-cxns (list-of-cxns form)
+  ;; collect all atttributes that occur in the history of cxns
+  (let ((all-attributes (remove-duplicates
+                         (loop for json-cxn in list-of-cxns
+                               append (loop for meaning-entry in (rest (assoc :meaning json-cxn))
+                                            collect (rest (assoc :attribute meaning-entry))))
+                         :test #'string=)))
+    ;; if an attribute occurs in all 5 of them
+    ;; collect the value of this attribute in the latest cxn
+    (loop with latest-cxn = (first list-of-cxns)
+          for attribute in all-attributes
+          when (loop for cxn in list-of-cxns
+                     for attributes-with-positive-certainty
+                     = (loop for entry in (rest (assoc :meaning cxn))
+                             when (> (rest (assoc :certainty entry)) 0.01)
+                             collect (rest (assoc :attribute entry)))
+                     always (member attribute attributes-with-positive-certainty :test #'string=))
+          collect (find attribute (rest (assoc :meaning latest-cxn))
+                        :key #'(lambda (m) (rest (assoc :attribute m)))
+                        :test #'string=) into meaning
+          finally
+          (return `((:form . ,form)
+                    (:meaning . ,meaning)
+                    (:type . ,(rest (assoc :type latest-cxn))))))))
+        
+(defun average-over-cxn-history (agent)
+  (loop for (form . json-cxns) in (cxn-history agent)
+        for averaged = (average-over-cxns json-cxns form)
+        if (null (rest (assoc :meaning averaged)))
+        collect (first json-cxns)
+        else
+        collect averaged))
 
 ;; ---------------------
 ;; + Conceptualisation +

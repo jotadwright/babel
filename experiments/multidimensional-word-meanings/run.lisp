@@ -55,14 +55,14 @@
                               cl-user:*babel-corpora*)))))
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *baseline-extracted-configuration*))
+  (make-instance 'mwm-experiment :configuration *baseline-simulated-configuration*))
 
 (run-interaction *experiment*)
 
 (run-series *experiment* 10000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
-(display-lexicon (find 'tutor (population *experiment*) :key #'id))
+(lexicon->pdf (find 'learner (population *experiment*) :key #'id) :experiment-name 'test)
 (lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
 
 (make-table *experiment*)
@@ -98,11 +98,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("ns-vqa-min-max"
-                     "ns-vqa-prototype"
-                     "ns-vqa-pmm"
-                     "ns-vqa-exponential")
- :measure-name "lexicon-size"
- :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("min-max" "prototype" "prototype-min-max" "exponential")
+ :experiment-names '("ns-vqa-cogent-min-max-5000"
+                     "ns-vqa-cogent-prototype-5000"
+                     "ns-vqa-cogent-pmm-5000"
+                     "ns-vqa-cogent-exponential-5000")
+ :measure-name "communicative-success"
+ :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
+ :captions '("min-max" "prototype" "pmm" "exponential")
  :title nil :end nil)

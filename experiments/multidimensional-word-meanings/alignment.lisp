@@ -18,6 +18,7 @@
                collect (cons (make-category attr val category-representation) initial-certainty))))
     (loop for word in words
           for new-cxn = (add-lex-cxn agent word meaning)
+          do (add-to-cxn-history agent new-cxn)
           do (notify new-cxn-added new-cxn))))
 
 ;;;; Aligning known words
@@ -66,7 +67,8 @@
                                    :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))))
         ;; notify
         finally
-        (notify scores-updated cxn rewarded punished)))
+        (progn (add-to-cxn-history agent cxn)
+          (notify scores-updated cxn rewarded punished))))
 
 ;; for the other strategies
 (defun discriminatingp (agent category topic)
@@ -120,6 +122,7 @@
                         (update-category category topic
                                          :success (communicated-successfully agent)
                                          :interpreted-object (topic agent))))
+          do (add-to-cxn-history agent cxn)
           do (notify scores-updated cxn rewarded punished))))
     
         

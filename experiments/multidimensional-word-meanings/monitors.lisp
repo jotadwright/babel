@@ -28,7 +28,8 @@
                             (cxn->s-dot cxn))))))
 
 ;;;; Export learner lexicon to pdf
-(defun lexicon->pdf (agent &key (experiment-name 'baseline))
+#|
+ (defun lexicon->pdf (agent &key (experiment-name 'baseline))
   (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
                                                 "graphs" ,(downcase (mkstr experiment-name)) "lexicon"))))
     (ensure-directories-exist base-path)
@@ -36,6 +37,20 @@
           do (s-dot->image
               (cxn->s-dot cxn)
               :path (merge-pathnames (make-pathname :name (format nil "~a-cxn" (attr-val cxn :form))
+                                                    :type "pdf")
+                                     base-path)
+              :format "pdf"
+              :open nil))))
+|#
+
+(defun lexicon->pdf (agent &key (experiment-name 'baseline))
+  (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                                "graphs" ,(downcase (mkstr experiment-name)) "lexicon"))))
+    (ensure-directories-exist base-path)
+    (loop for json-cxn in (average-over-cxn-history agent)
+          do (s-dot->image
+              (json-cxn->s-dot json-cxn)
+              :path (merge-pathnames (make-pathname :name (format nil "~a-cxn" (rest (assoc :form json-cxn)))
                                                     :type "pdf")
                                      base-path)
               :format "pdf"
