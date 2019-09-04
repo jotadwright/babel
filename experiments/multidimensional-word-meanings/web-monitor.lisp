@@ -294,7 +294,7 @@
                                            (rest (assoc :lower--bound meaning))
                                            (rest (assoc :upper--bound meaning)))))))))
 
-(defmethod json-meaning->s-dot-node (meaning (type (eql :exponential)) &key green red)
+(defmethod json-meaning->s-dot-node (meaning (type (eql :exponential-category)) &key green red)
   (let ((record-properties (cond (green '((s-dot::style "filled")
                                            (s-dot::fillcolor "#AAFFAA")))
                                   (red '((s-dot::style "filled")
