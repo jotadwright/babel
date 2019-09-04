@@ -45,7 +45,7 @@
 
 (defun lexicon->pdf (agent &key (experiment-name 'baseline))
   (let ((base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
-                                                "graphs" ,(downcase (mkstr experiment-name)) "lexicon"))))
+                                                "graphs" ,(mkstr (downcase (mkstr experiment-name)) "-lexicon")))))
     (ensure-directories-exist base-path)
     (loop for json-cxn in (average-over-cxn-history agent)
           do (s-dot->image
