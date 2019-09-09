@@ -329,7 +329,7 @@
 
 (defmethod determine-success ((speaker mwm-agent) (hearer mwm-agent))
   "Compare the IDs of the topics of both agents"
-  (if (eql (get-configuration speaker :data-source) :clevr)
+  (if (eql (get-configuration speaker :data-type) :simulated)
     (when (and (topic speaker) (topic hearer))
       (eql (id (topic speaker)) (id (topic hearer))))
     (when (and (topic speaker) (topic hearer))

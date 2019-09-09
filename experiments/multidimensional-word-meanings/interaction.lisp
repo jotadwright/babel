@@ -15,19 +15,19 @@
 (define-event context-determined (experiment mwm-experiment))
 
 (defmethod before-interaction ((experiment mwm-experiment))
-  (let* ((data-source (get-configuration experiment :data-source))
+  (let* ((data-type (get-configuration experiment :data-type))
          (symbolic-clevr-context (random-scene (world experiment)))
          (simulated-clevr-context
           (clevr->simulated symbolic-clevr-context :scale (get-configuration experiment :scale-world)))
          (extracted-clevr-context
-          (when (eql data-source :extracted)
+          (when (eql data-type :extracted)
             (clevr->extracted symbolic-clevr-context
                               :directory (find-data experiment :data-path)
                               :scale (get-configuration experiment :scale-world)))))
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
                    (if (learnerp agent)
-                     (if (eql data-source :clevr)
+                     (if (eql data-type :simulated)
                        simulated-clevr-context
                        (if (> (length (objects extracted-clevr-context)) 1)
                          extracted-clevr-context
@@ -86,7 +86,7 @@
       (tutor (let ((tutor (speaker experiment))
                    (learner (hearer experiment)))
                (when (discriminative-set tutor)
-                 (let ((topic (if (eql (get-configuration experiment :data-source) :clevr)
+                 (let ((topic (if (eql (get-configuration experiment :data-type) :simulated)
                                 (find (id (topic tutor)) (objects (context learner)) :key #'id)
                                 (closest-to-topic tutor (context learner)))))
                    (align-agent learner topic)))))
@@ -97,24 +97,51 @@
 ;; this could be a completely different utterance than the one produced by the learner
 ;; it could even be null...
 
+(defun maybe-switch-conditions (experiment)
+  (let ((switch-condition-interval (get-configuration experiment :switch-conditions-after-n-interactions))
+        (current-interaction-number (interaction-number (current-interaction experiment))))
+    (when (= (mod current-interaction-number switch-condition-interval) 0)
+      (case (get-configuration experiment :experiment-type)
+        (:cogent
+         ;; turn off learning
+         (progn (set-configuration experiment :learning-active nil :replace t)
+           ;; reload the world with a different dataset
+           (setf (world experiment)
+                 (make-instance 'clevr-world :data-sets '("valB")))
+           ;; when the data-type is :extracted
+           ;; also change the :data-path
+           (when (eql (get-configuration experiment :data-type) :extracted)
+             (set-data experiment :data-path
+                       (parse-namestring (replace-char (namestring (find-data experiment :data-path)) #\A #\B))))
+           (format t "~%~%SWITCHING FROM CONDITION A TO CONDITION B. SWITCHED OFF LEARNING~%~%")))
+        (:incremental
+         ;; get the current condition (1, 2 or 3)
+         (let* ((current-condition-char (uiop:last-char
+                                         (first (get-configuration experiment :data-sets))))
+                (current-condition-nr (parse-integer (mkstr current-condition-char)))
+                (next-condition-nr (if (= current-condition-nr 3) 3 (1+ current-condition-nr)))
+                (next-condition-char (coerce (mkstr next-condition-nr) 'character))
+                (next-condition (mkstr "incr" next-condition-nr)))
+           ;; reload the world with a different dataset
+           (setf (world experiment)
+                 (make-instance 'clevr-world :data-sets (list next-condition)))
+           ;; when the data-type is :extracted
+           ;; also changed the data-path
+           (when (eql (get-configuration experiment :data-type) :extracted)
+             (set-data experiment :data-path
+                       (parse-namestring (replace-char (namestring (find-data experiment :data-path))
+                                                       current-condition-char
+                                                       next-condition-char))))
+           (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"
+                   current-condition-nr next-condition-nr)))))))
+           
+
 ;;;; Interact
 (defmethod interact ((experiment mwm-experiment)
                      interaction &key)
-  ;; for the cogent test:
-  (let ((test-after-n-interactions (get-configuration experiment :test-after-n-interactions)))
-    (when (and test-after-n-interactions (= (interaction-number interaction) test-after-n-interactions))
-      (set-configuration experiment :learning-active nil :replace t)
-      ;; reload the world with a different dataset
-      (setf (world experiment)
-            (make-instance 'clevr-world :data-sets '("valB")))
-      (when (eql (get-configuration experiment :data-source) :extracted)
-        ;; set the data path
-        (set-data experiment :data-path
-                  (parse-namestring (replace-char (namestring (find-data experiment :data-path)) #\A #\B))))
-                  ;(make-pathname :directory
-                  ;               (append (butlast (pathname-directory (find-data experiment :data-path)))
-                  ;                       (list "valB-extracted")))))
-      (format t "~%~%SWITCHING FROM CONDITION A TO CONDITION B. SWITCHED OFF LEARNING~%~%")))
+  (when (or (eql (get-configuration experiment :experiment-type) :cogent)
+            (eql (get-configuration experiment :experiment-type) :incremental))
+    (maybe-switch-conditions experiment))
   ;; regular interaction
   (before-interaction experiment)
   (do-interaction experiment)

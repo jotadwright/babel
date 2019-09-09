@@ -4,14 +4,40 @@
 ;; + Configurations +
 ;; ------------------
 (define-configuration-default-value :dot-interval 100)
-;; when :data-source is :clevr, load the clevr dataset(s) specified
-;: using :data-sets. Otherwise, load the continuous clevr data
-;; specified using :data-path
-(define-configuration-default-value :data-source :clevr) ;; :clevr or :extracted
+
+(defparameter *baseline-clevr-data-path* *clevr-data-path*)
+(defparameter *baseline-simulated-data-sets* '("val"))
+(defparameter *baseline-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
+                   cl-user:*babel-corpora*))
+
+(defparameter *cogent-clevr-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT"))
+                   cl-user:*babel-corpora*))
+(defparameter *cogent-simulated-data-sets* '("valA"))
+(defparameter *cogent-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
+                   cl-user:*babel-corpora*))
+
+(defparameter *incremental-clevr-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-incremental"))
+                   cl-user:*babel-corpora*))
+(defparameter *incremental-simulated-data-sets* '("incr1"))
+(defparameter *incremental-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-incremental" "scenes" "incr1-ns-vqa"))
+                   cl-user:*babel-corpora*))
+
+; :baseline - :cogent - :incremental
+(define-configuration-default-value :experiment-type :baseline)
+; :simulated - :extracted
+(define-configuration-default-value :data-type :simulated)
+; data-sets for clevr-world class
 (define-configuration-default-value :data-sets (list "val"))
+; data-path for additional data
 (define-configuration-default-value :data-path
    (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
                     cl-user:*babel-corpora*))
+
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-speaks)
 (define-configuration-default-value :initial-certainty 0.5)
 (define-configuration-default-value :certainty-incf 0.1)
@@ -23,7 +49,7 @@
 (define-configuration-default-value :lexical-variation nil)
 (define-configuration-default-value :export-lexicon-interval 500)
 (define-configuration-default-value :learning-active t)
-(define-configuration-default-value :test-after-n-interactions nil)
+(define-configuration-default-value :switch-conditions-after-n-interactions nil)
 
 ;; --------------
 ;; + Experiment +
@@ -39,10 +65,15 @@
   (setf (population experiment)
         (list (make-tutor-agent experiment)
               (make-learner-agent experiment)))
+  ;; set the clevr-data-path
+  (setf *clevr-data-path*
+        (case (get-configuration experiment :experiment-type)
+          (:baseline *baseline-clevr-data-path*)
+          (:cogent *cogent-clevr-data-path*)
+          (:incremental *incremental-clevr-data-path*)))
   ;; set the world
   (setf (world experiment)
-        (make-instance 'clevr-world :data-sets
-                       (get-configuration experiment :data-sets)))
+        (make-instance 'clevr-world :data-sets (get-configuration experiment :data-sets)))
   ;; set the data path
   (set-data experiment :data-path (get-configuration experiment :data-path)))
 
