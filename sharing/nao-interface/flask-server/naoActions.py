@@ -28,11 +28,6 @@ class NaoMovement(object):
     def stiffness_on(self, proxy):
         if not proxy.robotIsWakeUp():
             proxy.wakeUp()
-        # We use the "Body" name to signify the collection of all joints
-        #pNames = "Body"
-        #pStiffnessLists = 1.0
-        #pTimeLists = 1.0
-        #proxy.stiffnessInterpolation(pNames, pStiffnessLists, pTimeLists)
 
     def stiffness_off(self, proxy):
         if proxy.robotIsWakeUp():
@@ -68,42 +63,49 @@ class NaoJoints(NaoMovement):
         return True
 
     def raise_left(self):
-        SPcurrentAngle = self.motionProxy.getAngles("LShoulderPitch", False)[0]
-        SPcurrentRoll = self.motionProxy.getAngles("LShoulderRoll", False)[0]
+        LScurrentPitch = self.motionProxy.getAngles("LShoulderPitch", False)[0]
+        LScurrentRoll = self.motionProxy.getAngles("LShoulderRoll", False)[0]
+        LEcurrentRoll = self.motionProxy.getAngles("LElbowRoll", False)[0]
 
-        jointList = ["LShoulderPitch", "LShoulderRoll"]
-        angleList = [[0.2, SPcurrentAngle],
-                     [0.5, SPcurrentRoll]]
-        timeList = [[2.0, 6.0], [2.0, 6.0]]
+        jointList = ["LShoulderPitch", "LShoulderRoll", "LElbowRoll"]
+        angleList = [[0.4, LScurrentPitch],
+                     [0.0, LScurrentRoll],
+                     [-0.1, LEcurrentRoll]]
+        timeList = [[2.0, 6.0], [2.0, 6.0], [2.0, 6.0]]
         isAbsolute = True
 
         self.motionProxy.angleInterpolation(jointList, angleList, timeList, isAbsolute)
         return True
 
     def raise_right(self):
-        SPcurrentAngle = self.motionProxy.getAngles("RShoulderPitch", False)[0]
-        SPcurrentRoll = self.motionProxy.getAngles("RShoulderRoll", False)[0]
+        RScurrentPitch = self.motionProxy.getAngles("RShoulderPitch", False)[0]
+        RScurrentRoll = self.motionProxy.getAngles("RShoulderRoll", False)[0]
+        REcurrentRoll = self.motionProxy.getAngles("RElbowRoll", False)[0]
 
-        jointList = ["RShoulderPitch", "RShoulderRoll"]
-        angleList = [[0.2, SPcurrentAngle],
-                     [-0.5, SPcurrentRoll]]
-        timeList = [[2.0, 6.0], [2.0, 6.0]]
+        jointList = ["RShoulderPitch", "RShoulderRoll", "RElbowRoll"]
+        angleList = [[0.4, RScurrentPitch],
+                     [0.0, RScurrentRoll],
+                     [0.1, REcurrentRoll]]
+        timeList = [[2.0, 6.0], [2.0, 6.0], [2.0, 6.0]]
         isAbsolute = True
 
         self.motionProxy.angleInterpolation(jointList, angleList, timeList, isAbsolute)
         return True
 
     def raise_both(self):
-        LSPcurrentAngle = self.motionProxy.getAngles("LShoulderPitch", False)[0]
-        LSRcurrentAngle = self.motionProxy.getAngles("LShoulderRoll", False)[0]
-        RSPcurrentAngle = self.motionProxy.getAngles("RShoulderPitch", False)[0]
-        RSRcurrentAngle = self.motionProxy.getAngles("RShoulderRoll", False)[0]
+        LScurrentPitch = self.motionProxy.getAngles("LShoulderPitch", False)[0]
+        LScurrentRoll = self.motionProxy.getAngles("LShoulderRoll", False)[0]
+        LEcurrentRoll = self.motionProxy.getAngles("LElbowRoll", False)[0]
+        RScurrentPitch = self.motionProxy.getAngles("RShoulderPitch", False)[0]
+        RScurrentRoll = self.motionProxy.getAngles("RShoulderRoll", False)[0]
+        REcurrentRoll = self.motionProxy.getAngles("RElbowRoll", False)[0]
 
-        jointList = ["LShoulderPitch", "LShoulderRoll", "RShoulderPitch", "RShoulderRoll"]
-        angleList = [[0.2, LSPcurrentAngle], [-0.3, LSRcurrentAngle],
-                     [0.2, RSPcurrentAngle], [0.3, RSRcurrentAngle]]
-        timeList = [[2.0, 6.0], [2.0, 6.0],
-                    [2.0, 6.0], [2.0, 6.0]]
+        jointList = ["LShoulderPitch", "LShoulderRoll", "LElbowRoll",
+                     "RShoulderPitch", "RShoulderRoll", "RElbowRoll"]
+        angleList = [[0.4, LScurrentPitch], [-0.3, LScurrentRoll], [-0.1, LEcurrentRoll],
+                     [0.4, RScurrentPitch], [0.3, RScurrentRoll], [0.1, REcurrentRoll]]
+        timeList = [[2.0, 6.0], [2.0, 6.0], [2.0, 6.0],
+                    [2.0, 6.0], [2.0, 6.0], [2.0, 6.0]]
         isAbsolute = True
         self.motionProxy.angleInterpolation(jointList, angleList, timeList, isAbsolute)
         return True
