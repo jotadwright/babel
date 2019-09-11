@@ -6,7 +6,7 @@ from __future__ import print_function
 import time
 
 import naoqi
-from naoqi import ALProxy
+from naoqi import ALProxy, ALModule
 
 
 class NaoMovement(object):

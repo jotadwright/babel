@@ -108,14 +108,14 @@
            ;; Container does not yet exist, create one
            (run-prog "docker" :args `("run" "-it" "-d"
                                       "-p" ,(format nil "~a:80" (server-port nao))
-                                      "-v" ,(format nil "~a:/naoqi/src" (babel-pathname :directory '("sharing" "nao-interface" "flask-server")))
+                                      "-v" ,(format nil "~a:/naoqi/src" (babel-pathname :directory '("sharing" "nao-interface" "flask-server-v2")))
                                       "-v" ,(format nil "~a:/naoqi/src/img" (babel-pathname :directory '(".tmp" "nao-img")))
                                       "--name" ,(container-name nao)
-                                      "naoqi-python")))
+                                      "naoqi-python-v2")))
          ;; Push to the running containers
          (push-nao-server (ip nao) (server-port nao) (container-name nao))
          ;; Give some time to start the container
-         (sleep 1)
+         (sleep 2)
          ;; Start the nao server inside the docker container
          (run-prog "docker" :args `("exec" "-d"
                                     ,(container-name nao)
