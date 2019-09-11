@@ -25,7 +25,8 @@
   (loop for cxn in (constructions (grammar agent))
         do (add-element `((div)
                           ,(s-dot->svg
-                            (cxn->s-dot cxn))))))
+                            (cxn->s-dot cxn))))
+        do (add-element '((hr)))))
 
 ;;;; Export learner lexicon to pdf
 #|

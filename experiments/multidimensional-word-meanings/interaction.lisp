@@ -102,6 +102,7 @@
         (current-interaction-number (interaction-number (current-interaction experiment))))
     (when (= (mod current-interaction-number switch-condition-interval) 0)
       (case (get-configuration experiment :experiment-type)
+        ;; COGENT
         (:cogent
          ;; turn off learning
          (progn (set-configuration experiment :learning-active nil :replace t)
@@ -114,6 +115,7 @@
              (set-data experiment :data-path
                        (parse-namestring (replace-char (namestring (find-data experiment :data-path)) #\A #\B))))
            (format t "~%~%SWITCHING FROM CONDITION A TO CONDITION B. SWITCHED OFF LEARNING~%~%")))
+        ;; INCREMENTAL
         (:incremental
          ;; get the current condition (1, 2 or 3)
          (let* ((current-condition-char (uiop:last-char

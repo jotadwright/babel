@@ -10,56 +10,73 @@
 (activate-monitor display-communicative-success)
 ;(deactivate-monitor display-communicative-success)
 
-
-;; ----------
-;; + CoGenT +
-;; ----------
-
-(setf *clevr-data-path*
-      (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT"))
-                       cl-user:*babel-corpora*))
-
-(reset-clevr-data-path)
-
 ;; --------------------
 ;; + Run interactions +
 ;; --------------------
 
+
+(defparameter *baseline-simulated-data-sets* '("val"))
+(defparameter *baseline-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
+                   cl-user:*babel-corpora*))
+
+(defparameter *cogent-simulated-data-sets* '("valA"))
+(defparameter *cogent-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
+                   cl-user:*babel-corpora*))
+
+
+(defparameter *incremental-simulated-data-sets* '("incr1"))
+(defparameter *incremental-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-incremental" "scenes" "incr1-ns-vqa"))
+                   cl-user:*babel-corpora*))
+
 (defparameter *baseline-simulated-configuration*
   (make-configuration
-   :entries `((:data-source . :clevr)
+   :entries `((:experiment-type . :baseline)
+              (:data-type . :simulated)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:data-sets . ("val")))))
+              (:data-sets . ,*baseline-simulated-data-sets*))))
 
 (defparameter *baseline-extracted-configuration*
   (make-configuration
-   :entries `((:data-source . :extracted)
+   :entries `((:experiment-type . :baseline)
+              (:data-type . :extracted)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:data-path . ,(merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                                              cl-user:*babel-corpora*)))))
+              (:data-sets . ,*baseline-simulated-data-sets*)
+              (:data-path . ,*baseline-extracted-data-path*))))
 
-(defparameter *cogent-configuration*
+(defparameter *cogent-simulated-configuration*
   (make-configuration
-   :entries `((:data-source . :extracted)
+   :entries `((:experiment-type . :cogent)
+              (:data-type . :simulated)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:test-after-n-interactions . ,3)
-              (:data-sets . ("valA"))
-              (:data-path . ,(merge-pathnames
-                              (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-extracted"))
-                              cl-user:*babel-corpora*)))))
+              (:test-after-n-interactions . ,100)
+              (:data-sets . ,*cogent-simulated-data-sets*))))
+
+(defparameter *cogent-extracted-configuration*
+  (make-configuration
+   :entries `((:experiment-type . :cogent)
+              (:data-type . :extracted)
+              (:scale-world . ,nil)
+              (:category-representation . :prototype)
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:test-after-n-interactions . ,100)
+              (:data-sets . ,*cogent-simulated-data-sets*)
+              (:data-path . ,*cogent-extracted-data-path*))))
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *baseline-simulated-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10000)
+(run-series *experiment* 5000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id) :experiment-name 'test)

@@ -4,29 +4,6 @@
 ;; + Configurations +
 ;; ------------------
 (define-configuration-default-value :dot-interval 100)
-
-(defparameter *baseline-clevr-data-path* *clevr-data-path*)
-(defparameter *baseline-simulated-data-sets* '("val"))
-(defparameter *baseline-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                   cl-user:*babel-corpora*))
-
-(defparameter *cogent-clevr-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT"))
-                   cl-user:*babel-corpora*))
-(defparameter *cogent-simulated-data-sets* '("valA"))
-(defparameter *cogent-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
-                   cl-user:*babel-corpora*))
-
-(defparameter *incremental-clevr-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-incremental"))
-                   cl-user:*babel-corpora*))
-(defparameter *incremental-simulated-data-sets* '("incr1"))
-(defparameter *incremental-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-incremental" "scenes" "incr1-ns-vqa"))
-                   cl-user:*babel-corpora*))
-
 ; :baseline - :cogent - :incremental
 (define-configuration-default-value :experiment-type :baseline)
 ; :simulated - :extracted
@@ -57,6 +34,14 @@
 (defclass mwm-experiment (experiment)
   ()
   (:documentation "The experiment class"))
+
+(defparameter *baseline-clevr-data-path* *clevr-data-path*)
+(defparameter *cogent-clevr-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT"))
+                   cl-user:*babel-corpora*))
+(defparameter *incremental-clevr-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-incremental"))
+                   cl-user:*babel-corpora*))
 
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Create the population and load the scenes from file"
