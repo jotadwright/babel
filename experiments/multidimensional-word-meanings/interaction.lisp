@@ -104,8 +104,11 @@
       (case (get-configuration experiment :experiment-type)
         ;; COGENT
         (:cogent
-         ;; turn off learning
-         (progn (set-configuration experiment :learning-active nil :replace t)
+         ;; only do something when learning is active
+         ;; otherwise, conditions have already been switched
+         (when (get-configuration experiment :learning-active)
+           ;; turn off learning
+           (set-configuration experiment :learning-active nil :replace t)
            ;; reload the world with a different dataset
            (setf (world experiment)
                  (make-instance 'clevr-world :data-sets '("valB")))
@@ -120,22 +123,24 @@
          ;; get the current condition (1, 2 or 3)
          (let* ((current-condition-char (uiop:last-char
                                          (first (get-configuration experiment :data-sets))))
-                (current-condition-nr (parse-integer (mkstr current-condition-char)))
-                (next-condition-nr (if (= current-condition-nr 3) 3 (1+ current-condition-nr)))
-                (next-condition-char (coerce (mkstr next-condition-nr) 'character))
-                (next-condition (mkstr "incr" next-condition-nr)))
-           ;; reload the world with a different dataset
-           (setf (world experiment)
-                 (make-instance 'clevr-world :data-sets (list next-condition)))
-           ;; when the data-type is :extracted
-           ;; also changed the data-path
-           (when (eql (get-configuration experiment :data-type) :extracted)
-             (set-data experiment :data-path
-                       (parse-namestring (replace-char (namestring (find-data experiment :data-path))
-                                                       current-condition-char
-                                                       next-condition-char))))
-           (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"
-                   current-condition-nr next-condition-nr)))))))
+                (current-condition-nr (parse-integer (mkstr current-condition-char))))
+           ;; only do someting when condition 3 has not yet been reached
+           (unless (= current-condition-nr 3)
+             (let* ((next-condition-nr (1+ current-condition-nr))
+                    (next-condition-char (coerce (mkstr next-condition-nr) 'character))
+                    (next-condition (mkstr "incr" next-condition-nr)))
+               ;; reload the world with a different dataset
+               (setf (world experiment)
+                     (make-instance 'clevr-world :data-sets (list next-condition)))
+               ;; when the data-type is :extracted
+               ;; also changed the data-path
+               (when (eql (get-configuration experiment :data-type) :extracted)
+                 (set-data experiment :data-path
+                           (parse-namestring (replace-char (namestring (find-data experiment :data-path))
+                                                           current-condition-char
+                                                           next-condition-char))))
+               (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"
+                       current-condition-nr next-condition-nr)))))))))
            
 
 ;;;; Interact

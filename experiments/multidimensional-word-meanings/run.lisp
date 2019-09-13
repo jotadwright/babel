@@ -57,7 +57,7 @@
               (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:test-after-n-interactions . ,100)
+              (:switch-conditions-after-n-interactions . ,100)
               (:data-sets . ,*cogent-simulated-data-sets*))))
 
 (defparameter *cogent-extracted-configuration*
@@ -67,16 +67,26 @@
               (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:test-after-n-interactions . ,100)
+              (:switch-conditions-after-n-interactions . ,100)
               (:data-sets . ,*cogent-simulated-data-sets*)
               (:data-path . ,*cogent-extracted-data-path*))))
 
+(defparameter *incremental-simulated-configuration*
+  (make-configuration
+   :entries `((:experiment-type . :incremental)
+              (:data-type . :simulated)
+              (:scale-world . ,nil)
+              (:category-representation . :prototype)
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:switch-conditions-after-n-interactions . 10)
+              (:data-sets . ,*incremental-simulated-data-sets*))))
+
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *baseline-simulated-configuration*))
+  (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 5000)
+(run-series *experiment* 10)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id) :experiment-name 'test)
