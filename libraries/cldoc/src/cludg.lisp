@@ -16,10 +16,10 @@
 (in-package :CLUDG)
 
 ;; For use with FCG
-(defun extract-documentation-fcg (driver dest-dir asdf-system  &key table-of-contents-title)
+(defun extract-documentation-fcg (driver dest-dir asdf-system &key table-of-contents-title)
   "extracting documentation in an FCG way (conserving method numbers)"
   (clrhash *descriptor->meta-decriptors*)
-  (let ((filenames  (get-asdf-system-files asdf-system)))
+  (let ((filenames (get-asdf-system-files asdf-system)))
     (dolist (file filenames)
       (cldoc:extract-documentation 
        driver 
@@ -317,13 +317,13 @@
 	  :name (pathname-name lisp-file)
 	  :type (find-output-type output-type)))))
 
- (defun get-asdf-system-files (asdf-module &optional (directory ""))
-   (loop for component in (asdf:module-components asdf-module)
-	 for relative-pathname = (asdf:component-relative-pathname component)
-	 if (typep component 'asdf:cl-source-file)
-	   collect (namestring (merge-pathnames relative-pathname directory))
-	 else if (typep component 'asdf:module)
-           append (get-asdf-system-files component relative-pathname)))
+(defun get-asdf-system-files (asdf-module &optional (directory ""))
+  (loop for component in (asdf:module-components asdf-module)
+        for relative-pathname = (asdf:component-relative-pathname component)
+        if (typep component 'asdf:cl-source-file)
+        collect (namestring (merge-pathnames relative-pathname directory))
+        else if (typep component 'asdf:module)
+        append (get-asdf-system-files component (namestring (merge-pathnames relative-pathname directory)))))
 
 ;;;;
 ;;;; Protocol descripor classes.
