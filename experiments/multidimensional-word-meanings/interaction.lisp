@@ -129,16 +129,22 @@
              (let* ((next-condition-nr (1+ current-condition-nr))
                     (next-condition-char (coerce (mkstr next-condition-nr) 'character))
                     (next-condition (mkstr "incr" next-condition-nr)))
+               ;; export the lexicon before each condition switch
+               ;(lexicon->pdf (find 'learner (population experiment) :key #'id))
                ;; reload the world with a different dataset
                (setf (world experiment)
                      (make-instance 'clevr-world :data-sets (list next-condition)))
+               ;; set the :data-sets configuration
+               (set-configuration experiment :data-sets (list next-condition) :replace t)
                ;; when the data-type is :extracted
                ;; also changed the data-path
                (when (eql (get-configuration experiment :data-type) :extracted)
-                 (set-data experiment :data-path
-                           (parse-namestring (replace-char (namestring (find-data experiment :data-path))
-                                                           current-condition-char
-                                                           next-condition-char))))
+                 (set-configuration experiment :data-path
+                                    (parse-namestring (replace-char (namestring (find-data experiment :data-path))
+                                                                    current-condition-char
+                                                                    next-condition-char))
+                                    :replace t))
+               ;; print a message
                (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"
                        current-condition-nr next-condition-nr)))))))))
            

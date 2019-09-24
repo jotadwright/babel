@@ -40,7 +40,7 @@
   (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT"))
                    cl-user:*babel-corpora*))
 (defparameter *incremental-clevr-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-incremental"))
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR_incremental"))
                    cl-user:*babel-corpora*))
 
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)

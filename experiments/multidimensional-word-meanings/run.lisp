@@ -14,23 +14,23 @@
 ;; + Run interactions +
 ;; --------------------
 
-
-(defparameter *baseline-simulated-data-sets* '("val"))
-(defparameter *baseline-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                   cl-user:*babel-corpora*))
-
-(defparameter *cogent-simulated-data-sets* '("valA"))
-(defparameter *cogent-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
-                   cl-user:*babel-corpora*))
-
-
-(defparameter *incremental-simulated-data-sets* '("incr1"))
-(defparameter *incremental-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-incremental" "scenes" "incr1-ns-vqa"))
-                   cl-user:*babel-corpora*))
-
+(progn
+  (defparameter *baseline-simulated-data-sets* '("val"))
+  (defparameter *baseline-extracted-data-path*
+    (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
+                     cl-user:*babel-corpora*))
+  
+  (defparameter *cogent-simulated-data-sets* '("valA"))
+  (defparameter *cogent-extracted-data-path*
+    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
+                     cl-user:*babel-corpora*))
+  
+  
+  (defparameter *incremental-simulated-data-sets* '("incr1"))
+  (defparameter *incremental-extracted-data-path*
+    (merge-pathnames (make-pathname :directory '(:relative "CLEVR_incremental" "scenes" "incr1-ns-vqa"))
+                     cl-user:*babel-corpora*)))
+  
 (defparameter *baseline-simulated-configuration*
   (make-configuration
    :entries `((:experiment-type . :baseline)
@@ -81,15 +81,26 @@
               (:switch-conditions-after-n-interactions . 10)
               (:data-sets . ,*incremental-simulated-data-sets*))))
 
+(defparameter *incremental-extracted-configuration*
+  (make-configuration
+   :entries `((:experiment-type . :incremental)
+              (:data-type . :extracted)
+              (:scale-world . ,nil)
+              (:category-representation . :prototype)
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:switch-conditions-after-n-interactions . 10)
+              (:data-sets . ,*incremental-simulated-data-sets*)
+              (:data-path . ,*incremental-extracted-data-path*))))
+
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 50)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
-(lexicon->pdf (find 'learner (population *experiment*) :key #'id) :experiment-name 'test)
+(lexicon->pdf (find 'learner (population *experiment*) :key #'id))
 (lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
 
 (make-table *experiment*)
@@ -99,27 +110,27 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (protoype-ns-vqa
-                    ((:data-source . :extracted)
+                   (incremental-simulated-prototype
+                    ((:experiment-type . :incremental)
+                     (:data-type . :simulated)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:data-path . ,(merge-pathnames
-                                     (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                                     cl-user:*babel-corpora*))))
+                     (:switch-conditions-after-n-interactions . 2000)
+                     (:data-sets . ,*incremental-simulated-data-sets*)))
                    )
-                 :number-of-interactions 50000
+                 :number-of-interactions 6000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
-                                 ;"export-lexicon-size"
-                                 ;"export-features-per-form"
-                                 ;"export-utterance-length"
+                                 "export-lexicon-size"
+                                 "export-features-per-form"
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "protoype-ns-vqa"
- :measure-names '("communicative-success")
- :y-axis '(1)
+ :experiment-name "incremental-simulated-prototype"
+ :measure-names '("communicative-success"
+                  "lexicon-size")
+ :y-axis '(1 2)
  :y1-max 1
  :xlabel "Number of games"
  :y1-label "Success")
@@ -133,3 +144,11 @@
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :captions '("min-max" "prototype" "pmm" "exponential")
  :title nil :end nil)
+
+(create-graph-comparing-strategies
+ :experiment-names '("baseline-prototype-not-scaled"
+                     "ns-vqa-prototype")
+ :measure-name "communicative-success"
+ :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
+ :captions '("simuated-data" "extracted-data")
+ :title nil :end 2000)
