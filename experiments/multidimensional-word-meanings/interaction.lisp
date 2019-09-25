@@ -123,7 +123,7 @@
         (:incremental
          ;; get the current condition (1, 2 or 3)
          (let* ((current-condition-char (uiop:last-char
-                                         (first (get-configuration experiment :data-sets))))
+                                         (first (get-data experiment :data-sets))))
                 (current-condition-nr (parse-integer (mkstr current-condition-char))))
            ;; only do someting when condition 3 has not yet been reached
            (unless (= current-condition-nr 3)
@@ -136,14 +136,14 @@
                (setf (world experiment)
                      (make-instance 'clevr-world :data-sets (list next-condition)))
                ;; set the :data-sets configuration
-               (set-configuration experiment :data-sets (list next-condition) :replace t)
+               (set-data experiment :data-sets (list next-condition))
                ;; when the data-type is :extracted
                ;; also changed the data-path
                (when (eql (get-configuration experiment :data-type) :extracted)
                  (set-data experiment :data-path
                            (parse-namestring
                             (cl-ppcre:regex-replace-all (format nil "/incr~a" current-condition-char)
-                                                        (namestring (find-data experiment :data-path))
+                                                        (namestring (get-data experiment :data-path))
                                                         (format nil "/incr~a" next-condition-char)))))
                ;; print a message
                (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"

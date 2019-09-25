@@ -59,7 +59,8 @@
   ;; set the world
   (setf (world experiment)
         (make-instance 'clevr-world :data-sets (get-configuration experiment :data-sets)))
-  ;; set the data path
+  ;; store the data-sets and data-path in the blackboard
+  (set-data experiment :data-sets (get-configuration experiment :data-sets))
   (set-data experiment :data-path (get-configuration experiment :data-path)))
 
 (defmethod learner ((experiment mwm-experiment))
