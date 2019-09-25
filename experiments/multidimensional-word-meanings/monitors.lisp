@@ -153,24 +153,82 @@
                           :x-label nil :y-min 0
                           :open nil)))
 
+;;;; cxn -> json
+(defgeneric cxn->json (cxn category-representation)
+  (:documentation "Export the cxn to json such that it can be used later"))
+
+(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :min-max)))
+  `((:form . ,(attr-val cxn :form))
+    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
+                       collect `((:attribute . ,(mkstr (attribute category)))
+                                 (:lower--bound . ,(lower-bound category))
+                                 (:upper--bound . ,(upper-bound category))
+                                 (:certainty . ,certainty))))
+    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
+
+(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype)))
+  `((:form . ,(attr-val cxn :form))
+    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
+                       collect `((:attribute . ,(mkstr (attribute category)))
+                                 (:prototype . ,(prototype category))
+                                 (:nr--samples . ,(nr-samples category))
+                                 (:M2 . ,(M2 category))
+                                 (:certainty . ,certainty))))
+    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
+
+(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype-min-max)))
+  `((:form . ,(attr-val cxn :form))
+    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
+                       collect `((:attribute . ,(mkstr (attribute category)))
+                                 (:lower--bound . ,(lower-bound category))
+                                 (:upper--bound . ,(upper-bound category))
+                                 (:prototype . ,(prototype category))
+                                 (:nr--samples . ,(nr-samples category))
+                                 (:M2 . ,(M2 category))
+                                 (:lower--m . ,(lower-m category))
+                                 (:lower--b . ,(lower-b category))
+                                 (:upper--m . ,(upper-m category))
+                                 (:lower--b . ,(lower-b category))
+                                 (:certainty . ,certainty))))
+    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
+
+(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :exponential)))
+  `((:form . ,(attr-val cxn :form))
+    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
+                       collect `((:attribute . ,(mkstr (attribute category)))
+                                 (:prototype . ,(prototype category))
+                                 (:nr--samples . ,(nr-samples category))
+                                 (:M2 . ,(M2 category))
+                                 (:left--sigma . ,(left-sigma category))
+                                 (:right--sigma . ,(right-sigma category))
+                                 (:certainty . ,certainty))))
+    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
+
 ;;;; Learner used attribute
 ;; a-list monitor that keeps track of the attributes used by the learner
 (define-monitor record-learner-attribute-use
                 :documentation "Record how often the learner uses each type of attribute"
                 :class 'alist-recorder
-                :average-windows 1)
+                :average-windows 100)
+
+(defparameter *attribute-count* nil)
 
 (define-event-handler (record-learner-attribute-use interaction-finished)
   (let ((learner (find 'learner (population experiment) :key #'id)))
-    (when (parsed-meaning agent)
-      (loop for (category . score) in (parsed-meaning agent)
+    (when (parsed-meaning learner)
+      (loop for (category . score) in (parsed-meaning learner)
             for attr = (attribute category)
-            do (set-value-for-symbol monitor attr 1)))))
+            if (> score 0.0)
+            do (if (assoc attr *attribute-count*)
+                 (incf (cdr (assoc attr *attribute-count*)))
+                 (push (cons attr 1) *attribute-count*))))
+    (loop for (attr . count) in *attribute-count*
+          do (set-value-for-symbol monitor attr count))))
 
 (define-monitor plot-learner-attribute-use
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-learner-attribute-use
-    :average-windows 1
+    :average-windows 100
     :draw-y-1-grid t
     :y-label "Learner attribute use"
     :x-label "# Games"
@@ -293,17 +351,23 @@
 (define-monitor record-tutor-word-use
                 :documentation "Record how often the tutor uses each word"
                 :class 'alist-recorder
-                :average-windows 1)
+                :average-windows 100)
+
+(defparameter *word-count* nil)
 
 (define-event-handler (record-tutor-word-use interaction-finished)
   (let* ((tutor (find 'tutor (population experiment) :key #'id))
          (used-word (first (discriminative-set tutor))))
-    (set-value-for-symbol monitor used-word 1)))
+    (if (assoc used-word *word-count*)
+      (incf (cdr (assoc used-word *word-count*)))
+      (push (cons used-word 1) *word-count*))
+    (loop for (word . count) in *word-count*
+          do (set-value-for-symbol monitor word count))))
 
 (define-monitor plot-tutor-word-use
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-tutor-word-use
-    :average-windows 1
+    :average-windows 100
     :draw-y-1-grid t
     :y-label "Tutor word use"
     :x-label "# Games"

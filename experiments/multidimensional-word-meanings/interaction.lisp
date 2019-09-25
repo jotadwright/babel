@@ -116,7 +116,8 @@
            ;; also change the :data-path
            (when (eql (get-configuration experiment :data-type) :extracted)
              (set-data experiment :data-path
-                       (parse-namestring (replace-char (namestring (find-data experiment :data-path)) #\A #\B))))
+                       (parse-namestring
+                        (cl-ppcre:regex-replace-all "valA" (namestring (find-data experiment :data-path)) "valB"))))
            (format t "~%~%SWITCHING FROM CONDITION A TO CONDITION B. SWITCHED OFF LEARNING~%~%")))
         ;; INCREMENTAL
         (:incremental
@@ -139,11 +140,11 @@
                ;; when the data-type is :extracted
                ;; also changed the data-path
                (when (eql (get-configuration experiment :data-type) :extracted)
-                 (set-configuration experiment :data-path
-                                    (parse-namestring (replace-char (namestring (find-data experiment :data-path))
-                                                                    current-condition-char
-                                                                    next-condition-char))
-                                    :replace t))
+                 (set-data experiment :data-path
+                           (parse-namestring
+                            (cl-ppcre:regex-replace-all (format nil "/incr~a" current-condition-char)
+                                                        (namestring (find-data experiment :data-path))
+                                                        (format nil "/incr~a" next-condition-char)))))
                ;; print a message
                (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"
                        current-condition-nr next-condition-nr)))))))))

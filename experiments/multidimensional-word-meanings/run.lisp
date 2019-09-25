@@ -93,7 +93,7 @@
               (:data-path . ,*incremental-extracted-data-path*))))
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
+  (make-instance 'mwm-experiment :configuration *incremental-extracted-configuration*))
 
 (run-interaction *experiment*)
 
@@ -110,16 +110,17 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (incremental-simulated-prototype
+                   (incremental-extracted-prototype
                     ((:experiment-type . :incremental)
-                     (:data-type . :simulated)
+                     (:data-type . :extracted)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:switch-conditions-after-n-interactions . 2000)
-                     (:data-sets . ,*incremental-simulated-data-sets*)))
+                     (:switch-conditions-after-n-interactions . 4000)
+                     (:data-sets . ,*incremental-simulated-data-sets*)
+                     (:data-path . ,*incremental-extracted-data-path*)))
                    )
-                 :number-of-interactions 6000
+                 :number-of-interactions 12000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
@@ -127,7 +128,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "incremental-simulated-prototype"
+ :experiment-name "incremental-extracted-prototype"
  :measure-names '("communicative-success"
                   "lexicon-size")
  :y-axis '(1 2)
@@ -152,3 +153,15 @@
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :captions '("simuated-data" "extracted-data")
  :title nil :end 2000)
+
+;; ------------------------------------------
+;; + Running experiments for alist monitors +
+;; ------------------------------------------
+
+(create-tutor-word-use-graph
+ :configurations (entries *baseline-simulated-configuration*)
+ :nr-of-interactions 1000)
+
+(create-learner-attribute-use-graph
+ :configurations (entries *baseline-simulated-configuration*)
+ :nr-of-interactions 5000)
