@@ -4,9 +4,10 @@
 from __future__ import print_function
 
 import time
+import weakref
 
 import almath
-from naoqi import ALProxy
+from naoqi import ALProxy, ALBroker, ALModule
 
 from naoVision import NaoVision
 
@@ -251,10 +252,12 @@ class NaoSpeechRecognition(object):
 
     def start_speech_recognition(self, vocabulary=[]):
         ''' Start the speech recognition, given a vocabulary '''
+        self.asrProxy.pause(True)
         self.asrProxy.setLanguage("English")
         vocab = [str(v) for v in vocabulary]
         self.asrProxy.setVocabulary(vocab, False)
         subscriber = "Nao_ASR_" + str(int(time.time()))
+        self.asrProxy.pause(False)
         self.asrProxy.subscribe(subscriber)
         self.ledProxy.on("EarLeds")
         return subscriber

@@ -123,7 +123,7 @@
                                     "--robot-ip" ,(ip nao)
                                     "--robot-port" ,(port nao)))
          (when test-connection
-           (sleep 1)
+           (sleep 2)
            (test-server-connection nao)))))
 
 (defmethod stop-nao-server ((nao nao) &key)
