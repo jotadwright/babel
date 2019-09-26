@@ -15,21 +15,21 @@
 ;; --------------------
 
 (progn
-  (defparameter *baseline-simulated-data-sets* '("val"))
-  (defparameter *baseline-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                     cl-user:*babel-corpora*))
+(defparameter *baseline-simulated-data-sets* '("val"))
+(defparameter *baseline-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
+                   cl-user:*babel-corpora*))
   
-  (defparameter *cogent-simulated-data-sets* '("valA"))
-  (defparameter *cogent-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
-                     cl-user:*babel-corpora*))
+(defparameter *cogent-simulated-data-sets* '("valA"))
+(defparameter *cogent-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
+                   cl-user:*babel-corpora*))
   
   
-  (defparameter *incremental-simulated-data-sets* '("incr1"))
-  (defparameter *incremental-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR_incremental" "scenes" "incr1-ns-vqa"))
-                     cl-user:*babel-corpora*)))
+(defparameter *incremental-simulated-data-sets* '("incr1"))
+(defparameter *incremental-extracted-data-path*
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR_incremental" "scenes" "incr1-ns-vqa"))
+                   cl-user:*babel-corpora*))
   
 (defparameter *baseline-simulated-configuration*
   (make-configuration
@@ -91,6 +91,7 @@
               (:switch-conditions-after-n-interactions . 10)
               (:data-sets . ,*incremental-simulated-data-sets*)
               (:data-path . ,*incremental-extracted-data-path*))))
+)
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment :configuration *incremental-extracted-configuration*))
@@ -137,31 +138,35 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("ns-vqa-cogent-min-max-5000"
-                     "ns-vqa-cogent-prototype-5000"
-                     "ns-vqa-cogent-pmm-5000"
-                     "ns-vqa-cogent-exponential-5000")
+ :experiment-names '("data-source-extracted-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-min-max"
+                     "data-source-extracted-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-prototype"
+                     "data-source-extracted-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-prototype-min-max"
+                     "data-source-extracted-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-exponential")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :captions '("min-max" "prototype" "pmm" "exponential")
- :title nil :end nil)
+ :title nil :end 5000)
 
 (create-graph-comparing-strategies
- :experiment-names '("baseline-prototype-not-scaled"
-                     "ns-vqa-prototype")
- :measure-name "communicative-success"
- :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("simuated-data" "extracted-data")
- :title nil :end 2000)
+ :experiment-names '("data-source-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-min-max"
+                     "data-source-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-prototype"
+                     "data-source-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-prototype-min-max"
+                     "data-source-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-exponential")
+ :measure-name "lexicon-size"
+ :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Lexicon Size"
+ :captions '("min-max" "prototype" "pmm" "exponential")
+ :title nil :end 5000)
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +
 ;; ------------------------------------------
 
+(progn
 (create-tutor-word-use-graph
  :configurations (entries *baseline-simulated-configuration*)
- :nr-of-interactions 1000)
+ :nr-of-interactions 5000)
 
 (create-learner-attribute-use-graph
  :configurations (entries *baseline-simulated-configuration*)
  :nr-of-interactions 5000)
+)

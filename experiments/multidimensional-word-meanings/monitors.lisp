@@ -209,7 +209,7 @@
 (define-monitor record-learner-attribute-use
                 :documentation "Record how often the learner uses each type of attribute"
                 :class 'alist-recorder
-                :average-windows 100)
+                :average-window 100)
 
 (defparameter *attribute-count* nil)
 
@@ -228,7 +228,6 @@
 (define-monitor plot-learner-attribute-use
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-learner-attribute-use
-    :average-windows 100
     :draw-y-1-grid t
     :y-label "Learner attribute use"
     :x-label "# Games"
@@ -351,7 +350,7 @@
 (define-monitor record-tutor-word-use
                 :documentation "Record how often the tutor uses each word"
                 :class 'alist-recorder
-                :average-windows 100)
+                :average-window 100)
 
 (defparameter *word-count* nil)
 
@@ -367,7 +366,6 @@
 (define-monitor plot-tutor-word-use
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-tutor-word-use
-    :average-windows 100
     :draw-y-1-grid t
     :y-label "Tutor word use"
     :x-label "# Games"
