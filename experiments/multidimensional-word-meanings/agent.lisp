@@ -47,10 +47,8 @@
   (eql (id agent) 'tutor))
 
 (defun make-tutor-agent (experiment)
-  (let ((tutor (make-instance 'mwm-agent :id 'tutor
-                              :experiment experiment)))
-    (make-tutor-lexicon tutor)
-    tutor))
+  (make-instance 'mwm-agent :id 'tutor
+                 :experiment experiment))
 
 (defun make-learner-agent (experiment)
   (make-instance 'mwm-agent :id 'learner

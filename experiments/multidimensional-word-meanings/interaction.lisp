@@ -126,10 +126,10 @@
                                          (first (get-data experiment :data-sets))))
                 (current-condition-nr (parse-integer (mkstr current-condition-char))))
            ;; only do someting when condition 3 has not yet been reached
-           (unless (= current-condition-nr 3)
+           (unless (= current-condition-nr 5)
              (let* ((next-condition-nr (1+ current-condition-nr))
                     (next-condition-char (coerce (mkstr next-condition-nr) 'character))
-                    (next-condition (mkstr "incr" next-condition-nr)))
+                    (next-condition (mkstr "phase_" next-condition-nr)))
                ;; export the lexicon before each condition switch
                ;(lexicon->pdf (find 'learner (population experiment) :key #'id))
                ;; reload the world with a different dataset
@@ -142,9 +142,9 @@
                (when (eql (get-configuration experiment :data-type) :extracted)
                  (set-data experiment :data-path
                            (parse-namestring
-                            (cl-ppcre:regex-replace-all (format nil "/incr~a" current-condition-char)
+                            (cl-ppcre:regex-replace-all (format nil "/phase_~a" current-condition-char)
                                                         (namestring (get-data experiment :data-path))
-                                                        (format nil "/incr~a" next-condition-char)))))
+                                                        (format nil "/phase_~a" next-condition-char)))))
                ;; print a message
                (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"
                        current-condition-nr next-condition-nr)))))))))

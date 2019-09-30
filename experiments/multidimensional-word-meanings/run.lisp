@@ -26,9 +26,9 @@
                    cl-user:*babel-corpora*))
   
   
-(defparameter *incremental-simulated-data-sets* '("incr1"))
+(defparameter *incremental-simulated-data-sets* '("phase_1"))
 (defparameter *incremental-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR_incremental" "scenes" "incr1-ns-vqa"))
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-incremental" "scenes" "phase_1-ns-vqa"))
                    cl-user:*babel-corpora*))
   
 (defparameter *baseline-simulated-configuration*
@@ -94,11 +94,11 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *incremental-extracted-configuration*))
+  (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 50)
+(run-series *experiment* 100)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id))
