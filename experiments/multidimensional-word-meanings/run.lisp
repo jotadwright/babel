@@ -138,24 +138,24 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("data-source-extracted-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-min-max"
-                     "data-source-extracted-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-prototype"
-                     "data-source-extracted-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-prototype-min-max"
-                     "data-source-extracted-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-exponential")
+ :experiment-names '("data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-min-max"
+                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype"
+                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype-min-max"
+                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-exponential")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :captions '("min-max" "prototype" "pmm" "exponential")
- :title nil :end 5000)
+ :title nil :end 25000)
 
 (create-graph-comparing-strategies
- :experiment-names '("data-source-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-min-max"
-                     "data-source-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-prototype"
-                     "data-source-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-prototype-min-max"
-                     "data-source-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-1000-category-representation-exponential")
+ :experiment-names '("data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-min-max"
+                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype"
+                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype-min-max"
+                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-exponential")
  :measure-name "lexicon-size"
  :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Lexicon Size"
  :captions '("min-max" "prototype" "pmm" "exponential")
- :title nil :end 5000)
+ :title nil :end 25000)
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +
