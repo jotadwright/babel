@@ -373,13 +373,39 @@ nil."
                 (return t))
      finally (return partitions)))
 
+(defun bin-list (n)
+  "Convert the integer n to its binary representation in list format,
+   e.g. 0 = (0); 1 = (1); 2 = (1 0); 3 = (1 1); etc."
+  (cond ((< n 1) '(0))
+        ((= n 1) '(1))
+        ((zerop (mod n 2)) (append (bin-list (/ n 2)) '(0)))
+        (t (append (bin-list (floor (/ n 2))) '(1)))))
+
 (defun all-subsets (list &key (min-length 1))
-  "a slow hack for getting all subsets of a list. needs to be properly written"
-  (reverse 
-   (loop for x in (remove-duplicates 
-                   (apply #'append (set-partitions list)) :test #'equal)
-      when (>= (length x) min-length)
-      collect x)))
+  "There are 2^n subsets of a list of length n.
+   Iterate from 0 to (2^n)-1 and represent this number in binary format.
+   The binary format has the same length as the list itself.
+   Loop over the binary format and the list simultaneously.
+   If a 1 appears in the n'th position, we take the n'th element from the list
+   for the current subset. Otherwise, we leave it and continue."
+  (let ((subset-len (- (expt 2 (length list)) 1))
+        (list-len (length list))
+        all-subsets)
+    (loop for i from 0 to subset-len
+          for binary-list = (bin-list i)
+          when (< (length binary-list) list-len)
+          do (setf binary-list
+                   (append (make-list (- list-len (length binary-list))
+                                      :initial-element 0)
+                           binary-list))
+          do (loop with subset = nil
+                   for bit in binary-list
+                   for idx from 0
+                   if (= bit 1)
+                   do (push (nth idx list) subset)
+                   finally (when (and subset (>= (length subset) min-length))
+                             (push subset all-subsets)))
+          finally (return all-subsets))))
 
 (defun random-subset (list &key (include-empty-set? t))
   "Returns a random subset both in the amount of elements and in which
