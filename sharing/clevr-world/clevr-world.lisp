@@ -12,13 +12,13 @@
 (export '(*clevr-data-path* reset-clevr-data-path))
 
 (defparameter *clevr-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0"))
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0"))
                    cl-user:*babel-corpora*)
   "The root directory of the clevr data.")
 
 (defun reset-clevr-data-path ()
   (setf *clevr-data-path*
-        (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0"))
+        (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0"))
                          cl-user:*babel-corpora*)))
 
 ;; ################################

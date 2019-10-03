@@ -17,7 +17,7 @@
 (progn
 (defparameter *baseline-simulated-data-sets* '("val"))
 (defparameter *baseline-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes" "val-ns-vqa"))
+  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val-ns-vqa"))
                    cl-user:*babel-corpora*))
   
 (defparameter *cogent-simulated-data-sets* '("valA"))
