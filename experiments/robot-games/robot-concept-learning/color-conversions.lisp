@@ -1,4 +1,4 @@
-(in-package :mwm)
+(in-package :robot-concept-learning)
 
 ;; based on http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
 (defparameter *reference-white-D50* (list 0.96422 1.00000 0.82521)

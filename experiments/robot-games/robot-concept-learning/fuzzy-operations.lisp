@@ -1,4 +1,4 @@
-(in-package :mwm)
+(in-package :robot-concept-learning)
 
 ;; ------------------------
 ;; + Fuzzy Set Operations +

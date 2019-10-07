@@ -1,7 +1,7 @@
 (in-package :asdf)
 
-(defsystem :mwm
-  :description "Multidimensional Word Meaning experiment"
+(defsystem :robot-concept-learning
+  :description "Grounded Concept Learning using the Nao robot"
   :author "EHAI"
   :maintainer "Jens Nevens"
   :license "GPL 3.0"
@@ -11,11 +11,11 @@
                :monitors
                :plot-raw-data
                :experiment-framework
-               :meta-layer-learning
                :irl
                :fcg
+               :nao-interface
+               :robot-interface
                :clevr-world
-               :cl-mop
                :cl-json)
   :serial t
   :components ((:file "package")

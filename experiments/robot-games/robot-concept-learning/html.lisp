@@ -1,4 +1,4 @@
-(in-package :mwm)
+(in-package :robot-concept-learning)
 
 ;; make html of mwm-object
 (defmethod make-html-for-entity-details ((object mwm-object) &key)

@@ -1,6 +1,6 @@
 
-(ql:quickload :mwm)
-(in-package :mwm)
+(ql:quickload :robot-concept-learning)
+(in-package :robot-concept-learning)
 
 (activate-monitor trace-interaction-in-web-interface)
 ;(deactivate-monitor trace-interaction-in-web-interface)
@@ -9,6 +9,8 @@
 
 (activate-monitor display-communicative-success)
 ;(deactivate-monitor display-communicative-success)
+
+(activate-monitor robot-monitor)
 
 ;; --------------------
 ;; + Run interactions +

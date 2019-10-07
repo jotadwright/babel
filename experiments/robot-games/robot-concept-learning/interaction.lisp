@@ -1,101 +1,63 @@
-(in-package :mwm)
+(in-package :robot-concept-learning)
 
 (defun clear-agent (agent)
   "Clear the slots of the agent for the next interaction."
   (setf (applied-cxns agent) nil
-        (discriminative-set agent) nil
         (utterance agent) nil
         (communicated-successfully agent) nil
         (parsed-meaning agent) nil))
 
 ;;;; before-interaction
 (defgeneric before-interaction (experiment)
-  (:documentation "Initialize the interaction"))
+  (:documentation "Initialize the interaction, e.g. set the context of the agents"))
 
-(define-event context-determined (experiment mwm-experiment))
+(define-event context-determined (experiment mwm-experiment) (image string))
 
 (defmethod before-interaction ((experiment mwm-experiment))
-  (let* ((data-type (get-configuration experiment :data-type))
-         (symbolic-clevr-context (random-scene (world experiment)))
-         (simulated-clevr-context
-          (clevr->simulated symbolic-clevr-context :scale (get-configuration experiment :scale-world)))
-         (extracted-clevr-context
-          (when (eql data-type :extracted)
-            (clevr->extracted symbolic-clevr-context
-                              :directory (find-data experiment :data-path)
-                              :scale (get-configuration experiment :scale-world)))))
-    (loop for agent in (interacting-agents experiment)
-          do (setf (context agent)
-                   (if (learnerp agent)
-                     (if (eql data-type :simulated)
-                       simulated-clevr-context
-                       (if (> (length (objects extracted-clevr-context)) 1)
-                         extracted-clevr-context
-                         nil))
-                     symbolic-clevr-context))
-          do (setf (symbolic-context agent) symbolic-clevr-context)
-          do (setf (topic agent)
-                   (when (speakerp agent)
-                     (random-elt (objects (context agent)))))
-          do (clear-agent agent))
-    (unless (context (hearer experiment))
-      (before-interaction experiment))
-    (notify context-determined experiment)))
-
+  (let ((agent (first (population experiment))))
+    ;; the agent observes the world and stores it
+    (multiple-value-bind (context image) (observe-and-process-world agent)
+      (setf (context agent) context)
+      (notify context-determined experiment image))))
 
 ;;;; do-interaction
 (defgeneric do-interaction (experiment)
-  (:documentation "Run the appropriate interaction script"))
-
-(defun conceptualise-until-success (agent)
-  (loop while t
-        for success = (conceptualise agent (id agent))
-        if success
-        return success
-        else
-        do (before-interaction (experiment agent))))
+  (:documentation "Run the interaction script"))
 
 (defmethod do-interaction ((experiment mwm-experiment))
-  "The tutor conceptualises the topic and produces
-   one or multiple words. The hearer tries to parse
-   and interpret the utterance. If both succeed and
-   the interpretation is correct, the interaction is
-   a success. Adoption is handled together with
-   alignment."
-  (let ((speaker (speaker experiment))
-        (hearer (hearer experiment)))
-    (case (id speaker)
-      (tutor (conceptualise-until-success speaker))
-      (learner (conceptualise speaker (id speaker))))
-    (produce-word speaker (id speaker))
-    (when (utterance speaker)
-      (setf (utterance hearer) (utterance speaker))
-      (when (and (parse-word hearer (id hearer))
-                 (interpret hearer (id hearer))
-                 (determine-success speaker hearer))
-        (setf (communicated-successfully speaker) t
-              (communicated-successfully hearer) t)))))
+  (let ((agent (first (population experiment))))
+    ;; the agent waits for an utterance from the human
+    ;; the agent tries to parse and interpret the utterance
+    (setf (utterance agent)
+          (receive-utterance agent))
+    (parse-word agent)
+    (interpret agent)))
 
 ;;;; after-interaction
 (defgeneric after-interaction (experiment)
-  (:documentation "Finalize the interaction"))
+  (:documentation "Perform tasks after the interaction, such as alignment"))
 
 (defmethod after-interaction ((experiment mwm-experiment))
-  (when (get-configuration experiment :learning-active)
-    (case (id (speaker experiment))
-      (tutor (let ((tutor (speaker experiment))
-                   (learner (hearer experiment)))
-               (when (discriminative-set tutor)
-                 (let ((topic (if (eql (get-configuration experiment :data-type) :simulated)
-                                (find (id (topic tutor)) (objects (context learner)) :key #'id)
-                                (closest-to-topic tutor (context learner)))))
-                   (align-agent learner topic)))))
-      (learner nil))))
-                 
-;; how to align when the learner was speaker?
-;; let the tutor produce for the topic and align using that word-object pair?
-;; this could be a completely different utterance than the one produced by the learner
-;; it could even be null...
+  ;; the agent asks feedback after the interaction,
+  ;; determines the success and updates its lexicon
+  (let* ((agent (first (population experiment)))
+         (feedback (receive-feedback agent))
+         (correct-topic (closest-object agent (first (objects feedback)))))
+    (when (eql (topic agent) correct-topic)
+      (setf (communicated-successfully agent) t))
+    (when (get-configuration experiment :learning-active)
+      (align-agent agent correct-topic))))
+
+;;;; Interact
+(defmethod interact ((experiment mwm-experiment)
+                     interaction &key)
+  (when (or (eql (get-configuration experiment :experiment-type) :cogent)
+            (eql (get-configuration experiment :experiment-type) :incremental))
+    (maybe-switch-conditions experiment))
+  ;; regular interaction
+  (before-interaction experiment)
+  (do-interaction experiment)
+  (after-interaction experiment))
 
 (defun maybe-switch-conditions (experiment)
   (let ((switch-condition-interval (get-configuration experiment :switch-conditions-after-n-interactions))
@@ -148,15 +110,3 @@
                ;; print a message
                (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"
                        current-condition-nr next-condition-nr)))))))))
-           
-
-;;;; Interact
-(defmethod interact ((experiment mwm-experiment)
-                     interaction &key)
-  (when (or (eql (get-configuration experiment :experiment-type) :cogent)
-            (eql (get-configuration experiment :experiment-type) :incremental))
-    (maybe-switch-conditions experiment))
-  ;; regular interaction
-  (before-interaction experiment)
-  (do-interaction experiment)
-  (after-interaction experiment))

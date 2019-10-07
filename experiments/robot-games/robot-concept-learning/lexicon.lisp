@@ -1,4 +1,4 @@
-(in-package :mwm)
+(in-package :robot-concept-learning)
 
 ;; ---------------------
 ;; + Creating lex cxns +
@@ -33,9 +33,6 @@
 ;; + Updating lex cxns +
 ;; ---------------------
 
-(define-event attr-removed (cxn fcg-construction) (attr symbol))
-(define-event cxn-removed (cxn fcg-construction))
-
 (defun adjust-certainty (agent cxn attr delta
                                &key (upper-bound 1.0)
                                (lower-bound 0.0)
@@ -67,27 +64,5 @@
                 (remove attr (attr-val cxn :meaning)
                         :key #'(lambda (entry)
                                  (attribute (car entry)))))
-          (notify attr-removed cxn attr)
           (when (null (attr-val cxn :meaning))
-            (delete-cxn cxn (grammar agent))
-            (notify cxn-removed cxn)))))))
-
-(defun expand-meaning (cxn new-meaning)
-  (setf (attr-val cxn :meaning)
-        (append (attr-val cxn :meaning)
-                new-meaning)))
-    
-
-;; --------------------
-;; + Finding lex cxns +
-;; --------------------
-
-(defun find-cxn-with-form (agent form)
-  (find form (constructions (grammar agent))
-        :key #'(lambda (cxn) (attr-val cxn :form))
-        :test #'string=))
-
-(defun find-cxns-with-form (agent form)
-  (find-all form (constructions (grammar agent))
-            :key #'(lambda (cxn) (attr-val cxn :form))
-            :test #'string=))
+            (delete-cxn cxn (grammar agent))))))))

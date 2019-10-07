@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
-(defpackage :mwm
-  (:documentation "Multidimensional Word Meaning experiment")
+(defpackage :robot-concept-learning
+  (:documentation "Grounded Concept Learning using the Nao robot")
   (:use :common-lisp
         :utils
         :web-interface
@@ -10,10 +10,8 @@
         :experiment-framework
         :irl
         :fcg
+        :robot-interface
         :clevr-world)
-  (:import-from :cl-mop
-                :slot-names
-                :map-slots)
   (:import-from :cl-json
    :decode-json-from-string
    :encode-json-to-string
