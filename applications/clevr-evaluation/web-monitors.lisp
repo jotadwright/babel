@@ -6,10 +6,10 @@
 
 (define-event-handler (clevr-web-monitor question-entry-evaluation-started)
   ;; parameters: image-filename, split, question and question-index
-  (let ((image-source-path (merge-pathnames (make-pathname :directory `(:relative "CLEVR" "CLEVR-v1.0" "images" ,split)
-                                                           :name image-filename
-                                                           :type "png")
-                                            cl-user::*babel-corpora*))
+  (let ((image-source-path
+         (merge-pathnames (make-pathname :directory `(:relative "images" ,split)
+                                         :name image-filename :type "png")
+                          *clevr-data-path*))
         (image-dest-path (make-pathname :directory `(:absolute "Users" ,(who-am-i) "Sites")
                                         :name image-filename
                                         :type "png")))
