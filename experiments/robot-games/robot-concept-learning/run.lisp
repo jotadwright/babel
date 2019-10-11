@@ -5,170 +5,38 @@
 (activate-monitor trace-interaction-in-web-interface)
 ;(deactivate-monitor trace-interaction-in-web-interface)
 
-(activate-monitor print-a-dot-for-each-interaction)
-
-(activate-monitor display-communicative-success)
-;(deactivate-monitor display-communicative-success)
-
 (activate-monitor robot-monitor)
+;(deactivate-monitor robot-monitor)
 
 ;; --------------------
 ;; + Run interactions +
 ;; --------------------
 
-(progn
-(defparameter *baseline-simulated-data-sets* '("val"))
-(defparameter *baseline-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                   cl-user:*babel-corpora*))
-  
-(defparameter *cogent-simulated-data-sets* '("valA"))
-(defparameter *cogent-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
-                   cl-user:*babel-corpora*))
-  
-  
-(defparameter *incremental-simulated-data-sets* '("phase_1"))
-(defparameter *incremental-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-incremental" "scenes" "phase_1-ns-vqa"))
-                   cl-user:*babel-corpora*))
-  
-(defparameter *baseline-simulated-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :baseline)
-              (:data-type . :simulated)
-              (:scale-world . ,nil)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:data-sets . ,*baseline-simulated-data-sets*))))
-
-(defparameter *baseline-extracted-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :baseline)
-              (:data-type . :extracted)
-              (:scale-world . ,nil)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:data-sets . ,*baseline-simulated-data-sets*)
-              (:data-path . ,*baseline-extracted-data-path*))))
-
-(defparameter *cogent-simulated-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :cogent)
-              (:data-type . :simulated)
-              (:scale-world . ,nil)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,100)
-              (:data-sets . ,*cogent-simulated-data-sets*))))
-
-(defparameter *cogent-extracted-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :cogent)
-              (:data-type . :extracted)
-              (:scale-world . ,nil)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,100)
-              (:data-sets . ,*cogent-simulated-data-sets*)
-              (:data-path . ,*cogent-extracted-data-path*))))
-
-(defparameter *incremental-simulated-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :incremental)
-              (:data-type . :simulated)
-              (:scale-world . ,nil)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . 10)
-              (:data-sets . ,*incremental-simulated-data-sets*))))
-
-(defparameter *incremental-extracted-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :incremental)
-              (:data-type . :extracted)
-              (:scale-world . ,nil)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . 10)
-              (:data-sets . ,*incremental-simulated-data-sets*)
-              (:data-path . ,*incremental-extracted-data-path*))))
-)
-
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
+  (make-instance 'mwm-experiment))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
-(display-lexicon (find 'learner (population *experiment*) :key #'id))
-(lexicon->pdf (find 'learner (population *experiment*) :key #'id))
-(lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
+(display-lexicon (first (population *experiment*)))
+(disconnect-robot-agent *experiment*)
 
-(make-table *experiment*)
+;; ------------------------
+;; + Setting up the robot +
+;; ------------------------
 
-;; ---------------------------------
-;; + Running series of experiments +
-;; ---------------------------------
+(defparameter *robot*
+  (make-robot :type 'nao :ip "192.168.1.4"
+              :server-port "1570"))
 
-(run-experiments `(
-                   (incremental-extracted-prototype
-                    ((:experiment-type . :incremental)
-                     (:data-type . :extracted)
-                     (:scale-world . ,nil)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:switch-conditions-after-n-interactions . 4000)
-                     (:data-sets . ,*incremental-simulated-data-sets*)
-                     (:data-path . ,*incremental-extracted-data-path*)))
-                   )
-                 :number-of-interactions 12000
-                 :number-of-series 1
-                 :monitors (list "export-communicative-success"
-                                 "export-lexicon-size"
-                                 "export-features-per-form"
-                                 ))
+(go-to-posture *robot* :crouch)
+(look-direction *robot* :down 1.0)
 
-(create-graph-for-single-strategy
- :experiment-name "incremental-extracted-prototype"
- :measure-names '("communicative-success"
-                  "lexicon-size")
- :y-axis '(1 2)
- :y1-max 1
- :xlabel "Number of games"
- :y1-label "Success")
+(take-picture *robot* :open t)
+(observe-world *robot* :open t)
 
-(create-graph-comparing-strategies
- :experiment-names '("data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-min-max"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype-min-max"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-exponential")
- :measure-name "communicative-success"
- :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("min-max" "prototype" "pmm" "exponential")
- :title nil :end 25000)
+(disconnect-robot *robot*)
 
-(create-graph-comparing-strategies
- :experiment-names '("data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-min-max"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype-min-max"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-exponential")
- :measure-name "lexicon-size"
- :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Lexicon Size"
- :captions '("min-max" "prototype" "pmm" "exponential")
- :title nil :end 25000)
+;(setf nao-interface::*nao-servers* nil)
 
-;; ------------------------------------------
-;; + Running experiments for alist monitors +
-;; ------------------------------------------
-
-(progn
-(create-tutor-word-use-graph
- :configurations (entries *baseline-simulated-configuration*)
- :nr-of-interactions 5000)
-
-(create-learner-attribute-use-graph
- :configurations (entries *baseline-simulated-configuration*)
- :nr-of-interactions 5000)
-)

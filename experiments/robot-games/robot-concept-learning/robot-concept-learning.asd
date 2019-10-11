@@ -20,12 +20,12 @@
   :serial t
   :components ((:file "package")
                (:file "color-conversions")
-               (:file "utils")
                (:file "fuzzy-operations")
                (:file "world")
                (:file "ontology")
                (:file "lexicon")
                (:file "agent")
+               (:file "utils")
                (:file "alignment")
                (:file "experiment")
                (:file "interaction")

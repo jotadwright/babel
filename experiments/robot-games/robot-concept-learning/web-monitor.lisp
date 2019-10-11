@@ -43,17 +43,19 @@
     (copy-file source-path dest-path)
     (if (null cl-user::*localhost-user-dir*)
       (warn "Set your *localhost-user-dir* in init-babel")
-      (add-element
-       `((table)
-         ((tr)
-          ((th :align "center") "Observed scene:"))
-         ((tr)
-          ((td :align "center") ((img :src ,(string-append cl-user::*localhost-user-dir* (format nil "~a.jpg" image)) :width "90%"))))
-         ((tr)
-          ((td :align "center") ,(make-html (context agent)))))))))
+      (progn
+        (add-element
+         `((table)
+           ((tr)
+            ((th :align "center") "Observed scene:"))
+           ((tr)
+            ((td :align "center") ((img :src ,(string-append cl-user::*localhost-user-dir* (format nil "~a.jpg" image)) :width "90%"))))))
+        (add-element
+         `((div) ,(make-html (context (first (population experiment))))))))))
 
 (define-event-handler (trace-interaction-in-web-interface utterance-received)
-  (add-element `((h3) "The agent received the utterance " ((i) ,(format nil "~a" utterance)))))
+  (add-element `((h2) "The agent received the utterance "
+                 ((i) ,(format nil "\"~a\"" utterance)))))
 
 (define-event-handler (trace-interaction-in-web-interface parsing-finished)
   (if (parsed-meaning agent)
@@ -63,22 +65,21 @@
     (add-element '((h2) "The agent could not parse the utterance."))))
 
 (define-event-handler (trace-interaction-in-web-interface interpretation-finished)
-  (if (topic agent)
-    (progn (add-element '((h2) "The agent interpreted the utterance:"))
-      (add-element (make-html (topic agent) :expand-initially t)))
-    (add-element '((h2) "The agent could not interpret the utterance."))))
+  (when (topic agent)
+    (add-element '((h2) "The agent interpreted the utterance:"))
+    (add-element (make-html (topic agent) :expand-initially t))))
 
 (define-event-handler (trace-interaction-in-web-interface alignment-started)
   (add-element '((hr)))
   (add-element '((h2) "Alignment started")))
 
 (define-event-handler (trace-interaction-in-web-interface adopt-unknown-word)
-  (add-element '((h2) "The agent will adopt a new word:"))
-  (add-element `((h3) ((i) ,(format nil "~a" (utterance agent))))))
+  (add-element `((h2) "The agent will adopt a new word: "
+                 ((i) ,(format nil "\"~a\"" (utterance agent))))))
 
 (define-event-handler (trace-interaction-in-web-interface update-known-word)
-  (add-element '((h2) "The agent will align a known word:"))
-  (add-element `((h3) ((i) ,(format nil "~a" (utterance agent))))))
+  (add-element `((h2) "The agent will align a known word: "
+                 ((i) ,(format nil "\"~a\"" (utterance agent))))))
 
 (define-event-handler (trace-interaction-in-web-interface new-cxn-added)
   (add-element '((h2) "A new construction was added:"))

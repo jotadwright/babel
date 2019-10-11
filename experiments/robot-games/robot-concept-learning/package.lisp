@@ -15,4 +15,5 @@
   (:import-from :cl-json
    :decode-json-from-string
    :encode-json-to-string
-   :encode-json-alist-to-string))
+   :encode-json-alist-to-string)
+  (:import-from :nao-interface :nao))

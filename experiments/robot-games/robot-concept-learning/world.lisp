@@ -22,8 +22,8 @@
   nil)
 
 (defmethod get-object-position ((object mwm-object))
-  (list (get-attr-val object 'x-pos)
-        (get-attr-val object 'y-pos)))
+  (list (get-attr-val object :xpos)
+        (get-attr-val object :ypos)))
 
 ;; ------------------
 ;; + MWM object set +
@@ -47,9 +47,10 @@
   (multiple-value-bind (observations analysis-image)
       (observe-world (robot agent) :open nil)
     (values (make-instance 'mwm-object-set
-                           :objects (loop for (id . attributes) in observations
-                                          collect (make-instance 'mwm-object :id id
-                                                                 :attributes attributes)))
+                           :objects (loop for observation in observations
+                                          for object = (first observation)
+                                          collect (make-instance 'mwm-object :id (first object)
+                                                                 :attributes (rest object))))
             analysis-image)))
           
     

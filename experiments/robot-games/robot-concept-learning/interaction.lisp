@@ -2,7 +2,7 @@
 
 (defun clear-agent (agent)
   "Clear the slots of the agent for the next interaction."
-  (setf (applied-cxns agent) nil
+  (setf (applied-cxn agent) nil
         (utterance agent) nil
         (communicated-successfully agent) nil
         (parsed-meaning agent) nil))

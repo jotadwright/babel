@@ -110,9 +110,7 @@
 
 (define-event utterance-received (agent mwm-agent) (utterance string))
 
-(defmethod receive-utterance ((agent mwm-agent))
-  "The agent receives an utterance through speech-to-text.
-   If no word was recognized, the agent retries"
+(defun receive-speech-utterance (agent)
   (let (utterance)
     (while (null utterance)
       (when (detect-head-touch (robot agent) :middle)
@@ -121,6 +119,27 @@
             (setf utterance detected)))))
     (notify utterance-received agent utterance)
     utterance))
+
+(defun prompt-for-input ()
+  #+LISPWORKS (capi:prompt-for-string "Please enter an utterance:")
+  #+CCL (ccl:get-string-from-user "Please enter an utterance:"))
+
+(defun receive-text-utterance (agent)
+  (let (utterance)
+    (while (null utterance)
+      (let ((input-utterance (prompt-for-input)))
+        (if (member input-utterance (get-configuration agent :robot-vocabulary) :test #'string=)
+          (setf utterance input-utterance)
+          (capi:popup-confirmer nil "This word is not supported"))))
+    (notify utterance-received agent utterance)
+    utterance))
+
+(defmethod receive-utterance ((agent mwm-agent))
+  "The agent receives an utterance through speech-to-text.
+   If no word was recognized, the agent retries"
+  (case (get-configuration agent :robot-input-modality)
+    (:speech (receive-speech-utterance agent))
+    (:text (receive-text-utterance agent))))
 
 ;; --------------
 ;; + Parse Word +

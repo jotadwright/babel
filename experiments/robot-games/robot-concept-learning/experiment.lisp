@@ -16,7 +16,7 @@
 (define-configuration-default-value :learning-active t)
 (define-configuration-default-value :switch-conditions-after-n-interactions nil)
 
-(define-configuration-default-value :robot-ip "192.158.1.4")
+(define-configuration-default-value :robot-ip "192.168.1.4")
 (define-configuration-default-value :robot-port 1570)
 (define-configuration-default-value :robot-vocabulary
    '("large" "huge" "small" "tiny"
@@ -24,6 +24,7 @@
      "cube" "block" "cylinder" "sphere" "ball"
      "left" "right" "front" "back"
      "yellow" "red" "orange" "gray" "blue" "green"))
+(define-configuration-default-value :robot-input-modality :text)
 
 ;; --------------
 ;; + Experiment +
@@ -35,33 +36,10 @@
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Initialize the experiment by creating the population"
   (setf (population experiment)
-        (list (make-embodied-agent experiment))))       
-        
-;; --------------------------------
-;; + Determine interacting agents +
-;; --------------------------------
-(defmethod determine-interacting-agents ((experiment mwm-experiment)
-                                         (interaction interaction)
-                                         (mode (eql :tutor-speaks))
-                                         &key &allow-other-keys)
-  "Determine the interacting agents such that the tutor is always the speaker"
-  (let ((tutor (find 'tutor (population experiment) :key #'id))
-        (learner (find 'learner (population experiment) :key #'id)))
-    (setf (interacting-agents interaction)
-          (list tutor learner))
-    (setf (discourse-role tutor) 'speaker
-          (discourse-role learner) 'hearer)
-    (notify interacting-agents-determined experiment interaction)))
+        (list (make-embodied-agent experiment))))
 
-(defmethod determine-interacting-agents ((experiment mwm-experiment)
-                                         (interaction interaction)
-                                         (mode (eql :learner-speaks))
-                                         &key &allow-other-keys)
-  "Determine the interacting agents such that the learner is always the speaker"
-  (let ((tutor (find 'tutor (population experiment) :key #'id))
-        (learner (find 'learner (population experiment) :key #'id)))
-    (setf (interacting-agents interaction)
-          (list tutor learner))
-    (setf (discourse-role tutor) 'hearer
-          (discourse-role learner) 'speaker)
-    (notify interacting-agents-determined experiment interaction)))
+;; Helper function
+(defun disconnect-robot-agent (experiment)
+  (let ((agent (first (population experiment))))
+    (when (robot-connected-p (robot agent))
+      (disconnect-robot (robot agent)))))

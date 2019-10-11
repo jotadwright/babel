@@ -80,7 +80,7 @@
     (notify alignment-started agent)
     (if utterance-known-p
       (progn (notify update-known-word agent)
-        (align-known-words agent topic category-representation))
+        (align-known-word agent topic category-representation))
       (progn (notify adopt-unknown-word agent)
         (adopt-unknown-word agent topic category-representation)))))
   
