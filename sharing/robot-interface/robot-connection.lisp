@@ -1,6 +1,6 @@
 (in-package :robot-interface)
 
-(export '(make-robot make-new-connection disconnect-robot))
+(export '(make-robot make-new-connection disconnect-robot robot-connected-p))
 
 (defun make-robot (&key type ip server-port (connect-automatically t))
   "Make a new robot of the type 'type', specifying its
