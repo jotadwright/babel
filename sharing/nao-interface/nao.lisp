@@ -111,7 +111,7 @@
                                       "-v" ,(format nil "~a:/naoqi/src" (babel-pathname :directory '("sharing" "nao-interface" "flask-server-v2")))
                                       "-v" ,(format nil "~a:/naoqi/src/img" (babel-pathname :directory '(".tmp" "nao-img")))
                                       "--name" ,(container-name nao)
-                                      "naoqi-python-v2")))
+                                      "naoqi-python")))
          ;; Push to the running containers
          (push-nao-server (ip nao) (server-port nao) (container-name nao))
          ;; Give some time to start the container
