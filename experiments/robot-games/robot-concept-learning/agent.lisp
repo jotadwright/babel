@@ -190,6 +190,9 @@
   (let ((feedback-set (observe-and-process-world agent)))
     (while (/= (length (objects feedback-set)) 1)
       (notify detection-error agent (length (objects feedback-set)))
+      (capi:popup-confirmer nil "The robot could not detect a single object.
+Please remove all objects until only the topic remains.
+Click 'OK' to try again.")
       (setf feedback-set (observe-and-process-world agent)))
     feedback-set))
               

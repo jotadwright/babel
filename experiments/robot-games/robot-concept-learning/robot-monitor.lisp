@@ -38,7 +38,7 @@
   (speak (robot agent) "please show me the topic you intended"))
 
 (define-event-handler (robot-monitor detection-error)
-  (speak (robot agent) (format nil "sorry, I detected ~a objects." num-detected)))
+  (speak (robot agent) (format nil "sorry, I detected ~a objects. i should have detected 1" num-detected)))
 
 (define-event-handler (robot-monitor alignment-started)
   nil)
