@@ -161,7 +161,6 @@
 ;; + Running experiments for alist monitors +
 ;; ------------------------------------------
 
-(progn
 (create-tutor-word-use-graph
  :configurations (entries *baseline-simulated-configuration*)
  :nr-of-interactions 5000)
@@ -169,4 +168,7 @@
 (create-learner-attribute-use-graph
  :configurations (entries *baseline-simulated-configuration*)
  :nr-of-interactions 5000)
-)
+
+(create-success-per-attribute-type-graph
+ :configurations (entries *baseline-simulated-configuration*)
+ :nr-of-interactions 5000)

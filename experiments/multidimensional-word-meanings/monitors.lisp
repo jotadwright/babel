@@ -382,3 +382,46 @@
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-tutor-word-use)
   (format t "~%Graphs have been created"))
+
+;;;; success per attribute type
+(define-monitor record-success-per-attribute-type
+                :documentation "For each type of attribute (e.g. color), record the success separately"
+                :class 'alist-recorder
+                :average-window 100)
+
+(defparameter *word->type-map*
+  '(("left" . xpos) ("right" . xpos)
+    ("front" . ypos) ("behind" . ypos)
+    ("cube" . shape) ("cylinder" . shape) ("sphere" . shape)
+    ("metal" . material) ("rubber" . material)
+    ("large" . size) ("small" . size)
+    ("blue" . color) ("brown" . color) ("cyan" . color)
+    ("gray" . color) ("green" . color) ("purple" . color)
+    ("red" . color) ("yellow" . color)))
+
+(define-event-handler (record-success-per-attribute-type interaction-finished)
+  (let* ((tutor (find 'tutor (population experiment) :key #'id))
+         (used-attribute-type (rest (assoc (first (utterance tutor)) *word->type-map* :test #'string=)))
+         (success (communicated-successfully interaction)))
+    (set-value-for-symbol monitor used-attribute-type
+                          (if success 1 0))))
+
+(define-monitor plot-success-per-attribute-type
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-success-per-attribute-type
+    :draw-y-1-grid t
+    :y-label "Success / attribute type"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "success-per-attribute-type"
+			       :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-success-per-attribute-type-graph (&key (configurations nil)
+                                                     (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create an a-list graph." nr-of-interactions)
+  (activate-monitor plot-success-per-attribute-type)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-success-per-attribute-type)
+  (format t "~%Graphs have been created"))
