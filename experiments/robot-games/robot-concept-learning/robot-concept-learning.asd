@@ -30,5 +30,6 @@
                (:file "experiment")
                (:file "interaction")
                (:file "html")
+               (:file "robot-monitor")
                (:file "web-monitor")
                (:file "monitors")))
