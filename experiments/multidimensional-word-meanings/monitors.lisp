@@ -153,57 +153,6 @@
                           :x-label nil :y-min 0
                           :open nil)))
 
-;;;; cxn -> json
-(defgeneric cxn->json (cxn category-representation)
-  (:documentation "Export the cxn to json such that it can be used later"))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :min-max)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:lower--bound . ,(lower-bound category))
-                                 (:upper--bound . ,(upper-bound category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype-min-max)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:lower--bound . ,(lower-bound category))
-                                 (:upper--bound . ,(upper-bound category))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:lower--m . ,(lower-m category))
-                                 (:lower--b . ,(lower-b category))
-                                 (:upper--m . ,(upper-m category))
-                                 (:lower--b . ,(lower-b category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :exponential)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:left--sigma . ,(left-sigma category))
-                                 (:right--sigma . ,(right-sigma category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
 ;;;; Learner used attribute
 ;; a-list monitor that keeps track of the attributes used by the learner
 (define-monitor record-learner-attribute-use
