@@ -400,11 +400,6 @@
   (add-element `((h2) ,(format nil "Removed attribute ~a from word \"~a\""
                                attr (attr-val cxn :form)))))
 
-(define-event-handler (trace-interaction-in-web-interface re-introduced-meaning)
-  (loop for attr in attrs
-        do (add-element `((h2) ,(format nil "Re-introduced attribute ~a to word \"~a\""
-                                        attr (attr-val cxn :form))))))
-
 (define-event-handler (trace-interaction-in-web-interface cxn-removed)
   ; cxn
   (add-element `((h2) ,(format nil "Removed word \"~a\""
