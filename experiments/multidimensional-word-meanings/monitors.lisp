@@ -404,13 +404,15 @@
          (used-attribute-type (rest (assoc (first (utterance tutor)) *word->type-map* :test #'string=)))
          (success (communicated-successfully interaction)))
     (set-value-for-symbol monitor used-attribute-type
-                          (if success 1 0))))
+                          (if success 1 0))
+    (set-value-for-symbol monitor 'overall (if success 1 0))))
 
 (define-monitor plot-success-per-attribute-type
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-success-per-attribute-type
     :draw-y-1-grid t
     :y-label "Success / attribute type"
+    :y-max 1.0
     :x-label "# Games"
     :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
 			       :name "success-per-attribute-type"
