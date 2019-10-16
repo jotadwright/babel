@@ -94,7 +94,7 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
+  (make-instance 'mwm-experiment :configuration *baseline-extracted-configuration*))
 
 (run-interaction *experiment*)
 
@@ -111,28 +111,26 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (incremental-extracted-prototype
-                    ((:experiment-type . :incremental)
+                   (subset-test-extracted
+                    ((:experiment-type . :baseline)
                      (:data-type . :extracted)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:switch-conditions-after-n-interactions . 4000)
-                     (:data-sets . ,*incremental-simulated-data-sets*)
-                     (:data-path . ,*incremental-extracted-data-path*)))
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:data-path . ,*baseline-extracted-data-path*)))
                    )
-                 :number-of-interactions 12000
+                 :number-of-interactions 5000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
-                                 "export-lexicon-size"
-                                 "export-features-per-form"
+                                 ;"export-lexicon-size"
+                                 ;"export-features-per-form"
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "incremental-extracted-prototype"
- :measure-names '("communicative-success"
-                  "lexicon-size")
- :y-axis '(1 2)
+ :experiment-name "subset-test-extracted"
+ :measure-names '("communicative-success")
+ :y-axis '(1)
  :y1-max 1
  :xlabel "Number of games"
  :y1-label "Success")
