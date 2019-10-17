@@ -72,7 +72,7 @@
 
 (defmethod align-agent ((agent mwm-agent) (topic mwm-object))
   (let ((utterance-known-p
-         (find (utterance agent) (grammar agent)
+         (find (utterance agent) (constructions (grammar agent))
                :key #'(lambda (cxn) (attr-val cxn :form))
                :test #'string=))
         (category-representation

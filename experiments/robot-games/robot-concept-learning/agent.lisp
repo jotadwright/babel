@@ -108,6 +108,7 @@
 ;; + Receive Utterance +
 ;; ---------------------
 
+(define-event ask-for-utterance (agent mwm-agent))
 (define-event utterance-received (agent mwm-agent) (utterance string))
 
 (defun receive-speech-utterance (agent)
@@ -137,6 +138,7 @@
 (defmethod receive-utterance ((agent mwm-agent))
   "The agent receives an utterance through speech-to-text.
    If no word was recognized, the agent retries"
+  (notify ask-for-utterance agent)
   (case (get-configuration agent :robot-input-modality)
     (:speech (receive-speech-utterance agent))
     (:text (receive-text-utterance agent))))
@@ -187,7 +189,8 @@
 
 (defmethod receive-feedback ((agent mwm-agent))
   (notify ask-for-feedback agent)
-  (let ((feedback-set (observe-and-process-world agent)))
+  (let ((feedback-set (when (detect-head-touch (robot agent) :middle)
+                        (observe-and-process-world agent))))
     (while (/= (length (objects feedback-set)) 1)
       (notify detection-error agent (length (objects feedback-set)))
       (capi:popup-confirmer nil "The robot could not detect a single object.

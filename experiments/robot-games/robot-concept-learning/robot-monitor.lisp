@@ -15,6 +15,10 @@
     (speak (robot agent) (format nil "i detected ~a objects"
                                  (length (objects (context agent)))))))
 
+(define-event-handler (robot-monitor ask-for-utterance)
+  (speak (robot agent)
+         "Please choose a topic and describe it by its shape, color or size"))
+
 (define-event-handler (robot-monitor utterance-received)
   nil)
 
@@ -27,7 +31,7 @@
 (define-event-handler (robot-monitor interpretation-finished)
   (when (topic agent)
     (speak (robot agent) "i think i found the topic")
-    (let ((sorted-context (sort (objects (context agent)) #'< :key #'(lambda (obj) (get-attr-val obj :x-pos)))))
+    (let ((sorted-context (sort (objects (context agent)) #'< :key #'(lambda (obj) (get-attr-val obj :xpos)))))
       (cond ((eql (topic agent) (first sorted-context))
              (point (robot agent) :left))
             ((eql (topic agent) (last-elt sorted-context))
@@ -35,7 +39,9 @@
             (t (point (robot agent) :both))))))
 
 (define-event-handler (robot-monitor ask-for-feedback)
-  (speak (robot agent) "please show me the topic you intended"))
+  (speak (robot agent)
+         (format nil "please show me the object you would call ~a"
+                 (utterance agent))))
 
 (define-event-handler (robot-monitor detection-error)
   (speak (robot agent) (format nil "sorry, I detected ~a objects. i should have detected 1" num-detected)))

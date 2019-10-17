@@ -41,16 +41,27 @@
 ;; + Observe world +
 ;; -----------------
 
+(defun flatten-attributes (attributes)
+  (let ((color (rest (assoc :color attributes))))
+    (push (cons :mean-h (first color)) attributes)
+    (push (cons :mean-s (second color)) attributes)
+    (push (cons :mean-v (third color)) attributes)
+    (remove :color attributes :key #'car)))
+
 (defun observe-and-process-world (agent)
   "The robot observes and processes the world. It extracts data
-   from an image and processes this into mwm-objects"
+   from an image and processes this into mwm-objects.
+   IMPORTANT: the features returned by the robot interface can
+   be multi-dimensional (e.g. color is 3d). This is flattened
+   here."
   (multiple-value-bind (observations analysis-image)
       (observe-world (robot agent) :open nil)
     (values (make-instance 'mwm-object-set
                            :objects (loop for observation in observations
                                           for object = (first observation)
+                                          for flat-attributes = (flatten-attributes (rest object))
                                           collect (make-instance 'mwm-object :id (first object)
-                                                                 :attributes (rest object))))
+                                                                 :attributes flat-attributes)))
             analysis-image)))
           
     
