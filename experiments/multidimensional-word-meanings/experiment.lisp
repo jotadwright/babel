@@ -28,6 +28,8 @@
 (define-configuration-default-value :learning-active t)
 (define-configuration-default-value :switch-conditions-after-n-interactions nil)
 
+(define-configuration-default-value :max-z-score 2)
+
 ;; --------------
 ;; + Experiment +
 ;; --------------
@@ -61,7 +63,9 @@
         (make-instance 'clevr-world :data-sets (get-configuration experiment :data-sets)))
   ;; store the data-sets and data-path in the blackboard
   (set-data experiment :data-sets (get-configuration experiment :data-sets))
-  (set-data experiment :data-path (get-configuration experiment :data-path)))
+  (set-data experiment :data-path (get-configuration experiment :data-path))
+  ;; set the max z-score (too cumbersome with configuration)
+  (setf *max-z-score* (get-configuration experiment :max-z-score)))
 
 (defmethod learner ((experiment mwm-experiment))
   (find 'learner (population experiment) :key #'id))

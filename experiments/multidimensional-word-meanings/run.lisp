@@ -128,7 +128,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "subset-test-extracted"
+ :experiment-name "data-type-extracted"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
