@@ -232,11 +232,11 @@ at  http://cvs.sourceforge.net/viewcvs.py/clocc/clocc/src/port/ext.lisp?view=mar
     (with-open-file (stream dot-file-name :direction :output :if-exists :supersede
 			    :if-does-not-exist :create)
       (s-dot->dot stream graph :check-syntax check-syntax))
-    (asdf:run-shell-command (format nil "dot -o ~a -T~a ~a" file-name format dot-file-name))
+    (uiop/run-program:run-program (format nil "dot -o ~a -T~a ~a" file-name format dot-file-name))
     ;; On MacOSX, there is the nice command 'open' that opens a file with the application 
     ;; that is associated to its type
     (when (equal (software-type) "Darwin")
-      (asdf:run-shell-command (format nil "open ~a" file-name)))))
+      (uiop/run-program:run-program (format nil "open ~a" file-name)))))
 
 (defun test-s-dot ()
   "Generates a few charts in /tmp/. If you don't have /tmp/, 
