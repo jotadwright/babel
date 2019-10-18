@@ -55,30 +55,39 @@
                               category-representation)
   (declare (ignorable category-representation))
   (let* ((cxn (first (applied-cxns agent)))
-         (applied-concept (attr-val cxn :meaning))
-         (best-subset
-          (find-most-discriminating-subset agent applied-concept topic)))
+         (applied-concept (attr-val cxn :meaning)))
     (add-to-cxn-history agent cxn)
     (loop for (category . certainty) in applied-concept
           do (update-category category topic
                               :success (communicated-successfully agent)
                               :interpreted-object (topic agent)))
-    (loop with rewarded = nil
-          with punished = nil
-          for (category . certainty) in applied-concept
-          if (member category best-subset :key #'car)
-          do (progn (push (attribute category) rewarded)
-               (adjust-certainty agent cxn (attribute category)
-                                 (get-configuration agent :certainty-incf)
-                                 :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
-          else
-          do (progn (push (attribute category) punished)
-               (adjust-certainty agent cxn (attribute category)
-                                 (get-configuration agent :certainty-decf)
-                                 :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
-          finally
-          (notify scores-updated cxn rewarded punished))))
-    
+    (if (communicated-successfully agent)
+      (loop with rewarded = nil
+            for (category . certainty) in applied-concept
+            do (progn (push (attribute category) rewarded)
+                 (adjust-certainty agent cxn (attribute category)
+                                   (get-configuration agent :certainty-incf)
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
+            finally
+            (notify scores-updated cxn rewarded nil))
+      (loop with best-subset
+            = (find-most-discriminating-subset agent applied-concept topic)
+            with rewarded = nil
+            with punished = nil
+            for (category . certainty) in applied-concept
+            if (member category best-subset :key #'car)
+            do (progn (push (attribute category) rewarded)
+                 (adjust-certainty agent cxn (attribute category)
+                                   (get-configuration agent :certainty-incf)
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
+            else
+            do (progn (push (attribute category) punished)
+                 (adjust-certainty agent cxn (attribute category)
+                                   (get-configuration agent :certainty-decf)
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
+            finally
+            (notify scores-updated cxn rewarded punished)))))
+  
         
  
 ;;;; Align Agent        
