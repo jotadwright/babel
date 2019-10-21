@@ -52,30 +52,6 @@
 ;;;; encode-irl-program
 ;;;; put the irl-program in an s-expr that can be
 ;;;; easily encoded in a json string
-#|
-(defun encode-irl-program (irl-program &optional list-of-bindings)
-  (let* ((reverse-polish (program->rpn (preprocess-program irl-program))))
-    (loop for rpn-predicate in reverse-polish
-          for irl-predicates = (find-all (first rpn-predicate) irl-program :key #'first)
-          for the-predicate = (if (length= irl-predicates 1)
-                                (first irl-predicates)
-                                (loop for possible-predicate in irl-predicates
-                                      for bind-statements = (linked-bind-statement possible-predicate irl-program)
-                                      when (eql (bind-statement-value bind-statement)
-                                                (second rpn-predicate))
-                                      return possible-predicate))
-          for output-var = (second the-predicate)
-          for output-value = (when list-of-bindings
-                               (value (find output-var list-of-bindings :key #'var)))
-          collect `((:name . ,(downcase (mkstr (first predicate))))
-                    (:arity . ,(rest (assoc (first predicate) *clevr-predicate-arities*)))
-                    (:arg . ,(when (length> predicate 1)
-                               (if (eql (first predicate) 'filter)
-                                 (downcase (mkstr (third predicate)))
-                                 (downcase (mkstr (second predicate))))))
-                    (:output . ,(when output-value (make-sexpr output-value)))))))
-|#
-
 (defun extract-predicate (possible-predicates rpn-predicate irl-program processed-predicates)
   (if (length= possible-predicates 1)
     (first possible-predicates)
@@ -95,7 +71,7 @@
                        best-p possible-predicate)
               finally (return best-p)))))
 
-(defun encode-irl-program (irl-program id-subs &optional list-of-nodes)
+(defun encode-irl-program-as-json (irl-program id-subs &optional list-of-nodes)
   (let* ((reverse-polish (program->rpn (preprocess-program-for-web-service irl-program))))
     (loop with processed-predicates = nil
           for rpn-predicate in reverse-polish
@@ -123,6 +99,9 @@
                     (:status . ,(if node
                                   (downcase (mkstr (irl:status node)))
                                   "not-executed"))))))
+
+(defun encode-irl-program-as-rpn (irl-program)
+  (program->rpn (preprocess-program irl-program)))
 
 
 ;;;; TO DO: write functions for decoding an IRL program from JSON

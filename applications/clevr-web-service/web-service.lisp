@@ -26,14 +26,15 @@
          (utterance (rest (assoc :utterance json)))
          (irl-encoding (if (assoc :irl--encoding json)
                          (downcase (rest (assoc :irl--encoding json)))
-                         "sexpr")))                
+                         "sexpr")))            
     (when missing-keys
       (http-condition 400 "JSON input missing key(s): (~{~a~^, ~})" missing-keys))
     (unless (stringp utterance)
       (http-condition 400 "utterance is of type ~a. Expected something of type string." (type-of utterance)))
     (unless (or (string= irl-encoding "sexpr")
-                (string= irl-encoding "json"))
-      (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr' or 'json'." irl-encoding))
+                (string= irl-encoding "json")
+                (string= irl-encoding "rpn"))
+      (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr, 'json' or 'rpn'." irl-encoding))
     (multiple-value-bind (irl-program cipn)
         (handler-case (fcg:comprehend (preprocess-sentence utterance)
                                       :cxn-inventory *CLEVR*
@@ -48,7 +49,9 @@
                            ((string= irl-encoding "sexpr")
                             (mkstr irl-program))
                            ((string= irl-encoding "json")
-                            (encode-irl-program irl-program nil)))))
+                            (encode-irl-program-as-json irl-program nil))
+                           ((string= irl-encoding "rpn")
+                            (encode-irl-program-as-rpn irl-program)))))
            (:fcg--status . ,(downcase (mkstr fcg-status)))
            (:applied--constructions . ,(when (applied-constructions cipn)
                                          (mapcar #'downcase
@@ -90,7 +93,8 @@
     (unless (stringp utterance)
       (http-condition 400 "utterance is of type ~a. Expected something of type string." (type-of utterance)))
     (unless (or (string= irl-encoding "sexpr")
-                (string= irl-encoding "json"))
+                (string= irl-encoding "json")
+                (string= irl-encoding "rpn"))
       (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr' or 'json'." irl-encoding))
     (multiple-value-bind (irl-programs cipns)
         (handler-case (fcg:comprehend-all (preprocess-sentence utterance)
@@ -107,7 +111,9 @@
                                         ((string= irl-encoding "sexpr")
                                          (mkstr irl-program))
                                         ((string= irl-encoding "json")
-                                         (encode-irl-program irl-program nil)))))
+                                         (encode-irl-program-as-json irl-program nil))
+                                        ((string= irl-encoding "rpn")
+                                         (encode-irl-program-as-rpn irl-program)))))
                        (:fcg--status . ,(mkstr (first (statuses cipn))))
                        (:applied--constructions . ,(when (applied-constructions cipn)
                                                      (mapcar #'downcase
@@ -358,7 +364,7 @@
                              ((string= irl-encoding "sexpr")
                               (mkstr irl-program id-subs))
                              ((string= irl-encoding "json")
-                              (encode-irl-program irl-program id-subs (nodes irl-evaluator))))))
+                              (encode-irl-program-as-json irl-program id-subs (nodes irl-evaluator))))))
              (:fcg--status . ,(downcase (mkstr fcg-status)))
              (:applied--constructions . ,(when (applied-constructions cipn)
                                            (mapcar #'downcase
@@ -387,7 +393,7 @@
 
 ;; Test the web interface on localhost:9003 or https://penelope.vub.be/clevr-api/ (may not contain the latest version)
 
-;; curl -H "Content-Type: text/plain" -d '{"utterance" : "How many things are cubes or spheres?", "irl_encoding": "json"}' http://localhost:9003/comprehend
+;; curl -H "Content-Type: text/plain" -d '{"utterance" : "How many things are cubes or spheres?", "irl_encoding": "rpn"}' http://localhost:9003/comprehend
 
 ;; curl -H "Content-Type: application/json" -d '{"meaning" : "((GET-CONTEXT ?SOURCE-1153) (FILTER ?TARGET-2594 ?TARGET-2593 ?COLOR-205) (BIND SHAPE-CATEGORY ?SHAPE-175 CUBE) (FILTER ?TARGET-2593 ?SOURCE-1153 ?SHAPE-175) (BIND COLOR-CATEGORY ?COLOR-205 RED) (COUNT! ?TARGET-2681 ?TARGET-2594))"}' http://localhost:9003/formulate
 

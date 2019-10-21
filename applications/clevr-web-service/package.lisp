@@ -29,7 +29,7 @@
   (:import-from :clevr-grammar :*CLEVR*)
   (:import-from :clevr-evaluation
                 :preprocess-sentence
-                ;:preprocess-program
+                :preprocess-program
                 :preprocess-program-for-web-service
                 :get-target-value
                 :answer->str
