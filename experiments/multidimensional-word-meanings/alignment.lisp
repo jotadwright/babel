@@ -64,6 +64,7 @@
     (if (communicated-successfully agent)
       (loop with rewarded = nil
             for (category . certainty) in applied-concept
+            when (> certainty 0.1)
             do (progn (push (attribute category) rewarded)
                  (adjust-certainty agent cxn (attribute category)
                                    (get-configuration agent :certainty-incf)

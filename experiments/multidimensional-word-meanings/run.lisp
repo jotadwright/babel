@@ -136,13 +136,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("max-z-score-0.5-data-type-extracted"
-                     "max-z-score-1-data-type-extracted"
-                     "max-z-score-1.5-data-type-extracted"
-                     "max-z-score-2-data-type-extracted")
+ :experiment-names '("data-type-simulated-v2"
+                     "data-type-extracted-v2")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("z=0.5" "1.0" "1.5" "2.0")
+ :captions '("simulated" "extracted")
  :title nil :end nil)
 
 (create-graph-comparing-strategies
