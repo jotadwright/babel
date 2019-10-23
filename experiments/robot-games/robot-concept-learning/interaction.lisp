@@ -37,6 +37,8 @@
 (defgeneric after-interaction (experiment)
   (:documentation "Perform tasks after the interaction, such as alignment"))
 
+(define-event success-determined (agent mwm-agent) (success t))
+
 (defmethod after-interaction ((experiment mwm-experiment))
   ;; the agent asks feedback after the interaction,
   ;; determines the success and updates its lexicon
@@ -45,6 +47,7 @@
          (correct-topic (closest-object agent (first (objects feedback)))))
     (when (eql (topic agent) correct-topic)
       (setf (communicated-successfully agent) t))
+    (notify success-determined agent (eql (topic agent) correct-topic))
     (when (get-configuration experiment :learning-active)
       (align-agent agent correct-topic))))
 

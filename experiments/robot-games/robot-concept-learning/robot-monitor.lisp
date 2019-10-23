@@ -46,6 +46,13 @@
 (define-event-handler (robot-monitor detection-error)
   (speak (robot agent) (format nil "sorry, I detected ~a objects. i should have detected 1" num-detected)))
 
+(define-event-handler (robot-monitor success-determined)
+  (when (topic agent)
+    (speak (robot agent)
+           (if success
+             "Yippie! I was correct."
+             "Oops! I was wrong."))))
+
 (define-event-handler (robot-monitor alignment-started)
   nil)
 
@@ -53,7 +60,7 @@
   (speak (robot agent) "i am learning a new word"))
 
 (define-event-handler (robot-monitor update-known-word)
-  nil)
+  (speak (robot agent) "i am learning"))
 
 (define-event-handler (robot-monitor new-cxn-added)
   nil)

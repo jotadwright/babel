@@ -41,12 +41,21 @@
 ;; + Observe world +
 ;; -----------------
 
-(defun flatten-attributes (attributes)
+(defun flatten-and-convert-colors (attributes)
   (let ((color (rest (assoc :color attributes))))
-    (push (cons :mean-h (first color)) attributes)
-    (push (cons :mean-s (second color)) attributes)
-    (push (cons :mean-v (third color)) attributes)
+    (push (cons :mean-h (* (/ (first color) 179) 360)) attributes)
+    (push (cons :mean-s (* (/ (second color) 255) 100)) attributes)
+    (push (cons :mean-v (* (/ (third color) 255) 100)) attributes)
     (remove :color attributes :key #'car)))
+
+;; opencv uses a different HSV color range:
+;; H: [0-179]
+;; S: [0-255]
+;; V: [0-255]
+;; A common color range for HSV is:
+;; H: [0-360]
+;; S: [0-100]
+;; V: [0-100]
 
 (defun observe-and-process-world (agent)
   "The robot observes and processes the world. It extracts data
@@ -59,7 +68,7 @@
     (values (make-instance 'mwm-object-set
                            :objects (loop for observation in observations
                                           for object = (first observation)
-                                          for flat-attributes = (flatten-attributes (rest object))
+                                          for flat-attributes = (flatten-and-convert-colors (rest object))
                                           collect (make-instance 'mwm-object :id (first object)
                                                                  :attributes flat-attributes)))
             analysis-image)))
