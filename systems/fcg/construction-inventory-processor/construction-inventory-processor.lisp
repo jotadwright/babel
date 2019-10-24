@@ -279,16 +279,34 @@
   (not (setf (fully-expanded? node) (not (call-next-method)))))
 
 (defmethod cip-priority ((node cip-node) (mode (eql :depth-first))) ;;nr-of-applied-cxns
+  ;;TO DO: add warning
+  (cip-priority node :nr-of-applied-cxns))
+
+(defmethod cip-priority ((node cip-node) (mode (eql :nr-of-applied-cxns))) ;;nr-of-applied-cxns
   (length (all-parents node)))
 
 (defmethod cip-priority ((node cip-node) (mode (eql :priming)))
-
-  ;;(+ 
-     ;; score van de parent node
-     ;; priming-strength tussen vorige node en node (opzoeken in cxn inventory blackboard)
-;;)
-  )
-
+  (let ((priming-blackboard-name (if (eql (direction (cip node)) '<-)
+                                   :comprehension-priming-data :production-priming-data)))
+    (if (and (parent node)
+             (field? (blackboard (construction-inventory (cip node))) priming-blackboard-name))
+      (let ((applied-cxn (first (applied-constructions node)))
+            (previously-applied-cxn (second (applied-constructions node)))
+            (priming-blackboard-name (if (eql (direction (cip node)) '<-)
+                                       :comprehension-priming-data :production-priming-data)))
+   
+        (if (and previously-applied-cxn
+                 (gethash (name previously-applied-cxn)
+                          (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))
+          (let ((priming-strength (gethash (name applied-cxn)
+                                           (gethash (name previously-applied-cxn)
+                                                    (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))))
+                                   
+             
+            (+ (priority (parent node)) ;;score of the parent
+               (or priming-strength 0)))
+          (or (priority (parent node)) 0)))
+      0)))
 
 ;; -------------------------------:depth-first-prefer-local-bindings------------------------------------------
 ;; -----------------:best-first-minimize-domains-and-maximize-semantic-coherence------------------------------

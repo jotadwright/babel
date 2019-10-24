@@ -9,7 +9,9 @@
   :fcg-configurations ((:max-nr-of-nodes . 2500)
                        (:production-goal-tests :connected-structure :no-applicable-cxns)
                        (:node-expansion-mode . :multiple-cxns)
-                       (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns))
+                       (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                       (:priority-mode . :priming))
+  :visualization-configurations ((:with-search-debug-data . nil))
   :cxn-inventory *amr-bidirectional*
   :hashed t
   
