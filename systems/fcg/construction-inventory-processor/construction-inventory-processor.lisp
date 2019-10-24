@@ -573,6 +573,37 @@ mode ~a. Please check why it did not calculate a priority score." (get-configura
 
 (require-configuration :node-expansion-mode)
 
+(defmethod expand-cip-node ((node cip-node) (mode (eql :multiple-cxns)))
+  "When next-cxn returns a list, then apply all these cxns to the cipn."
+  (loop with nodes-to-queue = nil
+        with failed-nodes = nil
+        with cxn-inventory = (construction-inventory node)
+        for cxns = (listify (next-cxn (cxn-supplier node) node))
+        when cxns
+        do (let ((succeeded-cars nil)
+                 (failed-cars nil))
+             (dolist (cxn cxns)
+               (multiple-value-bind (these-succeeded-cars these-failed-cars)
+                   (fcg-apply (safe-cxn cxn (applied-constructions node))
+                              (car-resulting-cfs (cipn-car node))
+                              (direction (cip node)) :notify nil
+                              :configuration (configuration (construction-inventory node))
+                              :cxn-inventory cxn-inventory)
+                 (setf succeeded-cars (append succeeded-cars these-succeeded-cars)
+                       failed-cars (append failed-cars these-failed-cars))))
+             (loop for car in succeeded-cars
+                   do (push (cip-add-child node car)
+                            nodes-to-queue)
+                   when (apply-sequentially? node (car-applied-cxn car))
+                   do (setf (fully-expanded? node) t) (return))
+             
+             (loop for car in failed-cars
+                   do (push (cip-add-child node car :cxn-applied nil)
+                            failed-nodes)))
+        when nodes-to-queue do (return nodes-to-queue)
+        while cxns
+        finally (setf (fully-expanded? node) t)))
+
 (defun get-cip-leaves (cip)
   "Helper function: get all leaves (final nodes) from the cip search
 tree."

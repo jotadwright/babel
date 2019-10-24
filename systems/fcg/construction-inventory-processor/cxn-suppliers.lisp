@@ -394,3 +394,85 @@
          (setf (remaining-constructions cxn-supplier)
                (all-constructions-of-current-label cxn-supplier))
          (next-cxn cxn-supplier node))))
+
+
+
+
+
+
+
+
+;; #########################################################
+;; cxn-supplier
+;; ---------------------------------------------------------
+
+(export '(cxn-supplier-with-hashed-simple-queue))
+
+(defun all-cxns-except-incompatible-hashed-cxns (node)
+  "computes all constructions that could be applied for this node
+   plus nil hashed constructions"
+  (let ((constructions
+         ;; get all constructions compatible
+         ;; with the hashes of the node
+         ;; append nil hashed constructions
+         (remove-duplicates
+          (append
+           (loop
+            for hash in (hash node (get-configuration node :hash-mode))
+            append (gethash hash (constructions-hash-table (construction-inventory node))))
+           (gethash nil (constructions-hash-table (construction-inventory node)))))))
+    ;; shuffle if requested
+    (when (get-configuration node :shuffle-cxns-before-application)
+      (setq constructions 
+            (shuffle constructions)))
+    ;; return constructions
+    constructions))
+
+(defclass cxn-supplier-all-cxns-except-incompatible-hashed-cxns ()
+  ((remaining-constructions
+    :type list :initarg :remaining-constructions
+    :accessor remaining-constructions
+    :documentation "A list of constructions that are still to try")))
+
+(defmethod create-cxn-supplier ((node cip-node)
+                                (mode (eql :all-cxns-except-incompatible-hashed-cxns)))
+  (make-instance
+   'cxn-supplier-all-cxns-except-incompatible-hashed-cxns
+   :remaining-constructions (all-cxns-except-incompatible-hashed-cxns node)))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-all-cxns-except-incompatible-hashed-cxns)
+                     (node cip-node))
+  (let ((next-constructions (remaining-constructions cxn-supplier)))
+    ;;now we need to remove the next-constructions from the list of remaining constructions
+    (setf (remaining-constructions cxn-supplier) nil)
+    ;;return next constructions:
+    next-constructions))
+
+(defmethod hash ((construction construction)
+                 (mode (eql :hash-string-meaning-lex-id))
+                 &key &allow-other-keys)
+  "Returns the string and meaning from the attributes of the construction"
+  (when (or (attr-val construction :string)
+            (attr-val construction :meaning)
+            (attr-val construction :lex-id))
+    (remove-duplicates
+     (remove nil (list (attr-val construction :string)
+                       (attr-val construction :meaning)
+                       (attr-val construction :lex-id))))))
+
+(defmethod hash ((node cip-node)
+                 (mode (eql :hash-string-meaning-lex-id)) ;; For using hashed construction sets in the root.
+                 &key &allow-other-keys)
+  "Checks the root and returns entities (for IRL meanings) or predicates."
+  (let* ((units (fcg-get-transient-unit-structure node))
+         (lex-ids (loop for unit in units
+                        for lex-id = (unit-feature-value unit 'lex-id)
+                        when lex-id collect it))
+         (strings (mapcar #'third (extract-strings (list (get-root units)))))
+         (meanings (loop for meaning in (extract-meaning (get-root units))
+                         collect (first meaning))))
+    (if (eql (car-direction (cipn-car node)) '<-)
+      (append strings lex-ids)
+      (append meanings lex-ids))))
+
+
