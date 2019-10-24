@@ -5,9 +5,6 @@
 
 (activate-monitor trace-fcg)
 
-(get-configuration *amr-bidirectional* :hash-mode)
-hash
-
 (def-fcg-constructions amr-grammar
   :fcg-configurations ((:max-nr-of-nodes . 2500)
                        (:production-goal-tests :connected-structure :no-applicable-cxns)
@@ -284,7 +281,8 @@ hash
                                       (HASH form ((meets ?right-subj ?verb-unit)
                                                   (meets ?verb-unit ?to-unit))))
                                      (?subject-unit
-                                      (syn-cat (phrase-type np))
+                                      (syn-cat (phrase-type np)
+                                               (number ?nb))
                                       (referent ?subj)
                                       --
                                       (syn-cat (phrase-type np)
@@ -295,6 +293,8 @@ hash
                                       (referent ?ev)
                                       (sem-valence (arg0 ?subj)
                                                    (arg1 ?inf))
+                                      (syn-cat (number ?nb)
+                                               (finite +))
                                       --
                                       (syn-cat (lex-class verb)
                                                (number ?nb)
@@ -309,7 +309,7 @@ hash
                        )
 
 
-(comprehend "the boy wants to go" :cxn-inventory *amr-bidirectional*)
+(comprehend-all "the boy wants to go" :cxn-inventory *amr-bidirectional*)
 
 (formulate '((want-01 w)
                  (boy b)
