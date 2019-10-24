@@ -278,9 +278,16 @@
 (defmethod cip-node-test :around ((node cip-node) (mode t))
   (not (setf (fully-expanded? node) (not (call-next-method)))))
 
-(defmethod cip-priority ((node cip-node) (mode (eql :depth-first)))
+(defmethod cip-priority ((node cip-node) (mode (eql :depth-first))) ;;nr-of-applied-cxns
   (length (all-parents node)))
 
+(defmethod cip-priority ((node cip-node) (mode (eql :priming)))
+
+  ;;(+ 
+     ;; score van de parent node
+     ;; priming-strength tussen vorige node en node (opzoeken in cxn inventory blackboard)
+;;)
+  )
 
 
 ;; -------------------------------:depth-first-prefer-local-bindings------------------------------------------
@@ -691,8 +698,49 @@ solution."
      (progn
        (cip-run-goal-tests solution cip)
        (push 'goal-test-failed (statuses solution))))
+
+   ;;inform-search-heuristics-after-solution (TO DO: make configuration)
+   (when (and solution
+              (find 'succeeded (statuses solution)))
+     (inform-search-heuristics solution (direction (cip solution))))
+   
    (when notify (notify cip-finished solution cip))
    (return (values solution cip))))
+
+
+(defun inform-search-heuristics (solution-node processing-direction) ;;should become a method later
+  "Extract useful information from the solution to inform future
+search processes. Currently tailored towards storing co-occurrence
+links between applied constructions for priming effects."
+  (let* ((blackboard-key (if (eql processing-direction '<-)
+                           :comprehension-priming-data
+                           :production-priming-data))
+         (priming-data
+          (if (field? (blackboard (construction-inventory (cip solution-node))) blackboard-key)
+            (get-data (blackboard (construction-inventory (cip solution-node))) blackboard-key)
+            (progn (set-data (blackboard (construction-inventory (cip solution-node))) blackboard-key
+                             (make-hash-table :test #'equalp))
+              (get-data (blackboard (construction-inventory (cip solution-node))) blackboard-key))))
+         (names-of-applied-constructions (mapcar #'name (reverse (applied-constructions solution-node)))))
+
+         (loop for construction-name in names-of-applied-constructions
+               for i from 0 to (- (length names-of-applied-constructions) 2) ;;don't do update for last cxn
+               for next-construction-name = (nth (+ i 1) names-of-applied-constructions)
+               if (gethash construction-name priming-data) ;;construction key exists
+               do (if (gethash next-construction-name (gethash construction-name priming-data)) ;;next-construction key exists
+                    (progn (setf (gethash next-construction-name (gethash construction-name priming-data)) ;;update frequency
+                                 (+ 1 (gethash next-construction-name (gethash construction-name priming-data)))))
+                    (progn (setf (gethash next-construction-name (gethash construction-name priming-data))
+                                 (make-hash-table :test #'equalp)) ;;init
+                      (setf (gethash next-construction-name (gethash construction-name priming-data)) 1)))    
+               else ;;construction key does not exist
+               do (progn (setf (gethash construction-name priming-data) ;;for the hash key of the construction name
+                               (make-hash-table :test #'equalp)) ;;initialise it with empty hash table as its value
+                    (setf (gethash next-construction-name (gethash construction-name priming-data))
+                          (make-hash-table :test #'equalp)) ;;init
+                    (setf (gethash next-construction-name (gethash construction-name priming-data)) 1)))
+
+         (set-data (blackboard (construction-inventory (cip solution-node))) blackboard-key priming-data)))
 
 ;; #############################################################################
 ;; fcg-apply
