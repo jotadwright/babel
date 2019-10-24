@@ -5,10 +5,16 @@
 
 (activate-monitor trace-fcg)
 
+(get-configuration *amr-bidirectional* :hash-mode)
+hash
+
 (def-fcg-constructions amr-grammar
   :fcg-configurations ((:max-nr-of-nodes . 2500)
-                       (:production-goal-tests :connected-structure :no-applicable-cxns))
+                       (:production-goal-tests :connected-structure :no-applicable-cxns)
+                       (:node-expansion-mode . :multiple-cxns)
+                       (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns))
   :cxn-inventory *amr-bidirectional*
+  :hashed t
   
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; Morphological and Lexical Constructions ;;
@@ -24,26 +30,29 @@
                                       (HASH meaning ((boy ?b)))
                                       --
                                       (syn-cat (lemma boy)
-                                               (number ?number))))
-                                    :cxn-set lex)
+                                               (number ?number))
+                                      (lex-id boy)))
+                                    :attributes (:meaning boy :lex-id boy))
 
                        (def-fcg-cxn boy-morph-cxn
                                     (<-
                                      (?boy-unit
                                       (syn-cat (lemma boy)
                                                (number sg))
+                                      (lex-id boy)
                                       --
                                       (HASH form ((string ?boy-unit "boy")))))
-                                    :cxn-set morph)
+                                    :attributes (:string "boy" :lex-id boy))
 
                        (def-fcg-cxn boys-morph-cxn
                                     (<-
                                      (?boys-unit
                                       (syn-cat (lemma boy)
                                                (number pl))
+                                      (lex-id boy)
                                       --
                                       (HASH form ((string ?boys-unit "boys")))))
-                                    :cxn-set morph)
+                                    :attributes (:string "boys" :lex-id boy))
 
                        ;; Articles
                          (def-fcg-cxn the-cxn
@@ -52,9 +61,10 @@
                                       (syn-cat (lex-class article)
                                                 (definite +)
                                                 (number ?number)) ;;sg or pl
+                                      (lex-id the)
                                       --
                                       (HASH form ((string ?the-unit "the")))))
-                                    :cxn-set morph)
+                                    :attributes (:string "the" :lex-id the))
 
                        (def-fcg-cxn a-cxn
                                     (<-
@@ -62,9 +72,10 @@
                                       (syn-cat (lex-class article)
                                                 (definite -)
                                                 (number sg))
+                                      (lex-id a)
                                       --
                                       (HASH form ((string ?a-unit "a")))))
-                                    :cxn-set morph)
+                                    :attributes (:string "a" :lex-id a))
 
                        
                        ;; Auxiliaries
@@ -82,8 +93,9 @@
                                       --
                                       (syn-cat (lemma want)
                                                (finite ?fin)
-                                               (number ?number))))
-                                    :cxn-set lex)
+                                               (number ?number))
+                                      (lex-id want-01)))
+                                    :attributes (:meaning want-01 :lex-id want-01))
 
                        (def-fcg-cxn wants-morph-cxn
                                     (<-
@@ -91,9 +103,10 @@
                                       (syn-cat (lemma want)
                                                (number sg)
                                                (finite +))
+                                      (lex-id want-01)
                                       --
                                       (HASH form ((string ?want-unit "wants")))))
-                                    :cxn-set morph)
+                                    :attributes (:string "wants" :lex-id want-01))
 
                        (def-fcg-cxn want-morph-cxn
                                     (<-
@@ -101,9 +114,10 @@
                                       (syn-cat (lemma want)
                                                (number pl)
                                                (finite ?fin))
+                                      (lex-id want-01)
                                       --
                                       (HASH form ((string ?want-unit "want")))))
-                                    :cxn-set morph)
+                                    :attributes (:string "want" :lex-id want-01))
 
                        
                        
@@ -120,8 +134,9 @@
                                       --
                                       (syn-cat (lemma go)
                                                (finite ?fin)
-                                               (number ?nb))))
-                                    :cxn-set lex)
+                                               (number ?nb))
+                                      (lex-id go-01)))
+                                    :attributes (:meaning go-01 :lex-id go-01))
 
                        (def-fcg-cxn go-morph-cxn
                                     (<-
@@ -129,9 +144,10 @@
                                       (syn-cat (lemma go)
                                                (finite -)
                                                (number ?number))
+                                      (lex-id go-01)
                                       --
                                       (HASH form ((string ?go-unit "go")))))
-                                    :cxn-set morph)
+                                    :attributes (:string "go" :lex-id go-01))
 
 
                        
@@ -181,7 +197,8 @@
                                       --
                                       (syn-cat (lex-class article)
                                                (definite ?definite)
-                                               (number ?number)))
+                                               (number ?number))
+                                      (lex-id ?lex-id))
                                      (?nominal-unit
                                       (referent ?ref)
                                       (syn-cat (phrase-type nominal)
@@ -292,9 +309,9 @@
                        )
 
 
-(comprehend-and-formulate "the boy wants to go" :cxn-inventory *amr-bidirectional*)
+(comprehend "the boy wants to go" :cxn-inventory *amr-bidirectional*)
 
-(formulate-all '((want-01 w)
+(formulate '((want-01 w)
                  (boy b)
                  (go-01 g)
                  (:arg0 w b)
