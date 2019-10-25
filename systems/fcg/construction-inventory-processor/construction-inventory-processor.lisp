@@ -511,13 +511,15 @@ calculated by a node evaluation function. "
 mode ~a. Please check why it did not calculate a score." (get-configuration cip :priority-mode)))
   (setf (queue cip) (sorted-insert (queue cip) node :key #'priority :test #'>)))
 
-
-
-
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :random-walk)))
+  "Randomly explore the search space. For didactic purposes only."
+  (setf (queue cip) (shuffle (push node (queue cip)))))
 
 (defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
                         (mode (eql :by-priority)))
-  (warn "The queue-mode :by-priority is deprecated. Please use :greedy-best-first instead, which implements the same functionality.")
+  (warn "The queue-mode :by-priority is deprecated. Please use
+:greedy-best-first instead, which implements the same functionality.")
   (cip-enqueue node cip :greedy-best-first))
 
 (defun last-applied-construction (node)
