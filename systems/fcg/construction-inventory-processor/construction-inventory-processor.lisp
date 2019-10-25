@@ -278,11 +278,11 @@
 (defmethod cip-node-test :around ((node cip-node) (mode t))
   (not (setf (fully-expanded? node) (not (call-next-method)))))
 
-(defmethod cip-priority ((node cip-node) (mode (eql :depth-first))) ;;nr-of-applied-cxns
-  ;;TO DO: add warning
+(defmethod cip-priority ((node cip-node) (mode (eql :depth-first)))
+  (warn "This priority-mode is deprecated. Please use :nr-of-applied-cxns instead, which implements the same functionality")
   (cip-priority node :nr-of-applied-cxns))
 
-(defmethod cip-priority ((node cip-node) (mode (eql :nr-of-applied-cxns))) ;;nr-of-applied-cxns
+(defmethod cip-priority ((node cip-node) (mode (eql :nr-of-applied-cxns)))
   (length (all-parents node)))
 
 (defmethod cip-priority ((node cip-node) (mode (eql :priming)))
@@ -486,14 +486,39 @@
 
 ;; ------------------------------------------------------------------------------------------------------------
 
+
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :depth-first)))
+  "Depth first search: children always added in front of queue."
+  (push node (queue cip)))
+
+
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :breadth-first)))
+  "Breadth first search: children always added to the end of the queue."
+  (pushend node (queue cip)))
+
+
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :greedy-best-first)))
+  "Greedy best first search tries to expand the node that is closest
+to the goal. It inserts each node into the queue, based on its score
+calculated by a node evaluation function. "
+  (setf (priority node)  
+        (cip-priority node (get-configuration cip :priority-mode))) ;;node evaluation 
+  (unless (priority node)
+    (error "The heuristic evaluation score of the new node is NIL. You used priority
+mode ~a. Please check why it did not calculate a score." (get-configuration cip :priority-mode)))
+  (setf (queue cip) (sorted-insert (queue cip) node :key #'priority :test #'>)))
+
+
+
+
+
 (defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
                         (mode (eql :by-priority)))
-  (setf (priority node)  
-        (cip-priority node (get-configuration cip :priority-mode)))
-  (unless (priority node)
-    (error "The priority of the new node is NIL. You used priority
-mode ~a. Please check why it did not calculate a priority score." (get-configuration cip :priority-mode)))
-  (setf (queue cip) (sorted-insert (queue cip) node :key #'priority :test #'>)))
+  (warn "The queue-mode :by-priority is deprecated. Please use :greedy-best-first instead, which implements the same functionality.")
+  (cip-enqueue node cip :greedy-best-first))
 
 (defun last-applied-construction (node)
   (first (applied-constructions node)))
@@ -746,8 +771,8 @@ links between applied constructions for priming effects."
                for next-construction-name = (nth (+ i 1) names-of-applied-constructions)
                if (gethash construction-name priming-data) ;;construction key exists
                do (if (gethash next-construction-name (gethash construction-name priming-data)) ;;next-construction key exists
-                    (progn (setf (gethash next-construction-name (gethash construction-name priming-data)) ;;update frequency
-                                 (+ 1 (gethash next-construction-name (gethash construction-name priming-data)))))
+                    (setf (gethash next-construction-name (gethash construction-name priming-data)) ;;update frequency
+                          (+ 1 (gethash next-construction-name (gethash construction-name priming-data))))
                     (progn (setf (gethash next-construction-name (gethash construction-name priming-data))
                                  (make-hash-table :test #'equalp)) ;;init
                       (setf (gethash next-construction-name (gethash construction-name priming-data)) 1)))    
