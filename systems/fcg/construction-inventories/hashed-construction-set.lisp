@@ -167,9 +167,26 @@
 ;; size
 ;; ---------------------------------------------------------
 
+#|
 (defmethod size ((hashed-construction-set hashed-construction-set))
   "Calculates the size of the hash table of a hashed construction set
 in terms of the number of hash keys."
   (hash-table-count (constructions-hash-table hashed-construction-set)))
+|#
 
+(defmethod size ((hashed-construction-set hashed-construction-set))
+  "Calculates the size of the hash table of a hashed construction set
+in terms of the number construcitons."
+  (loop for value being the hash-values of (constructions-hash-table hashed-construction-set)
+        sum (length value)))
+
+
+;; #########################################################
+;; constructions
+;; ---------------------------------------------------------
+
+(defmethod constructions-list ((hashed-construction-set hashed-construction-set))
+  "Returns a list of constructions of a hashed-construction-set"
+  (loop for value being the hash-values of (constructions-hash-table hashed-construction-set)
+        append value))
 
