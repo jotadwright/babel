@@ -15,7 +15,7 @@
 
 (in-package :fcg)
 
-(export '(constructions size clear find-cxn add-cxn delete-cxn cxn-added cxn-deleted cxn-pathnames
+(export '(constructions size constructions-list clear find-cxn add-cxn delete-cxn cxn-added cxn-deleted cxn-pathnames
           set-expansion-data-for-type get-expansion-data-for-type expansion-data configuration visualization-configuration))
 
 (defclass construction-inventory ()
@@ -163,6 +163,13 @@ is overwritten."
 (defmethod size ((construction-inventory construction-inventory))
   "Default implementation returning (length (constructions ci))"
   (length (constructions construction-inventory)))
+
+(defgeneric constructions-list (construction-inventory)
+  (:documentation "Returns a list of all constructions stored in this inventory."))
+
+(defmethod constructions-list ((construction-inventory construction-inventory))
+  "Default implementation returning (length (constructions ci))"
+  (constructions construction-inventory))
 
 ;; ------------------------------------------------------------------------
 ;; clear
