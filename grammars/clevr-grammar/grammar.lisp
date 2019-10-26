@@ -90,9 +90,7 @@
                     (subunits set)
                     (superunits set)
                     (footprints set))
-    :fcg-configurations ((:production-order lex nom cxn morph)
-                         (:parse-order morph lex nom cxn)
-                         (:de-render-mode . :de-render-string-meets-precedes-within-3) ;; special de-render mode: precedes within N
+    :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-within-3) ;; special de-render mode: precedes within N
                          (:render-mode . :generate-and-test) ;; using the new renderer
                          (:form-predicates meets precedes)
                          (:node-tests  :check-duplicate :restrict-nr-of-nodes)
@@ -104,14 +102,13 @@
                                                  :connected-structure
                                                  :no-meaning-in-root)
                          ;; For guiding search:
-                         (:cxn-supplier-mode . :ordered-labels-and-terminals-last)
-                         (:node-expansion-mode . :default)
-                         (:priority-mode . :depth-first)
-                         (:queue-mode . :by-priority)
-                         (:max-nr-of-nodes . 1000)
-                         (:cxn-sets-with-sequential-application morph lex))
+                         (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                         (:node-expansion-mode . :multiple-cxns)
+                         (:priority-mode . :nr-of-applied-cxns)
+                         (:queue-mode . :greedy-best-first)
+                         (:max-nr-of-nodes . 5000))
     :visualization-configurations ((:show-constructional-dependencies . nil)
                                    (:hide-features . (footprints superunits))
                                    (:with-search-debug-data . t))
     :hierarchy-features (subunits)
-    :hashed nil))
+    :hashed t))

@@ -332,7 +332,7 @@
     (loop for (key . list-of-synonyms) in synonyms
           for lex-id-str = (hyphenize (upcase (mkstr key)))
           for lex-id-cxn = (find lex-id-str
-                                 (constructions cxn-inventory)
+                                 (constructions-list cxn-inventory)
                                  :key (lambda (cxn) (attr-val cxn :lex-id))
                                  :test #'string=)
           for lex-id-type = (when lex-id-cxn (attr-val lex-id-cxn :clevr-datatype))
@@ -341,6 +341,7 @@
                    do (add-morph-cxn-of-clevr-type cxn-inventory
                                                    (downcase word)
                                                    (upcase lex-id-str)
-                                                   (make-kw lex-id-type))))
-    (add-morph-cxn-of-clevr-type cxn-inventory "cylinder" "CYLINDER" :*shape)
+                                                   (make-kw lex-id-type) 
+                                                   )))
+    (add-morph-cxn-of-clevr-type cxn-inventory "cylinder" "CYLINDER" :*shape) 
     cxn-inventory))
