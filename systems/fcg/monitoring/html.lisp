@@ -1253,6 +1253,16 @@ table.car > tbody > tr > td:first-child { padding-right:15px; }
                     :wrap-in-paragraph nil
                     :configuration configuration)))))
 
+(defmethod make-html-construction-inventory-body ((ci hashed-construction-set) &key (configuration nil))
+  (let ((configuration (or configuration (visualization-configuration ci))))
+    (html-hide-rest-of-long-list 
+     (constructions-list ci) 50
+     #'(lambda (construction)
+         (make-html construction
+                    :expand-initially nil
+                    :wrap-in-paragraph nil
+                    :configuration configuration)))))
+
 (define-css 'construction-inventory "
 div.construction-inventory { padding:0px; display:inline-block; margin:3px; }
 div.construction-inventory > div.title a { color:#40241A; }
