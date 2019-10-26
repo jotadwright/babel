@@ -4,6 +4,8 @@
 
 ;; + Apply terminal cxns last +
 
+#|
+
 (defclass cxn-supplier-with-ordered-labels-and-terminals-last (cxn-supplier-with-ordered-labels)
   ())
 
@@ -82,10 +84,11 @@
   (let ((root-meanings (extract-meaning (get-root (left-pole-structure (car-resulting-cfs (cipn-car node)))))))
     (not (find 'get-context root-meanings :key #'first))))
 
-(defparameter *CLEVR*
-  (def-fcg-constructions clevr-grammar
+|#
+
+(def-fcg-constructions clevr-grammar
     :feature-types ((args set-of-predicates)
-                    (form set-of-predicates)
+                      (form set-of-predicates)
                     (meaning set-of-predicates)
                     (subunits set)
                     (superunits set)
@@ -111,4 +114,10 @@
                                    (:hide-features . (footprints superunits))
                                    (:with-search-debug-data . t))
     :hierarchy-features (subunits)
-    :hashed t))
+    :hashed t
+    :cxn-inventory *CLEVR*
+    (generate-lexical-constructions *CLEVR*)
+    (generate-morphological-constructions *CLEVR*))
+
+;; This is to be able to call comprehend and formulate without specifying the cxn-inventory
+(setf *fcg-constructions* *CLEVR*)
