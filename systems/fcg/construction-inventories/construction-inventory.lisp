@@ -111,9 +111,9 @@ is overwritten."
   (set-configuration construction-inventory
                      :node-expansion-mode :multiple-cxns :replace nil)
   (set-configuration construction-inventory
-                     :queue-mode :by-priority :replace nil)
+                     :queue-mode :greedy-best-first :replace nil)
   (set-configuration construction-inventory
-                     :priority-mode :depth-first :replace nil)
+                     :priority-mode :nr-of-applied-cxns :replace nil)
   (set-configuration construction-inventory
                      :node-tests '(:check-duplicate :restrict-nr-of-nodes :restrict-search-depth) :replace nil)
   (set-configuration construction-inventory
