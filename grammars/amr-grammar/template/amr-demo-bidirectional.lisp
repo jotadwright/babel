@@ -6,13 +6,15 @@
 (activate-monitor trace-fcg)
 
 (def-fcg-constructions amr-grammar
-  :fcg-configurations ((:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure) 
-                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :re-enter-produced-utterance) 
+  :fcg-configurations ((:parse-goal-tests
+                        :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)
+                       (:production-goal-tests
+                        :no-applicable-cxns :no-meaning-in-root :re-enter-produced-utterance) 
                        
                        (:node-tests :check-duplicate)
                        
-                       (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns) ;;which cxns to try
-                       (:queue-mode . :greedy-best-first) ;;search algorithm (:depth-first :breadth-first :random-walk)
+                       (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns) ;;which cxns to try?
+                       (:queue-mode . :greedy-best-first) ;;search algorithm (other options are :depth-first :breadth-first :random-walk)
                        (:priority-mode . :priming) ;;how good is a node? (evaluation function)
                        )
   :visualization-configurations ((:with-search-debug-data . t))
@@ -313,17 +315,14 @@
                  (bounds (left ?to-unit)
                          (right ?inf-unit))))))
 
+(comprehend "the boy wants to go" :cxn-inventory *amr-bidirectional*)
 
-(formulate-all '((want-01 w)
+(formulate '((want-01 w)
              (boy b)
              (go-01 g)
              (:arg0 w b)
              (:arg1 w g)
              (:arg0 g b))  :cxn-inventory *amr-bidirectional*)
-
-(loop for i from 1 upto 10 do (pprint (comprehend "to want the boy to go" :cxn-inventory *amr-bidirectional*)))
-
-(comprehend "the boy wants to go" :cxn-inventory *amr-bidirectional*)
 
 ;;test priming
 (loop for i from 0 to 10 
@@ -333,17 +332,15 @@
       (comprehend "a boy wants to go" :cxn-inventory *amr-bidirectional*))
 
 
-
-
-
-;;always the same utterance is produced (no exploration):
-(loop for i from 0 to 10
+(loop for i from 0 to 5
       do (formulate-all '((want-01 w)
                       (boy b)
                       (go-01 g)
                       (:arg0 w b)
                       (:arg1 w g)
                       (:arg0 g b))  :cxn-inventory *amr-bidirectional*))
+
+
 
 (pprint (amr:predicates->penman '((want-01 w)
                                   (boy b)
