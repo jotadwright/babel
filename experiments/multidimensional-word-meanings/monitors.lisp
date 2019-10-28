@@ -29,7 +29,14 @@
         do (add-element '((hr)))))
 
 ;;;; Export learner lexicon to pdf
-(defun experiment-name-from-configurations (experiment)
+(defun make-experiment-name-for-lexicon-export (agent name serie)
+  (if name
+    (if serie
+      (string-append name (format nil "-run-~a" serie) "-lexicon")
+      (string-append name "-lexicon"))
+    (experiment-name-from-configurations (experiment agent) serie)))
+
+(defun experiment-name-from-configurations (experiment &optional serie)
   (downcase
    (string-append (get-configuration experiment :experiment-type) "-"
                   (get-configuration experiment :data-type) "-"
@@ -38,17 +45,22 @@
                     (string-append "train-" (mkstr (get-configuration experiment :switch-conditions-after-n-interactions)) "-") "")
                   (if (eql (get-configuration experiment :experiment-type) :incremental)
                     (string-append "condition-" (mkstr (uiop:last-char (first (get-configuration experiment :data-sets)))) "-") "")
+                  (if serie
+                    (format nil "-run-~a-" serie) "")
                   "lexicon")))
 
-(defun lexicon->pdf (agent &key name)
-  (let* ((experiment-name (if name name (experiment-name-from-configurations (experiment agent))))
+(defun lexicon->pdf (agent &key name serie)
+  (let* ((experiment-name (make-experiment-name-for-lexicon-export agent name serie))
          (base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
                                                  "graphs" ,(downcase experiment-name)))))
     (ensure-directories-exist base-path)
     (loop for json-cxn in (average-over-cxn-history agent)
           do (s-dot->image
               (json-cxn->s-dot json-cxn)
-              :path (merge-pathnames (make-pathname :name (format nil "~a-cxn" (rest (assoc :form json-cxn))) :type "pdf") base-path)
+              :path (merge-pathnames
+                     (make-pathname :name (format nil "~a-cxn" (rest (assoc :form json-cxn)))
+                                    :type "pdf")
+                     base-path)
               :format "pdf"
               :open nil))))
 
