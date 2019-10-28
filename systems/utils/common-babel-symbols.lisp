@@ -17,5 +17,6 @@
    status
    cyclic
    top-node
-   label))
+   label
+   bind))
 
