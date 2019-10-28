@@ -29,14 +29,7 @@
         do (add-element '((hr)))))
 
 ;;;; Export learner lexicon to pdf
-(defun make-experiment-name-for-lexicon-export (agent name serie)
-  (if name
-    (if serie
-      (string-append name (format nil "-run-~a" serie) "-lexicon")
-      (string-append name "-lexicon"))
-    (experiment-name-from-configurations (experiment agent) serie)))
-
-(defun experiment-name-from-configurations (experiment &optional serie)
+(defun experiment-name-from-configurations (experiment)
   (downcase
    (string-append (get-configuration experiment :experiment-type) "-"
                   (get-configuration experiment :data-type) "-"
@@ -45,14 +38,16 @@
                     (string-append "train-" (mkstr (get-configuration experiment :switch-conditions-after-n-interactions)) "-") "")
                   (if (eql (get-configuration experiment :experiment-type) :incremental)
                     (string-append "condition-" (mkstr (uiop:last-char (first (get-configuration experiment :data-sets)))) "-") "")
-                  (if serie
-                    (format nil "-run-~a-" serie) "")
                   "lexicon")))
 
 (defun lexicon->pdf (agent &key name serie)
-  (let* ((experiment-name (make-experiment-name-for-lexicon-export agent name serie))
-         (base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
-                                                 "graphs" ,(downcase experiment-name)))))
+  (let* ((experiment-name (if name name (experiment-name-from-configurations (experiment agent))))
+         (base-path (if serie
+                      (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                                   "graphs" ,(downcase experiment-name)
+                                                   ,(format nil "run-~a" serie)))
+                      (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                                   "graphs" ,(downcase experiment-name))))))
     (ensure-directories-exist base-path)
     (loop for json-cxn in (average-over-cxn-history agent)
           do (s-dot->image
