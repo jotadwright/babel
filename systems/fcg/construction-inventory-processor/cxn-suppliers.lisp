@@ -470,9 +470,9 @@
                         when lex-id collect it))
          (strings (mapcar #'third (extract-strings (list (get-root units)))))
          (meanings (loop for meaning in (extract-meaning (get-root units))
-                         collect (first meaning))))
+                         collect (if (and (= 4 (length meaning)) (eql 'bind (first meaning)))
+                                     (fourth meaning)
+                                     (first meaning)))))
     (if (eql (car-direction (cipn-car node)) '<-)
       (append strings lex-ids)
       (append meanings lex-ids))))
-
-
