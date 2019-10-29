@@ -88,7 +88,7 @@
 
 (def-fcg-constructions clevr-grammar
     :feature-types ((args set-of-predicates)
-                      (form set-of-predicates)
+                    (form set-of-predicates)
                     (meaning set-of-predicates)
                     (subunits set)
                     (superunits set)
@@ -96,7 +96,7 @@
     :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-within-3) ;; special de-render mode: precedes within N
                          (:render-mode . :generate-and-test) ;; using the new renderer
                          (:form-predicates meets precedes)
-                         (:node-tests  :check-duplicate :restrict-nr-of-nodes)
+                         (:node-tests :check-duplicate :restrict-nr-of-nodes)
                          (:parse-goal-tests :no-applicable-cxns
                                             :connected-semantic-network
                                             :connected-structure
@@ -109,7 +109,7 @@
                          (:node-expansion-mode . :multiple-cxns)
                          (:priority-mode . :nr-of-applied-cxns)
                          (:queue-mode . :greedy-best-first)
-                         (:max-nr-of-nodes . 5000))
+                         (:max-nr-of-nodes . 10000))
     :visualization-configurations ((:show-constructional-dependencies . nil)
                                    (:hide-features . (footprints superunits))
                                    (:with-search-debug-data . t))
