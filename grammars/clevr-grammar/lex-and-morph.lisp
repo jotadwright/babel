@@ -31,11 +31,13 @@
                          (,unit-name
                           (HASH meaning ((bind shape-category ,out-var ,(internal-symb (hyphenize lex-id)))))
                           --
-                          (syn-cat (lex-id ,(make-symbol (hyphenize lex-id)))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
+                          (syn-cat 
                                    (number ?number))))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
-                        :attributes (:lex-id ,(hyphenize lex-id)
+                        :attributes (:lex-id ,(internal-symb (hyphenize lex-id)) 
+                                     :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
 
 (defmethod add-morph-cxn-of-clevr-type (cxn-inventory word lex-id (type (eql :*shape)))
@@ -49,27 +51,31 @@
                           (footprints (morph)))
                          <-
                          (,sing-unit-name
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
                           (syn-cat (lex-class noun)
-                                   (lex-id ,(make-symbol (hyphenize lex-id)))
+                                   
                                    (number singular))
                           (footprints (NOT morph))
                           --
                           (HASH form ((string ,sing-unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set morph))
+                        :cxn-set morph
+                        :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))
     (eval `(def-fcg-cxn ,plural-cxn-name
                         ((,plural-unit-name
                           (footprints (morph)))
                          <-
                          (,plural-unit-name
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
                           (syn-cat (lex-class noun)
-                                   (lex-id ,(make-symbol (hyphenize lex-id)))
+                                   
                                    (number plural))
                           (footprints (NOT morph))
                           --
                           (HASH form ((string ,plural-unit-name ,plural-word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set morph))))
+                        :cxn-set morph
+                        :attributes (:string ,plural-word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; THING
 (defmethod add-lex-cxn-of-clevr-type (cxn-inventory lex-id (type (eql :*thing)))
@@ -88,11 +94,13 @@
                          (,unit-name
                           (HASH meaning ((bind shape-category ,out-var thing)))
                           --
-                          (syn-cat (lex-id ,(make-symbol (hyphenize lex-id)))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
+                          (syn-cat 
                                    (number ?number))))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
-                        :attributes (:lex-id ,(hyphenize lex-id)
+                        :attributes (:lex-id ,(internal-symb (hyphenize lex-id))
+                                     :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
 
 (defmethod add-morph-cxn-of-clevr-type (cxn-inventory word lex-id (type (eql :*thing)))
@@ -107,26 +115,30 @@
                          <-
                          (,sing-unit-name
                           (syn-cat (lex-class noun)
-                                   (lex-id ,(make-symbol (hyphenize lex-id)))
+                                   
                                    (number singular))
                           (footprints (NOT morph))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
                           --
                           (HASH form ((string ,sing-unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set morph))
+                        :cxn-set morph
+                        :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))
     (eval `(def-fcg-cxn ,plural-cxn-name
                         ((,plural-unit-name
                           (footprints (morph)))
                          <-
                          (,plural-unit-name
                           (syn-cat (lex-class noun)
-                                   (lex-id ,(make-symbol (hyphenize lex-id)))
+                                   
                                    (number plural))
                           (footprints (NOT morph))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
                           --
                           (HASH form ((string ,plural-unit-name ,plural-word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set morph))))
+                        :cxn-set morph
+                        :attributes (:string ,plural-word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; COLOR
 ;; NOTE: Colors have no morph cxns since there are no synonyms
@@ -147,7 +159,9 @@
                           (HASH form ((string ,unit-name ,(downcase lex-id))))))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
-                        :attributes (:lex-id ,(hyphenize lex-id)
+                        :attributes (:lex-id ,(internal-symb (hyphenize lex-id))
+                                     :string ,(downcase lex-id)
+                                     :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
 
 ;;;; SIZE
@@ -165,10 +179,11 @@
                          (,unit-name
                           (HASH meaning ((bind size-category ,out-var ,(internal-symb (hyphenize lex-id)))))
                           --
-                          (syn-cat (lex-id ,(make-symbol (hyphenize lex-id))))))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
-                        :attributes (:lex-id ,(hyphenize lex-id)
+                        :attributes (:lex-id ,(internal-symb (hyphenize lex-id))
+                                     :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
 
 (defmethod add-morph-cxn-of-clevr-type (cxn-inventory word lex-id (type (eql :*size)))
@@ -179,13 +194,14 @@
                           (footprints (morph)))
                          <-
                          (,unit-name
-                          (syn-cat (lex-class adjective)
-                                   (lex-id ,(make-symbol (hyphenize lex-id))))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
+                          (syn-cat (lex-class adjective))
                           (footprints (NOT morph))
                           --
                           (HASH form ((string ,unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set morph))))
+                        :cxn-set morph
+                        :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; MATERIAL
 (defmethod add-lex-cxn-of-clevr-type (cxn-inventory lex-id (type (eql :*material)))
@@ -202,10 +218,11 @@
                          (,unit-name
                           (HASH meaning ((bind material-category ,out-var ,(internal-symb (hyphenize lex-id)))))
                           --
-                          (syn-cat (lex-id ,(make-symbol (hyphenize lex-id))))))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
-                        :attributes (:lex-id ,(hyphenize lex-id)
+                        :attributes (:lex-id ,(internal-symb (hyphenize lex-id))
+                                     :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
 
 (defmethod add-morph-cxn-of-clevr-type (cxn-inventory word lex-id (type (eql :*material)))
@@ -216,13 +233,14 @@
                           (footprints (morph)))
                          <-
                          (,unit-name
-                          (syn-cat (lex-class adjective)
-                                   (lex-id ,(make-symbol (hyphenize lex-id))))
+                          (syn-cat (lex-class adjective))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
                           (footprints (NOT morph))
                           --
                           (HASH form ((string ,unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set morph))))
+                        :cxn-set morph
+                        :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; RELATION
 (defmethod add-lex-cxn-of-clevr-type (cxn-inventory lex-id (type (eql :*relation)))
@@ -234,16 +252,17 @@
                           (args ((sources nil)
                                  (target ,out-var)))
                           (sem-cat (sem-class spatial-relation)
-                                   (sem-type ,(make-symbol (hyphenize lex-id))))
+                                   (sem-type ,(internal-symb (hyphenize lex-id))))
                           (syn-cat (lex-class preposition)))
                          <-
                          (,unit-name
                           (HASH meaning ((bind spatial-relation-category ,out-var ,(internal-symb (hyphenize lex-id)))))
                           --
-                          (syn-cat (lex-id ,(make-symbol (hyphenize lex-id))))))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
-                        :attributes (:lex-id ,(hyphenize lex-id)
+                        :attributes (:lex-id ,(internal-symb (hyphenize lex-id)) 
+                                     :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
 
 (defmethod add-morph-cxn-of-clevr-type (cxn-inventory word lex-id (type (eql :*relation)))
@@ -254,13 +273,15 @@
                           (footprints (morph)))
                          <-
                          (,unit-name
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
                           (syn-cat (lex-class preposition)
-                                   (lex-id ,(make-symbol (hyphenize lex-id))))
+                                   )
                           (footprints (NOT morph))
                           --
                           (HASH form ((string ,unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set morph))))
+                        :cxn-set morph
+                        :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; TYPE
 ;; NOTE: type cxns have their property type also in the footprint
@@ -275,15 +296,17 @@
                                  (target ,out-var)))
                           (sem-cat (sem-class attribute))
                           (syn-cat (lex-class noun))
-                          (property-type ,(make-symbol (hyphenize type)))
-                          (footprints (morph ,(make-symbol (hyphenize type)))))
+                          (property-type ,(internal-symb (hyphenize type)))
+                          (footprints (morph ,(internal-symb (hyphenize type)))))
                          <-
                          (,unit-name
                           (HASH meaning ((bind attribute-category ,out-var ,(internal-symb (hyphenize type)))))
                           --
                           (HASH form ((string ,unit-name ,(downcase type))))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set lex))))
+                        :cxn-set lex
+                        :attributes (:string ,(downcase type)
+                                     :meaning ,(internal-symb (hyphenize type)))))))
 
 (defun generate-lexical-constructions (cxn-inventory)
   ;; This function will read metadata.json and read all 'types'
