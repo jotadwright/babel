@@ -8,8 +8,10 @@
   :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
   :license "Babel Research License"
   :depends-on (:utils
-               :web-interface
+               :plot-raw-data
                :monitors
+               :experiment-framework
+               :web-interface
                :irl
                :fcg
                :clevr-world
@@ -27,4 +29,9 @@
                (:file "preprocess-sentence")
                (:file "evaluation")
                (:file "evaluation-parallel")
-               (:file "web-monitors")))
+               (:file "web-monitors")
+               (:module fcg-search-experiment
+                :serial t
+                :components ((:file "utils")
+                             (:file "experiment")
+                             (:file "monitors")))))
