@@ -80,8 +80,7 @@
                                                                      :attributes flat-attributes)))
                 analysis-image)
         (progn (notify detection-error agent (length observations) num-objects-to-detect)
-          (capi:popup-confirmer nil "The robot could not detect the right amount of objects.
-Please re-organise the scene. Click 'OK' to try again.")
+          (capi:popup-confirmer nil "The robot could not detect the right amount of objects.")
           (observe-and-process-world agent :num-objects-to-detect num-objects-to-detect)))
       (values (make-instance 'mwm-object-set
                              :objects (loop for observation in observations

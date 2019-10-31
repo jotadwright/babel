@@ -51,7 +51,7 @@
            ((tr)
             ((td :align "center") ((img :src ,(string-append cl-user::*localhost-user-dir* (format nil "~a.jpg" image)) :width "90%"))))))
         (add-element
-         `((div) ,(make-html (context (first (population experiment))))))))))
+         `((div) ,(make-html (context (first (population experiment))) :expand-initially t)))))))
 
 (define-event-handler (trace-interaction-in-web-interface utterance-received)
   (add-element `((h2) "The agent received the utterance "

@@ -22,6 +22,8 @@
 (display-lexicon (first (population *experiment*)))
 (disconnect-robot-agent *experiment*)
 
+;; add displayer for success and lexicon size
+
 ;; ------------------------
 ;; + Setting up the robot +
 ;; ------------------------

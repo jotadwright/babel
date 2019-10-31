@@ -25,7 +25,7 @@
      "left" "right" "front" "back"
      "yellow" "red" "orange" "gray" "blue" "green"))
 (define-configuration-default-value :robot-input-modality :text)
-(define-configuration-default-value :robot-context-size 3) ; nil or integer
+(define-configuration-default-value :robot-context-size 3) ; nil or integer or list?
 
 ;; --------------
 ;; + Experiment +
