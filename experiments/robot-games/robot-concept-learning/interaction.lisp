@@ -16,7 +16,8 @@
 (defmethod before-interaction ((experiment mwm-experiment))
   (let ((agent (first (population experiment))))
     ;; the agent observes the world and stores it
-    (multiple-value-bind (context image) (observe-and-process-world agent)
+    (multiple-value-bind (context image)
+        (observe-and-process-world agent :num-objects-to-detect (get-configuration experiment :robot-context-size))
       (setf (context agent) context)
       (notify context-determined experiment image))))
 

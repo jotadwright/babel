@@ -44,7 +44,9 @@
                  (utterance agent))))
 
 (define-event-handler (robot-monitor detection-error)
-  (speak (robot agent) (format nil "sorry, I detected ~a objects. i should have detected 1" num-detected)))
+  (speak (robot agent)
+         (format nil "sorry, I detected ~a objects. i should have detected ~a"
+                 num-detected should-detect)))
 
 (define-event-handler (robot-monitor success-determined)
   (when (topic agent)

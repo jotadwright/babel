@@ -185,14 +185,15 @@
 ;; --------------------
 
 (define-event ask-for-feedback (agent mwm-agent))
-(define-event detection-error (agent mwm-agent) (num-detected number))
+(define-event detection-error (agent mwm-agent)
+  (num-detected number) (should-detect number))
 
 (defmethod receive-feedback ((agent mwm-agent))
   (notify ask-for-feedback agent)
   (let ((feedback-set (when (detect-head-touch (robot agent) :middle)
                         (observe-and-process-world agent))))
     (while (/= (length (objects feedback-set)) 1)
-      (notify detection-error agent (length (objects feedback-set)))
+      (notify detection-error agent (length (objects feedback-set)) 1)
       (capi:popup-confirmer nil "The robot could not detect a single object.
 Please remove all objects until only the topic remains.
 Click 'OK' to try again.")
