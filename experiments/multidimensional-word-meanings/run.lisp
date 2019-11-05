@@ -98,7 +98,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id))

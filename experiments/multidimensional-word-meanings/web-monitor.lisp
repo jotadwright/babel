@@ -84,7 +84,8 @@
   (let ((record-properties (cond (green '((s-dot::style "filled")
                                            (s-dot::fillcolor "#AAFFAA")))
                                   (red '((s-dot::style "filled")
-                                         (s-dot::fillcolor "#990000")))
+                                         (s-dot::fillcolor "#990000")
+                                         (s-dot::fontcolor "#FFFFFF")))
                                   (t '((s-dot::style "dashed"))))))
     `(s-dot::record
       ,(append record-properties
@@ -106,7 +107,8 @@
          (record-properties (cond (green '((s-dot::style "filled")
                                            (s-dot::fillcolor "#AAFFAA")))
                                   (red '((s-dot::style "filled")
-                                         (s-dot::fillcolor "#AA0000")))
+                                         (s-dot::fillcolor "#AA0000")
+                                         (s-dot::fontcolor "#FFFFFF")))
                                   (t '((s-dot::style "dashed"))))))
     `(s-dot::record
       ,(append record-properties
