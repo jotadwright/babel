@@ -185,8 +185,6 @@
 ;; --------------------
 
 (define-event ask-for-feedback (agent mwm-agent))
-(define-event detection-error (agent mwm-agent)
-  (num-detected number) (should-detect number))
 
 (defmethod receive-feedback ((agent mwm-agent))
   (notify ask-for-feedback agent)

@@ -37,7 +37,9 @@
 (defmethod initialize-instance :after ((experiment mwm-experiment) &key)
   "Initialize the experiment by creating the population"
   (setf (population experiment)
-        (list (make-embodied-agent experiment))))
+        (list (make-embodied-agent experiment)))
+  (activate-monitor display-communicative-success)
+  (activate-monitor display-lexicon-size))
 
 ;; Helper function
 (defun disconnect-robot-agent (experiment)

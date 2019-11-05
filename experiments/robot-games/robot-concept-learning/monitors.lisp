@@ -256,7 +256,7 @@
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
                 :data-sources '((average record-communicative-success))
-                :update-interval 100
+                :update-interval 1
                 :caption '("communicative success")
                 :x-label "# Games" 
                 :y1-label "Communicative Success" 
@@ -291,6 +291,17 @@
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
+
+(define-monitor display-lexicon-size
+                :class 'gnuplot-display
+                :documentation "Plots the lexicon-size"
+                :data-sources '((average record-lexicon-size))
+                :update-interval 1
+                :caption '("lexicon size")
+                :x-label "# Games" 
+                :y1-label "Lexicon Size" 
+                :y1-max nil :y1-min 0 
+                :draw-y1-grid t)
 
 (defun get-lexicon-size (agent)
   (length (constructions (grammar agent))))

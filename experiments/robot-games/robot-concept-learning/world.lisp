@@ -62,6 +62,9 @@
 ;; S: [0-100]
 ;; V: [0-100]
 
+(define-event detection-error (agent mwm-agent)
+  (num-detected number) (should-detect number))
+
 (defun observe-and-process-world (agent &key num-objects-to-detect)
   "The robot observes and processes the world. It extracts data
    from an image and processes this into mwm-objects.
