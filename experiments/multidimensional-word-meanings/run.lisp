@@ -94,11 +94,11 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *baseline-simulated-configuration*))
+  (make-instance 'mwm-experiment :configuration *cogent-simulated-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 110)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id))
