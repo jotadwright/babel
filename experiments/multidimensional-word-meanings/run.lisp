@@ -94,11 +94,11 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *cogent-simulated-configuration*))
+  (make-instance 'mwm-experiment :configuration *baseline-simulated-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 110)
+(run-series *experiment* 300)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id))
@@ -111,20 +111,21 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (subset-test-extracted
+                   (test
                     ((:experiment-type . :baseline)
-                     (:data-type . :extracted)
+                     (:data-type . :simulated)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)))
                    )
-                 :number-of-interactions 5000
+                 :number-of-interactions 500
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
+                                 "export-lexicon-evolution"
                                  ))
 
 (create-graph-for-single-strategy

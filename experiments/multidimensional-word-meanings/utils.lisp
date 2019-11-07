@@ -8,7 +8,8 @@
                            (list "export-communicative-success"
                                  "export-lexicon-size"
                                  "export-features-per-form"
-                                 "export-utterance-length")))
+                                 "export-utterance-length"
+                                 "export-lexicon-evolution")))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
     :experiment-class 'mwm-experiment

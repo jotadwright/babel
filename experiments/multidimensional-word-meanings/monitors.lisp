@@ -4,22 +4,6 @@
 ;; + Monitors +
 ;; ------------
 
-;;export learner lexicon
-(define-monitor export-lexicon-evolution)
-
-(define-event-handler (export-lexicon-evolution interaction-finished)
-  (export-lexicon-evolution experiment interaction))
-
-(defun export-lexicon-evolution (experiment interaction)
-  (let ((i-number (interaction-number interaction))
-        (interval (get-configuration experiment :export-lexicon-interval)))
-    (when (= (mod i-number interval) 0)
-      (let ((learner (find 'learner (population experiment) :key #'id)))
-        (lexicon->pdf learner :experiment-name
-                        (list-of-strings->string (list (mkstr (get-configuration experiment :category-representation))
-                                                       (mkstr i-number))
-                                                 :separator "-"))))))
-
 ;;;; Show lexicon in web interface
 (defun display-lexicon (agent)
   (loop for cxn in (constructions (grammar agent))
@@ -383,3 +367,40 @@
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-success-per-attribute-type)
   (format t "~%Graphs have been created"))
+
+;;;; Sankey diagram data
+;; every 100'th interaction, we export the entire lexicon
+;; the columns are: interaction number, word, feature, certainty, value
+;; from this csv, we can create a Sankey diagram in Python
+(define-monitor record-lexicon-evolution
+                :class 'data-recorder
+                :average-window 1
+                :documentation "records the evolution of the lexicon")
+
+(define-monitor export-lexicon-evolution
+                :class 'lisp-data-file-writer
+                :documentation "Exports communicative success"
+                :data-sources '(record-lexicon-evolution)
+                :file-name (babel-pathname :name "lexicon-evolution" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :column-separator " "
+                :comment-string "#")
+
+(define-event-handler (record-lexicon-evolution interaction-finished)
+  (let ((i-nr (interaction-number interaction)))
+    (if (= (mod i-nr (get-configuration experiment :dot-interval)) 0)
+      (let* ((learner (find 'learner (population experiment) :key #'id))
+             (lexicon (loop for cxn in (constructions (grammar learner))
+                            for form = (attr-val cxn :form)
+                            collect (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          collect (list i-nr
+                                                        (format nil "\"~a\"" (downcase form))
+                                                        (format nil "\"~a\"" (downcase (mkstr (attribute category))))
+                                                        (format nil "~2f" certainty)
+                                                        (format  nil "~2f" (prototype category)))))))
+        (record-value monitor lexicon))
+      (record-value monitor '()))))
+                                     
+                
+                
