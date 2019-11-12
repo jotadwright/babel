@@ -387,7 +387,20 @@
                 :column-separator " "
                 :comment-string "#")
 
+(define-event-handler (record-lexicon-evolution new-cxn-added)
+  ;; record the initial representation of a concept
+  (let ((lexicon
+         (list (loop with form = (attr-val cxn :form)
+                     for (category . certainty) in (attr-val cxn :meaning)
+                     collect (list 0
+                                   (format nil "\"~a\"" (downcase form))
+                                   (format nil "\"~a\"" (downcase (mkstr (attribute category))))
+                                   (format nil "~2f" certainty)
+                                   (format nil "~2f" (prototype category)))))))
+    (record-value monitor lexicon)))
+
 (define-event-handler (record-lexicon-evolution interaction-finished)
+  ;; record every 100'th interactions
   (let ((i-nr (interaction-number interaction)))
     (if (= (mod i-nr (get-configuration experiment :dot-interval)) 0)
       (let* ((learner (find 'learner (population experiment) :key #'id))
@@ -401,6 +414,6 @@
                                                         (format  nil "~2f" (prototype category)))))))
         (record-value monitor lexicon))
       (record-value monitor '()))))
-                                     
+        
                 
                 
