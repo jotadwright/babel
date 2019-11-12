@@ -307,7 +307,7 @@
   (length (constructions (grammar agent))))
 
 (define-event-handler (record-lexicon-size interaction-finished)
-  (record-value monitor (get-lexicon-size (hearer experiment))))
+  (record-value monitor (get-lexicon-size (find 'learner (population experiment) :key #'id))))
 
 ;;;; Number of meanings per form
 (define-monitor record-features-per-form
