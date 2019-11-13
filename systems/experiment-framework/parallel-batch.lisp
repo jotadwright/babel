@@ -277,7 +277,7 @@
 
   ;; load the requested asdf system
   ;(asdf:operate 'asdf:load-op asdf-system :verbose nil)
-  (ql:quickload asdf-system :verbose nil)
+  (ql:quickload asdf-system :verbose t)
 
   ;; set the package
   (setf *package* (find-package (read-from-string package)))
