@@ -269,6 +269,12 @@ is overwritten."
 
 
 (defmethod print-object ((construction-inventory construction-inventory) stream)
+  ;; Jens 13/11/2019: During parallel evaluation, the print-version of
+  ;; a construction inventory is being evaluated somewhere... This leads
+  ;; to errors for the reader. Since this only happens during parallel
+  ;; evaluation, I suspect it has something to do with the web interface
+  ;; since everything works fine during normal evaluation (i.e. when the
+  ;; web interface is active)
   (format stream "<~(~a~): ~a cxns>" 
           (class-name (class-of construction-inventory))
           (size construction-inventory)))
