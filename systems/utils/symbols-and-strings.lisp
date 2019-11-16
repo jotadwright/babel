@@ -377,10 +377,29 @@ string will consist solely of decimal digits and ASCII letters."
 
 ;; ############################################################################
 
-(export '(variablifly))
+(export '(variablify))
 
 (defun variablify (symbol &key (package *package*))
   "Turn a symbol into a variable if it isn't one yet."
   (if (variable-p symbol)
     symbol
     (intern (format nil "?~a" symbol) package)))
+
+(export '(split-string))
+
+(defun split-string (string string-delimiter)
+  "Splits a string into substrings based on a delimiter that is itself a string. Returns list of substrings"
+  (let ((split-positions (loop with last-position = 0
+                               with positions = nil
+                               for new-position = (search string-delimiter string :start2 last-position)
+                               until (null new-position)
+                               do
+                               (pushend new-position positions)
+                               (setf last-position (+ (length string-delimiter) new-position))
+                               finally
+                               (return positions))))
+    (loop  with start-split = 0
+           for end-split in (pushend (length string) split-positions)
+           for substring = (string-trim " " (subseq string start-split end-split))
+           do (setf start-split (+ end-split (length string-delimiter)))
+           collect substring)))
