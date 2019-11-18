@@ -387,16 +387,18 @@
                 :column-separator " "
                 :comment-string "#")
 
+(defun collect-initial-cxn (cxn)
+  (loop with form = (attr-val cxn :form)
+        for (category . certainty) in (attr-val cxn :meaning)
+        collect (list 0
+                      (format nil "\"~a\"" (downcase form))
+                      (format nil "\"~a\"" (downcase (mkstr (attribute category))))
+                      (format nil "~2f" certainty)
+                      (format nil "~2f" (prototype category)))))
+
 (define-event-handler (record-lexicon-evolution new-cxn-added)
   ;; record the initial representation of a concept
-  (let ((lexicon
-         (list (loop with form = (attr-val cxn :form)
-                     for (category . certainty) in (attr-val cxn :meaning)
-                     collect (list 0
-                                   (format nil "\"~a\"" (downcase form))
-                                   (format nil "\"~a\"" (downcase (mkstr (attribute category))))
-                                   (format nil "~2f" certainty)
-                                   (format nil "~2f" (prototype category)))))))
+  (let ((lexicon (list (collect-initial-cxn cxn))))
     (record-value monitor lexicon)))
 
 (define-event-handler (record-lexicon-evolution interaction-finished)
@@ -413,7 +415,8 @@
                                                         (format nil "~2f" certainty)
                                                         (format  nil "~2f" (prototype category)))))))
         (record-value monitor lexicon))
-      (record-value monitor '()))))
+      (unless (listp (current-value monitor))
+        (record-value monitor '())))))
         
                 
                 

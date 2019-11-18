@@ -111,7 +111,7 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (test
+                   (sankey
                     ((:experiment-type . :baseline)
                      (:data-type . :simulated)
                      (:scale-world . ,nil)
@@ -120,7 +120,7 @@
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)))
                    )
-                 :number-of-interactions 500
+                 :number-of-interactions 1000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
