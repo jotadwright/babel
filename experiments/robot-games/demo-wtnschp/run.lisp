@@ -15,7 +15,9 @@
 
 (deactivate-all-monitors)
 
-(defparameter *experiment* (make-instance 'demo-experiment))
+(defparameter *experiment*
+  (make-instance 'demo-experiment
+                 :entries '((:robot-port . "7850"))))
 
 (set-configuration *experiment* :input-form :text)
 (set-configuration *experiment* :input-form :speech)
@@ -28,6 +30,12 @@
 (set-configuration *experiment* :determine-interacting-agents-mode :alternating)
 
 (run-interaction *experiment*)
+
+(defparameter *experiment-robot*
+  (first (population *experiment*)))
+(go-to-posture *experiment-robot* :crouch)
+(take-picture *experiment-robot*)
+(look-direction *experiment-robot* :down 0.8)
 
 (run-series *experiment* 5)
 
@@ -50,6 +58,8 @@
 
 (look-direction *robot* :up 12)
 (look-direction *robot* :down 12)
+
+(speak *robot* "hello world")
 
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)
