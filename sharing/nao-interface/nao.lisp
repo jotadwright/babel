@@ -108,7 +108,8 @@
            ;; Container does not yet exist, create one
            (run-prog "docker" :args `("run" "-it" "-d"
                                       "-p" ,(format nil "~a:80" (server-port nao))
-                                      "-v" ,(format nil "~a:/naoqi/src" (babel-pathname :directory '("sharing" "nao-interface" "flask-server-v2")))
+                                      "-v" ,(format nil "~a:/naoqi/src"
+                                                    (babel-pathname :directory '("sharing" "nao-interface" "flask-server-v2")))
                                       "-v" ,(format nil "~a:/naoqi/src/img" (babel-pathname :directory '(".tmp" "nao-img")))
                                       "--name" ,(container-name nao)
                                       "naoqi-python")))

@@ -92,19 +92,29 @@ COLOR_RANGES = {
     },
 }
 
-
 def get_color_for_mask(im, mask):
-    hsv = cv.cvtColor(im, cv.COLOR_BGR2HSV)
+    hsv = cv.cvtColor(im, cv.COLOR_BGR2RGB)
     h, s, v = cv.split(hsv)
-    #h_mean = circular_mean(h[mask != 0] * 2.0) / 2.0
     h_mean = np.mean(h[mask != 0])
     s_mean = np.mean(s[mask != 0])
     v_mean = np.mean(v[mask != 0])
     mean = (h_mean, s_mean, v_mean)
     _, std = cv.meanStdDev(hsv, mask=mask)
     h_std, s_std, v_std = std
-    #h_std = circular_std(h[mask != 0] * 2.0) / 2.0
     return mean, (h_std[0], s_std[0], v_std[0])
+
+#def get_color_for_mask(im, mask):
+#    hsv = cv.cvtColor(im, cv.COLOR_BGR2HSV)
+#    h, s, v = cv.split(hsv)
+#    #h_mean = circular_mean(h[mask != 0] * 2.0) / 2.0
+#    h_mean = np.mean(h[mask != 0])
+#    s_mean = np.mean(s[mask != 0])
+#    v_mean = np.mean(v[mask != 0])
+#    mean = (h_mean, s_mean, v_mean)
+#    _, std = cv.meanStdDev(hsv, mask=mask)
+#    h_std, s_std, v_std = std
+#    #h_std = circular_std(h[mask != 0] * 2.0) / 2.0
+#    return mean, (h_std[0], s_std[0], v_std[0])
 
 
 def is_color(color_mean):
