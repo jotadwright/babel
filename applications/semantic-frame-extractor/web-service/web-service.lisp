@@ -132,6 +132,53 @@
        `((:causal-relations . ,utterances-with-causes-and-effects))))))
 
 
+(snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'texts-extract-causes-effects-indices)))
+  (let* ((json (handler-case
+                   (cl-json:decode-json-from-string
+                    (snooze:payload-as-string))
+                 (error (e)
+                   (snooze:http-condition 400 "Malformed JSON (~a)!" e))))
+         (missing-keys (keys-present-p json :texts))
+         (texts (rest (assoc :texts json)))
+         (silent (if (assoc :silent json) (rest (assoc :silent json)) t)))
+    (when missing-keys
+      (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
+    (unless (listp texts)
+      (snooze:http-condition 400 "Texts is not a list! Instead, received something of type ~a" (type-of texts)))
+    
+    (load-frames '("Causation"))
+    
+    (let* ((text-frame-sets (loop for text in texts
+                                  for utterances = (get-penelope-sentence-tokens text)
+                                  append (loop for utterance in utterances
+                                               for frame-set = (when (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" utterance)
+                                                                 (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions* :strings-as-output nil)
+                                                                 (error (e)
+                                                                   (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" utterance) e))))
+                                               when frame-set
+                                               collect it)))
+           (utterances-with-causes-and-effects (loop for frameset in text-frame-sets
+                                                     for utterance = (utterance frameset)
+                                                     append (loop for entity in (pie::entities frameset)
+                                                                  for cause = (cond ((or (stringp (cause entity))
+                                                                                         (listp (cause entity))
+                                                                                         (null (cause entity)))
+                                                                                     (cause entity))
+                                                                                    (t (utterance (cause entity))))
+                                                                  for effect = (cond ((or (stringp (effect entity))
+                                                                                         (listp (effect entity))
+                                                                                         (null (effect entity)))
+                                                                                     (effect entity))
+                                                                                    (t (utterance (effect entity))))
+                                                                  when (or cause effect)
+                                                                  collect `((:utterance . ,utterance)
+                                                                             (:cause . ,cause)
+                                                                             (:effect . ,effect))))))
+      
+      (encode-json-alist-to-string
+       `((:causal-relations . ,utterances-with-causes-and-effects))))))
+
+
 (snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'causation-tracker)))
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
@@ -156,7 +203,7 @@
 
 (snooze:defroute semantic-frame-extractor (:options :text/* (op (eql 'causation-tracker))))
 
-;; curl -H "Content-Type: application/json" -d '{"texts" : ["Over two-thirds agreed that • if they had caused damage to their own clothes at work, the company should not be liable for repairs. This causes that and costs 10 €.", "This is a sentence with weird signs: ‘. This causes that."]}' http://localhost:9004/semantic-frame-extractor/texts-extract-causes-effects
+;; curl -H "Content-Type: application/json" -d '{"texts" : ["Satellite measurements have problems because of calibration changes when they are replaced every few years."]}' http://localhost:9004/semantic-frame-extractor/texts-extract-causes-effects-indices
 
 ;;(activate-monitor trace-fcg)
 
@@ -182,4 +229,3 @@
 ;;Testing on AI Lab server:
 
 ;; curl -H "Content-Type: application/json" -d '{"texts" : ["With the growing number of natural disasters due to climate change, the sums spent by governments on catastrophe management have risen to unprecedented levels."], "frames" : ["Causation"]}' https://penelope.vub.be/semantic-frame-extractor/texts-extract-frames
-

@@ -983,7 +983,11 @@ added here. Preprocessing is only used in parsing currently."
           fcg-get-applied-cxn fcg-get-transient-unit-structure
           fcg-extract-selected-form-constraints
           fcg-extract-meanings
-          solution-p))
+          solution-p
+          fcg-export-comprehension-priming-data
+          fcg-export-formulation-priming-data
+          fcg-import-comprehension-priming-data
+          fcg-import-formulation-priming-data))
 
 (defun fcg-get-transient-structure (x &key (pick-cfs-fn #'car-resulting-cfs))
   "Find the transient structure in an object."
@@ -1070,4 +1074,112 @@ added here. Preprocessing is only used in parsing currently."
   "returns true if a node is a solution (succeeded)"
   (when (find 'succeeded (statuses node) :test 'equalp)
     t))
+
+(defun export-blackboard-data-from-key (cxn-inventory key &key path (format "lsp"))
+  "Export data from the construction inventory blackboard."
+  (let ((path
+         (or path
+             (monitors::make-file-name-with-time-and-experiment-class
+              (babel-pathname :directory '(".tmp") :name (mkstr key) :type format)
+              (name cxn-inventory))))
+        (data
+         (when (field? (blackboard cxn-inventory) key)
+           (get-data (blackboard cxn-inventory) key))))
+    (if data
+      (progn (ensure-directories-exist path)
+        (cl-store:store data path)
+        t)
+      (warn (format nil "The key ~a was not found in the ~a construction inventory"
+                    key (name cxn-inventory))))))
+
+(defun import-blackboard-data-to-key (path cxn-inventory key)
+  (let ((data (cl-store:restore path)))
+    (set-data (blackboard cxn-inventory) key data)
+    t))
+
+(defgeneric fcg-export-comprehension-priming-data (thing &key path format)
+  (:documentation "Export the comprehension priming data"))
+
+(defmethod fcg-export-comprehension-priming-data ((construction-inventory construction-inventory)
+                                                  &key path (format "lsp"))
+  "Export the comprehension priming data from the construction inventory"
+  (unless (stringp format)
+    (error "The argument 'format' should be a string, e.g. \"lsp\""))
+  (unless (or (null path) (pathnamep path))
+    (error "The argument 'path' should be nil or a valid pathname"))
+  (export-blackboard-data-from-key construction-inventory
+                                   :comprehension-priming-data
+                                   :path path :format format))
+
+(defmethod fcg-export-comprehension-priming-data ((cipn cip-node)
+                                                  &key path (format "lsp"))
+  "Export the comprehension priming data from a cip node"
+  (unless (stringp format)
+    (error "The argument 'format' should be a string, e.g. \"lsp\""))
+  (unless (or (null path) (pathnamep path))
+    (error "The argument 'path' should be nil or a valid pathname"))
+  (export-blackboard-data-from-key (construction-inventory cipn)
+                                   :comprehension-priming-data
+                                   :path path :format format))
+
+(defgeneric fcg-export-formulation-priming-data (thing &key path format)
+  (:documentation "Export the formulation priming data"))
+
+(defmethod fcg-export-formulation-priming-data ((construction-inventory construction-inventory)
+                                                &key path (format "lsp"))
+  "Export the formulation priming data from the construction inventory"
+  (unless (stringp format)
+    (error "The argument 'format' should be a string, e.g. \"lsp\""))
+  (unless (or (null path) (pathnamep path))
+    (error "The argument 'path' should be nil or a valid pathname"))
+  (export-blackboard-data-from-key construction-inventory
+                                   :formulation-priming-data
+                                   :path path :format format))
+
+(defmethod fcg-export-formulation-priming-data ((cipn cip-node)
+                                                &key path (format "lsp"))
+  "Export the formulation priming data from a cip node"
+  (unless (stringp format)
+    (error "The argument 'format' should be a string, e.g. \"lsp\""))
+  (unless (or (null path) (pathnamep path))
+    (error "The argument 'path' should be nil or a valid pathname"))
+  (export-blackboard-data-from-key (construction-inventory cipn)
+                                   :formulation-priming-data
+                                   :path path :format format))
+
+(defgeneric fcg-import-comprehension-priming-data (path thing)
+  (:documentation "Import comprehension priming data and store it in the thing"))
+
+(defmethod fcg-import-comprehension-priming-data (path (construction-inventory construction-inventory))
+  (unless (pathnamep path)
+    (error "The argument 'path' should be a valid pathname"))
+  (unless (probe-file path)
+    (error "No such file: ~a" path))
+  (import-blackboard-data-to-key path construction-inventory :comprehension-priming-data))
+
+(defmethod fcg-import-comprehension-priming-data (path (cipn cip-node))
+  (unless (pathnamep path)
+    (error "The argument 'path' should be a valid pathname"))
+  (unless (probe-file path)
+    (error "No such file: ~a" path))
+  (import-blackboard-data-to-key path (construction-inventory cipn) :comprehension-priming-data))
+
+(defgeneric fcg-import-formulation-priming-data (path thing)
+  (:documentation "Import formulation priming data and store it in the thing"))
+
+(defmethod fcg-import-formulation-priming-data (path (construction-inventory construction-inventory))
+  (unless (pathnamep path)
+    (error "The argument 'path' should be a valid pathname"))
+  (unless (probe-file path)
+    (error "No such file: ~a" path))
+  (import-blackboard-data-to-key path construction-inventory :formulation-priming-data))
+
+(defmethod fcg-import-formulation-priming-data (path (cipn cip-node))
+  (unless (pathnamep path)
+    (error "The argument 'path' should be a valid pathname"))
+  (unless (probe-file path)
+    (error "No such file: ~a" path))
+  (import-blackboard-data-to-key path (construction-inventory cipn) :formulation-priming-data))
+  
+    
 
