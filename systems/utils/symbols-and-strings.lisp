@@ -377,7 +377,7 @@ string will consist solely of decimal digits and ASCII letters."
 
 ;; ############################################################################
 
-(export '(variablifly))
+(export '(variablify))
 
 (defun variablify (symbol &key (package *package*))
   "Turn a symbol into a variable if it isn't one yet."
