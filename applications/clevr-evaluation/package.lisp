@@ -4,15 +4,15 @@
 
 (defpackage :clevr-evaluation
   (:documentation "Evaluating the CLEVR grammar and primitives")
-  (:use :common-lisp :utils :fcg :clevr-world :clevr-primitives :clevr-grammar)
-  (:import-from :monitors
-                :define-event
-                :define-monitor
-                :define-event-handler
-                :notify
-                :activate-monitor
-                :deactivate-monitor
-                :deactivate-all-monitors)
+  (:use :common-lisp
+        :utils
+        :monitors
+        :plot-raw-data
+        :experiment-framework
+        :fcg
+        :clevr-world
+        :clevr-primitives
+        :clevr-grammar)
   (:import-from :web-interface
                 :add-element
                 :s-dot->svg

@@ -15,7 +15,7 @@
 
 (in-package :fcg)
 
-(export '(constructions size clear find-cxn add-cxn delete-cxn cxn-added cxn-deleted cxn-pathnames
+(export '(constructions size constructions-list clear find-cxn add-cxn delete-cxn cxn-added cxn-deleted cxn-pathnames
           set-expansion-data-for-type get-expansion-data-for-type expansion-data configuration visualization-configuration))
 
 (defclass construction-inventory ()
@@ -87,9 +87,9 @@ is overwritten."
   (set-configuration construction-inventory
                      :create-initial-structure-mode :one-pole-mode :replace nil)
   (set-configuration construction-inventory
-                     :render-mode :render-string-meets-precedes :replace nil)
+                     :render-mode :generate-and-test :replace nil)
   (set-configuration construction-inventory 
-                     :de-render-mode :de-render-string-meets-precedes :replace nil)
+                     :de-render-mode :de-render-string-meets :replace nil)
   (set-configuration construction-inventory
                      :parse-goal-tests '(:no-applicable-cxns) :replace nil)
   (set-configuration construction-inventory
@@ -109,11 +109,11 @@ is overwritten."
   (set-configuration construction-inventory 
                      :equivalent-meaning-mode :unify-no-equalities :replace nil)
   (set-configuration construction-inventory
-                     :node-expansion-mode :default :replace nil)
+                     :node-expansion-mode :multiple-cxns :replace nil)
   (set-configuration construction-inventory
-                     :queue-mode :by-priority :replace nil)
+                     :queue-mode :greedy-best-first :replace nil)
   (set-configuration construction-inventory
-                     :priority-mode :depth-first :replace nil)
+                     :priority-mode :nr-of-applied-cxns :replace nil)
   (set-configuration construction-inventory
                      :node-tests '(:check-duplicate :restrict-nr-of-nodes :restrict-search-depth) :replace nil)
   (set-configuration construction-inventory
@@ -132,7 +132,7 @@ is overwritten."
   (set-configuration (visualization-configuration construction-inventory) :hide-features '(footprints) :replace nil)
   (set-configuration (visualization-configuration construction-inventory) :selected-hierarchy 'subunits :replace nil)
   (set-configuration (visualization-configuration construction-inventory) :select-subfeatures nil :replace nil)
-  (set-configuration (visualization-configuration construction-inventory) :with-search-debug-data nil :replace nil)
+  (set-configuration (visualization-configuration construction-inventory) :with-search-debug-data t :replace nil)
   (set-configuration (visualization-configuration construction-inventory) :show-upper-menu nil :replace nil)
   (set-configuration (visualization-configuration construction-inventory) :remove-empty-units nil :replace nil)
   (set-configuration (visualization-configuration construction-inventory) :add-form-and-meaning-to-car t :replace nil)
@@ -163,6 +163,13 @@ is overwritten."
 (defmethod size ((construction-inventory construction-inventory))
   "Default implementation returning (length (constructions ci))"
   (length (constructions construction-inventory)))
+
+(defgeneric constructions-list (construction-inventory)
+  (:documentation "Returns a list of all constructions stored in this inventory."))
+
+(defmethod constructions-list ((construction-inventory construction-inventory))
+  "Default implementation returning (length (constructions ci))"
+  (constructions construction-inventory))
 
 ;; ------------------------------------------------------------------------
 ;; clear

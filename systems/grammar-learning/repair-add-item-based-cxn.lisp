@@ -144,17 +144,18 @@ based on existing construction with sufficient overlap."
 
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance meaning)
   (loop for cxn in (constructions cxn-inventory)
-            for non-overlapping-meaning-observation = (non-overlapping-meaning meaning cxn :nom-observation t)
-            for non-overlapping-meaning-cxn = (non-overlapping-meaning meaning cxn :nom-cxn t)
-            for overlapping-meaning-cxn = (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal)
-            for non-overlapping-form-observation = (non-overlapping-form utterance cxn :nof-observation t)
-            for non-overlapping-form-cxn = (non-overlapping-form utterance cxn :nof-cxn t)
-            for overlapping-form-cxn = (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)
-            when (or (and (= 1 (length non-overlapping-meaning-observation))
-                          (= 1 (length non-overlapping-meaning-cxn)))
-                     (and (= 1 (length non-overlapping-form-observation))
-                          (= 1 (length non-overlapping-form-cxn))))
-            return (values non-overlapping-meaning-observation non-overlapping-meaning-cxn
-                           non-overlapping-form-observation non-overlapping-form-cxn
-                           overlapping-meaning-cxn overlapping-form-cxn
-                           cxn)))
+        for non-overlapping-meaning-observation = (non-overlapping-meaning meaning cxn :nom-observation t)
+        for non-overlapping-meaning-cxn = (non-overlapping-meaning meaning cxn :nom-cxn t)
+        for overlapping-meaning-cxn = (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal)
+        for non-overlapping-form-observation = (non-overlapping-form utterance cxn :nof-observation t)
+        for non-overlapping-form-cxn = (non-overlapping-form utterance cxn :nof-cxn t)
+        for overlapping-form-cxn = (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)
+        when (and (eql (phrase-type cxn) 'holophrase)
+                  (or (and (= 1 (length non-overlapping-meaning-observation))
+                           (= 1 (length non-overlapping-meaning-cxn)))
+                      (and (= 1 (length non-overlapping-form-observation))
+                           (= 1 (length non-overlapping-form-cxn)))))
+        return (values non-overlapping-meaning-observation non-overlapping-meaning-cxn
+                       non-overlapping-form-observation non-overlapping-form-cxn
+                       overlapping-meaning-cxn overlapping-form-cxn
+                       cxn)))

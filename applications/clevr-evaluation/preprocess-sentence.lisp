@@ -27,7 +27,7 @@
 
 (defun extract-chunks ()
   "Extract all chunks in the cxn inventory"
-  (loop for cxn in (constructions *CLEVR*)
+  (loop for cxn in (constructions-list *CLEVR*)
         for conditional-part = (conditional-part cxn)
         append (loop for unit in conditional-part
                      when (fcg:fcg-unit-feature unit 'form)

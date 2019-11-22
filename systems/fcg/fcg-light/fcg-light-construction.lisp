@@ -384,13 +384,14 @@ value has become NIL."
     (setf (configuration destination) configuration-destination)
     (setf (blackboard destination) blackboard-destination)
     (setf (processing-cxn-inventory destination)
-          (make-instance 'construction-set ;; deep copy (well, not for the constructions themselves)
-                         :original-cxn-set destination
-                         :constructions  (copy-list (constructions (processing-cxn-inventory source)))
-                         :configuration configuration-destination
-                         :visualization-configuration viualization-configuration-destination
-                         :blackboard blackboard-destination
-                         :trash  (copy-list (trash (processing-cxn-inventory source)))))))
+          (copy-object (processing-cxn-inventory source)))))
+          ;(make-instance 'construction-set ;; deep copy (well, not for the constructions themselves)
+          ;               :original-cxn-set destination
+          ;               :constructions  (copy-list (constructions (processing-cxn-inventory source)))
+          ;               :configuration configuration-destination
+          ;               :visualization-configuration viualization-configuration-destination
+          ;               :blackboard blackboard-destination
+          ;               :trash  (copy-list (trash (processing-cxn-inventory source)))))))
 
 (defun copy-fcg-construction-set-without-cxns (fcg-construction-set)
   "Make a copy of an FCG construction set, without copying the

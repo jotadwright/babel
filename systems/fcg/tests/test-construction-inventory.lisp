@@ -265,7 +265,7 @@
     (add-cxn cxn-1 cxn-set)
     (add-cxn cxn-2 cxn-set)
     (test-assert (and (configuration cxn-set)
-                      (= (size cxn-set) 1)
+                      (= (size cxn-set) 2)
                       (= (length (gethash nil (constructions-hash-table cxn-set))) 2)))
     (setf copied-cxn-set (copy-object cxn-set))
     (test-assert (= (length (gethash nil (constructions-hash-table copied-cxn-set))) 2))
@@ -304,6 +304,8 @@
     (test-assert (= (length (trash copied-cxn-set)) 0))
     (test-assert (= (size copied-cxn-set) 0)))
 )
+
+;; (test-hashed-construction-set)
 
 ;;TO DO
 (defun test-hashed-fcg-construction-set ()

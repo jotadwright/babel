@@ -4,6 +4,8 @@
 
 ;; + Apply terminal cxns last +
 
+#|
+
 (defclass cxn-supplier-with-ordered-labels-and-terminals-last (cxn-supplier-with-ordered-labels)
   ())
 
@@ -82,20 +84,19 @@
   (let ((root-meanings (extract-meaning (get-root (left-pole-structure (car-resulting-cfs (cipn-car node)))))))
     (not (find 'get-context root-meanings :key #'first))))
 
-(defparameter *CLEVR*
-  (def-fcg-constructions clevr-grammar
+|#
+
+(def-fcg-constructions clevr-grammar
     :feature-types ((args set-of-predicates)
                     (form set-of-predicates)
                     (meaning set-of-predicates)
                     (subunits set)
                     (superunits set)
                     (footprints set))
-    :fcg-configurations ((:production-order lex nom cxn morph)
-                         (:parse-order morph lex nom cxn)
-                         (:de-render-mode . :de-render-string-meets-precedes-within-3) ;; special de-render mode: precedes within N
+    :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-within-3) ;; special de-render mode: precedes within N
                          (:render-mode . :generate-and-test) ;; using the new renderer
                          (:form-predicates meets precedes)
-                         (:node-tests  :check-duplicate :restrict-nr-of-nodes)
+                         (:node-tests :check-duplicate :restrict-nr-of-nodes)
                          (:parse-goal-tests :no-applicable-cxns
                                             :connected-semantic-network
                                             :connected-structure
@@ -104,14 +105,20 @@
                                                  :connected-structure
                                                  :no-meaning-in-root)
                          ;; For guiding search:
-                         (:cxn-supplier-mode . :ordered-labels-and-terminals-last)
-                         (:node-expansion-mode . :default)
-                         (:priority-mode . :depth-first)
-                         (:queue-mode . :by-priority)
-                         (:max-nr-of-nodes . 1000)
-                         (:cxn-sets-with-sequential-application morph lex))
+                         (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                         (:node-expansion-mode . :multiple-cxns)
+                         (:priority-mode . :nr-of-applied-cxns)
+                         (:queue-mode . :greedy-best-first)
+                         (:max-nr-of-nodes . 10000)
+                         (:hash-mode . :hash-string-meaning-lex-id))
     :visualization-configurations ((:show-constructional-dependencies . nil)
                                    (:hide-features . (footprints superunits))
                                    (:with-search-debug-data . t))
     :hierarchy-features (subunits)
-    :hashed nil))
+    :hashed t
+    :cxn-inventory *CLEVR*
+    (generate-lexical-constructions *CLEVR*)
+    (generate-morphological-constructions *CLEVR*))
+
+;; This is to be able to call comprehend and formulate without specifying the cxn-inventory
+(setf *fcg-constructions* *CLEVR*)

@@ -1,6 +1,15 @@
 
 (in-package :grammar-learning)
 
+(defun phrase-type (cxn)
+  (loop for unit in (contributing-part cxn)
+        for syn-cat = (cdr (find 'syn-cat (fcg::unit-structure unit) :key #'first))
+        for phrase-type = (when syn-cat (second (find 'phrase-type syn-cat :key #'first)))
+        when phrase-type
+        return phrase-type))
+
+;; (phrase-type *saved-cxn*)
+
 (defun lex-class (unit)
   (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
          (lex-class (find 'lex-class (second syn-cat) :key #'first)))    

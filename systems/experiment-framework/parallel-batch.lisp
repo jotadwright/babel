@@ -158,9 +158,7 @@
         for commands = (list
                         "(setf cl-user::*automatically-start-web-interface* nil)"
                         "(setf test-framework::*dont-run-tests-when-loading-asdf-systems* t)"
-                        "(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
-                        ;; somehow this has to run twice for lispworks
-                        #+lispworks"(asdf:operate 'asdf:load-op :experiment-framework :verbose nil)"
+                        "(ql:quickload :experiment-framework :verbose nil)"
                         (mkstr 
                          "(experiment-framework::parallel-batch-run-client-process"
                          " :asdf-system :" asdf-system 
@@ -278,7 +276,8 @@
         #+lispworks (make-random-state))
 
   ;; load the requested asdf system
-  (asdf:operate 'asdf:load-op asdf-system :verbose nil)
+  ;(asdf:operate 'asdf:load-op asdf-system :verbose nil)
+  (ql:quickload asdf-system :verbose t)
 
   ;; set the package
   (setf *package* (find-package (read-from-string package)))
@@ -372,7 +371,7 @@
   ;; load the asdf system
   (let ((test-framework::*dont-run-tests-when-loading-asdf-systems* t))
     (ql:quickload asdf-system)
-    ;(asdf:operate 'asdf:load-op asdf-system
+    ;(asdf:operate 'asdf:load-op asdf-system)
     )
 
   ;; activate the monitors
@@ -423,6 +422,7 @@ name."
                     finally (return (entries local-config))))
        
         ;; adapt file-writing monitors so they output in the correct output-dir
+        (monitors::deactivate-all-monitors)
         (loop for monitor-string in monitors
               for monitor = (monitors::get-monitor (read-from-string monitor-string))
               when (slot-exists-p monitor 'file-name)
@@ -431,7 +431,8 @@ name."
                         (merge-pathnames (make-pathname :directory `(:relative ,(string-downcase (symbol-name (first configuration))))
                                                         :name (pathname-name (file-name monitor)) 
                                                         :type (pathname-type (file-name monitor)))
-                                         output-dir))))
+                                         output-dir)))
+              (monitors::activate-monitor-method (read-from-string monitor-string)))
        
         ;; run the actual batch for the current configuration
         (run-parallel-batch :asdf-system asdf-system 

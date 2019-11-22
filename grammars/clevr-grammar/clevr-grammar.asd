@@ -16,9 +16,8 @@
   :serial t
   :components ((:file "package")
                (:file "fcg-utils")
-               (:file "grammar")
                (:file "lex-and-morph")
-               (:file "config")
+               (:file "grammar")
                (:file "nominal")
                (:file "query")
                (:file "relate")

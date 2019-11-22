@@ -279,9 +279,34 @@
   (not (setf (fully-expanded? node) (not (call-next-method)))))
 
 (defmethod cip-priority ((node cip-node) (mode (eql :depth-first)))
+  (warn "This priority-mode is deprecated. Please use :nr-of-applied-cxns instead, which implements the same functionality")
+  (cip-priority node :nr-of-applied-cxns))
+
+(defmethod cip-priority ((node cip-node) (mode (eql :nr-of-applied-cxns)))
   (length (all-parents node)))
 
-
+(defmethod cip-priority ((node cip-node) (mode (eql :priming)))
+  (let ((priming-blackboard-name (if (eql (direction (cip node)) '<-)
+                                   :comprehension-priming-data :production-priming-data)))
+    (if (and (parent node)
+             (field? (blackboard (construction-inventory (cip node))) priming-blackboard-name))
+      (let ((applied-cxn (first (applied-constructions node)))
+            (previously-applied-cxn (second (applied-constructions node)))
+            (priming-blackboard-name (if (eql (direction (cip node)) '<-)
+                                       :comprehension-priming-data :production-priming-data)))
+   
+        (if (and previously-applied-cxn
+                 (gethash (name previously-applied-cxn)
+                          (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))
+          (let ((priming-strength (gethash (name applied-cxn)
+                                           (gethash (name previously-applied-cxn)
+                                                    (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))))
+                                   
+             
+            (+ (priority (parent node)) ;;score of the parent
+               (or priming-strength 0)))
+          (or (priority (parent node)) 0)))
+      0)))
 
 ;; -------------------------------:depth-first-prefer-local-bindings------------------------------------------
 ;; -----------------:best-first-minimize-domains-and-maximize-semantic-coherence------------------------------
@@ -461,14 +486,41 @@
 
 ;; ------------------------------------------------------------------------------------------------------------
 
+
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :depth-first)))
+  "Depth first search: children always added in front of queue."
+  (push node (queue cip)))
+
+
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :breadth-first)))
+  "Breadth first search: children always added to the end of the queue."
+  (pushend node (queue cip)))
+
+
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :greedy-best-first)))
+  "Greedy best first search tries to expand the node that is closest
+to the goal. It inserts each node into the queue, based on its score
+calculated by a node evaluation function. "
+  (setf (priority node)  
+        (cip-priority node (get-configuration cip :priority-mode))) ;;node evaluation 
+  (unless (priority node)
+    (error "The heuristic evaluation score of the new node is NIL. You used priority
+mode ~a. Please check why it did not calculate a score." (get-configuration cip :priority-mode)))
+  (setf (queue cip) (sorted-insert (queue cip) node :key #'priority :test #'>)))
+
+(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
+                        (mode (eql :random-walk)))
+  "Randomly explore the search space. For didactic purposes only."
+  (setf (queue cip) (shuffle (push node (queue cip)))))
+
 (defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
                         (mode (eql :by-priority)))
-  (setf (priority node)  
-        (cip-priority node (get-configuration cip :priority-mode)))
-  (unless (priority node)
-    (error "The priority of the new node is NIL. You used priority
-mode ~a. Please check why it did not calculate a priority score." (get-configuration cip :priority-mode)))
-  (setf (queue cip) (sorted-insert (queue cip) node :key #'priority :test #'>)))
+  (warn "The queue-mode :by-priority is deprecated. Please use
+:greedy-best-first instead, which implements the same functionality.")
+  (cip-enqueue node cip :greedy-best-first))
 
 (defun last-applied-construction (node)
   (first (applied-constructions node)))
@@ -573,6 +625,37 @@ mode ~a. Please check why it did not calculate a priority score." (get-configura
 
 (require-configuration :node-expansion-mode)
 
+(defmethod expand-cip-node ((node cip-node) (mode (eql :multiple-cxns)))
+  "When next-cxn returns a list, then apply all these cxns to the cipn."
+  (loop with nodes-to-queue = nil
+        with failed-nodes = nil
+        with cxn-inventory = (construction-inventory node)
+        for cxns = (listify (next-cxn (cxn-supplier node) node))
+        when cxns
+        do (let ((succeeded-cars nil)
+                 (failed-cars nil))
+             (dolist (cxn cxns)
+               (multiple-value-bind (these-succeeded-cars these-failed-cars)
+                   (fcg-apply (safe-cxn cxn (applied-constructions node))
+                              (car-resulting-cfs (cipn-car node))
+                              (direction (cip node)) :notify nil
+                              :configuration (configuration (construction-inventory node))
+                              :cxn-inventory cxn-inventory)
+                 (setf succeeded-cars (append succeeded-cars these-succeeded-cars)
+                       failed-cars (append failed-cars these-failed-cars))))
+             (loop for car in succeeded-cars
+                   do (push (cip-add-child node car)
+                            nodes-to-queue)
+                   when (apply-sequentially? node (car-applied-cxn car))
+                   do (setf (fully-expanded? node) t) (return))
+             
+             (loop for car in failed-cars
+                   do (push (cip-add-child node car :cxn-applied nil)
+                            failed-nodes)))
+        when nodes-to-queue do (return nodes-to-queue)
+        while cxns
+        finally (setf (fully-expanded? node) t)))
+
 (defun get-cip-leaves (cip)
   "Helper function: get all leaves (final nodes) from the cip search
 tree."
@@ -660,8 +743,49 @@ solution."
      (progn
        (cip-run-goal-tests solution cip)
        (push 'goal-test-failed (statuses solution))))
+
+   ;;inform-search-heuristics-after-solution (TO DO: make configuration)
+   (when (and solution
+              (find 'succeeded (statuses solution)))
+     (inform-search-heuristics solution (direction (cip solution))))
+   
    (when notify (notify cip-finished solution cip))
    (return (values solution cip))))
+
+
+(defun inform-search-heuristics (solution-node processing-direction) ;;should become a method later
+  "Extract useful information from the solution to inform future
+search processes. Currently tailored towards storing co-occurrence
+links between applied constructions for priming effects."
+  (let* ((blackboard-key (if (eql processing-direction '<-)
+                           :comprehension-priming-data
+                           :production-priming-data))
+         (priming-data
+          (if (field? (blackboard (construction-inventory (cip solution-node))) blackboard-key)
+            (get-data (blackboard (construction-inventory (cip solution-node))) blackboard-key)
+            (progn (set-data (blackboard (construction-inventory (cip solution-node))) blackboard-key
+                             (make-hash-table :test #'equalp))
+              (get-data (blackboard (construction-inventory (cip solution-node))) blackboard-key))))
+         (names-of-applied-constructions (mapcar #'name (reverse (applied-constructions solution-node)))))
+
+         (loop for construction-name in names-of-applied-constructions
+               for i from 0 to (- (length names-of-applied-constructions) 2) ;;don't do update for last cxn
+               for next-construction-name = (nth (+ i 1) names-of-applied-constructions)
+               if (gethash construction-name priming-data) ;;construction key exists
+               do (if (gethash next-construction-name (gethash construction-name priming-data)) ;;next-construction key exists
+                    (setf (gethash next-construction-name (gethash construction-name priming-data)) ;;update frequency
+                          (+ 1 (gethash next-construction-name (gethash construction-name priming-data))))
+                    (progn (setf (gethash next-construction-name (gethash construction-name priming-data))
+                                 (make-hash-table :test #'equalp)) ;;init
+                      (setf (gethash next-construction-name (gethash construction-name priming-data)) 1)))    
+               else ;;construction key does not exist
+               do (progn (setf (gethash construction-name priming-data) ;;for the hash key of the construction name
+                               (make-hash-table :test #'equalp)) ;;initialise it with empty hash table as its value
+                    (setf (gethash next-construction-name (gethash construction-name priming-data))
+                          (make-hash-table :test #'equalp)) ;;init
+                    (setf (gethash next-construction-name (gethash construction-name priming-data)) 1)))
+
+         (set-data (blackboard (construction-inventory (cip solution-node))) blackboard-key priming-data)))
 
 ;; #############################################################################
 ;; fcg-apply
@@ -859,7 +983,11 @@ added here. Preprocessing is only used in parsing currently."
           fcg-get-applied-cxn fcg-get-transient-unit-structure
           fcg-extract-selected-form-constraints
           fcg-extract-meanings
-          solution-p))
+          solution-p
+          fcg-export-comprehension-priming-data
+          fcg-export-formulation-priming-data
+          fcg-import-comprehension-priming-data
+          fcg-import-formulation-priming-data))
 
 (defun fcg-get-transient-structure (x &key (pick-cfs-fn #'car-resulting-cfs))
   "Find the transient structure in an object."
@@ -946,4 +1074,112 @@ added here. Preprocessing is only used in parsing currently."
   "returns true if a node is a solution (succeeded)"
   (when (find 'succeeded (statuses node) :test 'equalp)
     t))
+
+(defun export-blackboard-data-from-key (cxn-inventory key &key path (format "lsp"))
+  "Export data from the construction inventory blackboard."
+  (let ((path
+         (or path
+             (monitors::make-file-name-with-time-and-experiment-class
+              (babel-pathname :directory '(".tmp") :name (mkstr key) :type format)
+              (name cxn-inventory))))
+        (data
+         (when (field? (blackboard cxn-inventory) key)
+           (get-data (blackboard cxn-inventory) key))))
+    (if data
+      (progn (ensure-directories-exist path)
+        (cl-store:store data path)
+        t)
+      (warn (format nil "The key ~a was not found in the ~a construction inventory"
+                    key (name cxn-inventory))))))
+
+(defun import-blackboard-data-to-key (path cxn-inventory key)
+  (let ((data (cl-store:restore path)))
+    (set-data (blackboard cxn-inventory) key data)
+    t))
+
+(defgeneric fcg-export-comprehension-priming-data (thing &key path format)
+  (:documentation "Export the comprehension priming data"))
+
+(defmethod fcg-export-comprehension-priming-data ((construction-inventory construction-inventory)
+                                                  &key path (format "lsp"))
+  "Export the comprehension priming data from the construction inventory"
+  (unless (stringp format)
+    (error "The argument 'format' should be a string, e.g. \"lsp\""))
+  (unless (or (null path) (pathnamep path))
+    (error "The argument 'path' should be nil or a valid pathname"))
+  (export-blackboard-data-from-key construction-inventory
+                                   :comprehension-priming-data
+                                   :path path :format format))
+
+(defmethod fcg-export-comprehension-priming-data ((cipn cip-node)
+                                                  &key path (format "lsp"))
+  "Export the comprehension priming data from a cip node"
+  (unless (stringp format)
+    (error "The argument 'format' should be a string, e.g. \"lsp\""))
+  (unless (or (null path) (pathnamep path))
+    (error "The argument 'path' should be nil or a valid pathname"))
+  (export-blackboard-data-from-key (construction-inventory cipn)
+                                   :comprehension-priming-data
+                                   :path path :format format))
+
+(defgeneric fcg-export-formulation-priming-data (thing &key path format)
+  (:documentation "Export the formulation priming data"))
+
+(defmethod fcg-export-formulation-priming-data ((construction-inventory construction-inventory)
+                                                &key path (format "lsp"))
+  "Export the formulation priming data from the construction inventory"
+  (unless (stringp format)
+    (error "The argument 'format' should be a string, e.g. \"lsp\""))
+  (unless (or (null path) (pathnamep path))
+    (error "The argument 'path' should be nil or a valid pathname"))
+  (export-blackboard-data-from-key construction-inventory
+                                   :formulation-priming-data
+                                   :path path :format format))
+
+(defmethod fcg-export-formulation-priming-data ((cipn cip-node)
+                                                &key path (format "lsp"))
+  "Export the formulation priming data from a cip node"
+  (unless (stringp format)
+    (error "The argument 'format' should be a string, e.g. \"lsp\""))
+  (unless (or (null path) (pathnamep path))
+    (error "The argument 'path' should be nil or a valid pathname"))
+  (export-blackboard-data-from-key (construction-inventory cipn)
+                                   :formulation-priming-data
+                                   :path path :format format))
+
+(defgeneric fcg-import-comprehension-priming-data (path thing)
+  (:documentation "Import comprehension priming data and store it in the thing"))
+
+(defmethod fcg-import-comprehension-priming-data (path (construction-inventory construction-inventory))
+  (unless (pathnamep path)
+    (error "The argument 'path' should be a valid pathname"))
+  (unless (probe-file path)
+    (error "No such file: ~a" path))
+  (import-blackboard-data-to-key path construction-inventory :comprehension-priming-data))
+
+(defmethod fcg-import-comprehension-priming-data (path (cipn cip-node))
+  (unless (pathnamep path)
+    (error "The argument 'path' should be a valid pathname"))
+  (unless (probe-file path)
+    (error "No such file: ~a" path))
+  (import-blackboard-data-to-key path (construction-inventory cipn) :comprehension-priming-data))
+
+(defgeneric fcg-import-formulation-priming-data (path thing)
+  (:documentation "Import formulation priming data and store it in the thing"))
+
+(defmethod fcg-import-formulation-priming-data (path (construction-inventory construction-inventory))
+  (unless (pathnamep path)
+    (error "The argument 'path' should be a valid pathname"))
+  (unless (probe-file path)
+    (error "No such file: ~a" path))
+  (import-blackboard-data-to-key path construction-inventory :formulation-priming-data))
+
+(defmethod fcg-import-formulation-priming-data (path (cipn cip-node))
+  (unless (pathnamep path)
+    (error "The argument 'path' should be a valid pathname"))
+  (unless (probe-file path)
+    (error "No such file: ~a" path))
+  (import-blackboard-data-to-key path (construction-inventory cipn) :formulation-priming-data))
+  
+    
 

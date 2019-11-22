@@ -68,9 +68,7 @@ transient structure."
         (progn
           (set-data (goal-test-data node) 'dependencies-realized  left-pole)
           nil))))
-        
-    
-
+                           
 (defmethod cip-goal-test ((node cip-node) (mode (eql :no-meaning-in-root)))
   "The node is a valid solution when there is no meaning predicate
 left in the root unit (formulation only)."
@@ -141,51 +139,46 @@ left in the root unit's form predicates (comprehension only)."
 
 (defmethod equivalent-meaning? ((interpreted-meaning list) (intended-meaning list) 
  				(mode (eql :unify-no-equalities)))
-  (delete-if #'(lambda (bs)
+  (delete-if #'(lambda (binding-set)
  		 (equalities? 
  		  (delete-if #'(lambda (binding) (null (binding-val binding)))
- 			     bs)))
+ 			     binding-set)))
  	     (unify (cons '== intended-meaning) interpreted-meaning)))
 
 
 (require-configuration :equivalent-meaning-mode)
 
-(defmethod cip-goal-test ((node cip-node) (mode (eql :re-enter-utterance)))
-  "This is a goal test that can uses the old FCG notation (before 2015)."
-  (warn "Please check this goal test before using it. It is not guaranteed to work (old FCG notation).")
+(defmethod cip-goal-test ((node cip-node) (mode (eql :re-enter-produced-utterance)))
+  ""
   (let* ((construction-inventory (construction-inventory (cip node)))
-         (utterance (render 
-                     (right-pole-structure (car-resulting-cfs (cipn-car node)))
-                     (get-configuration construction-inventory :render-mode)
-                     :node node))
-         (cfs (de-render utterance (get-configuration construction-inventory
-                                                      :de-render-mode)))
+         (utterance (render (car-resulting-cfs (cipn-car node)) (get-configuration construction-inventory :render-mode)))
+         (cfs (de-render utterance (get-configuration construction-inventory :de-render-mode)))
          (solution+cip (multiple-value-list
                         (with-disabled-monitor-notifications
                           (fcg-apply (construction-inventory (cip node))
                                      cfs '<-
                                      :configuration (configuration (construction-inventory node))))))
-         (solution (car solution+cip))
-         (cip (cadr solution+cip))
-         (intended-meaning 
-          (extract-meanings
-           (left-pole-structure
-            (car-resulting-cfs (cipn-car (top-node (cip node)))))))
-         (interpreted-meaning 
-          (when solution
-            (extract-meanings (left-pole-structure 
-                               (car-resulting-cfs (cipn-car solution))))))
-         (equivalent-meaning? 
-          (equivalent-meaning?
-           interpreted-meaning intended-meaning
-           (get-configuration construction-inventory :equivalent-meaning-mode))))
-    (set-data (goal-test-data node) 'utterance utterance)
-    (set-data (goal-test-data node) 'parse-process cip)
-    (set-data (goal-test-data node) 'solution solution)
-    (set-data (goal-test-data node) 'intended-meaning intended-meaning)
-    (set-data (goal-test-data node) 'interpreted-meaning interpreted-meaning)
-    (set-data (goal-test-data node) 'equivalent-meaning? equivalent-meaning?)
-    equivalent-meaning?))
+         (solution (when (find 'succeeded (statuses (first solution+cip)))
+                     (first solution+cip))))
+
+   (when solution
+      (let* ((cip (second solution+cip))
+             (intended-meaning (extract-meanings 
+                                (left-pole-structure
+                                 (car-resulting-cfs (cipn-car (top-node (cip node)))))))
+             (interpreted-meaning (extract-meanings (left-pole-structure 
+                                                       (car-resulting-cfs (cipn-car solution)))))
+             (equivalent-meaning? (equivalent-meaning?
+                                   intended-meaning interpreted-meaning
+                                   (get-configuration construction-inventory :equivalent-meaning-mode))))
+    
+        (set-data (goal-test-data node) 'utterance utterance)
+        (set-data (goal-test-data node) 'parse-process cip)
+        (set-data (goal-test-data node) 'solution solution)
+        (set-data (goal-test-data node) 'intended-meaning intended-meaning)
+        (set-data (goal-test-data node) 'interpreted-meaning interpreted-meaning)
+        (set-data (goal-test-data node) 'equivalent-meaning? equivalent-meaning?)
+        equivalent-meaning?))))
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :re-enter-utterance-until-found)))
   "This is a goal test that can uses the old FCG notation (before 2015)."

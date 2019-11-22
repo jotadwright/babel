@@ -14,7 +14,6 @@ The repository is structured as follows.
  - fcg-utils.lisp
  - grammar.lisp
  - lex-and-morph.lisp
- - config.lisp
  - nominal, query, relate, count, exist
  - the rest
 
