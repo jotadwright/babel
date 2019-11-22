@@ -18,6 +18,8 @@
 (length (constructions *fcg-constructions*))
 
 
+
+(pie-comprehend "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.")
 ;; Lead to
 ;;-----------------
 
