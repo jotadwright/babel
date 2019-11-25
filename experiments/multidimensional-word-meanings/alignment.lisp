@@ -7,22 +7,27 @@
 ;;;; Adopting unknown words
 (define-event new-cxn-added (cxn fcg-construction))
 
-(defgeneric adopt-unknown-words (agent topic category-representation)
+(defgeneric adopt-unknown-words (agent topic words category-representation)
   (:documentation "Adopt unknown words"))
 
-(defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) category-representation)
-  (let* ((meaning
-          (loop with initial-certainty = (get-configuration agent :initial-certainty)
+(defmethod adopt-unknown-words ((agent mwm-agent) (topic mwm-object) words category-representation)
+  (loop for word in words
+        for new-meaning
+        = (loop with initial-certainty = (get-configuration agent :initial-certainty)
                 for (attr . val) in (attributes topic)
-                collect (cons (make-category attr val category-representation) initial-certainty)))
-        (new-cxn (add-lex-cxn agent (first (utterance agent)) meaning)))
-    (add-to-cxn-history agent new-cxn)
-    (notify new-cxn-added new-cxn)))
+                collect (cons (make-category attr val category-representation) initial-certainty))
+        for new-cxn = (add-lex-cxn agent word new-meaning)
+        do (add-to-cxn-history agent new-cxn)
+        do (notify new-cxn-added new-cxn)))
 
 ;;;; Aligning known words
 (define-event scores-updated (cxn fcg-construction)
   (rewarded-attrs list)
   (punished-attrs list))
+(define-event found-discriminating-attributes
+  (attributes list))
+(define-event found-subset-to-reward
+  (subset list))
 
 (defun find-discriminating-attributes (agent concept topic)
   "Find all attributes that are discriminating for the topic"
@@ -36,7 +41,8 @@
           when (> topic-similarity best-other-similarity)
           do (push (attribute category) discriminating-attributes)
           finally
-          (return discriminating-attributes))))
+          (progn (notify found-discriminating-attributes discriminating-attributes)
+            (return discriminating-attributes)))))
 
 
 (defun filter-subsets (all-subsets discriminating-attributes)
@@ -69,10 +75,11 @@
                       (> diff largest-diff))
               (setf best-subset subset
                     largest-diff diff))))))
+    (notify found-subset-to-reward best-subset)
     best-subset))
           
 
-(defgeneric align-known-words (agent topic categories)
+(defgeneric align-known-words (agent topic words categories)
   (:documentation "Align known words"))
 
 ;; find the set of all attributes that are discriminating (S)
@@ -81,40 +88,45 @@
 ;; between S and A is empty
 
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
-                              category-representation)
+                              words category-representation)
   (declare (ignorable category-representation))
-  (let* ((cxn (first (applied-cxns agent)))
-         (applied-concept (attr-val cxn :meaning)))
-    ;; add to cxn history
-    (add-to-cxn-history agent cxn)
-    ;; update prototypes
-    (loop for (category . certainty) in applied-concept
-          do (update-category category topic
-                              :success (communicated-successfully agent)
-                              :interpreted-object (topic agent)))
-    ;; update certainty scores
-    (let* ((discriminating-attributes
-            (find-discriminating-attributes agent applied-concept topic))
-           (all-subsets (all-subsets applied-concept))
-           (subsets-to-consider
-            (filter-subsets all-subsets discriminating-attributes))
-           (best-subset
-            (find-most-discriminating-subset agent subsets-to-consider topic)))
-      (loop with rewarded = nil
-            with punished = nil
-            for (category . certainty) in applied-concept
-            if (member category best-subset :key #'car)
-            do (progn (push (attribute category) rewarded)
-                 (adjust-certainty agent cxn (attribute category)
-                                   (get-configuration agent :certainty-incf)
-                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
-            else
-            do (progn (push (attribute category) punished)
-                 (adjust-certainty agent cxn (attribute category)
-                                   (get-configuration agent :certainty-decf)
-                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
-            finally
-            (notify scores-updated cxn rewarded punished))))) 
+  ;; update prototype
+  (loop for (category . certainty) in (parsed-meaning agent)
+        do (update-category category topic
+                            :success (communicated-successfully agent)
+                            :interpreted-object (topic agent)))
+  ;; update certainties
+  (let* ((discriminating-attributes
+          (find-discriminating-attributes agent (parsed-meaning agent) topic))
+         (all-subsets (all-subsets (parsed-meaning agent)))
+         (subsets-to-consider
+          (filter-subsets all-subsets discriminating-attributes))
+         (best-subset
+          (find-most-discriminating-subset agent subsets-to-consider topic)))
+    ;; store the rewarded and punished attributes per cxn
+    (loop with rewarded = (make-blackboard)
+          with punished = (make-blackboard)
+          for (category . certainty) in (parsed-meaning agent)
+          if (member category best-subset :key #'car)
+          do (let ((cxn (construction category)))
+               (push-data rewarded (name cxn) (attribute category))
+               (add-to-cxn-history agent cxn)
+               (adjust-certainty agent cxn (attribute category)
+                                 (get-configuration agent :certainty-incf)
+                                 :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
+          else
+          do (let ((cxn (construction category)))
+               (push-data punished (name cxn) (attribute category))
+               (add-to-cxn-history agent cxn)
+               (adjust-certainty agent cxn (attribute category)
+                                 (get-configuration agent :certainty-decf)
+                                 :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
+          finally
+          (loop for cxn in (applied-cxns agent)
+                for rewarded-attrs = (find-data rewarded (name cxn))
+                for punished-attrs = (find-data punished (name cxn))
+                when (or rewarded-attrs punished-attrs)
+                do (notify scores-updated cxn rewarded-attrs punished-attrs))))) 
         
  
 ;;;; Align Agent        
@@ -125,14 +137,35 @@
 (define-event adopting-words (words list))
 (define-event aligning-words (words list))
 
+;; When all unknown words; adopt them
+;; When all known words; align them
+;; When both known and unknown words; combine them?
+
 (defmethod align-agent ((agent mwm-agent) (topic mwm-object))
-  (let ((utterance-known-p
-         (find-cxn-with-form agent (first (utterance agent))))
-        (category-representation (get-configuration agent :category-representation)))
+  (let* ((known-words
+          (find-all-if #'(lambda (form)
+                           (find-cxn-with-form agent form))
+                       (utterance agent)))
+         (unknown-words
+          (set-difference (utterance agent) known-words))
+         (category-representation
+          (get-configuration agent :category-representation)))
     (notify alignment-started agent)
-    (if utterance-known-p
-      (progn (notify aligning-words (utterance agent))
-        (align-known-words agent topic category-representation))
-      (progn (notify adopting-words (utterance agent))
-        (adopt-unknown-words agent topic category-representation)))))
+    (cond
+     ((and (null known-words) unknown-words)
+      (notify adopting-words (utterance agent))
+      (adopt-unknown-words agent topic unknown-words category-representation))
+     ((and known-words (null unknown-words))
+      (notify aligning-words (utterance agent))
+      (align-known-words agent topic known-words category-representation))
+     (t ;; first adopt the unknown words
+        (notify adopting-words unknown-words)
+        (adopt-unknown-words agent topic unknown-words category-representation)
+        ;; align the known words 
+        (notify aligning-words known-words)
+        (align-known-words agent topic known-words category-representation)
+        ;; find out which attributes were rewarded for the known words
+        ;; and also reward these for the new, unknown words
+        ))))
+        
   

@@ -38,7 +38,8 @@
               (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:data-sets . ,*baseline-simulated-data-sets*))))
+              (:data-sets . ,*baseline-simulated-data-sets*)
+              (:max-tutor-utterance-length . ,3))))
 
 (defparameter *baseline-extracted-configuration*
   (make-configuration
@@ -98,7 +99,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 300)
+(run-series *experiment* 2000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id))
@@ -111,25 +112,53 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (sankey
+                   (baseline-utterance-length-1
                     ((:experiment-type . :baseline)
                      (:data-type . :simulated)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:data-path . ,*baseline-extracted-data-path*)))
+                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:max-tutor-utterance-length . ,1)))
+                   (baseline-utterance-length-2
+                    ((:experiment-type . :baseline)
+                     (:data-type . :simulated)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:max-tutor-utterance-length . ,2)))
+                   (baseline-utterance-length-3
+                    ((:experiment-type . :baseline)
+                     (:data-type . :simulated)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:max-tutor-utterance-length . ,3)))
+                   (baseline-utterance-length-4
+                    ((:experiment-type . :baseline)
+                     (:data-type . :simulated)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:max-tutor-utterance-length . ,4)))
                    )
-                 :number-of-interactions 1000
+                 :number-of-interactions 5000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
-                                 "export-lexicon-evolution"
+                                 ;"export-lexicon-evolution"
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "data-type-extracted"
+ :experiment-name "baseline-mwe-3"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -137,11 +166,13 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("data-type-simulated-v2"
-                     "data-type-extracted-v2")
+ :experiment-names '("baseline-utterance-length-1"
+                     "baseline-utterance-length-2"
+                     "baseline-utterance-length-3"
+                     "baseline-utterance-length-4")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("simulated" "extracted")
+ :captions '("utterance length = 1" "2" "3" "4")
  :title nil :end nil)
 
 (create-graph-comparing-strategies

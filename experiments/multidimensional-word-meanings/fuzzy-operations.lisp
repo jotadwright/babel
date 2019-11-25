@@ -28,12 +28,17 @@
                                      (attribute (car entry))))
         do (push
             (cond
+             ;; if both are present with the same certainty
+             ;; choose random
              ((and a-entry b-entry
-                   (> (cdr a-entry) (cdr b-entry)))
-              a-entry)
+                   (= (cdr a-entry) (cdr b-entry)))
+              (random-elt (list a-entry b-entry)))
+             ;; if both are present with different certainty
+             ;; take the one with highest certainty
              ((and a-entry b-entry
-                   (> (cdr b-entry) (cdr a-entry)))
-              b-entry)
+                   (/= (cdr a-entry) (cdr b-entry)))
+              (the-biggest #'cdr (list a-entry b-entry)))
+             ;; if only one is present, take that one
              (t (or a-entry b-entry)))
             result)
         finally
