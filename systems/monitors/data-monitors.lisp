@@ -90,7 +90,7 @@
     (push current-value (caar values))
     (typecase current-value
       (number    ;; current-value is a number, so we can compute the average
-                 (loop for value in (caar (get-values monitor))
+                 (loop for value in (remove nil (caar (get-values monitor))) ;; Jens (29/11/19)
                        for count from 1
                        sum value into sum-of-values
                        while (< count average-window)
