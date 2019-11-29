@@ -297,7 +297,8 @@ x-axis."
                       (nth source-number caption)
                       (nth source-number (reverse monitor-ids-of-sources)))
 		  (if points
-		      "with points 3"
+		      (format nil "with points pointtype ~a"
+                              (mod (1+ source-number) 40)) ;; Jens (29/11/19)
 		      (format nil "with lines lw ~a" line-width))
                   (+ 2 (mod source-number 8)) color
                   (< source-number (- (length data) 1))))
