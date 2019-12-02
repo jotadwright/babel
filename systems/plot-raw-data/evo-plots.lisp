@@ -65,6 +65,15 @@ x-axis."
                      for i from 0
                      collect (or (nth i captions)
                                  (first (last file-path))))))
+    ;; data-set should be a list of batch-points
+    ;; only when :points is t is there allowed to be NIL
+    ;; in the batch-points. Here, we quickly check this
+    (unless points
+      (loop for i from 0
+            for source in data-set
+            when (find nil source)
+            do (error "Found a NIL value in the data to plot (source: ~a)"
+                      (nth i captions))))
     (plot-evo-data data-set
                    :file-name plot-file-name
                    :directory plot-directory
@@ -134,19 +143,19 @@ x-axis."
                             (t 5000)))
      ;; error bars at nice positions
      for error-bar-distance =  (cond ((<= range 101) 10)
-                                    ((<= range 201) 20)
-                                    ((<= range 501 50)) 
-                                    ((<= range 1001) 100)
-                                    ((<= range 2001) 200)
-                                    ((<= range 5001) 500)
-                                    ((<= range 10001) 1000) 
-                                    ((<= range 20001) 2000)
-                                    ((<= range 50001) 5000)
-                                    ((<= range 100001) 10000)
-                                    ((<= range 200001) 20000)
-                                    ((<= range 500000) 50000)
-                                    ((<= range 1000001) 100000)
-                                    (t 200000))
+                                     ((<= range 201) 20)
+                                     ((<= range 501 50)) 
+                                     ((<= range 1001) 100)
+                                     ((<= range 2001) 200)
+                                     ((<= range 5001) 500)
+                                     ((<= range 10001) 1000) 
+                                     ((<= range 20001) 2000)
+                                     ((<= range 50001) 5000)
+                                     ((<= range 100001) 10000)
+                                     ((<= range 200001) 20000)
+                                     ((<= range 500000) 50000)
+                                     ((<= range 1000001) 100000)
+                                     (t 200000))
      ;; offset so that error-bars don't overlap making them unreadable
      for error-bar-offset = (* (nearest-multiple (floor (/ error-bar-distance (length data-set))) _steps) counter)
        ;; nearest-multiple for making sure i doesn't jump over mod
@@ -156,8 +165,9 @@ x-axis."
           for i from 0 to (- range 1) by _steps
           for batch-point = (nth (- (length source) i 1) source)
           collect (/ i divide-indices-by) into index
-          collect (case average-mode (:median (median-val batch-point))
-                        (t (avg-val batch-point))) into average-values          
+          collect (case average-mode
+                    (:median (when batch-point (median-val batch-point)))
+                    (:mean (when batch-point (avg-val batch-point)))) into average-values          
           when (and batch-point
                     error-bars
                     (> (length source) 1)
@@ -175,15 +185,23 @@ x-axis."
                         ((and (consp error-bars)
                               (> (length error-bars) 1)
                               (eq (first error-bars) :stdev))
-                         (list (- (case average-mode (:median (median-val batch-point))
-                                    (t (avg-val batch-point))) (* (second error-bars) (stdev-val batch-point)))
-                               (+ (case average-mode (:median (median-val batch-point))
-                                    (t (avg-val batch-point))) (* (second error-bars) (stdev-val batch-point)))))
+                         (list (- (case average-mode
+                                    (:median (median-val batch-point))
+                                    (:mean (avg-val batch-point)))
+                                  (* (second error-bars) (stdev-val batch-point)))
+                               (+ (case average-mode
+                                    (:median (median-val batch-point))
+                                    (:mean (avg-val batch-point)))
+                                  (* (second error-bars) (stdev-val batch-point)))))
                         (t ;; default :stdev
-                         (list (- (case average-mode (:median (median-val batch-point))
-                                        (t (avg-val batch-point))) (stdev-val batch-point)) 
-                               (+ (case average-mode (:median (median-val batch-point))
-                                        (t (avg-val batch-point))) (stdev-val batch-point))))))
+                         (list (- (case average-mode
+                                    (:median (median-val batch-point))
+                                    (:mean (avg-val batch-point)))
+                                  (stdev-val batch-point)) 
+                               (+ (case average-mode
+                                    (:median (median-val batch-point))
+                                    (:mean (avg-val batch-point)))
+                                  (stdev-val batch-point))))))
           into errorbars-filled
           when (and batch-point
                     error-bars
@@ -192,8 +210,9 @@ x-axis."
                     (= (mod (+ i error-bar-offset) error-bar-distance) 0)
                     (> (length (batch-data batch-point)) 1))
           collect 
-            (append (list (/ i divide-indices-by) (case average-mode (:median (median-val batch-point))
-                                                        (t (avg-val batch-point))))
+            (append (list (/ i divide-indices-by) (case average-mode
+                                                    (:median (median-val batch-point))
+                                                    (:mean (avg-val batch-point))))
                     (cond ((eq error-bars :min-max)
                            (list (min-val batch-point) (max-val batch-point)))
                           ((and (consp error-bars) 
@@ -203,18 +222,26 @@ x-axis."
                           ((and (consp error-bars)
                                 (> (length error-bars) 1)
                                 (eq (first error-bars) :stdev))
-                           (list (- (case average-mode (:median (median-val batch-point))
-                                      (t (avg-val batch-point))) (* (second error-bars) (stdev-val batch-point)))
-                                 (+ (case average-mode (:median (median-val batch-point))
-                                      (t (avg-val batch-point))) (* (second error-bars) (stdev-val batch-point)))))
+                           (list (- (case average-mode
+                                      (:median (median-val batch-point))
+                                      (:mean (avg-val batch-point)))
+                                    (* (second error-bars) (stdev-val batch-point)))
+                                 (+ (case average-mode
+                                      (:median (median-val batch-point))
+                                      (:mean (avg-val batch-point)))
+                                    (* (second error-bars) (stdev-val batch-point)))))
                           (t ;; default :stdev
-                           (list (- (case average-mode (:median (median-val batch-point))
-                                          (t (avg-val batch-point))) (stdev-val batch-point)) 
-                                 (+ (case average-mode (:median (median-val batch-point))
-                                          (t (avg-val
-          batch-point))) (stdev-val batch-point)))))) into errorbars-lines 
-          finally (return (list index average-values
-          errorbars-filled errorbars-lines)))))
+                           (list (- (case average-mode
+                                      (:median (median-val batch-point))
+                                      (:mean (avg-val batch-point)))
+                                    (stdev-val batch-point)) 
+                                 (+ (case average-mode
+                                      (:median (median-val batch-point))
+                                      (:mean (avg-val batch-point)))
+                                    (stdev-val batch-point)))))) into errorbars-lines 
+            finally
+            (return
+             (list index average-values errorbars-filled errorbars-lines)))))
 
 
 (defun plot-evo-data (data &key 
@@ -297,7 +324,8 @@ x-axis."
                       (nth source-number caption)
                       (nth source-number (reverse monitor-ids-of-sources)))
 		  (if points
-		      "with points 3"
+		      (format nil "with points pointtype ~a"
+                              (mod (1+ source-number) 40))
 		      (format nil "with lines lw ~a" line-width))
                   (+ 2 (mod source-number 8)) color
                   (< source-number (- (length data) 1))))
@@ -315,8 +343,9 @@ x-axis."
                  do (format stream "~c~{~,3f ~,3f ~,3f ~,3f~}"  #\linefeed error-bar))
               (format stream "~ce"  #\linefeed))))
     (loop for source in data
-       do (mapcar #'(lambda (index average-values) 
-                      (format stream "~c~,3f ~,3f"  #\linefeed index average-values))
+       do (mapcar #'(lambda (index average-values)
+                      (when average-values
+                        (format stream "~c~,3f ~,3f"  #\linefeed index average-values)))
                   (first source) (second source))
          (format stream "~ce~c" #\linefeed #\linefeed))
   (format stream "~cexit~c"  #\linefeed #\linefeed)

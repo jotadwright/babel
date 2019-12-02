@@ -112,10 +112,11 @@ this function will fill in all other information like stdev, median,
 average, max and min. If some information is already provided it is
 not recalculated, which means the function cannot used as an update
 function."
-  (with-slots (batch-data) batch-point
-    (unless batch-data 
-      (warn "Cannot calculate missing slots when :batch-data is empty"))
-    (loop 
+  (when batch-point
+    (with-slots (batch-data) batch-point
+      (unless batch-data 
+        (warn "Cannot calculate missing slots when :batch-data is empty"))
+      (loop 
        with sorted-data
        for point in batch-data
        for length from 1
@@ -135,7 +136,7 @@ function."
            (setf (min-val batch-point) min))
          (unless (stdev-val batch-point)
            (setf (stdev-val batch-point) (stdev batch-data :average (avg-val batch-point))))
-         (return batch-point))))
+         (return batch-point)))))
 
 (defun limit (nr low up)
   "Helper function which returns nr if it is between low and
@@ -405,5 +406,8 @@ which you can get by passing 10 as percentage."
   (exp (/ (- (* window window)) var-square)))
 
 (defun data-apply-average-window (data window)
-  (loop for series in data
-        collect (series-apply-average-window series window)))
+  (if (= window 0)
+    (loop for series in data
+          collect (array->list series))
+    (loop for series in data
+          collect (series-apply-average-window series window))))

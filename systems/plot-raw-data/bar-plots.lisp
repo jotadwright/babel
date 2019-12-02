@@ -270,6 +270,7 @@ measurements. If nil then the full average will be taken."
                                    :type graphic-type))
         (cluster-length (length (first data)))
         (data-length (length data)))
+    (ensure-directories-exist plot-path)
     (with-open-stream
         (stream (monitors::pipe-to-gnuplot))
       (set-gnuplot-parameters stream

@@ -2,7 +2,7 @@
 
 (defsystem :origins-of-syntax
   :description ("A system for loading experiments on the origins of syntax.")
-  :depends-on (:utils :test-framework :experiment-framework :monitors :plot-raw-data :irl :fcg :type-hierarchies  #+:hunchentoot-available-on-this-platform :web-interface)
+  :depends-on (:utils :test-framework :experiment-framework :monitors :plot-raw-data :irl :fcg :category-hierarchies  #+:hunchentoot-available-on-this-platform :web-interface)
   :serial t
   :components 
    ((:file "package")
