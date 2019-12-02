@@ -1080,8 +1080,8 @@ added here. Preprocessing is only used in parsing currently."
   (let ((path
          (or path
              (monitors::make-file-name-with-time-and-experiment-class
-              (babel-pathname :directory '(".tmp") :name (mkstr key) :type format)
-              (name cxn-inventory))))
+              (babel-pathname :directory '(".tmp") :name (downcase (mkstr key)) :type format)
+              (downcase (name cxn-inventory)))))
         (data
          (when (field? (blackboard cxn-inventory) key)
            (get-data (blackboard cxn-inventory) key))))
@@ -1133,7 +1133,7 @@ added here. Preprocessing is only used in parsing currently."
   (unless (or (null path) (pathnamep path))
     (error "The argument 'path' should be nil or a valid pathname"))
   (export-blackboard-data-from-key construction-inventory
-                                   :formulation-priming-data
+                                   :production-priming-data
                                    :path path :format format))
 
 (defmethod fcg-export-formulation-priming-data ((cipn cip-node)
@@ -1144,7 +1144,7 @@ added here. Preprocessing is only used in parsing currently."
   (unless (or (null path) (pathnamep path))
     (error "The argument 'path' should be nil or a valid pathname"))
   (export-blackboard-data-from-key (construction-inventory cipn)
-                                   :formulation-priming-data
+                                   :production-priming-data
                                    :path path :format format))
 
 (defgeneric fcg-import-comprehension-priming-data (path thing)
@@ -1172,14 +1172,14 @@ added here. Preprocessing is only used in parsing currently."
     (error "The argument 'path' should be a valid pathname"))
   (unless (probe-file path)
     (error "No such file: ~a" path))
-  (import-blackboard-data-to-key path construction-inventory :formulation-priming-data))
+  (import-blackboard-data-to-key path construction-inventory :production-priming-data))
 
 (defmethod fcg-import-formulation-priming-data (path (cipn cip-node))
   (unless (pathnamep path)
     (error "The argument 'path' should be a valid pathname"))
   (unless (probe-file path)
     (error "No such file: ~a" path))
-  (import-blackboard-data-to-key path (construction-inventory cipn) :formulation-priming-data))
+  (import-blackboard-data-to-key path (construction-inventory cipn) :production-priming-data))
   
     
 
