@@ -27,8 +27,8 @@
 (define-configuration-default-value :export-lexicon-interval 500)
 (define-configuration-default-value :learning-active t)
 (define-configuration-default-value :switch-conditions-after-n-interactions nil)
-
 (define-configuration-default-value :max-z-score 2)
+(define-configuration-default-value :extracted-colour-space :hsv) ; :hsv :rgb :lab
 
 ;; --------------
 ;; + Experiment +

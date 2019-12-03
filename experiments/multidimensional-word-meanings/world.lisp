@@ -193,7 +193,7 @@
                  (/ (- value (cdr (assoc 'min boundaries)))
                     (- (cdr (assoc 'max boundaries)) (cdr (assoc 'min boundaries)))))))
 
-(defun extracted->mwm-object (alist)
+(defun extracted->mwm-object (alist &key (colour :hsv))
   "Load a single object"
   (let ((mean-color (rest (assoc :color-mean alist)))
         (std-color (rest (assoc :color-std alist))))
@@ -203,13 +203,24 @@
                       (cons (internal-symb (car pair)) (cdr pair)))
                   alist))
     ;; split the color channels
-    (setf alist
-          (append `((mean-h . ,(first mean-color))
-                    (mean-s . ,(second mean-color))
-                    (mean-v . ,(third mean-color))
-                    (std-h . ,(first std-color))
-                    (std-s . ,(second std-color))
-                    (std-v . ,(third std-color))) alist))
+    (case colour
+      (:hsv (setf alist
+                  (append `((mean-h . ,(first mean-color))
+                            (mean-s . ,(second mean-color))
+                            (mean-v . ,(third mean-color))
+                            (std-h . ,(first std-color))
+                            (std-s . ,(second std-color))
+                            (std-v . ,(third std-color))) alist)))
+      (:rgb (let ((rgb (hsv->rgb mean-color)))
+              (setf alist
+                    (append `((mean-r . ,(first rgb))
+                              (mean-g . ,(second rgb))
+                              (mean-b . ,(third rgb))) alist))))
+      (:lab (let ((lab (hsv->lab mean-color)))
+              (setf alist
+                    (append `((mean-l . ,(first lab))
+                              (mean-a . ,(second lab))
+                              (mean-b . ,(third lab))) alist)))))
     (setf alist (remove 'color-mean alist :key #'car))
     (setf alist (remove 'color-std alist :key #'car))
     ;; flip the sign for angle
@@ -219,7 +230,8 @@
     (make-instance 'mwm-object :id (make-id 'object)
                    :attributes alist)))
 
-(defmethod clevr->extracted ((scene clevr-scene) &key directory (scale nil))
+(defmethod clevr->extracted ((scene clevr-scene) &key directory (scale nil)
+                             (colour :hsv))
   ;; take the name of the scene
   ;; look it up in 'directory'
   ;; and load the data
@@ -227,7 +239,8 @@
                 (make-pathname :name (name scene) :type "json")
                 directory))
          (objects (with-open-file (stream path :direction :input)
-                    (mapcar #'extracted->mwm-object
+                    (mapcar #'(lambda (object)
+                                (extracted->mwm-object object :colour colour))
                             (mapcar #'decode-json-from-string
                                     (stream->list stream))))))
     (when scale

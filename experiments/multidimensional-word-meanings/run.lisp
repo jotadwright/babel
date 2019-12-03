@@ -111,35 +111,15 @@
 ;; + Running series of experiments +
 ;; ---------------------------------
 
+;;;; Experiments to run:
+;; Baseline simulated and extracted with multi-word utterances (up to 4)
+;; Baseline extracted with different colour spaces (HSV, RGB, LAB)
+;; CoGenT (simulated and extracted) with mutli-word utterances
+;; Incremental (simulated and extracted) with new dataset (need to create this)
+;; Incremental (simulated and extracted) with multi-word utterances
+
 (run-experiments `(
-                   (baseline-utterance-length-1
-                    ((:experiment-type . :baseline)
-                     (:data-type . :simulated)
-                     (:scale-world . ,nil)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:data-path . ,*baseline-extracted-data-path*)
-                     (:max-tutor-utterance-length . ,1)))
-                   (baseline-utterance-length-2
-                    ((:experiment-type . :baseline)
-                     (:data-type . :simulated)
-                     (:scale-world . ,nil)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:data-path . ,*baseline-extracted-data-path*)
-                     (:max-tutor-utterance-length . ,2)))
-                   (baseline-utterance-length-3
-                    ((:experiment-type . :baseline)
-                     (:data-type . :simulated)
-                     (:scale-world . ,nil)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:data-path . ,*baseline-extracted-data-path*)
-                     (:max-tutor-utterance-length . ,3)))
-                   (baseline-utterance-length-4
+                   (test
                     ((:experiment-type . :baseline)
                      (:data-type . :simulated)
                      (:scale-world . ,nil)
@@ -155,6 +135,16 @@
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-lexicon-evolution"
+                                 "export-tutor-utterance-length-1"
+                                 "export-tutor-utterance-length-2"
+                                 "export-tutor-utterance-length-3"
+                                 "export-tutor-utterance-length-4"
+                                 "export-tutor-uses-xpos"
+                                 "export-tutor-uses-ypos"
+                                 "export-tutor-uses-color"
+                                 "export-tutor-uses-size"
+                                 "export-tutor-uses-material"
+                                 "export-tutor-uses-shape"
                                  ))
 
 (create-graph-for-single-strategy
@@ -166,13 +156,12 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("baseline-utterance-length-1"
-                     "baseline-utterance-length-2"
-                     "baseline-utterance-length-3"
-                     "baseline-utterance-length-4")
+ :experiment-names '("subsets-incremental-extracted-100"
+                     "subsets-incremental-extracted-500"
+                     "subsets-incremental-extracted-1000")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("utterance length = 1" "2" "3" "4")
+ :captions '("switch=100" "500" "1000")
  :title nil :end nil)
 
 (create-graph-comparing-strategies
@@ -184,6 +173,26 @@
  :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Lexicon Size"
  :captions '("min-max" "prototype" "pmm" "exponential")
  :title nil :end 25000)
+
+(create-stacked-bars-comparing-strategies
+ :experiment-names '("test")
+ :measure-names '("tutor-utterance-length-1"
+                  "tutor-utterance-length-2"
+                  "tutor-utterance-length-3"
+                  "tutor-utterance-length-4"))
+
+(create-stacked-bars-comparing-strategies
+ :experiment-names '("test")
+ :measure-names '("tutor-uses-xpos"
+                  "tutor-uses-ypos"
+                  "tutor-uses-color"
+                  "tutor-uses-size"
+                  "tutor-uses-material"
+                  "tutor-uses-shape")
+ :bar-labels '("xpos" "ypos"
+               "color" "size"
+               "material" "shape")
+ :title "Tutor attribute use")
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +

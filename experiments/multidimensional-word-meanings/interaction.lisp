@@ -23,7 +23,8 @@
           (when (eql data-type :extracted)
             (clevr->extracted symbolic-clevr-context
                               :directory (find-data experiment :data-path)
-                              :scale (get-configuration experiment :scale-world)))))
+                              :scale (get-configuration experiment :scale-world)
+                              :colour (get-configuration experiment :extracted-colour-space)))))
     (loop for agent in (interacting-agents experiment)
           do (setf (context agent)
                    (if (learnerp agent)

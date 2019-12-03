@@ -71,6 +71,43 @@
     :start start :end end)
   (format t "~%Graphs have been created"))
 
+(defun create-stacked-bars-comparing-strategies (&key experiment-names measure-names
+                                                      (x-label "") (y-label "")
+                                                      cluster-labels bar-labels
+                                                      (title "") (open t))
+  ;; This functions allows you to plot one or multiple measures for different
+  ;; experiments. These will be plotted as stacked bars.
+  (format t "~%Creating graph for experiments ~a with measures ~a" experiment-names measure-names)
+  (let ((raw-file-paths
+         (loop for experiment-name in experiment-names
+               collect (loop for measure-name in measure-names
+                             collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name)))))
+    (file-structure->stacked-bar-plot
+     :raw-file-paths raw-file-paths
+     :plot-directory '("experiments" "multidimensional-word-meanings" "graphs")
+     :x-label x-label
+     :y-label y-label
+     :title title
+     :labels-a (if bar-labels
+                 bar-labels
+                 (mapcar #'(lambda (path) (first (last path))) (first raw-file-paths)))
+     :labels-b (if cluster-labels
+                 cluster-labels
+                 (mapcar #'(lambda (path) (first (last (butlast (first path))))) raw-file-paths))
+     :open open)))
+
+(defun create-grouped-bars-comparing-strategies (&key experiment-names measure-names)
+  ;; This functions allows you to plot one or multiple measures for different
+  ;; experiments. These will be plotted as grouped bars.
+  (format t "~%Creating graph for experiments ~a with measures ~a" experiment-names measure-names)
+  (file-structure->grouped-bar-plot
+    :raw-file-paths
+    (loop for experiment-name in experiment-names
+          collect (loop for measure-name in measure-names
+                        collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name)))
+    :plot-directory '("experiments" "multidimensional-word-meanings" "graphs")
+    :error-bars :stdev))
+
 ;;;; cxn -> json
 (defgeneric cxn->json (cxn category-representation)
   (:documentation "Export the cxn to json such that it can be used later"))

@@ -238,35 +238,6 @@
 (define-event-handler (record-lexicon-size interaction-finished)
   (record-value monitor (get-lexicon-size (hearer experiment))))
 
-;;;; Number of meanings per form
-(define-monitor record-features-per-form
-                :class 'data-recorder
-                :average-window 100
-                :documentation "records avg nr of meanings per form")
-
-(define-monitor export-features-per-form
-                :class 'lisp-data-file-writer
-                :documentation "Exports nr of meanings per form"
-                :data-sources '(record-features-per-form)
-                :file-name (babel-pathname :name "features-per-form" :type "lisp"
-                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
-                :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
-
-(defun compute-nr-of-features-per-form (agent)
-  (loop for cxn in (constructions (grammar agent))
-        for meaning = (attr-val cxn :meaning)
-        sum (length meaning) into meaning-length-sum
-        finally
-        (return (if (constructions (grammar agent))
-                  (float (/ meaning-length-sum
-                            (length (constructions (grammar agent)))))
-                  0))))
-
-(define-event-handler (record-features-per-form interaction-finished)
-   (record-value monitor (compute-nr-of-features-per-form (hearer experiment))))
-
 ;;;; Utterance length
 (define-monitor record-utterance-length
                 :class 'data-recorder
@@ -417,6 +388,167 @@
         (record-value monitor lexicon))
       (unless (listp (current-value monitor))
         (record-value monitor '())))))
-        
+
+;; recording tutor utterance length for bar plots
+(define-monitor record-tutor-utterance-length-1
+                :class 'data-recorder
+                :average-window 1)
+
+(define-monitor export-tutor-utterance-length-1
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-utterance-length-1)
+                :file-name (babel-pathname :name "tutor-utterance-length-1" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-utterance-length-1 interaction-finished)
+  (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
+    (record-value monitor (if (= tutor-utterance-len 1) 1 0))))
+
+(define-monitor record-tutor-utterance-length-2
+                :class 'data-recorder
+                :average-window 1)
+
+(define-monitor export-tutor-utterance-length-2
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-utterance-length-2)
+                :file-name (babel-pathname :name "tutor-utterance-length-2" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-utterance-length-2 interaction-finished)
+  (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
+    (record-value monitor  (if (= tutor-utterance-len 2) 1 0))))
+
+(define-monitor record-tutor-utterance-length-3
+                :class 'data-recorder
+                :average-window 1)
+
+(define-monitor export-tutor-utterance-length-3
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-utterance-length-3)
+                :file-name (babel-pathname :name "tutor-utterance-length-3" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-utterance-length-3 interaction-finished)
+  (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
+    (record-value monitor  (if (= tutor-utterance-len 3) 1 0))))
+
+(define-monitor record-tutor-utterance-length-4
+                :class 'data-recorder
+                :average-window 1)
+
+(define-monitor export-tutor-utterance-length-4
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-utterance-length-4)
+                :file-name (babel-pathname :name "tutor-utterance-length-4" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-utterance-length-4 interaction-finished)
+  (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
+    (record-value monitor  (if (= tutor-utterance-len 4) 1 0))))
                 
-                
+;; recording tutor attribute use for bar plots
+(define-monitor record-tutor-uses-color
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-color
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-color)
+                :file-name (babel-pathname :name "tutor-uses-color" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-color interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'color types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-shape
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-shape
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-shape)
+                :file-name (babel-pathname :name "tutor-uses-shape" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-shape interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'shape types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-material
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-material
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-material)
+                :file-name (babel-pathname :name "tutor-uses-material" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-material interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'material types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-size
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-size
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-size)
+                :file-name (babel-pathname :name "tutor-uses-size" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-size interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'size types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-xpos
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-xpos
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-xpos)
+                :file-name (babel-pathname :name "tutor-uses-xpos" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-xpos interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'xpos types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-ypos
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-ypos
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-ypos)
+                :file-name (babel-pathname :name "tutor-uses-ypos" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-ypos interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'ypos types) (/ 1 (length utterance)) 0))))
