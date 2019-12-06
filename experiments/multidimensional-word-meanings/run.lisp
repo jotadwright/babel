@@ -112,11 +112,10 @@
 ;; ---------------------------------
 
 ;;;; Experiments to run:
-;; Baseline simulated and extracted with multi-word utterances (up to 4)
-;; Baseline extracted with different colour spaces (HSV, RGB, LAB)
-;; CoGenT (simulated and extracted) with mutli-word utterances
-;; Incremental (simulated and extracted) with new dataset (need to create this)
-;; Incremental (simulated and extracted) with multi-word utterances
+;; Baseline simulated and extracted with multi-word (up to 2)
+;; --> does this improve success?
+;; CoGenT simulated with up to 2 words and extracted with lab colour space
+;; Incremental (simulated and extracted) with multi-word and new dataset
 
 (run-experiments `(
                    (test
@@ -148,7 +147,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "baseline-mwe-3"
+ :experiment-name "baseline-extracted-multi-word-lab"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -156,9 +155,9 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("subsets-incremental-extracted-100"
-                     "subsets-incremental-extracted-500"
-                     "subsets-incremental-extracted-1000")
+ :experiment-names '("cogent-simulated-multi-word-switch-100"
+                     "cogent-simulated-multi-word-switch-500"
+                     "cogent-simulated-multi-word-switch-1000")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :captions '("switch=100" "500" "1000")
@@ -175,14 +174,15 @@
  :title nil :end 25000)
 
 (create-stacked-bars-comparing-strategies
- :experiment-names '("test")
+ :experiment-names '("baseline-extracted-multi-word-lab")
  :measure-names '("tutor-utterance-length-1"
                   "tutor-utterance-length-2"
                   "tutor-utterance-length-3"
-                  "tutor-utterance-length-4"))
+                  "tutor-utterance-length-4")
+ :y-max 1)
 
 (create-stacked-bars-comparing-strategies
- :experiment-names '("test")
+ :experiment-names '("baseline-extracted-multi-word-lab")
  :measure-names '("tutor-uses-xpos"
                   "tutor-uses-ypos"
                   "tutor-uses-color"
@@ -192,7 +192,7 @@
  :bar-labels '("xpos" "ypos"
                "color" "size"
                "material" "shape")
- :title "Tutor attribute use")
+ :y-max 1)
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +

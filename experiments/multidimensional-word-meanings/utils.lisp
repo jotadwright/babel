@@ -74,7 +74,8 @@
 (defun create-stacked-bars-comparing-strategies (&key experiment-names measure-names
                                                       (x-label "") (y-label "")
                                                       cluster-labels bar-labels
-                                                      (title "") (open t))
+                                                      (title "") (open t)
+                                                      (y-max nil))
   ;; This functions allows you to plot one or multiple measures for different
   ;; experiments. These will be plotted as stacked bars.
   (format t "~%Creating graph for experiments ~a with measures ~a" experiment-names measure-names)
@@ -94,6 +95,7 @@
      :labels-b (if cluster-labels
                  cluster-labels
                  (mapcar #'(lambda (path) (first (last (butlast (first path))))) raw-file-paths))
+     :y-max y-max
      :open open)))
 
 (defun create-grouped-bars-comparing-strategies (&key experiment-names measure-names)
