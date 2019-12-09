@@ -155,9 +155,9 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("cogent-simulated-multi-word-switch-100"
-                     "cogent-simulated-multi-word-switch-500"
-                     "cogent-simulated-multi-word-switch-1000")
+ :experiment-names '("cogent-extracted-multi-word-switch-100"
+                     "cogent-extracted-multi-word-switch-500"
+                     "cogent-extracted-multi-word-switch-1000")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :captions '("switch=100" "500" "1000")
@@ -174,7 +174,7 @@
  :title nil :end 25000)
 
 (create-stacked-bars-comparing-strategies
- :experiment-names '("baseline-extracted-multi-word-lab")
+ :experiment-names '("cogent-extracted-multi-word-switch-1000")
  :measure-names '("tutor-utterance-length-1"
                   "tutor-utterance-length-2"
                   "tutor-utterance-length-3"
@@ -182,7 +182,7 @@
  :y-max 1)
 
 (create-stacked-bars-comparing-strategies
- :experiment-names '("baseline-extracted-multi-word-lab")
+ :experiment-names '("cogent-extracted-multi-word-switch-1000")
  :measure-names '("tutor-uses-xpos"
                   "tutor-uses-ypos"
                   "tutor-uses-color"
