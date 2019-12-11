@@ -261,7 +261,7 @@
 
 (defun load-validation-set ()
   (setf *clevr-data-path*
-        (merge-pathnames (make-pathname :directory '(:relative  "CLEVR-v1.0"))
+        (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0"))
                          cl-user:*babel-corpora*))
   (let ((world (make-instance 'clevr-world :data-sets '("val"))))
     (setf *clevr-world-val* world)))
@@ -271,7 +271,7 @@
         (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0"))
                          cl-user:*babel-corpora*))
   (let ((world (make-instance 'clevr-world :data-sets '("train"))))
-    (setf *clevr-world-val* world)))
+    (setf *clevr-world-train* world)))
 
 ;;;; /comprehend-and-execute route
 (defun copy-and-intern-context (context)
