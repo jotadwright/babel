@@ -4,7 +4,7 @@
 
 (defpackage :clevr-web-service
   (:documentation "Web service to access the CLEVR Grammar")
-  (:use :common-lisp :utils :clevr :clevr-primitives)
+  (:use :common-lisp :utils :clevr-world :clevr-primitives)
   (:import-from :irl
                 :evaluate-irl-program
                 :bind
@@ -36,4 +36,5 @@
                 :program->rpn
                 :linked-bind-statement
                 :bind-statement-value
-                :input-vars))
+                :input-vars)
+  (:shadowing-import-from :clevr-world :scenes))

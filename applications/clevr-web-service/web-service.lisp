@@ -28,13 +28,16 @@
                          (downcase (rest (assoc :irl--encoding json)))
                          "sexpr")))            
     (when missing-keys
-      (http-condition 400 "JSON input missing key(s): (~{~a~^, ~})" missing-keys))
+      (http-condition 400 "JSON input missing key(s): (~{~a~^, ~})"
+                      missing-keys))
     (unless (stringp utterance)
-      (http-condition 400 "utterance is of type ~a. Expected something of type string." (type-of utterance)))
+      (http-condition 400 "utterance is of type ~a. Expected something of type string."
+                      (type-of utterance)))
     (unless (or (string= irl-encoding "sexpr")
                 (string= irl-encoding "json")
                 (string= irl-encoding "rpn"))
-      (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr, 'json' or 'rpn'." irl-encoding))
+      (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr, 'json' or 'rpn'."
+                      irl-encoding))
     (multiple-value-bind (irl-program cipn)
         (handler-case (fcg:comprehend (preprocess-sentence utterance)
                                       :cxn-inventory *CLEVR*
@@ -89,13 +92,16 @@
                          (downcase (rest (assoc :irl--encoding json)))
                          "sexpr")))
     (when missing-keys
-      (http-condition 400 "JSON input missing key(s): (~{~a~^, ~})" missing-keys))
+      (http-condition 400 "JSON input missing key(s): (~{~a~^, ~})"
+                      missing-keys))
     (unless (stringp utterance)
-      (http-condition 400 "utterance is of type ~a. Expected something of type string." (type-of utterance)))
+      (http-condition 400 "utterance is of type ~a. Expected something of type string."
+                      (type-of utterance)))
     (unless (or (string= irl-encoding "sexpr")
                 (string= irl-encoding "json")
                 (string= irl-encoding "rpn"))
-      (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr' or 'json'." irl-encoding))
+      (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr' or 'json'."
+                      irl-encoding))
     (multiple-value-bind (irl-programs cipns)
         (handler-case (fcg:comprehend-all (preprocess-sentence utterance)
                                           :cxn-inventory *CLEVR*
@@ -250,31 +256,22 @@
 
 ;;;; Global variables to store the scenes
 ;;;; of the training and validation sets
-(defvar *train-scenes* nil)
-(defvar *val-scenes* nil)
+(defvar *clevr-world-val* nil)
+(defvar *clevr-world-train* nil)
 
 (defun load-validation-set ()
-  (let ((path 
-           (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
-                                           :name "CLEVR_val_full_per_line" :type "json")
-                            cl-user:*babel-corpora*)))
-      (setf *val-scenes*
-            (read-contexts-from-file path))))
+  (setf *clevr-data-path*
+        (merge-pathnames (make-pathname :directory '(:relative  "CLEVR-v1.0"))
+                         cl-user:*babel-corpora*))
+  (let ((world (make-instance 'clevr-world :data-sets '("val"))))
+    (setf *clevr-world-val* world)))
 
 (defun load-training-set ()
-  (let ((path 
-           (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0" "scenes")
-                                           :name "CLEVR_train_full_per_line" :type "json")
-                            cl-user:*babel-corpora*)))
-      (setf *train-scenes*
-            (read-contexts-from-file path))))
-
-;;;; /scenes route  
-(defroute scenes (:get :application/json)
-  ;; get all scene names and return them
-  (encode-json-alist-to-string
-   `((:scenes . ,(append (mapcar #'image-filename *train-scenes*)
-                         (mapcar #'image-filename *val-scenes*))))))
+  (setf *clevr-data-path*
+        (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0"))
+                         cl-user:*babel-corpora*))
+  (let ((world (make-instance 'clevr-world :data-sets '("train"))))
+    (setf *clevr-world-val* world)))
 
 ;;;; /comprehend-and-execute route
 (defun copy-and-intern-context (context)
@@ -282,21 +279,26 @@
    into the clevr package. This is needed for the irl-program
    evaluation to work."
   (loop with list-of-objects = nil
-     for object in (clevr::objects context)
-     for idx from 0
-     do (push
-         (make-instance 'clevr::clevr-object :id (id object)
-                        :shape (intern (mkstr (clevr::shape object)) 'clevr)
-                        :size (intern (mkstr (clevr::size object)) 'clevr)
-                        :color (intern (mkstr (clevr::color object)) 'clevr)
-                        :material (intern (mkstr (clevr::material object)) 'clevr)
-                        :relationships (loop for (key . lists) in (clevr::relationships object)
-                                          collect (cons (intern (mkstr key) 'clevr)
-                                                        lists)))
-         list-of-objects)
-     finally
-       (return (make-instance 'clevr::clevr-object-set
-                              :objects list-of-objects))))
+        for object in (objects context)
+        for idx from 0
+        do (push
+            (make-instance 'clevr-object :id (id object)
+                           :shape (intern (mkstr (shape object)) 'clevr-world)
+                           :size (intern (mkstr (size object)) 'clevr-world)
+                           :color (intern (mkstr (color object)) 'clevr-world)
+                           :material (intern (mkstr (material object)) 'clevr-world)
+                           :relationships (loop for (key . lists) in (relationships object)
+                                                collect (cons (intern (mkstr key) 'clevr-world)
+                                                              lists)))
+            list-of-objects)
+        finally
+        (return (make-instance 'clevr-object-set :objects (reverse list-of-objects)))))
+
+(defun process-scene-name (scene)
+  ;; remove the type when present
+  (if (find #\. scene)
+    (first (split scene "."))
+    scene))
 
 (defun handle-comprehend-and-execute-route (json)
   (let* ((missing-keys (keys-present-p json :utterance :scene))
@@ -314,16 +316,17 @@
     (unless (or (string= irl-encoding "sexpr")
                 (string= irl-encoding "json"))
       (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr' or 'json'." irl-encoding))
-    ;; add .png to scene name if needed
-    (unless (find #\. scene)
-      (setf scene (format nil "~a.png" scene)))
+    (setf scene (process-scene-name scene))
     ;; load the scene
     ;; do comprehension
     ;; evaluate irl-program
     ;; return the data
-    (let* ((split (cond ((search "val" scene) *val-scenes*)
-                        ((search "train" scene) *train-scenes*)))
-           (context (find scene split :key #'image-filename :test #'string=)))
+    (let* ((split (cond ((search "val" scene) *clevr-world-val*)
+                        ((search "train" scene) *clevr-world-train*)))
+           (context-filename (find scene (scenes split)
+                                   :key (lambda (p) (pathname-name p))
+                                   :test #'string=))
+           (context (load-clevr-scene context-filename)))
       (unless context
         (http-condition 400 "Could not find scene ~a" scene))
       (multiple-value-bind (irl-program cipn)
@@ -340,9 +343,9 @@
             #+ccl (setf irl-program
                         (loop for predicate in irl-program
                            collect (loop for symbol in predicate
-                                      collect (intern (mkstr symbol) 'clevr))))
+                                      collect (intern (mkstr symbol) 'clevr-world))))
             #+ccl (setf context (copy-and-intern-context context))
-            (set-data *clevr-ontology* 'clevr:clevr-context context)
+            (set-data *clevr-ontology* 'clevr-context context)
             (multiple-value-bind (solutions evaluator)
                 (handler-case
                     (evaluate-irl-program irl-program *clevr-ontology*)
@@ -401,5 +404,5 @@
 
 ;; curl -H "Content-Type: application/json" -d '{"utterance" : "How many red cubes are there?"}' http://localhost:9003/comprehend-and-formulate
 
-;; curl -H "Content-Type: text/plain" -d '{"utterance": "What is the color of the sphere?", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
+;; curl -H "Content-Type: text/plain" -d '{"utterance": "How many things are cubes or spheres?", "scene": "CLEVR_val_000000", "irl_encoding": "json"}' http://localhost:9003/comprehend-and-execute
 

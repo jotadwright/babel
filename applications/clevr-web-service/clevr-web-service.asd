@@ -12,7 +12,7 @@
                :fcg
                :cl-json
                :snooze
-               :clevr
+               :clevr-world
                :clevr-primitives
                :clevr-grammar
                :clevr-evaluation)
