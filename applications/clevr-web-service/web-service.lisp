@@ -259,17 +259,20 @@
 (defvar *clevr-world-val* nil)
 (defvar *clevr-world-train* nil)
 
+;;;; !!!!!! IMPORTANT
+;;;; Here, we overwrite the *clevr-data-path*, since this is different
+;;;; on the penelope server. On this server, we simply store the
+;;;; necessary CLEVR scenes (0-9) in the Babel folder directly.
+
 (defun load-validation-set ()
   (setf *clevr-data-path*
-        (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0"))
-                         cl-user:*babel-corpora*))
+        (babel-pathname :directory '("CLEVR" "CLEVR-v1.0")))
   (let ((world (make-instance 'clevr-world :data-sets '("val"))))
     (setf *clevr-world-val* world)))
 
 (defun load-training-set ()
   (setf *clevr-data-path*
-        (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-v1.0"))
-                         cl-user:*babel-corpora*))
+        (babel-pathname :directory '("CLEVR" "CLEVR-v1.0")))
   (let ((world (make-instance 'clevr-world :data-sets '("train"))))
     (setf *clevr-world-train* world)))
 
