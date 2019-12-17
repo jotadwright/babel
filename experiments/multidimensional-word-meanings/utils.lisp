@@ -9,14 +9,15 @@
                                  "export-lexicon-size"
                                  "export-features-per-form"
                                  "export-utterance-length"
-                                 "export-lexicon-evolution")))
+                                 "export-lexicon-evolution"))
+                         shared-configurations)
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
     :experiment-class 'mwm-experiment
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :monitors monitors
-    :shared-configuration nil
+    :shared-configuration shared-configurations
     :configurations strategies
     :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
@@ -30,7 +31,7 @@
   (raw-files->evo-plot
     :raw-file-paths
     (loop for measure-name in measure-names
-          collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name))
+          collect `("experiments" "multidimensional-word-meanings" "raw-data" "final" ,experiment-name ,measure-name))
     :average-windows 1000
     :plot-directory `("experiments" "multidimensional-word-meanings" "graphs")
     :error-bars '(:stdev)
@@ -56,8 +57,8 @@
   (raw-files->evo-plot
     :raw-file-paths
     (loop for experiment-name in experiment-names
-          collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name))
-    :average-windows 500
+          collect `("experiments" "multidimensional-word-meanings" "raw-data" "final" ,experiment-name ,measure-name))
+    :average-windows 1000
     :captions (if captions captions experiment-names)
     :title title
     :plot-directory '("experiments" "multidimensional-word-meanings" "graphs")

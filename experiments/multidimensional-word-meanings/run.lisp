@@ -39,7 +39,7 @@
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:data-sets . ,*baseline-simulated-data-sets*)
-              (:max-tutor-utterance-length . ,3))))
+              (:max-tutor-utterance-length . ,1))))
 
 (defparameter *baseline-extracted-configuration*
   (make-configuration
@@ -95,7 +95,7 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
+  (make-instance 'mwm-experiment :configuration *baseline-simulated-configuration*))
 
 (run-interaction *experiment*)
 
@@ -126,7 +126,7 @@
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)
-                     (:max-tutor-utterance-length . ,4)))
+                     (:max-tutor-utterance-length . ,1)))
                    )
                  :number-of-interactions 5000
                  :number-of-series 1
@@ -134,20 +134,20 @@
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-lexicon-evolution"
-                                 "export-tutor-utterance-length-1"
-                                 "export-tutor-utterance-length-2"
-                                 "export-tutor-utterance-length-3"
-                                 "export-tutor-utterance-length-4"
-                                 "export-tutor-uses-xpos"
-                                 "export-tutor-uses-ypos"
-                                 "export-tutor-uses-color"
-                                 "export-tutor-uses-size"
-                                 "export-tutor-uses-material"
-                                 "export-tutor-uses-shape"
+                                 ;"export-tutor-utterance-length-1"
+                                 ;"export-tutor-utterance-length-2"
+                                 ;"export-tutor-utterance-length-3"
+                                 ;"export-tutor-utterance-length-4"
+                                 ;"export-tutor-uses-xpos"
+                                 ;"export-tutor-uses-ypos"
+                                 ;"export-tutor-uses-color"
+                                 ;"export-tutor-uses-size"
+                                 ;"export-tutor-uses-material"
+                                 ;"export-tutor-uses-shape"
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "baseline-extracted-multi-word-lab"
+ :experiment-name "experiment-type-baseline-data-type-simulated"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -155,9 +155,9 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("cogent-extracted-multi-word-switch-100"
-                     "cogent-extracted-multi-word-switch-500"
-                     "cogent-extracted-multi-word-switch-1000")
+ :experiment-names '("experiment-type-cogent-data-type-simulated-switch-conditions-after-n-interactions-100"
+                     "experiment-type-cogent-data-type-simulated-switch-conditions-after-n-interactions-500"
+                     "experiment-type-cogent-data-type-simulated-switch-conditions-after-n-interactions-1000")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :captions '("switch=100" "500" "1000")
