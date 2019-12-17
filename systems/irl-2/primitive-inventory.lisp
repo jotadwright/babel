@@ -17,6 +17,7 @@
                   primitive inventory in processing")
    (primitives :type list :initform nil
                :initarg :primitives
+               :accessor primitives
                :documentation "The list of primitives")
    (ontology :type blackboard :initform (make-blackboard)
              :initarg :ontology :accessor ontology
@@ -29,47 +30,109 @@
                                        &key &allow-other-keys)
   "Initializing the primitive inventory. Here, we set the configurations
    to default values"
-  (set-configuration primitive-inventory :check-node-fn :no-duplicate-solutions)
-  (set-configuration primitive-inventory :check-irl-program-fn :check-irl-program)
-  (set-configuration primitive-inventory :choose-next-primitive-fn :random)
-  (set-configuration primitive-inventory :evaluate-bind-statements-fn :evaluate-bind-statements))
+  (set-configuration primitive-inventory :goal-tests '(:no-primitives-remaning
+                                                       :all-variables-bound))
+  (set-configuration primitive-inventory :check-irl-program t)
+  (set-configuration primitive-inventory :next-primitive :random))
 
 
-(defgeneric primitives (primitive-inventory &key &allow-other-keys)
+(defgeneric primitives-list (primitive-inventory &key &allow-other-keys)
   (:documentation "Return the list of primitives stored in the primitive-inventory"))
 
-(defgeneric (setf primitives) (primitive-list primitive-inventory &key &allow-other-keys)
+(defmethod primitives-list ((primitive-inventory primitive-inventory) &key)
+  (primitives primitive-inventory))
+
+
+(defgeneric (setf primitives-list) (primitive-list primitive-inventory &key &allow-other-keys)
   (:documentation "Sets the primitives of a primitive inventory"))
+
+(defmethod (setf primitives-list) (primitive-list (primitive-inventory primitive-inventory) &key)
+  (loop for p in primitive-list
+        do (add-primitive p primitive-inventory)))
+
 
 (defgeneric size (primitive-inventory &key &allow-other-keys)
   (:documentation "Return the size of the primitive inventory"))
 
+(defmethod size ((primitive-inventory primitive-inventory) &key)
+  (length (primitives primitive-inventory)))
+
+
 (defgeneric add-primitive (primitive primitive-inventory &key &allow-other-keys)
   (:documentation "Adds a primitive to a primitive inventory"))
+
+(defmethod add-primitive :before ((primitive primitive)
+                                  (primitive-inventory primitive-inventory)
+                                  &key (replace-when-equivalent t)
+                                  (equivalent-key #'id)
+                                  (equivalent-test #'eql))
+  (when replace-when-equivalent
+    (delete-primitive primitive primitive-inventory
+                      :key equivalent-key :test equivalent-test)))
+
+(defmethod add-primitive ((primitive primitive)
+                          (primitive-inventory primitive-inventory)
+                          &key (replace-when-equivalent t)
+                          (equivalent-key #'id)
+                          (equivalent-test #'eql))
+  (declare (ignorable replace-when-equivalent equivalent-key
+                      equivalent-test))
+  (push primitive (primitives primitive-inventory))
+  (values primitive-inventory primitive))
+
 
 (defgeneric delete-primitive (primitive primitive-inventory &key test key)
   (:documentation "Deletes a primitive from the primitive inventory.
        Returns the deleted primitive or nil when it could not be found."))
 
+(defmethod delete-primitive ((primitive primitive)
+                             (primitive-inventory primitive-inventory)
+                             &key (key #'id) (test #'eql))
+  (let ((to-delete (find-primitive primitive primitive-inventory :key key :test test)))
+    (when to-delete
+      (setf (primitives primitive-inventory)
+            (remove to-delete (primitives primitive-inventory)))
+      to-delete)))
+
+
 (defgeneric find-primitive (primitive primitive-inventory &key test key)
   (:documentation "Finds a primitive in the primitive inventory"))
 
+(defmethod find-primitive  ((primitive primitive)
+                            (primitive-inventory primitive-inventory)
+                            &key (key #'id) (test #'eql))
+  (find (funcall key primitive)
+        (primitives primitive-inventory)
+        :key key :test test))
+
+(defmethod find-primitive ((primitive symbol)
+                           (primitive-inventory primitive-inventory)
+                           &key (key #'id) (test #'eql))
+  (find primitive
+        (primitives primitive-inventory)
+        :key key :test test))
+
+
 (defmethod copy-object-content ((source primitive-inventory)
                                 (target primitive-inventory))
-  t)
+  nil)
+
 
 (defmethod set-configuration ((primitive-inventory primitive-inventory)
                               key value &key (replace t))
   (set-configuration (configuration primitive-inventory)
                      key value :replace replace))
 
-(defmethod get-configuration ((primitive-inventory primitive-inventory) key)
+
+(defmethod get-configuration ((primitive-inventory primitive-inventory) key &key)
   (get-configuration (configuration primitive-inventory) key))
+
 
 (defmethod print-object ((primitive-inventory primitive-inventory) stream)
   (format stream "<~(~a~): ~a primitives>" 
           (class-name (class-of primitive-inventory))
           (size primitive-inventory)))
+
 
 (defun eval-when-bound (sexp)
   "evaluates sexp, and if it is an unbound atom, doesn't evaluate it"
@@ -77,20 +140,26 @@
     sexp
     (eval sexp)))
 
+
 (defun find-key-arg (arguments key)
   "find key in arguments and return its value"
   (loop for (arg . remaining-args) on arguments
         when (eq arg key)
         return (first remaining-args)))
 
+
 (defun remove-key-args (arguments)
   (loop for (arg . remaining-args) on arguments by #'cddr
         unless (keywordp arg)
         return (cons arg remaining-args)))
 
+
 (defun check-def-irl-primitives-keys (keys-and-defs)
-  (let ((accepted-keys '(:irl-configurations :visualization-configurations
-                         :primitive-inventory :hashed :primitive-inventory-type
+  (let ((accepted-keys '(:irl-configurations
+                         :visualization-configurations ; not yet uysed
+                         :primitive-inventory
+                         :hashed ; not yet used
+                         :primitive-inventory-type ; not yet used
                          :ontology)))
     (dolist (x keys-and-defs)
       (when (keywordp x)
