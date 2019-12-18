@@ -1,161 +1,5 @@
 (in-package :irl-2)
-
-;; ############################################################################
-;; check-irl-program
-;; ----------------------------------------------------------------------------
-
-(defun check-irl-program (irl-program primitive-inventory)
-  "Checks irl-program for mistakes"
-  (let* ((variables (remove-duplicates
-                     (find-all-anywhere-if #'variable-p irl-program)))
-         (bindings (loop for var in variables
-                         collect (make-instance 'binding :var var)))
-         (bind-statements (find-all 'bind irl-program :key #'first))
-         (primitives-in-program (set-difference irl-program bind-statements)))
-    
-    ;; first check, everything should be a non-empty list
-    (loop for expr in irl-program
-          unless (and (listp expr) expr)
-          do (error "The expression should be a non-empty list,~%got: ~a." expr))
-
-    ;; next we check all bind statements
-    (loop for bind-statement in bind-statements
-          do (if (not (= (length bind-statement) 4))
-               (error "Expected four element bind statement, ~%got: ~a" bind-statement)
-               (destructuring-bind (bind type variable value-expr) bind-statement
-                 (declare (ignore bind))
-                 (when (not (variable-p variable))
-                   (error "Expected variable identifier in ~a,~%got: ~a."
-                          bind-statement variable))
-                 (let ((value 
-                        (or (when (typep value-expr 'entity) value-expr)
-                            (when (symbolp value-expr)
-                              (or (find-entity-by-id (ontology primitive-inventory) value-expr)
-                                  (error "Could not find an entity with id ~a in ontology" value-expr)))
-                            (error
-                             "Expected symbol or entity as value in ~a:~%got: ~a"
-                             bind-statement value-expr))))
-                   (unless (typep value 'entity)
-                     (if (symbolp value-expr)
-                       (error "Value ~a returned by find-entity-by-id is not an entity"
-                              value)
-                       (error "Value ~a is not an entity"
-                              value)))
-                   (unless (typep value type)
-                     (if (symbolp value-expr)
-                       (error "Value ~a returned by find-entity-by-id for ~a is not of type ~a"
-                              value value-expr type))
-                     (error "Value ~a is not of type ~a"
-                            value type))
-                   (when (null value)
-                     (error "Could not read the value expression~%  ~a." value-expr))
-                   (when (not (typep value type))
-                     (error "The type of the value does not match the ~
-                             defined type:~%- value: ~a (~a)~%- defined type: ~a"
-                            value (type-of value) type))
-                   (let ((binding (find variable bindings :key #'var)))
-                     (when (or (score binding)
-                               (value binding))
-                       (error "~a is bound multiple times in bind-statements."
-                              variable))
-                     (setf (score binding) 1.0)
-                     (setf (value binding) value))))))
-    
-    ;; lastly we check all primitives
-    (loop for expr in primitives-in-program
-          for variables = (cdr expr)
-          unless (= (length variables) (length (remove-duplicates variables)))
-          do (error "In ~a variables appear at least twice as argument." expr)
-          ;; primitive must be found
-          unless (find-primitive (first expr) primitive-inventory)
-          do (error "Primitive ~a is not defined " (car expr))
-          do
-          (let ((primitive (find-primitive (first expr) primitive-inventory)))            
-            ;; check that the number of variables matches the
-            ;; number of slot-specs:
-            (unless (= (length (slot-specs primitive))
-                       (length variables))
-              (error "Error while reading primitive expression~%  ~a.~
-                      ~%The number of given variables does not match ~
-                      the number of slots."
-                     expr))
-            ;; check that the given parameters are proper variable identifiers:
-            (loop for var in variables
-                  unless (variable-p var)
-                  do (error "Error while reading primitive expression~%  ~a.~
-                             ~%Expected variable identifier, got ~a."
-                            expr var))
-            ;; check the type of the variable bindings
-            (loop with slot-specs = (slot-specs primitive)
-                  for slot-spec in slot-specs
-                  for var in variables
-                  for value = (value (find var bindings :key #'var))
-                  for expected-type = (slot-spec-type slot-spec)
-                  unless (or (null value)
-                             (subtypep (type-of value) expected-type))
-                  do (error "Expected value of type ~a in ~a for ~a,~%got: ~a"
-                            expected-type expr var value))))
-    ;; all test succeeded, return t
-    t))
-
-;; ############################################################################
-;; node-tests
-;; ----------------------------------------------------------------------------
-
-(defgeneric run-node-tests (node primitive-inventory)
-  (:documentation "Runs all node tests on the given node. All of them must return t."))
-
-(defmethod run-node-tests ((node irl-program-processor-node)
-                           (primitive-inventory primitive-inventory))
-  (loop for mode in (get-configuration primitive-inventory :node-tests)
-        always (node-test node mode)))
-
-(defgeneric node-test (node mode)
-  (:documentation "Runs the node test specified by mode on the node"))
-                      
-
-;; ############################################################################
-;; goal-tests
-;; ----------------------------------------------------------------------------
-
-(defgeneric run-goal-tests (node primitive-inventory)
-  (:documentation "Runs all goad tests on the given node. All of them must return t."))
-
-(defmethod run-goal-tests ((node irl-program-processor-node)
-                           (primitive-inventory primitive-inventory))
-  (loop for mode in (get-configuration primitive-inventory :goal-tests)
-        always (goal-test node mode)))
-
-(defgeneric goal-test (node mode)
-  (:documentation "Runs the goal test specified by mode on the node"))
-
-(defmethod goal-test ((node irl-program-processor-node)
-                      (mode (eql :no-primitives-remaning)))
-  (null (primitives-remaining node)))
-
-(defmethod goal-test ((node irl-program-processor-node)
-                      (mode (eql :all-variables-bound)))
-  (loop for binding in (bindings node)
-        never (null (value binding))))
-
-;; ############################################################################
-;; next-primitive
-;; ----------------------------------------------------------------------------
-
-(defgeneric run-next-primitive (node primitive-inventory)
-  (:documentation "Returns the next primitive to try, depending on the configuration"))
-
-(defmethod run-next-primitive ((node irl-program-processor-node)
-                               (primitive-inventory primitive-inventory))
-  (next-primitive node (get-configuration primitive-inventory :next-primitive)))
-
-(defgeneric next-primitive (node mode)
-  (:documentation "Return the next primitive, according to the mode"))
-
-(defmethod next-primitive ((node irl-program-processor-node)
-                           (mode (eql :random)))
-  (random-elt (primitives-remaining node)))
-                    
+                                     
 ;; ############################################################################
 ;; irl-program-processor
 ;; ----------------------------------------------------------------------------
@@ -170,7 +14,10 @@
                         :initform nil)
    (solutions :documentation "Solutions, i.e. lists of lists of bindings"
               :accessor solutions :initarg :solutions
-              :initform nil))
+              :initform nil)
+   (node-counter :documentation "Counter for the number of nodes"
+                 :accessor node-counter :initarg :node-counter
+                 :initform 0 :type number))
   (:documentation "The IPP handles the evaluation of an irl program"))
 
 
@@ -196,7 +43,15 @@
    (irl-program-processor
     :documentation "A pointer to the processor"
     :accessor processor :initarg :processor
-    :initform nil)))
+    :initform nil)
+   (created-at
+    :documentation "The number of the node"
+    :accessor created-at :initarg :created-at
+    :type number :initform 0)
+   (node-depth
+    :documentation "The depth of the node"
+    :accessor node-depth :initarg :node-depth
+    :type number :initform 0)))
 
 
 (define-event evaluate-irl-program-started
@@ -207,23 +62,11 @@
   (primitive-inventory primitive-inventory))
 
 
-(defun duplicate-solution-p (node solutions)
-  (loop for solution in solutions
-        never (loop for var in (mapcar #'var (bindings node))
-                    for solution-value = (value (find var solution :key #'var))
-                    for node-binding-value = (value (find var (bindings node) :key #'var))
-                    always (or (and (null solution-value)
-                                    (null node-binding-value))
-                               (and solution-value
-                                    node-binding-value
-                                    (equal-entity node-binding-value solution-value))))))
-
-
 ;; main entry point
 (defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*) (silent nil))
   ;; check if there is an ontology to work with
   (unless (ontology primitive-inventory)
-    (error "There is no useable ontology. Provide an ontology in the primitive-inventory"))
+    (error "There is no ontology. Provide an ontology in the primitive-inventory"))
   (unless (fields (ontology primitive-inventory))
     (error "The ontology appears to be empty. Cannot evaluate an irl-program with an empty ontology"))
   ;; replace all non-variables with variables
@@ -252,13 +95,13 @@
                             finally
                             (return (cons (reverse new-item) bind-statements))))))
     ;; when set, check the irl program for mistakes before evaluating it
-    (when (get-configuration primitive-inventory :check-irl-program)
+    (when (get-configuration primitive-inventory :check-irl-program-before-evaluation)
       (check-irl-program irl-program primitive-inventory))
     (let* ((queue nil)
            (processor
             (make-instance 'irl-program-processor :irl-program irl-program
                            :primitive-inventory primitive-inventory
-                           :solutions nil))
+                           :solutions nil :node-counter 0))
            (all-variables
             (remove-duplicates (find-all-anywhere-if #'variable-p irl-program)))
            (bind-statements (find-all 'bind irl-program :key #'first))
@@ -276,7 +119,8 @@
                           :status 'initial :bindings bindings :processor processor
                           :primitives-evaluated nil
                           :primitives-remaining irl-program-w/o-bind-statements
-                          :primitives-evaluated-w/o-result nil)))
+                          :primitives-evaluated-w/o-result nil
+                          :created-at 0 :node-depth 0)))
 
       ;; notify the start of processing
       (unless silent
@@ -287,13 +131,18 @@
       
       ;; process the initial node
       (cond
-       ((duplicate-solution-p initial-node (solutions processor))
-        (setf (status initial-node) 'duplicate))
+       ;; if a node test fails, stop
+       ((not (run-node-tests initial-node primitive-inventory)) nil)
+       ;; if the goal tests succeed, solution found
        ((run-goal-tests initial-node primitive-inventory)
         (setf (status initial-node) 'solution)
         (push (bindings initial-node) (solutions processor)))
+       ;; if the node is valid, but not a solution
+       ;; and there are primitives to evaluate
+       ;; push it on the queue
        ((primitives-remaining initial-node)
         (push initial-node queue))
+       ;; otherwise, stop
        (t (setf (status initial-node) 'no-primitives-remaining)))
       
       ;; run the queue
@@ -302,10 +151,10 @@
          
          ;; choose the next primitive and evaluate it
          for current-node = (pop queue)
-         for current-primitive = (run-next-primitive current-node primitive-inventory)
+         for current-primitive = (run-primitive-supplier current-node primitive-inventory)
          for result = (evaluate-primitive-in-program current-primitive
                                                      (bindings current-node)
-                                                     (ontology primitive-inventory))
+                                                     primitive-inventory)
          
          ;; process the result
          do (cond ((eq result 'inconsistent) ; result is inconsistent
@@ -320,14 +169,17 @@
                                                            (primitives-remaining current-node))
                                                   :primitives-evaluated-w/o-result
                                                   (primitives-evaluated-w/o-result current-node)
-                                                  :processor processor)))
+                                                  :processor processor
+                                                  :created-at (incf (node-counter processor))
+                                                  :node-depth (+ (node-depth current-node) 1))))
+                     ;; add the inconsistent node to the tree
                      (add-node processor new-node :parent current-node)))
                   
-                  (;no results
-                   (null result)
+                  ((null result) ;no results
                    (let ((remaining-primitives (remove current-primitive
                                                        (primitives-remaining current-node))))
                      (cond
+                      ;; if remaining primitives, re-queue the node
                       (remaining-primitives
                        (when (not (eq (status current-node) 'initial))
                          (setf (status current-node) 'primitives-remaining))
@@ -336,13 +188,13 @@
                              (push current-primitive 
                                    (primitives-evaluated-w/o-result current-node)))
                        (pushend current-node queue))
+                      ;; else, stop
                       (t (setf (status current-node) 'no-primitives-remaining)
                          (push current-primitive 
                                (primitives-evaluated-w/o-result current-node))
                          (setf (primitives-remaining current-node) nil)))))
                   
-                  (;result to process
-                   (and (listp result) result)
+                  ((and (listp result) result) ;result to process
                    (let ((remaining-primitives 
                           (append
                            (remove current-primitive
@@ -350,6 +202,7 @@
                            (primitives-evaluated-w/o-result current-node)))
                          (evaluated-primitives (cons current-primitive
                                                      (primitives-evaluated current-node))))
+                     ;; create a new node for each result
                      (loop for res in result
                            for new-node = (make-instance
                                            'irl-program-processor-node
@@ -358,17 +211,25 @@
                                            :primitives-evaluated evaluated-primitives
                                            :primitives-remaining remaining-primitives
                                            :primitives-evaluated-w/o-result nil
-                                           :processor processor)
+                                           :processor processor
+                                           :created-at (incf (node-counter processor))
+                                           :node-depth (+ (node-depth current-node) 1))
                            do (add-node processor new-node :parent current-node)
                            (cond
-                            ((duplicate-solution-p new-node (solutions processor))
-                             (setf (status new-node) 'duplicate))
-                            (remaining-primitives   
-                             (setf (status new-node) 'primitives-remaining)
-                             (push new-node queue))
+                            ;; if a node test fails, stop
+                            ((not (run-node-tests new-node primitive-inventory)))
+                            ;; if the goal tests succeed, solution found
                             ((run-goal-tests new-node primitive-inventory)
                              (setf (status new-node) 'solution)
-                             (push res (solutions processor))))))))
+                             (push res (solutions processor)))
+                            ;; if the node is valid, but not a solution
+                            ;; and there are primitives to evaluate
+                            ;; push it on the queue
+                            (remaining-primitives
+                             (setf (status new-node) 'primitives-remaining)
+                             (push new-node queue))
+                            ;; otherwise, stop
+                            (t (setf (status initial-node) 'no-primitives-remaining)))))))
          while queue))
 
       ;; clean the solutions
@@ -384,4 +245,48 @@
       ;; return solutions and processor
       (values (solutions processor) processor))))
 
+;; ############################################################################
+;; helper functions
+;; ----------------------------------------------------------------------------
+
+(defun irl-program-connected? (irl-program)
+  "Checks whether an irl program is connected. Returns t if so, the
+   number of sub graphs and the sub graphs themselves"
+  (loop with classes = nil
+        with sub-networks = nil
+        for x in irl-program
+        for variables = (find-all-if #'variable-p x)
+        for (cs subs) = (multiple-value-list
+                         (loop for class in classes
+                               for sub-network in sub-networks
+                               when (loop for var in variables
+                                          thereis (member var class))
+                               collect class into cs
+                               and
+                               collect sub-network into subs
+                               finally (return (values cs subs))))
+        if cs
+        do
+        (loop for class in cs do (setf classes (remove class classes)))
+        (push (remove-duplicates (reduce #'append (cons variables cs))) classes)
+        (loop for sub in subs do (setf sub-networks (remove sub sub-networks)))
+        (push (cons x (reduce #'append subs)) sub-networks)
+        else
+        do
+        (push variables classes)
+        (push (list x) sub-networks)
+        finally
+        (return (values
+                 (< (length classes) 2)
+                 (length classes)
+                 sub-networks))))
+
+(defun irl-program-p (thing &key (primitive-inventory *irl-primitives*))
+  "returns t if thing conforms to the basic syntax of irl-programs
+   list of bind statements (bind ...)  and irl-primitives (primitive ..)"
+  (and (listp thing)
+       (loop for s in thing
+             always (and (listp s)
+                         (or (eq (first s) 'bind)
+                             (find-primitive (first s) primitive-inventory))))))
       

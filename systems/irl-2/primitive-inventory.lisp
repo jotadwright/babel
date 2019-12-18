@@ -28,12 +28,17 @@
 
 (defmethod initialize-instance :after ((primitive-inventory primitive-inventory)
                                        &key &allow-other-keys)
-  "Initializing the primitive inventory. Here, we set the configurations
-   to default values"
-  (set-configuration primitive-inventory :goal-tests '(:no-primitives-remaning
+  "Initializing the primitive inventory. Here, we set the configurations to default values"
+  (set-configuration primitive-inventory :goal-tests '(:no-primitives-remaining
                                                        :all-variables-bound))
-  (set-configuration primitive-inventory :check-irl-program t)
-  (set-configuration primitive-inventory :next-primitive :random))
+  (set-configuration primitive-inventory :node-tests '(:check-duplicate
+                                                       :restrict-nr-of-nodes
+                                                       :restrict-search-depth))
+  (set-configuration primitive-inventory :check-irl-program-before-evaluation t)
+  (set-configuration primitive-inventory :primitive-supplier-mode :random)
+  (set-configuration primitive-inventory :max-search-depth 25)
+  (set-configuration primitive-inventory :max-nr-of-nodes 250))
+  
 
 
 (defgeneric primitives-list (primitive-inventory &key &allow-other-keys)
