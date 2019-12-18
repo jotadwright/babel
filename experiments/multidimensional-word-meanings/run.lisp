@@ -155,12 +155,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("experiment-type-cogent-data-type-simulated-switch-conditions-after-n-interactions-100"
-                     "experiment-type-cogent-data-type-simulated-switch-conditions-after-n-interactions-500"
-                     "experiment-type-cogent-data-type-simulated-switch-conditions-after-n-interactions-1000")
+ :experiment-names '("experiment-type-baseline-data-type-simulated"
+                     "experiment-type-baseline-data-type-extracted")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("switch=100" "500" "1000")
+ :captions '("simulated" "extracted")
  :title nil :end nil)
 
 (create-graph-comparing-strategies
@@ -182,7 +181,8 @@
  :y-max 1)
 
 (create-stacked-bars-comparing-strategies
- :experiment-names '("cogent-extracted-multi-word-switch-1000")
+ :experiment-names '("experiment-type-baseline-data-type-simulated"
+                     "experiment-type-baseline-data-type-extracted")
  :measure-names '("tutor-uses-xpos"
                   "tutor-uses-ypos"
                   "tutor-uses-color"
@@ -192,7 +192,8 @@
  :bar-labels '("xpos" "ypos"
                "color" "size"
                "material" "shape")
- :y-max 1)
+ :y-max 1
+ :cluster-labels '("simulated" "extracted"))
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +

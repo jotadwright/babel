@@ -83,7 +83,7 @@
   (let ((raw-file-paths
          (loop for experiment-name in experiment-names
                collect (loop for measure-name in measure-names
-                             collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name)))))
+                             collect `("experiments" "multidimensional-word-meanings" "raw-data" "final" ,experiment-name ,measure-name)))))
     (file-structure->stacked-bar-plot
      :raw-file-paths raw-file-paths
      :plot-directory '("experiments" "multidimensional-word-meanings" "graphs")
