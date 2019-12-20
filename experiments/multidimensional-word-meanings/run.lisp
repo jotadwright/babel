@@ -155,12 +155,13 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("experiment-type-baseline-data-type-simulated"
-                     "experiment-type-baseline-data-type-extracted")
+ :experiment-names '("experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-100"
+                     "experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-500"
+                     "experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-1000")
  :measure-name "communicative-success"
- :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("simulated" "extracted")
- :title nil :end nil)
+ :y-min 0.6 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
+ :captions '("switch every 100" "switch every 500" "switch every 1000")
+ :title nil :end 5000)
 
 (create-graph-comparing-strategies
  :experiment-names '("data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-min-max"
@@ -181,8 +182,9 @@
  :y-max 1)
 
 (create-stacked-bars-comparing-strategies
- :experiment-names '("experiment-type-baseline-data-type-simulated"
-                     "experiment-type-baseline-data-type-extracted")
+ :experiment-names '("experiment-type-incremental-data-type-simulated-switch-conditions-after-n-interactions-100"
+                     "experiment-type-incremental-data-type-simulated-switch-conditions-after-n-interactions-500"
+                     "experiment-type-incremental-data-type-simulated-switch-conditions-after-n-interactions-1000")
  :measure-names '("tutor-uses-xpos"
                   "tutor-uses-ypos"
                   "tutor-uses-color"
@@ -193,7 +195,7 @@
                "color" "size"
                "material" "shape")
  :y-max 1
- :cluster-labels '("simulated" "extracted"))
+ :cluster-labels '("switch every 100" "switch every 500" "switch every 1000"))
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +
