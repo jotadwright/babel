@@ -22,12 +22,14 @@
 
 
 (defclass irl-program-processor-node (tree-node)
-  ((status :documentation "Status of the node. Possible statuses are:
-                           initial, primitives-remaining, inconsistent,
-                           no-primitives-remaining, solution or duplicate"
+  ((status :documentation "Status of the node."
            :accessor status :initarg :status :initform 'initial :type symbol)
    (bindings :documentation "Available bindings at this point in processing"
              :accessor bindings :initarg :bindings)
+   (primitive-under-evaluation
+    :documentation "The primitive being evaluated in this node"
+    :accessor primitive-under-evaluation
+    :initarg :primitive-under-evaluation :initform nil)
    (primitives-evaluated
     :documentation "List of evaluated primitives"
     :accessor primitives-evaluated
@@ -36,10 +38,6 @@
     :documentation "List of remaining primitives"
     :accessor primitives-remaining
     :initarg :primitives-remaining :initform nil)
-   (primitives-evaluated-w/o-result
-    :documentation "List of primitives evaluated without result"
-    :accessor primitives-evaluated-w/o-result
-    :initarg :primitives-evaluated-w/o-result :initform nil)
    (irl-program-processor
     :documentation "A pointer to the processor"
     :accessor processor :initarg :processor
@@ -61,8 +59,164 @@
   (solutions list) (evaluation-tree irl-program-processor)
   (primitive-inventory primitive-inventory))
 
+;;;; The new and improved(?) IRL search process
+;; We make use of a priority-queue (PQ). Here, the nodes can be
+;; ordered according to the :queue-mode (e.g. depth-first).
+;; Each node has the following information: primitive-under-evaluation, primitives-evaluated and primitives-remaining.
 
-;; main entry point
+;; For every node, we do the following steps:
+;; 1. evaluate the primitive-under-evaluation
+;; 2. run the node-tests
+;; 3. run the goal-tests
+;; 4. if valid node and not solution, process the results
+;;    -> result = inconsistent; change the status of the node and take the next one in the PQ
+;;    -> result = empty; change the status of the node and take the next one in the PQ
+;;    -> result = non-empty; expand the node (adding new nodes to the PQ)
+
+(defun make-child-node (parent processor next-primitive &optional result)
+  (make-instance 'irl-program-processor-node
+                 :status 'to-evaluate
+                 :bindings (if result result (bindings parent))
+                 :primitive-under-evaluation next-primitive
+                 :primitives-evaluated (remove nil (cons (primitive-under-evaluation parent) (primitives-evaluated parent)))
+                 :primitives-remaining (remove next-primitive (primitives-remaining parent))
+                 :irl-program-processor processor
+                 :created-at (incf (node-counter processor))
+                 :node-depth (+ (node-depth parent) 1)))
+
+(defmethod enqueue-ippn-nodes (nodes queue (mode (eql :random-depth-first)))
+  "Add the nodes to the front of the queue, randomly ordered"
+  (loop for node in (shuffle nodes)
+        do (push node queue)))
+
+(defun expand-node (parent queue processor primitive-inventory &optional results)
+  ;; create the child nodes
+  (let ((child-nodes
+         (if results
+           (loop for p in (primitives-remaining parent)
+                 append (loop for r in results
+                              collect (make-child-node parent processor p r)))
+           (loop for p in (primitives-remaining parent)
+                 collect (make-child-node parent processor p)))))
+    ;; add them to the tree
+    (when child-nodes
+      (loop for child in child-nodes
+            do (add-node child processor :parent parent))
+      ;; add them to the queue, taking into account queue-mode and priority-mode...
+      (enqueue-ippn-nodes child-nodes queue (get-configuration primitive-inventory :queue-mode)))))
+
+(defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*) (silent nil))
+    ;; check if there is an ontology to work with
+  (unless (ontology primitive-inventory)
+    (error "There is no ontology. Provide an ontology in the primitive-inventory"))
+  (unless (fields (ontology primitive-inventory))
+    (error "The ontology appears to be empty. Cannot evaluate an irl-program with an empty ontology"))
+  ;; replace all non-variables with variables
+  ;; and introduce bind-statements for all of them
+  (let ((irl-program
+         (loop for item in irl-program
+               if (eq (first item) 'bind)
+               collect item ;; bind statement
+               else if (apply #'always (mapcar #'variable-p (cdr item)))
+               collect item ;; no non-variables
+               else
+               append (loop with new-item = (list (car item))
+                            with bind-statements
+                            for parameter in (cdr item)
+                            if (variable-p parameter)
+                            do (push parameter new-item)
+                            else
+                            do (let ((var (make-var 'var))
+                                     (value (if (symbolp parameter)
+                                              (find-entity-by-id (ontology primitive-inventory) parameter)
+                                              parameter)))
+                                 (push var new-item)
+                                 (push
+                                  `(bind ,(type-of value) ,var ,value)
+                                  bind-statements))
+                            finally
+                            (return (cons (reverse new-item) bind-statements))))))
+    ;; when set, check the irl program for mistakes before evaluating it
+    (when (get-configuration primitive-inventory :check-irl-program-before-evaluation)
+      (check-irl-program irl-program primitive-inventory))
+    (let* ((queue nil)
+           (processor
+            (make-instance 'irl-program-processor :irl-program irl-program
+                           :primitive-inventory primitive-inventory
+                           :solutions nil :node-counter 0))
+           (all-variables
+            (remove-duplicates (find-all-anywhere-if #'variable-p irl-program)))
+           (bind-statements (find-all 'bind irl-program :key #'first))
+           (irl-program-w/o-bind-statements 
+            (set-difference irl-program bind-statements))
+           (bindings-through-bind-statements
+            (evaluate-bind-statements bind-statements (ontology primitive-inventory)))
+           (bindings-for-unbound-variables 
+            (loop for var in (set-difference all-variables 
+                                             (mapcar #'var bindings-through-bind-statements))
+                  collect (make-instance 'binding :var var)))
+           (bindings (append bindings-for-unbound-variables
+                             bindings-through-bind-statements))
+           (initial-node (make-instance 'irl-program-processor-node
+                          :status 'initial :bindings bindings :processor processor
+                          :primitive-under-evaluation nil
+                          :primitives-evaluated nil
+                          :primitives-remaining irl-program-w/o-bind-statements
+                          :created-at 0 :node-depth 0)))
+
+      ;; notify the start of processing
+      (unless silent
+        (notify evaluate-irl-program-started irl-program primitive-inventory))
+      
+      ;; push the initial node on the search tree and on the queue
+      (add-node processor initial-node)
+      (push initial-node queue)
+
+      ;; run the queue
+      (when queue
+        (loop
+         ;; choose the next primitive and evaluate it
+         for current-node = (pop queue)
+         for current-primitive = (primitive-under-evaluation current-node)
+         for results = (when current-primitive
+                         (evaluate-primitive-in-program current-primitive
+                                                        (bindings current-node)
+                                                        primitive-inventory))
+         do (cond (;; run the node tests
+                   ;; if the node is not valid, do nothing
+                   (not (run-node-tests current-node primitive-inventory))
+                   nil)
+                  (;; run the goal tests
+                   ;; if the node is a solution, store the bindings
+                   (run-goal-tests current-node primitive-inventory)
+                   (setf (status current-node) 'solution)
+                   (push (bindings current-node) (solutions processor)))
+                  (;; if the node is valid and not a solution
+                   ;; process the results
+                   t (cond ((eq result 'inconsistent) ; result is inconsistent
+                            (setf (status current-node) 'inconsistent))
+                           ((null result) ; no results
+                            (if (eql (status current-node) 'initial)
+                              (expand-node current-node queue processor primitive-inventory)
+                              (setf (status current-node) 'primitive-evaluated-w/o-result)))
+                           ((and (listp results) results) ; results to process
+                            (setf (status node) 'primitive-evaluated)
+                            (expand-node current-node queue processor primitive-inventory results)))))
+         while queue))
+      ;; clean the solutions
+      (setf (solutions processor)
+            (loop for solution in (solutions processor)
+                  if solution collect solution))
+
+      ;; notify the end of processing
+      (unless silent
+        (notify evaluate-irl-program-finished (solutions processor)
+                processor primitive-inventory))
+
+      ;; return solutions and processor
+      (values (solutions processor) processor))))
+           
+#|
 (defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*) (silent nil))
   ;; check if there is an ontology to work with
   (unless (ontology primitive-inventory)
@@ -244,6 +398,7 @@
 
       ;; return solutions and processor
       (values (solutions processor) processor))))
+|#
 
 ;; ############################################################################
 ;; helper functions

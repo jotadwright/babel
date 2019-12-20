@@ -35,7 +35,7 @@
                                                        :restrict-nr-of-nodes
                                                        :restrict-search-depth))
   (set-configuration primitive-inventory :check-irl-program-before-evaluation t)
-  (set-configuration primitive-inventory :primitive-supplier-mode :random)
+  (set-configuration primitive-inventory :queue-mode :random-order-depth-first) ; where the children are added to the queue (front, back, ...)
   (set-configuration primitive-inventory :max-search-depth 25)
   (set-configuration primitive-inventory :max-nr-of-nodes 250))
   
