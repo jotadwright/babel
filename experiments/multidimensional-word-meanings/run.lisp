@@ -155,6 +155,14 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
+ :experiment-names '("experiment-type-incremental-data-type-simulated-switch-conditions-after-n-interactions-1000"
+                     "experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-1000")
+ :measure-name "communicative-success"
+ :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
+ :captions '("simulated" "extracted")
+ :title nil :end 6000)
+
+(create-graph-comparing-strategies
  :experiment-names '("experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-100"
                      "experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-500"
                      "experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-1000")
