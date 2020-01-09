@@ -22,14 +22,15 @@
 ;; duplicate detection
 
 (defun duplicate-node-p (node other-node)
-  (loop for var in (mapcar #'var (bindings node))
-        for node-value = (value (find var (bindings node) :key #'var))
-        for other-value = (value (find var (bindings other-node) :key #'var))
-        always (or (and (null node-value)
-                        (null other-value))
-                   (and node-value
-                        other-value
-                        (equal-entity node-value other-value)))))
+  (unless (eq node other-node)
+    (loop for var in (mapcar #'var (bindings node))
+          for node-value = (value (find var (bindings node) :key #'var))
+          for other-value = (value (find var (bindings other-node) :key #'var))
+          always (or (and (null node-value)
+                          (null other-value))
+                     (and node-value
+                          other-value
+                          (equal-entity node-value other-value))))))
 
 (defun find-duplicate (node other-node)
   (unless (eq node other-node)
@@ -49,8 +50,7 @@
 
 (defmethod node-test ((node irl-program-processor-node)
                       (mode (eql :restrict-search-depth)))
-  (let ((max-depth (get-configuration (primitive-inventory (processor node))
-                                      :max-search-depth)))
+  (let ((max-depth (get-configuration (configuration (processor node)) :max-search-depth)))
     (when max-depth
       (if (> (node-depth node) max-depth)
         (progn (setf (status node) 'max-nr-of-nodes) nil)
@@ -61,8 +61,7 @@
 
 (defmethod node-test ((node irl-program-processor-node)
                       (mode (eql :restrict-nr-of-nodes)))
-  (let ((max-nodes (get-configuration (primitive-inventory (processor node))
-                                      :max-nr-of-nodes)))
+  (let ((max-nodes (get-configuration (configuration (processor node)) :max-nr-of-nodes)))
     (when max-nodes
       (if (> (created-at node) max-nodes)
         (progn (setf (status node) 'max-nr-of-nodes) nil)
