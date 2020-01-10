@@ -364,8 +364,8 @@
         collect (list 0
                       (format nil "\"~a\"" (downcase form))
                       (format nil "\"~a\"" (downcase (mkstr (attribute category))))
-                      (format nil "~2f" certainty)
-                      (format nil "~2f" (prototype category)))))
+                      (format nil "~$" certainty)
+                      (format nil "~$" (prototype category)))))
 
 (define-event-handler (record-lexicon-evolution new-cxn-added)
   ;; record the initial representation of a concept
