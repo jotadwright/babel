@@ -14,7 +14,7 @@
                  :primitive-under-evaluation next-primitive
                  :primitives-evaluated (remove nil (cons (primitive-under-evaluation parent) (primitives-evaluated parent)))
                  :primitives-remaining (remove next-primitive (primitives-remaining parent))
-                 :processor processor :parent parent
+                 :processor processor
                  :node-depth (1+ (node-depth parent))
                  :created-at (incf (node-counter processor))))
                  
@@ -33,6 +33,9 @@
          (loop for primitive in (primitives-remaining node)
                collect (make-child-node node processor primitive result))))
     (when child-nodes
+      ;; add them to the search tree
+      (loop for child in child-nodes
+            do (add-node processor child :parent node))
       ;; add them to the queue, taking into account queue-mode and priority-mode...
       (let ((prioritized-child-nodes
              (order-by-priority child-nodes processor (get-configuration primitive-inventory :priority-mode))))
@@ -120,16 +123,14 @@
          ;; check the evaluation-results
          do (cond ((eq evaluation-results 'inconsistent)
                    ;; if inconsistent, change the status and add it to the tree
-                   (setf (status current-node) 'inconsistent)
-                   (add-node processor current-node :parent (parent current-node)))
+                   (setf (status current-node) 'inconsistent))
 
                   ((null evaluation-results)
                    ;; if no results, change the status and add it to the tree
                    ;; (except for initial node; expand it)
                    (if (eq (status current-node) 'initial)
                      (expand-node current-node processor primitive-inventory)
-                     (progn (setf (status current-node) 'evaluated-w/o-result)
-                       (add-node processor current-node :parent (parent current-node)))))
+                     (setf (status current-node) 'evaluated-w/o-result)))
 
                   ((and (listp evaluation-results) evaluation-results)
                    ;; if results, modify current node into new version(s)
@@ -137,26 +138,27 @@
                    ;; run the node-tests and goal-tests
                    ;; add the nodes to the tree
                    ;; and expand the current node further, if necessary
-                   (loop for result in evaluation-results
-                         for expand-node-p = t
-                         for new-node =
-                         (make-instance 'irl-program-processor-node
-                                        :status 'evaluated :bindings result
-                                        :primitive-under-evaluation (primitive-under-evaluation current-node)
-                                        :primitives-evaluated (primitives-evaluated current-node)
-                                        :primitives-remaining (primitives-remaining current-node)
-                                        :processor processor 
-                                        :created-at (created-at current-node) ;; !!!
-                                        :node-depth (node-depth current-node))
-                         do (cond ((not (run-node-tests new-node primitive-inventory))
-                                   (setf expand-node-p nil))
-                                  ((run-goal-tests new-node primitive-inventory)
-                                   (setf (status new-node) 'solution)
-                                   (push (bindings new-node) (solutions processor))
-                                   (setf expand-node-p nil)))
-                         do (add-node processor new-node :parent (parent current-node))
-                         do (when expand-node-p
-                              (expand-node current-node processor primitive-inventory result)))))
+                   (progn (cut-node processor current-node)
+                     (loop for result in evaluation-results
+                           for expand-node-p = t
+                           for new-node =
+                           (make-instance 'irl-program-processor-node
+                                          :status 'evaluated :bindings result
+                                          :primitive-under-evaluation (primitive-under-evaluation current-node)
+                                          :primitives-evaluated (primitives-evaluated current-node)
+                                          :primitives-remaining (primitives-remaining current-node)
+                                          :processor processor 
+                                          :created-at (incf (node-counter processor))
+                                          :node-depth (node-depth current-node))
+                           do (cond ((not (run-node-tests new-node primitive-inventory))
+                                     (setf expand-node-p nil))
+                                    ((run-goal-tests new-node primitive-inventory)
+                                     (setf (status new-node) 'solution)
+                                     (push (bindings new-node) (solutions processor))
+                                     (setf expand-node-p nil)))
+                           do (add-node processor new-node :parent (parent current-node))
+                           do (when expand-node-p
+                                (expand-node new-node processor primitive-inventory result))))))
          while (queue processor)))
                          
       ;; clean the solutions
