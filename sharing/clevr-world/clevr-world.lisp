@@ -308,7 +308,7 @@
                  :answer (rest (assoc :answer s-expr))
                  :program (s-expr->object 'program
                                           (rest (assoc :program s-expr)))
-                 :template (rest (assoc :template--filename s-expr))
+                 :template (or (rest (assoc :template--filename s-expr)) "")
                  :question-family (rest (assoc :question--family--index s-expr))))
 
 (defmethod object->s-expr ((q clevr-question) &key)
