@@ -9,6 +9,7 @@
   (primitive-inventory primitive-inventory))
 
 (defun make-child-node (parent processor next-primitive &optional result)
+  "Create a child node for the parent node with the specified next-primitive"
   (make-instance 'irl-program-processor-node :status 'not-evaluated
                  :bindings (if result result (bindings parent))
                  :primitive-under-evaluation next-primitive
@@ -17,6 +18,17 @@
                  :processor processor
                  :node-depth (1+ (node-depth parent))
                  :created-at (incf (node-counter processor))))
+
+(defun make-node-from-result (node result)
+  "Create a new from an existing node and evaluation result"
+  (make-instance 'irl-program-processor-node
+                 :status 'evaluated :bindings result
+                 :primitive-under-evaluation (primitive-under-evaluation node)
+                 :primitives-evaluated (primitives-evaluated node)
+                 :primitives-remaining (primitives-remaining node)
+                 :processor (processor node)
+                 :created-at (incf (node-counter (processor node)))
+                 :node-depth (node-depth node)))
                  
 (defmethod order-by-priority (list-of-nodes (processor irl-program-processor)
                               (mode (eql :random)))
@@ -122,11 +134,11 @@
 
          ;; check the evaluation-results
          do (cond ((eq evaluation-results 'inconsistent)
-                   ;; if inconsistent, change the status and add it to the tree
+                   ;; if inconsistent, change the status and stop
                    (setf (status current-node) 'inconsistent))
 
                   ((null evaluation-results)
-                   ;; if no results, change the status and add it to the tree
+                   ;; if no results, change the status and stop
                    ;; (except for initial node; expand it)
                    (if (eq (status current-node) 'initial)
                      (expand-node current-node processor primitive-inventory)
@@ -136,20 +148,11 @@
                    ;; if results, modify current node into new version(s)
                    ;; namely, one for each result
                    ;; run the node-tests and goal-tests
-                   ;; add the nodes to the tree
                    ;; and expand the current node further, if necessary
-                   (progn (cut-node processor current-node)
+                   (progn 
                      (loop for result in evaluation-results
                            for expand-node-p = t
-                           for new-node =
-                           (make-instance 'irl-program-processor-node
-                                          :status 'evaluated :bindings result
-                                          :primitive-under-evaluation (primitive-under-evaluation current-node)
-                                          :primitives-evaluated (primitives-evaluated current-node)
-                                          :primitives-remaining (primitives-remaining current-node)
-                                          :processor processor 
-                                          :created-at (incf (node-counter processor))
-                                          :node-depth (node-depth current-node))
+                           for new-node = (make-node-from-result current-node result)
                            do (cond ((not (run-node-tests new-node primitive-inventory))
                                      (setf expand-node-p nil))
                                     ((run-goal-tests new-node primitive-inventory)
@@ -158,7 +161,8 @@
                                      (setf expand-node-p nil)))
                            do (add-node processor new-node :parent (parent current-node))
                            do (when expand-node-p
-                                (expand-node new-node processor primitive-inventory result))))))
+                                (expand-node new-node processor primitive-inventory result)))
+                     (cut-node processor current-node))))
          while (queue processor)))
                          
       ;; clean the solutions
