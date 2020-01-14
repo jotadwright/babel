@@ -295,17 +295,25 @@
             (priming-blackboard-name (if (eql (direction (cip node)) '<-)
                                        :comprehension-priming-data :production-priming-data)))
    
-        (if (and previously-applied-cxn
-                 (gethash (name previously-applied-cxn)
-                          (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))
-          (let ((priming-strength (gethash (name applied-cxn)
-                                           (gethash (name previously-applied-cxn)
-                                                    (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))))
-                                   
-             
-            (+ (priority (parent node)) ;;score of the parent
-               (or priming-strength 0)))
-          (or (priority (parent node)) 0)))
+        (cond ((and previously-applied-cxn
+                    (gethash (name previously-applied-cxn)
+                             (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))
+               (let ((priming-strength (gethash (name applied-cxn)
+                                                (gethash (name previously-applied-cxn)
+                                                         (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))))
+                 
+                 
+                 (+ (priority (parent node)) ;;score of the parent
+                    (or priming-strength 0))))
+              ((and (eql (first (statuses (parent node))) 'initial)
+                    (gethash 'initial
+                             (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))
+               (let ((priming-strength (gethash (name applied-cxn)
+                                                (gethash 'initial
+                                                         (get-data (blackboard (construction-inventory (cip node))) priming-blackboard-name)))))
+                 (+ (priority (parent node)) ;;score of the parent
+                    (or priming-strength 0))))
+              (t (or (priority (parent node)) 0))))
       0)))
 
 ;; -------------------------------:depth-first-prefer-local-bindings------------------------------------------
@@ -766,7 +774,7 @@ links between applied constructions for priming effects."
             (progn (set-data (blackboard (construction-inventory (cip solution-node))) blackboard-key
                              (make-hash-table :test #'equalp))
               (get-data (blackboard (construction-inventory (cip solution-node))) blackboard-key))))
-         (names-of-applied-constructions (mapcar #'name (reverse (applied-constructions solution-node)))))
+         (names-of-applied-constructions (cons 'initial (mapcar #'name (reverse (applied-constructions solution-node))))))
 
          (loop for construction-name in names-of-applied-constructions
                for i from 0 to (- (length names-of-applied-constructions) 2) ;;don't do update for last cxn
