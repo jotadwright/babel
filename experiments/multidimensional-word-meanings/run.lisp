@@ -79,7 +79,7 @@
               (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . 10)
+              (:switch-conditions-after-n-interactions . 100)
               (:data-sets . ,*incremental-simulated-data-sets*))))
 
 (defparameter *incremental-extracted-configuration*
@@ -95,14 +95,15 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *baseline-extracted-configuration*))
+  (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 2000)
+(run-series *experiment* 1500)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
-(lexicon->pdf (find 'learner (population *experiment*) :key #'id))
+(lexicon->pdf (find 'learner (population *experiment*) :key #'id)
+              :name "incremental-phase-5")
 (lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
 
 (make-table *experiment*)

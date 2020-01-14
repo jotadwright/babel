@@ -132,7 +132,8 @@
                     (next-condition-char (coerce (mkstr next-condition-nr) 'character))
                     (next-condition (mkstr "phase_" next-condition-nr)))
                ;; export the lexicon before each condition switch
-               ;(lexicon->pdf (find 'learner (population experiment) :key #'id))
+               (lexicon->pdf (find 'learner (population experiment) :key #'id)
+                             :name (format nil "incremental-phase-~a" current-condition-nr))
                ;; reload the world with a different dataset
                (setf (world experiment)
                      (make-instance 'clevr-world :data-sets (list next-condition)))
