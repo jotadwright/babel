@@ -5,7 +5,7 @@
   (irl-program list) (primitive-inventory primitive-inventory))
 
 (define-event evaluate-irl-program-finished
-  (solutions list) (evaluation-tree irl-program-processor)
+  (solutions list) (processor irl-program-processor)
   (primitive-inventory primitive-inventory))
 
 (defun make-child-node (parent processor next-primitive &optional result)

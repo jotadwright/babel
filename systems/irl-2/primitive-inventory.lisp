@@ -162,7 +162,7 @@
 
 (defun check-def-irl-primitives-keys (keys-and-defs)
   (let ((accepted-keys '(:irl-configurations
-                         :visualization-configurations ; not yet uysed
+                         :visualization-configurations ; not yet used
                          :primitive-inventory
                          :hashed ; not yet used
                          :primitive-inventory-type ; not yet used
