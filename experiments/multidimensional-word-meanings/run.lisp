@@ -156,12 +156,12 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("experiment-type-incremental-data-type-simulated-switch-conditions-after-n-interactions-1000"
-                     "experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-1000")
+ :experiment-names '("experiment-type-baseline-data-type-extracted"
+                     "max-tutor-utterance-length-4-experiment-type-baseline-data-type-extracted")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("simulated" "extracted")
- :title nil :end 6000)
+ :captions '("1 word" "up to 4 words")
+ :title nil :end 5000)
 
 (create-graph-comparing-strategies
  :experiment-names '("experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-100"
@@ -183,11 +183,14 @@
  :title nil :end 25000)
 
 (create-stacked-bars-comparing-strategies
- :experiment-names '("cogent-extracted-multi-word-switch-1000")
+ :experiment-names '("max-tutor-utterance-length-4-experiment-type-baseline-data-type-simulated"
+                     "max-tutor-utterance-length-4-experiment-type-baseline-data-type-extracted")
  :measure-names '("tutor-utterance-length-1"
                   "tutor-utterance-length-2"
                   "tutor-utterance-length-3"
                   "tutor-utterance-length-4")
+ :cluster-labels '("simulated" "extracted")
+ :bar-labels '("1 word" "2 words" "3 words" "4 words")
  :y-max 1)
 
 (create-stacked-bars-comparing-strategies

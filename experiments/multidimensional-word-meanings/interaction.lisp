@@ -92,11 +92,7 @@
                                 (closest-to-topic tutor (context learner)))))
                    (align-agent learner topic)))))
       (learner nil))))
-                 
-;; how to align when the learner was speaker?
-;; let the tutor produce for the topic and align using that word-object pair?
-;; this could be a completely different utterance than the one produced by the learner
-;; it could even be null...
+                
 
 (defun maybe-switch-conditions (experiment)
   (let ((switch-condition-interval (get-configuration experiment :switch-conditions-after-n-interactions))

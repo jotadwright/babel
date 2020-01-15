@@ -162,30 +162,38 @@
     (notify conceptualisation-finished agent)
     (discriminative-set agent)))
 
+;; learner conceptualisation
+;; choose the most discriminating concept
+;; i.e. similarity to the topic is higher than to any other object
+;; of this is the case for multiple words, select the one with the biggest difference
+;; if more than one word is allowed, add the word such that the similarity maximally increases
 (defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
-  "Choose the most discriminating word.
-   The word has to have a similarity to the topic that is higher
-   than the similarity to any other object. If this is
-   the case for multiple words, the one with the biggest difference
-   between best-word<->topic and best-word<->best-other-object
-   is chosen."
-  (loop with best-cxn = nil
-        with best-difference = 0
-        for cxn in (shuffle (constructions (grammar agent)))
-        for cxn-meaning = (attr-val cxn :meaning)
-        for topic-similarity = (weighted-similarity (topic agent) cxn-meaning)
-        for best-other-similarity = (loop for object in (remove (topic agent) (objects (context agent)))
-                                          maximizing (weighted-similarity object cxn-meaning))
-        for difference = (- topic-similarity best-other-similarity)
-        when (and (> topic-similarity best-other-similarity)
-                  (> difference best-difference))
-        do (setf best-cxn cxn
-                 best-difference difference)
-        finally
-        (progn (setf (applied-cxns agent)
-                     (when best-cxn (list best-cxn)))
-          (notify conceptualisation-finished agent)
-          (return best-cxn))))
+  (let ((utterance-meaning nil)
+        (utterance-difference 0)
+        (applied-cxns nil))
+    (loop while (length< applied-cxns (get-configuration agent :max-tutor-utterance-length))
+          do (loop with best-cxn = nil
+                   with best-difference = 0
+                   for cxn in (set-difference (shuffle (constructions (grammar agent)))
+                                              applied-cxns)
+                   for meaning = (if utterance-meaning
+                                   (fuzzy-union utterance-meaning (attr-val cxn :meaning))
+                                   (attr-val cxn :meaning))
+                   for topic-similarity = (weighted-similarity (topic agent) meaning)
+                   for best-other-similarity
+                   = (loop for object in (remove (topic agent) (objects (context agent)))
+                           maximizing (weighted-similarity object meaning))
+                   for difference = (- topic-similarity best-other-similarity)
+                   when (and (> topic-similarity best-other-similarity)
+                             (> difference utterance-difference))
+                   do (progn (push cxn applied-cxns)
+                        (setf utterance-meaning meaning)
+                        (setf utterance-difference difference)))
+          finally
+          (progn (setf (applied-cxns agent) applied-cxns)
+            (notify conceptualisation-finished agent)
+            (return applied-cxns)))))
+                      
 
 ;; --------------
 ;; + Production +
@@ -219,7 +227,9 @@
 
 (defmethod produce-word ((agent mwm-agent) (role (eql 'learner)))
   (when (applied-cxns agent)
-    (setf (utterance agent) (attr-val (first (applied-cxns agent)) :form)))
+    (setf (utterance agent)
+          (loop for cxn in (applied-cxns agent)
+                collect (attr-val cxn :form))))
   (notify production-finished agent)
   (utterance agent))
 
@@ -259,23 +269,22 @@
 (define-event interpretation-finished (agent mwm-agent))
 
 (defmethod interpret ((agent mwm-agent) (role (eql 'tutor)))
-  ;; how will the symbolic tutor interpret the learner's utterance??
-  ;; let's say the learner says 'blue'
-  ;; the tutor finds all objects that have 'blue' as an attribute
-  ;; but this can be more than one
-  ;; how to determine which one to choose as topic? at random??
+  ;; if the learner says 'blue', the tutor will simply keep
+  ;; all objects that are indeed blue. If one of these is the topic
+  ;; the interaction counts as a success.
+  ;; If the learner says multiple words, the tutor looks for object(s)
+  ;; in which all of these attributes are present.
   (let* ((all-objects-as-alist
           (loop for object in (objects (context agent))
                 collect (cons (id object) (object->alist object))))
          (objects-with-utterance
           (loop for (id . object) in all-objects-as-alist
-                when (member (utterance agent) (mapcar #'mkstr (mapcar #'cdr object)) :test #'string=)
-                collect id)))
+                for object-attributes = (mapcar #'mkstr (mapcar #'cdr object))
+                when (loop for form in (utterance agent)
+                           always (member form object-attributes :test #'string=))
+                collect (cons id object))))
     (when objects-with-utterance
-      (setf (topic agent)
-            (find (random-elt objects-with-utterance)
-                  (objects (context agent))
-                  :key #'id))))
+      (setf (topic agent) objects-with-utterance)))
   (notify interpretation-finished agent)
   (topic agent))
     
@@ -326,12 +335,18 @@
   (:documentation "Determine the success of the interaction"))
 
 (defmethod determine-success ((speaker mwm-agent) (hearer mwm-agent))
-  "Compare the IDs of the topics of both agents"
+  ;; the way to determine success depends on the :data-type
+  ;; and on who is speaker and who is hearer
   (if (eql (get-configuration speaker :data-type) :simulated)
-    (when (and (topic speaker) (topic hearer))
-      (eql (id (topic speaker)) (id (topic hearer))))
-    (when (and (topic speaker) (topic hearer))
-      (eql (closest-to-topic speaker (context hearer))
-           (topic hearer)))))
+    (if (eql (id speaker) 'tutor)
+      (when (and (topic speaker) (topic hearer))
+        (eql (id (topic speaker)) (id (topic hearer))))
+      (member (id (topic speaker)) (mapcar #'car (topic hearer))))
+    (if (eql (id speaker) 'tutor)
+      (when (and (topic speaker) (topic hearer))
+        (eql (closest-to-topic speaker (context hearer))
+             (topic hearer)))
+      ;; how to ?
+      nil)))
   
 
