@@ -77,6 +77,16 @@
                     largest-diff diff))))))
     (notify found-subset-to-reward best-subset)
     best-subset))
+
+(defun get-meaning-to-update (agent)
+  (if (hearerp agent)
+    (parsed-meaning agent)
+    (if (length= (applied-cxns agent) 1)
+      (attr-val (first (applied-cxns agent)) :meaning)
+      (reduce #'fuzzy-union
+              (mapcar #'(lambda (cxn)
+                          (attr-val cxn :meaning))
+                      (applied-cxns agent))))))
           
 
 (defgeneric align-known-words (agent topic words categories)
@@ -90,44 +100,45 @@
 (defmethod align-known-words ((agent mwm-agent) (topic mwm-object)
                               words category-representation)
   (declare (ignorable category-representation))
-  ;; update prototype
-  (loop for (category . certainty) in (parsed-meaning agent)
-        do (update-category category topic
-                            :success (communicated-successfully agent)
-                            :interpreted-object (topic agent)))
-  ;; update certainties
-  (let* ((discriminating-attributes
-          (find-discriminating-attributes agent (parsed-meaning agent) topic))
-         (all-subsets (all-subsets (parsed-meaning agent)))
-         (subsets-to-consider
-          (filter-subsets all-subsets discriminating-attributes))
-         (best-subset
-          (find-most-discriminating-subset agent subsets-to-consider topic)))
-    ;; store the rewarded and punished attributes per cxn
-    (loop with rewarded = (make-blackboard)
-          with punished = (make-blackboard)
-          for (category . certainty) in (parsed-meaning agent)
-          if (member category best-subset :key #'car)
-          do (let ((cxn (construction category)))
-               (push-data rewarded (name cxn) (attribute category))
-               (add-to-cxn-history agent cxn)
-               (adjust-certainty agent cxn (attribute category)
-                                 (get-configuration agent :certainty-incf)
-                                 :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
-          else
-          do (let ((cxn (construction category)))
-               (push-data punished (name cxn) (attribute category))
-               (add-to-cxn-history agent cxn)
-               (adjust-certainty agent cxn (attribute category)
-                                 (get-configuration agent :certainty-decf)
-                                 :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
-          finally
-          (loop for cxn in (applied-cxns agent)
-                for rewarded-attrs = (find-data rewarded (name cxn))
-                for punished-attrs = (find-data punished (name cxn))
-                when (or rewarded-attrs punished-attrs)
-                do (notify scores-updated cxn rewarded-attrs punished-attrs))))) 
-        
+  (let ((meaning-to-update (get-meaning-to-update agent)))
+    ;; update prototype
+    (loop for (category . certainty) in meaning-to-update
+          do (update-category category topic
+                              :success (communicated-successfully agent)
+                              :interpreted-object (topic agent)))
+    ;; update certainties
+    (let* ((discriminating-attributes
+            (find-discriminating-attributes agent meaning-to-update topic))
+           (all-subsets (all-subsets meaning-to-update))
+           (subsets-to-consider
+            (filter-subsets all-subsets discriminating-attributes))
+           (best-subset
+            (find-most-discriminating-subset agent subsets-to-consider topic)))
+      ;; store the rewarded and punished attributes per cxn
+      (loop with rewarded = (make-blackboard)
+            with punished = (make-blackboard)
+            for (category . certainty) in meaning-to-update
+            if (member category best-subset :key #'car)
+            do (let ((cxn (construction category)))
+                 (push-data rewarded (name cxn) (attribute category))
+                 (add-to-cxn-history agent cxn)
+                 (adjust-certainty agent cxn (attribute category)
+                                   (get-configuration agent :certainty-incf)
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
+            else
+            do (let ((cxn (construction category)))
+                 (push-data punished (name cxn) (attribute category))
+                 (add-to-cxn-history agent cxn)
+                 (adjust-certainty agent cxn (attribute category)
+                                   (get-configuration agent :certainty-decf)
+                                   :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
+            finally
+            (loop for cxn in (applied-cxns agent)
+                  for rewarded-attrs = (find-data rewarded (name cxn))
+                  for punished-attrs = (find-data punished (name cxn))
+                  when (or rewarded-attrs punished-attrs)
+                  do (notify scores-updated cxn rewarded-attrs punished-attrs))))))
+
  
 ;;;; Align Agent        
 (defgeneric align-agent (agent topic)

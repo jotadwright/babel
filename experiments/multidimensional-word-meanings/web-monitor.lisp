@@ -50,17 +50,23 @@
 
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-finished)
   (add-element `((h2) ,(format nil "The topic is ~a" (id (topic agent)))))
-  (if (discriminative-set agent)
-    (progn (add-element '((h2) "Tutor found discriminating attributes:"))
-      (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent))))))
-    (add-element '((h2) "Tutor did not find discriminating attributes."))))
+  (cond ((and (tutorp agent) (discriminative-set agent))
+         (add-element '((h2) "Tutor found discriminating attributes:"))
+         (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent))))))
+        ((and (learnerp agent) (applied-cxns agent))
+         (add-element '((h2) "Learner found discriminating attributes:"))
+         (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}"
+                                           (mapcar #'(lambda (cxn) (attr-val cxn :form))
+                                                   (applied-cxns agent)))))))
+        (t
+         (add-element `((h2) ,(format nil "~@(~a~) did not find discriminating attributes"
+                                      (id agent)))))))
 
 (define-event-handler (trace-interaction-in-web-interface production-finished)
-  (if (tutorp agent)
-    (if (utterance agent)
-      (progn (add-element '((h2) "Tutor produced an utterance:"))
-        (add-element `((h3) ((i) ,(format nil "~{\"~a\"~^, ~}" (utterance agent))))))
-      (add-element '((h2) "Tutor could not produce an utterance.")))))
+  (if (utterance agent)
+    (progn (add-element `((h2) ,(format nil "~@(~a~) producted an utterance:" (id agent))))
+      (add-element `((h3) ((i) ,(format nil "~{\"~a\"~^, ~}" (utterance agent))))))
+    (add-element `((h2) ,(format nil "~@(~a~) could not produce an utterance" (id agent))))))
 
 (defgeneric category->s-dot-node (category &key)
   (:documentation "How to display a category as an s-dot node"))

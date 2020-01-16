@@ -37,9 +37,10 @@
               (:data-type . :simulated)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
+              (:training-period . 1000)
               (:data-sets . ,*baseline-simulated-data-sets*)
-              (:max-tutor-utterance-length . ,1))))
+              (:max-tutor-utterance-length . ,3))))
 
 (defparameter *baseline-extracted-configuration*
   (make-configuration
@@ -95,11 +96,11 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *incremental-simulated-configuration*))
+  (make-instance 'mwm-experiment :configuration *baseline-simulated-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 1500)
+(run-series *experiment* 1000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id)
@@ -119,15 +120,16 @@
 ;; Incremental (simulated and extracted) with multi-word and new dataset
 
 (run-experiments `(
-                   (test
+                   (test-3-extracted
                     ((:experiment-type . :baseline)
-                     (:data-type . :simulated)
+                     (:data-type . :extracted)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:determine-interacting-agents-mode . :default)
+                     (:training-period . 1000)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)
-                     (:max-tutor-utterance-length . ,1)))
+                     (:max-tutor-utterance-length . ,3)))
                    )
                  :number-of-interactions 5000
                  :number-of-series 1
@@ -148,7 +150,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "experiment-type-baseline-data-type-simulated"
+ :experiment-name "test"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -156,12 +158,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("experiment-type-baseline-data-type-extracted"
-                     "max-tutor-utterance-length-4-experiment-type-baseline-data-type-extracted")
+ :experiment-names '("test-3"
+                     "test-3-no-training")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("1 word" "up to 4 words")
- :title nil :end 5000)
+ :title nil :end nil)
 
 (create-graph-comparing-strategies
  :experiment-names '("experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-100"

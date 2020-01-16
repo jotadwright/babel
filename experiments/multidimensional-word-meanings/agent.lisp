@@ -162,12 +162,13 @@
     (notify conceptualisation-finished agent)
     (discriminative-set agent)))
 
-;; learner conceptualisation
+;; learner conceptualisation v1
 ;; choose the most discriminating concept
 ;; i.e. similarity to the topic is higher than to any other object
 ;; of this is the case for multiple words, select the one with the biggest difference
 ;; if more than one word is allowed, add the word such that the similarity maximally increases
-(defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
+#|
+ (defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
   (let ((utterance-meaning nil)
         (utterance-difference 0)
         (applied-cxns nil))
@@ -193,7 +194,95 @@
           (progn (setf (applied-cxns agent) applied-cxns)
             (notify conceptualisation-finished agent)
             (return applied-cxns)))))
-                      
+|#
+
+;; learner conceptualisation v2
+;; for each object, take the closest concept
+;; there should be no other object that has the same concept as the topic
+;; if this is true, return the topic
+;; if this does not work for one word, try two words, etc. until max-tutor-utterance-length
+
+;; how to make faster...
+;; compute the meanings only once and store them in the blackboard of the agent
+;; together with the nr of constructions that was present at the time of computing it
+;; when the nr of constructions is still the same, read the cache
+;; when the nr of constructions is different, re-compute it
+
+;; NEEDS DOCUMENTATION
+(defparameter *impossible-combinations*
+  (append
+   (combinations-of-length '("BLUE-CXN" "BROWN-CXN" "CYAN-CXN" "GRAY-CXN"
+                             "GREEN-CXN" "PURPLE-CXN" "RED-CXN" "YELLOW-CXN") 2)
+   (combinations-of-length '("BEHIND-CXN" "LEFT-CXN" "RIGHT-CXN" "FRONT-CXN") 2)
+   (combinations-of-length '("CUBE-CXN" "CYLINDER-CXN" "SPHERE-CXN") 2)
+   (combinations-of-length '("METAL-CXN" "RUBBER-CXN") 2)
+   (combinations-of-length '("LARGE-CXN" "SMALL-CXN") 2)))
+
+(defun valid-combination-p (cxns)
+  (let ((cxn-names (mapcar (compose #'upcase #'mkstr #'name) cxns)))
+    (loop for (name-a name-b) in *impossible-combinations*
+          never (and (find name-a cxn-names :test #'string=)
+                     (find name-b cxn-names :test #'string=)))))
+
+(defun compute-meaning-cache (agent)
+  (let ((nr-of-constructions (length (constructions (grammar agent))))
+        (data (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
+                    for cxns = (if (= i 1) (constructions (grammar agent))
+                                 (remove-if-not #'valid-combination-p
+                                                (combinations-of-length (constructions (grammar agent)) i)))
+                    for meanings
+                    = (loop for cxn in cxns
+                            if (listp cxn)
+                            collect (reduce #'fuzzy-union
+                                            (mapcar #'(lambda (cxn)
+                                                        (attr-val cxn :meaning))
+                                                    cxn))
+                            else
+                            collect (attr-val cxn :meaning))
+                    when meanings
+                    collect (cons i (cons cxns meanings)))))
+    (cons nr-of-constructions data)))
+
+(defun find-best-concept-index-for-object (object meanings)
+  (loop with best-meaning-index = nil
+        with best-similarity = 0
+        for meaning in meanings
+        for i from 0
+        for similarity = (weighted-similarity object meaning)
+        when (> similarity best-similarity)
+        do (setf best-meaning-index i
+                 best-similarity similarity)
+        finally (return best-meaning-index)))
+
+(defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
+  (when (constructions (grammar agent))
+    (let ((cache (find-data agent 'meaning-cache)))
+      (unless (and cache (= (car cache) (length (constructions (grammar agent)))))
+        (let ((new-cache (compute-meaning-cache agent)))
+          (set-data agent 'meaning-cache new-cache)
+          (setf cache new-cache)))
+      (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
+            for (cxns . meanings) = (rest (assoc i (cdr cache)))
+            for topic-concept-index
+            = (find-best-concept-index-for-object (topic agent) meanings)
+            for other-concepts-index
+            = (when topic-concept-index
+                (loop for object in (remove (topic agent) (objects (context agent)))
+                      for idx = (find-best-concept-index-for-object object meanings)
+                      when idx collect idx))
+            for discriminatingp
+            = (when topic-concept-index
+                (loop for other-idx in other-concepts-index
+                      never (= topic-concept-index other-idx)))
+            when discriminatingp
+            do (progn (setf (applied-cxns agent)
+                            (if (= i 1)
+                              (list (nth topic-concept-index cxns))
+                              (nth topic-concept-index cxns)))
+                 (return)))))
+  (notify conceptualisation-finished agent)
+  (applied-cxns agent))
+                                 
 
 ;; --------------
 ;; + Production +
@@ -269,22 +358,22 @@
 (define-event interpretation-finished (agent mwm-agent))
 
 (defmethod interpret ((agent mwm-agent) (role (eql 'tutor)))
-  ;; if the learner says 'blue', the tutor will simply keep
-  ;; all objects that are indeed blue. If one of these is the topic
-  ;; the interaction counts as a success.
-  ;; If the learner says multiple words, the tutor looks for object(s)
-  ;; in which all of these attributes are present.
+  ;; if the learner says 'blue', the tutor will find
+  ;; all objects that are indeed blue. If the tutor finds more
+  ;; than one object, interpretation fails.
+  ;; this should also work for multi-word utterances.
   (let* ((all-objects-as-alist
           (loop for object in (objects (context agent))
                 collect (cons (id object) (object->alist object))))
          (objects-with-utterance
           (loop for (id . object) in all-objects-as-alist
-                for object-attributes = (mapcar #'mkstr (mapcar #'cdr object))
+                for object-attributes = (mapcar (compose #'downcase #'mkstr #'cdr) object)
                 when (loop for form in (utterance agent)
                            always (member form object-attributes :test #'string=))
-                collect (cons id object))))
-    (when objects-with-utterance
-      (setf (topic agent) objects-with-utterance)))
+                collect (find-entity-by-id (context agent) id))))
+    (when (and objects-with-utterance
+               (length= objects-with-utterance 1))
+      (setf (topic agent) (first objects-with-utterance))))
   (notify interpretation-finished agent)
   (topic agent))
     
@@ -338,15 +427,14 @@
   ;; the way to determine success depends on the :data-type
   ;; and on who is speaker and who is hearer
   (if (eql (get-configuration speaker :data-type) :simulated)
-    (if (eql (id speaker) 'tutor)
-      (when (and (topic speaker) (topic hearer))
-        (eql (id (topic speaker)) (id (topic hearer))))
-      (member (id (topic speaker)) (mapcar #'car (topic hearer))))
+    (when (and (topic speaker) (topic hearer))
+      (eql (id (topic speaker)) (id (topic hearer))))
     (if (eql (id speaker) 'tutor)
       (when (and (topic speaker) (topic hearer))
         (eql (closest-to-topic speaker (context hearer))
              (topic hearer)))
-      ;; how to ?
-      nil)))
+      (when (and (topic speaker) (topic hearer))
+        (eql (topic speaker)
+             (closest-to-topic hearer (context speaker)))))))
   
 

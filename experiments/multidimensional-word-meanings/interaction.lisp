@@ -84,6 +84,7 @@
 (defmethod after-interaction ((experiment mwm-experiment))
   (when (get-configuration experiment :learning-active)
     (case (id (speaker experiment))
+      ;; alignment when tutor is speaker
       (tutor (let ((tutor (speaker experiment))
                    (learner (hearer experiment)))
                (when (discriminative-set tutor)
@@ -91,7 +92,20 @@
                                 (find (id (topic tutor)) (objects (context learner)) :key #'id)
                                 (closest-to-topic tutor (context learner)))))
                    (align-agent learner topic)))))
-      (learner nil))))
+      ;; alignment when learner is speaker
+      ;; reasons for failure:
+      ;; - the learner could not conceptualise --> do nothing
+      ;; - the tutor's interpretation failed --> do nothing
+      ;; - the tutor's and learner's topics are not equal --> do alignment
+      ;; or there was success --> do alignment
+      (learner (let ((tutor (hearer experiment))
+                     (learner (speaker experiment)))
+                 (when (and (applied-cxns learner) (topic tutor))
+                   (let ((topic (if (eql (get-configuration experiment :data-type) :simulated)
+                                  (find (id (topic tutor)) (objects (context learner)) :key #'id)
+                                  (closest-to-topic tutor (context learner)))))
+                     (align-agent learner topic))))))))
+
                 
 
 (defun maybe-switch-conditions (experiment)
