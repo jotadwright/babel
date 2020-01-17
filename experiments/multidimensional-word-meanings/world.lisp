@@ -195,8 +195,7 @@
 
 (defun extracted->mwm-object (alist &key (colour :hsv))
   "Load a single object"
-  (let ((mean-color (rest (assoc :color-mean alist)))
-        (std-color (rest (assoc :color-std alist))))
+  (let ((mean-color (rest (assoc :color-mean alist))))
     ;; create an alist
     (setf alist
           (mapcar #'(lambda (pair)
@@ -208,9 +207,10 @@
                   (append `((mean-h . ,(first mean-color))
                             (mean-s . ,(second mean-color))
                             (mean-v . ,(third mean-color))
-                            (std-h . ,(first std-color))
-                            (std-s . ,(second std-color))
-                            (std-v . ,(third std-color))) alist)))
+                            ;(std-h . ,(first std-color))
+                            ;(std-s . ,(second std-color))
+                            ;(std-v . ,(third std-color))
+                            ) alist)))
       (:rgb (let ((rgb (hsv->rgb mean-color)))
               (setf alist
                     (append `((mean-r . ,(first rgb))
@@ -223,6 +223,7 @@
                               (mean-b . ,(third lab))) alist)))))
     (setf alist (remove 'color-mean alist :key #'car))
     (setf alist (remove 'color-std alist :key #'car))
+    (setf alist (remove 'bb-area alist :key #'car))
     ;; flip the sign for angle
     (setf (cdr (assoc 'angle alist))
           (- (cdr (assoc 'angle alist))))
