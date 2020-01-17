@@ -113,19 +113,13 @@
 ;; + Running series of experiments +
 ;; ---------------------------------
 
-;;;; Experiments to run:
-;; Baseline simulated and extracted with multi-word (up to 2)
-;; --> does this improve success?
-;; CoGenT simulated with up to 2 words and extracted with lab colour space
-;; Incremental (simulated and extracted) with multi-word and new dataset
-
 (run-experiments `(
                    (test-3-extracted
                     ((:experiment-type . :baseline)
                      (:data-type . :extracted)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :default)
+                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
                      (:training-period . 1000)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)
@@ -150,7 +144,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "test"
+ :experiment-name "test-3"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1

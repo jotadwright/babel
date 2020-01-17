@@ -201,14 +201,6 @@
 ;; there should be no other object that has the same concept as the topic
 ;; if this is true, return the topic
 ;; if this does not work for one word, try two words, etc. until max-tutor-utterance-length
-
-;; how to make faster...
-;; compute the meanings only once and store them in the blackboard of the agent
-;; together with the nr of constructions that was present at the time of computing it
-;; when the nr of constructions is still the same, read the cache
-;; when the nr of constructions is different, re-compute it
-
-;; NEEDS DOCUMENTATION
 (defparameter *impossible-combinations*
   (append
    (combinations-of-length '("BLUE-CXN" "BROWN-CXN" "CYAN-CXN" "GRAY-CXN"
@@ -224,25 +216,6 @@
           never (and (find name-a cxn-names :test #'string=)
                      (find name-b cxn-names :test #'string=)))))
 
-(defun compute-meaning-cache (agent)
-  (let ((nr-of-constructions (length (constructions (grammar agent))))
-        (data (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
-                    for cxns = (if (= i 1) (constructions (grammar agent))
-                                 (remove-if-not #'valid-combination-p
-                                                (combinations-of-length (constructions (grammar agent)) i)))
-                    for meanings
-                    = (loop for cxn in cxns
-                            if (listp cxn)
-                            collect (reduce #'fuzzy-union
-                                            (mapcar #'(lambda (cxn)
-                                                        (attr-val cxn :meaning))
-                                                    cxn))
-                            else
-                            collect (attr-val cxn :meaning))
-                    when meanings
-                    collect (cons i (cons cxns meanings)))))
-    (cons nr-of-constructions data)))
-
 (defun find-best-concept-index-for-object (object meanings)
   (loop with best-meaning-index = nil
         with best-similarity = 0
@@ -256,30 +229,37 @@
 
 (defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
   (when (constructions (grammar agent))
-    (let ((cache (find-data agent 'meaning-cache)))
-      (unless (and cache (= (car cache) (length (constructions (grammar agent)))))
-        (let ((new-cache (compute-meaning-cache agent)))
-          (set-data agent 'meaning-cache new-cache)
-          (setf cache new-cache)))
-      (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
-            for (cxns . meanings) = (rest (assoc i (cdr cache)))
-            for topic-concept-index
-            = (find-best-concept-index-for-object (topic agent) meanings)
-            for other-concepts-index
-            = (when topic-concept-index
-                (loop for object in (remove (topic agent) (objects (context agent)))
-                      for idx = (find-best-concept-index-for-object object meanings)
-                      when idx collect idx))
-            for discriminatingp
-            = (when topic-concept-index
-                (loop for other-idx in other-concepts-index
-                      never (= topic-concept-index other-idx)))
-            when discriminatingp
-            do (progn (setf (applied-cxns agent)
-                            (if (= i 1)
-                              (list (nth topic-concept-index cxns))
-                              (nth topic-concept-index cxns)))
-                 (return)))))
+    (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
+          for cxns = (if (= i 1) (constructions (grammar agent))
+                       (remove-if-not #'valid-combination-p
+                                      (combinations-of-length (constructions (grammar agent)) i)))
+          ;; we have to recompute the meanings in every interaction
+          ;; since the meaning changes constantly (mostly prototype updates)
+          for meanings
+          = (loop for cxn in cxns
+                  if (listp cxn) collect (reduce #'fuzzy-union
+                                                 (mapcar #'(lambda (cxn)
+                                                             (attr-val cxn :meaning))
+                                                         cxn))
+                  else collect (attr-val cxn :meaning))
+          for topic-concept-index
+          = (when meanings
+              (find-best-concept-index-for-object (topic agent) meanings))
+          for other-concepts-index
+          = (when topic-concept-index
+              (loop for object in (remove (topic agent) (objects (context agent)))
+                    for idx = (find-best-concept-index-for-object object meanings)
+                    when idx collect idx))
+          for discriminatingp
+          = (when topic-concept-index
+              (loop for other-idx in other-concepts-index
+                    never (= topic-concept-index other-idx)))
+          when discriminatingp
+          do (progn (setf (applied-cxns agent)
+                          (if (= i 1)
+                            (list (nth topic-concept-index cxns))
+                            (nth topic-concept-index cxns)))
+               (return))))
   (notify conceptualisation-finished agent)
   (applied-cxns agent))
                                  
