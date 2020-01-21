@@ -393,7 +393,7 @@
 (export '(clevr-world scenes question-sets data-sets current-scene
           current-question-set random-scene all-scenes all-questions
           all-scenes-and-questions do-for-scenes
-          do-for-scenes-and-questions))
+          do-for-scenes-and-questions get-scene-by-index))
 
 (defclass clevr-world (entity)
   ((scenes        :type list :initarg :scenes        :accessor scenes)
@@ -482,6 +482,17 @@
         (setf (current-question-set world)
               (load-object 'question-set question-set-path)))
       (warn "No question sets loaded."))))
+
+(defmethod get-scene-by-index ((world clevr-world) index)
+  "Get a particular scene by its index"
+  (assert (and (>= index 0) (< index (length (scenes world)))))
+  (setf (current-scene world)
+        (load-object 'scene (nth index (scenes world))))
+  (when (question-sets world)
+    (setf (current-question-set world)
+          (load-object 'question-set (nth index (question-sets world)))))
+  (values (current-scene world)
+          (current-question-set world)))
 
 (defmethod random-scene ((world clevr-world))
   "Choose a random scene and load it into memory.
