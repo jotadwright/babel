@@ -118,17 +118,27 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (learner-speaks
+                   (learner-speaks-no-training-1
                     ((:experiment-type . :baseline)
                      (:data-type . :simulated)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
-                     (:training-period . 1000)
+                     (:determine-interacting-agents-mode . :default)
+                     (:training-period . 0)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)
-                     (:max-tutor-utterance-length . ,3)))
-                   (learner-speaks-no-training
+                     (:max-tutor-utterance-length . ,1)))
+                   (learner-speaks-no-training-2
+                    ((:experiment-type . :baseline)
+                     (:data-type . :simulated)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :default)
+                     (:training-period . 0)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:max-tutor-utterance-length . ,2)))
+                   (learner-speaks-no-training-3
                     ((:experiment-type . :baseline)
                      (:data-type . :simulated)
                      (:scale-world . ,nil)
@@ -138,6 +148,16 @@
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)
                      (:max-tutor-utterance-length . ,3)))
+                   (learner-speaks-no-training-4
+                    ((:experiment-type . :baseline)
+                     (:data-type . :simulated)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :default)
+                     (:training-period . 0)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:max-tutor-utterance-length . ,4)))
                    )
                  :number-of-interactions 5000
                  :number-of-series 1
@@ -166,8 +186,10 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("learner-speaks"
-                     "learner-speaks-no-training")
+ :experiment-names '("learner-speaks-no-training-1"
+                     "learner-speaks-no-training-2"
+                     "learner-speaks-no-training-3"
+                     "learner-speaks-no-training-4")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :title nil :end nil)

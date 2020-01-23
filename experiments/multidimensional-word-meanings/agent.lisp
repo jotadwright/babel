@@ -203,6 +203,7 @@
                            else collect (attr-val cxn :meaning))))
       (when meanings
         (loop with best-cxn = nil
+              with best-similarity = 0
               with largest-difference = 0
               for cxn in cxns
               for meaning in meanings
@@ -215,8 +216,10 @@
                            (- topic-similarity best-other-similarity))
               when (and topic-similarity best-other-similarity
                         (> topic-similarity best-other-similarity)
+                        (> topic-similarity best-similarity)
                         (> diff largest-difference))
               do (setf best-cxn cxn
+                       best-similarity topic-similarity
                        largest-difference diff)
               finally (setf (applied-cxns agent)
                             (if (listp best-cxn) best-cxn
