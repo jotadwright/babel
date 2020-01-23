@@ -315,6 +315,8 @@
                 when (loop for form in (utterance agent)
                            always (member form object-attributes :test #'string=))
                 collect (find-entity-by-id (context agent) id))))
+    (unless (length= objects-with-utterance 1)
+      (format t "break"))
     (when (and objects-with-utterance
                (length= objects-with-utterance 1))
       (setf (topic agent) (first objects-with-utterance))))
