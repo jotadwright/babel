@@ -162,45 +162,6 @@
     (notify conceptualisation-finished agent)
     (discriminative-set agent)))
 
-;; learner conceptualisation v1
-;; choose the most discriminating concept
-;; i.e. similarity to the topic is higher than to any other object
-;; of this is the case for multiple words, select the one with the biggest difference
-;; if more than one word is allowed, add the word such that the similarity maximally increases
-#|
- (defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
-  (let ((utterance-meaning nil)
-        (utterance-difference 0)
-        (applied-cxns nil))
-    (loop while (length< applied-cxns (get-configuration agent :max-tutor-utterance-length))
-          do (loop with best-cxn = nil
-                   with best-difference = 0
-                   for cxn in (set-difference (shuffle (constructions (grammar agent)))
-                                              applied-cxns)
-                   for meaning = (if utterance-meaning
-                                   (fuzzy-union utterance-meaning (attr-val cxn :meaning))
-                                   (attr-val cxn :meaning))
-                   for topic-similarity = (weighted-similarity (topic agent) meaning)
-                   for best-other-similarity
-                   = (loop for object in (remove (topic agent) (objects (context agent)))
-                           maximizing (weighted-similarity object meaning))
-                   for difference = (- topic-similarity best-other-similarity)
-                   when (and (> topic-similarity best-other-similarity)
-                             (> difference utterance-difference))
-                   do (progn (push cxn applied-cxns)
-                        (setf utterance-meaning meaning)
-                        (setf utterance-difference difference)))
-          finally
-          (progn (setf (applied-cxns agent) applied-cxns)
-            (notify conceptualisation-finished agent)
-            (return applied-cxns)))))
-|#
-
-;; learner conceptualisation v2
-;; for each object, take the closest concept
-;; there should be no other object that has the same concept as the topic
-;; if this is true, return the topic
-;; if this does not work for one word, try two words, etc. until max-tutor-utterance-length
 (defparameter *impossible-combinations*
   (append
    (combinations-of-length '("BLUE-CXN" "BROWN-CXN" "CYAN-CXN" "GRAY-CXN"
@@ -229,39 +190,39 @@
 
 (defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
   (when (constructions (grammar agent))
-    (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
-          for cxns = (if (= i 1) (constructions (grammar agent))
-                       (remove-if-not #'valid-combination-p
-                                      (combinations-of-length (constructions (grammar agent)) i)))
-          ;; we have to recompute the meanings in every interaction
-          ;; since the meaning changes constantly (mostly prototype updates)
-          for meanings
-          = (loop for cxn in cxns
-                  if (listp cxn) collect (reduce #'fuzzy-union
-                                                 (mapcar #'(lambda (cxn)
-                                                             (attr-val cxn :meaning))
-                                                         cxn))
-                  else collect (attr-val cxn :meaning))
-          for topic-concept-index
-          = (when meanings
-              (find-best-concept-index-for-object (topic agent) meanings))
-          for other-concepts-index
-          = (when topic-concept-index
-              (loop for object in (remove (topic agent) (objects (context agent)))
-                    for idx = (find-best-concept-index-for-object object meanings)
-                    when idx collect idx))
-          for discriminatingp
-          = (when topic-concept-index
-              (loop for other-idx in other-concepts-index
-                    never (= topic-concept-index other-idx)))
-          when discriminatingp
-          do (progn (setf (applied-cxns agent)
-                          (if (= i 1)
-                            (list (nth topic-concept-index cxns))
-                            (nth topic-concept-index cxns)))
-               (return))))
-  (notify conceptualisation-finished agent)
-  (applied-cxns agent))
+    (let* ((cxns (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
+                       append (if (= i 1) (constructions (grammar agent))
+                                (remove-if-not #'valid-combination-p
+                                               (combinations-of-length (constructions (grammar agent)) i)))))
+           (meanings (loop for cxn in cxns
+                           if (listp cxn)
+                           collect (reduce #'fuzzy-union
+                                           (mapcar #'(lambda (cxn)
+                                                       (attr-val cxn :meaning))
+                                                   cxn))
+                           else collect (attr-val cxn :meaning))))
+      (when meanings
+        (loop with best-cxn = nil
+              with largest-difference = 0
+              for cxn in cxns
+              for meaning in meanings
+              for topic-similarity = (weighted-similarity (topic agent) meaning)
+              for best-other-similarity
+              = (when (> topic-similarity 0)
+                  (loop for object in (remove (topic agent) (objects (context agent)))
+                        maximize (weighted-similarity object meaning)))
+              for diff = (when best-other-similarity
+                           (- topic-similarity best-other-similarity))
+              when (and topic-similarity best-other-similarity
+                        (> topic-similarity best-other-similarity)
+                        (> diff largest-difference))
+              do (setf best-cxn cxn
+                       largest-difference diff)
+              finally (setf (applied-cxns agent)
+                            (if (listp best-cxn) best-cxn
+                              (list best-cxn)))))
+      (notify conceptualisation-finished agent)
+      (applied-cxns agent))))
                                  
 
 ;; --------------

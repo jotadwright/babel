@@ -186,6 +186,56 @@
   (deactivate-monitor plot-learner-attribute-use)
   (format t "~%Graphs have been created"))
 
+;;;; Record reason for failure
+;; a-list monitor that keeps track of the reason why the game failed
+(define-monitor record-game-outcome
+                :documentation "records in a few symbols the game outcome"
+                :class 'alist-recorder
+                :average-window 100)
+
+(define-event-handler (record-game-outcome interaction-finished)
+  (let ((learner (find 'learner (population experiment) :key #'id))
+        (tutor (find 'tutor (population experiment) :key 'id)))
+    (if (communicated-successfully interaction)
+      (set-value-for-symbol monitor 'success 1)
+      ;; if the tutor speaks
+      ;; - either the word is new for the learner
+      ;; - either the interpreted object is wrong
+      ;; if the learner speaks
+      ;; - either the learner cannot discriminate the topic
+      ;; - either the tutor cannot interpret the utterance
+      ;; - either the agents do not agree
+      (set-value-for-symbol monitor
+                            (if (speakerp tutor)
+                              (cond ((null (parsed-meaning learner)) 'new-word-for-learner)
+                                    (t 'agents-not-agree))
+                              (cond ((null (applied-cxns learner)) 'not-discriminate)
+                                    ((null (topic tutor)) 'tutor-not-interpret)
+                                    (t 'agents-not-agree)))
+                            1))))
+
+(define-monitor plot-game-outcomes
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-game-outcome
+    :draw-y-1-grid t
+    :y-label "Game outcomes"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "game-outcomes"
+			       :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-game-outcome-graph (&key
+                                  (configurations nil)
+                                  (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create a game outcome graph." nr-of-interactions)
+  (activate-monitor plot-game-outcomes)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-game-outcomes)
+  (format t "~%Graphs have been created"))
+        
+
 ;;;; Communicative success
 (define-monitor record-communicative-success
                 :class 'data-recorder

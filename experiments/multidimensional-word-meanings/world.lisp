@@ -153,12 +153,14 @@
 
 ;;; object -> a-list
 (defmethod object->alist ((object clevr-object))
+  ;240x160
+  ;245.5x177
   `((:color . ,(color object))
     (:size . ,(size object))
     (:shape . ,(shape object))
     (:material . ,(material object))
-    (:x-pos . ,(if (> (x-pos object) 245.5) 'right 'left))
-    (:y-pos . ,(if (> (y-pos object) 177) 'front 'behind))))
+    (:x-pos . ,(if (> (x-pos object) 240) 'right 'left))
+    (:y-pos . ,(if (> (y-pos object) 160) 'front 'behind))))
 
 ;; ------------------------
 ;; + Continous CLEVR data +

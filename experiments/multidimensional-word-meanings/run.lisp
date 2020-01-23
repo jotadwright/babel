@@ -10,6 +10,10 @@
 (activate-monitor display-communicative-success)
 ;(deactivate-monitor display-communicative-success)
 
+;;;; TO DO
+;; Either make the interpretation for the tutor more lenient
+;; or make the conceptualisation for the learner more strict
+
 ;; --------------------
 ;; + Run interactions +
 ;; --------------------
@@ -100,7 +104,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 1000)
+(run-series *experiment* 10)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id)
@@ -114,13 +118,23 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (test-3-extracted
+                   (learner-speaks
                     ((:experiment-type . :baseline)
-                     (:data-type . :extracted)
+                     (:data-type . :simulated)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
                      (:training-period . 1000)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:max-tutor-utterance-length . ,3)))
+                   (learner-speaks-no-training
+                    ((:experiment-type . :baseline)
+                     (:data-type . :simulated)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :default)
+                     (:training-period . 0)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)
                      (:max-tutor-utterance-length . ,3)))
@@ -144,7 +158,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "test-3"
+ :experiment-name "test"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -152,8 +166,8 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("test-3"
-                     "test-3-no-training")
+ :experiment-names '("learner-speaks"
+                     "learner-speaks-no-training")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :title nil :end nil)
@@ -218,4 +232,16 @@
 
 (create-success-per-attribute-type-graph
  :configurations (entries *baseline-simulated-configuration*)
+ :nr-of-interactions 5000)
+
+(create-game-outcome-graph
+ :configurations `((:experiment-type . :baseline)
+                   (:data-type . :simulated)
+                   (:scale-world . ,nil)
+                   (:category-representation . :prototype)
+                   (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
+                   (:training-period . 1000)
+                   (:data-sets . ,*baseline-simulated-data-sets*)
+                   (:data-path . ,*baseline-extracted-data-path*)
+                   (:max-tutor-utterance-length . ,3))
  :nr-of-interactions 5000)

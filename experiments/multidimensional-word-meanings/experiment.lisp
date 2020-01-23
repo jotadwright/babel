@@ -21,7 +21,7 @@
 (define-configuration-default-value :certainty-decf -0.1)
 (define-configuration-default-value :remove-on-lower-bound nil)
 (define-configuration-default-value :category-representation :prototype)
-(define-configuration-default-value :scale-world t)
+(define-configuration-default-value :scale-world nil)
 (define-configuration-default-value :max-tutor-utterance-length 1)
 (define-configuration-default-value :lexical-variation nil)
 (define-configuration-default-value :export-lexicon-interval 500)
