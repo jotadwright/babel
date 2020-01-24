@@ -48,13 +48,28 @@
 (defgeneric do-interaction (experiment)
   (:documentation "Run the appropriate interaction script"))
 
-(defun conceptualise-until-success (agent)
+(defmethod conceptualise-until-success ((agent mwm-agent) (role (eql 'tutor)))
   (loop while t
         for success = (conceptualise agent (id agent))
         if success
         return success
         else
         do (before-interaction (experiment agent))))
+
+(defmethod conceptualise-until-success ((agent mwm-agent) (role (eql 'learner)))
+  "In some cases, the tutor cannot even discriminate the topic.
+   If this is the case, the learner should not even try"
+  (let ((tutor (find 'tutor (population (experiment agent)) :key #'id)))
+    (loop while t
+          for possible-to-discriminate
+          = (progn (setf (topic tutor) (topic agent))
+              (conceptualise tutor (id tutor)))
+          if possible-to-discriminate
+          do (progn (setf (topic tutor) nil)
+               (conceptualise agent (id agent))
+               (return))
+          else
+          do (before-interaction (experiment agent)))))
 
 (defmethod do-interaction ((experiment mwm-experiment))
   "The tutor conceptualises the topic and produces
@@ -65,9 +80,7 @@
    alignment."
   (let ((speaker (speaker experiment))
         (hearer (hearer experiment)))
-    (case (id speaker)
-      (tutor (conceptualise-until-success speaker))
-      (learner (conceptualise speaker (id speaker))))
+    (conceptualise-until-success speaker (id speaker))
     (produce-word speaker (id speaker))
     (when (utterance speaker)
       (setf (utterance hearer) (utterance speaker))

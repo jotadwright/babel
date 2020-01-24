@@ -104,7 +104,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 1000)
+(run-series *experiment* 500)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id)
@@ -118,7 +118,7 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (learner-speaks-no-training-3
+                   (test
                     ((:experiment-type . :baseline)
                      (:data-type . :simulated)
                      (:scale-world . ,nil)
@@ -127,10 +127,10 @@
                      (:training-period . 0)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)
-                     (:max-tutor-utterance-length . ,3)))
+                     (:max-tutor-utterance-length . ,4)))
                    )
                  :number-of-interactions 5000
-                 :number-of-series 3
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
@@ -233,5 +233,5 @@
                    (:training-period . 0)
                    (:data-sets . ,*baseline-simulated-data-sets*)
                    (:data-path . ,*baseline-extracted-data-path*)
-                   (:max-tutor-utterance-length . ,3))
+                   (:max-tutor-utterance-length . ,4))
  :nr-of-interactions 5000)
