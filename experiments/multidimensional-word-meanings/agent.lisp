@@ -338,16 +338,11 @@
                 collect (cons (id object) (object->alist object))))
          (objects-with-utterance
           (match-utterance-to-objects (objects (context agent))
-                                      (utterance agent))))
+                                      (utterance agent))))    
+    (when (and objects-with-utterance
+               (length= objects-with-utterance 1))
+      (setf (topic agent) (first objects-with-utterance)))
 
-    
-    ;; Tutor interpretation fails in two cases:
-    ;; - no objects with utterance are found
-    ;;   Typically, this is the case when the learner used a spatial relation e.g. left (together with some other words)
-    ;;   but according to the tutor, the object is on the right. This is often the case when the topic is really an edge-case,
-    ;;   located close to the center of the image. This is fixed below.
-    ;; - multiple objects with utterance are found
-    ;;   the topic can be discriminated, but the learner did not find the appropriate combinations of words.
     #|(unless (length= objects-with-utterance 1)
       (add-element `((h2) ,(format nil "Error at interaction ~a"
                                    (interaction-number (current-interaction (experiment agent))))))
@@ -361,26 +356,7 @@
       (add-element '((h3) "Objects as a-list"))
       (add-element (html-pprint all-objects-as-alist))
       (add-element '((hr))))|#
-
-    
-    (when (and objects-with-utterance
-               (length= objects-with-utterance 1))
-      (setf (topic agent) (first objects-with-utterance)))
-    ;; when 0 objects are found, check if the utterance contains a spatial relation
-    ;; check again for objects, without the spatial relation and then apply
-    ;; the relative version of the spatial relation (e.g. frontmost).
-    (when (length= objects-with-utterance 0)
-      (let ((spatial-relation (get-spatial-relation (utterance agent))))
-        (when spatial-relation
-          (let* ((new-utterance (remove spatial-relation (utterance agent) :test #'string=))
-                 (new-objects-with-utterance
-                  (apply-relative-relation
-                   (match-utterance-to-objects
-                    (objects (context agent))
-                    new-utterance)
-                   spatial-relation)))
-            (when (length= new-objects-with-utterance 1)
-              (setf (topic agent) (first new-objects-with-utterance))))))))
+    )
   (notify interpretation-finished agent)
   (topic agent))
     

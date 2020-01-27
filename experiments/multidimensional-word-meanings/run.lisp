@@ -10,10 +10,6 @@
 (activate-monitor display-communicative-success)
 ;(deactivate-monitor display-communicative-success)
 
-;;;; TO DO
-;; Either make the interpretation for the tutor more lenient
-;; or make the conceptualisation for the learner more strict
-
 ;; --------------------
 ;; + Run interactions +
 ;; --------------------
@@ -41,10 +37,9 @@
               (:data-type . :simulated)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :default)
-              (:training-period . 1000)
+              (:determine-interacting-agents-mode . :default) 
               (:data-sets . ,*baseline-simulated-data-sets*)
-              (:max-tutor-utterance-length . ,3))))
+              (:max-tutor-utterance-length . ,4))))
 
 (defparameter *baseline-extracted-configuration*
   (make-configuration
@@ -52,9 +47,11 @@
               (:data-type . :extracted)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:determine-interacting-agents-mode . :default)
               (:data-sets . ,*baseline-simulated-data-sets*)
-              (:data-path . ,*baseline-extracted-data-path*))))
+              (:data-path . ,*baseline-extracted-data-path*)
+              (:max-tutor-utterance-length . ,4)
+              (:extracted-colour-space . :lab))))
 
 (defparameter *cogent-simulated-configuration*
   (make-configuration
@@ -62,9 +59,10 @@
               (:data-type . :simulated)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,100)
-              (:data-sets . ,*cogent-simulated-data-sets*))))
+              (:determine-interacting-agents-mode . :default)
+              (:switch-conditions-after-n-interactions . ,1000)
+              (:data-sets . ,*cogent-simulated-data-sets*)
+              (:max-tutor-utterance-length . ,4))))
 
 (defparameter *cogent-extracted-configuration*
   (make-configuration
@@ -83,9 +81,10 @@
               (:data-type . :simulated)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . 100)
-              (:data-sets . ,*incremental-simulated-data-sets*))))
+              (:determine-interacting-agents-mode . :default)
+              (:switch-conditions-after-n-interactions . 1000)
+              (:data-sets . ,*incremental-simulated-data-sets*)
+              (:max-tutor-utterance-length . ,4))))
 
 (defparameter *incremental-extracted-configuration*
   (make-configuration
@@ -100,7 +99,7 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *baseline-simulated-configuration*))
+  (make-instance 'mwm-experiment :configuration *baseline-extracted-configuration*))
 
 (run-interaction *experiment*)
 
@@ -118,18 +117,44 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (test
+                   (test-extracted-4
                     ((:experiment-type . :baseline)
-                     (:data-type . :simulated)
+                     (:data-type . :extracted)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :default)
-                     (:training-period . 0)
+                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
+                     (:training-period . 1000)
                      (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:data-path . ,*baseline-extracted-data-path*)
                      (:max-tutor-utterance-length . ,4)))
+                   (test-extracted-3
+                    ((:experiment-type . :baseline)
+                     (:data-type . :extracted)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
+                     (:training-period . 1000)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:max-tutor-utterance-length . ,3)))
+                   (test-extracted-2
+                    ((:experiment-type . :baseline)
+                     (:data-type . :extracted)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
+                     (:training-period . 1000)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:max-tutor-utterance-length . ,2)))
+                   (test-extracted-1
+                    ((:experiment-type . :baseline)
+                     (:data-type . :extracted)
+                     (:scale-world . ,nil)
+                     (:category-representation . :prototype)
+                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
+                     (:training-period . 1000)
+                     (:data-sets . ,*baseline-simulated-data-sets*)
+                     (:max-tutor-utterance-length . ,1)))
                    )
-                 :number-of-interactions 5000
+                 :number-of-interactions 2000
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
@@ -148,7 +173,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "bidirectional-learner-simulated"
+ :experiment-name "test-extracted"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -156,8 +181,10 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("learner-speaks-no-training-3"
-                     "learner-speaks-no-training-4")
+ :experiment-names '("test-extracted-4"
+                     "test-extracted-3"
+                     "test-extracted-2"
+                     "test-extracted-1")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :title nil :end nil)

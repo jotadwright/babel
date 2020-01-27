@@ -59,17 +59,20 @@
 (defmethod conceptualise-until-success ((agent mwm-agent) (role (eql 'learner)))
   "In some cases, the tutor cannot even discriminate the topic.
    If this is the case, the learner should not even try"
-  (let ((tutor (find 'tutor (population (experiment agent)) :key #'id)))
-    (loop while t
-          for possible-to-discriminate
-          = (progn (setf (topic tutor) (topic agent))
-              (conceptualise tutor (id tutor)))
-          if possible-to-discriminate
-          do (progn (setf (topic tutor) nil)
-               (conceptualise agent (id agent))
-               (return))
-          else
-          do (before-interaction (experiment agent)))))
+  (case (get-configuration agent :data-type)
+    (:simulated
+     (let ((tutor (find 'tutor (population (experiment agent)) :key #'id)))
+       (loop while t
+             for possible-to-discriminate
+             = (progn (setf (topic tutor) (topic agent))
+                 (conceptualise tutor (id tutor)))
+             if possible-to-discriminate
+             do (progn (setf (topic tutor) nil)
+                  (conceptualise agent (id agent))
+                  (return))
+             else
+             do (before-interaction (experiment agent)))))
+    (:extracted (conceptualise agent (id agent)))))
 
 (defmethod do-interaction ((experiment mwm-experiment))
   "The tutor conceptualises the topic and produces

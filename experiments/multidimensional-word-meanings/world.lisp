@@ -160,7 +160,8 @@
     (:shape . ,(shape object))
     (:material . ,(material object))
     (:x-pos . ,(if (> (x-pos object) 240) 'right 'left))
-    (:y-pos . ,(if (> (y-pos object) 160) 'front 'behind))))
+    (:y-pos . ,(if (> (y-pos object) 160) 'front 'behind))
+    ))
 
 ;; ------------------------
 ;; + Continous CLEVR data +
