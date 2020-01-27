@@ -148,7 +148,7 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "test"
+ :experiment-name "bidirectional-learner-simulated"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -207,6 +207,10 @@
                "material" "shape")
  :y-max 1
  :cluster-labels '("switch every 100" "switch every 500" "switch every 1000"))
+
+(with-open-file (stream "/Users/jensnevens/Projects/Babel3/experiments/multidimensional-word-meanings/raw-data/test/communicative-success.lisp")
+  (let ((data (car (read stream))))
+    (average (mapcar #'average data))))
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +
