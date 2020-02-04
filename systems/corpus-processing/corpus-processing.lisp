@@ -126,11 +126,11 @@
     ;; process each thread-batch with CCL
     #+CCL (let* ((mailbox nil)
                  (thread-list (loop for thread-batch in list-of-thread-batches
-                                    for process = (ccl:make-process "line-processing")
-                                    do (ccl:process-preset process #'process-list-of-lines
-                                                           function function-kwargs thread-batch)
-                                    do (ccl:process-enable process)
-                                    collect process)))
+                                 for process = (ccl:make-process "line-processing")
+                                 do (ccl:process-preset process #'process-list-of-lines
+                                                        function function-kwargs thread-batch)
+                                 do (ccl:process-enable process)
+                                 collect process)))
             ;; Wait for messages
             (ccl:process-wait "waiting for threads to finish..." 'all-threads-dead thread-list)
             ;; Read batches from mailbox
@@ -158,7 +158,7 @@
              (while (not (sb-concurrency:mailbox-empty-p mailbox))
                (push (sb-concurrency:receive-message mailbox) mailbox-messages))
              ;; Write batches to outputfile
-             (dolist (list-of-lines (sort mailbox #'< :key #'car))
+             (dolist (list-of-lines (sort mailbox-messages #'< :key #'car))
                (write-to-file outputfile (cdr list-of-lines) write-empty-lines-p))
              ;; Kill processes
              (dolist (thread thread-list)
