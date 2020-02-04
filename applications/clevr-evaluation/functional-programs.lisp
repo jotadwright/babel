@@ -126,7 +126,7 @@
                (dolist (var in-vars)
                  (when (variable-p var)
                    (let ((all-linked (all-linked-predicates current-predicate var irl-program)))
-                     (dolist (p all-linked) (push p stack)))))))
+                     (dolist (p all-linked) (when p (push p stack))))))))
     rpn))
 
 (defun program->program-tree (irl-program)
