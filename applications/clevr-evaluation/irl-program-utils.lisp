@@ -82,4 +82,4 @@
 
 (defun get-target-predicate (irl-program)
   (let ((target-variable (get-target-var irl-program)))
-    (find target-variable irl-program :test #'member)))
+    (find target-variable irl-program :key #'second :test #'eql)))

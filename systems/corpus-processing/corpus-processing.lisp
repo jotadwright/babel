@@ -105,7 +105,7 @@
             list-of-thread-batches))
     
     ;; process each thread-batch with LispWorks
-    #+LW (let* ((mailbox (make-mailbox :name "batch-mailbox"))
+    #+LISPWORKS (let* ((mailbox (make-mailbox :name "batch-mailbox"))
                 (thread-list (mapcar #'(lambda (thread-batch)
                                          (process-run-function "line-processing" '() #'process-list-of-lines
                                                                function function-kwargs thread-batch mailbox))
@@ -173,14 +173,14 @@
                              (apply function line function-kwargs)
                              (funcall function line)))
                        (cdr list-of-lines)))))
-    #+LW (mailbox-send mailbox mailbox-message)
+    #+LISPWORKS (mailbox-send mailbox mailbox-message)
     #+CCL mailbox-message
     #+SBCL (sb-concurrency:send-message mailbox mailbox-message)))
 
 (defun all-threads-dead (thread-list)
   "Returns t if all processes in thread-list are of status dead."
   (let ((all-dead t)
-        (dead-status #+LW "dead"
+        (dead-status #+LISPWORKS "dead"
                      #+CCL "Reset"
                      #+SBCL nil)
         (statuses #+LISPWORKS (mapcar #'mp:process-whostate thread-list)
