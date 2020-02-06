@@ -101,7 +101,7 @@
                                   "not-executed"))))))
 
 (defun encode-irl-program-as-rpn (irl-program)
-  (program->rpn (preprocess-program irl-program)))
+  (program->rpn (preprocess-program-for-web-service irl-program)))
 
 
 ;;;; TO DO: write functions for decoding an IRL program from JSON
