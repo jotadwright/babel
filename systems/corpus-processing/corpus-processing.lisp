@@ -14,8 +14,9 @@
 ;; the following two defparams are used for starting a particular client/inferior lisp 
 (defparameter *inferior-lisps*
   '((sbcl . ("sbcl" ("--noinform" "--disable-debugger")))
-    (ccl . ("ccl" ("--batch" "--quiet")))
-    (lx86cl . ("lx86cl64" ("--batch" "--quiet")))
+    (ccl . #+linux ("lx86cl64" ("--batch" "--quiet"))
+           #+darwin ("dx86cl64" ("--batch" "--quiet"))
+           #+windows ("wx86cl64" ("--batch" "--quiet")))
     (lispworks . ("lispworks" ())))
   "inferior lisps default command line options 
    format is command (arguments)")
