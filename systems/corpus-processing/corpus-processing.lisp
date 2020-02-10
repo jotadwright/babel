@@ -32,6 +32,7 @@
 
 
 (defun process-corpus (&key asdf-system package
+                            (name (make-id "corpus"))
                             function function-kwargs
                             inputfile outputfile
                             (number-of-processes
@@ -60,7 +61,7 @@
   (let ((start-time (get-universal-time))
         (number-of-lines (number-of-lines inputfile))
         (number-of-lines-per-batch (* number-of-processes number-of-lines-per-process))
-        (tmpfile (babel-pathname :directory '(".tmp") :name "corpus-processing"
+        (tmpfile (babel-pathname :directory '(".tmp") :name (downcase (mkstr name))
                                  :type "dat")))
     (format t "~a" number-of-lines)
 
