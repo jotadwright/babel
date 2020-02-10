@@ -30,6 +30,7 @@
                (:file "preprocess-sentence")
                (:file "evaluation")
                (:file "evaluation-parallel")
+               (:file "rpn-corpus")
                (:file "web-monitors")
                (:module fcg-search-experiment
                 :serial t
