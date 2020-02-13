@@ -30,11 +30,11 @@
   "the standard inferior lisp used in run-client-processes")
 
 
-
 (defun process-corpus (&key asdf-system package
                             (name (make-id "corpus"))
                             function function-kwargs
                             inputfile outputfile
+                            (tmpdir (babel-pathname :directory '(".tmp")))
                             (number-of-processes
                              *max-nr-parallel-processes*)
                             (number-of-lines-per-process 2000)
@@ -45,6 +45,12 @@
    A higher number-of-processes results in a higher speed (if these processes are available).
    A higher number-of-lines-per-process results in a higher speed, but also in a higher
    memory use. Every process writes to a temporary file using the name argument."
+
+  ;; Checking some stuff
+  (unless (probe-file inputfile)
+    (error "The file ~a does not exist" inputfile))
+  (ensure-directories-exist outputfile)
+  (ensure-directories-exist tmpdir)
   
    ;; Printing some information
   (format t "~%~%****************** Started Corpus Processing ******************")
@@ -63,8 +69,9 @@
   (let ((start-time (get-universal-time))
         (number-of-lines (number-of-lines inputfile))
         (number-of-lines-per-batch (* number-of-processes number-of-lines-per-process))
-        (tmpfile (babel-pathname :directory '(".tmp") :name (downcase (mkstr name))
-                                 :type "dat")))
+        (tmpfile (merge-pathnames
+                  (make-pathname :name (downcase (mkstr name)) :type "dat")
+                  tmpdir)))
     (format t "~a" number-of-lines)
 
     ;; clear outputfile
