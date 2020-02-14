@@ -450,18 +450,17 @@ hr { border:0px;color:#777;background-color:#777;height:1px;width:100%;}
    static page that can be viewed without a lisp running in the
    background."
   `(let* ((*static-html-output-dir*
-           (babel-pathname 
-            :directory 
-            (append (or *static-html-output-dir* (list ".tmp"))
-                    (list (multiple-value-bind (sec min hour day month year)
-                              (decode-universal-time (get-universal-time))
-                            (format nil "~d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-html" 
-                                    year month day hour min sec))))))
+           (merge-pathnames
+            (make-pathname :directory (list :relative
+                                            (multiple-value-bind (sec min hour day month year)
+                                                (decode-universal-time (get-universal-time))
+                                              (format nil "~d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-html" 
+                                                      year month day hour min sec))))
+            (or *static-html-output-dir* (babel-pathname :directory '(".tmp")))))
           (html-file (merge-pathnames 
                       *static-html-output-dir*
                       (make-pathname :name "index" :type "html")))
-          (js-file (make-pathname :directory (pathname-directory
-                                              *static-html-output-dir*)
+          (js-file (make-pathname :directory (pathname-directory *static-html-output-dir*)
                                   :name "AsyncXMLHttpRequest" :type "js")))
      (setf *static-elements* nil)
      (clear-page)
