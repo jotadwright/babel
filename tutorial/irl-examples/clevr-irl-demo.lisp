@@ -4,7 +4,6 @@
 
 (activate-monitor trace-fcg)
 (activate-monitor trace-irl-in-web-browser)
-(clear-page)
 
 ;; Data needed for demo
 (defparameter *clevr-world* (make-instance 'clevr-world :data-sets '("val")))
@@ -33,100 +32,96 @@
 ;; + CLEVR IRL Demo +
 ;; ##################
 
-(add-element '((h1) ((u) "CLEVR IRL Demo")))
-(add-element '((h2) ((i) "Natural Language Processing 2020-2021")))
-(add-element '((h3) "This document assumes that you have read and are familiar
+(defun header ()
+  (clear-page)
+  (add-element '((h1) ((u) "CLEVR IRL Demo")))
+  (add-element '((h2) ((i) "Natural Language Processing")))
+  (add-element '((h3) "This document assumes that you have read and are familiar
 with the concepts introduced in the paper \"Open-ended Procedural Semantics\"."))
-(add-element '((h3) "In this demo, we give a pratical example of how IRL can
+  (add-element '((h3) "In this demo, we give a pratical example of how IRL can
 be used in emergent communication research."))
-(add-element '((h3) "In particular, we focus on a question-answer type game,
+  (add-element '((h3) "In particular, we focus on a question-answer type game,
 set in the CLEVR environment."))
-(add-element '((hr)))
+  (add-element '((hr))))
 
 
 ;; Part 1: Building blocks of IRL
 ;; ------------------------------
 
-(add-element '((h2) ((i) "The Building Blocks of IRL")))
-(add-element '((h3) "The building blocks of IRL are the semantic entities.
+(defun part-1 ()
+  (add-element '((h2) ((i) "1. The Building Blocks of IRL")))
+  (add-element '((h3) "The building blocks of IRL are the semantic entities.
 These can be used to represent the agent's knowledge (the ontology) and the world model."))
-(add-element '((h3) "The ontology for the CLEVR world contains knowledge about the
+  (add-element '((h3) "The ontology for the CLEVR world contains knowledge about the
 objects and their properties:"))
-(remove-data *clevr-ontology* 'clevr-context)
-(add-element (make-html *clevr-ontology*))
-(add-element '((h3) "Each of these is a semantic category or " ((i) "entity")))
-(add-element (make-html (last-elt (get-data *clevr-ontology* 'shapes))))
-(add-element '((h3) "Entities are also used to represent the CLEVR scenes"))
-(add-element (make-html *scene-1* :expand-initially t))
-(add-element '((h3) "All cognitive operations operate over these semantic entities."))
-(add-element '((h3) "In the CLEVR world, the following primitive operations are
+  (remove-data *clevr-ontology* 'clevr-context)
+  (add-element (make-html *clevr-ontology*))
+  (add-element '((h3) "Each of these is a semantic category or " ((i) "entity")))
+  (add-element (make-html (last-elt (get-data *clevr-ontology* 'shapes))))
+  (add-element '((h3) "Entities are also used to represent the CLEVR scenes"))
+  (add-element (make-html *scene-1* :expand-initially t))
+  (add-element '((h3) "All cognitive operations operate over these semantic entities."))
+  (add-element '((h3) "In the CLEVR world, the following primitive operations are
 available and implemented in multiple directions:"))
-(add-element `((ul)
-               ((li) ,(irl-program->svg '((get-context ?context))))
-               ((li) ,(irl-program->svg '((filter ?target-set ?source-set ?binding))))
-               ((li) ,(irl-program->svg '((query ?target-attribute ?source-object ?binding))))
-               ((li) ,(irl-program->svg '((count! ?target-num ?source-set))))
-               ((li) ,(irl-program->svg '((unique ?target-object ?source-set))))
-               ((li) ,(irl-program->svg '((exist ?target-bool ?source-set))))
-               ((li) ,(irl-program->svg '((intersect ?target-set ?source-set-1 ?source-set-2))))
-               ((li) ,(irl-program->svg '((union! ?target-set ?source-set-1 ?source-set-2))))
-               ((li) ,(irl-program->svg '((relate ?target-set ?source-object ?binding))))
-               ((li) ,(irl-program->svg '((same ?target-set ?source-object ?binding))))
-               ((li) ,(irl-program->svg '((equal-integer ?target-bool ?source-num-1 ?source-num-2))))
-               ((li) ,(irl-program->svg '((less-than ?target-bool ?source-num-1 ?source-num-2))))
-               ((li) ,(irl-program->svg '((greater-than ?target-bool ?source-num-1 ?source-num-2))))
-               ((li) ,(irl-program->svg '((equal? ?target-bool ?source-attribute-1 ?source-attribute-2 ?binding))))))
-(add-element '((hr)))
+  (add-element `((ul)
+                 ((li) ,(irl-program->svg '((get-context ?context))))
+                 ((li) ,(irl-program->svg '((filter ?target-set ?source-set ?binding))))
+                 ((li) ,(irl-program->svg '((query ?target-attribute ?source-object ?binding))))
+                 ((li) ,(irl-program->svg '((count! ?target-num ?source-set))))
+                 ((li) ,(irl-program->svg '((unique ?target-object ?source-set))))
+                 ((li) ,(irl-program->svg '((exist ?target-bool ?source-set))))
+                 ((li) ,(irl-program->svg '((intersect ?target-set ?source-set-1 ?source-set-2))))
+                 ((li) ,(irl-program->svg '((union! ?target-set ?source-set-1 ?source-set-2))))
+                 ((li) ,(irl-program->svg '((relate ?target-set ?source-object ?binding))))
+                 ((li) ,(irl-program->svg '((same ?target-set ?source-object ?binding))))
+                 ((li) ,(irl-program->svg '((equal-integer ?target-bool ?source-num-1 ?source-num-2))))
+                 ((li) ,(irl-program->svg '((less-than ?target-bool ?source-num-1 ?source-num-2))))
+                 ((li) ,(irl-program->svg '((greater-than ?target-bool ?source-num-1 ?source-num-2))))
+                 ((li) ,(irl-program->svg '((equal? ?target-bool ?source-attribute-1 ?source-attribute-2 ?binding))))))
+  (add-element '((hr))))
 
 
 
 ;; Part 2: Executing IRL Networks
 ;; ------------------------------
 
-(add-element '((h2) ((i) "Executing IRL Networks")))
-(add-element '((h3) "The execution of IRL networks is mostly used by the
+(defun part-2 ()
+  (add-element '((h2) ((i) "2. Executing IRL Networks")))
+  (add-element '((h3) "The execution of IRL networks is mostly used by the
 hearer in order to interpret an utterance in the environment."))
-(add-element '((h3) "The language level, in this case Fluid Construction Grammar,
+  (add-element '((h3) "The language level, in this case Fluid Construction Grammar,
 will map the natural language questions from the CLEVR dataset to a procedural
 semantics representation (i.e. an IRL network)."))
-(add-element '((h3) "This network is than executed
+  (add-element '((h3) "This network is than executed
 on the particular CLEVR scene in order to obtain the answer."))
-(add-element '((h3) "Here are some example sentences on the following scene:"))
-(add-element (make-html *scene-1* :expand-initially t))
-(set-data *clevr-ontology* 'clevr-context *scene-1*)
-(let ((meaning (comprehend (preprocess-sentence "Are there any other things that are the same shape as the big metallic object?") :silent t)))
-  (add-element '((h3) ((i) "Are there any other things that are the same shape as the big metallic object?")))
-  (evaluate-irl-program meaning *clevr-ontology*))
-(let ((meaning (comprehend (preprocess-sentence "Is there a big brown object of the same shape as the green thing?") :silent t)))
-  (add-element '((h3) ((i) "Is there a big brown object of the same shape as the green thing?")))
-  (evaluate-irl-program meaning *clevr-ontology*))
-(add-element '((h3) "In these examples, there is no search as all variables except
+  (add-element '((h3) "Here are some example sentences on the following scene:"))
+  (add-element (make-html *scene-1* :expand-initially t))
+  (set-data *clevr-ontology* 'clevr-context *scene-1*)
+  (let ((meaning (comprehend (preprocess-sentence "Are there any other things that are the same shape as the big metallic object?") :silent t)))
+    (add-element '((h3) ((i) "Are there any other things that are the same shape as the big metallic object?")))
+    (evaluate-irl-program meaning *clevr-ontology*))
+  (let ((meaning (comprehend (preprocess-sentence "Is there a big brown object of the same shape as the green thing?") :silent t)))
+    (add-element '((h3) ((i) "Is there a big brown object of the same shape as the green thing?")))
+    (evaluate-irl-program meaning *clevr-ontology*))
+  (add-element '((h3) "In these examples, there is no search as all variables except
 the target variable are bound."))
-(add-element '((h3) "With more unbound variables, the IRL network execution
+  (add-element '((h3) "With more unbound variables, the IRL network execution
 process actually creates a search space and can return multiple solutions,
 as shown by the following example:"))
-(evaluate-irl-program
- '((get-context ?context)
-   (filter ?set-1 ?context ?binding)
-   (unique ?object ?set-1)
-   (query ?target ?object ?attribute)
-   (bind attribute-category ?attribute color)
-   (bind color-category ?target purple))
- *clevr-ontology*)
-(add-element '((hr)))
+  (evaluate-irl-program
+   '((get-context ?context)
+     (filter ?set-1 ?context ?binding)
+     (unique ?object ?set-1)
+     (query ?target ?object ?attribute)
+     (bind attribute-category ?attribute color)
+     (bind color-category ?target purple))
+   *clevr-ontology*)
+  (add-element '((hr))))
 
 
 
 ;; Part 3: Building IRL Networks
 ;; -----------------------------
-
-(add-element '((h2) ((i) "Building IRL Networks")))
-(add-element '((h3) "The speaker will typically use the composer to
-build a semantic network for the thing that it wants to say."))
-(add-element '((h3) "In the context of CLEVR, the speaker would like to
-ask a question to which the answer is the large blue metal cube."))
-(add-element '((h3) "To contain the search space for the purpose of this demo, we don't allow the composer
-to use all cognitive operations of the CLEVR world."))
 
 ;; + Composer Class +
 (defclass program-composer (irl:single-topic-composer)
@@ -235,15 +230,22 @@ to use all cognitive operations of the CLEVR world."))
                  ;; how to expand chunks
                  :expand-chunk-fns (list #'expand-chunk-for-clevr)))
 
-(add-element (make-html *scene-2* :expand-initially t))
-(set-data *clevr-ontology* 'clevr-context *scene-2*)
-(let ((composer (make-default-composer (nth 7 (objects *scene-2*))
-                                       :chunks (mapcar #'irl:create-chunk-from-primitive
-                                                       '(filter get-context unique)))))
-  (irl:get-next-solutions composer))
-
-(add-element '((h3) "The composer finds four solutions that lead to the large blue metal cube."))
-(add-element '((hr)))
+(defun part-3 ()
+  (add-element '((h2) ((i) "3. Building IRL Networks")))
+  (add-element '((h3) "The speaker will typically use the composer to
+build a semantic network for the thing that it wants to say."))
+  (add-element '((h3) "In the context of CLEVR, the speaker would like to
+ask a question to which the answer is the large blue metal cube."))
+  (add-element '((h3) "To contain the search space for the purpose of this demo, we don't allow the composer
+to use all cognitive operations of the CLEVR world."))
+  (add-element (make-html *scene-2* :expand-initially t))
+  (set-data *clevr-ontology* 'clevr-context *scene-2*)
+  (let ((composer (make-default-composer (nth 7 (objects *scene-2*))
+                                         :chunks (mapcar #'irl:create-chunk-from-primitive
+                                                         '(filter get-context unique)))))
+    (irl:get-next-solutions composer))
+  (add-element '((h3) "The composer finds four solutions that lead to the large blue metal cube."))
+  (add-element '((hr))))
 
 
 
@@ -251,67 +253,57 @@ to use all cognitive operations of the CLEVR world."))
 ;; Part 4: Chunking
 ;; -----------------------------
 
-(add-element '((h2) ((i) "Chunking")))
-(add-element '((h3) "The search process generated by the composer
-can get very costly very fast."))
-(add-element '((h3) "To reduce the search space, we
-introduce " ((i) "chunks") ". These are subnetworks that are "
-               ((i) "conventialized.")))
-(add-element '((h3) "A chunk is used in the same way as a regular
-cognitive operation, the difference being that it contains in itself
-a number of these operations."))
-(add-element '((h3) "In the CLEVR world, we could make a chunk
-for an object with a single attribute or for an object with two
-attributes:"))
 (defparameter *chunk-1*
   (irl:create-chunk-from-irl-program
    '((filter ?set-2 ?set-1 ?shape)
      (filter ?set-3 ?set-2 ?attribute))
    :id 'single-attribute-object))
+
 (defparameter *chunk-2*
   (irl:create-chunk-from-irl-program
    '((filter ?set-2 ?set-1 ?shape)
      (filter ?set-3 ?set-2 ?attribute-1)
      (filter ?set-4 ?set-3 ?attribute-2))
    :id 'double-attribute-object))
-(add-element (make-html *chunk-1* :expand-initially t))
-(add-element (make-html *chunk-2* :expand-initially t))
-(add-element '((h3) "The composer can now use these chunks
+
+(defun part-4 ()
+  (add-element '((h2) ((i) "4. Chunking")))
+  (add-element '((h3) "The search process generated by the composer
+can get very costly very fast."))
+  (add-element '((h3) "To reduce the search space, we
+introduce " ((i) "chunks") ". These are subnetworks that are "
+                 ((i) "conventialized.")))
+  (add-element '((h3) "A chunk is used in the same way as a regular
+cognitive operation, the difference being that it contains in itself
+a number of these operations."))
+  (add-element '((h3) "In the CLEVR world, we could make a chunk
+for an object with a single attribute or for an object with two
+attributes:"))
+  (add-element (make-html *chunk-1* :expand-initially t))
+  (add-element (make-html *chunk-2* :expand-initially t))
+  (add-element '((h3) "The composer can now use these chunks
 to find a solution faster"))
-(add-element (make-html *scene-2* :expand-initially t))
-(set-data *clevr-ontology* 'clevr-context *scene-2*)
-(let ((composer (make-default-composer (nth 7 (objects *scene-2*))
-                                       :chunks (append
-                                                (mapcar #'irl:create-chunk-from-primitive
-                                                        '(filter get-context unique))
-                                                (list *chunk-1* *chunk-2*)))))
-  (irl:get-next-solutions composer))
-(add-element '((h3) "In this case, the depth of the search tree was reduced by 1
+  (add-element (make-html *scene-2* :expand-initially t))
+  (set-data *clevr-ontology* 'clevr-context *scene-2*)
+  (let ((composer (make-default-composer (nth 7 (objects *scene-2*))
+                                         :chunks (append
+                                                  (mapcar #'irl:create-chunk-from-primitive
+                                                          '(get-context unique))
+                                                  (list *chunk-1* *chunk-2*)))))
+    (irl:get-next-solutions composer))
+  (add-element '((h3) "In this case, the depth of the search tree was reduced by 1
 using the single attribute chunk."))
+  (add-element '((hr))))
 
 
 
 ;; Part 5: Matching
 ;; ----------------
 
-(add-element '((h2) ((i) "Matching")))
-(add-element '((h3) "IRL offers flexible interpretation. This can be
-used in case of ungrammatical sentences when the hearer can only
-partly parse the utterance."))
-(add-element '((h3) "In this case, the hearer has an incomplete IRL network."))
-(add-element '((h3) "The matcher looks for a IRL network that matches
-the incomplete network and can be successfully executed at the same time."))
-(add-element '((h3) "In other words, the hearer tries to complete the partial
-plan that it received such that it makes sense in his world model."))
-(add-element '((h3) "The matches essentially does the same process as the composer, but
-with a different starting point."))
-(add-element '((h3) "Suppose the hearer only understood the words \"count\" and \"small\"."))
-(add-element '((h3) "It gets a partial program involving some cognitive operations and bind statelents, but
-does not know how these are related."))
+
 (defparameter *partial-meaning*
   '((bind size-category ?size small)
     (count! ?target ?source-set)))
-(add-element (irl-program->svg *partial-meaning*))
 
 (defclass my-composer (irl:chunk-composer)
   ())
@@ -338,20 +330,53 @@ does not know how these are related."))
             nil)))
 
 
-(let ((composer
-       (make-instance 'my-composer
-                      :meaning *partial-meaning*
-                      :initial-chunk (make-instance 'irl:chunk :id 'initial
-                                                    :target-var '(?answer . number)
-                                                    :open-vars '((?answer . number)))
-                      :chunks (mapcar #'irl:create-chunk-from-primitive
-                                      '(get-context filter count!))
-                      :max-search-depth 5
-                      :ontology *clevr-ontology*)))
-  (irl:get-all-solutions composer))
-
-(add-element '((h3) "The matcher finds many different ways to count small things."))
-(add-element '((h1) ((i) "The End")))
-(add-element '((hr)))
+(defun part-5 ()
+  (add-element '((h2) ((i) "5. Matching")))
+  (add-element '((h3) "IRL offers flexible interpretation. This can be
+used in case of ungrammatical sentences when the hearer can only
+partly parse the utterance."))
+  (add-element '((h3) "In this case, the hearer has an incomplete IRL network."))
+  (add-element '((h3) "The matcher looks for a IRL network that matches
+the incomplete network and can be successfully executed at the same time."))
+  (add-element '((h3) "In other words, the hearer tries to complete the partial
+plan that it received such that it makes sense in his world model."))
+  (add-element '((h3) "The matches essentially does the same process as the composer, but
+with a different starting point."))
+  (add-element '((h3) "Suppose the hearer only understood the words \"count\" and \"small\"."))
+  (add-element '((h3) "It gets a partial program involving some cognitive operations and bind statelents, but
+does not know how these are related."))
+  (add-element (irl-program->svg *partial-meaning*))
+  (let ((composer
+         (make-instance 'my-composer
+                        :meaning *partial-meaning*
+                        :initial-chunk (make-instance 'irl:chunk :id 'initial
+                                                      :target-var '(?answer . number)
+                                                      :open-vars '((?answer . number)))
+                        :chunks (mapcar #'irl:create-chunk-from-primitive
+                                        '(get-context filter count!))
+                        :max-search-depth 5
+                        :ontology *clevr-ontology*)))
+    (irl:get-all-solutions composer))
+  (add-element '((h3) "The matcher finds many different ways to count small things."))
+  (add-element '((h1) ((i) "The End")))
+  (add-element '((hr))))
                                
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Full Demo
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun full-demo ()
+  (header)
+  (part-1)
+  (part-2)
+  (part-3)
+  (part-4)
+  (part-5))
+
+;(full-demo)
+
+
+;;;; Static web page
+(setf web-interface::*static-html-output-dir* (make-pathname :directory '(:absolute "tmp" "jnevens")))
+(web-interface:create-static-html-page "clevr-irl-demo" (full-demo))
