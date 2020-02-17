@@ -610,7 +610,9 @@ div.cer table.cer-details img { margin:-15px;margin-top:0px;margin-right:0px; }
      :expand-initially expand-initially)))
 
 (defmethod make-html ((result chunk-composer-node-solution)
-                      &key (expand/collapse-all-id (make-id 'cer))
+                      &key (compressed nil) ;; added to make a compressed representation of solution nodes
+                      ;; specifically handy for static web pages
+                      (expand/collapse-all-id (make-id 'cer))
                       (expand-initially nil))
   (let ((cer-div-id (make-id 'cer))
         (bindings-id (make-id 'bindings))
@@ -632,17 +634,19 @@ div.cer table.cer-details img { margin:-15px;margin-top:0px;margin-right:0px; }
           ((a ,@(make-expand/collapse-link-parameters cer-div-id nil)) ,@title))
          ((table :class "cer-details two-col")
           ((tbody)
-           ((tr)
-            ((td) "node")
-            ((td) ,(make-html (node result) :draw-as-tree nil)))
+           ,@(unless compressed
+              `(((tr)
+                 ((td) "node")
+                 ((td) ,(make-html (node result) :draw-as-tree nil)))))
            ((tr)
             ((td) "chunk")
             ((td) ,(make-html (chunk result)
                               :expand-initially t)))
-           ,@(when (evaluation-tree result)
-                   `(,(make-tr-for-irl-evaluation-search-process 
-                       "evaluation process"
-                       (evaluation-tree result))))
+           ,@(unless compressed
+               (when (evaluation-tree result)
+                 `(,(make-tr-for-irl-evaluation-search-process 
+                     "evaluation process"
+                     (evaluation-tree result)))))
            ((tr)
             ((td) "target entity")
             ((td) ,(make-html (target-entity result))))
