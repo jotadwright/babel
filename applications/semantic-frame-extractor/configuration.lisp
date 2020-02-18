@@ -48,7 +48,7 @@
                        (:production-goal-tests :no-applicable-cxns )
                        (:shuffle-cxns-before-application . t)
                        ;; For guiding search:
-                       (:priority-mode . :depth-first)
+                       (:priority-mode . :nr-of-applied-cxns)
                        (:queue-mode . :depth-first-avoid-duplicates)
                        (:max-search-depth . 100)
                        (:max-nr-of-nodes . 1000))
