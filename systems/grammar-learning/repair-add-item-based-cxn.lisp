@@ -57,8 +57,8 @@ based on existing construction with sufficient overlap."
                (th-link-1 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
                (th-link-2 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
                ;; Args
-               (args-lex-cxn-1 (third (first non-overlapping-meaning-cxn)))
-               (args-lex-cxn-2 (third (first non-overlapping-meaning-observation)))
+               (args-lex-cxn-1 (third (first non-overlapping-meaning-cxn))) ;; third if bind
+               (args-lex-cxn-2 (third (first non-overlapping-meaning-observation))) ;; third if bind
                ;; unit names
                (unit-name-lex-cxn-1 (second (find 'string non-overlapping-form-cxn :key #'first)))
                (unit-name-lex-cxn-2 (second (find 'string non-overlapping-form-observation :key #'first)))

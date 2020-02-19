@@ -77,7 +77,7 @@
 (defun meaning-predicates-with-variables (meaning)
   "Transform meaning network with constants to meaning network with variables."
     (loop for predicate in meaning
-          collect (if (equalp (first predicate) 'bind)
+          collect (if (equal (first predicate) 'bind)
                     (list (first predicate)
                           (second predicate)
                           (variablify (third predicate))
