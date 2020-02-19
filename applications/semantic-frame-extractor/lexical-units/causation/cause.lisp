@@ -7,6 +7,8 @@
                          (slot cause ?frame ?cause)
                          (slot effect ?frame ?effect)))
                (sem-cat (frame causation))
+               (syn-valence (subject ?subject)
+                            (object ?object))
                (sem-valence (actor ?cause)
                             (theme ?effect))
                (referent ?frame))
