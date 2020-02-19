@@ -20,7 +20,7 @@
                                                       "rika" "raso" "puwa" "savi" "vono"
                                                       "tawa" "gogi" "nipi" "niki" "sero"
                                                       "zago"))
-(define-configuration-default-value :input-form :speech) ; :speech or :text
+(define-configuration-default-value :input-form :text) ; :speech or :text
 (define-configuration-default-value :input-lang :en)
 (define-configuration-default-value :printer-name "Canon_SELPHY_CP1300")
 

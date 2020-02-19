@@ -19,9 +19,11 @@
   (make-instance 'demo-experiment
                  :entries '((:robot-port . "7850"))))
 
+;; Switch between text and speech input
 (set-configuration *experiment* :input-form :text)
 (set-configuration *experiment* :input-form :speech)
 
+;; Switch between discourse roles
 (set-configuration *experiment* :determine-interacting-agents-mode :robot-speaker-often)
 (set-configuration *experiment* :determine-interacting-agents-mode :always-hearer)
 (set-configuration *experiment* :determine-interacting-agents-mode :always-speaker)
@@ -29,19 +31,27 @@
 (set-configuration *experiment* :determine-interacting-agents-mode :random-role-for-single-agent)
 (set-configuration *experiment* :determine-interacting-agents-mode :alternating)
 
+;; Run a single game
 (run-interaction *experiment*)
 
+;; Run a series of games
+(run-series *experiment* 5)
+
+;; Get the robot
 (defparameter *experiment-robot*
   (first (population *experiment*)))
 (go-to-posture *experiment-robot* :crouch)
 (take-picture *experiment-robot*)
 (look-direction *experiment-robot* :down 0.8)
 
-(run-series *experiment* 5)
-
+;; Print the lexicon (printer needs to be connected)
 (print-robot-lexicon *experiment*)
 
+;; Reset the experiment
 (destroy *experiment*)
+
+
+
 
 
 ;; For setting up the robot

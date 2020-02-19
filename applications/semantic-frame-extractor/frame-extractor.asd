@@ -11,7 +11,8 @@
                :corpus-processing 
                :cl-json
                :snooze
-               :cl-mop)
+               :cl-mop
+               :trivial-timeout)
   :version "4.0"
   :author "Katrien Beuls, Paul Van Eecke and Vanja Cangalovic"
   :description "A tool for extracting semantic frames from text."

@@ -67,7 +67,9 @@
          (missing-keys (keys-present-p json :texts :frames))
          (texts (rest (assoc :texts json)))
          (frames (rest (assoc :frames json)))
-         (silent (if (assoc :silent json) (rest (assoc :silent json)) t)))
+         (silent (if (assoc :silent json)
+                   (rest (assoc :silent json))
+                   t)))
     (when missing-keys
       (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
     (unless (listp texts)
@@ -78,7 +80,8 @@
     (let ((text-frame-sets (loop for text in texts
                                  for utterances = (get-penelope-sentence-tokens text)
                                  collect (loop for utterance in utterances
-                                               for frame-set = (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
+                                               for frame-set = (handler-case (pie-comprehend-with-timeout utterance silent *fcg-constructions*)
+                                                                             ;(pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
                                                                  (error (e)
                                                                    (snooze:http-condition 500 "Error in precision language processing module!" e)))
                                                when frame-set

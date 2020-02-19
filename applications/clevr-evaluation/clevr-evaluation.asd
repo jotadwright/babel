@@ -8,6 +8,7 @@
   :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
   :license "Babel Research License"
   :depends-on (:utils
+               :corpus-processing
                :plot-raw-data
                :monitors
                :experiment-framework
@@ -29,6 +30,7 @@
                (:file "preprocess-sentence")
                (:file "evaluation")
                (:file "evaluation-parallel")
+               (:file "rpn-corpus")
                (:file "web-monitors")
                (:module fcg-search-experiment
                 :serial t
