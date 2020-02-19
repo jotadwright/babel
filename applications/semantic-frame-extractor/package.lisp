@@ -14,6 +14,7 @@
         :meta-layer-learning
         :cl-json
         :tasks-and-processes
-        :snooze)
+        :snooze
+        :trivial-timeout)
   (:shadow "PROTOTYPE" "PP")
   )
