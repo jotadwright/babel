@@ -34,6 +34,7 @@
                             (name (make-id "corpus"))
                             function function-kwargs
                             inputfile outputfile
+                            start end
                             (tmpdir (babel-pathname :directory '(".tmp")))
                             (number-of-processes
                              *max-nr-parallel-processes*)
@@ -51,6 +52,10 @@
     (error "The file ~a does not exist" inputfile))
   (ensure-directories-exist outputfile)
   (ensure-directories-exist tmpdir)
+  (unless (or (and (numberp start) (numberp end))
+              (and (null start) (null end)))
+    (error "Start and end should be both nil or both numbers. Start is ~a and end is ~a."
+           start end))
   
    ;; Printing some information
   (format t "~%~%****************** Started Corpus Processing ******************")
@@ -67,7 +72,9 @@
   ;; count number of lines in file
   (format t "~%Total number of lines: ")
   (let ((start-time (get-universal-time))
-        (number-of-lines (number-of-lines inputfile))
+        (number-of-lines (if (and start end)
+                           (- end start)
+                           (number-of-lines inputfile)))
         (number-of-lines-per-batch (* number-of-processes number-of-lines-per-process))
         (tmpfile (merge-pathnames
                   (make-pathname :name (downcase (mkstr name)) :type "dat")
@@ -85,7 +92,7 @@
         (floor number-of-lines number-of-lines-per-batch)
       (format t "~%Number of batches: ~a complete + ~a lines in extra batch.~%"
               number-of-complete-batches number-of-lines-in-last-batch)
-      (let ((batch-start 0))
+      (let ((batch-start (if start start 0)))
         ;; process the complete batches
         (dotimes (n number-of-complete-batches)
           (format t "~%Starting complete batch ~a/~a..." (+ 1 n) number-of-complete-batches)
