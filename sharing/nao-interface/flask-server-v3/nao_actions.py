@@ -5,16 +5,16 @@ import naoqi
 from naoqi import ALProxy
 
 class NaoActions(object):
-	'''The class NaoActions controls everything that has to
-	do with robot movement.'''
+    '''The class NaoActions controls everything that has to
+    do with robot movement.'''
 
-	def __init__(self, cfg):
+    def __init__(self, cfg):
         self.cfg = cfg
-		self.motionProxy = ALProxy("ALMotion", cfg.ROBOT_IP, cfg.ROBOT_PORT)
-		self.postureProxy = ALProxy("ALRobotPosture", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.motionProxy = ALProxy("ALMotion", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.postureProxy = ALProxy("ALRobotPosture", cfg.ROBOT_IP, cfg.ROBOT_PORT)
 
 
-	def stiffness_on(self):
+    def stiffness_on(self):
         if not self.motionProxy.robotIsWakeUp():
             self.motionProxy.wakeUp()
 

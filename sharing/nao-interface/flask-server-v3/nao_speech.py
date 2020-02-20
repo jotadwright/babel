@@ -6,18 +6,18 @@ from naoqi import ALProxy
 import time
 
 class NaoSpeech(object):
-	'''The class NaoSpeech controls everything that has to do
-	with speech and speech recognition.'''
+    '''The class NaoSpeech controls everything that has to do
+    with speech and speech recognition.'''
 
-	def __init__(self, cfg):
+    def __init__(self, cfg):
         self.cfg = cfg
-		self.ttsProxy = ALProxy("ALTextToSpeech", cfg.ROBOT_IP, cfg.ROBOT_PORT)
-		self.asrProxy = ALProxy("ALSpeechRecognition", cfg.ROBOT_IP, cfg.ROBOT_PORT)
-		self.memoryProxy = ALProxy("ALMemory", cfg.ROBOT_IP, cfg.ROBOT_PORT)
-		self.ledProxy = ALProxy("ALLeds", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.ttsProxy = ALProxy("ALTextToSpeech", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.asrProxy = ALProxy("ALSpeechRecognition", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.memoryProxy = ALProxy("ALMemory", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.ledProxy = ALProxy("ALLeds", cfg.ROBOT_IP, cfg.ROBOT_PORT)
 
 
-	def say(self, speech):
+    def say(self, speech):
         self.ttsProxy.say(str(speech))
         return True
 

@@ -30,20 +30,20 @@ def check_request_data(request_data, keys):
 
 @nao_server.route("/test_connection", methods=["POST"])
 def make_connection():
-	'''Test the connection by sending back the received message'''
+    '''Test the connection by sending back the received message'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['message'])
     if errors:
         return json.dumps({'errors': errors}), 400
     else:
         return json.dumps({'message': request_data['message'],
-                           'robot_ip': IP,
-                           'robot_port': PORT}), 200
+                           'robot_ip': nao_config.ROBOT_IP,
+                           'robot_port': nao_config.ROBOT_PORT}), 200
 
 
 @nao_server.route("/vision/capture", methods=["POST"])
 def capture_image():
-	'''Capture an image and return the path where it is stored'''
+    '''Capture an image and return the path where it is stored'''
     vision = NaoVision(nao_config)
     pathname = vision.capture()
     return json.dumps({'pathname': pathname}), 200
@@ -51,9 +51,9 @@ def capture_image():
 
 @nao_server.route("/vision/analyse", methods=["POST"])
 def analyze_image():
-	'''Analyze the image at the given pathname.
-	Returns both the data of the analysis and the pathname
-	of the image + bboxes'''
+    '''Analyze the image at the given pathname.
+    Returns both the data of the analysis and the pathname
+    of the image + bboxes'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['filename'])
     if errors:
@@ -67,19 +67,19 @@ def analyze_image():
 
 @nao_server.route("/vision/capture_analyse", methods=["POST"])
 def capture_analyze_image():
-	'''Capture an image and immediately analyse it. This returns
-	the pathname of the original image, the pathname of the image
-	with bbox and the analysis data.'''
+    '''Capture an image and immediately analyse it. This returns
+    the pathname of the original image, the pathname of the image
+    with bbox and the analysis data.'''
     vision = NaoVision(nao_config)
     orig_pathname, bbox_pathname, data = vision.capture_and_analyze()
     return json.dumps({'pathname': orig_pathname,
-    				   'analysis_pathname': bbox_pathname,
+                       'analysis_pathname': bbox_pathname,
                        'data': data}), 200
 
 
 @nao_server.route("/posture/get", methods=["POST"])
 def get_posture():
-	'''Get the current posture'''
+    '''Get the current posture'''
     actions = NaoActions(nao_config)
     current_posture = actions.get_current_posture()
     return json.dumps({'posture': current_posture}), 200
@@ -88,7 +88,7 @@ def get_posture():
 
 @nao_server.route("/posture/set", methods=["POST"])
 def set_posture():
-	'''Set the current posture'''
+    '''Set the current posture'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['posture'])
     if errors:
@@ -104,13 +104,13 @@ def set_posture():
 
 @nao_server.route("/set_joint", methods=["POST"])
 def set_joint():
-	'''Set a certain joint to a given angle'''
+    '''Set a certain joint to a given angle'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['joint', 'value'])
     if errors:
         return json.dumps({'errors': errors}), 400
     else:
-    	actions = NaoActions(nao_config)
+        actions = NaoActions(nao_config)
         if 'speed' in request_data:
             success = actions.set_joint(str(request_data['joint']), request_data['value'])
         else:
@@ -121,7 +121,7 @@ def set_joint():
 
 @nao_server.route("/raise_arm", methods=["POST"])
 def raise_arm():
-	'''Raise Nao's arm'''
+    '''Raise Nao's arm'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['arm'])
     if errors:
@@ -134,7 +134,7 @@ def raise_arm():
 
 @nao_server.route("/move_head", methods=["POST"])
 def move_head():
-	'''Move Nao's head to knod or shake'''
+    '''Move Nao's head to knod or shake'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['yesno'])
     if errors:
@@ -147,7 +147,7 @@ def move_head():
 
 @nao_server.route("/speech/say", methods=["POST"])
 def speak():
-	'''Make Nao say something'''
+    '''Make Nao say something'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['speech'])
     if errors:
@@ -160,20 +160,20 @@ def speak():
 
 @nao_server.route("/speech/start_recognition", methods=["POST"])
 def start_speech_recognition():
-	'''Start the ASR module with a certain vocabulary'''
+    '''Start the ASR module with a certain vocabulary'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['vocabulary'])
     if errors:
         return json.dumps({'errors': errors}), 400
     else:
-    	asr = NaoSpeech(nao_config)
+        asr = NaoSpeech(nao_config)
         subscriber = asr.start_speech_recognition(request_data['vocabulary'])
         return json.dumps({'subscriber': subscriber}), 200
 
 
 @nao_server.route("/speech/stop_recognition", methods=["POST"])
 def stop_speech_recognition():
-	'''Stop the speech recognition and return the found word'''
+    '''Stop the speech recognition and return the found word'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['subscriber'])
     if errors:
@@ -186,7 +186,7 @@ def stop_speech_recognition():
 
 @nao_server.route("/headtouch/detect", methods=["POST"])
 def detect_headtouch():
-	'''Activate certain touch sensors on the head and wait for touch'''
+    '''Activate certain touch sensors on the head and wait for touch'''
     request_data = request.get_json(force=True)
     errors = check_request_data(request_data, ['region'])
     if errors:
@@ -199,14 +199,14 @@ def detect_headtouch():
 
 @nao_server.route("/headtouch/yes_no", methods=["POST"])
 def yes_no_headtouch():
-	'''Activate the front and back touch sensor
-	and return which one was touched'''
+    '''Activate the front and back touch sensor
+    and return which one was touched'''
     touch = NaoTouch(nao_config)
     result = touch.front_or_back()
     return json.dumps({'result': result}), 200
 
 
-# TO DO:
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -221,10 +221,21 @@ if __name__ == '__main__':
                         default=9559,
                         type=int,
                         help="The robot's port number")
+    parser.add_argument('--server-host',
+                        action='store',
+                        dest='server_host',
+                        default='127.0.0.1',
+                        help='The server host address')
+    parser.add_argument('--server-port',
+                        action='store',
+                        dest='server_port',
+                        default=7850,
+                        help='The server port number')
     cmd = parser.parse_args()
 
     if cmd.robot_ip is not None:
-        IP = cmd.robot_ip
+        nao_config.ROBOT_IP = cmd.robot_ip
     if cmd.robot_port is not None:
-        PORT = cmd.robot_port
-    nao_server.run(host='0.0.0.0', port=80)
+        nao_config.ROBOT_PORT = cmd.robot_port
+    nao_server.run(host=cmd.server_host, port=cmd.server_port)
+

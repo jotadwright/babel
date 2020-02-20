@@ -6,14 +6,14 @@ from naoqi import ALProxy
 import time
 
 class NaoTouch(object):
-	'''The class NaoTouch controls everything that has to do
-	with the touch sensors.'''
+    '''The class NaoTouch controls everything that has to do
+    with the touch sensors.'''
 
-	def __init__(self, cfg):
+    def __init__(self, cfg):
         self.cfg = cfg
-		self.memoryProxy = ALProxy("ALMemory", cfg.ROBOT_IP, cfg.ROBOT_PORT)
-		self.ledProxy = ALProxy("ALLeds", cfg.ROBOT_IP, cfg.ROBOT_PORT)
-		self.front_sensor = "Device/SubDeviceList/Head/Touch/Front/Sensor/Value"
+        self.memoryProxy = ALProxy("ALMemory", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.ledProxy = ALProxy("ALLeds", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.front_sensor = "Device/SubDeviceList/Head/Touch/Front/Sensor/Value"
         self.middle_sensor = "Device/SubDeviceList/Head/Touch/Middle/Sensor/Value"
         self.rear_sensor = "Device/SubDeviceList/Head/Touch/Rear/Sensor/Value"
         self.front_leds = "BrainLedsFront"
@@ -51,9 +51,11 @@ class NaoTouch(object):
                 time.sleep(self.delay)
             self._all_leds_on()
             return True
+        else:
+            return False
 
 
-     def front_or_back(self):
+    def front_or_back(self):
         self._all_leds_on()
         self.ledProxy.off(self.middle_leds)
         while True:
