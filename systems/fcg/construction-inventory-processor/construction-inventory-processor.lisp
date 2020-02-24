@@ -285,6 +285,23 @@
 (defmethod cip-priority ((node cip-node) (mode (eql :nr-of-applied-cxns)))
   (length (all-parents node)))
 
+(defmethod cip-priority ((node cip-node) (mode (eql :nr-of-units-matched)))
+  (if (parent node)
+    (let ((original-cxn (get-original-cxn (first (applied-constructions node)))))
+      (+ (priority (parent node)) ;; priority of the parent
+         ;; number of units matched on
+         (loop for unit in (conditional-part original-cxn)
+               when (comprehension-lock unit)
+               count unit)
+         ;; number of bind statements
+         (reduce #'+ (mapcar #'(lambda (unit)
+                                 (length (find-all 'bind (last-elt
+                                                          (find 'meaning (formulation-lock unit)
+                                                                :key #'second))
+                                                   :key #'first)))
+                             (conditional-part original-cxn)))))
+    0))
+
 (defmethod cip-priority ((node cip-node) (mode (eql :priming)))
   (let ((priming-blackboard-name (if (eql (direction (cip node)) '<-)
                                    :comprehension-priming-data :production-priming-data)))

@@ -107,8 +107,8 @@
                          ;; For guiding search:
                          (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
                          (:node-expansion-mode . :multiple-cxns)
-                         (:priority-mode . :nr-of-applied-cxns)
-                         (:queue-mode . :depth-first)
+                         (:priority-mode . :nr-of-units-matched)
+                         (:queue-mode . :greedy-best-first)
                          (:max-nr-of-nodes . 10000)
                          (:hash-mode . :hash-string-meaning-lex-id))
     :visualization-configurations ((:show-constructional-dependencies . nil)
