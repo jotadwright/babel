@@ -34,10 +34,17 @@
 (define-modify-macro multf (&rest args)
   * "multiplies x with a number")
 
-(defun compose (f g)
-  (declare (function f) (function g))
-  "Return a function h such that (h x) = (f (g x))."
-  #'(lambda (x) (funcall f (funcall g x))))
+(defun compose (&rest functions)
+  "Given an arbitrary number of functions
+   (e.g. f, g and h), return a function F
+   such that (F x) = (f (g (h x)))"
+  (if (= (length functions) 1)
+      (car functions)
+      (lambda (&rest args)
+        (funcall (first functions)
+                 (apply (apply #'compose (rest functions))
+                        args)))))
+
 
 (defun average (list &key (key #'identity))
   "the average of a list"
