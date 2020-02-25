@@ -74,21 +74,21 @@
       (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
     (unless (listp texts)
       (snooze:http-condition 400 "Texts is not a list! Instead, received something of type ~a" (type-of texts)))
-    
     (load-frames frames)
-
-    (let ((text-frame-sets (loop for text in texts
-                                 for utterances = (get-penelope-sentence-tokens text)
-                                 collect (loop for utterance in utterances
-                                               for frame-set = (handler-case (pie-comprehend-with-timeout utterance silent *fcg-constructions*)
-                                                                             ;(pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
-                                                                 (error (e)
-                                                                   (snooze:http-condition 500 "Error in precision language processing module!" e)))
-                                               when frame-set
-                                               collect it))))
-      
-      (encode-json-alist-to-string
-       `((:frame-sets . ,text-frame-sets))))))
+     (handler-case (trivial-timeout:with-timeout (280)
+                     (let ((text-frame-sets (loop for text in texts
+                                                  for utterances = (get-penelope-sentence-tokens text)
+                                                  collect (loop for utterance in utterances
+                                                                for frame-set = (handler-case (pie-comprehend-with-timeout utterance :silent silent :cxn-inventory *fcg-constructions* :strings-as-output t)
+;(pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
+                                                                                  (error (e)
+                                                                                    (snooze:http-condition 500 "Error in precision language processing module!" e)))
+                                                                when frame-set
+                                                                collect it))))
+                       (encode-json-alist-to-string
+                        `((:frame-sets . ,text-frame-sets)))))
+       (trivial-timeout:timeout-error (time-out-error)
+         (snooze:http-condition 500 "Total timeout exceeded, try to send fewer text(s)!" time-out-error)))))
 
 (snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'texts-extract-causes-effects)))
   (let* ((json (handler-case
@@ -105,34 +105,37 @@
       (snooze:http-condition 400 "Texts is not a list! Instead, received something of type ~a" (type-of texts)))
     
     (load-frames '("Causation"))
-    
-    (let* ((text-frame-sets (loop for text in texts
-                                  for utterances = (get-penelope-sentence-tokens text)
-                                  append (loop for utterance in utterances
-                                               for frame-set = (when (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" utterance)
-                                                                   (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
-                                                                 (error (e)
-                                                                   (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" utterance) e))))
-                                               when frame-set
-                                               collect it)))
-           (utterances-with-causes-and-effects (loop for frameset in text-frame-sets
-                                                     for utterance = (utterance frameset)
-                                                     append (loop for entity in (pie::entities frameset)
-                                                                  for cause = (if (or (eql (cause entity) nil)
-                                                                                      (stringp (cause entity)))
-                                                                                (cause entity)
-                                                                                (utterance (cause entity)))
-                                                                  for effect = (if (or (eql (effect entity) nil)
-                                                                                       (stringp (effect entity)))
-                                                                                (effect entity)
-                                                                                (utterance (effect entity)))
-                                                                  when (or cause effect)
-                                                                  collect `((:utterance . ,utterance)
-                                                                             (:cause . ,cause)
-                                                                             (:effect . ,effect))))))
-      
-      (encode-json-alist-to-string
-       `((:causal-relations . ,utterances-with-causes-and-effects))))))
+
+    (handler-case (trivial-timeout:with-timeout (280)
+                    (let* ((text-frame-sets (loop for text in texts
+                                                  for utterances = (get-penelope-sentence-tokens text)
+                                                  append (loop for utterance in utterances
+                                                               for frame-set = (when (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" utterance)
+                                                                                 (handler-case (pie-comprehend-with-timeout utterance :silent silent :cxn-inventory *fcg-constructions*)
+                                                                                   (error (e)
+                                                                                     (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" utterance) e))))
+                                                               when frame-set
+                                                               collect it)))
+                           (utterances-with-causes-and-effects (loop for frameset in text-frame-sets
+                                                                     for utterance = (utterance frameset)
+                                                                     append (loop for entity in (pie::entities frameset)
+                                                                                  for cause = (if (or (eql (cause entity) nil)
+                                                                                                      (stringp (cause entity)))
+                                                                                                (cause entity)
+                                                                                                (utterance (cause entity)))
+                                                                                  for effect = (if (or (eql (effect entity) nil)
+                                                                                                       (stringp (effect entity)))
+                                                                                                 (effect entity)
+                                                                                                 (utterance (effect entity)))
+                                                                                  when (or cause effect)
+                                                                                  collect `((:utterance . ,utterance)
+                                                                                            (:cause . ,cause)
+                                                                                            (:effect . ,effect))))))
+                      
+                      (encode-json-alist-to-string
+                       `((:causal-relations . ,utterances-with-causes-and-effects)))))
+                    (trivial-timeout:timeout-error (time-out-error)
+                      (snooze:http-condition 500 "Total timeout exceeded, try to send fewer text(s)!" time-out-error)))))
 
 
 (snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'texts-extract-causes-effects-indices)))
@@ -150,36 +153,32 @@
       (snooze:http-condition 400 "Texts is not a list! Instead, received something of type ~a" (type-of texts)))
     
     (load-frames '("Causation"))
-    
-    (let* ((text-frame-sets (loop for text in texts
-                                  for utterances = (get-penelope-sentence-tokens text)
-                                  append (loop for utterance in utterances
-                                               for frame-set = (when (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" utterance)
-                                                                 (handler-case (pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions* :strings-as-output nil)
-                                                                 (error (e)
-                                                                   (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" utterance) e))))
-                                               when frame-set
-                                               collect it)))
-           (utterances-with-causes-and-effects (loop for frameset in text-frame-sets
-                                                     for utterance = (utterance frameset)
-                                                     append (loop for entity in (pie::entities frameset)
-                                                                  for cause = (cond ((or (stringp (cause entity))
-                                                                                         (listp (cause entity))
-                                                                                         (null (cause entity)))
-                                                                                     (cause entity))
-                                                                                    (t (utterance (cause entity))))
-                                                                  for effect = (cond ((or (stringp (effect entity))
-                                                                                         (listp (effect entity))
-                                                                                         (null (effect entity)))
-                                                                                     (effect entity))
-                                                                                    (t (utterance (effect entity))))
-                                                                  when (or cause effect)
-                                                                  collect `((:utterance . ,utterance)
-                                                                             (:cause . ,cause)
-                                                                             (:effect . ,effect))))))
-      
-      (encode-json-alist-to-string
-       `((:causal-relations . ,utterances-with-causes-and-effects))))))
+
+    (handler-case (trivial-timeout:with-timeout (280)
+                    (let* ((text-frame-sets (loop for text in texts
+                                                  for utterances = (get-penelope-sentence-tokens text)
+                                                  collect (loop for utterance in utterances
+                                                                for frame-set = (if (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" utterance)
+                                                                                  (handler-case (pie-comprehend-with-timeout utterance :silent silent :cxn-inventory *fcg-constructions* :strings-as-output nil)
+                                                                                    (error (e)
+                                                                                      (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" utterance) e)))
+                                                                                  (make-instance 'frame-set
+                                                                                                 :entities nil
+                                                                                                 :utterance (or utterance "")
+                                                                                                 :id (make-id 'frame-set)))
+                                                                when frame-set
+                                                                collect it)))
+                           (utterances-with-causes-and-effects (loop for framesets in text-frame-sets
+                                                                     collect (loop for frameset in framesets
+                                                                                   for utterance = (utterance frameset)
+                                                                                   append (if (pie::entities frameset)
+                                                                                            (loop for entity in (pie::entities frameset)
+                                                                                                  collect entity)
+                                                                                            `(((:utterance . ,utterance))))))))
+                      (encode-json-alist-to-string
+                       `((:frame-sets . ,text-frame-sets)))))
+      (trivial-timeout:timeout-error (time-out-error)
+        (snooze:http-condition 500 "Total timeout exceeded, try to send fewer text(s)!" time-out-error)))))
 
 
 (snooze:defroute semantic-frame-extractor (:post :application/json (op (eql 'causation-tracker)))
