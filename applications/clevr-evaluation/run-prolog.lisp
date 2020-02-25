@@ -64,6 +64,7 @@
     (with-open-file (data datafile :direction :output
                           :if-exists :supersede
                           :if-does-not-exist :create)
+      (write-line "index, file, batchsize" data)
       (loop for line in (reverse data-lines)
             for list-of-strings = (mapcar #'mkstr line)
             for string = (format nil "~{~a~^, ~}" list-of-strings)
