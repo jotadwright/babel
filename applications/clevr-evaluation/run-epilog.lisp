@@ -21,12 +21,19 @@
   (with-open-file (out outputfile :direction :output
                        :if-exists :supersede
                        :if-does-not-exist :create)
-    (let ((infiles (directory inputdir)))
-      (loop for infile in (sort infiles #'string< :key #'namestring)
-            do (with-open-file (in infile :direction :input)
-                 (loop for line = (read-line in nil nil)
-                       while line
-                       do (write-line line out)))))))
+    (let ((num-files (length
+                      (directory
+                       (make-pathname :directory (namestring inputdir)
+                                      :name :wild :type "csv")))))
+      (loop for i from 0 below num-files
+         for infile = (make-pathname :directory (namestring inputdir)
+                                     :name (format nil "output-batch-~a" i)
+                                     :type "csv")
+           do (format t "Reading from ~a~%" (namestring infile))
+         do (with-open-file (in infile :direction :input)
+              (loop for line = (read-line in nil nil)
+                 while line
+                   do (write-line line out)))))))
         
 
 (defun args->plist (args)
