@@ -79,10 +79,14 @@
                      (let ((text-frame-sets (loop for text in texts
                                                   for utterances = (get-penelope-sentence-tokens text)
                                                   collect (loop for utterance in utterances
-                                                                for frame-set = (handler-case (pie-comprehend-with-timeout utterance :silent silent :cxn-inventory *fcg-constructions* :strings-as-output t)
-;(pie-comprehend utterance :silent silent :cxn-inventory *fcg-constructions*)
-                                                                                  (error (e)
-                                                                                    (snooze:http-condition 500 "Error in precision language processing module!" e)))
+                                                                for frame-set = (if (cl-ppcre:scan-to-strings ".*([ ^][Cc]aus.+|[ ^][Dd]ue to|[ ^][Ll]ea?d(s|ing)? to|[ ^][rR]esult(s|ed|ing)? in|[ ^][Bb]ecause|[ ^][gG][ia]v(e|es|ing|en) rise to).*" utterance)
+                                                                                  (handler-case (pie-comprehend-with-timeout utterance :silent silent :cxn-inventory *fcg-constructions*)
+                                                                                    (error (e)
+                                                                                      (snooze:http-condition 500 (format nil "Error in precision language processing module! Sentence: ~a" utterance) e)))
+                                                                                  (make-instance 'frame-set
+                                                                                                 :entities nil
+                                                                                                 :utterance (or utterance "")
+                                                                                                 :id (make-id 'frame-set)))
                                                                 when frame-set
                                                                 collect it))))
                        (encode-json-alist-to-string
