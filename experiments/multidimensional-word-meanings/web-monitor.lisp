@@ -197,7 +197,7 @@
               graph))
     (reverse graph)))
 
-(defun meaning->s-dot (meaning &key (show-cxns nil))
+(defun meaning->s-dot (meaning &key (show-cxns nil) label)
   (let ((graph '(((s-dot::ranksep "0.3")
                   (s-dot::nodesep "0.5")
                   (s-dot::margin "0")
@@ -211,10 +211,51 @@
                          #-(or :win32 :windows) "Arial")
         (s-dot::height "0.01"))
        (s-dot::node ((s-dot::id "root")
-                     (s-dot::label ""))))
+                     (s-dot::label (if label label "")))))
      graph)
     (loop for (category . certainty) in meaning
           for record = (category->s-dot-node category :show-cxns show-cxns)
+          when (> certainty 0.0)
+          do (push record graph))
+    (loop for (category . certainty) in meaning
+          when (> certainty 0.0)
+          do (push
+              `(s-dot::edge
+                ((s-dot::from ,"root")
+                 (s-dot::to ,(mkdotstr (downcase (mkstr (attribute category)))))
+                 (s-dot::label ,(format nil "~,2f" certainty))
+                 (s-dot::labelfontname #+(or :win32 :windows) "Sans"
+                                       #-(or :win32 :windows) "Arial")
+                 (s-dot::fontsize "8.5")
+                 (s-dot::arrowsize "0.5")))
+              graph))
+    (reverse graph)))
+
+(defun example-meaning->s-dot (meaning &key label)
+  (let ((graph '(((s-dot::ranksep "0.3")
+                  (s-dot::nodesep "0.5")
+                  (s-dot::margin "0")
+                  (s-dot::rankdir "LR"))
+                 s-dot::graph)))
+    (push
+     `(s-dot::record  
+       ((s-dot::style "solid")
+        (s-dot::fontsize "9.5")
+        (s-dot::fontname #+(or :win32 :windows) "Sans"
+                         #-(or :win32 :windows) "Arial")
+        (s-dot::height "0.01"))
+       (s-dot::node ((s-dot::id "root")
+                     (s-dot::label ,(if label label "")))))
+     graph)
+    (loop for (category . certainty) in meaning
+          for record = `(s-dot::record
+                         ,(append '((s-dot::style "dashed"))
+                                  '((s-dot::fontsize "9.5")
+                                    (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                                     #-(or :win32 :windows) "Arial")
+                                    (s-dot::height "0.01")))
+                         (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+                                       (s-dot::label ,(format nil "~a" (downcase (mkstr (attribute category))))))))
           when (> certainty 0.0)
           do (push record graph))
     (loop for (category . certainty) in meaning

@@ -99,17 +99,30 @@
      :y-max y-max
      :open open)))
 
-(defun create-grouped-bars-comparing-strategies (&key experiment-names measure-names)
+(defun create-grouped-bars-comparing-strategies (&key experiment-names measure-names
+                                                      (x-label "") (y-label "")
+                                                      cluster-labels bar-labels
+                                                      (title "") (open t)
+                                                      (y-max nil))
   ;; This functions allows you to plot one or multiple measures for different
   ;; experiments. These will be plotted as grouped bars.
   (format t "~%Creating graph for experiments ~a with measures ~a" experiment-names measure-names)
-  (file-structure->grouped-bar-plot
-    :raw-file-paths
-    (loop for experiment-name in experiment-names
-          collect (loop for measure-name in measure-names
-                        collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name)))
-    :plot-directory '("experiments" "multidimensional-word-meanings" "graphs")
-    :error-bars :stdev))
+  (let ((raw-file-paths
+         (loop for experiment-name in experiment-names
+               collect (loop for measure-name in measure-names
+                             collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name)))))
+    (file-structure->grouped-bar-plot
+     :raw-file-paths raw-file-paths
+     :plot-directory '("experiments" "multidimensional-word-meanings" "graphs")
+     :x-label x-label :y-label y-label
+     :title title
+     :labels-a (if bar-labels bar-labels
+                 (mapcar #'(lambda (path) (first (last path))) (first raw-file-paths)))
+     :labels-b (if cluster-labels cluster-labels
+                (mapcar #'(lambda (path) (first (last (butlast (first path))))) raw-file-paths))
+     :error-bars :stdev
+     :y-max y-max
+     :open open)))
 
 ;;;; cxn -> json
 (defgeneric cxn->json (cxn category-representation)

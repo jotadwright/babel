@@ -37,7 +37,7 @@
               (:data-type . :simulated)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :default) 
+              (:determine-interacting-agents-mode . :tutor-speaks) 
               (:data-sets . ,*baseline-simulated-data-sets*)
               (:max-tutor-utterance-length . ,4))))
 
@@ -47,7 +47,7 @@
               (:data-type . :extracted)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :default)
+              (:determine-interacting-agents-mode . :tutor-speaks)
               (:data-sets . ,*baseline-simulated-data-sets*)
               (:data-path . ,*baseline-extracted-data-path*)
               (:max-tutor-utterance-length . ,4)
@@ -117,53 +117,25 @@
 ;; ---------------------------------
 
 (run-experiments `(
-                   (test-extracted-4
+                   (multi-word
                     ((:experiment-type . :baseline)
-                     (:data-type . :extracted)
+                     (:data-type . :simulated)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
-                     (:training-period . 1000)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:max-tutor-utterance-length . ,4)))
-                   (test-extracted-3
-                    ((:experiment-type . :baseline)
-                     (:data-type . :extracted)
-                     (:scale-world . ,nil)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
-                     (:training-period . 1000)
-                     (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:max-tutor-utterance-length . ,3)))
-                   (test-extracted-2
-                    ((:experiment-type . :baseline)
-                     (:data-type . :extracted)
-                     (:scale-world . ,nil)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
-                     (:training-period . 1000)
-                     (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:max-tutor-utterance-length . ,2)))
-                   (test-extracted-1
-                    ((:experiment-type . :baseline)
-                     (:data-type . :extracted)
-                     (:scale-world . ,nil)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
-                     (:training-period . 1000)
-                     (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:max-tutor-utterance-length . ,1)))
                    )
-                 :number-of-interactions 2000
-                 :number-of-series 1
-                 :monitors (list "export-communicative-success"
+                 :number-of-interactions 10000
+                 :number-of-series 5
+                 :monitors (list ;"export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-lexicon-evolution"
-                                 ;"export-tutor-utterance-length-1"
-                                 ;"export-tutor-utterance-length-2"
-                                 ;"export-tutor-utterance-length-3"
-                                 ;"export-tutor-utterance-length-4"
+                                 "export-tutor-utterance-length-1"
+                                 "export-tutor-utterance-length-2"
+                                 "export-tutor-utterance-length-3"
+                                 "export-tutor-utterance-length-4"
                                  ;"export-tutor-uses-xpos"
                                  ;"export-tutor-uses-ypos"
                                  ;"export-tutor-uses-color"
@@ -181,13 +153,11 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("test-extracted-4"
-                     "test-extracted-3"
-                     "test-extracted-2"
-                     "test-extracted-1")
+ :experiment-names '("final/experiment-type-cogent-data-type-simulated-switch-conditions-after-n-interactions-1000"
+                     "final/experiment-type-cogent-data-type-extracted-switch-conditions-after-n-interactions-1000")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :title nil :end nil)
+ :title nil :start 1001 :end 3500 :captions '("simulated" "extracted"))
 
 (create-graph-comparing-strategies
  :experiment-names '("experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-100"
@@ -208,14 +178,13 @@
  :captions '("min-max" "prototype" "pmm" "exponential")
  :title nil :end 25000)
 
-(create-stacked-bars-comparing-strategies
- :experiment-names '("max-tutor-utterance-length-4-experiment-type-baseline-data-type-simulated"
-                     "max-tutor-utterance-length-4-experiment-type-baseline-data-type-extracted")
+(create-grouped-bars-comparing-strategies
+ :experiment-names '("multi-word")
  :measure-names '("tutor-utterance-length-1"
                   "tutor-utterance-length-2"
                   "tutor-utterance-length-3"
                   "tutor-utterance-length-4")
- :cluster-labels '("simulated" "extracted")
+ :cluster-labels '("tutor word use")
  :bar-labels '("1 word" "2 words" "3 words" "4 words")
  :y-max 1)
 
@@ -235,9 +204,9 @@
  :y-max 1
  :cluster-labels '("switch every 100" "switch every 500" "switch every 1000"))
 
-(with-open-file (stream "/Users/jensnevens/Projects/Babel3/experiments/multidimensional-word-meanings/raw-data/test/communicative-success.lisp")
+(with-open-file (stream "/Users/jensnevens/Projects/Babel3/experiments/multidimensional-word-meanings/raw-data/final/experiment-type-baseline-data-type-simulated/communicative-success.lisp")
   (let ((data (car (read stream))))
-    (average (mapcar #'average data))))
+    (average (mapcar #'average (mapcar #'(lambda (d) (subseq d 2000)) data)))))
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +
