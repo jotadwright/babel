@@ -51,7 +51,7 @@
               (:data-sets . ,*baseline-simulated-data-sets*)
               (:data-path . ,*baseline-extracted-data-path*)
               (:max-tutor-utterance-length . ,4)
-              (:extracted-colour-space . :lab))))
+              (:extracted-colour-space . :hsv))))
 
 (defparameter *cogent-simulated-configuration*
   (make-configuration

@@ -211,7 +211,7 @@
                          #-(or :win32 :windows) "Arial")
         (s-dot::height "0.01"))
        (s-dot::node ((s-dot::id "root")
-                     (s-dot::label (if label label "")))))
+                     (s-dot::label ,(if label label "")))))
      graph)
     (loop for (category . certainty) in meaning
           for record = (category->s-dot-node category :show-cxns show-cxns)
