@@ -8,24 +8,24 @@
     :documentation "The agent's grammar"
     :type fcg-construction-inventory :accessor grammar
     :initform (make-agent-grammar))
-   (context
-    :documentation "The current context (continuous values)"
-    :accessor context :initform nil)
-   (symbolic-context
-    :documentation "The symbolic clevr context"
-    :accessor symbolic-context :initform nil)
-   (topic
-    :documentation "The current topic"
-    :accessor topic :initform nil)
-   (applied-cxns
-    :documentation "The applied cxns"
-    :type list :accessor applied-cxns :initform nil)
-   (discriminative-set
-    :documentation "The discriminative set for the topic"
-    :type list :accessor discriminative-set :initform nil)
-   (parsed-meaning
-    :documentation "The meaning obtained after parsing"
-    :type list :accessor parsed-meaning :initform nil)
+   ;(context
+   ; :documentation "The current context (continuous values)"
+   ; :accessor context :initform nil)
+   ;(symbolic-context
+   ; :documentation "The symbolic clevr context"
+   ; :accessor symbolic-context :initform nil)
+   ;(topic
+   ; :documentation "The current topic"
+   ; :accessor topic :initform nil)
+   ;(applied-cxns
+   ; :documentation "The applied cxns"
+   ; :type list :accessor applied-cxns :initform nil)
+   ;(discriminative-set
+   ; :documentation "The discriminative set for the topic"
+   ; :type list :accessor discriminative-set :initform nil)
+   ;(parsed-meaning
+   ; :documentation "The meaning obtained after parsing"
+   ; :type list :accessor parsed-meaning :initform nil)
    (cxn-history
     :documentation "Maintaining versions of cxns"
     :type list :accessor cxn-history :initform nil))
@@ -147,20 +147,21 @@
   "The tutor uses a symbolic representation of the context and
    computes the minimal discriminative set of attributes"
   (let* ((all-objects-as-alist
-          (loop for object in (objects (context agent))
+          (loop for object in (objects (get-data agent 'clevr-context))
                 collect (cons (id object) (object->alist object))))
+         (topic (get-data agent 'clevr-topic))
          (topic-as-alist
-          (cdr (find (id (topic agent)) all-objects-as-alist :key #'car)))
+          (cdr (find (id topic) all-objects-as-alist :key #'car)))
          (context-as-alist
           (mapcar #'cdr
-                  (remove-if #'(lambda (id) (eql id (id (topic agent))))
+                  (remove-if #'(lambda (id) (eql id (id topic)))
                              all-objects-as-alist :key #'car)))
          (discriminative-set (mapcar #'cdr (discriminate-topic topic-as-alist context-as-alist))))
     (when (and (get-configuration agent :max-tutor-utterance-length)
                (<= (length discriminative-set) (get-configuration agent :max-tutor-utterance-length)))
-      (setf (discriminative-set agent) discriminative-set))
+      (set-data agent 'clevr-conceptualisation discriminative-set))
     (notify conceptualisation-finished agent)
-    (discriminative-set agent)))
+    discriminative-set))
 
 (defparameter *impossible-combinations*
   (append
@@ -177,18 +178,70 @@
           never (and (find name-a cxn-names :test #'string=)
                      (find name-b cxn-names :test #'string=)))))
 
-(defun find-best-concept-index-for-object (object meanings)
-  (loop with best-meaning-index = nil
+(defun get-discriminating-cxn-for-object (agent object cxns meanings)
+  (loop with best-cxn = nil
         with best-similarity = 0
+        with largest-difference = 0
+        for cxn in cxns
         for meaning in meanings
-        for i from 0
-        for similarity = (weighted-similarity object meaning)
-        when (> similarity best-similarity)
-        do (setf best-meaning-index i
-                 best-similarity similarity)
-        finally (return best-meaning-index)))
+        for object-similarity = (weighted-similarity object meaning)
+        for best-other-similarity
+        = (when (> object-similarity 0)
+            (loop for other in (remove object (objects (get-data agent 'context)))
+                  maximize (weighted-similarity other meaning)))
+        for diff = (when best-other-similarity
+                     (- object-similarity best-other-similarity))
+        when (and object-similarity best-other-similarity
+                  (> object-similarity best-other-similarity)
+                  (> diff largest-difference)
+                  (> object-similarity best-similarity))
+        do (setf best-cxn cxn
+                 best-similarity object-similarity
+                 largest-difference diff)
+        finally (return best-cxn)))
 
+(defun get-best-cxn-for-others (agent cxns meanings)
+  (loop for object in (remove (get-data agent 'topic)
+                              (objects (get-data agent 'context)))
+        collect (loop with best-cxn = nil
+                      with best-similarity = 0
+                      for cxn in cxns
+                      for meaning in meanings
+                      for object-similarity = (weighted-similarity object meaning)
+                      when (> object-similarity best-similarity)
+                      do (setf best-cxn cxn
+                               best-similarity object-similarity)
+                      finally (return best-cxn))))
+
+#|(defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
+  (when (constructions (grammar agent))
+    (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
+          for cxns = (if (= i 1) (constructions (grammar agent))
+                       (remove-if-not #'valid-combination-p
+                                      (combinations-of-length
+                                       (constructions (grammar agent)) i)))
+          for meanings = (loop for elem in cxns
+                               if (listp elem)
+                               collect (reduce #'fuzzy-union
+                                               (mapcar #'(lambda (cxn) (attr-val cxn :meaning))
+                                                       elem))
+                               else collect (attr-val elem :meaning))
+          for topic-cxn
+          = (get-discriminating-cxn-for-object agent (get-data agent 'topic) cxns meanings)
+          for other-cxns
+          = (when topic-cxn
+              (get-best-cxn-for-others agent cxns meanings))
+          unless (member topic-cxn other-cxns :test #'equal)
+          do (progn (set-data agent 'applied-cxns
+                              (if (listp topic-cxn) topic-cxn (list topic-cxn)))
+               (return))))
+  (notify conceptualisation-finished agent)
+  (find-data agent 'applied-cxns))|#
+          
+          
 (defmethod conceptualise ((agent mwm-agent) (role (eql 'learner)))
+  "The learner conceptualises the topic"
+  ;; for the moment, there is no incentive for the learner to take the minimal discriminative utterance
   (when (constructions (grammar agent))
     (let* ((cxns (loop for i from 1 to (get-configuration agent :max-tutor-utterance-length)
                        append (if (= i 1) (constructions (grammar agent))
@@ -200,17 +253,19 @@
                                            (mapcar #'(lambda (cxn)
                                                        (attr-val cxn :meaning))
                                                    cxn))
-                           else collect (attr-val cxn :meaning))))
+                           else collect (attr-val cxn :meaning)))
+           (topic (get-data agent 'topic))
+           (context (objects (get-data agent 'context))))
       (when meanings
         (loop with best-cxn = nil
               with best-similarity = 0
               with largest-difference = 0
               for cxn in cxns
               for meaning in meanings
-              for topic-similarity = (weighted-similarity (topic agent) meaning)
+              for topic-similarity = (weighted-similarity topic meaning)
               for best-other-similarity
               = (when (> topic-similarity 0)
-                  (loop for object in (remove (topic agent) (objects (context agent)))
+                  (loop for object in (remove topic context)
                         maximize (weighted-similarity object meaning)))
               for diff = (when best-other-similarity
                            (- topic-similarity best-other-similarity))
@@ -221,11 +276,11 @@
               do (setf best-cxn cxn
                        best-similarity topic-similarity
                        largest-difference diff)
-              finally (setf (applied-cxns agent)
-                            (if (listp best-cxn) best-cxn
-                              (list best-cxn)))))
-      (notify conceptualisation-finished agent)
-      (applied-cxns agent))))
+              finally (set-data agent 'applied-cxns
+                                (if (listp best-cxn) best-cxn
+                                  (list best-cxn)))))))
+  (notify conceptualisation-finished agent)
+  (find-data agent 'applied-cxns))
                                  
 
 ;; --------------
@@ -250,18 +305,18 @@
    synonyms."
   (setf (utterance agent)
         (if (get-configuration agent :lexical-variation)
-          (loop for attr in (discriminative-set agent)
+          (loop for attr in (get-data agent 'clevr-conceptualisation)
                 for synonyms = (rest (assoc attr *synonyms*))
                 collect (random-elt synonyms))
           (mapcar (compose #'downcase #'mkstr)
-                  (discriminative-set agent))))
+                  (get-data agent 'clevr-conceptualisation))))
   (notify production-finished agent)
   (utterance agent))
 
 (defmethod produce-word ((agent mwm-agent) (role (eql 'learner)))
-  (when (applied-cxns agent)
+  (when (find-data agent 'applied-cxns)
     (setf (utterance agent)
-          (loop for cxn in (applied-cxns agent)
+          (loop for cxn in (find-data agent 'applied-cxns)
                 collect (attr-val cxn :form))))
   (notify production-finished agent)
   (utterance agent))
@@ -287,11 +342,13 @@
       (let ((all-meanings
              (loop for cxn in (applied-constructions cipn)
                    collect (attr-val cxn :meaning))))
-        (setf (applied-cxns agent) (mapcar #'get-original-cxn
-                                           (applied-constructions cipn))
-              (parsed-meaning agent) (reduce #'fuzzy-union all-meanings))))
-    (notify parsing-finished agent)
-    (parsed-meaning agent)))
+        (set-data agent 'applied-cxns
+                  (mapcar #'get-original-cxn
+                          (applied-constructions cipn)))
+        (set-data agent 'parsed-meaning
+                  (reduce #'fuzzy-union all-meanings)))))
+  (notify parsing-finished agent)
+  (find-data agent 'parsed-meaning))
 
 ;; ------------------
 ;; + Interpretation +
@@ -304,8 +361,7 @@
 (defun match-utterance-to-objects (objects utterance)
   (let ((all-objects-as-alist
          (loop for object in objects
-               collect (cons (id object)
-                             (object->alist object)))))
+               collect (cons (id object) (object->alist object)))))
     (loop for (id . object) in all-objects-as-alist
           for object-attributes = (mapcar (compose #'downcase #'mkstr #'cdr) object)
           when (loop for form in utterance
@@ -333,42 +389,24 @@
   ;; all objects that are indeed blue. If the tutor finds more
   ;; than one object, interpretation fails.
   ;; this should also work for multi-word utterances.
-  (let* ((all-objects-as-alist
-          (loop for object in (objects (context agent))
-                collect (cons (id object) (object->alist object))))
-         (objects-with-utterance
-          (match-utterance-to-objects (objects (context agent))
-                                      (utterance agent))))    
+  (let ((objects-with-utterance
+         (match-utterance-to-objects (objects (get-data agent 'clevr-context)) (utterance agent))))    
     (when (and objects-with-utterance
                (length= objects-with-utterance 1))
-      (setf (topic agent) (first objects-with-utterance)))
-
-    #|(unless (length= objects-with-utterance 1)
-      (add-element `((h2) ,(format nil "Error at interaction ~a"
-                                   (interaction-number (current-interaction (experiment agent))))))
-      (add-element `((h3) ,(format nil "Tutor could interpret ~a objects"
-                                   (length objects-with-utterance))))
-      (add-element '((h3) "Current scene:"))
-      (add-element (make-html (context agent)))
-      (add-element `((h3) ,(format nil "Topic: ~a"
-                                   (id (topic (find 'learner (population (experiment agent)) :key #'id))))))
-      (add-element `((h3) ,(format nil "Utterance: ~{~a~^,~}" (utterance agent))))
-      (add-element '((h3) "Objects as a-list"))
-      (add-element (html-pprint all-objects-as-alist))
-      (add-element '((hr))))|#
-    )
+      (set-data agent 'interpreted-topic (first objects-with-utterance))))
   (notify interpretation-finished agent)
-  (topic agent))
+  (find-data agent 'interpreted-topic))
     
           
 (defmethod interpret ((agent mwm-agent) (role (eql 'learner)))
   "The agent computes the weighted similarity between the parsed-meaning
    and each of the objects in the context. The topic is the
    object for which this value is maximized."
-  (when (parsed-meaning agent)
+  (when (find-data agent 'parsed-meaning)
     (let* ((objects-with-similarity
-            (loop for object in (objects (context agent))
-                  for sim = (weighted-similarity object (parsed-meaning agent))
+            (loop with parsed-meaning = (find-data agent 'parsed-meaning)
+                  for object in (objects (get-data agent 'context))
+                  for sim = (weighted-similarity object parsed-meaning)
                   collect (cons object sim)))
            ;; if two objects have exactly the same
            ;; maximum similarity, interpretation fails
@@ -379,45 +417,26 @@
                                   objects-with-similarity
                                   :key #'cdr :test #'=)
                            1)))
-      (setf (topic agent)
-            (unless duplicatesp maybe-topic))))
+      (set-data agent 'interpreted-topic
+                (unless duplicatesp maybe-topic))))
   (notify interpretation-finished agent)
-  (topic agent))
+  (find-data agent 'interpreted-topic))
               
 
 ;; ---------------------
 ;; + Determine success +
 ;; ---------------------
-(defun closest-to-topic (speaker hearer-context)
-  (let* ((topic (topic speaker))
-         (topic-x (typecase topic
-                    (clevr-object (x-pos topic))
-                    (mwm-object (get-attr-val topic 'x-pos))))
-         (topic-y (typecase topic
-                    (clevr-object (y-pos topic))
-                    (mwm-object (get-attr-val topic 'y-pos)))))
-    (the-smallest #'(lambda (object)
-                      (abs
-                       (euclidean (list topic-x topic-y)
-                                  (list (get-attr-val object 'xpos)
-                                        (get-attr-val object 'ypos)))))
-                  (objects hearer-context))))
 
 (defgeneric determine-success (speaker hearer)
   (:documentation "Determine the success of the interaction"))
 
 (defmethod determine-success ((speaker mwm-agent) (hearer mwm-agent))
-  ;; the way to determine success depends on the :data-type
-  ;; and on who is speaker and who is hearer
-  (if (eql (get-configuration speaker :data-type) :simulated)
-    (when (and (topic speaker) (topic hearer))
-      (eql (id (topic speaker)) (id (topic hearer))))
-    (if (eql (id speaker) 'tutor)
-      (when (and (topic speaker) (topic hearer))
-        (eql (closest-to-topic speaker (context hearer))
-             (topic hearer)))
-      (when (and (topic speaker) (topic hearer))
-        (eql (topic speaker)
-             (closest-to-topic hearer (context speaker)))))))
+  (if (and (eql (id speaker) 'tutor) (eql (id hearer) 'learner))
+    (and (find-data hearer 'interpreted-topic)
+         (eql (id (get-data speaker 'topic))
+              (id (get-data hearer 'interpreted-topic))))
+    (and (find-data hearer 'interpreted-topic)
+         (eql (id (get-data speaker 'clevr-topic))
+              (id (get-data hearer 'interpreted-topic))))))
   
 

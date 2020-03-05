@@ -47,7 +47,8 @@
               (:data-type . :extracted)
               (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:determine-interacting-agents-mode . :default)
+              (:training-period . 2000)
               (:data-sets . ,*baseline-simulated-data-sets*)
               (:data-path . ,*baseline-extracted-data-path*)
               (:max-tutor-utterance-length . ,4)
@@ -103,7 +104,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 500)
+(run-series *experiment* 10)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 (lexicon->pdf (find 'learner (population *experiment*) :key #'id)
@@ -116,19 +117,25 @@
 ;; + Running series of experiments +
 ;; ---------------------------------
 
+;(define-configuration-default-value :alignment-filter :all) ; :none - :at-least-one - :all
+
 (run-experiments `(
-                   (multi-word
+                   (test
                     ((:experiment-type . :baseline)
-                     (:data-type . :simulated)
+                     (:data-type . :extracted)
                      (:scale-world . ,nil)
                      (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:determine-interacting-agents-mode . :default)
+                     (:training-period . 2000)
                      (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:max-tutor-utterance-length . ,4)))
+                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:max-tutor-utterance-length . ,4)
+                     (:extracted-colour-space . :hsv)
+                     (:alignment-filter . :all)))
                    )
-                 :number-of-interactions 10000
-                 :number-of-series 5
-                 :monitors (list ;"export-communicative-success"
+                 :number-of-interactions 2500
+                 :number-of-series 1
+                 :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-lexicon-evolution"
@@ -145,7 +152,15 @@
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "test-extracted"
+ :experiment-name "test"
+ :measure-names '("communicative-success")
+ :y-axis '(1)
+ :y1-max 1
+ :xlabel "Number of games"
+ :y1-label "Success")
+
+(create-graph-for-single-strategy
+ :experiment-name "test-extracted-filter-one"
  :measure-names '("communicative-success")
  :y-axis '(1)
  :y1-max 1
@@ -153,33 +168,17 @@
  :y1-label "Success")
 
 (create-graph-comparing-strategies
- :experiment-names '("final/experiment-type-cogent-data-type-simulated-switch-conditions-after-n-interactions-1000"
-                     "final/experiment-type-cogent-data-type-extracted-switch-conditions-after-n-interactions-1000")
+ :experiment-names '("bidirectional-learner-extracted-1"
+                     "bidirectional-learner-extracted-2"
+                     "bidirectional-learner-extracted-3"
+                     "bidirectional-learner-extracted-4")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
  :title nil :start 1001 :end 3500 :captions '("simulated" "extracted"))
 
-(create-graph-comparing-strategies
- :experiment-names '("experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-100"
-                     "experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-500"
-                     "experiment-type-incremental-data-type-extracted-switch-conditions-after-n-interactions-1000")
- :measure-name "communicative-success"
- :y-min 0.6 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :captions '("switch every 100" "switch every 500" "switch every 1000")
- :title nil :end 5000)
-
-(create-graph-comparing-strategies
- :experiment-names '("data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-min-max"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-prototype-min-max"
-                     "data-type-simulated-experiment-type-incremental-switch-conditions-after-n-interactions-5000-category-representation-exponential")
- :measure-name "lexicon-size"
- :y-min 0 :y-max nil :xlabel "Number of games" :y1-label "Lexicon Size"
- :captions '("min-max" "prototype" "pmm" "exponential")
- :title nil :end 25000)
-
-(create-grouped-bars-comparing-strategies
- :experiment-names '("multi-word")
+(create-stacked-bars-comparing-strategies
+ :experiment-names '("max-tutor-utterance-length-4-experiment-type-baseline-data-type-simulated"
+                     "max-tutor-utterance-length-4-experiment-type-baseline-data-type-extracted")
  :measure-names '("tutor-utterance-length-1"
                   "tutor-utterance-length-2"
                   "tutor-utterance-length-3"
@@ -188,23 +187,7 @@
  :bar-labels '("1 word" "2 words" "3 words" "4 words")
  :y-max 1)
 
-(create-stacked-bars-comparing-strategies
- :experiment-names '("experiment-type-incremental-data-type-simulated-switch-conditions-after-n-interactions-100"
-                     "experiment-type-incremental-data-type-simulated-switch-conditions-after-n-interactions-500"
-                     "experiment-type-incremental-data-type-simulated-switch-conditions-after-n-interactions-1000")
- :measure-names '("tutor-uses-xpos"
-                  "tutor-uses-ypos"
-                  "tutor-uses-color"
-                  "tutor-uses-size"
-                  "tutor-uses-material"
-                  "tutor-uses-shape")
- :bar-labels '("xpos" "ypos"
-               "color" "size"
-               "material" "shape")
- :y-max 1
- :cluster-labels '("switch every 100" "switch every 500" "switch every 1000"))
-
-(with-open-file (stream "/Users/jensnevens/Projects/Babel3/experiments/multidimensional-word-meanings/raw-data/final/experiment-type-baseline-data-type-simulated/communicative-success.lisp")
+(with-open-file (stream "/Users/jensnevens/Projects/Babel3/experiments/multidimensional-word-meanings/raw-data/test/communicative-success.lisp")
   (let ((data (car (read stream))))
     (average (mapcar #'average (mapcar #'(lambda (d) (subseq d 2000)) data)))))
 
@@ -226,12 +209,14 @@
 
 (create-game-outcome-graph
  :configurations `((:experiment-type . :baseline)
-                   (:data-type . :simulated)
+                   (:data-type . :extracted)
                    (:scale-world . ,nil)
                    (:category-representation . :prototype)
-                   (:determine-interacting-agents-mode . :default)
-                   (:training-period . 0)
+                   (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
+                   (:training-period . 2000)
                    (:data-sets . ,*baseline-simulated-data-sets*)
                    (:data-path . ,*baseline-extracted-data-path*)
-                   (:max-tutor-utterance-length . ,4))
+                   (:max-tutor-utterance-length . ,4)
+                   (:extracted-colour-space . :lab)
+                   (:alignment-filter . :all))
  :nr-of-interactions 5000)

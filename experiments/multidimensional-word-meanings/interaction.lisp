@@ -2,11 +2,18 @@
 
 (defun clear-agent (agent)
   "Clear the slots of the agent for the next interaction."
-  (setf (applied-cxns agent) nil
-        (discriminative-set agent) nil
-        (utterance agent) nil
-        (communicated-successfully agent) nil
-        (parsed-meaning agent) nil))
+  (setf (blackboard agent) nil)
+  (setf (utterance agent) nil
+        (communicated-successfully agent) nil))
+
+(defun closest (topic clevr-context)
+  (let ((topic-x (get-attr-val topic 'xpos))
+        (topic-y (get-attr-val topic 'ypos)))
+    (the-smallest #'(lambda (object)
+                      (abs (euclidean (list topic-x topic-y)
+                                      (list (x-pos object)
+                                            (y-pos object)))))
+                  (objects clevr-context))))
 
 ;;;; before-interaction
 (defgeneric before-interaction (experiment)
@@ -24,22 +31,27 @@
             (clevr->extracted symbolic-clevr-context
                               :directory (find-data experiment :data-path)
                               :scale (get-configuration experiment :scale-world)
-                              :colour (get-configuration experiment :extracted-colour-space)))))
+                              :colour (get-configuration experiment :extracted-colour-space))))
+         (mwm-context (if (eql data-type :simulated)
+                        simulated-clevr-context
+                        (when (length> (objects extracted-clevr-context) 1)
+                          extracted-clevr-context)))
+         (topic (when mwm-context (random-elt (objects mwm-context)))))
+    ;; context = the learner's context
+    ;; topic = the topic in the learner's context
+    ;; clevr-context = the tutor's context
+    ;; clevr-topic = the topic in the tutor's context
     (loop for agent in (interacting-agents experiment)
-          do (setf (context agent)
-                   (if (learnerp agent)
-                     (if (eql data-type :simulated)
-                       simulated-clevr-context
-                       (if (> (length (objects extracted-clevr-context)) 1)
-                         extracted-clevr-context
-                         nil))
-                     symbolic-clevr-context))
-          do (setf (symbolic-context agent) symbolic-clevr-context)
-          do (setf (topic agent)
-                   (when (speakerp agent)
-                     (random-elt (objects (context agent)))))
-          do (clear-agent agent))
-    (unless (context (hearer experiment))
+          do (clear-agent agent)
+          do (set-data agent 'context mwm-context)
+          do (set-data agent 'clevr-context symbolic-clevr-context)
+          do (set-data agent 'topic topic)
+          do (set-data agent 'clevr-topic
+                       (when topic
+                         (if (eql data-type :simulated)
+                           (find (id topic) (objects symbolic-clevr-context) :key #'id)
+                           (closest topic symbolic-clevr-context)))))
+    (unless (find-data (hearer experiment) 'context)
       (before-interaction experiment))
     (notify context-determined experiment)))
 
@@ -59,20 +71,15 @@
 (defmethod conceptualise-until-success ((agent mwm-agent) (role (eql 'learner)))
   "In some cases, the tutor cannot even discriminate the topic.
    If this is the case, the learner should not even try"
-  (case (get-configuration agent :data-type)
-    (:simulated
-     (let ((tutor (find 'tutor (population (experiment agent)) :key #'id)))
-       (loop while t
-             for possible-to-discriminate
-             = (progn (setf (topic tutor) (topic agent))
-                 (conceptualise tutor (id tutor)))
-             if possible-to-discriminate
-             do (progn (setf (topic tutor) nil)
-                  (conceptualise agent (id agent))
-                  (return))
-             else
-             do (before-interaction (experiment agent)))))
-    (:extracted (conceptualise agent (id agent)))))
+  (let ((tutor (find 'tutor (population (experiment agent)) :key #'id)))
+    (loop while t
+          for possible-to-conceptualise-symbolically
+          = (with-disabled-monitors (conceptualise tutor (id tutor)))
+          if possible-to-conceptualise-symbolically
+          do (progn (conceptualise agent (id agent))
+               (return))
+          else
+          do (before-interaction (experiment agent)))))
 
 (defmethod do-interaction ((experiment mwm-experiment))
   "The tutor conceptualises the topic and produces
@@ -103,24 +110,21 @@
       ;; alignment when tutor is speaker
       (tutor (let ((tutor (speaker experiment))
                    (learner (hearer experiment)))
-               (when (discriminative-set tutor)
-                 (let ((topic (if (eql (get-configuration experiment :data-type) :simulated)
-                                (find (id (topic tutor)) (objects (context learner)) :key #'id)
-                                (closest-to-topic tutor (context learner)))))
-                   (align-agent learner topic)))))
+               (when (find-data tutor 'clevr-conceptualisation)
+                 (align-agent learner (get-data learner 'topic)))))
       ;; alignment when learner is speaker
       ;; reasons for failure:
       ;; - the learner could not conceptualise --> do nothing
-      ;; - the tutor's interpretation failed --> do nothing
+      ;; - the tutor's interpretation failed 
+      ;;   because the learner said too much/too little/the wrong things
+      ;;   --> how to align?
       ;; - the tutor's and learner's topics are not equal --> do alignment
       ;; or there was success --> do alignment
       (learner (let ((tutor (hearer experiment))
                      (learner (speaker experiment)))
-                 (when (and (applied-cxns learner) (topic tutor))
-                   (let ((topic (if (eql (get-configuration experiment :data-type) :simulated)
-                                  (find (id (topic tutor)) (objects (context learner)) :key #'id)
-                                  (closest-to-topic tutor (context learner)))))
-                     (align-agent learner topic))))))))
+                 (when (and (find-data learner 'applied-cxns)
+                            (find-data tutor 'interpreted-topic))
+                   (align-agent learner (get-data learner 'topic))))))))
 
                 
 

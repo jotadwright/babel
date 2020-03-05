@@ -31,24 +31,29 @@
 
 (defun find-discriminating-attributes (agent concept topic)
   "Find all attributes that are discriminating for the topic"
-  (let ((context (remove topic (objects (context agent)))))
+  (let ((context (remove topic (objects (get-data agent 'context)))))
     (loop with discriminating-attributes = nil
           for (category . certainty) in concept
           for topic-similarity = (similarity topic category)
           for best-other-similarity
-          = (loop for object in context
-                  maximize (similarity object category))
-          when (> topic-similarity best-other-similarity)
+          = (when (> topic-similarity 0)
+              (loop for object in context
+                    maximize (similarity object category)))
+          when (and topic-similarity best-other-similarity
+                    (> topic-similarity best-other-similarity))
           do (push (attribute category) discriminating-attributes)
           finally
           (progn (notify found-discriminating-attributes discriminating-attributes)
             (return discriminating-attributes)))))
 
 
-(defun filter-subsets (all-subsets discriminating-attributes)
+(defmethod filter-subsets (all-subsets discriminating-attributes (mode (eql :none)))
+  (declare (ignorable discriminating-attributes))
+  all-subsets)
+
+(defmethod filter-subsets (all-subsets discriminating-attributes (mode (eql :all)))
   "Filter all subsets with the discriminating attributes, only
-   keeping those subsets where all discriminating attributes
-   occur in"
+   keeping those subsets where all discriminating attributes occur in"
   (loop with applicable-subsets = nil
         for subset in all-subsets
         for subset-attributes
@@ -57,13 +62,27 @@
         do (push subset applicable-subsets)
         finally
         (return applicable-subsets)))
+
+(defmethod filter-subsets (all-subsets discriminating-attributes (mode (eql :at-least-one)))
+  "Filter all subsets with the discriminating attributes, only
+   keeping those subsets where at least one discriminating attribute occurs in"
+  (loop with applicable-subsets = nil
+        for subset in all-subsets
+        for subset-attributes
+        = (mapcar #'attribute (mapcar #'car subset))
+        unless (null (intersection discriminating-attributes subset-attributes))
+        do (push subset applicable-subsets)
+        finally
+        (return applicable-subsets)))
         
                       
 (defun find-most-discriminating-subset (agent subsets topic)
   "Find the subset that maximizes the difference in similarity
    between the topic and the best other object"
-  (let ((context (remove topic (objects (context agent))))
-        best-subset largest-diff)
+  (let ((context (remove topic (objects (get-data agent 'context))))
+        (best-subset nil)
+        (largest-diff 0)
+        (best-similarity 0))
     (dolist (subset subsets)
       (let ((topic-similarity (weighted-similarity topic subset)))
         (when (> topic-similarity 0)
@@ -71,22 +90,24 @@
                   (loop for object in context
                         maximize (weighted-similarity object subset)))
                  (diff (- topic-similarity best-other-similarity)))
-            (when (or (null best-subset)
-                      (> diff largest-diff))
+            (when (and (> topic-similarity best-other-similarity)
+                       (> diff largest-diff)
+                       (> topic-similarity best-similarity))
               (setf best-subset subset
-                    largest-diff diff))))))
+                    largest-diff diff
+                    best-similarity topic-similarity))))))
     (notify found-subset-to-reward best-subset)
     best-subset))
 
 (defun get-meaning-to-update (agent)
   (if (hearerp agent)
-    (parsed-meaning agent)
-    (if (length= (applied-cxns agent) 1)
-      (attr-val (first (applied-cxns agent)) :meaning)
+    (find-data agent 'parsed-meaning)
+    (if (length= (find-data agent 'applied-cxns) 1)
+      (attr-val (first (find-data agent 'applied-cxns)) :meaning)
       (reduce #'fuzzy-union
               (mapcar #'(lambda (cxn)
                           (attr-val cxn :meaning))
-                      (applied-cxns agent))))))
+                      (find-data agent 'applied-cxns))))))
           
 
 (defgeneric align-known-words (agent topic words categories)
@@ -105,13 +126,14 @@
     (loop for (category . certainty) in meaning-to-update
           do (update-category category topic
                               :success (communicated-successfully agent)
-                              :interpreted-object (topic agent)))
+                              :interpreted-object (find-data agent 'interpreted-topic)))
     ;; update certainties
     (let* ((discriminating-attributes
             (find-discriminating-attributes agent meaning-to-update topic))
            (all-subsets (all-subsets meaning-to-update))
            (subsets-to-consider
-            (filter-subsets all-subsets discriminating-attributes))
+            (filter-subsets all-subsets discriminating-attributes
+                            (get-configuration agent :alignment-filter)))
            (best-subset
             (find-most-discriminating-subset agent subsets-to-consider topic)))
       ;; store the rewarded and punished attributes per cxn
@@ -133,7 +155,7 @@
                                    (get-configuration agent :certainty-decf)
                                    :remove-on-lower-bound (get-configuration agent :remove-on-lower-bound)))
             finally
-            (loop for cxn in (applied-cxns agent)
+            (loop for cxn in (find-data agent 'applied-cxns)
                   for rewarded-attrs = (find-data rewarded (name cxn))
                   for punished-attrs = (find-data punished (name cxn))
                   when (or rewarded-attrs punished-attrs)

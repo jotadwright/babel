@@ -30,6 +30,7 @@
 (define-configuration-default-value :max-z-score 2)
 (define-configuration-default-value :extracted-colour-space :hsv) ; :hsv :rgb :lab
 (define-configuration-default-value :training-period 1000)
+(define-configuration-default-value :alignment-filter :all) ; :none - :at-least-one - :all
 
 ;; --------------
 ;; + Experiment +
@@ -83,6 +84,7 @@
 ;; --------------------------------
 ;; + Determine interacting agents +
 ;; --------------------------------
+
 (defmethod determine-interacting-agents ((experiment mwm-experiment)
                                          (interaction interaction)
                                          (mode (eql :tutor-speaks))

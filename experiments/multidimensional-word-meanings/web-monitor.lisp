@@ -1,5 +1,73 @@
 (in-package :mwm)
 
+(defmethod json-meaning->s-dot-node (meaning (type (eql :prototype-category)) &key green red)
+  (let* ((variance (/ (rest (assoc :M2 meaning))
+                      (rest (assoc :nr--samples meaning))))
+         (stdev (sqrt variance))
+         (lower-bound (- (rest (assoc :prototype meaning)) (* 2 stdev)))
+         (upper-bound (+ (rest (assoc :prototype meaning)) (* 2 stdev)))
+         (record-properties (cond (green '((s-dot::style "filled")
+                                           (s-dot::fillcolor "#AAFFAA")))
+                                  (red '((s-dot::style "filled")
+                                         (s-dot::fillcolor "#AA0000")))
+                                  (t '((s-dot::style "dashed"))))))
+    `(s-dot::record
+      ,(append record-properties
+               '((s-dot::fontsize "9.5")
+                 (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                  #-(or :win32 :windows) "Arial")
+                 (s-dot::height "0.01")))
+      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (rest (assoc :attribute meaning))))))
+                    (s-dot::label ,(format nil "~a: ~,2f, [~,2f - ~,2f]"
+                                           (downcase (mkstr (rest (assoc :attribute meaning))))
+                                           (rest (assoc :prototype meaning))
+                                           lower-bound
+                                           upper-bound)))))))
+
+(defun json-cxn->s-dot (cxn &optional highlight-green highlight-red)
+  (let ((form (rest (assoc :form cxn)))
+        (meaning (rest (assoc :meaning cxn)))
+        (graph '(((s-dot::ranksep "0.3")
+                  (s-dot::nodesep "0.5")
+                  (s-dot::margin "0")
+                  (s-dot::rankdir "LR"))
+                 s-dot::graph)))
+    ;; form node
+    (push
+     `(s-dot::record  
+       ((s-dot::style "solid")
+        (s-dot::fontsize "9.5")
+        (s-dot::fontname #+(or :win32 :windows) "Sans"
+                         #-(or :win32 :windows) "Arial")
+        (s-dot::height "0.01"))
+       (s-dot::node ((s-dot::id ,(format nil "~a" form))
+                     (s-dot::label ,form)
+                     (s-dot::fontcolor "#AA0000"))))
+     graph)
+    ;; meaning nodes
+    (loop with type = (rest (assoc :type cxn))
+          for m in meaning
+          for record
+          = (json-meaning->s-dot-node m (make-kw (upcase type))
+                                      :green (member (rest (assoc :attribute m)) highlight-green)
+                                      :red (member (rest (assoc :attribute m)) highlight-red))
+          when (> (rest (assoc :certainty m)) 0.0)
+          do (push record graph))
+    ;; edges
+    (loop for m in meaning
+          when (> (rest (assoc :certainty m)) 0.0)
+          do (push
+              `(s-dot::edge
+                ((s-dot::from ,(format nil "~a" form))
+                 (s-dot::to ,(mkdotstr (downcase (mkstr (rest (assoc :attribute m))))))
+                 (s-dot::label ,(format nil "~,2f" (rest (assoc :certainty m))))
+                 (s-dot::labelfontname #+(or :win32 :windows) "Sans"
+                                       #-(or :win32 :windows) "Arial")
+                 (s-dot::fontsize "8.5")
+                 (s-dot::arrowsize "0.5")))
+              graph))
+    (reverse graph)))
+
 ;; -----------------
 ;; + Printing dots +
 ;; -----------------
@@ -43,21 +111,25 @@
   (add-element
    `((table)
      ((tr) ((th) "CLEVR context"))
-     ((tr) ((td) ,(make-html (symbolic-context (speaker experiment)) :expand-initially t)))))
-  (add-element `((table)
-                 ((tr) ((th) "MWM context"))
-                 ((tr) ((td) ,(make-html (context (hearer experiment))))))))
+     ((tr) ((td) ,(make-html (get-data (speaker experiment) 'clevr-context) :expand-initially t)))))
+  (add-element
+   `((table)
+     ((tr) ((th) "MWM context"))
+     ((tr) ((td) ,(make-html (get-data (speaker experiment) 'context)))))))
 
 (define-event-handler (trace-interaction-in-web-interface conceptualisation-finished)
-  (add-element `((h2) ,(format nil "The topic is ~a" (id (topic agent)))))
-  (cond ((and (tutorp agent) (discriminative-set agent))
+  (add-element `((h2) ,(format nil "The topic is ~a (~a)"
+                               (id (find-data agent 'topic))
+                               (id (find-data agent 'clevr-topic)))))
+  (cond ((and (tutorp agent) (find-data agent 'clevr-conceptualisation))
          (add-element '((h2) "Tutor found discriminating attributes:"))
-         (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}" (discriminative-set agent))))))
-        ((and (learnerp agent) (applied-cxns agent))
+         (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}"
+                                           (find-data agent 'clevr-conceptualisation))))))
+        ((and (learnerp agent) (find-data agent 'applied-cxns))
          (add-element '((h2) "Learner found discriminating attributes:"))
          (add-element `((h3) ((i) ,(format nil "~{~a~^, ~}"
                                            (mapcar #'(lambda (cxn) (attr-val cxn :form))
-                                                   (applied-cxns agent)))))))
+                                                   (find-data agent 'applied-cxns)))))))
         (t
          (add-element `((h2) ,(format nil "~@(~a~) did not find discriminating attributes"
                                       (id agent)))))))
@@ -70,25 +142,6 @@
 
 (defgeneric category->s-dot-node (category &key)
   (:documentation "How to display a category as an s-dot node"))
-
-(defmethod category->s-dot-node ((category min-max-category) &key green red (show-cxns nil))
-  (let ((record-properties (cond (green '((s-dot::style "filled")
-                                           (s-dot::fillcolor "#AAFFAA")))
-                                  (red '((s-dot::style "filled")
-                                         (s-dot::fillcolor "#990000")
-                                         (s-dot::fontcolor "#FFFFFF")))
-                                  (t '((s-dot::style "dashed"))))))
-    `(s-dot::record
-      ,(append record-properties
-               '((s-dot::fontsize "9.5")
-                 (s-dot::fontname #+(or :win32 :windows) "Sans"
-                                  #-(or :win32 :windows) "Arial")
-                 (s-dot::height "0.01")))
-      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
-                    (s-dot::label ,(format nil "~a, [~,2f - ~,2f]"
-                                           (downcase (mkstr (attribute category)))
-                                           (lower-bound category)
-                                           (upper-bound category))))))))
 
 (defmethod category->s-dot-node ((category prototype-category) &key green red (show-cxns nil))
   (let* ((variance (/ (M2 category) (nr-samples category)))
@@ -107,17 +160,36 @@
                  (s-dot::fontname #+(or :win32 :windows) "Sans"
                                   #-(or :win32 :windows) "Arial")
                  (s-dot::height "0.01")))
-      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (attribute category))))
                     (s-dot::label ,(if show-cxns
                                      (format nil "~a: ~,2f [~a]"
-                                             (downcase (mkstr (attribute category)))
+                                             (downcase (mkdotstr (attribute category)))
                                              (prototype category)
-                                             (downcase (mkstr (name (construction category)))))
+                                             (downcase (mkdotstr (name (construction category)))))
                                      (format nil "~a: ~,2f, [~,2f - ~,2f]"
-                                           (downcase (mkstr (attribute category)))
+                                           (downcase (mkdotstr (attribute category)))
                                            (prototype category)
                                            lower-bound
                                            upper-bound))))))))
+
+#|(defmethod category->s-dot-node ((category min-max-category) &key green red (show-cxns nil))
+  (let ((record-properties (cond (green '((s-dot::style "filled")
+                                           (s-dot::fillcolor "#AAFFAA")))
+                                  (red '((s-dot::style "filled")
+                                         (s-dot::fillcolor "#990000")
+                                         (s-dot::fontcolor "#FFFFFF")))
+                                  (t '((s-dot::style "dashed"))))))
+    `(s-dot::record
+      ,(append record-properties
+               '((s-dot::fontsize "9.5")
+                 (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                  #-(or :win32 :windows) "Arial")
+                 (s-dot::height "0.01")))
+      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+                    (s-dot::label ,(format nil "~a, [~,2f - ~,2f]"
+                                           (downcase (mkstr (attribute category)))
+                                           (lower-bound category)
+                                           (upper-bound category))))))))
 
 (defmethod category->s-dot-node ((category prototype-min-max-category) &key green red (show-cxns nil))
   (let ((record-properties (cond (green '((s-dot::style "filled")
@@ -140,7 +212,7 @@
 
 (defmethod category->s-dot-node ((category exponential-category) &key green red (show-cxns nil))
   (let ((record-properties (cond (green '((s-dot::style "filled")
-                                           (s-dot::fillcolor "#AAFFAA")))
+                                          (s-dot::fillcolor "#AAFFAA")))
                                   (red '((s-dot::style "filled")
                                          (s-dot::fillcolor "#AA0000")))
                                   (t '((s-dot::style "dashed"))))))
@@ -150,12 +222,12 @@
                  (s-dot::fontname #+(or :win32 :windows) "Sans"
                                   #-(or :win32 :windows) "Arial")
                  (s-dot::height "0.01")))
-      (s-dot::node ((s-dot::id ,(mkdotstr (downcase (mkstr (attribute category)))))
+      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (attribute category))))
                     (s-dot::label ,(format nil "~a: ~,2f, [~,2f - ~,2f]"
-                                           (downcase (mkstr (attribute category)))
+                                           (downcase (mkdotstr (attribute category)))
                                            (prototype category)
                                            (left-sigma category)
-                                           (right-sigma category))))))))
+                                           (right-sigma category))))))))|#
   
 (defun cxn->s-dot (cxn &optional highlight-green highlight-red)
   (let ((form (attr-val cxn :form))
@@ -172,8 +244,8 @@
         (s-dot::fontname #+(or :win32 :windows) "Sans"
                          #-(or :win32 :windows) "Arial")
         (s-dot::height "0.01"))
-       (s-dot::node ((s-dot::id ,(format nil "~a" form))
-                     (s-dot::label ,form)
+       (s-dot::node ((s-dot::id ,(downcase (mkdotstr form)))
+                     (s-dot::label ,(downcase (mkdotstr form)))
                      (s-dot::fontcolor "#AA0000"))))
      graph)
     (loop for (category . certainty) in meaning
@@ -187,8 +259,8 @@
           when (> certainty 0.0)
           do (push
               `(s-dot::edge
-                ((s-dot::from ,(format nil "~a" form))
-                 (s-dot::to ,(mkdotstr (downcase (mkstr (attribute category)))))
+                ((s-dot::from ,(downcase (mkdotstr form)))
+                 (s-dot::to ,(mkdotstr (downcase (attribute category))))
                  (s-dot::label ,(format nil "~,2f" certainty))
                  (s-dot::labelfontname #+(or :win32 :windows) "Sans"
                                        #-(or :win32 :windows) "Arial")
@@ -222,7 +294,7 @@
           do (push
               `(s-dot::edge
                 ((s-dot::from ,"root")
-                 (s-dot::to ,(mkdotstr (downcase (mkstr (attribute category)))))
+                 (s-dot::to ,(mkdotstr (downcase (attribute category))))
                  (s-dot::label ,(format nil "~,2f" certainty))
                  (s-dot::labelfontname #+(or :win32 :windows) "Sans"
                                        #-(or :win32 :windows) "Arial")
@@ -397,19 +469,23 @@
     (reverse graph)))
 
 (define-event-handler (trace-interaction-in-web-interface parsing-finished)
-  (add-element (make-html (grammar agent)))
-  (if (parsed-meaning agent)
-    (progn (add-element '((h2) "Agent parsed the utterance:"))
-      (add-element `((div) ,(s-dot->svg
-                             (meaning->s-dot (parsed-meaning agent)
-                                             :show-cxns t)))))
-    (add-element '((h2) "Agent could not parse the utterance."))))
+  (when (learnerp agent)
+    (add-element (make-html (grammar agent)))
+    (if (find-data agent 'parsed-meaning)
+      (progn (add-element '((h2) "The learner parsed the utterance:"))
+        (add-element
+         `((div)
+           ,(s-dot->svg
+             (meaning->s-dot (find-data agent 'parsed-meaning) :show-cxns t)))))
+      (add-element '((h2) "The learner could not parse the utterance.")))))
 
 (define-event-handler (trace-interaction-in-web-interface interpretation-finished)
-  (if (topic agent)
-    (progn (add-element '((h2) "Agent interpreted the utterance:"))
-      (add-element (make-html (topic agent) :expand-initially t)))
-    (add-element '((h2) "Agent could not interpret the utterance."))))
+  (if (find-data agent 'interpreted-topic)
+    (progn (add-element `((h2) ,(format nil "The ~a interpreted the utterance:"
+                                        (downcase (mkstr (id agent))))))
+      (add-element (make-html (find-data agent 'interpreted-topic) :expand-initially t)))
+    (add-element `((h2) ,(format nil "The ~a could not interpret the utterance."
+                                 (downcase (mkstr (id agent))))))))
 
 (define-event-handler (trace-interaction-in-web-interface alignment-started)
   (add-element '((hr)))

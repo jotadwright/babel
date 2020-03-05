@@ -55,7 +55,24 @@
 (defgeneric cxn->function-plot (cxn category-representation &key directory)
   (:documentation "Plot the functions that are stored in the categories"))
 
-(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :min-max))
+(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype))
+                                &key (directory '(".tmp")))
+  (let ((equations
+         (loop for (category . certainty) in (attr-val cxn :meaning)
+               collect (format nil "normal(x,~a,~a)"
+                               (prototype category)
+                               (sqrt (/ (M2 category) (nr-samples category)))))))
+    (create-function-plot equations
+                          :function-definitions '("normal(x,mu,sd) = (1/(sd*sqrt(2*pi)))*exp(-(x-mu)**2/(2*sd**2))")
+                          :title (format nil "~a" (downcase (mkstr (name cxn))))
+                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          collect (format nil "~a" (downcase (mkstr (attribute category)))))
+                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
+                          :plot-directory directory
+                          :x-label nil :y-min 0 :y-max nil
+                          :open nil)))
+
+#|(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :min-max))
                                &key (directory '(".tmp")))
   (let ((equations
          (loop for (category . certainty) in (attr-val cxn :meaning)
@@ -72,23 +89,6 @@
                           :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
                           :plot-directory directory
                           :x-label nil :y-min -1.1 :y-max 1.1
-                          :open nil)))
-
-(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype))
-                                &key (directory '(".tmp")))
-  (let ((equations
-         (loop for (category . certainty) in (attr-val cxn :meaning)
-               collect (format nil "normal(x,~a,~a)"
-                               (prototype category)
-                               (sqrt (/ (M2 category) (nr-samples category)))))))
-    (create-function-plot equations
-                          :function-definitions '("normal(x,mu,sd) = (1/(sd*sqrt(2*pi)))*exp(-(x-mu)**2/(2*sd**2))")
-                          :title (format nil "~a" (downcase (mkstr (name cxn))))
-                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
-                                          collect (format nil "~a" (downcase (mkstr (attribute category)))))
-                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
-                          :plot-directory directory
-                          :x-label nil :y-min 0 :y-max nil
                           :open nil)))
 
 (defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype-min-max))
@@ -142,7 +142,7 @@
                           :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
                           :plot-directory directory
                           :x-label nil :y-min 0
-                          :open nil)))
+                          :open nil)))|#
 
 ;;;; Learner used attribute
 ;; a-list monitor that keeps track of the attributes used by the learner
@@ -155,8 +155,8 @@
 
 (define-event-handler (record-learner-attribute-use interaction-finished)
   (let ((learner (find 'learner (population experiment) :key #'id)))
-    (when (parsed-meaning learner)
-      (loop for (category . score) in (parsed-meaning learner)
+    (when (find-data learner 'parsed-meaning)
+      (loop for (category . score) in (find-data learner 'parsed-meaning)
             for attr = (attribute category)
             if (> score 0.0)
             do (if (assoc attr *attribute-count*)
@@ -207,10 +207,10 @@
       ;; - either the agents do not agree
       (set-value-for-symbol monitor
                             (if (speakerp tutor)
-                              (cond ((null (parsed-meaning learner)) 'new-word-for-learner)
+                              (cond ((null (find-data learner 'parsed-meaning)) 'new-word-for-learner)
                                     (t 'agents-not-agree))
-                              (cond ((null (applied-cxns learner)) 'not-discriminate)
-                                    ((null (topic tutor)) 'tutor-not-interpret)
+                              (cond ((null (find-data learner 'applied-cxns)) 'not-discriminate)
+                                    ((null (find-data tutor 'interpreted-topic)) 'tutor-not-interpret)
                                     (t 'agents-not-agree)))
                             1))))
 
@@ -317,10 +317,11 @@
 
 (define-event-handler (record-tutor-word-use interaction-finished)
   (let* ((tutor (find 'tutor (population experiment) :key #'id))
-         (used-word (first (discriminative-set tutor))))
-    (if (assoc used-word *word-count*)
-      (incf (cdr (assoc used-word *word-count*)))
-      (push (cons used-word 1) *word-count*))
+         (used-words (find-data tutor 'clevr-conceptualisation)))
+    (loop for used-word in used-words
+          if (assoc used-word *word-count*)
+          do (incf (cdr (assoc used-word *word-count*)))
+          else do (push (cons used-word 1) *word-count*))
     (loop for (word . count) in *word-count*
           do (set-value-for-symbol monitor word count))))
 
@@ -364,8 +365,7 @@
   (let* ((tutor (find 'tutor (population experiment) :key #'id))
          (used-attribute-type (rest (assoc (first (utterance tutor)) *word->type-map* :test #'string=)))
          (success (communicated-successfully interaction)))
-    (set-value-for-symbol monitor used-attribute-type
-                          (if success 1 0))
+    (set-value-for-symbol monitor used-attribute-type (if success 1 0))
     (set-value-for-symbol monitor 'overall (if success 1 0))))
 
 (define-monitor plot-success-per-attribute-type
