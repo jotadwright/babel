@@ -167,6 +167,7 @@
  :xlabel "Number of games"
  :y1-label "Success")
 
+
 (create-graph-comparing-strategies
  :experiment-names '("bidirectional-learner-extracted-1"
                      "bidirectional-learner-extracted-2"
@@ -174,7 +175,7 @@
                      "bidirectional-learner-extracted-4")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :title nil :start 1001 :end 3500 :captions '("simulated" "extracted"))
+ :title nil :end nil)
 
 (create-stacked-bars-comparing-strategies
  :experiment-names '("max-tutor-utterance-length-4-experiment-type-baseline-data-type-simulated"
