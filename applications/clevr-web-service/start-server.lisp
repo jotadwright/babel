@@ -30,8 +30,7 @@ either return a handler or neglect by returning NIL."
 (defvar *clevr-app* (snooze:make-hunchentoot-app))
 (push *clevr-app* hunchentoot:*dispatch-table*)
 (defvar *clevr-acceptor* (make-instance 'hunchentoot:cors-acceptor :port 9003))
-;(load-validation-set)
-;(load-training-set)
+(load-validation-set)
 (hunchentoot:start *clevr-acceptor*)
 
 ;; (hunchentoot:stop *clevr-acceptor*)
