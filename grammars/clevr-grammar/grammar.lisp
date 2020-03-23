@@ -109,7 +109,7 @@
                          (:node-expansion-mode . :multiple-cxns)
                          (:priority-mode . :nr-of-units-matched) ; !!!
                          (:queue-mode . :greedy-best-first)
-                         (:max-nr-of-nodes . 10000)
+                         (:max-nr-of-nodes . 20000)
                          (:hash-mode . :hash-string-meaning-lex-id))
     :visualization-configurations ((:show-constructional-dependencies . nil)
                                    (:hide-features . (footprints superunits))
