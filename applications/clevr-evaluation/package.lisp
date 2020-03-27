@@ -19,7 +19,7 @@
                 :s-dot->image
                 :define-css
                 :clear-page)
-  (:import-from :irl
+  (:import-from :irl-2
                 :bind :var
                 :evaluate-irl-program
                 :irl-program->svg
@@ -32,5 +32,5 @@
                 :encode-json-alist-to-string)
   (:import-from :trivial-timeout
                 :with-timeout)
-  (:shadowing-import-from :fcg :size))
+  (:shadowing-import-from :fcg :size :attributes))
   

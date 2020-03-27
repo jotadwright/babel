@@ -1,5 +1,6 @@
 (in-package :irl-2)
 
+(export '(evaluate-irl-program))
 
 (define-event evaluate-irl-program-started
   (irl-program list) (primitive-inventory primitive-inventory))
@@ -13,7 +14,8 @@
   (make-instance 'irl-program-processor-node :status 'not-evaluated
                  :bindings (if result result (bindings parent))
                  :primitive-under-evaluation next-primitive
-                 :primitives-evaluated (remove nil (cons (primitive-under-evaluation parent) (primitives-evaluated parent)))
+                 :primitives-evaluated (remove nil (cons (primitive-under-evaluation parent)
+                                                         (primitives-evaluated parent)))
                  :primitives-remaining (remove next-primitive (primitives-remaining parent))
                  :processor processor
                  :node-depth (1+ (node-depth parent))
@@ -50,8 +52,10 @@
             do (add-node processor child :parent node))
       ;; add them to the queue, taking into account queue-mode and priority-mode...
       (let ((prioritized-child-nodes
-             (order-by-priority child-nodes processor (get-configuration primitive-inventory :priority-mode))))
-        (enqueue-ippn-nodes prioritized-child-nodes processor (get-configuration primitive-inventory :queue-mode))))))
+             (order-by-priority child-nodes processor
+                                (get-configuration primitive-inventory :priority-mode))))
+        (enqueue-ippn-nodes prioritized-child-nodes processor
+                           (get-configuration primitive-inventory :queue-mode))))))
 
 (defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*) (silent nil))
     ;; check if there is an ontology to work with
@@ -120,7 +124,8 @@
       ;; pick the first node from the queue and evaluate it
       ;; - if result = inconsistent; change the status to inconsistent and add the node to the tree
       ;; - if result = nil, change the status to evaluate-w/o-result and add the node to the tree
-      ;; - if results, change the status to evaluated, expand it (once for each result, adding nodes to the qeue) and add node(s) to the tree (one for each result)
+      ;; - if results, change the status to evaluated, expand it (once for each result, adding nodes to the qeue)
+      ;;   and add node(s) to the tree (one for each result)
 
       (when (queue processor)
         (loop
@@ -131,7 +136,8 @@
                                     (evaluate-primitive-in-program current-primitive
                                                                    (bindings current-node)
                                                                    primitive-inventory))
-
+         ;; print the processor
+         ;;do (add-element (make-html processor))
          ;; check the evaluation-results
          do (cond ((eq evaluation-results 'inconsistent)
                    ;; if inconsistent, change the status and stop
@@ -182,6 +188,8 @@
 ;; ############################################################################
 ;; helper functions
 ;; ----------------------------------------------------------------------------
+
+(export '(irl-program-connected? irl-program-p))
 
 (defun irl-program-connected? (irl-program)
   "Checks whether an irl program is connected. Returns t if so, the

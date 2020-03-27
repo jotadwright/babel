@@ -5,6 +5,11 @@
 ;; primitive inventory definition:
 ;; ----------------------------------------------------------------------------
 
+(export '(primitives-list size add-primitive delete-primitive
+          find-primitive set-configuration get-configuration
+          def-irl-primitives))
+          
+
 (defclass primitive-inventory ()
   ((name :type symbol :initform (gensym "PRIMITIVES")
          :initarg :name :accessor name
@@ -113,7 +118,7 @@
 
 (defmethod find-primitive ((primitive symbol)
                            (primitive-inventory primitive-inventory)
-                           &key (key #'id) (test #'eql))
+                           &key (key #'id) (test #'irl-equal))
   (find primitive
         (primitives primitive-inventory)
         :key key :test test))

@@ -28,15 +28,14 @@
           for other-value = (value (find var (bindings other-node) :key #'var))
           always (or (and (null node-value)
                           (null other-value))
-                     (and node-value
-                          other-value
+                     (and node-value other-value
                           (equal-entity node-value other-value))))))
 
 (defun find-duplicate (node other-node)
   (unless (eq node other-node)
     (or (duplicate-node-p node other-node)
         (loop for child in (children other-node)
-              thereis (duplicate-node-p node child)))))
+              thereis (find-duplicate node child)))))
 
 (defmethod node-test ((node irl-program-processor-node)
                       (mode (eql :check-duplicate)))

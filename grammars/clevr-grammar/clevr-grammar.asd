@@ -9,7 +9,7 @@
   :license "Babel Research License"
   :depends-on (:utils
                :monitors
-               :irl
+               :irl-2
                :fcg
                :clevr-world
                :cl-json)

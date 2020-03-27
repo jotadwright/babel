@@ -5,6 +5,8 @@
 ;; evaluation-spec definition:
 ;; ----------------------------------------------------------------------------
 
+(export '(bind ontology))
+
 (defclass evaluation-spec ()
   ((pattern :type list :initform nil :initarg :pattern :accessor pattern
             :documentation "The original pattern as defined in the primitive")

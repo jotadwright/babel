@@ -7,7 +7,6 @@
 
 (export '(slot-spec slot-spec-type))
 
-
 (defclass slot-spec ()
   ((name :type symbol :reader slot-spec-name :initform nil :initarg :name
          :documentation "The name of the slot, which should be unique

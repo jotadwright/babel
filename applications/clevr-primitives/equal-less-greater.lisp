@@ -13,7 +13,7 @@
 (defprimitive equal-integer ((target-bool boolean-category)
                              (source-num-1 number)
                              (source-num-2 number))
-  ((source-num-1 source-num-2 => target-bool)
+  (((source-num-1 source-num-2 => target-bool)
    (let ((boolean-category
           (find-entity-by-id
            ontology
@@ -28,6 +28,7 @@
            (if (= source-num-1 source-num-2)
              'yes 'no))))
      (equal-entity target-bool boolean-category))))
+  :primitive-inventory *clevr-primitives*)
 
 ;; ---------------------
 ;; LESS-THAN primtive ;;
@@ -38,7 +39,7 @@
 (defprimitive less-than ((target-bool boolean-category)
                          (source-num-1 number)
                          (source-num-2 number))
-  ((source-num-1 source-num-2 => target-bool)
+  (((source-num-1 source-num-2 => target-bool)
    (let ((boolean-category
           (find-entity-by-id
            ontology
@@ -53,6 +54,7 @@
            (if (< source-num-1 source-num-2)
              'yes 'no))))
      (equal-entity target-bool boolean-category))))
+  :primitive-inventory *clevr-primitives*)
 
 ;; ------------------------
 ;; GREATER-THAN primtive ;;
@@ -63,7 +65,7 @@
 (defprimitive greater-than ((target-bool boolean-category)
                             (source-num-1 number)
                             (source-num-2 number))
-  ((source-num-1 source-num-2 => target-bool)
+  (((source-num-1 source-num-2 => target-bool)
    (let ((boolean-category
           (find-entity-by-id
            ontology
@@ -78,3 +80,4 @@
            (if (> source-num-1 source-num-2)
              'yes 'no))))
      (equal-entity target-bool boolean-category))))
+  :primitive-inventory *clevr-primitives*)

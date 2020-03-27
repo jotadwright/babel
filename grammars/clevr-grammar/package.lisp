@@ -7,8 +7,8 @@
   (:use :common-lisp :utils :fcg :clevr-world)
   (:import-from :monitors
                 :activate-monitor)
-  (:import-from :irl :bind)
+  (:import-from :irl-2 :bind)
   (:import-from :cl-json
                 :decode-json-from-source)
-  (:shadowing-import-from :fcg :size)
+  (:shadowing-import-from :fcg :size :attributes)
   (:export :*CLEVR*))

@@ -13,10 +13,11 @@
 (defprimitive count! ((target-num number)
                       (source-set clevr-object-set))
   ;; first case; given source-set, compute target
-  ((source-set => target-num)
-   (bind (target-num 1.0 (length (objects source-set)))))
+  (((source-set => target-num)
+    (bind (target-num 1.0 (length (objects source-set)))))
   
-  ;; second case; given source and target, check consistency
-  ((source-set target-num =>)
-   (= target-num (length (objects source-set)))))
+   ;; second case; given source and target, check consistency
+   ((source-set target-num =>)
+    (= target-num (length (objects source-set)))))
+  :primitive-inventory *clevr-primitives*)
 

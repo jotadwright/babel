@@ -36,7 +36,7 @@
                     (source-object clevr-object)
                     (attribute attribute-category))
   ;; first case; given source-object and attribute, compute the target-set
-  ((source-object attribute => target-set)
+  (((source-object attribute => target-set)
    (let* ((context (get-data ontology 'clevr-context))
           (same-set (same-set-by-object-attribute context source-object attribute)))
      (if same-set
@@ -71,3 +71,4 @@
                              (get-data ontology 'clevr-context)
                              source-object
                              attribute))))
+  :primitive-inventory *clevr-primitives*)

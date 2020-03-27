@@ -12,7 +12,8 @@
                :monitors
                :experiment-framework
                :web-interface
-               :irl
+               ;:irl
+               :irl-2
                :fcg
                :clevr-world
                :clevr-primitives

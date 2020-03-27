@@ -50,7 +50,7 @@
                       (source-2 category)
                       (attribute attribute-category))
   ;; first case; given the sources and the attribute, compute the target
-  ((source-1 source-2 attribute => target-bool)
+  (((source-1 source-2 attribute => target-bool)
    (let ((equal-p (equal-attribute-p source-1 source-2 attribute)))
      (bind (target-bool 1.0 (find-entity-by-id ontology (if equal-p 'yes 'no))))))
 
@@ -59,3 +59,4 @@
    (let* ((equal-p (equal-attribute-p source-1 source-2 attribute))
           (bool-category (find-entity-by-id ontology (if equal-p 'yes 'no))))
      (equal-entity target-bool bool-category))))
+  :primitive-inventory *clevr-primitives*)
