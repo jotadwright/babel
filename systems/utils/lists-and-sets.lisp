@@ -234,7 +234,8 @@ nil."
 ;; list utilities:
 ;; ----------------------------------------------------------------------------
 
-(export '(member-equal
+(export '(bucket-difference
+          member-equal
 	  pushend
 	  toggle
           insert-after
@@ -258,6 +259,14 @@ nil."
           remove-nth
           cartesian-product
           group-by))
+
+(defun bucket-difference (l1 l2 &key (test #'eql))
+  (let ((result (copy-seq l1)))
+    (dolist (e2 l2 result)
+      (setq result (delete e2 result
+                           :count 1
+                           :test #'(lambda (e2 e1)
+                                     (funcall test e1 e2)))))))
 
 (defun insert-after (lst index newelt)
   "Insert an elt into a list after a certain position."

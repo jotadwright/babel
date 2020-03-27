@@ -52,18 +52,6 @@
 ;;; pattern.
 
 ;; ############################################################################
-;; O. Utilities
- 
-
-(defun bucket-difference (l1 l2 &key (test #'eql))
-  (let ((result (copy-seq l1)))
-    (dolist (e2 l2 result)
-      (setq result (delete e2 result
-                           :count 1
-                           :test #'(lambda (e2 e1)
-                                     (funcall test e1 e2)))))))
-
-;; ############################################################################
 ;; I. Basic abstractions
 
 (export '(? +fail+ fail? +no-bindings+ no-bindings))
