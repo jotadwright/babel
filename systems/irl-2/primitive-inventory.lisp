@@ -43,7 +43,7 @@
   (set-configuration primitive-inventory :queue-mode :depth-first) ; where the children are added to the queue (front, back, ...)
   (set-configuration primitive-inventory :priority-mode :random) ; how the children are ordered before thrown into the queue
   (set-configuration primitive-inventory :max-search-depth 25)
-  (set-configuration primitive-inventory :max-nr-of-nodes 250))
+  (set-configuration primitive-inventory :max-nr-of-nodes 1000))
   
 
 

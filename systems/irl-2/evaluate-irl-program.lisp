@@ -57,8 +57,12 @@
         (enqueue-ippn-nodes prioritized-child-nodes processor
                            (get-configuration primitive-inventory :queue-mode))))))
 
-(defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*) (silent nil))
-    ;; check if there is an ontology to work with
+(defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*)
+                                         (n :all) (silent nil))
+  ;; check if a valid option was given for n
+  (unless (or (numberp n) (eql n :all))
+    (error "Invalid option for the keyword argument :n. Expected a number of :all. Got ~s" n))
+  ;; check if there is an ontology to work with
   (unless (ontology primitive-inventory)
     (error "There is no ontology. Provide an ontology in the primitive-inventory"))
   (unless (fields (ontology primitive-inventory))
@@ -128,7 +132,7 @@
       ;;   and add node(s) to the tree (one for each result)
 
       (when (queue processor)
-        (loop
+        (loop named queue-loop
          ;; pop the next node and evaluate it
          for current-node = (pop (queue processor))
          for current-primitive = (primitive-under-evaluation current-node)
@@ -155,20 +159,25 @@
                    ;; namely, one for each result
                    ;; run the node-tests and goal-tests
                    ;; and expand the current node further, if necessary
-                   (progn 
+                   (let ((solution-found-p nil)) 
                      (loop for result in evaluation-results
                            for expand-node-p = t
                            for new-node = (make-node-from-result current-node result)
                            do (cond ((not (run-node-tests new-node primitive-inventory))
                                      (setf expand-node-p nil))
                                     ((run-goal-tests new-node primitive-inventory)
-                                     (setf (status new-node) 'solution)
-                                     (push (bindings new-node) (solutions processor))
-                                     (setf expand-node-p nil)))
+                                     (when (or (eql n :all) (< (length (solutions processor)) n))
+                                       (setf (status new-node) 'solution)
+                                       (push (bindings new-node) (solutions processor))
+                                       (setf expand-node-p nil)
+                                       (setf solution-found-p t))))
                            do (add-node processor new-node :parent (parent current-node))
                            do (when expand-node-p
                                 (expand-node new-node processor primitive-inventory result)))
-                     (cut-node processor current-node))))
+                     (cut-node processor current-node)
+                     (when (and solution-found-p (numberp n)
+                                (>= (length (solutions processor)) n))
+                       (return-from queue-loop)))))
          while (queue processor)))
                          
       ;; clean the solutions
