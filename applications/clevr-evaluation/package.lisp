@@ -31,6 +31,7 @@
                 :encode-json-to-string
                 :encode-json-alist-to-string)
   (:import-from :trivial-timeout
-                :with-timeout)
+                :with-timeout
+                :timeout-error)
   (:shadowing-import-from :fcg :size))
   
