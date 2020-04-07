@@ -44,7 +44,7 @@
       ;; do the final batch
       (when (> number-of-lines-in-last-batch 0)
         (let ((outputfile (make-pathname :directory batch-directory
-                                         :name (format nil "~a-~a" input-name
+                                         :name (format nil "~a-batch-~a" input-name
                                                        number-of-complete-batches)
                                          :type input-type)))
           (ensure-directories-exist outputfile)
