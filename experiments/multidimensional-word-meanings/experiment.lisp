@@ -10,7 +10,7 @@
 (define-configuration-default-value :data-type :simulated)
 ; data-sets for clevr-world class
 (define-configuration-default-value :data-sets (list "val"))
-; data-path for additional data
+; data-path for additional data (extracted data type)
 (define-configuration-default-value :data-path
    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val-ns-vqa"))
                     cl-user:*babel-corpora*))

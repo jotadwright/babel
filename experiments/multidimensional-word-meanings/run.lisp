@@ -14,62 +14,57 @@
 ;; + Run interactions +
 ;; --------------------
 
+;; define some import path variables
 (progn
-(defparameter *baseline-simulated-data-sets* '("val"))
-(defparameter *baseline-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                   cl-user:*babel-corpora*))
+  (defparameter *baseline-simulated-data-sets* '("val"))
+  (defparameter *baseline-extracted-data-path*
+    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val-ns-vqa"))
+                     cl-user:*babel-corpora*))
   
-(defparameter *cogent-simulated-data-sets* '("valA"))
-(defparameter *cogent-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
-                   cl-user:*babel-corpora*))
+  (defparameter *cogent-simulated-data-sets* '("valA"))
+  (defparameter *cogent-extracted-data-path*
+    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
+                     cl-user:*babel-corpora*))
   
   
-(defparameter *incremental-simulated-data-sets* '("phase_1"))
-(defparameter *incremental-extracted-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-incremental" "scenes" "phase_1-ns_vqa"))
-                   cl-user:*babel-corpora*))
-  
+  (defparameter *incremental-simulated-data-sets* '("phase_1"))
+  (defparameter *incremental-extracted-data-path*
+    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-incremental" "scenes" "phase_1-ns_vqa"))
+                     cl-user:*babel-corpora*)))
+
+;; define some configurations
+(progn
 (defparameter *baseline-simulated-configuration*
   (make-configuration
    :entries `((:experiment-type . :baseline)
               (:data-type . :simulated)
-              (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks) 
-              (:data-sets . ,*baseline-simulated-data-sets*)
-              (:max-tutor-utterance-length . ,4))))
+              (:data-sets . ,*baseline-simulated-data-sets*))))
 
 (defparameter *baseline-extracted-configuration*
   (make-configuration
    :entries `((:experiment-type . :baseline)
               (:data-type . :extracted)
-              (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :default)
-              (:training-period . 2000)
+              (:determine-interacting-agents-mode . :tutor-speaks)
               (:data-sets . ,*baseline-simulated-data-sets*)
               (:data-path . ,*baseline-extracted-data-path*)
-              (:max-tutor-utterance-length . ,4)
               (:extracted-colour-space . :hsv))))
 
 (defparameter *cogent-simulated-configuration*
   (make-configuration
    :entries `((:experiment-type . :cogent)
               (:data-type . :simulated)
-              (:scale-world . ,nil)
               (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :default)
+              (:determine-interacting-agents-mode . :tutor-speaks)
               (:switch-conditions-after-n-interactions . ,1000)
-              (:data-sets . ,*cogent-simulated-data-sets*)
-              (:max-tutor-utterance-length . ,4))))
+              (:data-sets . ,*cogent-simulated-data-sets*))))
 
 (defparameter *cogent-extracted-configuration*
   (make-configuration
    :entries `((:experiment-type . :cogent)
               (:data-type . :extracted)
-              (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:switch-conditions-after-n-interactions . ,100)
@@ -80,18 +75,15 @@
   (make-configuration
    :entries `((:experiment-type . :incremental)
               (:data-type . :simulated)
-              (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :default)
               (:switch-conditions-after-n-interactions . 1000)
-              (:data-sets . ,*incremental-simulated-data-sets*)
-              (:max-tutor-utterance-length . ,4))))
+              (:data-sets . ,*incremental-simulated-data-sets*))))
 
 (defparameter *incremental-extracted-configuration*
   (make-configuration
    :entries `((:experiment-type . :incremental)
               (:data-type . :extracted)
-              (:scale-world . ,nil)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
               (:switch-conditions-after-n-interactions . 10)
@@ -100,38 +92,28 @@
 )
 
 (defparameter *experiment*
-  (make-instance 'mwm-experiment :configuration *baseline-extracted-configuration*))
+  (make-instance 'mwm-experiment
+                 :configuration *baseline-simulated-configuration*))
 
 (run-interaction *experiment*)
 
 (run-series *experiment* 10)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
-(lexicon->pdf (find 'learner (population *experiment*) :key #'id)
-              :name "incremental-phase-5")
-(lexicon->function-plots (find 'learner (population *experiment*) :key #'id))
-
-(make-table *experiment*)
 
 ;; ---------------------------------
 ;; + Running series of experiments +
 ;; ---------------------------------
 
-;(define-configuration-default-value :alignment-filter :all) ; :none - :at-least-one - :all
-
 (run-experiments `(
                    (test
                     ((:experiment-type . :baseline)
-                     (:data-type . :extracted)
-                     (:scale-world . ,nil)
+                     (:data-type . :simulated)
                      (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :default)
-                     (:training-period . 2000)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
                      (:data-sets . ,*baseline-simulated-data-sets*)
                      (:data-path . ,*baseline-extracted-data-path*)
-                     (:max-tutor-utterance-length . ,4)
-                     (:extracted-colour-space . :hsv)
-                     (:alignment-filter . :all)))
+                     (:extracted-colour-space . :hsv)))
                    )
                  :number-of-interactions 2500
                  :number-of-series 1
@@ -139,10 +121,10 @@
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-lexicon-evolution"
-                                 "export-tutor-utterance-length-1"
-                                 "export-tutor-utterance-length-2"
-                                 "export-tutor-utterance-length-3"
-                                 "export-tutor-utterance-length-4"
+                                 ;"export-tutor-utterance-length-1"
+                                 ;"export-tutor-utterance-length-2"
+                                 ;"export-tutor-utterance-length-3"
+                                 ;"export-tutor-utterance-length-4"
                                  ;"export-tutor-uses-xpos"
                                  ;"export-tutor-uses-ypos"
                                  ;"export-tutor-uses-color"
