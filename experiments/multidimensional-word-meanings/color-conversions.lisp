@@ -183,3 +183,56 @@
 (defun lab->rgbhex (lab reference-white)
   "Convert from CIEL*a*b* coordinates to rgbhex"
   (rgb->rgbhex (xyz->rgb (lab->xyz lab reference-white))))
+
+;; ---------------
+;; + RGB <-> HSV +
+;; ---------------
+
+(defun hsv->rgb (hsv)
+  "Transforms HSV (with H in [0,360], S in [0,100]
+   and V in [0,100]) to RGB [0,255]"
+  (let ((h (first hsv))
+        (s (/ (second hsv) 100))
+        (v (/ (third hsv) 100)))
+    (labels ((f (n)
+               (let ((k (mod (+ n (/ h 60)) 6)))
+                 (- v (* v s (max (min k (- 4 k) 1) 0))))))
+      (mapcar #'(lambda (x) (float x))
+              (mapcar #'(lambda (x) (* x 255))
+                      (mapcar #'(lambda (x) (f x)) '(5 3 1)))))))
+
+(defun rgb->hsv (rgb)
+  "Transforms RGB [0,255] to HSV (with H in [0,360],
+   S in [0,100] and V in [0,100])"
+  (let* ((scaled-rgb (mapcar #'(lambda (x) (/ x 255)) rgb))
+         (max (apply #'max scaled-rgb))
+         (min (apply #'min scaled-rgb))
+         (r (first scaled-rgb))
+         (g (second scaled-rgb))
+         (b (third scaled-rgb))
+         h s v)
+    (setf h (cond ((= max min) 0)
+                  ((= max r)
+                   (* 60 (+ 0 (/ (- g b) (- max min)))))
+                  ((= max g)
+                   (* 60 (+ 2 (/ (- b r) (- max min)))))
+                  ((= max b)
+                   (* 60 (+ 4 (/ (- r g) (- max min)))))))
+    (when (< h 0)
+      (setf h (+ h 360)))
+    (setf s (cond ((= max 0) 0)
+                  (t (* 100 (/ (- max min) max)))))
+    (setf v (* 100 max))
+    (mapcar #'(lambda (x) (float x))
+            (list h s v))))
+
+;; ---------------
+;; + HSV <-> LAB +
+;; ---------------
+
+(defun hsv->lab (hsv)
+  (rgb->lab (hsv->rgb hsv)))
+
+(defun lab->hsv (lab)
+  (rgb->hsv (lab->rgb lab)))
+                  

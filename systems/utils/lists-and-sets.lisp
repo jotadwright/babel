@@ -992,12 +992,17 @@ element for which the sought value satisfies the test"
 ;; boolean utilities:
 ;; ----------------------------------------------------------------------------
 
-(export '(always))
+(export '(always never))
 
 (defun always (&rest elements)
   "Returns true if all elements evaluate to true."
   (loop for element in elements
         always element))
+
+(defun never (&rest elements)
+  "Returns true if all elements evaluate to nil."
+  (loop for element in elements
+        never element))
 
 ;; ############################################################################
 ;; hash-table utilities:

@@ -50,17 +50,17 @@
         (setf new-value max-bound)))
     new-value))
 
-;; when x-pos and y-pos are exactly equal to 0.5
+;; when xpos and ypos are exactly equal to 0.5
 ;; they are considered to be left!
-(defmethod to-value ((object clevr-object) (attr (eql 'x-pos)) scale-p)
-  (let* ((x-pos (x-pos object))
-         (scaled-x-pos (float (/ (- x-pos 31) (- 460 31)))))
-    `((x-pos . ,(if scale-p scaled-x-pos x-pos)))))
+(defmethod to-value ((object clevr-object) (attr (eql 'xpos)) scale-p)
+  (let* ((xpos (x-pos object))
+         (scaled-xpos (float (/ (- xpos 31) (- 460 31)))))
+    `((xpos . ,(if scale-p scaled-xpos xpos)))))
 
-(defmethod to-value ((object clevr-object) (attr (eql 'y-pos)) scale-p)
-  (let* ((y-pos (y-pos object))
-         (scaled-y-pos (float (/ (- y-pos 58) (- 296 58)))))
-    `((y-pos . ,(if scale-p scaled-y-pos y-pos)))))
+(defmethod to-value ((object clevr-object) (attr (eql 'ypos)) scale-p)
+  (let* ((ypos (y-pos object))
+         (scaled-ypos (float (/ (- ypos 58) (- 296 58)))))
+    `((ypos . ,(if scale-p scaled-ypos ypos)))))
 
 (defmethod to-value ((object clevr-object) (attr (eql 'area)) scale-p)
   (let* ((area (case (size object)
@@ -128,8 +128,8 @@
 (defmethod clevr->simulated ((object clevr-object)
                              &key (scale nil))
   (make-instance 'mwm-object :id (id object) ;; !!!
-                 :attributes (append (to-value object 'x-pos scale)
-                                     (to-value object 'y-pos scale)
+                 :attributes (append (to-value object 'xpos scale)
+                                     (to-value object 'ypos scale)
                                      (to-value object 'area scale)
                                      (to-value object 'wh-ratio scale)
                                      (to-value object 'color scale)
@@ -153,12 +153,14 @@
 
 ;;; object -> a-list
 (defmethod object->alist ((object clevr-object))
+  ;240x160
+  ;245.5x177
   `((:color . ,(color object))
     (:size . ,(size object))
     (:shape . ,(shape object))
     (:material . ,(material object))
-    (:x-pos . ,(if (> (x-pos object) 245.5) 'right 'left))
-    (:y-pos . ,(if (> (y-pos object) 177) 'front 'behind))))
+    (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
+    (:ypos . ,(if (> (y-pos object) 160) 'front 'behind))))
 
 ;; ------------------------
 ;; + Continous CLEVR data +
@@ -193,25 +195,37 @@
                  (/ (- value (cdr (assoc 'min boundaries)))
                     (- (cdr (assoc 'max boundaries)) (cdr (assoc 'min boundaries)))))))
 
-(defun extracted->mwm-object (alist)
+(defun extracted->mwm-object (alist &key (colour :hsv))
   "Load a single object"
-  (let ((mean-color (rest (assoc :color-mean alist)))
-        (std-color (rest (assoc :color-std alist))))
+  (let ((mean-color (rest (assoc :color-mean alist))))
     ;; create an alist
     (setf alist
           (mapcar #'(lambda (pair)
                       (cons (internal-symb (car pair)) (cdr pair)))
                   alist))
     ;; split the color channels
-    (setf alist
-          (append `((mean-h . ,(first mean-color))
-                    (mean-s . ,(second mean-color))
-                    (mean-v . ,(third mean-color))
-                    (std-h . ,(first std-color))
-                    (std-s . ,(second std-color))
-                    (std-v . ,(third std-color))) alist))
+    (case colour
+      (:hsv (setf alist
+                  (append `((mean-h . ,(first mean-color))
+                            (mean-s . ,(second mean-color))
+                            (mean-v . ,(third mean-color))
+                            ;(std-h . ,(first std-color))
+                            ;(std-s . ,(second std-color))
+                            ;(std-v . ,(third std-color))
+                            ) alist)))
+      (:rgb (let ((rgb (hsv->rgb mean-color)))
+              (setf alist
+                    (append `((mean-r . ,(first rgb))
+                              (mean-g . ,(second rgb))
+                              (mean-b . ,(third rgb))) alist))))
+      (:lab (let ((lab (hsv->lab mean-color)))
+              (setf alist
+                    (append `((mean-l . ,(first lab))
+                              (mean-a . ,(second lab))
+                              (mean-b . ,(third lab))) alist)))))
     (setf alist (remove 'color-mean alist :key #'car))
     (setf alist (remove 'color-std alist :key #'car))
+    (setf alist (remove 'bb-area alist :key #'car))
     ;; flip the sign for angle
     (setf (cdr (assoc 'angle alist))
           (- (cdr (assoc 'angle alist))))
@@ -219,7 +233,8 @@
     (make-instance 'mwm-object :id (make-id 'object)
                    :attributes alist)))
 
-(defmethod clevr->extracted ((scene clevr-scene) &key directory (scale nil))
+(defmethod clevr->extracted ((scene clevr-scene) &key directory (scale nil)
+                             (colour :hsv))
   ;; take the name of the scene
   ;; look it up in 'directory'
   ;; and load the data
@@ -227,7 +242,8 @@
                 (make-pathname :name (name scene) :type "json")
                 directory))
          (objects (with-open-file (stream path :direction :input)
-                    (mapcar #'extracted->mwm-object
+                    (mapcar #'(lambda (object)
+                                (extracted->mwm-object object :colour colour))
                             (mapcar #'decode-json-from-string
                                     (stream->list stream))))))
     (when scale

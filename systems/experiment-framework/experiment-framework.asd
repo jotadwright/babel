@@ -29,6 +29,7 @@
    (:file "web-monitors")
    #-ecl
    (:file "parallel-batch")
+   ;(:file "parallel-batch-for-different-configurations")
    (:file "tests")))
 
 

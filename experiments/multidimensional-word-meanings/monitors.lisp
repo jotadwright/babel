@@ -4,22 +4,6 @@
 ;; + Monitors +
 ;; ------------
 
-;;export learner lexicon
-(define-monitor export-lexicon-evolution)
-
-(define-event-handler (export-lexicon-evolution interaction-finished)
-  (export-lexicon-evolution experiment interaction))
-
-(defun export-lexicon-evolution (experiment interaction)
-  (let ((i-number (interaction-number interaction))
-        (interval (get-configuration experiment :export-lexicon-interval)))
-    (when (= (mod i-number interval) 0)
-      (let ((learner (find 'learner (population experiment) :key #'id)))
-        (lexicon->pdf learner :experiment-name
-                        (list-of-strings->string (list (mkstr (get-configuration experiment :category-representation))
-                                                       (mkstr i-number))
-                                                 :separator "-"))))))
-
 ;;;; Show lexicon in web interface
 (defun display-lexicon (agent)
   (loop for cxn in (constructions (grammar agent))
@@ -40,15 +24,22 @@
                     (string-append "condition-" (mkstr (uiop:last-char (first (get-configuration experiment :data-sets)))) "-") "")
                   "lexicon")))
 
-(defun lexicon->pdf (agent &key name)
+(defun lexicon->pdf (agent &key name serie)
   (let* ((experiment-name (if name name (experiment-name-from-configurations (experiment agent))))
-         (base-path (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
-                                                 "graphs" ,(downcase experiment-name)))))
+         (base-path (if serie
+                      (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                                   "graphs" ,(downcase experiment-name)
+                                                   ,(format nil "run-~a" serie)))
+                      (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
+                                                   "graphs" ,(downcase experiment-name))))))
     (ensure-directories-exist base-path)
     (loop for json-cxn in (average-over-cxn-history agent)
           do (s-dot->image
               (json-cxn->s-dot json-cxn)
-              :path (merge-pathnames (make-pathname :name (format nil "~a-cxn" (rest (assoc :form json-cxn))) :type "pdf") base-path)
+              :path (merge-pathnames
+                     (make-pathname :name (format nil "~a-cxn" (rest (assoc :form json-cxn)))
+                                    :type "pdf")
+                     base-path)
               :format "pdf"
               :open nil))))
 
@@ -63,25 +54,6 @@
 ;;;; Export concepts (= cxns) as functions
 (defgeneric cxn->function-plot (cxn category-representation &key directory)
   (:documentation "Plot the functions that are stored in the categories"))
-
-(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :min-max))
-                               &key (directory '(".tmp")))
-  (let ((equations
-         (loop for (category . certainty) in (attr-val cxn :meaning)
-               when (< (abs (- (lower-bound category) (upper-bound category))) 0.5)
-               collect (format nil "box(x,~a,~a)"
-                               (lower-bound category)
-                               (upper-bound category)))))
-    (create-function-plot equations
-                          :function-definitions '("box(x,a,b)=(x>a && x<b) ? 1 : -1")
-                          :title (format nil "~a" (downcase (mkstr (name cxn))))
-                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
-                                          when (< (abs (- (lower-bound category) (upper-bound category))) 0.5)
-                                          collect (format nil "~a" (downcase (mkstr (attribute category)))))
-                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
-                          :plot-directory directory
-                          :x-label nil :y-min -1.1 :y-max 1.1
-                          :open nil)))
 
 (defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype))
                                 &key (directory '(".tmp")))
@@ -98,6 +70,25 @@
                           :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
                           :plot-directory directory
                           :x-label nil :y-min 0 :y-max nil
+                          :open nil)))
+
+#|(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :min-max))
+                               &key (directory '(".tmp")))
+  (let ((equations
+         (loop for (category . certainty) in (attr-val cxn :meaning)
+               when (< (abs (- (lower-bound category) (upper-bound category))) 0.5)
+               collect (format nil "box(x,~a,~a)"
+                               (lower-bound category)
+                               (upper-bound category)))))
+    (create-function-plot equations
+                          :function-definitions '("box(x,a,b)=(x>a && x<b) ? 1 : -1")
+                          :title (format nil "~a" (downcase (mkstr (name cxn))))
+                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          when (< (abs (- (lower-bound category) (upper-bound category))) 0.5)
+                                          collect (format nil "~a" (downcase (mkstr (attribute category)))))
+                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
+                          :plot-directory directory
+                          :x-label nil :y-min -1.1 :y-max 1.1
                           :open nil)))
 
 (defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype-min-max))
@@ -151,58 +142,7 @@
                           :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
                           :plot-directory directory
                           :x-label nil :y-min 0
-                          :open nil)))
-
-;;;; cxn -> json
-(defgeneric cxn->json (cxn category-representation)
-  (:documentation "Export the cxn to json such that it can be used later"))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :min-max)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:lower--bound . ,(lower-bound category))
-                                 (:upper--bound . ,(upper-bound category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype-min-max)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:lower--bound . ,(lower-bound category))
-                                 (:upper--bound . ,(upper-bound category))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:lower--m . ,(lower-m category))
-                                 (:lower--b . ,(lower-b category))
-                                 (:upper--m . ,(upper-m category))
-                                 (:lower--b . ,(lower-b category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :exponential)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:left--sigma . ,(left-sigma category))
-                                 (:right--sigma . ,(right-sigma category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
+                          :open nil)))|#
 
 ;;;; Learner used attribute
 ;; a-list monitor that keeps track of the attributes used by the learner
@@ -215,8 +155,8 @@
 
 (define-event-handler (record-learner-attribute-use interaction-finished)
   (let ((learner (find 'learner (population experiment) :key #'id)))
-    (when (parsed-meaning learner)
-      (loop for (category . score) in (parsed-meaning learner)
+    (when (find-data learner 'parsed-meaning)
+      (loop for (category . score) in (find-data learner 'parsed-meaning)
             for attr = (attribute category)
             if (> score 0.0)
             do (if (assoc attr *attribute-count*)
@@ -245,6 +185,56 @@
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-learner-attribute-use)
   (format t "~%Graphs have been created"))
+
+;;;; Record reason for failure
+;; a-list monitor that keeps track of the reason why the game failed
+(define-monitor record-game-outcome
+                :documentation "records in a few symbols the game outcome"
+                :class 'alist-recorder
+                :average-window 100)
+
+(define-event-handler (record-game-outcome interaction-finished)
+  (let ((learner (find 'learner (population experiment) :key #'id))
+        (tutor (find 'tutor (population experiment) :key 'id)))
+    (if (communicated-successfully interaction)
+      (set-value-for-symbol monitor 'success 1)
+      ;; if the tutor speaks
+      ;; - either the word is new for the learner
+      ;; - either the interpreted object is wrong
+      ;; if the learner speaks
+      ;; - either the learner cannot discriminate the topic
+      ;; - either the tutor cannot interpret the utterance
+      ;; - either the agents do not agree
+      (set-value-for-symbol monitor
+                            (if (speakerp tutor)
+                              (cond ((null (find-data learner 'parsed-meaning)) 'new-word-for-learner)
+                                    (t 'agents-not-agree))
+                              (cond ((null (find-data learner 'applied-cxns)) 'not-discriminate)
+                                    ((null (find-data tutor 'interpreted-topic)) 'tutor-not-interpret)
+                                    (t 'agents-not-agree)))
+                            1))))
+
+(define-monitor plot-game-outcomes
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-game-outcome
+    :draw-y-1-grid t
+    :y-label "Game outcomes"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "game-outcomes"
+			       :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-game-outcome-graph (&key
+                                  (configurations nil)
+                                  (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create a game outcome graph." nr-of-interactions)
+  (activate-monitor plot-game-outcomes)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-game-outcomes)
+  (format t "~%Graphs have been created"))
+        
 
 ;;;; Communicative success
 (define-monitor record-communicative-success
@@ -298,35 +288,6 @@
 (define-event-handler (record-lexicon-size interaction-finished)
   (record-value monitor (get-lexicon-size (hearer experiment))))
 
-;;;; Number of meanings per form
-(define-monitor record-features-per-form
-                :class 'data-recorder
-                :average-window 100
-                :documentation "records avg nr of meanings per form")
-
-(define-monitor export-features-per-form
-                :class 'lisp-data-file-writer
-                :documentation "Exports nr of meanings per form"
-                :data-sources '(record-features-per-form)
-                :file-name (babel-pathname :name "features-per-form" :type "lisp"
-                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
-                :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
-
-(defun compute-nr-of-features-per-form (agent)
-  (loop for cxn in (constructions (grammar agent))
-        for meaning = (attr-val cxn :meaning)
-        sum (length meaning) into meaning-length-sum
-        finally
-        (return (if (constructions (grammar agent))
-                  (float (/ meaning-length-sum
-                            (length (constructions (grammar agent)))))
-                  0))))
-
-(define-event-handler (record-features-per-form interaction-finished)
-   (record-value monitor (compute-nr-of-features-per-form (hearer experiment))))
-
 ;;;; Utterance length
 (define-monitor record-utterance-length
                 :class 'data-recorder
@@ -356,10 +317,11 @@
 
 (define-event-handler (record-tutor-word-use interaction-finished)
   (let* ((tutor (find 'tutor (population experiment) :key #'id))
-         (used-word (first (discriminative-set tutor))))
-    (if (assoc used-word *word-count*)
-      (incf (cdr (assoc used-word *word-count*)))
-      (push (cons used-word 1) *word-count*))
+         (used-words (find-data tutor 'clevr-conceptualisation)))
+    (loop for used-word in used-words
+          if (assoc used-word *word-count*)
+          do (incf (cdr (assoc used-word *word-count*)))
+          else do (push (cons used-word 1) *word-count*))
     (loop for (word . count) in *word-count*
           do (set-value-for-symbol monitor word count))))
 
@@ -403,8 +365,7 @@
   (let* ((tutor (find 'tutor (population experiment) :key #'id))
          (used-attribute-type (rest (assoc (first (utterance tutor)) *word->type-map* :test #'string=)))
          (success (communicated-successfully interaction)))
-    (set-value-for-symbol monitor used-attribute-type
-                          (if success 1 0))
+    (set-value-for-symbol monitor used-attribute-type (if success 1 0))
     (set-value-for-symbol monitor 'overall (if success 1 0))))
 
 (define-monitor plot-success-per-attribute-type
@@ -427,3 +388,217 @@
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-success-per-attribute-type)
   (format t "~%Graphs have been created"))
+
+;;;; Sankey diagram data
+;; every 100'th interaction, we export the entire lexicon
+;; the columns are: interaction number, word, feature, certainty, value
+;; from this csv, we can create a Sankey diagram in Python
+(define-monitor record-lexicon-evolution
+                :class 'data-recorder
+                :average-window 1
+                :documentation "records the evolution of the lexicon")
+
+(define-monitor export-lexicon-evolution
+                :class 'lisp-data-file-writer
+                :documentation "Exports communicative success"
+                :data-sources '(record-lexicon-evolution)
+                :file-name (babel-pathname :name "lexicon-evolution" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :column-separator " "
+                :comment-string "#")
+
+(defun collect-initial-cxn (cxn)
+  (loop with form = (attr-val cxn :form)
+        for (category . certainty) in (attr-val cxn :meaning)
+        collect (list 0
+                      (format nil "\"~a\"" (downcase form))
+                      (format nil "\"~a\"" (downcase (mkstr (attribute category))))
+                      (format nil "~$" certainty)
+                      (format nil "~$" (prototype category)))))
+
+(define-event-handler (record-lexicon-evolution new-cxn-added)
+  ;; record the initial representation of a concept
+  (let ((lexicon (list (collect-initial-cxn cxn))))
+    (record-value monitor lexicon)))
+
+(define-event-handler (record-lexicon-evolution interaction-finished)
+  ;; record every 100'th interactions
+  (let ((i-nr (interaction-number interaction)))
+    (if (= (mod i-nr (get-configuration experiment :dot-interval)) 0)
+      (let* ((learner (find 'learner (population experiment) :key #'id))
+             (lexicon (loop for cxn in (constructions (grammar learner))
+                            for form = (attr-val cxn :form)
+                            collect (loop for (category . certainty) in (attr-val cxn :meaning)
+                                          collect (list i-nr
+                                                        (format nil "\"~a\"" (downcase form))
+                                                        (format nil "\"~a\"" (downcase (mkstr (attribute category))))
+                                                        (format nil "~2f" certainty)
+                                                        (format  nil "~2f" (prototype category)))))))
+        (record-value monitor lexicon))
+      (unless (listp (current-value monitor))
+        (record-value monitor '())))))
+
+;; recording tutor utterance length for bar plots
+(define-monitor record-tutor-utterance-length-1
+                :class 'data-recorder
+                :average-window 1)
+
+(define-monitor export-tutor-utterance-length-1
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-utterance-length-1)
+                :file-name (babel-pathname :name "tutor-utterance-length-1" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-utterance-length-1 interaction-finished)
+  (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
+    (record-value monitor (if (= tutor-utterance-len 1) 1 0))))
+
+(define-monitor record-tutor-utterance-length-2
+                :class 'data-recorder
+                :average-window 1)
+
+(define-monitor export-tutor-utterance-length-2
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-utterance-length-2)
+                :file-name (babel-pathname :name "tutor-utterance-length-2" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-utterance-length-2 interaction-finished)
+  (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
+    (record-value monitor  (if (= tutor-utterance-len 2) 1 0))))
+
+(define-monitor record-tutor-utterance-length-3
+                :class 'data-recorder
+                :average-window 1)
+
+(define-monitor export-tutor-utterance-length-3
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-utterance-length-3)
+                :file-name (babel-pathname :name "tutor-utterance-length-3" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-utterance-length-3 interaction-finished)
+  (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
+    (record-value monitor  (if (= tutor-utterance-len 3) 1 0))))
+
+(define-monitor record-tutor-utterance-length-4
+                :class 'data-recorder
+                :average-window 1)
+
+(define-monitor export-tutor-utterance-length-4
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-utterance-length-4)
+                :file-name (babel-pathname :name "tutor-utterance-length-4" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-utterance-length-4 interaction-finished)
+  (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
+    (record-value monitor  (if (= tutor-utterance-len 4) 1 0))))
+                
+;; recording tutor attribute use for bar plots
+(define-monitor record-tutor-uses-color
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-color
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-color)
+                :file-name (babel-pathname :name "tutor-uses-color" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-color interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'color types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-shape
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-shape
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-shape)
+                :file-name (babel-pathname :name "tutor-uses-shape" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-shape interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'shape types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-material
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-material
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-material)
+                :file-name (babel-pathname :name "tutor-uses-material" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-material interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'material types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-size
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-size
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-size)
+                :file-name (babel-pathname :name "tutor-uses-size" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-size interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'size types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-xpos
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-xpos
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-xpos)
+                :file-name (babel-pathname :name "tutor-uses-xpos" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-xpos interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'xpos types) (/ 1 (length utterance)) 0))))
+
+(define-monitor record-tutor-uses-ypos
+                :class 'data-recorder :average-window 1)
+
+(define-monitor export-tutor-uses-ypos
+                :class 'lisp-data-file-writer
+                :data-sources '(record-tutor-uses-ypos)
+                :file-name (babel-pathname :name "tutor-uses-ypos" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-tutor-uses-ypos interaction-finished)
+  (let* ((utterance (utterance (speaker interaction)))
+         (types (loop for word in utterance
+                      for type = (rest (assoc word *word->type-map* :test #'string=))
+                      collect type)))
+    (record-value monitor (if (find 'ypos types) (/ 1 (length utterance)) 0))))

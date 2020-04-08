@@ -370,9 +370,7 @@
   
   ;; load the asdf system
   (let ((test-framework::*dont-run-tests-when-loading-asdf-systems* t))
-    (ql:quickload asdf-system)
-    ;(asdf:operate 'asdf:load-op asdf-system)
-    )
+    (ql:quickload asdf-system))
 
   ;; activate the monitors
   (monitors:deactivate-all-monitors)
