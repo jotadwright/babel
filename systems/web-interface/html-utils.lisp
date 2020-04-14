@@ -671,7 +671,7 @@ div.menu {
   background-color:#fff;padding-right:3px;padding-left:3px;font-weight:normal;
   filter:alpha(opacity=85);-moz-opacity:0.85;-khtml-opacity: 0.85;opacity: 0.85;
 }
-div.normal-size-menu { height:16px;top:-17px;left:-1px;font-size:11px; }
+div.normal-size-menu { height:12px;top:-15px;left:-1px;font-size:12px; }
 div.big-size-menu { height:22px;top:-23px;left:-1px;font-size:18px; }
 div.menu a { margin-right:2px;}
 ")
