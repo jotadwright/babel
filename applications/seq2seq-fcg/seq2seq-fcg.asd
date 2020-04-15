@@ -11,7 +11,8 @@
                :cl-json
                :snooze
                :clevr-grammar
-               :clevr-evaluation)
+               :clevr-evaluation
+               :corpus-processing)
   :serial t
   :components ((:file "package")
                (:file "server")
