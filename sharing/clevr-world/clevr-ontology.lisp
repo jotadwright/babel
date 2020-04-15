@@ -67,7 +67,7 @@
 (defun build-clevr-ontology ()
   "Build the clevr ontology from the metadata file.
    How to handle 'thing'? Also consider this a shape?"
-  (let* ((metadata-file (babel-pathname :directory '("applications" "clevr" "data")
+  (let* ((metadata-file (babel-pathname :directory '("sharing" "clevr-world" "data")
                                         :name "metadata" :type "json"))
          (metadata (decode-json-from-source metadata-file))
          (metadata-types (cdr (assoc :types metadata)))
