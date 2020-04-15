@@ -490,12 +490,12 @@
                (push car failed-cars)))
 
     ;; finally we check whether something changed
-    (setq second-merge-cars
-          (loop for car in second-merge-cars
-             if (equivalent-coupled-feature-structures cfs (car-resulting-cfs car))
-             do (setf (car-status car) 'structure-not-changed)
-	       (push car failed-cars)
-             else collect car))
+   ; (setq second-merge-cars
+   ;       (loop for car in second-merge-cars
+   ;          if (equivalent-coupled-feature-structures cfs (car-resulting-cfs car))
+   ;          do (setf (car-status car) 'structure-not-changed)
+   ;	       (push car failed-cars)
+   ;          else collect car))
     
     ;; done!
     (values second-merge-cars failed-cars)))
