@@ -8,7 +8,10 @@
   :depends-on (:utils
                :fcg
                :cl-json
-               :snooze)
+               :snooze
+               :clevr-grammar
+               :clevr-evaluation)
   :serial t
   :components ((:file "package")
-               (:file "server")))
+               (:file "server")
+               (:file "apply-predictions")))

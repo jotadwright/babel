@@ -12,4 +12,6 @@
   (:import-from :cl-json
                 :encode-json-to-string
                 :encode-json-alist-to-string
-                :decode-json-from-string))
+                :decode-json-from-string)
+  (:import-from :clevr-grammar :*CLEVR*)
+  (:import-from :clevr-evaluation :preprocess-sentence))
