@@ -158,10 +158,11 @@
                              all-objects-as-alist :key #'car)))
          (discriminative-set (mapcar #'cdr (discriminate-topic topic-as-alist context-as-alist))))
     (when (and (get-configuration agent :max-tutor-utterance-length)
-               (<= (length discriminative-set) (get-configuration agent :max-tutor-utterance-length)))
+               (<= (length discriminative-set)
+                   (get-configuration agent :max-tutor-utterance-length)))
       (set-data agent 'clevr-conceptualisation discriminative-set))
     (notify conceptualisation-finished agent)
-    discriminative-set))
+    (find-data agent 'clevr-conceptualisation)))
 
 (defparameter *impossible-combinations*
   (append
