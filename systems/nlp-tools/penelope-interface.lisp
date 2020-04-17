@@ -51,21 +51,18 @@
 ;; Interfacing with using http request and json ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; This used curl, but we're using DEX now directly from lisp (for using curl, you need to encode-json-as-string-for-shell!!)
-;; update: using it again with lispworks until the boringssl bug is fixed   
-
 #+lispworks
-(defun curl-json (route json &key (host *penelope-host*))
+(defun send-request (route json &key (host *penelope-host*))
   "Send curl request and returns the answer."
   (let* ((url (string-append host route))
-         (response (exec-and-return "curl" url "-H"
-                                    #+lispworks (format nil "~s" "Content-Type: application/json")
-                                    #-lispworks (format nil "~a" "Content-Type: application/json")
-                                    "-s"   "-d "  json ))) ;; remove single quotes for non lispworks
-    (when response (cl-json:decode-json-from-string (first response)))))
+         (response (drakma:http-request url
+                                        :method :post
+                                        :content-type "application/json"
+                                        :content json)))
+    (when response (cl-json:decode-json-from-string response))))
 
 #-lispworks
-(defun curl-json (route json &key (host *penelope-host*))
+(defun send-request (route json &key (host *penelope-host*))
   "Send curl request and returns the answer."
   (let* ((url (string-append host route))
          (response (dex:post url
@@ -85,8 +82,8 @@
   "Call the penelope server to tokenize a sentence."
   (unless (stringp sentence)
     (error "The function <run-penelope-tokenizer> expects a string as input"))
-  (curl-json "/tokenize"
-             (encode-json-to-string-for-shell `((:sentence . ,sentence)
+  (send-request "/tokenize"
+             (encode-json-to-string `((:sentence . ,sentence)
                                                 (:model . ,model)))))
 
 ;;(run-penelope-tokenizer "Paul kicked the ball.")
@@ -107,7 +104,7 @@
     (if (listp sentence)
       (setf sentence (format nil "~{~a~^ ~}" sentence))
       (error "The function <run-penelope-lemmatizer> expects a string as input")))
-  (curl-json "/lemmatize" (encode-json-to-string-for-shell `((:sentence . ,sentence) (:model . ,model)))))
+  (send-request "/lemmatize" (encode-json-to-string `((:sentence . ,sentence) (:model . ,model)))))
 
 ;; (run-penelope-lemmatizer "April is the fourth month of the year")
 
@@ -128,8 +125,8 @@ of strings, each list corresponding to a noun chunk."
     (if (listp sentence)
       (setf sentence (format nil "~{~a~^ ~}" sentence))
       (error "The function <run-penelope-noun-chunker> expects a string as input")))
-          (curl-json "/noun-chunks"
-                     (encode-json-to-string-for-shell `((:sentence . ,sentence)
+          (send-request "/noun-chunks"
+                     (encode-json-to-string `((:sentence . ,sentence)
                                                         (:model . ,model)))))
 
 ;; (run-penelope-noun-chunker "April is the fourth month of the year")
@@ -149,8 +146,8 @@ of strings, each list corresponding to a noun chunk."
   "Call the penelope server to get the POS tags for a sentence."
   (unless (stringp sentence)
     (error "The function <run-penelope-pos-tagger> expects a string as input"))
-         (curl-json "/pos"
-                    (encode-json-to-string-for-shell `((:sentence . ,(remove-multiple-spaces sentence))
+         (send-request "/pos"
+                    (encode-json-to-string `((:sentence . ,(remove-multiple-spaces sentence))
                                                        (:model . ,model)))))
 
 ;; (run-penelope-pos-tagger "April is the fourt month of the year.")
@@ -179,8 +176,8 @@ of strings, each list corresponding to a word with its most likely POS tag."
   "Call the penelope server to get the named entities from a sentence."
   (unless (stringp sentence)
     (error "The function <run-penelope-named-entity-recognition> expects a string as input"))
-  (curl-json "/named-entities"
-             (encode-json-to-string-for-shell `((:sentence . ,sentence)
+  (send-request "/named-entities"
+             (encode-json-to-string `((:sentence . ,sentence)
                                                 (:model . ,model)))))
 
 ;; (run-penelope-named-entity-recognition "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date.")
@@ -211,11 +208,11 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the dependency labels all words in a sentence."
   (unless (stringp sentence)
     (error "The function <run-penelope-dependency-parser> expects a string as input"))
-  (curl-json "/dependencies"
-             (encode-json-to-string-for-shell `((:sentence . ,(remove-multiple-spaces sentence))
+  (send-request "/dependencies"
+             (encode-json-to-string `((:sentence . ,(remove-multiple-spaces sentence))
                                                 (:model . ,model)))))
 
-;;(run-penelope-dependency-parser "April is the fourth month of the year")
+;; (run-penelope-dependency-parser "April is the fourth month of the year")
 
 (defun get-penelope-dependency-analysis (utterance &key (model "en"))
   "Returns a dependency tree analysis."
@@ -227,7 +224,7 @@ of strings, each list corresponding to a named entity."
 ;; Word embeddings ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defun run-penelope-sentence-word-embeddings (sentence &key (model "en") (source nil))
+(defun run-penelope-sentence-word-embeddings (sentence &key (model "en"))
   (warn "Deprecated function, call run-penelope-word-embeddings instead.")
   (run-penelope-word-embeddings sentence :model model))
 
@@ -235,13 +232,13 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the word embeddings of a single sentence."
   (unless (stringp sentence)
     (error "The function <run-penelope-sentence-word-embeddings> expects a string as input"))
-  (curl-json "/embeddings"
-             (encode-json-to-string-for-shell `((:sentence . ,sentence)
-                                                (:model . ,model)))))
+  (send-request "/embeddings"
+                (encode-json-to-string `((:sentence . ,sentence)
+                                         (:model . ,model)))))
 
 ;; (run-penelope-word-embeddings "ball boy ball")
 
-(defun get-penelope-word-embeddings (sentence &key (source 'glove) (lemmatize? nil))
+(defun get-penelope-word-embeddings (sentence &key (lemmatize? nil))
   "Get the word embeddings for a sentence in a '((word1 vector1) (word2 vector2)) format."
   (when lemmatize?
     (setf sentence (list-of-strings->string (get-penelope-lemmas sentence))))
@@ -265,8 +262,8 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the dependency labels all words in a sentence."
   (unless (stringp sentences)
     (error "The function <run-penelope-sentence-tokenizer> expects a string as input"))
-         (curl-json "/split-sentences"
-                    (encode-json-to-string-for-shell `((:text . ,sentences) (:model . ,model)))))
+         (send-request "/split-sentences"
+                    (encode-json-to-string `((:text . ,sentences) (:model . ,model)))))
 
 ;; (run-penelope-sentence-tokenizer "Paul kicked the ball. Mary caught it.")
 
@@ -291,8 +288,8 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the dependency labels all words in a sentence."
   (unless (listp texts)
     (error "The function <run-penelope-texts-tokenizer> expects a list as input"))
-         (curl-json "/texts-tokenize"
-                    (encode-json-to-string-for-shell `((:texts . ,texts)
+         (send-request "/texts-tokenize"
+                    (encode-json-to-string `((:texts . ,texts)
                                                        (:model . ,model)))))
 
 ;; (run-penelope-texts-tokenizer '("This is one article. And it has two sentences" "Then there is a second article. It talks about Mr. Smith."))
@@ -312,8 +309,8 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the dependency labels all words in a sentence."
   (unless (listp texts)
     (error "The function <run-penelope-texts-lemmatizer> expects a list as input"))
-         (curl-json "/texts-lemmatize"
-                    (encode-json-to-string-for-shell `((:texts . ,texts)
+         (send-request "/texts-lemmatize"
+                    (encode-json-to-string `((:texts . ,texts)
                                                        (:model . ,model)))))
 
 ;; (run-penelope-texts-lemmatizer '("This is one article. And it has two sentences" "Then there is a second article. It talks about Mr. Smith."))
@@ -332,8 +329,8 @@ of strings, each list corresponding to a named entity."
 (defun run-penelope-texts-noun-chunker (texts &key (model "en"))
   (unless (listp texts)
     (error "The function <run-penelope-texts-noun-chunker> expects a list as input"))
-         (curl-json "/texts-noun-chunks"
-                    (encode-json-to-string-for-shell `((:texts . ,texts)
+         (send-request "/texts-noun-chunks"
+                    (encode-json-to-string `((:texts . ,texts)
                                                        (:model . ,model)))))
 
 ;; (run-penelope-texts-noun-chunker '("April is the fourth month of the year. May is the fifth month" "My name is Obama"))
@@ -351,8 +348,8 @@ of strings, each list corresponding to a named entity."
 (defun run-penelope-texts-pos-tagger (texts &key (model "en"))
   (unless (listp texts)
     (error "The function <run-penelope-texts-noun-chunker> expects a list as input"))
-         (curl-json "/texts-pos-tags"
-                    (encode-json-to-string-for-shell `((:texts . ,texts)
+         (send-request "/texts-pos-tags"
+                    (encode-json-to-string `((:texts . ,texts)
                                                        (:model . ,model)))))
 
 ;; (run-penelope-texts-pos-tagger '("April is the fourth month of the year. May is the fith month" "this is another sentence with Obama"))
@@ -370,8 +367,8 @@ of strings, each list corresponding to a named entity."
 (defun run-penelope-texts-named-entity-recognition (texts &key (model "en"))
   (unless (listp texts)
     (error "The function <run-penelope-texts-noun-chunker> expects a list as input"))
-         (curl-json "/texts-named-entities"
-                    (encode-json-to-string-for-shell `((:texts . ,texts)
+         (send-request "/texts-named-entities"
+                    (encode-json-to-string `((:texts . ,texts)
                                                        (:model . ,model)))))
 
 ;; (run-penelope-texts-named-entity-recognition '("April is the fourth month of the year. May is the fith month" "this is another sentence with Obama"))
@@ -391,8 +388,8 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the dependency labels all words in a sentence."
   (unless (listp sentence)
     (error "The function <run-penelope-texts-dependency-parser> expects a list as input"))
-  (curl-json "/texts-dependencies"
-             (encode-json-to-string-for-shell `((:texts . ,sentence)
+  (send-request "/texts-dependencies"
+             (encode-json-to-string `((:texts . ,sentence)
                                                 (:model . ,model)))))
 
 ;;(run-penelope-texts-dependency-parser '("April is the fourth month of the year. May is the fifth month" "I am Paul"))
@@ -410,8 +407,8 @@ of strings, each list corresponding to a named entity."
 (defun run-penelope-texts-word-embeddings (texts &key (model "en"))
   (unless (listp texts)
     (error "The function <run-penelope-texts-word-embeddings> expects a list as input"))
-         (curl-json "/texts-embeddings"
-                    (encode-json-to-string-for-shell `((:texts . ,texts)
+         (send-request "/texts-embeddings"
+                    (encode-json-to-string `((:texts . ,texts)
                                                        (:model . ,model)))))
 
 ;; (run-penelope-texts-word-embeddings '("fish. I like fish." "I like meat"))
@@ -429,8 +426,8 @@ of strings, each list corresponding to a named entity."
   "Call the penelope server to get the dependency labels all words in a sentence."
   (unless (listp texts)
     (error "The function <run-penelope-texts-sentence-tokenizer> expects a list of strings as input"))
-         (curl-json "/texts-split-sentences"
-                    (encode-json-to-string-for-shell `((:texts . ,texts) (:model . ,model)))))
+         (send-request "/texts-split-sentences"
+                    (encode-json-to-string `((:texts . ,texts) (:model . ,model)))))
 
 ;; (run-penelope-texts-sentence-tokenizer '("This is one article. And it has sentences" "Then there is a second article. It talks about Mr. Smith."))
 
@@ -518,38 +515,3 @@ punctuation marks."
 
 
 
-
-#|
-OLD CODE FROM GUARDIAN EMBEDDINGS 
- 
-(defun run-penelope-sentence-word-embeddings (sentence &key (model "en") (source nil))
-  "Call the penelope server to get the word embeddings of a single sentence."
-  (unless (stringp sentence)
-    (error "The function <run-penelope-sentence-word-embeddings> expects a string as input"))
-  (let ((server-result
-         (if (eq source 'guardian-data)
-           (curl-json "https://www.fcg-net.org/penelope/word2vec/vec" (encode-json-to-string-for-shell `((:text . ,sentence))))
-           (curl-json "http:/127.0.0.1:5000/spacy-api/embeddings" (encode-json-to-string-for-shell `((:text . ,sentence) (:model . ,model)))))))
-
-    (if (eq source 'guardian-data)
-      (cond ((null (search " " sentence)) ;;single word
-             (list server-result))
-            ((equalp (type-of server-result) 'cl-user::simple-text-string) ;;"word 'x' not in vocabulary"
-             ;;remove out-of-vocabulary word
-             (let* ((server-result (cdr (assoc :result (decode-json-from-string
-                                                        (format nil "{\"result\":~a}"
-                                                                (cl-ppcre:regex-replace-all "\\" server-result "\\\\"))))))
-                    (out-of-voc-word-array (second (multiple-value-list (cl-ppcre:scan-to-strings "'(.+)'" server-result))))
-                    (out-of-voc-word (when out-of-voc-word-array (first (array->list out-of-voc-word-array)))))
-               (format t "Out of vocabulary word in Guardian word embeddings: ~a ~%" out-of-voc-word)
-               (setf sentence (string-replace sentence out-of-voc-word ""))
-               (setf sentence (list-of-strings->string (split-sequence:split-sequence #\Space sentence :remove-empty-subseqs t)))
-               (if sentence
-                 (run-penelope-sentence-word-embeddings sentence :source source)
-                 nil)))
-            (t
-             (rest (first server-result))))
-      (rest (first server-result)))))
-  
-;(run-penelope-sentence-word-embeddings "the ball" :source 'glove)
-|#
