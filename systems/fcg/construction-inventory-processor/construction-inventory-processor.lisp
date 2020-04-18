@@ -94,7 +94,7 @@
           children cip fully-expanded?  duplicate created-at
           traverse-depth-first siblings))
 
-(defclass cip-node (object-w-learning)
+(defclass cip-node (object-w-learning blackboard)
   ((construction-inventory 
     :type construction-inventory :initarg :construction-inventory 
     :accessor construction-inventory
@@ -581,13 +581,6 @@ mode ~a. Please check why it did not calculate a priority score." (get-configura
         (cip-priority node (get-configuration cip :priority-mode)))
   (setf (queue cip) (sorted-insert (queue cip) node :key #'priority :test #'>=)))
 
-(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
-                        (mode (eql :breadth-first)))
-  "Implements breadth-first search" 
-  (setf (priority node)  
-        (cip-priority node (get-configuration cip :priority-mode)))
-  (setf (queue cip) (sorted-insert (queue cip) node :key #'priority :test #'<=)))
-
 (defun cip-run-goal-tests (node cip)
   (setf (goal-test-data node) (make-blackboard))
   (when (loop for mode in (get-configuration
@@ -869,12 +862,6 @@ links between applied constructions for priming effects."
 ;; #############################################################################
 ;; produce
 ;; -----------------------------------------------------------------------------
-#|(let ((hierarchy-feature 'subunits)) ;;old clojure
-    (defun set-hierarchy-feature (feature-name)
-      (setf hierarchy-feature feature-name))
-    (defun get-hierarchy-feature ()
-      hierarchy-feature))
-|#
 
 (defun initialize-transient-structure-blackboard (transient-structure
                                                   utterance/meaning construction-inventory direction)
@@ -898,7 +885,10 @@ added here. Preprocessing is only used in parsing currently."
   (let ((initial-cfs (create-initial-structure 
 		      meaning 
 		      (get-configuration construction-inventory :create-initial-structure-mode))))
+    
     (initialize-transient-structure-blackboard initial-cfs meaning construction-inventory '->)
+    (set-data (blackboard construction-inventory) :input meaning)
+    
     (unless silent (notify produce-started meaning construction-inventory initial-cfs))
     (multiple-value-bind (solution cip)
         (fcg-apply construction-inventory initial-cfs '->)
@@ -919,6 +909,9 @@ added here. Preprocessing is only used in parsing currently."
 		      meaning 
 		      (get-configuration construction-inventory :create-initial-structure-mode))))
     (unless silent (notify produce-all-started n meaning construction-inventory))
+
+    (set-data (blackboard construction-inventory) :input meaning)
+    
     (multiple-value-bind (solutions cip)
         (if n
           (fcg-apply-with-n-solutions construction-inventory initial-cfs '-> n
@@ -947,6 +940,7 @@ added here. Preprocessing is only used in parsing currently."
                                 :cxn-inventory (original-cxn-set construction-inventory))))
     
     (initialize-transient-structure-blackboard initial-cfs utterance construction-inventory '<-)
+    (set-data (blackboard construction-inventory) :input utterance)
                                        
     (unless silent (notify parse-started (listify utterance) initial-cfs))
     (multiple-value-bind
@@ -963,7 +957,10 @@ added here. Preprocessing is only used in parsing currently."
                   &optional silent)
   ;(set-hierarchy-feature (first (hierarchy-features construction-inventory)))
   (let ((initial-cfs (de-render utterance (get-configuration construction-inventory :de-render-mode))))
+    
     (initialize-transient-structure-blackboard initial-cfs utterance construction-inventory '<-)
+    (set-data (blackboard construction-inventory) :input utterance)
+    
     (unless silent (notify parse-started (listify utterance) initial-cfs))
     (multiple-value-bind
         (solution cip)
@@ -981,7 +978,10 @@ added here. Preprocessing is only used in parsing currently."
   "find all parse results, if n is a number, max n solutions will be returned"
   (let ((initial-cfs (de-render utterance (get-configuration construction-inventory :de-render-mode)
                                 :cxn-inventory (original-cxn-set construction-inventory))))
+    
     (initialize-transient-structure-blackboard initial-cfs utterance construction-inventory '<-)
+    (set-data (blackboard construction-inventory) :input utterance)
+    
     (unless silent (notify parse-all-started n (listify utterance)))
     (multiple-value-bind (solutions cip)
         (if n
