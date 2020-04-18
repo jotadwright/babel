@@ -4,7 +4,7 @@
 
 
 ;; Depth-first example:
-(set-configurations *fcg-constructions* '((:cxn-supplier-mode . :seq2seq-heuristic)
+(set-configurations *fcg-constructions* '((:cxn-supplier-mode . :hashed+seq2seq-heuristics)
                                           (:priority-mode . :seq2seq-heuristic-additive)))
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
