@@ -104,10 +104,15 @@
                          (:production-goal-tests :no-applicable-cxns
                                                  :connected-structure
                                                  :no-meaning-in-root)
+                         ;; For heuristic search:
+                         (:cxn-supplier-mode . :seq2seq-heuristic)
+                         (:priority-mode . :seq2seq-heuristic-additive)
+                         (:seq2seq-endpoint . "http://localhost:8888/next_cxn")
+                         (:seq2seq-model-comprehension . "clevr_comprehension_model")
+                         (:seq2seq-model-formulation . "clevr_formulation_model")
+                         
                          ;; For guiding search:
-                         (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
                          (:node-expansion-mode . :multiple-cxns)
-                         (:priority-mode . :nr-of-applied-cxns)
                          (:queue-mode . :greedy-best-first)
                          (:max-nr-of-nodes . 10000)
                          (:hash-mode . :hash-string-meaning-lex-id))
