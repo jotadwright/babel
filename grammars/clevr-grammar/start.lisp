@@ -2,12 +2,27 @@
 (in-package :clevr-grammar)
 (activate-monitor trace-fcg)
 
+
+;; Depth-first example:
+(set-configurations *fcg-constructions* '((:cxn-supplier-mode . :seq2seq-heuristic)
+                                          (:priority-mode . :seq2seq-heuristic-additive)))
+
+(comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+
+;; Seq2Seq example:
+
+(set-configurations *fcg-constructions* '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                                          (:priority-mode . :nr-of-applied-cxns)))
+
+(comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+
+
 ;; ------------------------ ;;
 ;; zero hop question family ;;
 ;; ------------------------ ;;
 
 ;; question type 1; count
-(fcg:comprehend-all '("how many" "blue" "things" "are" "there"))
+(fcg:comprehend '("how many" "blue" "things" "are" "there"))
 (fcg:comprehend-all '("what number of" "blue" "things" "are" "there"))
 
 (fcg:formulate-all
@@ -1065,7 +1080,7 @@
    (bind shape-category shape-3 thing)
    (bind color-category color-3 blue)))
 
-(fcg:comprehend-all '("are there" "more" "blue" "things" "left of" "the" "green" "ball" "than" "red" "cubes" "behind" "the" "purple" "cube"))
+(fcg:comprehend '("are there" "more" "blue" "things" "left of" "the" "green" "ball" "than" "red" "cubes" "behind" "the" "purple" "cube"))
 (fcg:comprehend-all '("is the number of" "blue" "things" "left of" "the" "green" "ball" "greater than" "the number of" "red" "cubes" "behind" "the" "purple" "cube"))
 
 (fcg:formulate
