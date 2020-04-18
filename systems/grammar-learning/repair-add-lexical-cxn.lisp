@@ -24,7 +24,7 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by making a new lexical construction."
-  (let ((lex-cxn-and-th-link (create-lexical-cxn problem node)))
+  (let ((lex-cxn-and-th-link (create-lexical-cxn-production problem node)))
     (when lex-cxn-and-th-link 
       (make-instance 'fcg::cxn-fix
                      :repair repair
@@ -43,7 +43,7 @@
              (meaning-predicates-lex-cxn (set-difference meaning-predicates-gold meaning-predicates-observed :test #'unify))
              (cxn-name (make-cxn-name (third (first string-predicates-in-root)) cxn-inventory))
              (unit-name (second (first string-predicates-in-root)))
-             (lex-class (intern (symbol-name (make-const "CAT")) :type-hierarchies))
+             (lex-class (intern (symbol-name (make-const unit-name)) :type-hierarchies))
              (args (mapcar #'third meaning-predicates-lex-cxn))
              (th-link (when (lex-class (find  (make-symbol (subseq (symbol-name unit-name) 1)) observation
                                               :key #'unit-name :test #'string=))
@@ -53,14 +53,48 @@
          (second (multiple-value-list (eval
                                        `(def-fcg-cxn ,cxn-name
                                                      ((,unit-name
-                                                       (syn-cat (phrase-type lexical)
-                                                                (lex-class ,lex-class))
-                                                       (args ,args))
+                                                       (syn-cat (lex-class ,lex-class)))
                                                       <-
                                                       (,unit-name
+                                                       (syn-cat (lex-class ,lex-class))
+                                                       (args ,args)
                                                        (HASH meaning ,meaning-predicates-lex-cxn)
                                                        --
                                                        (HASH form ,string-predicates-in-root)))
+                                                     :cxn-inventory ,(copy-object cxn-inventory)))))
+         th-link
+         (cons (cdr th-link) (car th-link)))))))
+
+(defun create-lexical-cxn-production (problem node)
+  "Creates a holophrase-cxn."
+  (let* ((observation (left-pole-structure (car-resulting-cfs (cipn-car node))))
+         (meaning-predicates-in-root (meaning-predicates-with-variables (extract-meaning (get-root observation)))))
+    ;; Only 1 meaning predicate in root
+    (when (= 1 (length meaning-predicates-in-root))
+      (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
+             (form-predicates-gold (form-constraints-with-variables (first (get-data problem :utterances)) (get-configuration cxn-inventory :de-render-mode)))
+             (form-predicates-observed (extract-forms observation))
+             (form-predicates-lex-cxn (set-difference form-predicates-gold form-predicates-observed :test #'unify))
+             (cxn-name (make-cxn-name (third (first form-predicates-lex-cxn)) cxn-inventory))
+             (unit-name (second (first form-predicates-lex-cxn)))
+             (lex-class (intern (symbol-name (make-const unit-name)) :type-hierarchies))
+             (args (third (first meaning-predicates-in-root)))
+             (th-link (when (lex-class (find  (make-symbol (subseq (symbol-name unit-name) 1)) observation
+                                              :key #'unit-name :test #'string=))
+                        (cons lex-class (lex-class (find  (make-symbol (subseq (symbol-name unit-name) 1)) observation
+                                                          :key #'unit-name :test #'string=))))))
+        (list
+         (second (multiple-value-list (eval
+                                       `(def-fcg-cxn ,cxn-name
+                                                     ((,unit-name
+                                                       (syn-cat (lex-class ,lex-class)))
+                                                      <-
+                                                      (,unit-name
+                                                       (syn-cat (lex-class ,lex-class))
+                                                       (args ,args)
+                                                       (HASH meaning ,meaning-predicates-in-root)
+                                                       --
+                                                       (HASH form ,form-predicates-lex-cxn)))
                                                      :cxn-inventory ,(copy-object cxn-inventory)))))
          th-link
          (cons (cdr th-link) (car th-link)))))))

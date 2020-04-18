@@ -43,34 +43,33 @@ based on existing construction with sufficient overlap."
                                                               overlapping-meaning-cxn overlapping-form-cxn
                                                               cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory utterance meaning)
-      
       (when cxn
         (let* (;; CXN names
                (cxn-name-lex-cxn-1 (make-cxn-name non-overlapping-form-cxn cxn-inventory))
                (cxn-name-lex-cxn-2 (make-cxn-name non-overlapping-form-observation cxn-inventory))
                (cxn-name-item-based-cxn (make-cxn-name overlapping-form-cxn cxn-inventory))
-               ;; args and syn-cat
-               (lex-class-lex-cxn-1 (intern (symbol-name (make-const "CAT")) :type-hierarchies))
-               (lex-class-lex-cxn-2 (intern (symbol-name (make-const "CAT")) :type-hierarchies))
-               (lex-class-item-based-cxn (intern (symbol-name (make-const "CAT")) :type-hierarchies))
-               ;; Type hierachy links
-               (th-link-1 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
-               (th-link-2 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
                ;; Args
                (args-lex-cxn-1 (third (first non-overlapping-meaning-cxn))) ;; third if bind
                (args-lex-cxn-2 (third (first non-overlapping-meaning-observation))) ;; third if bind
                ;; unit names
                (unit-name-lex-cxn-1 (second (find 'string non-overlapping-form-cxn :key #'first)))
                (unit-name-lex-cxn-2 (second (find 'string non-overlapping-form-observation :key #'first)))
+               ;; lex-class
+               (lex-class-lex-cxn-1 (intern (symbol-name (make-const unit-name-lex-cxn-1)) :type-hierarchies))
+               (lex-class-lex-cxn-2 (intern (symbol-name (make-const unit-name-lex-cxn-2)) :type-hierarchies))
+               (lex-class-item-based-cxn (intern (symbol-name (make-const "CAT")) :type-hierarchies))
+               ;; Type hierachy links
+               (th-link-1 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
+               (th-link-2 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
                ;; CXNs
                (lex-cxn-1 (second (multiple-value-list (eval
                                                         `(def-fcg-cxn ,cxn-name-lex-cxn-1
                                                                       ((,unit-name-lex-cxn-1
-                                                                        (args (,args-lex-cxn-1))
-                                                                        (syn-cat (phrase-type lexical)
-                                                                                 (lex-class ,lex-class-lex-cxn-1)))
+                                                                        (syn-cat (phrase-type lexical)))
                                                                        <-
                                                                        (,unit-name-lex-cxn-1
+                                                                        (args (,args-lex-cxn-1))
+                                                                        (syn-cat (lex-class ,lex-class-lex-cxn-1))
                                                                         (HASH meaning ,non-overlapping-meaning-cxn)
                                                                         --
                                                                         (HASH form ,non-overlapping-form-cxn)))
@@ -78,11 +77,11 @@ based on existing construction with sufficient overlap."
                (lex-cxn-2 (second (multiple-value-list (eval
                                                         `(def-fcg-cxn ,cxn-name-lex-cxn-2
                                                                       ((,unit-name-lex-cxn-2
-                                                                        (args (,args-lex-cxn-2))
-                                                                        (syn-cat (phrase-type lexical)
-                                                                                 (lex-class ,lex-class-lex-cxn-2)))
+                                                                        (syn-cat (phrase-type lexical)))
                                                                        <-
                                                                        (,unit-name-lex-cxn-2
+                                                                        (args (,args-lex-cxn-2))
+                                                                        (syn-cat (lex-class ,lex-class-lex-cxn-2))
                                                                         (HASH meaning ,non-overlapping-meaning-observation)
                                                                         --
                                                                         (HASH form ,non-overlapping-form-observation)))
