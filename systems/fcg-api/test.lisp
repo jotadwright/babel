@@ -11,6 +11,8 @@
                   (constituents sequence)
                   (dependents sequence))
   :hierarchy-features (constituents dependents)
+  :fcg-configurations ((:de-render-mode . :de-render-string-adjacent)
+                       (:render-mode . :render-string-adjacent))
   
   ;; Lexical constructions
   (define-cxn the-cxn
@@ -81,7 +83,7 @@
                  (syn-cat (lex-class noun)))
                 (?noun-phrase
                  --
-                 (HASH form ((meets ?article ?noun))))))
+                 (HASH form ((adjacent ?article ?noun))))))
   
   ;; VP -> V
   (define-cxn verb-phrase-cxn
@@ -133,8 +135,8 @@
                  (constituents (?object-article ?object-noun)))
                 (?transitive-clause
                  --
-                 (HASH form ((meets ?subject-noun ?verb)
-                             (meets ?verb ?object-article)))))))
+                 (HASH form ((adjacent ?subject-noun ?verb)
+                             (adjacent ?verb ?object-article)))))))
 
 (comprehend "the linguist likes the mouse" :cxn-inventory *fcg-constructions*)
 (produce '((mouse x) (linguist y)

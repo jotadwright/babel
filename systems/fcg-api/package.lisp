@@ -1,5 +1,5 @@
 (defpackage fcg-api
-  (:use :cl)
+  (:use :cl :utils)
   (:import-from :fcg
    :hash
    :--
@@ -7,7 +7,9 @@
    :form
    :meaning
    :meets
-   :precedes)
+   :precedes
+   :de-render
+   :coupled-feature-structure)
   (:export
    :define-constructicon
    :define-cxn
