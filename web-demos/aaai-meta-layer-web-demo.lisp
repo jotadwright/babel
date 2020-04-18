@@ -2,7 +2,7 @@
 ;; Load FCG ;;
 ;;;;;;;;;;;;;;
 
-;; (asdf:operate 'asdf:load-op :fcg)
+;; (ql:quickload :fcg) 
 
 (in-package :fcg)
 
@@ -11,6 +11,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fcg-constructions demo-routine
+    :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes))
   ;; Lexical constructions
   (def-fcg-cxn the-cxn
                ((?the-word
@@ -58,6 +59,8 @@
                   --
                   (HASH form ((precedes ?article ?noun)))))))
 
+;; (comprehend-and-formulate "the mouse")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load example grammar for new lexical cxns  ;;
@@ -67,7 +70,7 @@
   :feature-types ((args sequence)
                   (form set-of-predicates)
                   (meaning set-of-predicates)
-                  (subunits set)
+                  (subunits sequence)
                   (footprints set))
   :diagnostics (diagnose-unknown-words
                 diagnose-unknown-meaning-predicates)
@@ -75,11 +78,8 @@
   :repairs (add-lexical-cxn)
   :fcg-configurations ((:parse-goal-tests :no-applicable-cxns :connected-semantic-network)
                        (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure)
-                       (:de-render-mode . :de-render-with-scope)
-                       (:render-mode . :render-with-scope)
-                       (:node-tests :check-duplicate :update-references)
-                       (:priority-mode . :depth-first-prefer-local-bindings)
-                       (:cxn-supplier-mode . :simple-queue))
+                       (:de-render-mode . :de-render-string-meets-precedes)
+                       (:consolidate-repairs . t))
   
   ;; Lexical constructions
   (def-fcg-cxn the-cxn
@@ -178,7 +178,7 @@
                   (footprints (not phrasal-cxn)))
                  (?noun-phrase
                   --
-                  (HASH form ((precedes ?article ?noun ?noun-phrase)))))
+                  (HASH form ((meets ?article ?noun)))))
                 :disable-automatic-footprints t)
   
   ;; VP -> V
@@ -230,8 +230,12 @@
                  (subunits (?object-article ?object-noun)))
                 (?transitive-clause
                  --
-                 (HASH form ((meets ?subject-noun-phrase ?verb-phrase ?transitive-clause)
-                             (meets ?verb-phrase ?object-noun-phrase ?transitive-clause)))))))
+                 (HASH form ((meets ?subject-noun ?verb)
+                             (meets ?verb ?object-article)))))))
+
+;; (formulate '((linguist o-1) (unique o-1) (deep-affection o-1 o-2) (unique o-2) (mouse o-2)))
+
+;; (formulate '((linguist o-1) (unique o-1) (deep-affection o-1 o-2) (unique o-2) (cat o-2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load example grammar for new phrasal constructions  ;;
@@ -246,11 +250,10 @@
   :hierarchy-features (subunits)
   :diagnostics (diagnose-unconnected-meaning)
   :repairs (add-phrasal-cxn)
-  :fcg-configurations ((:parse-goal-tests :no-applicable-cxns ) ;:connected-semantic-network
-                       (:de-render-mode . :de-render-with-scope)
-                       (:render-mode . :render-with-scope)
-                       (:node-tests :check-duplicate :update-references)
-                       (:priority-mode . :depth-first-prefer-local-bindings))
+  :fcg-configurations ((:parse-goal-tests :no-applicable-cxns :connected-semantic-network)
+                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure)
+                       (:de-render-mode . :de-render-string-meets-precedes)
+                       (:consolidate-repairs . t))
   
   ;; Lexical constructions
   (def-fcg-cxn the-cxn
@@ -291,20 +294,7 @@
                  --
                  (HASH form ((string ?green-word  "green")))))
                :cxn-set lex)
-  
-  (def-fcg-cxn likes-cxn
-               ((?likes-word
-                 (args (?x ?y))
-                 (parent ?parent)
-                 (sem-cat (sem-class relation))
-                 (syn-cat (lex-class verb)
-                          (type transitive)))
-                <-
-                (?likes-word
-                 (HASH meaning ((deep-affection ?x ?y)))                     
-                 --
-                 (HASH form ((string ?likes-word  "likes")))))
-               :cxn-set lex)
+ 
   
   ;;Grammatical Constructions
   ;; NP -> ART NOUN
@@ -336,9 +326,10 @@
                   (footprints (not phrasal-cxn)))
                  (?noun-phrase
                   --
-                  (HASH form ((precedes ?article ?noun ?noun-phrase)))))
+                  (HASH form ((precedes ?article ?noun)))))
                 :disable-automatic-footprints t))
 
+;; (comprehend '("the" "green" "mouse"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load example grammar for anti- & pro-unification  ;;
@@ -355,7 +346,7 @@
                        (:de-render-mode . :de-render-in-one-pole-mode-meets-only)
                        (:shuffle-cxns-before-application . nil))
   :diagnostics (diagnose-no-match)
-  :repairs (anti-unify)
+  :repairs (anti-unify-pro-unify)
   
   ;; Lexical construction for the word "fille"
   (def-fcg-cxn fille-cxn
@@ -499,14 +490,14 @@
 ;; Setup for static HTML FCG ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(activate-monitor trace-fcg-light)
+(activate-monitor trace-fcg)
 
 (defun header ()
   (clear-page)
   (add-element '((hr)))
   (add-element '((h1) "Meta-layer Problem Solving for Computational Construction Grammar"))
   (add-element '((p) "This web demo accompanies the paper:"))
-  (add-element '((p) "Van Eecke, P. &amp; K. Beuls (2017). "((a :href "https://www.fcg-net.org/wp-content/uploads/papers/meta-layer.pdf" :target "_blank") "Meta-layer Problem Solving for Computational Construction Grammar.")" "((i) " Submitted") "."))
+  (add-element '((p) "Van Eecke, P. &amp; K. Beuls. (2017). "((a :href "https://ehai.ai.vub.ac.be/assets/pdfs/meta-layer.pdf" :target "_blank") "Meta-layer Problem Solving for Computational Construction Grammar.")" "((i) "The 2017 AAAI Spring Symposium Series. ") "Pages 258-265."))
   (add-element '((p) "Explanations on how to use this demo are " ((a :href "https://www.fcg-net.org/projects/web-demonstration-guide/" :target "_blank") "here.")))
   (add-element '((hr)))
   (add-element '((p) ((a :name "start") "Menu:")))
@@ -522,7 +513,7 @@
   (add-element '((a :name "WD-1")))
   (add-element '((h2) "WD-1. Routine Language Processing"))
   (add-element '((p) "The following example illustrates the routine processing of the utterance 'the mouse'. Clicking twice on the green nodes in the application process will show the transient structures (grey-green boxes) and applied constructions (blue boxes) at each step. Within a construction or a transient structure, clicking on the &#8853; sign will reveal its features."))
-  (make-demo-new-lexical-cxns)
+  (make-demo-routine-cxns)
   (comprehend '("the" "mouse"))
   (add-element '((p) ((a :href "#start") "Back to menu")))
   (add-element '((hr))))
@@ -572,6 +563,7 @@
   (add-element '((hr)))
   (add-element '((p) "Now, we will see how the meta-layer solves the problem by anti- and pro-unifying the noun-phrase construction with the transient structure. The anti-unified and pro-unified construction are first shown for clarity, then the complete analysis with the meta-layer is shown. In the anti-unified construction, we can observe that the word order constraints have been relaxed and now contain unbound variables. In the pro-unified construction, we can see that the word order of the observation has been learned."))
   (set-configuration *fcg-constructions* :use-meta-layer t)
+  (set-configuration *fcg-constructions* :consolidate-repairs t)
   ;; anti-unify *np-cxn* with *ts*, then pro-unify the anti-unified-cxn with *ts*
   (comprehend '("un" "dîner" "formidable"))
   (add-element '((hr)))
@@ -583,12 +575,13 @@
 ; (wd-4)
 
 (defun make-demo ()
-;;(create-static-html-page "Meta-Layer Problem Solving"
-  (header)
-  (wd-1)
-  (wd-2)
-  (wd-3)
-  (wd-4))
+  (create-static-html-page "Meta-Layer Problem Solving"
+    (header)
+    (wd-1)
+    (wd-2)
+    (wd-3)
+    (wd-4))
+)
 
 ; (make-demo)
 
