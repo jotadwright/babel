@@ -119,12 +119,7 @@
     (<- (right-pole cxn))))
 
 (defun merge-poles (cxn coupled-feature-structure direction
-                        &optional (bindings +no-bindings+) source unified configuration second-merge? &key cxn-inventory)
-  ;; If there's a configuration given...
-  (when (and configuration 
-             (get-configuration configuration 
-                                'replace-symbols-with-their-original-variable))
-    (setf bindings (replace-symbols-with-their-original-variable bindings)))
+                        &optional (bindings +no-bindings+) source unified configuration second-merge? &key cxn-inventory)  
   ;; Extract the features to merge from the transient structure
   (let* ((merging-pole (merging-pole cxn direction))
          (merging-pattern (pole-structure merging-pole)))
@@ -143,7 +138,7 @@
           ;; set merging-pattern to new merging-pattern without negations of features added by the same cxn
           (setf merging-pattern (remove-overwrites ow-feat merging-pattern)))))
     ;; Merge the merging-pattern with the transient structure.
-    (merge-structures
+    (merge-structures 
      merging-pattern
      (or source
          (ecase (pole-domain merging-pole)
