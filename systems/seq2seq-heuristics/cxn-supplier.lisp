@@ -58,7 +58,7 @@
     :accessor remaining-constructions
     :documentation "A list of constructions that are still to try.")))
 
-(defmethod create-cxn-supplier ((node cip-node) (mode (eql :hashed+seq2seq-heuristics)))
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :hashed+seq2seq-heuristic)))
   "Creating the construction supplier and querying the seq2seq model, removing incompatibel cxns."
   (let* ((distribution (seq2seq-distribution-for-node node))
          (hash-compatible-cxns (all-cxns-except-incompatible-hashed-cxns node))
