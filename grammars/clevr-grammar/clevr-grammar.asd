@@ -12,7 +12,8 @@
                :irl
                :fcg
                :clevr-world
-               :cl-json)
+               :cl-json
+               :seq2seq-heuristics)
   :serial t
   :components ((:file "package")
                (:file "fcg-utils")
@@ -28,4 +29,5 @@
                (:file "single-or")
                (:file "compare-integer")
                (:file "same-relate")
-               (:file "comparison")))
+               (:file "comparison")
+               (:file "preprocess-utterance")))
