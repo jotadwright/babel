@@ -212,7 +212,7 @@
                               (syn-cat (lex-class ?lex-class-2)))
                              (?parent-unit
                               --
-                              (HASH form ((meets ?lexical-unit ?phrasal-head ?parent-unit)))))
+                              (HASH form ((meets ?lexical-unit ?phrasal-head)))))
                             :disable-automatic-footprints t
                             :cxn-inventory ,(copy-object (original-cxn-set (construction-inventory node)))
                             :cxn-set cxn))
