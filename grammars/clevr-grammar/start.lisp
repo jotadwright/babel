@@ -3,13 +3,13 @@
 (activate-monitor trace-fcg)
 
 
-;; Depth-first example:
-(set-configurations *fcg-constructions* '((:cxn-supplier-mode . :hashed+seq2seq-heuristics)
+;; Seq2seq example:
+(set-configurations *fcg-constructions* '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
                                           (:priority-mode . :seq2seq-heuristic-additive)))
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
 
-;; Seq2Seq example:
+;; depth-first example:
 
 (set-configurations *fcg-constructions* '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
                                           (:priority-mode . :nr-of-applied-cxns)))

@@ -105,7 +105,7 @@
                                                  :connected-structure
                                                  :no-meaning-in-root)
                          ;; For heuristic search:
-                         (:cxn-supplier-mode . :seq2seq-heuristic)
+                         (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
                          (:priority-mode . :seq2seq-heuristic-additive)
                          (:seq2seq-endpoint . "http://localhost:8888/next_cxn")
                          (:seq2seq-model-comprehension . "clevr_comprehension_model")
