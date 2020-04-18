@@ -3,7 +3,7 @@
 ;;Contribution by Paul Van Eecke and Katrien Beuls
 ;;###################################################
 
-;; (ql:quickload :type-hierarchies)
+;; (ql:quickload :category-hierarchies)
 (in-package :type-hierarchies)
 
 (defun header ()
@@ -12,7 +12,7 @@
   (add-element '((h1) "Exploring the creative potential of computional construction grammar"))
   (add-element '((h3) "Paul Van Eecke &amp; Katrien Beuls"))
   (add-element '((p) "This web demo accompanies the paper:" ((br)) 
-                 "Van Eecke, Paul &amp; Beuls, Katrien. (submitted). Exploring the creative potential of computional construction grammar."))
+                 "Van Eecke, Paul &amp; Beuls, Katrien. (2017). " ((a :href "https://ehai.ai.vub.ac.be/assets/pdfs/fcg-creativity.pdf" :target "_blank") "Exploring the creative potential of computional construction grammar. ") ((i) "Zeitschrift f&#252;r Anglistik und Amerikanistik ") "66(3): 341-355. "))
   (add-element '((p) "Explanations on how to use this demo are " ((a :href "https://www.fcg-net.org/projects/web-demonstration-guide/" :target "_blank") "here.")))
   (add-element '((hr)))
   (add-element '((p) ((a :name "start") "Menu:")))
