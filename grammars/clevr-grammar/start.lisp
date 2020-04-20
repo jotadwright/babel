@@ -7,6 +7,7 @@
 (set-configurations *fcg-constructions* '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
                                           (:priority-mode . :seq2seq-heuristic-additive)))
 
+(comprehend "What color is the large metal cube?")
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
 
 ;; depth-first example:
