@@ -89,8 +89,8 @@
          (model (if (eq (direction (cip node)) '<-)
                   (get-configuration cxn-inventory :seq2seq-model-comprehension)
                   (get-configuration cxn-inventory :seq2seq-model-formulation)))
-         (number-cutoff (or (get-configuration cxn-inventory :seq2seq-number-cutoff) -1))
-         (probability-cutoff (or (get-configuration cxn-inventory :seq2seq-probability-cutoff) -1))
+         (number-cutoff (get-configuration cxn-inventory :seq2seq-number-cutoff))
+         (probability-cutoff (get-configuration cxn-inventory :seq2seq-probability-cutoff))
          (distribution (seq2seq-next-cxn utterance/meaning (applied-constructions node) model endpoint
                                          :number-cutoff number-cutoff :probability-cutoff probability-cutoff)))
     distribution))
