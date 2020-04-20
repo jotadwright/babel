@@ -53,7 +53,7 @@
    to create an image file. Returns the pathname of the generated
    graphic. When :open t, then it tries to open the resulting file."
   (let* ((path (or path
-                   (monitors::make-file-name-with-time-and-experiment-class
+                   (make-file-name-with-time-and-experiment-class
                     (merge-pathnames *graphviz-output-directory*
                                      (make-pathname :name "" 
                                                     :type format))

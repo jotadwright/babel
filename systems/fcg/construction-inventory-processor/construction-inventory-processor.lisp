@@ -1104,7 +1104,7 @@ added here. Preprocessing is only used in parsing currently."
   "Export data from the construction inventory blackboard."
   (let ((path
          (or path
-             (monitors::make-file-name-with-time-and-experiment-class
+             (make-file-name-with-time-and-experiment-class
               (babel-pathname :directory '(".tmp") :name (downcase (mkstr key)) :type format)
               (downcase (name cxn-inventory)))))
         (data

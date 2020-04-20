@@ -339,7 +339,7 @@
       ;; written to a file
       (when configuration-output-directory
         (let ((file-name
-               (monitors::make-file-name-with-time-and-experiment-class
+               (make-file-name-with-time-and-experiment-class
                 (merge-pathnames configuration-output-directory
                                  (make-pathname :name "configuration" 
                                                 :type "lisp"))
@@ -698,7 +698,7 @@ name."
                                      (colors *great-gnuplot-colors*)
                                      graphic-type file-name)
                parameters
-             (let ((file-name (monitors::make-file-name-with-time file-name)))
+             (let ((file-name (make-file-name-with-time file-name)))
                (with-open-pipe (stream (pipe-to-gnuplot))
                  (format stream "~cset output \"~a\"" #\linefeed file-name)
                  (format stream "~cset terminal ~a" #\linefeed graphic-type)
@@ -791,7 +791,7 @@ name."
               (list (average values) (stdev values))))
      into data
      finally (format t ".. creating the graph.")
-       (let ((file-name (monitors::make-file-name-with-time file-name)))
+       (let ((file-name (make-file-name-with-time file-name)))
          (with-open-pipe (stream (pipe-to-gnuplot))
            (format stream "~cset output \"~a\"" #\linefeed file-name)
            (format stream "~cset terminal ~a" #\linefeed graphic-type)
