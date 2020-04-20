@@ -9,7 +9,7 @@
 
 
 (defun seq2seq-next-cxn (utterance/meaning applied-cxns model endpoint
-                                   &key (number-cutoff -1) (probability-cutoff -1))
+                                   &key (number-cutoff nil) (probability-cutoff nil))
   "Queries the seq2seq model for a probability distribution for the next cxn to apply."
   (let* ((applied-cxns (if applied-cxns
                          ;; the cxn names should not be transformed to camelcase
@@ -20,7 +20,7 @@
                                                       (:utterance/meaning . ,utterance/meaning)
                                                       (:applied--cxns . ,applied-cxns)
                                                       (:number--cutoff . ,number-cutoff)
-                                                      (:probability-cutoff . ,probability-cutoff))))
+                                                      (:probability--cutoff . ,probability-cutoff))))
          ;; --------------------------------------
          ;; to be deleted when new version of server arrives:
          (json (cl-json:encode-json-alist-to-string `((:direction . "<-")
