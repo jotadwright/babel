@@ -502,7 +502,7 @@ standard sentences"
                                  (write-bidirectional-meanings nil))
   "Write evaluation results to csv file." ;;TO DO: make this function more modular! Now it works best in comprehension
   (setf output (or output
-                   (monitors::make-file-name-with-time
+                   (make-file-name-with-time
                     (babel-pathname :directory '(".tmp")
                                     :name "evaluation-summary"
                                     :type "csv"))))
@@ -599,7 +599,7 @@ standard sentences"
                                            max-sentence-length ;;evaluate sentences until length X
                                            (bi-directional? t)
                                            (exclude-sentences-with-single-word t)
-                                           (csv-output-file (monitors::make-file-name-with-time
+                                           (csv-output-file (make-file-name-with-time
                                                              (babel-pathname :directory '(".tmp")
                                                                              :name "evaluation-summary-comprehension"
                                                                              :type "csv")))
@@ -667,7 +667,7 @@ sentences profiles and then writes information in these to a csv file
                                         grammar ;;fcg-constructions
                                         &key max-meaning-size
                                         (bi-directional? t) (segmentor "<->")
-                                        (csv-output-file (monitors::make-file-name-with-time
+                                        (csv-output-file (make-file-name-with-time
                                                           (babel-pathname :directory '(".tmp")
                                                                           :name "evaluation-summary-production"
                                                                           :type "csv")))

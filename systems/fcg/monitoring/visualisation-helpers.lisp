@@ -71,7 +71,7 @@
                (s-dot (unit-bindings->graph :data gp-data
                                             :prefered-font "Arial"
                                             :visualization-configuration (visualization-configuration cxn-inventory)))
-               (path (monitors::make-file-name-with-time-and-experiment-class
+               (path (make-file-name-with-time-and-experiment-class
                       (merge-pathnames (babel-pathname :directory '(".tmp"))
                                        (make-pathname :name (string-append "comprehend-"
                                                                            (substitute #\- #\SPACE utterance-or-meaning))
@@ -86,7 +86,7 @@
                (s-dot (unit-bindings->graph :data gp-data
                                              :prefered-font "Arial"
                                              :construction-inventory cxn-inventory))
-               (path (monitors::make-file-name-with-time-and-experiment-class
+               (path (make-file-name-with-time-and-experiment-class
                       (merge-pathnames (babel-pathname :directory '(".tmp"))
                                        (make-pathname :name "production"
                                                       :type "pdf"))

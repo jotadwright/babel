@@ -21,11 +21,6 @@
                                                       (:applied--cxns . ,applied-cxns)
                                                       (:number--cutoff . ,number-cutoff)
                                                       (:probability--cutoff . ,probability-cutoff))))
-         ;; --------------------------------------
-         ;; to be deleted when new version of server arrives:
-         (json (cl-json:encode-json-alist-to-string `((:direction . "<-")
-                                                      (:applied--cxns . ,applied-cxns))))
-         ;; --------------------------------------
          (response-string #+lispworks (drakma:http-request endpoint
                                                            :method :post
                                                            :content-type "application/json"

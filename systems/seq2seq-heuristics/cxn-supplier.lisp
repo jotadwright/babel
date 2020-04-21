@@ -50,7 +50,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; This construction supplier calls the seq2seq model and returns all
-;; constructions at once, but not the hashed once if they are incomptatible.
+;; constructions at once, but not the hashed ones if they are incomptatible.
 
 (defclass cxn-supplier-hashed+seq2seq-heuristics ()
   ((remaining-constructions
