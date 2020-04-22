@@ -5,7 +5,7 @@
   :maintainer "EHAI <ehai@ai.vub.ac.be>"
   :license "To be determined"
   :homepage "https://gitlab.ai.vub.ac.be/ehai/cl-framenet"
-  :depends-on (:cl-store)
+  :depends-on (:cl-store :xmls)
   :description "A Common Lisp interface to FrameNet."
   :serial t
   :components ((:file "package")
