@@ -23,10 +23,10 @@
                        :if-does-not-exist :create)
     (let ((num-files (length
                       (directory
-                       (make-pathname :directory (namestring inputdir)
+                       (make-pathname :directory (pathname-directory inputdir)
                                       :name :wild :type "csv")))))
       (loop for i from 0 below num-files
-         for infile = (make-pathname :directory (namestring inputdir)
+         for infile = (make-pathname :directory (pathname-directory inputdir)
                                      :name (format nil "output-batch-~a" i)
                                      :type "csv")
            do (format t "Reading from ~a~%" (namestring infile))
