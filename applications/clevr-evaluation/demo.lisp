@@ -14,7 +14,7 @@
 
 (evaluate-clevr
  (make-instance 'clevr-world :data-sets '("val") :load-questions t)
- :nr-of-contexts 1 :nr-of-questions 5)
+ :nr-of-contexts 1 :nr-of-questions 1)
 
 ;;;; Manually create a scene for in the paper
 (defparameter *scene-from-paper*
@@ -41,6 +41,6 @@
    (bind shape-category ?shape-1 cube)
    (bind color-category ?color-1 red)
    (bind attribute-category ?attribute-1 material))
- :primitive-inventory *clevr-primitives*)
+ :primitive-inventory *clevr-primitives*) 
 
 (mapcar #'id (irl-2:primitives-list *clevr-primitives*))

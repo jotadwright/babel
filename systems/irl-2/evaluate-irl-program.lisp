@@ -6,7 +6,8 @@
   (irl-program list) (primitive-inventory primitive-inventory))
 
 (define-event evaluate-irl-program-finished
-  (solutions list) (processor irl-program-processor)
+  (solutions list) (solution-nodes list)
+  (processor irl-program-processor)
   (primitive-inventory primitive-inventory))
 
 (defun make-child-node (parent processor next-primitive &optional result)
@@ -58,10 +59,10 @@
                            (get-configuration primitive-inventory :queue-mode))))))
 
 (defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*)
-                                         (n :all) (silent nil))
+                                         (silent nil) n)
   ;; check if a valid option was given for n
-  (unless (or (numberp n) (eql n :all))
-    (error "Invalid option for the keyword argument :n. Expected a number of :all. Got ~s" n))
+  (unless (or (null n) (numberp n))
+    (error "Invalid option for the keyword argument :n. Expected a number or nil. Got ~s" n))
   ;; check if there is an ontology to work with
   (unless (ontology primitive-inventory)
     (error "There is no ontology. Provide an ontology in the primitive-inventory"))
@@ -115,7 +116,8 @@
                           :primitive-under-evaluation nil
                           :primitives-evaluated nil
                           :primitives-remaining irl-program-w/o-bind-statements
-                          :created-at 0 :node-depth 0)))
+                          :created-at 0 :node-depth 0))
+           (solution-nodes nil))
 
       ;; notify the start of processing
       (unless silent
@@ -166,9 +168,10 @@
                            do (cond ((not (run-node-tests new-node primitive-inventory))
                                      (setf expand-node-p nil))
                                     ((run-goal-tests new-node primitive-inventory)
-                                     (when (or (eql n :all) (< (length (solutions processor)) n))
+                                     (when (or (null n) (< (length (solutions processor)) n))
                                        (setf (status new-node) 'solution)
                                        (push (bindings new-node) (solutions processor))
+                                       (push new-node solution-nodes)
                                        (setf expand-node-p nil)
                                        (setf solution-found-p t))))
                            do (add-node processor new-node :parent (parent current-node))
@@ -181,17 +184,25 @@
          while (queue processor)))
                          
       ;; clean the solutions
-      (setf (solutions processor)
-            (loop for solution in (solutions processor)
-                  if solution collect solution))
+      (loop for solution in (solutions processor)
+            for node in solution-nodes
+            when solution
+            collect solution into valid-solutions
+            collect node into valid-nodes
+            finally
+            do (setf (solutions processor) valid-solutions
+                     solution-nodes valid-nodes))
 
       ;; notify the end of processing
       (unless silent
-        (notify evaluate-irl-program-finished (solutions processor)
-                processor primitive-inventory))
+        (notify evaluate-irl-program-finished
+                (solutions processor)
+                solution-nodes
+                processor
+                primitive-inventory))
 
-      ;; return solutions and processor
-      (values (solutions processor) processor))))
+      ;; return solutions and solution nodes
+      (values (solutions processor) solution-nodes))))
            
 
 ;; ############################################################################

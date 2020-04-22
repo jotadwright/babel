@@ -65,3 +65,15 @@
                  :configuration (configuration primitive-inventory)
                  :primitives (primitives primitive-inventory)
                  :ontology (ontology primitive-inventory)))
+
+(defmethod all-parents ((node irl-program-processor-node))
+  "Returns all parents of the current node, thus not including
+   the current node itself. The parents are sorted with the
+   most recent node first, i.e. the initial node is always last"
+  (labels ((collect-parents (node)
+             (if (parent node)
+               (append (list node) (collect-parents (parent node)))
+               (list node))))
+    (when (parent node)
+      (collect-parents (parent node)))))
+      
