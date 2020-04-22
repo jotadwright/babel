@@ -11,4 +11,6 @@
   :components ((:file "package")
                (:file "utils")
                (:file "configuration")
+               (:file "framenet-data")
+               (:file "frame-element")
                (:file "load-fn-data")))
