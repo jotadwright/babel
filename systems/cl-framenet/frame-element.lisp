@@ -43,12 +43,14 @@
     :documentation "Excluded frame elements."))
   (:documentation "The representation of a Framenet frame-element."))
 
+(defmethod print-object ((frame-element frame-element) (stream t))
+  (format stream "<FE: ~(~a~) (~(~a~))>" (name frame-element) (core-type frame-element)))
 
 ;; Frame Elements ;;
 ;;;;;;;;;;;;;;;;;;;;
 
-(defun make-list-of-frame-elements (xml-frame)
-  "Returns a list of frame-element objects for the given frame."
+(defun xml-frame-elements (xml-frame)
+  "Returns the frame elements of the frame as a list of frame-element objects."
   (loop for FE in (xmls:xmlrep-find-child-tags "FE" xml-frame)
         collect (make-instance 'frame-element
                                :name (xml-frame-element-name FE)
@@ -58,7 +60,7 @@
                                :requires-frame-elements (xml-frame-element-requires FE)
                                :excludes-frame-elements (xml-frame-element-excludes FE))))
 
-;; (make-list-of-frame-elements  (read-frame-from-xml 'opinion))
+;; (xml-frame-elements (read-frame-from-xml 'opinion))
 
 
 (defun xml-frame-element-name (xml-frame-element)
