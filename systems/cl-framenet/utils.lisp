@@ -12,7 +12,11 @@
 
 (defun framenet-string->symbol (string)
   "Returns the name of the frame as a symbol."
-  (let* ((string (cl-ppcre:regex-replace-all "_" (string-upcase string) "-"))
+  (let* ((string (cl-ppcre:regex-replace-all "\\(" (string-upcase string) ""))
+         (string (cl-ppcre:regex-replace-all "\\)" (string-upcase string) ""))        
+         (string (cl-ppcre:regex-replace-all "_" (string-upcase string) "-"))
          (string (cl-ppcre:regex-replace-all " " (string-upcase string) "-")))
   (make-symbol string)))
+
+
 

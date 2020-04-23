@@ -31,6 +31,11 @@
     :accessor frame-element-core-sets
     :initform nil 
     :documentation "A list of core sets of frame elements.")
+   (frame-relations
+    :type list :initarg :frame-relations 
+    :accessor frame-relations
+    :initform nil 
+    :documentation "A list of frame relations.")
    (lexical-units 
     :type list :initarg :lexical-units 
     :accessor lexical-units
@@ -51,9 +56,10 @@
                  :name (xml-frame-name xml-frame)
                  :sem-types (xml-frame-sem-types xml-frame)
                  :frame-elements (xml-frame-elements xml-frame)
-                 :frame-element-core-sets (xml-frame-element-core-sets xml-frame)))
+                 :frame-element-core-sets (xml-frame-element-core-sets xml-frame)
+                 :frame-relations (xml-frame-relations xml-frame)))
 
-;; (setf *A* (xml-frame-object (read-frame-from-xml 'transitive_action)))
+;; (xml-frame-object (read-frame-from-xml 'transitive_action))
 
 
 (defun xml-frame-name (xml-frame)
@@ -80,6 +86,17 @@
 
 ;; (xml-frame-element-core-sets (read-frame-from-xml 'manipulation))
 
+
+(defun xml-frame-relations (xml-frame)
+  "Returns the frame relations."
+  (loop for frame-relation in (xmls:xmlrep-find-child-tags "frameRelation" xml-frame)
+        for frame-relation-type = (framenet-string->symbol (xmls:xmlrep-attrib-value "type" frame-relation))
+        for frame-relation-elements = (xmls:xmlrep-children frame-relation)
+        collect (cons frame-relation-type
+                      (loop for el in frame-relation-elements
+                            collect (framenet-string->symbol (xmls:xmlrep-string-child el))))))
+
+;; (xml-frame-relations (read-frame-from-xml 'opinion))
 
 (defun xml-lexical-units (xml-frame)
   "Returns the lexical units that the frame evokes."

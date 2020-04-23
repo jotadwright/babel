@@ -22,8 +22,9 @@
     (xmls:parse inputstream)))
 
 
-; (read-frame-from-xml 'opinion)
+; (read-frame-from-xml 'manipulation)
 
 
-;; (make-list-of-frame-elements (read-frame-from-xml 'opinion))
-
+;; (setf *A* (xml-frame-object (read-frame-from-xml 'transitive_action)))
+;; (setf *A* (xml-frame-elements (read-frame-from-xml 'manipulation)))
+;; (setf *A* (xml-frame-relations (read-frame-from-xml 'manipulation)))
