@@ -20,7 +20,7 @@
                  :primitives-remaining (remove next-primitive (primitives-remaining parent))
                  :processor processor
                  :node-depth (1+ (node-depth parent))
-                 :created-at (incf (node-counter processor))))
+                 :node-number (incf (node-counter processor))))
 
 (defun make-node-from-result (node result)
   "Create a new from an existing node and evaluation result"
@@ -30,7 +30,7 @@
                  :primitives-evaluated (primitives-evaluated node)
                  :primitives-remaining (primitives-remaining node)
                  :processor (processor node)
-                 :created-at (incf (node-counter (processor node)))
+                 :node-number (incf (node-counter (processor node)))
                  :node-depth (node-depth node)))
                  
 (defmethod order-by-priority (list-of-nodes (processor irl-program-processor)
@@ -59,7 +59,7 @@
                            (get-configuration primitive-inventory :queue-mode))))))
 
 (defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*)
-                                         (silent nil) n)
+                                         silent n)
   ;; check if a valid option was given for n
   (unless (or (null n) (numberp n))
     (error "Invalid option for the keyword argument :n. Expected a number or nil. Got ~s" n))
@@ -116,7 +116,7 @@
                           :primitive-under-evaluation nil
                           :primitives-evaluated nil
                           :primitives-remaining irl-program-w/o-bind-statements
-                          :created-at 0 :node-depth 0))
+                          :node-number 0 :node-depth 0))
            (solution-nodes nil))
 
       ;; notify the start of processing

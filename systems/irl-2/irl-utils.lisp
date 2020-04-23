@@ -1,12 +1,15 @@
 (in-package :irl-2)
 
-(export '(target-var open-vars type-of-var))
+(export '(all-variables target-var open-vars type-of-var))
+
+(defun all-variables (irl-program)
+  (find-all-anywhere-if #'variable-p irl-program))
 
 (defun get-unconnected-vars (irl-program)
   ;; find all unconnected variables, in other words, all those that
   ;; appear once in the irl-program
   ;; notice that this also includes the target-var
-  (loop with variables = (find-all-anywhere-if #'variable-p irl-program)
+  (loop with variables = (all-variables irl-program)
         for var in (remove-duplicates variables)
         if (= (count var variables)  1)
         collect var))
@@ -40,12 +43,10 @@
   ;; find all unconnected variables which are not target
   (get-open-vars irl-program))
 
-(defgeneric type-of-var (var thing &key &allow-other-keys)
-  (:documentation "Get the type of the var from the thing"))
-
-(defmethod type-of-var (var (irl-program list)
-                        &key (primitive-inventory *irl-primitives*))
-  (let* ((predicate (find var irl-program :test #'member))
+(defun type-of-var (var program/predicate &key (primitive-inventory *irl-primitives*))
+  (let* ((predicate (if (listp (first program/predicate))
+                      (find var program/predicate :test #'member)
+                      program/predicate))
          (primitive (find-primitive (first predicate) primitive-inventory))
          (slot-spec (nth (- (position var predicate) 1)
                          (slot-specs primitive))))

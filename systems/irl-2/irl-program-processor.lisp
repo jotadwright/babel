@@ -19,9 +19,7 @@
    (configuration :type configuration :initform (make-config)
                   :initarg :configuration :accessor configuration
                   :documentation "Configuration of the primitive inventory is copied over")
-   (primitives :type list :initform nil
-               :initarg :primitives
-               :accessor primitives
+   (primitives :type list :initform nil :initarg :primitives :accessor primitives
                :documentation "The list of primitives")
    (ontology :type blackboard :initform (make-blackboard)
              :initarg :ontology :accessor ontology
@@ -50,9 +48,9 @@
     :documentation "A pointer to the processor"
     :accessor processor :initarg :processor
     :initform nil)
-   (created-at
+   (node-number
     :documentation "The number of the node"
-    :accessor created-at :initarg :created-at
+    :accessor node-number :initarg :node-number
     :type number :initform 0)
    (node-depth
     :documentation "The depth of the node"

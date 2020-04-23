@@ -4,6 +4,10 @@
 ;; chunk
 ;; ----------------------------------------------------------------------------
 
+(export '(create-chunks-from-primitives
+          create-chunk-from-primitive
+          create-chunk-from-irl-program))
+
 (defclass chunk ()
   ((id
     :initarg :id :initform (make-id 'chunk) :accessor id :type symbol)
@@ -18,43 +22,62 @@
     :initarg :open-vars :accessor open-vars :type list :initform nil
     :documentation "A list of (?variable . type) conses for the open variables")
    (score :initarg :score :accessor score :type single-float :initform 1.0
-          :documentation "A score for the chunk"))
+          :documentation "A score for the chunk")
+   (primitive-inventory :initarg :primitive-inventory :accessor primitive-inventory
+                        :documentation "A pointer to the primitive inventory"))
   (:documentation "A chunk is an irl program with an explicit target
                    and open variables"))
 
-(defun create-chunks-from-primitives (primitive-ids
-                                      &key (score 0.5)
-                                      (chunk-class 'chunk)
-                                      (primitive-inventory *irl-primitives*))
-  "Creates chunks from primitive IDs"
-  (loop for primitive-id in primitive-ids
-        collect (create-chunk-from-primitive primitive-id :score score
-                                             :chunk-class chunk-class
+(defun create-chunks-from-primitives (things &key (score 0.5) (chunk-class 'chunk)
+                                             (primitive-inventory *irl-primitives*))
+  "Creates chunks from things. This can be a list of primitives or a list
+   of primitive ids (i.e. symbols)"
+  (assert (listp things))
+  (loop for thing in things
+        collect (create-chunk-from-primitive thing :score score :chunk-class chunk-class
                                              :primitive-inventory primitive-inventory)))
 
-(defun create-chunk-from-primitive (primitive-id
-                                    &key (score 0.5) (chunk-class 'chunk)
-                                    (primitive-inventory *irl-primitives*)
-                                    chunk-id target-var-is-open-var)
-  "Creates a chunk from a primitive by making the variable of the first
-   slot the target variable and all other variables open variables"
+(defgeneric create-chunk-from-primitive (thing &key score chunk-class
+                                               primitive-inventory
+                                               chunk-id target-var-is-open-var)
+  (:documentation "Create a chunk from thing. This can be a symbol denoting
+   the primitive's name or the primitive object itself. This is done by
+   making the variable of the first slot the target variable and all other
+   variables open variables"))
+
+(defmethod create-chunk-from-primitive ((primitive-id symbol)
+                                        &key (score 0.5) (chunk-class 'chunk)
+                                        (primitive-inventory *irl-primitives*)
+                                        chunk-id target-var-is-open-var)
   (let* ((primitive (find-primitive primitive-id primitive-inventory))
          (vars (loop for slot-spec in (slot-specs primitive)
                      collect (cons (make-var (slot-spec-name slot-spec))
                                    (slot-spec-type slot-spec))))
          (irl-program (list (cons primitive-id (mapcar #'car vars)))))
     (make-instance chunk-class :id (or chunk-id primitive-id)
+                   :irl-program irl-program :score score
                    :target-var (car vars)
-                   :open-vars (if target-var-is-open-var
-                                vars
-                                (cdr vars))
-                   :irl-program irl-program
-                   :score score)))
+                   :open-vars (if target-var-is-open-var vars (cdr vars))
+                   :primitive-inventory primitive-inventory)))
+
+(defmethod create-chunk-from-primitive ((primitive primitive)
+                                        &key (score 0.5) (chunk-class 'chunk)
+                                        (primitive-inventory *irl-primitives*)
+                                        chunk-id target-var-is-open-var)
+  (let* ((vars (loop for slot-spec in (slot-specs primitive)
+                     collect (cons (make-var (slot-spec-name slot-spec))
+                                   (slot-spec-type slot-spec))))
+         (irl-program (list (cons (id primitive) (mapcar #'car vars)))))
+    (make-instance chunk-class :id (or chunk-id (id primitive))
+                   :irl-program irl-program :score score
+                   :target-var (car vars)
+                   :open-vars (if target-var-is-open-var vars (cdr vars))
+                   :primitive-inventory primitive-inventory)))
 
 (defun create-chunk-from-irl-program (irl-program
                                       &key (chunk-class 'chunk)
                                       (id (irl-program->id irl-program))
-                                      (score 0.5) (target-var nil)
+                                      (score 0.5) target-var
                                       (primitive-inventory *irl-primitives*))
   (let* ((found-target-var (target-var irl-program))
          (target-var (if target-var
@@ -70,18 +93,16 @@
          (open-vars
           (sort open-v #'<
                 :key #'(lambda (x)
-                         (position x (find x irl-program
-                                           :test #'member)))))
+                         (position x (find x irl-program :test #'member)))))
          (open-var-types (loop for open-var in open-vars
                                collect (type-of-var open-var irl-program
                                                     :primitive-inventory primitive-inventory))))
-    (make-instance chunk-class :id id
-                   :irl-program irl-program
+    (make-instance chunk-class :id id :irl-program irl-program
                    :target-var (cons target-var target-var-type)
                    :open-vars (loop for open-var in open-vars
                                     for open-var-type in open-var-types
                                     collect (cons open-var open-var-type))
-                   :score score)))
+                   :score score :primitive-inventory primitive-inventory)))
 
 (defun irl-program->id (irl-program)
   "creates a symbol representing the primitives used"
@@ -98,7 +119,7 @@
                 for id in unique-primitive-ids
                 for id-count = (count id primitive-ids)
                 if (> id-count 1)
-                collect (mkstr id-count "x" id)
+                collect (mkstr id-count "x-" id)
                 else
                 collect id)))
     (symb

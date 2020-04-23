@@ -62,6 +62,6 @@
                       (mode (eql :restrict-nr-of-nodes)))
   (let ((max-nodes (get-configuration (configuration (processor node)) :max-nr-of-nodes)))
     (when max-nodes
-      (if (> (created-at node) max-nodes)
+      (if (> (node-number node) max-nodes)
         (progn (setf (status node) 'max-nr-of-nodes) nil)
         t))))
