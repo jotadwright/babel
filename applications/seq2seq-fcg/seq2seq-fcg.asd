@@ -8,9 +8,7 @@
   :depends-on (:utils
                :monitors
                :fcg
-               :clevr-grammar
-               :clevr-evaluation
-               :corpus-processing)
+               :clevr-grammar)
   :serial t
   :components ((:file "package")
                (:file "apply-predictions")))
