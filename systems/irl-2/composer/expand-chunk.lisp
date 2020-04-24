@@ -29,7 +29,7 @@
                               (loop for var in variables-in-both-chunks
                                     collect (cons var (make-id var)))))
                        (other-chunk-2 (substitute-variables other-chunk substitutions)))
-                  (make-instance 'chunk :primitive-inventory (primitive-inventory chunk)
+                  (make-instance 'chunk
                                  :target-var (if (irl-program chunk)
                                                (target-var chunk)
                                                (target-var other-chunk-2))
@@ -62,7 +62,7 @@
                         (cons (cons (car (target-var other-chunk)) open-var-id)
                               (loop for var in variables-in-both-chunks
                                     collect (cons var (make-id var))))))
-                  (make-instance 'chunk :primitive-inventory (primitive-inventory chunk)
+                  (make-instance 'chunk
                                  :irl-program `(,@(irl-program chunk)
                                                 ,(substitute-variables
                                                   `(,(id other-chunk)
@@ -93,8 +93,8 @@
         append (loop for predicate in irl-program
                      for target-var-id = (cadr predicate)
                      for target-var-type 
-                     = (type-of-var target-var-id predicate
-                                    :primitive-inventory (primitive-inventory chunk))
+                     = (get-type-of-var target-var-id predicate
+                                        :primitive-inventory (primitive-inventory chunk))
                      when (and (not (eq target-var-id (car (target-var chunk))))
                                (not (find open-var-id (cdr predicate)))
                                (or (subtypep open-var-type target-var-type)

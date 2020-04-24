@@ -232,8 +232,7 @@
                                 :irl-program irl-program
                                 :target-var (target-var chunk)
                                 :open-vars open-vars
-                                :score (score chunk)
-                                :primitive-inventory (primitive-inventory chunk)))))
+                                :score (score chunk)))))
     (values chunks u-frames)))
 
 ;; #######################################

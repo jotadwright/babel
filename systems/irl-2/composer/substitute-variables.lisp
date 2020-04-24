@@ -22,8 +22,7 @@
         (when (cdr cons) (substitute-variables (cdr cons) substitutions))))
 
 (defmethod substitute-variables ((chunk chunk) (substitutions list))
-  (make-instance 'chunk :primitive-inventory (primitive-inventory chunk)
+  (make-instance 'chunk :score (score chunk)
                  :irl-program (substitute-variables (irl-program chunk) substitutions)
                  :target-var (substitute-variables (target-var chunk) substitutions)
-                 :open-vars (substitute-variables (open-vars chunk) substitutions)
-                 :score (score chunk)))
+                 :open-vars (substitute-variables (open-vars chunk) substitutions)))

@@ -4,7 +4,7 @@
 ;; check-irl-program
 ;; ----------------------------------------------------------------------------
 
-(defun check-irl-program (irl-program primitive-inventory)
+(defun check-irl-program (irl-program ontology primitive-inventory)
   "Checks irl-program for mistakes"
   (let* ((variables (remove-duplicates
                      (find-all-anywhere-if #'variable-p irl-program)))
@@ -30,7 +30,7 @@
                  (let ((value 
                         (or (when (typep value-expr 'entity) value-expr)
                             (when (symbolp value-expr)
-                              (or (find-entity-by-id (ontology primitive-inventory) value-expr)
+                              (or (find-entity-by-id ontology value-expr)
                                   (error "Could not find an entity with id ~a in ontology" value-expr)))
                             (error
                              "Expected symbol or entity as value in ~a:~%got: ~a"

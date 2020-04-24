@@ -3,12 +3,14 @@
 (export '(evaluate-irl-program))
 
 (define-event evaluate-irl-program-started
-  (irl-program list) (primitive-inventory primitive-inventory))
+  (irl-program list) (primitive-inventory primitive-inventory)
+  (ontology blackboard))
 
 (define-event evaluate-irl-program-finished
   (solutions list) (solution-nodes list)
   (processor irl-program-processor)
   (primitive-inventory primitive-inventory))
+
 
 (defun make-child-node (parent processor next-primitive &optional result)
   "Create a child node for the parent node with the specified next-primitive"
@@ -22,6 +24,7 @@
                  :node-depth (1+ (node-depth parent))
                  :node-number (incf (node-counter processor))))
 
+
 (defun make-node-from-result (node result)
   "Create a new from an existing node and evaluation result"
   (make-instance 'irl-program-processor-node
@@ -32,15 +35,18 @@
                  :processor (processor node)
                  :node-number (incf (node-counter (processor node)))
                  :node-depth (node-depth node)))
-                 
+
+
 (defmethod order-by-priority (list-of-nodes (processor irl-program-processor)
                               (mode (eql :random)))
   (shuffle list-of-nodes))
+
 
 (defmethod enqueue-ippn-nodes (list-of-nodes (processor irl-program-processor)
                                (mode (eql :depth-first)))
   (setf (queue processor)
         (append list-of-nodes (queue processor))))
+
 
 (defun expand-node (node processor primitive-inventory &optional result)
   ;; create the child nodes
@@ -58,16 +64,16 @@
         (enqueue-ippn-nodes prioritized-child-nodes processor
                            (get-configuration primitive-inventory :queue-mode))))))
 
-(defun evaluate-irl-program (irl-program &key (primitive-inventory *irl-primitives*)
-                                         silent n)
+
+(defun evaluate-irl-program (irl-program ontology
+                             &key silent n
+                             (primitive-inventory *irl-primitives*))
   ;; check if a valid option was given for n
   (unless (or (null n) (numberp n))
     (error "Invalid option for the keyword argument :n. Expected a number or nil. Got ~s" n))
   ;; check if there is an ontology to work with
-  (unless (ontology primitive-inventory)
-    (error "There is no ontology. Provide an ontology in the primitive-inventory"))
-  (unless (fields (ontology primitive-inventory))
-    (error "The ontology appears to be empty. Cannot evaluate an irl-program with an empty ontology"))
+  (unless (fields ontology)
+    (warn "The ontology appears to be empty."))
   ;; replace all non-variables with variables
   ;; and introduce bind-statements for all of them
   (let ((irl-program
@@ -85,7 +91,7 @@
                             else
                             do (let ((var (make-var 'var))
                                      (value (if (symbolp parameter)
-                                              (find-entity-by-id (ontology primitive-inventory) parameter)
+                                              (find-entity-by-id ontology parameter)
                                               parameter)))
                                  (push var new-item)
                                  (push
@@ -95,16 +101,16 @@
                             (return (cons (reverse new-item) bind-statements))))))
     ;; when set, check the irl program for mistakes before evaluating it
     (when (get-configuration primitive-inventory :check-irl-program-before-evaluation)
-      (check-irl-program irl-program primitive-inventory))
+      (check-irl-program irl-program ontology primitive-inventory))
     (let* ((processor
-            (make-irl-program-processor irl-program primitive-inventory))
+            (make-irl-program-processor irl-program ontology primitive-inventory))
            (all-variables
-            (remove-duplicates (find-all-anywhere-if #'variable-p irl-program)))
-           (bind-statements (find-all 'bind irl-program :key #'first))
+            (remove-duplicates (all-variables irl-program)))
+           (bind-statements (all-bind-statements irl-program))
            (irl-program-w/o-bind-statements 
             (set-difference irl-program bind-statements))
            (bindings-through-bind-statements
-            (evaluate-bind-statements bind-statements (ontology primitive-inventory)))
+            (evaluate-bind-statements bind-statements ontology))
            (bindings-for-unbound-variables 
             (loop for var in (set-difference all-variables 
                                              (mapcar #'var bindings-through-bind-statements))
@@ -121,7 +127,8 @@
 
       ;; notify the start of processing
       (unless silent
-        (notify evaluate-irl-program-started irl-program primitive-inventory))
+        (notify evaluate-irl-program-started irl-program
+                primitive-inventory ontology))
       
       ;; push the initial node on the search tree and on the queue
       (add-node processor initial-node)
@@ -141,6 +148,7 @@
          for evaluation-results = (when current-primitive
                                     (evaluate-primitive-in-program current-primitive
                                                                    (bindings current-node)
+                                                                   ontology
                                                                    primitive-inventory))
          ;; print the processor
          ;;do (add-element (make-html processor))

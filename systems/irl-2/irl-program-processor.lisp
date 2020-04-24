@@ -58,11 +58,11 @@
     :type number :initform 0)))
 
 
-(defun make-irl-program-processor (irl-program primitive-inventory)
+(defun make-irl-program-processor (irl-program ontology primitive-inventory)
   (make-instance 'irl-program-processor :irl-program irl-program
                  :configuration (configuration primitive-inventory)
                  :primitives (primitives primitive-inventory)
-                 :ontology (ontology primitive-inventory)))
+                 :ontology ontology))
 
 (defmethod all-parents ((node irl-program-processor-node))
   "Returns all parents of the current node, thus not including

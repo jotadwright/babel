@@ -53,11 +53,10 @@
 (defmethod evaluate-chunk ((chunk chunk) (composer chunk-composer))
   (let ((irl-program (expand-chunks (irl-program chunk) composer)))
     (multiple-value-bind (evaluation-results evaluation-nodes)
-        (evaluate-irl-program irl-program
-                              :primitive-inventory
-                              (primitive-inventory composer))
+        (evaluate-irl-program irl-program (ontology composer)
+                              :primitive-inventory (primitive-inventory composer))
       (loop with bound-variable-ids-in-irl-program 
-            = (mapcar #'third (find-all 'bind (irl-program chunk) :key #'car))
+            = (mapcar #'third (all-bind-statements (irl-program chunk)))
             with chunk-variable-ids 
             = (mapcar #'car (cons (target-var chunk) (open-vars chunk)))
             with newly-bound-variable-ids

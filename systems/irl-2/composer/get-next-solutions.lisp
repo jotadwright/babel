@@ -71,12 +71,14 @@
          (notify chunk-composer-finished (solutions composer) composer))
        (return (solutions composer))))))
 
+
 (defun get-all-solutions (composer &key silent)
   (unless silent
     (notify chunk-composer-get-all-solutions-started composer))
   (loop while (queue composer)
         do (get-next-solutions composer :silent silent))
   (solutions composer))
+
 
 (defun get-solutions-until (composer &key (stop-criteria #'identity)
                                      silent)

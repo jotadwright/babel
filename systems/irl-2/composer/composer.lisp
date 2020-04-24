@@ -8,6 +8,9 @@
   ((primitive-inventory :type primitive-inventory :initarg :primitive-inventory
                         :initform *irl-primitives* :accessor primitive-inventory
                         :documentation "A primitive inventory")
+   (ontology :type blackboard :initarg :ontology
+             :initform (make-blackboard) :accessor ontology
+             :documentation "The ontology")
    (configuration :type configuration :initarg :configuration
                   :initform (make-config) :accessor configuration
                   :documentation "The composer configuration")
@@ -36,7 +39,9 @@
 
 
 (defclass chunk-composer-node (tree-node blackboard)
-  ((statuses :type list :initarg :statuses
+  ((composer :initarg :composer :accessor composer
+             :documentation "Pointer to the composer")
+   (statuses :type list :initarg :statuses
              :initform '(initial) :accessor statuses
              :documentation "The statuses of the node")
    (next-handler :type symbol :initarg :next-handler
@@ -96,27 +101,32 @@
   (set-configuration composer :chunk-evaluation-result-scoring-mode :default))
 
 
-(defun make-chunk-composer (&key topic meaning initial-chunk chunks configurations
+(defun make-chunk-composer (&key topic meaning initial-chunk chunks
+                                 configurations ontology
                                  (primitive-inventory *irl-primitives*))
   ;; check the input
   (when (and (null topic) (null meaning))
     (error "Must provide either :topic or :meaning"))
-  (when (and topic meaning)
-    (error "Must provide either :topic or :meaning, not both"))
   (unless (or chunks (get-data (ontology primitive-inventory) 'chunks))
     (error "Composer has no chunks to work with. Either provide :chunks
             or place 'chunks in the ontology"))
-  ;; initialise the composer and the initial node
-  (let* ((initial-node
-          (make-instance 'chunk-composer-node
-                         :chunk (if initial-chunk
-                                  initial-chunk
-                                  (make-instance 'chunk))))
+  ;; initialise the initial chunk, the composer and the initial node
+  (let* ((initial-chunk
+          (if initial-chunk initial-chunk
+            (if topic
+              (make-instance 'chunk
+                             :target-var `(?topic . ,(type-of topic))
+                             :open-vars `((?topic . ,(type-of topic))))
+              (make-instance 'chunk))))
          (composer
           (make-instance 'chunk-composer :topic topic :meaning meaning
                          :primitive-inventory primitive-inventory
+                         :ontology ontology
                          :chunks (if chunks chunks
-                                   (get-data (ontology primitive-inventory) 'chunks)))))
+                                   (get-data (ontology primitive-inventory) 'chunks))))
+         (initial-node
+          (make-instance 'chunk-composer-node :chunk initial-chunk
+                         :composer composer)))
     (loop for configuration in configurations
           do (set-configuration composer (first configuration)
                                 (rest configuration)))

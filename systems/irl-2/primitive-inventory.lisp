@@ -23,10 +23,7 @@
    (primitives :type list :initform nil
                :initarg :primitives
                :accessor primitives
-               :documentation "The list of primitives")
-   (ontology :type blackboard :initform (make-blackboard)
-             :initarg :ontology :accessor ontology
-             :documentation "The ontology used during processing"))
+               :documentation "The list of primitives"))
   (:documentation "The primitive inventory organises the primitives
        and determines the behaviour during processing"))
 
@@ -167,20 +164,16 @@
 
 (defun check-def-irl-primitives-keys (keys-and-defs)
   (let ((accepted-keys '(:irl-configurations
-                         :visualization-configurations ; not yet used
                          :primitive-inventory
-                         :hashed ; not yet used
-                         :primitive-inventory-type ; not yet used
-                         :ontology)))
+                         ;:visualization-configurations
+                         ;:hashed 
+                         ;:primitive-inventory-type
+                         )))
     (dolist (x keys-and-defs)
       (when (keywordp x)
         (unless (member x accepted-keys)
           (error "Unknown keyword ~a. Accepted keywords are: ~a" x accepted-keys))))))
 
-;;;; TO DO:
-;; add visualization-configurations?
-;; add different primitive inventory types?
-;; add hashed primitive inventories?
 
 (defmacro def-irl-primitives (name &body keys-and-defs)
   "Create an IRL primitive inventory, setting all configurations"
@@ -188,15 +181,13 @@
   (let* ((name (eval-when-bound name))
          (creator-fn-name (internal-symb 'make- name '-primitives))
          (primitive-inventory (or (find-key-arg keys-and-defs :primitive-inventory)
-                                  '*irl-primitives*))
-         (ontology (find-key-arg keys-and-defs :ontology)))
+                                  '*irl-primitives*)))
     `(progn
        (with-disabled-monitor-notifications
          (defun ,creator-fn-name ()
            (setf ,primitive-inventory
                  (make-instance 'primitive-inventory
-                                :name ',name
-                                :ontology ,(or ontology (make-blackboard))))
+                                :name ',name))
            ,@(loop for configuration in (find-key-arg keys-and-defs :irl-configurations)
                    collect `(set-configuration ,primitive-inventory
                                                ,(first configuration)

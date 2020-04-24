@@ -84,9 +84,10 @@
   ;; as long as max depth is not reached, expand the current node
   ;; using the expand-chunk-fns
   (let ((children
-         (when (> (get-configuration composer :max-search-depth) (node-depth node))
+         (when (> (get-configuration composer :max-search-depth)
+                  (node-depth node))
            (loop for (new-chunk . source-chunks) in (run-expand-chunk-fns (chunk node) composer)
-                 collect (make-instance 'chunk-composer-node
+                 collect (make-instance 'chunk-composer-node :composer composer
                                         :source-chunks (append source-chunks (source-chunks node))
                                         :chunk new-chunk
                                         :node-number (incf (node-counter composer))
