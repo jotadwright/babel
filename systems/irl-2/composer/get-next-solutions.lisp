@@ -23,8 +23,9 @@
 
 (defun enqueue-node (node composer)
   (when (next-handler node)
-    (sorted-insert (queue composer) node
-                   :key #'rating :test #'<)))
+    (setf (queue composer)
+          (sorted-insert (queue composer) node
+                         :key #'node-rating :test #'<))))
                  
 
 (defun get-next-solutions (composer &key silent)
@@ -69,7 +70,7 @@
      (progn
        (unless silent
          (notify chunk-composer-finished (solutions composer) composer))
-       (return (solutions composer))))))
+       (return solutions)))))
 
 
 (defun get-all-solutions (composer &key silent)

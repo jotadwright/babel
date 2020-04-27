@@ -53,7 +53,8 @@
 (defmethod evaluate-chunk ((chunk chunk) (composer chunk-composer))
   (let ((irl-program (expand-chunks (irl-program chunk) composer)))
     (multiple-value-bind (evaluation-results evaluation-nodes)
-        (evaluate-irl-program irl-program (ontology composer)
+        ;; evaluating the irl program always in silent mode
+        (evaluate-irl-program irl-program (ontology composer) :silent t
                               :primitive-inventory (primitive-inventory composer))
       (loop with bound-variable-ids-in-irl-program 
             = (mapcar #'third (all-bind-statements (irl-program chunk)))
@@ -96,7 +97,7 @@
 
 (defmethod score-chunk-evaluation-result ((result chunk-evaluation-result)
                                           (composer chunk-composer)
-                                          (mode (eql :default)))
+                                          (mode (eql :chunk-and-binding-score-with-few-duplicates)))
   (average
    (list ;; score of the chunk
          (score (chunk result))

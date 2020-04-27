@@ -66,7 +66,7 @@
      (solutions
       (push 'evaluated-succeeded (statuses node))
       (notify chunk-composer-node-changed-status node))
-     ((get-data node 'bad-evaluation-results)
+     ((find-data node 'bad-evaluation-results)
       (push 'all-bad-evaluation-results (statuses node))
       (notify chunk-composer-node-changed-status node))
      (t (push 'no-evaluation-results (statuses node))

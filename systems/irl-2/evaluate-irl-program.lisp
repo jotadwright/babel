@@ -72,8 +72,8 @@
   (unless (or (null n) (numberp n))
     (error "Invalid option for the keyword argument :n. Expected a number or nil. Got ~s" n))
   ;; check if there is an ontology to work with
+  ;; if not, create an empty blackboard
   (unless (fields ontology)
-    (warn "The ontology appears to be empty.")
     (setf ontology (make-blackboard)))
   ;; replace all non-variables with variables
   ;; and introduce bind-statements for all of them

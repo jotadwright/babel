@@ -13,7 +13,7 @@
 
 (defmethod rate-node ((node chunk-composer-node)
                       (composer chunk-composer)
-                      (mode (eql :default)))
+                      (mode (eql :short-programs-with-few-primitives-and-open-vars)))
   "simple default function for rating nodes in the search tree"
   (let ((chunk (chunk node)))
     (/ (+ (node-depth node)            ;; the less depth the better
@@ -21,27 +21,26 @@
           (length (irl-program chunk)) ;; less primitives are better
           ;; less duplicate primitives are better
           ;; (bind statements are not considered)
-          (let ((predictes (remove 'bind
-                                   (mapcar #'car (irl-program chunk)))))
+          (let ((predictes (all-predicates (irl-program chunk))))
             (* 5 (- (length predictes)
-                    (length (remove-duplicates predictes)))))
-          ;; the higher the score the better
-          (score chunk)))))
+                    (length (remove-duplicates predictes))))))
+       ;; the higher the score the better
+       (score chunk))))
 
 ;; #########################################
 ;; run chunk scoring fn
 ;; -----------------------------------------
 
-(defun run-chunk-scoring-fn (chunk composer)
+(defun run-chunk-scoring-fn (node composer)
   (let ((mode (get-configuration composer :chunk-scoring-mode)))
-    (score-chunk chunk composer mode)))
+    (score-chunk node composer mode)))
 
-(defgeneric score-chunk (chunk composer mode)
+(defgeneric score-chunk (node composer mode)
   (:documentation "Computes a score for a chunk, a float
     between 0 (very bad) and 1 (very good)."))
 
-(defmethod score-chunk ((chunk chunk) (composer chunk-composer)
-                        (mode (eql :default)))
-  (average (mapcar #'score (source-chunks chunk))))
+(defmethod score-chunk ((node chunk-composer-node) (composer chunk-composer)
+                        (mode (eql :source-chunks-average)))
+  (average (mapcar #'score (source-chunks node))))
   
              

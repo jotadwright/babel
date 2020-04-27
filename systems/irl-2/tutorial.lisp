@@ -388,10 +388,10 @@
 ;; 2. In the primitive definition, ontology is a keyword that always refers
 ;; to the ontology that is passed in (evaluate-irl-program ...) 
 (defprimitive get-context ((context object-set))
-  ((context =>)
-   (equal-entity (get-data ontology 'context) context))
-  ((=> context)
-   (bind (context 1.0 (get-data ontology 'context)))))
+  (((context =>)
+    (equal-entity (get-data ontology 'context) context))
+   ((=> context)
+    (bind (context 1.0 (get-data ontology 'context))))))
 
 (evaluate-irl-program '((get-context ?context)) *ontology*)
 
@@ -399,29 +399,29 @@
 (defprimitive filter-by-shape ((filtered-set object-set) (source-set object-set)
                                (shape-category shape-category))
   ;; case 1
-  ((source-set shape-category => filtered-set)
-   (let ((computed-set (filter-by-shape source-set shape-category)))
-     (when computed-set (bind (filtered-set 1.0 computed-set)))))
+  (((source-set shape-category => filtered-set)
+    (let ((computed-set (filter-by-shape source-set shape-category)))
+      (when computed-set (bind (filtered-set 1.0 computed-set)))))
   
-  ;; case 2
-  ((source-set filtered-set => shape-category)
-   (let ((computed-category
-          (find-if #'(lambda (shape) (equal-entity filtered-set (filter-by-shape source-set shape)))
-                   ;;*shapes*)
-                   (get-data ontology 'shapes))
-          ))
-     (when computed-category (bind (shape-category 1.0 computed-category)))))
+   ;; case 2
+   ((source-set filtered-set => shape-category)
+    (let ((computed-category
+           (find-if #'(lambda (shape) (equal-entity filtered-set (filter-by-shape source-set shape)))
+                    ;;*shapes*)
+                    (get-data ontology 'shapes))
+           ))
+      (when computed-category (bind (shape-category 1.0 computed-category)))))
 
-  ;; case 3
-  ((source-set => filtered-set shape-category)
-   (loop for shape in (get-data ontology 'shapes) ;;*shapes*
-         for computed-set = (filter-by-shape source-set shape)
-         if computed-set
-         do (bind (shape-category 1.0 shape) (filtered-set 1.0 computed-set))))
+   ;; case 3
+   ((source-set => filtered-set shape-category)
+    (loop for shape in (get-data ontology 'shapes) ;;*shapes*
+          for computed-set = (filter-by-shape source-set shape)
+          if computed-set
+          do (bind (shape-category 1.0 shape) (filtered-set 1.0 computed-set))))
 
-  ;; case 4
-  ((source-set filtered-set shape-category =>)
-   (equal-entity filtered-set (filter-by-shape source-set shape-category))))
+   ;; case 4
+   ((source-set filtered-set shape-category =>)
+    (equal-entity filtered-set (filter-by-shape source-set shape-category)))))
 
 ;; Test: source-set shape => filtered-set
 (evaluate-irl-program 
@@ -491,30 +491,30 @@
 (defprimitive filter-by-size ((filtered-set object-set) (source-set object-set)
                               (size-category size-category))
   ;; case 1
-  ((source-set size-category => filtered-set)
-   (let ((computed-set (filter-by-size source-set size-category (get-data ontology 'sizes))))
-     (when computed-set (bind (filtered-set 1.0 computed-set)))))
-  
-  ;; case 2
-  ((source-set filtered-set => size-category)
-   (let ((computed-category
-          (find-if #'(lambda (size)
-                       (equal-entity
-                        filtered-set
-                        (filter-by-size source-set size (get-data ontology 'sizes))))
-                   (get-data ontology 'sizes))))
-     (when computed-category (bind (size-category 1.0 computed-category)))))
-
-  ;; case 3
-  ((source-set => filtered-set size-category)
-   (loop for size in (get-data ontology 'sizes)
-         for computed-set = (filter-by-size source-set size (get-data ontology 'sizes))
-         if computed-set
-         do (bind (size-category 1.0 size) (filtered-set 1.0 computed-set))))
-
-  ;; case 4
-  ((source-set filtered-set size-category =>)
-   (equal-entity filtered-set (filter-by-size source-set size-category (get-data ontology 'sizes)))))
+  (((source-set size-category => filtered-set)
+    (let ((computed-set (filter-by-size source-set size-category (get-data ontology 'sizes))))
+      (when computed-set (bind (filtered-set 1.0 computed-set)))))
+   
+   ;; case 2
+   ((source-set filtered-set => size-category)
+    (let ((computed-category
+           (find-if #'(lambda (size)
+                        (equal-entity
+                         filtered-set
+                         (filter-by-size source-set size (get-data ontology 'sizes))))
+                    (get-data ontology 'sizes))))
+      (when computed-category (bind (size-category 1.0 computed-category)))))
+   
+   ;; case 3
+   ((source-set => filtered-set size-category)
+    (loop for size in (get-data ontology 'sizes)
+          for computed-set = (filter-by-size source-set size (get-data ontology 'sizes))
+          if computed-set
+          do (bind (size-category 1.0 size) (filtered-set 1.0 computed-set))))
+   
+   ;; case 4
+   ((source-set filtered-set size-category =>)
+    (equal-entity filtered-set (filter-by-size source-set size-category (get-data ontology 'sizes))))))
 
 ;; source-set size => filtered-set
 (evaluate-irl-program 
@@ -530,13 +530,13 @@
 ;; ####################################################################
 
 (defprimitive unique-entity ((unique-entity object) (source-set object-set))
-  ((unique-entity source-set =>)
-   (and (= 1 (length (objects source-set)))
-        (eq (id (first (objects source-set))) (id unique-entity))))
+  (((unique-entity source-set =>)
+    (and (= 1 (length (objects source-set)))
+         (eq (id (first (objects source-set))) (id unique-entity))))
   
-  ((source-set => unique-entity)
-   (when (= 1 (length (objects source-set)))
-     (bind (unique-entity 1.0 (first (objects source-set)))))))
+   ((source-set => unique-entity)
+    (when (= 1 (length (objects source-set)))
+      (bind (unique-entity 1.0 (first (objects source-set))))))))
 
 ;; We can discriminate the big circle
 (evaluate-irl-program
@@ -572,8 +572,7 @@
 ;; the open variables, it can compute the target variable.
 
 (defparameter *chunk-1*
-  (make-instance 
-   'chunk
+  (make-instance 'chunk
    :id 'filter-by-shape+get-context
    :irl-program `((filter-by-shape ?target-set ?source-set ?shape)
                   (get-context ?source-set)) ;; 1) the irl network
@@ -586,13 +585,7 @@
 
 
 ;;   ######################################################
-;;   Part 6a: Evaluation chunk
-
-(evaluate-chunk *chunk-1* *ontology*)
-
-
-;;   ######################################################
-;;   Part 6b: Create chunk from primitive
+;;   Part 6a: Create chunk from primitive
 
 (defparameter *chunk-2*
   (create-chunk-from-primitive 'filter-by-size))
@@ -603,7 +596,7 @@
 
 
 ;;   ######################################################
-;;   Part 6c: Create chunks from irl program
+;;   Part 6b: Create chunks from irl program
 
 (defparameter *chunk-3*
   (create-chunk-from-irl-program `((filter-by-shape ?internal-set ?source-set ?shape)
@@ -615,7 +608,7 @@
 
 
 ;;   ######################################################
-;;   Part 6d: Combine chunks
+;;   Part 6c: Combine chunks
 
 (defparameter *chunk-4* (first (combine-chunk-program *chunk-2* *chunk-1*)))
 
@@ -635,64 +628,39 @@
 ;; Part 7. Using the composer
 ;; ##########################################################
 
-;; The composer uses the combine-chunk-program function to
-;; gradually build up increasingly complex programs
-;; It starts with an initial (empty) chunk and tries to
+;; The composer starts with an initial (empty) chunk and tries to
 ;; combine it with the list of available chunks until it
 ;; finds a chunk that when evaluated achieves the communicative
 ;; goal
 
 
 ;;   ######################################################
-;;   Part 7a: Define composer class
+;;   Part 7a: Define the composer
 
-;; Make a new composer class (the communicative goal is to
-;; discriminate a topic oject, so we create a topic slot)
-(defclass my-composer (chunk-composer)
-  ((topic :initarg :topic :accessor topic :initform nil)))
+;;   The default composer assumes there is a single topic
+;;   to discriminate. This is passed through :topic.
 
-;; Overload handle-node to meet our specific needs
-;; Return values:
-;; 1) nil: No results, search process continues.
-;; 2) a list containing chunk-composer-node-solutions:
-;     the method (get-next-solution ...) returns this list
+(defparameter *my-composer*
+  (make-chunk-composer
+   :topic (first (objects (get-data *ontology* 'context)))
+   :initial-chunk (make-instance 'chunk :id 'initial
+                                 :target-var '(?topic . object)
+                                 :open-vars '((?topic . object)))
+   :chunks (list (create-chunk-from-primitive 'get-context)
+                 (create-chunk-from-primitive 'unique-entity)
+                 (create-chunk-from-primitive 'filter-by-shape)
+                 (create-chunk-from-primitive 'filter-by-size))
+   :ontology *ontology* :primitive-inventory *irl-primitives*
+   :configurations '((:max-search-depth . 4))))
 
-(defmethod handle-node ((node chunk-composer-node)
-                        (handler (eql 'evaluate))
-                        (composer my-composer))
-  (let ((evaluation-results (call-next-method)))
-    (values (loop for result in evaluation-results
-                  ;; check if the evaluation results indeed discriminates
-                  ;; the topic
-                  if (equal-entity (target-entity result) (topic composer))
-                  collect result)
-            nil)))
-
-
-;;   ######################################################
-;;   Part 7b: Create/initialize composer
-
-(setf *my-composer* (make-instance 'my-composer
-                                   :topic (first (objects (get-data *ontology* 'context)))
-                                   :initial-chunk (make-instance 'chunk
-                                                                 :id 'initial
-                                                                 :target-var '(?topic . object)
-                                                                 :open-vars '((?topic . object)))
-                                   :chunks (list
-                                            (create-chunk-from-primitive 'get-context)
-                                            (create-chunk-from-primitive 'unique-entity)
-                                            (create-chunk-from-primitive 'filter-by-shape)
-                                            (create-chunk-from-primitive 'filter-by-size))
-                                   :max-search-depth 4
-                                   :ontology *ontology*))
 ;; Find first solution
-(get-next-solutions *my-composer*)
+(get-next-solutions *my-composer* :silent t)
 
 ;; Find second solution
-(get-next-solutions *my-composer*)
+(get-next-solutions *my-composer* :silent t)
 
 ;; No solutions left
-(get-next-solutions *my-composer*)
+(get-next-solutions *my-composer* :silent t)
 
 
 ;;   ######################################################
@@ -702,50 +670,42 @@
 ;; till infinity, we find a lot of useless solutions if we increase
 ;; the search depth.
 
-(setf *my-composer-2* (make-instance 'my-composer
-                                     :topic (first (objects (get-data *ontology* 'context)))
-                                     :initial-chunk (make-instance 'chunk
-                                                                   :id 'initial
-                                                                   :target-var '(?topic . object)
-                                                                   :open-vars '((?topic . object)))
-                                     :chunks (list
-                                              (create-chunk-from-primitive 'get-context)
-                                              (create-chunk-from-primitive 'unique-entity)
-                                              (create-chunk-from-primitive 'filter-by-shape)
-                                              (create-chunk-from-primitive 'filter-by-size))
-                                     :max-search-depth 6
-                                     :ontology *ontology*))
+(defparameter *my-composer-2*
+  (make-chunk-composer
+   :topic (first (objects (get-data *ontology* 'context)))
+   :initial-chunk (make-instance 'chunk :id 'initial
+                                 :target-var '(?topic . object)
+                                 :open-vars '((?topic . object)))
+   :chunks (list (create-chunk-from-primitive 'get-context)
+                 (create-chunk-from-primitive 'unique-entity)
+                 (create-chunk-from-primitive 'filter-by-shape)
+                 (create-chunk-from-primitive 'filter-by-size))
+   :ontology *ontology* :primitive-inventory *irl-primitives*
+   :configurations '((:max-search-depth . 6))))
 
-(get-all-solutions *my-composer-2*) ;; this will return a lot of unwanted results
+(get-all-solutions *my-composer-2*) ;; this will return a lot of unwanted results (22)
 
 ;; One way to solve it is to make sure that the composer only creates
-;; nodes that contain at most one instance of the same operation
-(defmethod handle-node ((node chunk-composer-node)
-                        (handler (eql 'expand))
-                        (composer my-composer))
-  (multiple-value-bind (ignore nodes) (call-next-method)
-    (values
-     nil
-     (loop for node in nodes
-           for irl-program = (irl-program (chunk node))
-           if (not (duplicates? irl-program :key #'first))
-           collect node))))
+;; nodes that contain at most one instance of the same operation.
+;; This can be done through the :check-node-modes. This particular
+;; mode already exists and is called 
+;; :no-primitive-occurs-more-than-once
 
-(setf *my-composer-2* (make-instance 'my-composer
-                                     :topic (first (objects (get-data *ontology* 'context)))
-                                     :initial-chunk (make-instance 'chunk
-                                                                   :id 'initial
-                                                                   :target-var '(?topic . object)
-                                                                   :open-vars '((?topic . object)))
-                                     :chunks (list
-                                              (create-chunk-from-primitive 'get-context)
-                                              (create-chunk-from-primitive 'unique-entity)
-                                              (create-chunk-from-primitive 'filter-by-shape)
-                                              (create-chunk-from-primitive 'filter-by-size))
-                                     :max-search-depth 6
-                                     :ontology *ontology*))
+(setf *my-composer-2*
+  (make-chunk-composer
+   :topic (first (objects (get-data *ontology* 'context)))
+   :initial-chunk (make-instance 'chunk :id 'initial
+                                 :target-var '(?topic . object)
+                                 :open-vars '((?topic . object)))
+   :chunks (list (create-chunk-from-primitive 'get-context)
+                 (create-chunk-from-primitive 'unique-entity)
+                 (create-chunk-from-primitive 'filter-by-shape)
+                 (create-chunk-from-primitive 'filter-by-size))
+   :ontology *ontology* :primitive-inventory *irl-primitives*
+   :configurations '((:max-search-depth . 6)
+                     (:check-node-modes :check-duplicate :no-primitive-occurs-more-than-once))))
 
-(get-all-solutions *my-composer-2*) ;; now it only returns relevant results
+(get-all-solutions *my-composer-2*) ;; now it only returns relevant results (2)
 
 
 
@@ -764,7 +724,6 @@
 ;; We can let the composer look for a network that discriminates
 ;; a topic _and_ matches the meaning. The matching is done
 ;; with the function match-chunk that tests the following:
-
 
 ;; 1) All the primitves in the meaning must be in the chunk (not the other way around)
 ;; 2) All the bind statements in the meaning must match an open variable or a bind statement in the chunk.
@@ -851,23 +810,22 @@
 ;;   Part 8b: Flexible interpretation
 
 (defparameter *partial-meaning-1* '((bind shape-category ?shape-category circle)
-                                  (bind size-category ?size-category big)))
+                                    (bind size-category ?size-category big)))
 
-(setf *my-composer* (make-instance 'chunk-composer
-                                   :meaning *partial-meaning-1*
-                                   :initial-chunk (make-instance 'chunk
-                                                                 :id 'initial
-                                                                 :target-var '(?topic . object)
-                                                                 :open-vars '((?topic . object)))
-                                   :chunks (list
-                                            (create-chunk-from-primitive 'get-context)
-                                            (create-chunk-from-primitive 'unique-entity)
-                                            (create-chunk-from-primitive 'filter-by-shape)
-                                            (create-chunk-from-primitive 'filter-by-size))
-                                   :max-search-depth 4
-                                   :ontology *ontology*))
+(setf *my-composer-3*
+      (make-chunk-composer :meaning *partial-meaning-1*
+                           :initial-chunk (make-instance 'chunk :id 'initial
+                                                         :target-var '(?topic . object)
+                                                         :open-vars '((?topic . object)))
+                           :chunks (list
+                                    (create-chunk-from-primitive 'get-context)
+                                    (create-chunk-from-primitive 'unique-entity)
+                                    (create-chunk-from-primitive 'filter-by-shape)
+                                    (create-chunk-from-primitive 'filter-by-size))
+                           :ontology *ontology* :primitive-inventory *irl-primitives*
+                           :configurations '((:max-search-depth . 4))))
 
-(get-all-solutions *my-composer*)
+(get-all-solutions *my-composer-3*)
 ;; This returns two (semantically equivalent) solutions. E.g.:
 ;; ((unique-entity ?topic ?source-set)
 ;;  (filter-by-size ?source-set ?source-set-38 ?size-category)

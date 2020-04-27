@@ -48,7 +48,7 @@
                  :initform 'match :accessor next-handler
                  :documentation "The next handler of the node")
    (source-chunks :type list :initarg :source-chunks
-                  :accessor source-chunks
+                  :accessor source-chunks :initform nil
                   :documentation "The source chunks of the node")
    (chunk :type chunk :initarg :chunk :accessor chunk
           :documentation "The current chunk of the node")
@@ -83,10 +83,11 @@
   ;; A function that is called whenever a new node is
   ;; created to rate the node. Returns a float.
   ;; lower == better
-  (set-configuration composer :node-rating-mode :default)
+  (set-configuration composer :node-rating-mode
+                     :short-programs-with-few-primitives-and-open-vars)
   ;; Computes a score for a chunk, a float
   ;; between 0 (very bad) and 1 (very good).
-  (set-configuration composer :chunk-scoring-mode :default)
+  (set-configuration composer :chunk-scoring-mode :source-chunks-average)
   ;; A function that is called before chunk evaluation
   ;; to add things to the irl program. Gets the chunk
   ;; and returns a new chunk or nil when the wrapping
@@ -98,7 +99,8 @@
   (set-configuration composer :check-chunk-evaluation-result-mode :identity)
   ;; A function that is called after chunk evaluation
   ;; to compute a score for a result (higher == better).
-  (set-configuration composer :chunk-evaluation-result-scoring-mode :default))
+  (set-configuration composer :chunk-evaluation-result-scoring-mode
+                     :chunk-and-binding-score-with-few-duplicates))
 
 
 (defun make-chunk-composer (&key topic meaning initial-chunk chunks

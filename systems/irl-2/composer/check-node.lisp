@@ -56,7 +56,5 @@
 (defmethod check-node ((node chunk-composer-node)
                        (composer chunk-composer)
                        (mode (eql :no-primitive-occurs-more-than-once)))
-  (loop with primitive-ids = (mapcar #'car (irl-program (chunk node)))
-        for id in primitive-ids
-        never (> (count id primitive-ids) 1)))
+  (not (duplicates? (irl-program (chunk node)) :key #'first)))
     
