@@ -107,7 +107,7 @@
   ;; check the input
   (when (and (null topic) (null meaning))
     (error "Must provide either :topic or :meaning"))
-  (unless (or chunks (get-data (ontology primitive-inventory) 'chunks))
+  (unless (or chunks (get-data ontology 'chunks))
     (error "Composer has no chunks to work with. Either provide :chunks
             or place 'chunks in the ontology"))
   ;; initialise the initial chunk, the composer and the initial node
@@ -123,7 +123,7 @@
                          :primitive-inventory primitive-inventory
                          :ontology ontology
                          :chunks (if chunks chunks
-                                   (get-data (ontology primitive-inventory) 'chunks))))
+                                   (get-data ontology 'chunks))))
          (initial-node
           (make-instance 'chunk-composer-node :chunk initial-chunk
                          :composer composer)))

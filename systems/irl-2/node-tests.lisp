@@ -22,7 +22,8 @@
 ;; duplicate detection
 
 (defun duplicate-node-p (node other-node)
-  (unless (eq node other-node)
+  (unless (or (eq node other-node)
+              (eq (status other-node) 'initial))
     (loop for var in (mapcar #'var (bindings node))
           for node-value = (value (find var (bindings node) :key #'var))
           for other-value = (value (find var (bindings other-node) :key #'var))
@@ -32,7 +33,8 @@
                           (equal-entity node-value other-value))))))
 
 (defun find-duplicate (node other-node)
-  (unless (eq node other-node)
+  (unless (or (eq node other-node)
+              (eq (status other-node) 'initial))
     (or (duplicate-node-p node other-node)
         (loop for child in (children other-node)
               thereis (find-duplicate node child)))))

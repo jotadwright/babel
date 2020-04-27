@@ -84,7 +84,7 @@
         append (loop for new-chunk in (combine-chunk-call-pattern chunk other-chunk)
                      collect (cons new-chunk (list other-chunk)))))
 
-(defmethod recombine-open-variables ((chunk chunk))
+(defmethod recombine-open-variables ((chunk chunk) primitive-inventory)
   "Tries to account for open variables of 'chunk' by using primitives
    that are already in the irl program. Returns all possible
    solutions."
@@ -94,7 +94,7 @@
                      for target-var-id = (cadr predicate)
                      for target-var-type 
                      = (get-type-of-var target-var-id predicate
-                                        :primitive-inventory (primitive-inventory chunk))
+                                        :primitive-inventory primitive-inventory)
                      when (and (not (eq target-var-id (car (target-var chunk))))
                                (not (find open-var-id (cdr predicate)))
                                (or (subtypep open-var-type target-var-type)
@@ -113,7 +113,7 @@
    that are already in the irl program. Returns all possible
    solutions."
   (declare (ignore composer))
-  (loop for new-chunk in (recombine-open-variables chunk)
+  (loop for new-chunk in (recombine-open-variables chunk (primitive-inventory composer))
         collect (cons new-chunk nil)))
 
 (defun link-open-variables (chunk)

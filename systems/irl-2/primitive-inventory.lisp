@@ -59,10 +59,10 @@
         do (add-primitive p primitive-inventory)))
 
 
-(defgeneric size (primitive-inventory &key &allow-other-keys)
+(defgeneric primitive-inventory-size (primitive-inventory &key &allow-other-keys)
   (:documentation "Return the size of the primitive inventory"))
 
-(defmethod size ((primitive-inventory primitive-inventory) &key)
+(defmethod primitive-inventory-size ((primitive-inventory primitive-inventory) &key)
   (length (primitives primitive-inventory)))
 
 
@@ -139,7 +139,7 @@
 (defmethod print-object ((primitive-inventory primitive-inventory) stream)
   (format stream "<~(~a~): ~a primitives>" 
           (class-name (class-of primitive-inventory))
-          (size primitive-inventory)))
+          (primitive-inventory-size primitive-inventory)))
 
 
 (defun eval-when-bound (sexp)
