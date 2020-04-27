@@ -653,8 +653,10 @@
    :ontology *ontology* :primitive-inventory *irl-primitives*
    :configurations '((:max-search-depth . 4))))
 
+(activate-monitor trace-irl-in-web-browser)
+
 ;; Find first solution
-(get-next-solutions *my-composer* :silent t)
+(get-next-solutions *my-composer*)
 
 ;; Find second solution
 (get-next-solutions *my-composer* :silent t)

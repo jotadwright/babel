@@ -63,9 +63,6 @@
                 (lambda ()
                   `((div :style "margin-top:-6px")
                     ,(make-html top-node :expand/collapse-all-id tree-id-2))))))))))
-|#
-
-#|
 
 ;; #########################################################
 ;; chunk-evaluation-result - make-html
@@ -372,15 +369,6 @@ div.ccn-dead-node { padding-left:2px;
         "evaluation results" (solutions node)))))
 
 ;; ##########################################################
-;; multi-topic-composer-node - content->html-table-rows
-;; ----------------------------------------------------------
-
-(defmethod content->html-table-rows ((node multi-topic-composer-node) &key)
-  (append (call-next-method node)
-          (list (make-tr-for-evaluation-results 
-                 "evaluation results before goal test" (results-before-goal-test node)))))
-
-;; ##########################################################
 ;; single-topic-composer-node - content->html-table-rows
 ;; ----------------------------------------------------------
 
@@ -459,71 +447,205 @@ div.ccn-dead-node { padding-left:2px;
         "bad evaluation results" (bad-evaluation-results node))
       ;;actual results
       ,@(last default-trs))))
-
-;; #########################################################
-;; chunk-composer - make-html & content->html-table-rows
-;; ---------------------------------------------------------
-
-(defmethod make-html ((composer chunk-composer) &key (verbose nil))
-  `((table :class "two-col")
-    ((tbody)
-     ,@(content->html-table-rows composer :verbose verbose))))
-
-(defmethod content->html-table-rows ((composer chunk-composer) &key (verbose nil))
-  `(,@(if verbose
-        `(((tr) 
-           ((td) "max-search-depth")
-           ((td) ,(max-search-depth composer))))
-        '(""))
-    ((tr)
-     ((td) "chunks")
-     ((td) ,@(mapcar #'make-html (chunks composer))))
-    ,(if (meaning composer)
-       (make-tr-for-irl-program "meaning" (meaning composer))
-       "")
-    ,(make-tr-for-tree "composition-tree" (top-node composer))
-    ,(make-tr-for-queue "queue" (queue composer))
-    ,(make-tr-for-evaluation-results 
-      "evaluation results" (solutions composer))))
-  
-;; #########################################################
-;; single-topic-composer
-;; ---------------------------------------------------------
-
-(defmethod make-html ((composer single-topic-composer) &key (verbose nil))
-   `((table :class "two-col")
-     ((tbody)
-      ,@(if verbose
-           `(((tr) 
-              ((td) "max-search-depth")
-              ((td) ,(max-search-depth composer)))
-             ((tr) 
-              ((td) "check-chunk-fns")
-              ((td) ,(html-pprint (check-chunk-fns composer))))
-             ((tr) 
-              ((td) "node-rating-fn")
-              ((td) ,(html-pprint (node-rating-fn composer))))
-             ((tr) 
-              ((td) "initial-chunk-score-fn")
-              ((td) ,(html-pprint (initial-chunk-score-fn composer))))
-             ((tr) 
-              ((td) "chunk-wrapper-fn")
-              ((td) ,(html-pprint (chunk-wrapper-fn composer))))
-             ((tr) 
-              ((td) "check-evaluation-result-fn")
-              ((td) ,(html-pprint (check-evaluation-result-fn composer))))
-             ((tr) 
-              ((td) "evaluation-result-scoring-fn")
-              ((td) ,(html-pprint (evaluation-result-scoring-fn composer)))))
-           '(""))
-      ((tr)
-       ((td) "chunks")
-       ((td) ,@(mapcar #'make-html (chunks composer))))
-      ,(if (meaning composer)
-           (make-tr-for-irl-program "meaning" (meaning composer))
-           "")
-      ,(make-tr-for-tree "composition-tree" (top-node composer))
-      ,(make-tr-for-queue "queue" (queue composer))
-      ,(make-tr-for-evaluation-results 
-        "evaluation results" (solutions composer)))))
 |#
+
+;; #########################################################
+;; chunk-composer-node - make-html
+;; ---------------------------------------------------------
+
+(defparameter *chunk-composer-node-status-colors*
+  '((initial . "#444")
+    (duplicate . "#520")
+    (solution . "#050")
+    (all-bad-evaluation-results . "#822")
+    (no-evaluation-results . "#337")
+    (expanded . "#480")
+    ; something for max depth reached?
+    ))
+
+(define-css 'ccn "
+div.ccn { display:inline-block;margin-right:0px;margin-top:10px;
+           margin-bottom:10px;padding:0px; }
+div.ccn-box { border:1px solid #562; display:inline-block;}
+div.ccn div.ccn-title  { 
+  padding:0px;padding-left:3px;padding-right:3px;
+  white-space:nowrap; background-color:#562; }
+div.ccn div.ccn-title > a {color:#fff;}
+div.ccn div.ccn-title > span {color:#fff;}
+table.ccn {
+  border-collapse:collapse; }
+table.ccn td.ccn-type { font-style:italic;padding:0px;padding-left:4px;}
+table.ccn td.ccn-details { vertical-align:top;padding-top:3px;padding-bottom:3px;
+  padding-left:5px;padding-right:5px; }
+table.ccn td.ccn-details div.ccn-detail { 
+  padding-left:4px; padding-right:4px;padding-bottom:1px;padding-top:1px;
+  border-top:1px dashed #563;text-align:left; }
+table.ccn td.ccn-details > div { overflow:hidden; }
+table.ccn td.ccn-details div.ccn-detail:first-child { border-top:none; }
+div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
+")
+
+(defmethod collapsed-ccn-html ((node chunk-composer-node)
+                               element-id node-color)
+  nil)
+
+(defmethod expanded-ccn-html ((node chunk-composer-node)
+                              element-id node-color
+                              &key (expand-initially nil)
+                              (expand/collapse-all-id (make-id 'ccn)))
+  nil)
+
+(defun collapsed-hidden-composition-subtree-html (element-id)
+  nil)
+
+(defun expanded-hidden-composition-subtree-html (hidden-children element-id
+                                                 &key (expand/collapse-all-id (make-id 'subtree)))
+  nil)
+
+
+(defmethod make-html ((node chunk-composer-node)
+                      &key solutions (expand-initially nil)
+                      (expand/collapse-all-id (make-id 'ccn)))
+  (let* ((element-id (make-id 'ccn))
+         (node-color
+          (or (assqv (first (statuses node)) *chunk-composer-node-status-colors*)
+              (error "no status color defined for status ~a" (first (statuses node))))))
+    (draw-node-with-children
+     `((div :class "ccn")
+       ,(make-expandable/collapsable-element
+         element-id (make-id)
+         ;; collapsed element
+         (collapsed-ccn-html node element-id node-color)
+         ;; expanded element
+         (expanded-ccn-html node element-id node-color
+                            :expand/collapse-all-id expand/collapse-all-id)))
+     (let ((subtree-id (make-id 'subtree))
+           nodes-to-show nodes-to-hide)
+       (if solutions
+         (loop for child in (children node)
+               if (on-path-to-solution-p child solutions)
+               do (push child nodes-to-show)
+               else do (push child nodes-to-hide))
+         (setf nodes-to-show (children node)))
+       (shuffle (append
+        (loop for child in nodes-to-show
+              collect (make-html child :solutions solutions
+                                 :expand-initially expand-initially
+                                 :expand/collapse-all-id expand/collapse-all-id))
+        (if nodes-to-hide
+          (list 
+           (make-expandable/collapsable-element
+            subtree-id expand/collapse-all-id
+            ;; collapsed element
+            (collapsed-hidden-composition-subtree-html subtree-id)
+            ;; expanded element
+            (expanded-hidden-composition-subtree-html nodes-to-hide subtree-id
+                                          :expand/collapse-all-id expand/collapse-all-id)
+            :expand-initially expand-initially))
+          nil))))
+     :color "#aaa")))
+
+
+;; #########################################################
+;; make html for composition process
+;; ---------------------------------------------------------
+
+(defun make-collapsed-html-for-composition-process (composer element-id)
+  (let ((solution-nodes
+         (find-all 'solution (nodes composer)
+                   :key #'statuses :test #'member)))
+    `((table :class "two-col")
+      ((tbody)
+       ((tr)
+        ((td)
+         ((a ,@(make-expand/collapse-link-parameters
+                element-id t "composition process"))
+          "composition process"))
+        ((td)
+         ((div :style "margin-top:-7px")
+          ,(make-html (top composer) :expand-initially nil
+                      :solutions solution-nodes))))))))
+
+(defun make-expanded-html-for-composition-process (composer element-id)
+  nil)
+  
+(defmethod make-html-for-composition-process ((composer chunk-composer))
+  (let ((element-id (make-id 'composition-process)))
+    (make-expandable/collapsable-element
+     element-id (make-id)
+     (make-collapsed-html-for-composition-process composer element-id)
+     (make-expanded-html-for-composition-process composer element-id))))
+
+;; #########################################################
+;; chunk-composer - make-html
+;; ---------------------------------------------------------
+
+(define-css 'chunk-composer "
+div.chunk-composer { display:inline-block;margin-right:10px;margin-top:4px;
+         margin-bottom:4px;padding:0px; }
+div.chunk-composer-box { border:1px solid; display:inline-block;}
+div.chunk-composer div.chunk-composer-title  { 
+  padding:0px;padding-left:3px;padding-right:3px;white-space:nowrap; }
+div.chunk-composer div.chunk-composer-title > a { color:#40241A;font-weight:bold; }
+table.chunk-composer { border-collapse:collapse; }
+table.chunk-composer td.chunk-composer-type { font-style:italic;padding:0px;padding-left:4px;}
+table.chunk-composer td.chunk-composer-details div.chunk-composer-detail { 
+  padding-left:4px; padding-right:4px;padding-bottom:1px;padding-top:1px;
+  border-top:1px dashed #563;text-align:left;  }
+table.chunk-composer td.chunk-composer-details > div { overflow:hidden; }
+table.chunk-composer td.chunk-composer-details div.chunk-composer-detail:first-child { border-top:none;} 
+")
+
+(defmethod collapsed-chunk-composer-html ((composer chunk-composer)
+                                          element-id)
+  "html for the collapsed version of a primitive inventory"
+  `((div :class "chunk-composer-title")
+    ((a ,@(make-expand/collapse-link-parameters
+           element-id t "expand chunk composer")
+        :name "chunk composer")
+     ,(format nil "IRL CHUNK COMPOSER (~a)"
+              (length (chunks composer))))))
+
+(defmethod expanded-chunk-composer-html ((composer chunk-composer) element-id
+                                         &key (expand-initially nil)
+                                         (expand/collapse-all-id (make-id 'cc)))
+  "html for the expanded version of a primitive inventory"
+  (lambda ()
+    `((div :class "chunk-composer-box")
+      ((div :class "chunk-composer-title"
+            :style "border-bottom:1px dashed;")
+       ((a ,@(make-expand/collapse-link-parameters
+              element-id nil "collapse chunk composer")
+           :name "chunk composer")
+        ,(format nil "IRL CHUNK COMPOSER (~a)"
+                 (length (chunks composer)))))
+      ;; show the configurations
+      ((div :style "border-bottom:1px dashed;")
+       "Configurations:" ((br))
+       ,@(html-hide-rest-of-long-list
+          (entries (configuration composer)) 3
+          #'html-pprint))
+      ;; show the chunks
+      ((table :class "chunk-composer")
+       ,@(loop for chunk in (chunks composer)
+               collect `((tr)
+                         ((td :class "chunk-composer-details")
+                          ,(make-html chunk :expand-initially expand-initially
+                                      :expand/collapse-all-id expand/collapse-all-id))))))))
+
+(defmethod make-html ((composer chunk-composer)
+                      &key (expand-initially nil)
+                      (expand/collapse-all-id (make-id 'cc)))
+  `((div :class "chunk-composer")
+    ,(let ((element-id (make-id 'composer)))
+       (make-expandable/collapsable-element
+        element-id expand/collapse-all-id
+        ;; collapsed version
+        (collapsed-chunk-composer-html composer element-id)
+        ;; expanded version
+        (expanded-chunk-composer-html composer element-id
+                                      :expand-initially expand-initially
+                                      :expand/collapse-all-id expand/collapse-all-id)
+        :expand-initially expand-initially))))
+  
+

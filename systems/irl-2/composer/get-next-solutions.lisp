@@ -69,7 +69,7 @@
      finally
      (progn
        (unless silent
-         (notify chunk-composer-finished (solutions composer) composer))
+         (notify chunk-composer-finished solutions composer))
        (return solutions)))))
 
 

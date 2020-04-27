@@ -1,13 +1,14 @@
 
 (in-package :irl-2)
 
-#|
 ;; ============================================================================
 ;; match-chunk
 ;; ----------------------------------------------------------------------------
 
+#|
 (define-event-handler ((trace-irl-in-web-browser
-                        trace-irl-in-web-browser-verbose) match-chunk-started)
+                        trace-irl-in-web-browser-verbose)
+                       match-chunk-started)
   (add-element '((hr)))
   (add-element `((p) "matching chunk " ,(make-html chunk :expand-initially t)))
   (add-element `((p) "with meaning " ,(html-pprint meaning :max-width 100)
@@ -20,6 +21,7 @@
                      ,@(loop for chunk in matched-chunks
                           collect (make-html chunk :expand-initially t))))
       (add-element `((p) ((b) "no results")))))
+|#
 
 ;; ============================================================================
 ;; chunk-composer
@@ -30,28 +32,30 @@
                        chunk-composer-get-next-solutions-started)
   (add-element '((hr)))
   (add-element '((h2) "Computing next composer solution"))
-  (add-element `((p) 
-                 ,(make-html composer 
-                             :verbose (eq monitor-id 'trace-irl-in-web-browser-verbose)))))
-                   
+  (add-element `((p) ,(make-html composer)))
+  (add-element '((h3) "in the following ontology:"))
+  (add-element (make-html (ontology composer))))
+
+
 (define-event-handler ((trace-irl-in-web-browser
                         trace-irl-in-web-browser-verbose)
                        chunk-composer-get-all-solutions-started)
   (add-element '((hr)))
   (add-element '((h2) "Computing all composer solutions"))
-  (add-element `((p)
-                 ,(make-html composer
-                             :verbose (eq monitor-id 'trace-irl-in-web-browser-verbose)))))
+  (add-element `((p) ,(make-html composer)))
+  (add-element '((h3) "in the following ontology:"))
+  (add-element (make-html (ontology composer))))
 
 (define-event-handler ((trace-irl-in-web-browser
                         trace-irl-in-web-browser-verbose)
                        chunk-composer-get-solutions-until-started)
   (add-element '((hr)))
   (add-element '((h2) "Computing all composer solutions until stop criterion"))
-  (add-element `((p)
-                 ,(make-html composer
-                             :verbose (eq monitor-id 'trace-irl-in-web-browser-verbose)))))
+  (add-element `((p) ,(make-html composer)))
+  (add-element '((h3) "in the following ontology:"))
+  (add-element (make-html (ontology composer))))
 
+#|
 (define-event-handler (trace-irl-in-web-browser-verbose chunk-composer-next-node)
   (add-element '((hr)))
   (add-element 
@@ -80,26 +84,22 @@
          ((td) ,@(loop for successor in successors
                     collect (make-html successor :draw-as-tree nil
                              :expand/collapse-all-id expand/collapse-all-id)))))))))
+|#
 
 (define-event-handler ((trace-irl-in-web-browser 
                         trace-irl-in-web-browser-verbose)
                        chunk-composer-finished)
   (add-element '((hr)))
-  (add-element '((h3) "Result"))
-  (add-element 
-   `((table :class "two-col")
-     ((tbody)
-      ,(make-tr-for-tree "composition tree" (top-node composer))
-      ,(make-tr-for-queue "queue" (queue composer))
-      ,(if solutions
-           (make-tr-for-evaluation-results 
-            (format nil "Found ~a solutions" (length solutions))
-            solutions)
-           `((tr) ((td :colspan "2") ((b) "Found no solutions."))))
-      ,(if (and (solutions composer) 
-                (not (length= (solutions composer) solutions)))
-           (make-tr-for-evaluation-results "All solutions of composer so far"
-                                           (solutions composer))
-           "")))))
-
-|#
+  (add-element '((h2) "Result"))
+  (add-element
+   (make-html-for-composition-process composer))
+  (if solutions
+    (progn
+      (add-element `((h3) ,(format nil "Found ~a solutions:"
+                                   (length solutions))))
+      (composer-solutions->html solutions))
+    (add-element '((h3) "No solutions found.")))
+  (when (and (solutions composer)
+             (not (length= (solutions composer) solutions)))
+    (add-element '((h3) "All composer solutions so far"))
+    (composer-solutions->html (solutions composer))))

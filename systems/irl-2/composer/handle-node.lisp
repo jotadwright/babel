@@ -64,7 +64,7 @@
     ;; change the status accordingly
     (cond
      (solutions
-      (push 'evaluated-succeeded (statuses node))
+      (push 'solution (statuses node))
       (notify chunk-composer-node-changed-status node))
      ((find-data node 'bad-evaluation-results)
       (push 'all-bad-evaluation-results (statuses node))
