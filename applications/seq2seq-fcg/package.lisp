@@ -16,3 +16,4 @@
   (:import-from :clevr-grammar :*CLEVR*)
   (:import-from :clevr-dialog-grammar :*clevr-dialog*)
   (:import-from :clevr-evaluation :preprocess-sentence))
+  (:import-from :clevr-grammar :*CLEVR*))

@@ -152,7 +152,7 @@
 (defun program-tree->image (program-tree &key path (format "pdf") (open t))
   "Create an image from the program tree"
   (let ((out-path (or (and path (pathnamep path))
-                      (monitors::make-file-name-with-time
+                      (make-file-name-with-time
                        (babel-pathname :directory '(".tmp") :name "" :type format)))))
     (s-dot->image (make-s-dot program-tree
                               :key (lambda (node)
@@ -190,7 +190,7 @@
 (defun program-tree->json-file (program-tree &key path)
   "Create a json file from the program tree"
   (let ((out-path (or (and path (pathnamep path) (string= (pathname-type path) "json"))
-                      (monitors::make-file-name-with-time
+                      (make-file-name-with-time
                        (babel-pathname :directory '(".tmp") :name "" :type "json"))))
         (node-count 0)
         (num-nodes (length (nodes program-tree))))

@@ -91,6 +91,6 @@
                   (get-configuration cxn-inventory :seq2seq-model-formulation)))
          (number-cutoff (get-configuration cxn-inventory :seq2seq-number-cutoff))
          (probability-cutoff (get-configuration cxn-inventory :seq2seq-probability-cutoff))
-         (distribution (seq2seq-next-cxn utterance/meaning (applied-constructions node) model endpoint
+         (distribution (seq2seq-next-cxn utterance/meaning (reverse (applied-constructions node)) model endpoint
                                          :number-cutoff number-cutoff :probability-cutoff probability-cutoff)))
     distribution))

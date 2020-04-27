@@ -31,6 +31,7 @@
    (:file "event-dispatcher")
    (:file "ssh-scp")
    (:file "streams")
+   (:file "make-file-name-with")
    (:module tests
     :depends-on ("lists-and-sets" "configuration" "tree" "relation")
     :components 
