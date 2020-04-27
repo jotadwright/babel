@@ -11,6 +11,7 @@
                :cl-json
                :snooze
                :clevr-grammar
+               :clevr-dialog-grammar
                :clevr-evaluation
                :corpus-processing)
   :serial t
