@@ -64,6 +64,7 @@
     ;; change the status accordingly
     (cond
      (solutions
+      (setf (next-handler node) nil)
       (push 'solution (statuses node))
       (notify chunk-composer-node-changed-status node))
      ((find-data node 'bad-evaluation-results)

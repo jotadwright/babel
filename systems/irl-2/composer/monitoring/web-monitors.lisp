@@ -93,6 +93,12 @@
   (add-element '((h2) "Result"))
   (add-element
    (make-html-for-composition-process composer))
+  (add-element '((h3) "Composer queue:"))
+  (add-element
+   (html-hide-rest-of-long-list
+    (queue composer) 3
+    #'(lambda (n)
+        (make-html n :draw-as-tree nil))))
   (if solutions
     (progn
       (add-element `((h3) ,(format nil "Found ~a solutions:"

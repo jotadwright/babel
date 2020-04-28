@@ -450,6 +450,19 @@ div.ccn-dead-node { padding-left:2px;
 |#
 
 ;; #########################################################
+;; chunk-evaluation-result - make-html
+;; ---------------------------------------------------------
+
+(defmethod make-html ((result chunk-evaluation-result)
+                      &key (expand-initially nil)
+                      (expand/collapse-all-id (make-id 'cer)))
+  nil)
+
+(defun composer-solutions->html (solutions)
+  (loop for chunk-evaluation-result in solutions
+        do (add-element (make-html chunk-evaluation-result))))
+
+;; #########################################################
 ;; chunk-composer-node - make-html
 ;; ---------------------------------------------------------
 
@@ -471,6 +484,8 @@ div.ccn div.ccn-title  {
   white-space:nowrap; background-color:#562; }
 div.ccn div.ccn-title > a {color:#fff;}
 div.ccn div.ccn-title > span {color:#fff;}
+div.ccn-float { display:inline-block;margin-right:10px;
+                margin-top:-6px;margin-bottom:8px; }
 table.ccn {
   border-collapse:collapse; }
 table.ccn td.ccn-type { font-style:italic;padding:0px;padding-left:4px;}
@@ -538,7 +553,7 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
        ;; chunk evaluation results
        ((tr :style ,(format nil "border-bottom:1px solid ~a" node-color))
         ((td :class "ccn-details") "chunk evaluation results")
-        ((td :class "ccn-details") "TO DO"))))))
+        ((td :class "ccn-details") ""))))))
 
 (defun collapsed-hidden-composition-subtree-html (element-id)
   `((div :class "ccn-hidden-subtree")
@@ -558,47 +573,54 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 
 
 (defmethod make-html ((node chunk-composer-node)
-                      &key solutions (expand-initially nil)
+                      &key solutions (draw-as-tree t)
+                      (expand-initially nil)
                       (expand/collapse-all-id (make-id 'ccn)))
   (let* ((element-id (make-id 'ccn))
          (node-color
           (or (when (eq (id (chunk node)) 'initial) "#444")
               (assqv (first (statuses node)) *chunk-composer-node-status-colors*)
-              (error "no status color defined for status ~a" (first (statuses node))))))
-    (draw-node-with-children
-     `((div :class "ccn")
-       ,(make-expandable/collapsable-element
-         element-id (make-id)
-         ;; collapsed element
-         (collapsed-ccn-html node element-id node-color)
-         ;; expanded element
-         (expanded-ccn-html node element-id node-color
-                            :expand/collapse-all-id expand/collapse-all-id)))
-     (let ((subtree-id (make-id 'subtree))
-           nodes-to-show nodes-to-hide)
-       (if solutions
-         (loop for child in (children node)
-               if (on-path-to-solution-p child solutions)
-               do (push child nodes-to-show)
-               else do (push child nodes-to-hide))
-         (setf nodes-to-show (children node)))
-       (shuffle (append
-        (loop for child in nodes-to-show
-              collect (make-html child :solutions solutions
-                                 :expand-initially expand-initially
-                                 :expand/collapse-all-id expand/collapse-all-id))
-        (if nodes-to-hide
-          (list 
-           (make-expandable/collapsable-element
-            subtree-id expand/collapse-all-id
-            ;; collapsed element
-            (collapsed-hidden-composition-subtree-html subtree-id)
-            ;; expanded element
-            (expanded-hidden-composition-subtree-html nodes-to-hide subtree-id
-                                          :expand/collapse-all-id expand/collapse-all-id)
-            :expand-initially expand-initially))
-          nil))))
-     :color "#aaa")))
+              (error "no status color defined for status ~a" (first (statuses node)))))
+         (node-div
+          `((div :class "ccn")
+            ,(make-expandable/collapsable-element
+              element-id (make-id)
+              ;; collapsed element
+              (collapsed-ccn-html node element-id node-color)
+              ;; expanded element
+              (expanded-ccn-html node element-id node-color
+                                 :expand/collapse-all-id expand/collapse-all-id)))))
+    (if draw-as-tree
+      (draw-node-with-children
+       node-div
+       (let ((subtree-id (make-id 'subtree))
+             nodes-to-show nodes-to-hide)
+         (if solutions
+           (loop for child in (children node)
+                 if (on-path-to-solution-p child solutions)
+                 do (push child nodes-to-show)
+                 else do (push child nodes-to-hide))
+           (setf nodes-to-show (children node)))
+         (shuffle (append
+                   (loop for child in nodes-to-show
+                         collect (make-html child :solutions solutions
+                                            :expand-initially expand-initially
+                                            :expand/collapse-all-id expand/collapse-all-id))
+                   (if nodes-to-hide
+                     (list 
+                      (make-expandable/collapsable-element
+                       subtree-id expand/collapse-all-id
+                       ;; collapsed element
+                       (collapsed-hidden-composition-subtree-html subtree-id)
+                       ;; expanded element
+                       (expanded-hidden-composition-subtree-html nodes-to-hide subtree-id
+                                                                 :expand/collapse-all-id expand/collapse-all-id)
+                       :expand-initially expand-initially))
+                     nil))))
+       :color "#aaa")
+      `((div :class "ccn-float")
+        ,node-div))))
+        
 
 
 ;; #########################################################
