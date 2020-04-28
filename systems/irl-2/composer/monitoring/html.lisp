@@ -457,11 +457,10 @@ div.ccn-dead-node { padding-left:2px;
   '((initial . "#444")
     (duplicate . "#520")
     (solution . "#050")
-    (all-bad-evaluation-results . "#822")
+    (bad-evaluation-results . "#822")
     (no-evaluation-results . "#337")
     (expanded . "#480")
-    ; something for max depth reached?
-    ))
+    (max-depth-reached . "#888")))
 
 (define-css 'ccn "
 div.ccn { display:inline-block;margin-right:0px;margin-top:10px;
@@ -485,22 +484,77 @@ table.ccn td.ccn-details div.ccn-detail:first-child { border-top:none; }
 div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 ")
 
+(defun ccn->title-text (node)
+  (if (and (eq (first (statuses node)) 'initial)
+              (= (node-number node) 0))
+    "initial"
+    (format nil "~a (~a, ~a)"
+            (downcase
+             (mkstr
+              (id (chunk node))))
+            (node-number node)
+            (node-rating node))))
+
+(defun ccn-title-html (node element-id node-color &key expand)
+  `((div :class "ccn-title"
+         :style ,(mkstr "background-color:" node-color ";"
+                        (if (eq (first (statuses node)) 'solution)
+                          "font-weight:bold" "")))
+    ((a ,@(make-expand/collapse-link-parameters element-id expand))
+     ((span) ,(ccn->title-text node)))))
+
 (defmethod collapsed-ccn-html ((node chunk-composer-node)
                                element-id node-color)
-  nil)
+  `((div :class "ccn-box")
+    ,(ccn-title-html node element-id node-color :expand t)))
 
 (defmethod expanded-ccn-html ((node chunk-composer-node)
                               element-id node-color
                               &key (expand-initially nil)
                               (expand/collapse-all-id (make-id 'ccn)))
-  nil)
+  (lambda ()
+    `((div :class "ccn-box")
+      ,(ccn-title-html node element-id node-color :expand nil)
+      ((table :class "ccn")
+       ;; status
+       ((tr :style ,(format nil "border-bottom:1px solid ~a" node-color))
+        ((td :class "ccn-details") "status")
+        ((td :class "ccn-details")
+         ((span :style ,(mkstr "color:" node-color ";"))
+          ,(downcase (mkstr (first (statuses node)))))))
+       ;; next handler
+       ((tr :style ,(format nil "border-bottom:1px solid ~a" node-color))
+        ((td :class "ccn-details") "next handler")
+        ((td :class "ccn-details")
+         ((span)
+          ,(if (next-handler node)
+             (downcase (mkstr (next-handler node)))
+             "none"))))
+       ;; chunk
+       ((tr :style ,(format nil "border-bottom:1px solid ~a" node-color))
+        ((td :class "ccn-details") "chunk")
+        ((td :class "ccn-details")
+         ,(make-html (chunk node))))
+       ;; chunk evaluation results
+       ((tr :style ,(format nil "border-bottom:1px solid ~a" node-color))
+        ((td :class "ccn-details") "chunk evaluation results")
+        ((td :class "ccn-details") "TO DO"))))))
 
 (defun collapsed-hidden-composition-subtree-html (element-id)
-  nil)
+  `((div :class "ccn-hidden-subtree")
+    ((a ,@(make-expand/collapse-link-parameters
+           element-id t "expand subtree"))
+     "+")))
 
 (defun expanded-hidden-composition-subtree-html (hidden-children element-id
                                                  &key (expand/collapse-all-id (make-id 'subtree)))
-  nil)
+  (draw-node-with-children
+   `((div :class "ccn-hidden-subtree")
+     ((a ,@(make-expand/collapse-link-parameters
+            element-id nil "collapse subtree"))
+      "-"))
+   (loop for child in hidden-children
+         collect (make-html child :expand/collapse-all-id expand/collapse-all-id))))
 
 
 (defmethod make-html ((node chunk-composer-node)
@@ -508,7 +562,8 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
                       (expand/collapse-all-id (make-id 'ccn)))
   (let* ((element-id (make-id 'ccn))
          (node-color
-          (or (assqv (first (statuses node)) *chunk-composer-node-status-colors*)
+          (or (when (eq (id (chunk node)) 'initial) "#444")
+              (assqv (first (statuses node)) *chunk-composer-node-status-colors*)
               (error "no status color defined for status ~a" (first (statuses node))))))
     (draw-node-with-children
      `((div :class "ccn")

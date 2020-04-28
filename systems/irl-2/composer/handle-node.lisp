@@ -67,7 +67,7 @@
       (push 'solution (statuses node))
       (notify chunk-composer-node-changed-status node))
      ((find-data node 'bad-evaluation-results)
-      (push 'all-bad-evaluation-results (statuses node))
+      (push 'bad-evaluation-results (statuses node))
       (notify chunk-composer-node-changed-status node))
      (t (push 'no-evaluation-results (statuses node))
         (notify chunk-composer-node-changed-status node)))
@@ -92,7 +92,12 @@
                                         :chunk new-chunk
                                         :node-number (incf (node-counter composer))
                                         :node-depth (1+ (node-depth node)))))))
-    (push 'expanded (statuses node))
+    (when children
+      (push 'expanded (statuses node)))
+    (when (and (null children)
+               (<= (get-configuration composer :max-search-depth)
+                   (node-depth node)))
+      (push 'max-depth-reached (statuses node)))
     (notify chunk-composer-node-changed-status node)
     (loop for child in children
           ;; run the check node functions
