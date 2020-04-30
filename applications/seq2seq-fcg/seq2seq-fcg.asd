@@ -8,16 +8,8 @@
   :depends-on (:utils
                :monitors
                :fcg
-<<<<<<< HEAD
-               :cl-json
-               :snooze
                :clevr-grammar
-               :clevr-dialog-grammar
-               :clevr-evaluation
-               :corpus-processing)
-=======
-               :clevr-grammar)
->>>>>>> origin/master
+               :clevr-dialog-grammar)
   :serial t
   :components ((:file "package")
                (:file "apply-predictions")))
