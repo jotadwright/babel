@@ -8,6 +8,9 @@
                                           (:priority-mode . :seq2seq-heuristic-additive)))
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+(comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
+(comprehend "How many blue metal things are left of the green ball and behind the red thing?")
+(comprehend "Do the large metal cube left of the red thing and the small cylinder have the same color?")
 
 ;; depth-first example:
 
@@ -15,6 +18,9 @@
                                           (:priority-mode . :nr-of-applied-cxns)))
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+(comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
+(comprehend "How many blue metal things are left of the green ball and behind the red thing?")
+(comprehend "Do the large metal cube left of the red thing and the small cylinder have the same color?")
 
 
 ;; ------------------------ ;;
