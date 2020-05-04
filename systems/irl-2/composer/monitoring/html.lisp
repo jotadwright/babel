@@ -1,75 +1,110 @@
 
 (in-package :irl-2)
 
-(defgeneric content->html-table-rows (node &key))
 
-#|
 ;; #########################################################
 ;; chunk-evaluation-result - make-html
 ;; ---------------------------------------------------------
 
 (define-css 'cer "
-div.cer { border:1px solid #465; display:inline-block; margin-right:7px; margin-bottom:7px;}
-div.cer .cer-title { background-color:#465;padding:1px;
-                     padding-left:3px;padding-right:3px; }
-div.cer .cer-title > a { color:white; }
-div.cer table.cer-details  { margin:3px;margin-bottom:-5px;}
-div.cer table.cer-details img { margin:-15px;margin-top:0px;margin-right:0px; }
+div.cer { display:inline-block;margin-right:0px;margin-top:10px;
+           margin-bottom:10px;padding:0px; }
+div.cer-box { border:1px solid #562; display:inline-block;}
+div.cer div.cer-title  { 
+  padding:0px;padding-left:3px;padding-right:3px;
+  white-space:nowrap; background-color:#562; }
+div.cer div.cer-title > a {color:#fff;}
+div.cer div.cer-title > span {color:#fff;}
+div.cer-float { display:inline-block;margin-right:10px;
+                margin-top:-6px;margin-bottom:8px; }
+table.cer {
+  border-collapse:collapse; }
+table.cer td.cer-type { font-style:italic;padding:0px;padding-left:4px;}
+table.cer td.cer-details { vertical-align:top;padding-top:3px;padding-bottom:3px;
+  padding-left:5px;padding-right:5px; }
+table.cer td.cer-details div.cer-detail { 
+  padding-left:4px; padding-right:4px;padding-bottom:1px;padding-top:1px;
+  border-top:1px dashed #563;text-align:left; }
+table.cer td.cer-details > div { overflow:hidden; }
+table.cer td.cer-details div.cer-detail:first-child { border-top:none; }
+div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 ")
 
+(defmethod collapsed-cer-html ((result chunk-evaluation-result) element-id)
+  (let ((title 
+         (append 
+          (loop for value in (mapcar #'fourth (bind-statements result))
+                for i from 1
+                collect (format nil "~(~a~)~:[~;,&#160;~]" value
+                                (< i (length (bind-statements result)))))
+          (list (format nil " (~,2f)" (score result))))))
+    `((div :class "cer-box")
+      ((div :class "cer-title")
+       ((a ,@(make-expand/collapse-link-parameters element-id t))
+        ,@title)))))
+
+(defmethod expanded-cer-html ((result chunk-evaluation-result)
+                              element-id
+                              &key expand/collapse-all-id
+                              (expand-initially nil))
+  (let ((title
+         (append 
+          (loop for value in (mapcar #'fourth (bind-statements result))
+                for i from 1
+                collect (format nil "~(~a~)~:[~;,&#160;~]" value
+                                (< i (length (bind-statements result)))))
+          (list (format nil " (~,2f)" (score result)))))
+        (bindings-id (make-id 'bindings)))
+    (lambda ()
+      `((div :class "cer-box")
+        ((div :class "cer-title")
+         ((a ,@(make-expand/collapse-link-parameters element-id nil))
+          ,@title))
+        ((table :class "cer")
+         ((tbody)
+          ;; chunk
+          ((tr)
+           ((td :class "cer-details") "chunk")
+           ((td :class "cer-details")
+            ,(make-html (chunk result) :expand-initially t)))
+          ;; evaluation tree
+          ((tr)
+           ((td :class "cer-details") "evaluation process")
+           ((td :class "cer-details")
+            ,(make-html (processor (evaluation-node result)))))
+          ;; target entity
+          ((tr)
+           ((td :class "cer-details") "target entity")
+           ((td :class "cer-details")
+            ,(make-html (target-entity result))))
+          ;; bindings
+          ((tr)
+           ((td :class "cer-details")
+            ,(make-expand/collapse-all-link bindings-id "bindings"))
+           ((td :class "cer-details") 
+            ,@(loop for b in (bindings result)
+                    collect (make-html b :expand/collapse-all-id bindings-id))))
+          ;; bind statements
+          ((tr)
+           ((td :class "cer-details") "bind statements")
+           ((td :class "cer-details")
+            ,(html-pprint (bind-statements result)
+                          :max-width 100)))))))))
+
+  
 (defmethod make-html ((result chunk-evaluation-result)
                       &key (expand/collapse-all-id (make-id 'cer))
                       (expand-initially nil))
-  (let ((cer-div-id (make-id 'cer))
-        (bindings-id (make-id 'bindings))
-        (title 
-         (append 
-          (loop for value in (mapcar #'fourth (bind-statements result))
-             for i from 1
-             collect (format nil "~(~a~)~:[~;,&#160;~]" value
-                             (< i (length (bind-statements result)))))
-          (list (format nil " (~,2f)" (score result))))))
-    (make-expandable/collapsable-element 
-     cer-div-id expand/collapse-all-id
-     `((div :class "cer")
-       ((div :class "cer-title")
-        ((a ,@(make-expand/collapse-link-parameters cer-div-id t)) ,@title)))
-     (lambda ()
-       `((div :class "cer")
-         ((div :class "cer-title")
-          ((a ,@(make-expand/collapse-link-parameters cer-div-id nil)) ,@title))
-         ((table :class "cer-details two-col")
-          ((tbody)
-           ((tr)
-            ((td) "chunk")
-            ((td) ,(make-html (chunk result)
-                              :expand-initially t)))
-           ,@(when (evaluation-tree result)
-                   `(,(make-tr-for-irl-evaluation-search-process 
-                       "evaluation process"
-                       (evaluation-tree result))))
-           ((tr)
-            ((td) "target entity")
-            ((td) ,(make-html (target-entity result))))
-           ((tr)
-            ((td) ,(make-expand/collapse-all-link bindings-id "bindings"))
-            ((td) 
-             ,@(loop for b in (bindings result)
-                  collect (make-html b :expand/collapse-all-id bindings-id))))
-           ((tr)
-            ((td) "bind statements")
-            ((td) ,(html-pprint (bind-statements result) :max-width 100)))))))
-     :expand-initially expand-initially)))
-|#
+  (let ((cer-div-id (make-id 'cer)))
+    `((div :class "cer")
+      ,(make-expandable/collapsable-element 
+        cer-div-id expand/collapse-all-id
+        (collapsed-cer-html result cer-div-id)
+        (expanded-cer-html result cer-div-id
+                           :expand/collapse-all-id expand/collapse-all-id
+                           :expand-initially expand-initially)
+        :expand-initially expand-initially))))
 
-;; #########################################################
-;; chunk-evaluation-result - make-html
-;; ---------------------------------------------------------
-
-(defmethod make-html ((result chunk-evaluation-result)
-                      &key (expand-initially nil)
-                      (expand/collapse-all-id (make-id 'cer)))
-  nil)
 
 (defun composer-solutions->html (solutions)
   (loop for chunk-evaluation-result in solutions
@@ -179,8 +214,8 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
            `(((tr :style "border-bottom:1px solid")
               ((td :class "ccn-details") "chunk evaluation results")
               ((td :class "ccn-details")
-               ,(format nil "~a chunk evaluation results"
-                        (length (cers node)))))))
+               ,@(loop for cer in (chunk-evaluation-results node)
+                       collect (make-html cer))))))
        ))))
 
 (defun collapsed-hidden-composition-subtree-html (element-id)
