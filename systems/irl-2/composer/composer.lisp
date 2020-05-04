@@ -52,6 +52,9 @@
                   :documentation "The source chunks of the node")
    (chunk :type chunk :initarg :chunk :accessor chunk
           :documentation "The current chunk of the node")
+   (chunk-evaluation-results :type list :accessor cers :initform nil
+                             :accessor chunk-evaluation-results
+                             :documentation "The evaluation results of this node")
    (node-number :documentation "The number of the node"
                 :accessor node-number :initarg :node-number
                 :type number :initform 0)

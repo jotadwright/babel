@@ -25,10 +25,10 @@
   (:documentation "A chunk is an irl program with an explicit target
                    and open variables"))
 
-(defmethod initialize-instance :around ((chunk chunk) &rest initargs &key id irl-program)
-  "when :id was not passed, make a new one based on the irl program of the chunk"
-  (apply #'call-next-method chunk :id (or id (irl-program->id irl-program))
-         :irl-program irl-program initargs))
+;(defmethod initialize-instance :around ((chunk chunk) &rest initargs &key id irl-program)
+;  "when :id was not passed, make a new one based on the irl program of the chunk"
+;  (apply #'call-next-method chunk :id (or id (irl-program->id irl-program))
+;         :irl-program irl-program initargs))
 
 (defun create-chunks-from-primitives (things &key (score 0.5) (primitive-inventory *irl-primitives*))
   "Creates chunks from things. This can be a list of primitives or a list

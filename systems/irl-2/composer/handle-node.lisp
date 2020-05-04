@@ -61,6 +61,9 @@
                                           (target-entity result))))
                 collect result
                 else do (push-data node 'bad-evaluation-results result))))
+    ;; add the good results to the node
+    (loop for cer in solutions
+          do (push cer (cers node)))
     ;; change the status accordingly
     (cond
      (solutions
