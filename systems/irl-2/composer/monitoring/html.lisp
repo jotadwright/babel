@@ -108,7 +108,9 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 
 (defun composer-solutions->html (solutions)
   (loop for chunk-evaluation-result in solutions
-        do (add-element (make-html chunk-evaluation-result))))
+        do (add-element
+            `((div :class "cer-float")
+              ,(make-html chunk-evaluation-result)))))
 
 ;; #########################################################
 ;; chunk-composer-node - make-html
@@ -307,7 +309,20 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
                       :solutions solution-nodes))))))))
 
 (defun make-expanded-html-for-composition-process (composer element-id)
-  nil)
+  (let ((solution-nodes
+         (find-all 'solution (nodes composer)
+                   :key #'statuses :test #'member)))
+    `((table :class "two-col")
+      ((tbody)
+       ((tr)
+        ((td)
+         ((a ,@(make-expand/collapse-link-parameters
+                element-id nil "composition process"))
+          "composition process"))
+        ((td)
+         ((div :style "margin-top:-7px")
+          ,(make-html (top composer) :expand-initially t
+                      :solutions solution-nodes))))))))
   
 (defmethod make-html-for-composition-process ((composer chunk-composer))
   (let ((element-id (make-id 'composition-process)))

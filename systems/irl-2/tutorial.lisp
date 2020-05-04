@@ -640,7 +640,7 @@
 ;;   The default composer assumes there is a single topic
 ;;   to discriminate. This is passed through :topic.
 
-(defparameter *my-composer*
+(setf *my-composer*
   (make-chunk-composer
    :topic (first (objects (get-data *ontology* 'context)))
    :initial-chunk (make-instance 'chunk :id 'initial

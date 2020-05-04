@@ -74,7 +74,7 @@
                    :open-vars (if target-var-is-open-var vars (cdr vars)))))
 
 (defun create-chunk-from-irl-program (irl-program
-                                      &key (id (irl-program->id irl-program))
+                                      &key (id (make-id 'chunk)) ;(irl-program->id irl-program))
                                       (score 0.5) target-var
                                       (primitive-inventory *irl-primitives*))
   (let* ((found-target-var (get-target-var irl-program))
