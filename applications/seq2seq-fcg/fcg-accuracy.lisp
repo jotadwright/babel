@@ -13,10 +13,11 @@
    and add a line to the output file containing the
    ID and the accuracy"
   (let ((arg-plist (args->plist args)))
-    (loop for indicator in '(inputfile outputfile)
+    (loop for indicator in '(inputfile outputfile grammar)
           unless (getf arg-plist indicator)
           do (error "Missing command line argument: ~a" indicator))
     (prediction-accuracy (parse-namestring (getf arg-plist 'inputfile))
-                         (parse-namestring (getf arg-plist 'outputfile)))))
+                         (parse-namestring (getf arg-plist 'outputfile))
+                         (eval (internal-symb (upcase (getf arg-plist 'grammar)))))))
 
-(main ccl:*unprocessed-command-line-argument*)
+(main ccl:*unprocessed-command-line-arguments*)

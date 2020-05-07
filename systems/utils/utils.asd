@@ -32,6 +32,7 @@
    (:file "ssh-scp")
    (:file "streams")
    (:file "make-file-name-with")
+   (:file "progress-bar")
    (:module tests
     :depends-on ("lists-and-sets" "configuration" "tree" "relation")
     :components 

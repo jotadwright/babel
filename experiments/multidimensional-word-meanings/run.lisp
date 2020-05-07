@@ -58,7 +58,7 @@
               (:data-type . :simulated)
               (:category-representation . :prototype)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,1000)
+              (:switch-conditions-after-n-interactions . ,500)
               (:data-sets . ,*cogent-simulated-data-sets*))))
 
 (defparameter *cogent-extracted-configuration*
@@ -93,7 +93,7 @@
 
 (defparameter *experiment*
   (make-instance 'mwm-experiment
-                 :configuration *baseline-simulated-configuration*))
+                 :configuration *cogent-simulated-configuration*))
 
 (run-interaction *experiment*)
 
@@ -105,18 +105,27 @@
 ;; + Running series of experiments +
 ;; ---------------------------------
 
+(make-configuration
+   :entries `((:experiment-type . :cogent)
+              (:data-type . :simulated)
+              (:category-representation . :prototype)
+              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:switch-conditions-after-n-interactions . ,500)
+              (:data-sets . ,*cogent-simulated-data-sets*)))
+
 (run-experiments `(
                    (test
-                    ((:experiment-type . :baseline)
+                    ((:experiment-type . :cogent)
                      (:data-type . :simulated)
                      (:category-representation . :prototype)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:data-sets . ,*baseline-simulated-data-sets*)
-                     (:data-path . ,*baseline-extracted-data-path*)
+                     (:data-sets . ,*cogent-simulated-data-sets*)
+                     (:data-path . ,*cogent-extracted-data-path*)
+                     (:switch-conditions-after-n-interactions . ,500)
                      (:extracted-colour-space . :hsv)))
                    )
                  :number-of-interactions 2500
-                 :number-of-series 1
+                 :number-of-series 5
                  :monitors (list "export-communicative-success"
                                  ;"export-lexicon-size"
                                  ;"export-features-per-form"
@@ -135,11 +144,12 @@
 
 (create-graph-for-single-strategy
  :experiment-name "test"
- :measure-names '("communicative-success")
+ :measure-names '("com-success")
  :y-axis '(1)
  :y1-max 1
  :xlabel "Number of games"
- :y1-label "Success")
+ :y1-label "Success"
+ :start 0)
 
 (create-graph-for-single-strategy
  :experiment-name "test-extracted-filter-one"
@@ -149,30 +159,24 @@
  :xlabel "Number of games"
  :y1-label "Success")
 
-
 (create-graph-comparing-strategies
- :experiment-names '("bidirectional-learner-extracted-1"
-                     "bidirectional-learner-extracted-2"
-                     "bidirectional-learner-extracted-3"
-                     "bidirectional-learner-extracted-4")
+ :experiment-names '("final/experiment-type-baseline-data-type-extracted"
+                     "final/max-tutor-utterance-length-4-experiment-type-baseline-data-type-extracted")
  :measure-name "communicative-success"
  :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :title nil :end nil)
+ :title nil :captions '("1 word" "up to 4 words")
+ :start 0 :end 2500 :window 250)
 
-(create-stacked-bars-comparing-strategies
- :experiment-names '("max-tutor-utterance-length-4-experiment-type-baseline-data-type-simulated"
-                     "max-tutor-utterance-length-4-experiment-type-baseline-data-type-extracted")
+
+(create-grouped-bars-comparing-strategies
+ :experiment-names '("final/max-tutor-utterance-length-4-experiment-type-baseline-data-type-simulated")
  :measure-names '("tutor-utterance-length-1"
                   "tutor-utterance-length-2"
                   "tutor-utterance-length-3"
                   "tutor-utterance-length-4")
  :cluster-labels '("tutor word use")
  :bar-labels '("1 word" "2 words" "3 words" "4 words")
- :y-max 1)
-
-(with-open-file (stream "/Users/jensnevens/Projects/Babel3/experiments/multidimensional-word-meanings/raw-data/test/communicative-success.lisp")
-  (let ((data (car (read stream))))
-    (average (mapcar #'average (mapcar #'(lambda (d) (subseq d 2000)) data)))))
+ )
 
 ;; ------------------------------------------
 ;; + Running experiments for alist monitors +
