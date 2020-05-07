@@ -221,6 +221,26 @@ of strings, each list corresponding to a named entity."
 ;;(get-penelope-dependency-analysis "April is the fourth month of the year")
 
 
+;; Constituency and Dependency parsing ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun run-penelope-syntactic-parser (sentence &key (model "en"))
+  "Call the penelope server to get the dependency and constituency structure of a sentence."
+  (unless (stringp sentence)
+    (error "The function <run-penelope-dependency-parser> expects a string as input"))
+  (send-request "/syntactic-parser"
+             (encode-json-to-string `((:sentence . ,(remove-multiple-spaces sentence))
+                                      (:model . ,model)))))
+
+;; (run-penelope-syntactic-parser "April is the fourth month of the year")
+
+(defun get-penelope-syntactic-analysis (utterance &key (model "en"))
+  "Returns a syntacic tree analysis in the form of constituents and dependents."
+   (run-penelope-syntactic-parser utterance :model model))
+
+;;(get-penelope-syntactic-analysis "April is the fourth month of the year")
+
+
 ;; Word embeddings ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
