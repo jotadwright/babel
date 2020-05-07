@@ -82,9 +82,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 
 (defun seq2seq-distribution-for-node (node)
-  "For a given node, computes a distribution over all constructions for heuristically expanding it."
+  "For a given node, computes a distribution over all constructions for heuristically expanding it.
+   When in formulation, need to transform the input (irl-network) to RPN notation.
+   For the moment, this is a configuration. A general IRL->RPN package could be made."
   (let* ((cxn-inventory (construction-inventory node))
-         (utterance/meaning (get-data (blackboard cxn-inventory) :input))
+         (utterance/meaning (if (eq (direction (cip node)) '<-)
+                              (get-data (blackboard cxn-inventory) :input)
+                              (funcall (get-configuration cxn-inventory :seq2seq-rpn-fn)
+                                       (get-data (blackboard cxn-inventory) :input))))
          (endpoint (get-configuration cxn-inventory :seq2seq-endpoint))
          (model (if (eq (direction (cip node)) '<-)
                   (get-configuration cxn-inventory :seq2seq-model-comprehension)
