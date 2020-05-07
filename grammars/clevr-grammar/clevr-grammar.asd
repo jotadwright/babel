@@ -12,12 +12,14 @@
                :irl
                :fcg
                :clevr-world
+               :clevr-primitives
                :cl-json
                :seq2seq-heuristics)
   :serial t
   :components ((:file "package")
                (:file "fcg-utils")
                (:file "lex-and-morph")
+               (:file "rpn-meaning")
                (:file "grammar")
                (:file "nominal")
                (:file "query")
