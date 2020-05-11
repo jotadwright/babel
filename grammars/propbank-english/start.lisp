@@ -5,7 +5,7 @@
 
 (activate-monitor trace-fcg)
 
-(comprehend "Paul drives the bus home?")
+(comprehend "The beer John gave to Mary tasted delicious.")
 
 
 

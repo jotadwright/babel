@@ -31,9 +31,7 @@
                                 (parent ,(cdr (assoc parent-id unit-name-ids)))
                                 (constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
                                 (phrase-type ,(node-phrase-types node))
-                                ;(word-order ,(loop for constituent in (find-constituents node-id spacy-benepar-analysis unit-name-ids)))
-
-                                )
+                                (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids)))
                       
                       ;; for leaf nodes
                       else
@@ -55,6 +53,26 @@
                                              :right-pole '((root)))))
     transient-structure))
 
+
+(defun find-adjacency-constraints (node-id spacy-benepar-analysis unit-name-ids)
+  "Returns a set of adjacency constraints for a given node id."
+  (let* ((constituent-nodes (find-all-if #'(lambda (node) (equal node-id (node-parent node))) spacy-benepar-analysis))
+         (ordered-constituent-nodes (sort constituent-nodes #'< :key #'node-start)))
+    (loop with previous-unit-names = nil
+          for node in ordered-constituent-nodes
+          for unit-name = (cdr (assoc (node-id node) unit-name-ids))
+          ;; collect adjacency constraints
+          if previous-unit-names
+          collect `(adjacent ,(first previous-unit-names) ,unit-name)
+          into adjacency-constraints
+          ;; set the previous-word-id
+          if previous-unit-names
+          append (loop for p-un in (reverse previous-unit-names)
+                       collect `(precedes ,p-un ,unit-name))
+          into precedes-constraints
+          do (push unit-name previous-unit-names)
+          finally return
+          (append adjacency-constraints precedes-constraints))))
 
 (defun find-constituents (node-id spacy-benepar-analysis unit-name-ids)
   "Returns unit names of constituents."
