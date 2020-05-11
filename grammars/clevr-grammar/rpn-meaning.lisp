@@ -134,21 +134,38 @@
 (defun rpn->str (program)
   (loop for elem in program
         collect
-        (remove-if #'(lambda (char)
-                       (or (eql char #\!)
-                           (eql char #\?)))
-                   (downcase
-                    (cond ((= (length elem) 1)
-                           (mkstr (first elem)))
-                          ((= (length elem) 2)
-                           (format nil "~a_~a"
-                                   (first elem)
-                                   (second elem)))
-                          ((= (length elem) 3)
-                           (format nil "~a_~a[~a]"
-                                   (first elem)
-                                   (second elem)
-                                   (third elem))))))))
+        (remove-if
+         #'(lambda (char)
+             (or (eql char #\!)
+                 (eql char #\?)))
+         (downcase
+          (cond ((= (length elem) 1)
+                 (mkstr (first elem)))
+                ((= (length elem) 2)
+                 (format nil "~a_~a"
+                         (first elem)
+                         (second elem)))
+                ((= (length elem) 3)
+                 (format nil "~a_~a[~a]"
+                         (first elem)
+                         (second elem)
+                         (third elem))))))))
 
 (defun clevr-meaning->rpn (irl-program)
-  (rpn->str (program->rpn (preprocess-program (variablify-program irl-program)))))
+  "This function takes care of all the steps to transform
+   an IRL program to RPN notation for the seq2seq heuristics:
+   - variablify the network; all symbols except the predicate names
+     are turned to variables. For bind statements, only the third
+     element become variables.
+   - preprocess the network; e.g. duplicate the get-context if needed
+     and remove filter(thing) operations
+   - transform to RPN notation; each operation is a list of symbols,
+     e.g. ((get-context) (filter color red))
+   - RPN to list of string; using the facebook notation,
+     e.g. get-context filter_color[red]
+   - list of string to single string"
+  (list-of-strings->string 
+   (rpn->str
+    (program->rpn
+     (preprocess-program
+      (variablify-program irl-program))))))
