@@ -31,6 +31,7 @@
           get-penelope-text-tokens
           get-word-similarity
           get-penelope-word-embeddings
+          get-penelope-syntactic-analysis
           curl-json
           guardian-data
           glove))
@@ -236,7 +237,7 @@ of strings, each list corresponding to a named entity."
 
 (defun get-penelope-syntactic-analysis (utterance &key (model "en"))
   "Returns a syntacic tree analysis in the form of constituents and dependents."
-   (run-penelope-syntactic-parser utterance :model model))
+   (rest (assoc :tree (first (rest (assoc :trees (run-penelope-syntactic-parser utterance :model model)))))))
 
 ;;(get-penelope-syntactic-analysis "April is the fourth month of the year")
 

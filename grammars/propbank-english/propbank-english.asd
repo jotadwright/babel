@@ -8,7 +8,11 @@
   :depends-on (:utils
                :monitors
                :fcg
-               :nlp-tools)
+               :nlp-tools
+               :irl
+               :web-interface)
   :serial t
   :components ((:file "package")
-               (:file "grammar")))
+               (:file "de-render")
+               (:file "grammar")
+               (:file "visualisation")))
