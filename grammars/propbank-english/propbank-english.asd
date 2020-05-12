@@ -9,7 +9,8 @@
                :monitors
                :fcg
                :nlp-tools
-               :irl)
+               :irl
+               :web-interface)
   :serial t
   :components ((:file "package")
                (:file "de-render")

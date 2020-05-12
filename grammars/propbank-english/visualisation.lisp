@@ -156,3 +156,80 @@
                                 from (first (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name)))
                                 to (- (second (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name))) 1)
                                 collect i)))))
+
+
+;;;;;;;;;;;;;;;;;;;;
+;; HTML           ;;
+;;;;;;;;;;;;;;;;;;;;
+
+(defmethod make-html-for-entity-details ((s frame-set) &key)
+  "Visualising a frame-set."
+  `(((div :class "entity-detail") 
+     ,@(loop for f in (frames s)
+             collect (make-html f :expand-initially t)))))
+
+(defmethod make-html-for-entity-details ((frame frame) &key)
+  "Visualising a frame."
+  `(((div :class "entity-detail")
+    ,(format nil "FEE: ~s" (fel-string (frame-evoking-element frame))))
+    ,@(loop for fe in (frame-elements frame)
+            collect
+            `((div :class "entity-detail") ,(format nil "~@(~a~): ~s" (fe-name fe) (fe-string fe))))))
+
+(defmethod make-html ((e frame-set)
+                      &rest parameters
+                      &key (expand/collapse-all-id (make-id 'entity))
+                      (expand-initially nil))
+  "Visualising a frame."
+  `((div :class "entity")
+    ,(let ((element-id (make-id (id e))))
+          (make-expandable/collapsable-element 
+           element-id expand/collapse-all-id
+           `((div :class "entity-box")
+             ((div :class "entity-title")
+              ((a ,@(make-expand/collapse-link-parameters 
+                     element-id t "expand entity")
+                  :name ,(mkstr (id e)))
+               ,(format nil "Frame set"))))
+           (lambda ()
+             `((div :class "entity-box")
+               ((div :class "entity-title")
+                ((a ,@(make-expand/collapse-link-parameters element-id nil 
+                                                            "collapse entity")
+                    :name ,(mkstr (id e)))
+                 ,(format nil "Frame set")))
+               ((table :class "entity" :cellpadding "0" :cellspacing "0") 
+                ((tr)
+                 ((td :class "entity-details")
+                  ,@(apply 'make-html-for-entity-details e parameters))))))
+           :expand-initially expand-initially))))
+
+
+(defmethod make-html ((e frame)
+                      &rest parameters
+                      &key (expand/collapse-all-id (make-id 'entity))
+                      (expand-initially nil))
+  "Visualising a frame set."
+  `((div :class "entity")
+    ,(let ((element-id (make-id (id e))))
+          (make-expandable/collapsable-element 
+           element-id expand/collapse-all-id
+           `((div :class "entity-box")
+             ((div :class "entity-title")
+              ((a ,@(make-expand/collapse-link-parameters 
+                     element-id t "expand entity")
+                  :name ,(mkstr (id e)))
+               ,(format nil "~(~a~)" (frame-name e)))))
+           (lambda ()
+             `((div :class "entity-box")
+               ((div :class "entity-title")
+                ((a ,@(make-expand/collapse-link-parameters element-id nil 
+                                                            "collapse entity")
+                    :name ,(mkstr (id e)))
+                 ,(format nil "~(~a~)" (frame-name e))))
+               ((table :class "entity" :cellpadding "0" :cellspacing "0") 
+                ((tr)
+                 ((td :class "entity-details")
+                  ,@(apply 'make-html-for-entity-details e parameters))))))
+           :expand-initially expand-initially))))
+

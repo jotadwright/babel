@@ -139,11 +139,4 @@
                :disable-automatic-footprints t))
 
 
-;; (comprehend-all "Katrien felt that Paul was right.")
-
-;; (comprehend "Remi expected that Katrien thinks that Paul was right.")
-
-
-;; (comprehend "Katrien thinks that Paul was right.")
-;; (comprehend "The apple was eaten by the man.")
-;; (comprehend "The man was eating an apple.")
+(make-propbank-english-cxns)
