@@ -102,7 +102,6 @@
                  --
                  (lemma expect))))
     
-  
   (def-fcg-cxn proper-noun-verb-compclause-cxn
                ((?verb-unit
                  (footprints (proper-noun-verb-compclause-cxn)))
@@ -126,7 +125,7 @@
                  (frame-evoking +)
                  (parent ?vp-unit)
                  (footprints (NOT proper-noun-verb-compclause-cxn)))
-                (?s-bar-unit
+                (?sbar-unit
                  --
                  (parent ?vp-unit)
                  (phrase-type (sbar)))
@@ -138,3 +137,4 @@
 
 
 (make-propbank-english-cxns)
+
