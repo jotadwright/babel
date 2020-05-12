@@ -23,6 +23,7 @@
   (:documentation "Class for representing a set of frames."))
 
 (defmethod print-object ((frame-set frame-set) (stream t))
+  "Printing a frame-set object."
   (format stream "<frame-set: {~{~a~^, ~}}>" (frames frame-set )))
 
 
@@ -48,6 +49,7 @@
   (:documentation "Class for representing frames."))
 
 (defmethod print-object ((frame frame) (stream t))
+  "Printing a frame object."
   (format stream "<frame: ~a>" (frame-name frame)))
 
 ;; Frame evoking element ;;
@@ -73,6 +75,7 @@
 
 
 (defmethod print-object ((frame-evoking-element frame-evoking-element) (stream t))
+  "Printing a frame-evoking-element object."
   (format stream "<frame-evoking-element: ~a>" (fel-string frame-evoking-element)))
 
 ;; Frame element ;;
@@ -101,6 +104,7 @@
   (:documentation "Class for representing frame elements."))
 
 (defmethod print-object ((frame-element frame-element) (stream t))
+  "Printing a frame-element object."
   (format stream "<frame-element: ~a>" (fe-name frame-element)))
 
 ;;;;;;;;;;;;;;;;;;;;
@@ -108,6 +112,7 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 (defun extract-frames (transient-structure)
+  "Extracting a frameset from a transient-structure."
   (loop with unit-list = (left-pole-structure transient-structure)
         for unit in unit-list
         when (find '(frame-evoking +) (unit-body unit) :test #'equalp)
@@ -120,18 +125,21 @@
         return (make-instance 'frame-set :frames frames)))
         
 (defun find-frame-name (unit)
+  "Find frame name in unit."
   (let ((meaning (find 'meaning (unit-body unit) :key #'feature-name)))
     (loop for predicate in (feature-value meaning)
           when (equalp (first predicate) 'frame)
           return (second predicate))))
 
 (defun find-frame-evoking-element (unit)
+  "Find frame evoking element in unit."
   (make-instance 'frame-evoking-element
                  :fel-string (second (find 'string (unit-body unit) :key #'feature-name))
                  :index (first (second (find 'span (unit-body unit) :key #'feature-name)))
                  :lemma (second (find 'lemma (unit-body unit) :key #'feature-name))))
 
 (defun find-frame-elements (unit unit-list)
+  "Find frame elements in transient structure."
   (let ((fe-predicates (loop for predicate in (feature-value (find 'meaning (unit-body unit) :key #'feature-name))
                              when (equalp (first predicate) 'frame-element)
                              collect predicate)))
