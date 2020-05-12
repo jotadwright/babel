@@ -15,7 +15,7 @@
 (defparameter *inferior-lisps*
   '((sbcl . ("sbcl" ("--noinform" "--disable-debugger")))
     (ccl . #+linux ("lx86cl64" ("--batch" "--quiet"))
-           #+darwin ("dx86cl64" ("--batch" "--quiet"))
+           #+darwin ("ccl" ("--batch" "--quiet"))
            #+windows ("wx86cl64" ("--batch" "--quiet")))
     (lispworks . ("lispworks" ())))
   "inferior lisps default command line options 
@@ -248,7 +248,7 @@
                         do (unless silent-processes
                              (format t "  ~a~%" c))
                         (write-string c output-stream)
-                        (princ  #\lf output-stream))
+                        (princ #\lf output-stream))
                   (force-output t)
                   (force-output output-stream)
                   (finish-output output-stream)
