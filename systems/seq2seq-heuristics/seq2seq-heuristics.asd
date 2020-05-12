@@ -5,7 +5,7 @@
   :maintainer "EHAI Team"
   :license "Not to be distributed for now."
   :homepage "https://gitlab.ai.vub.ac.be/ehai/seq2seq-heuristics"
-  :depends-on (:fcg :cl-json  #+lispworks drakma #-lispworks dexador)
+  :depends-on (:fcg :cl-json #-ccl :drakma #+ccl :dexador)
   :description "A subsystem for using sequence-to-sequence heuristics in Fluid Construction Grammar"
   :serial t
   :components ((:file "next-cxn")
