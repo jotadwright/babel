@@ -152,10 +152,11 @@
                              when (equalp (second arg) (fourth predicate))
                              return (first arg))
                  :fe-string (second (find 'string (unit-body fe-consituent-unit) :key #'feature-name))
-                 :indices (loop for i
-                                from (first (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name)))
-                                to (- (second (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name))) 1)
-                                collect i)))))
+                 :indices (when (second (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name)))
+                            (loop for i
+                                  from (first (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name)))
+                                  to (- (second (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name))) 1)
+                                  collect i))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;
