@@ -2,4 +2,4 @@
 
 (defpackage :propbank-english
   (:documentation "A large propbank-based construction grammar for English")
-  (:use :common-lisp :utils :monitors :fcg))
+  (:use :common-lisp :utils :monitors :fcg :irl))

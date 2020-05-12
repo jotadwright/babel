@@ -12,7 +12,6 @@
                   (meaning set-of-predicates)
                   (footprints set))
 
-#|
   (def-fcg-cxn proper-noun-feel-y-cxn
                ((?feel-unit
                  (args (referent ?o)
@@ -46,8 +45,6 @@
                  (parent ?sbar-unit)
                  (phrase-type (s)))))
 
-|#
-
 
   (def-fcg-cxn feel-opine-cxn
                ((?feel-unit
@@ -70,12 +67,14 @@
                        (:arg1 ?y-unit))
                  (frame-evoking +)
                  (meaning ((frame opine.01 ?o)
+                           (frame-evoking-element ?o ?frame-evoking-element)
                            (frame-element cognizer ?o ?x-unit)
                            (frame-element topic ?o ?y-unit))))
                 <-
                 (?think-unit
                  --
-                 (lemma think))))
+                 (lemma think)
+                 (string ?frame-evoking-element))))
 
     (def-fcg-cxn think-opine-cxn
                ((?think-unit
@@ -140,7 +139,7 @@
                :disable-automatic-footprints t))
 
 
-;; (comprehend "Katrien has felt that Paul was right.")
+;; (comprehend-all "Katrien felt that Paul was right.")
 
 ;; (comprehend "Remi expected that Katrien thinks that Paul was right.")
 
