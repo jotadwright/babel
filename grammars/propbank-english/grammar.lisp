@@ -67,14 +67,12 @@
                        (:arg1 ?y-unit))
                  (frame-evoking +)
                  (meaning ((frame opine.01 ?o)
-                           (frame-evoking-element ?o ?frame-evoking-element)
                            (frame-element cognizer ?o ?x-unit)
                            (frame-element topic ?o ?y-unit))))
                 <-
                 (?think-unit
                  --
-                 (lemma think)
-                 (string ?frame-evoking-element))))
+                 (lemma think))))
 
     (def-fcg-cxn think-opine-cxn
                ((?think-unit
