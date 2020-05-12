@@ -1,5 +1,6 @@
-;; (ql:quickload :propbank-english)
 
+
+;; (ql:quickload :propbank-english)
 (in-package :propbank-english)
 
 (activate-monitor trace-fcg)

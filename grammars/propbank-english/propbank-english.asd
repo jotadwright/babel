@@ -15,4 +15,5 @@
   :components ((:file "package")
                (:file "de-render")
                (:file "grammar")
-               (:file "visualisation")))
+               (:file "visualisation")
+               (:file "utils")))

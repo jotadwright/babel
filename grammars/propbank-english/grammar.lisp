@@ -14,6 +14,7 @@
 
   (def-fcg-cxn proper-noun-feel-y-cxn
                ((?feel-unit
+                 (frame-evoking +)
                  (args (referent ?o)
                        (:arg0 ?x-unit)
                        (:arg1 ?y-unit))
@@ -36,7 +37,7 @@
                  --
                  (lemma feel)
                  (parent ?vp-unit))
-                (?s-bar-unit
+                (?sbar-unit
                  --
                  (parent ?vp-unit)
                  (phrase-type (sbar)))
