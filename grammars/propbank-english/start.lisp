@@ -40,9 +40,12 @@
 
 
 ;; (comprehend-and-extract-frames "The man could barely believe that Seymour cray could do it again.")
+;; (comprehend-and-extract-frames "The man could barely believe Seymour cray could do it again.")
 ;; (comprehend-and-extract-frames "Winston could hardly believe that Seymour cray would say something like that.")
 
 ;; (comprehend-and-extract-frames "He is believed to be the first to discover a vaccine.")
+
+;; (comprehend-and-extract-frames "The dog has a tendency to believe in everything.")
 
 
 

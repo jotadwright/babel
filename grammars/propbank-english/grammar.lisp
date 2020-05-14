@@ -17,8 +17,8 @@
  
 ;;; believe.01 cxns
 
-;; arg-m constructions
-;;;without auxiliaries
+;;; arg-m constructions
+;;without auxiliaries
 
     (def-fcg-cxn believe.01-arg-m-adv-cxn
                ((?believe-unit
@@ -41,7 +41,7 @@
                  (parent ?vp-unit))))
 
 
-;;;with auxiliaries
+;;with auxiliaries
 
     (def-fcg-cxn believe.01-aux-arg-m-adv-cxn
                ((?believe-unit
@@ -101,9 +101,8 @@
                  (parent ?vp-unit1))))
 
 
-;;sentential complement cxns
-
-;;; with auxiliaries
+;;;sentential complement cxns
+;; with auxiliaries
 
   (def-fcg-cxn believe.01-prp-aux-sentential-complement-cxn
                ((?believe-unit
@@ -261,7 +260,7 @@
                  (phrase-type (s)))))
 
 
-;;; without auxiliaries
+;; without auxiliaries
 
   (def-fcg-cxn believe.01-prp-sentential-complement-cxn
                ((?believe-unit
@@ -403,8 +402,8 @@
                  (phrase-type (s)))))
             
 
-;; prepositional complement cxns
-;;; with auxiliaries
+;;; prepositional complement cxns
+;; with auxiliaries
 
    (def-fcg-cxn believe.01-prp-aux-prepositional-complement-cxn
                ((?believe-unit
@@ -546,7 +545,7 @@
                  (phrase-type (pp))) ))
       
 
-;;;without auxiliaries
+;;without auxiliaries
 
    (def-fcg-cxn believe.01-prp-prepositional-complement-cxn
                ((?believe-unit
@@ -672,9 +671,9 @@
                  (phrase-type (pp))) ))
       
 
-;; nominal complement cxns
+;;; nominal complement cxns
 
-;;; with auxiliaries
+;; with auxiliaries
 
     (def-fcg-cxn believe.01-prp-aux-nominal-complement-cxn
                ((?believe-unit
@@ -815,9 +814,7 @@
 
 
 
-
-
-;;; without auxiliaries
+;; without auxiliaries
    
     (def-fcg-cxn believe.01-prp-nominal-complement-cxn
                ((?believe-unit
@@ -943,7 +940,7 @@
                  (phrase-type (np)))))
 
 
-;; sentential complement passive extraction cxns
+;;; sentential complement passive extraction cxns
 
     (def-fcg-cxn believe.01-prp-sentential-complement-passive-extraction-cxn
                ((?believe-unit
@@ -1131,12 +1128,69 @@
                 (?z-unit
                  --
                  (phrase-type (s vp))
-                 (parent ?vp-unit1))))            
+                 (parent ?vp-unit1))))
+
+
+;;; clausal complement cxns
+;; 
+
+   (def-fcg-cxn believe.01-np-clausal-complement-pp-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (phrase-type (np))
+                 (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (s))
+                )
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?np-unit1
+                 --
+                 (phrase-type (np))
+                 (parent ?vp-unit2))
+                (?s-vp-unit
+                 --
+                 (parent ?np-unit1)
+                 (phrase-type (s vp)))
+                
+                (?vp-unit1
+                 --
+                 (parent ?s-vp-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                 (phrase-type (pp))) ))
+
+;;; adjectival complement cxns
+;; e.g. the chinese are willing to believe ... are eager to believe ... 
+
+
+
+
+
+        
    )
 
 
 
-;; examples
+;;; examples
 
  (def-fcg-cxn proper-noun-feel-y-cxn
                ((?feel-unit
