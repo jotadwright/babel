@@ -119,17 +119,13 @@
                 (?s-unit
                  --
                  (phrase-type (s)))
-                (?aux-unit
-                 --
-                 (parent ?vp-unit2)
-                 (lemma (NOT be)))
                 (?vp-unit2
                  --
                  (parent ?s-unit)
                  (phrase-type (vp)))
                 (?vp-unit1
                  --
-                 (parent ?vp2-unit)
+                 (parent ?vp-unit2)
                  (phrase-type (vp)))
                 (?believe-unit
                  --
@@ -137,7 +133,7 @@
                  (parent ?vp-unit1))
                 (?y-unit
                  --
-                 (parent ?vp-unit)
+                 (parent ?vp-unit1)
                  (phrase-type (sbar)))))
        
 
@@ -159,17 +155,13 @@
                 (?s-unit
                  --
                  (phrase-type (s)))
-                (?aux-unit
-                 --
-                 (parent ?vp-unit2)
-                 (lemma (NOT be)))
                  (?vp-unit2
                  --
                  (parent ?s-unit)
                  (phrase-type (vp)))
                 (?vp-unit1
                  --
-                 (parent ?vp2-unit)
+                 (parent ?vp-unit2)
                  (phrase-type (vp)))
                 (?believe-unit
                  --
@@ -177,7 +169,7 @@
                  (parent ?vp-unit1))
                 (?y-unit
                  --
-                 (parent ?vp-unit)
+                 (parent ?vp-unit1)
                  (phrase-type (sbar)))))
        
 
@@ -199,17 +191,13 @@
                 (?s-unit
                  --
                  (phrase-type (s)))
-                (?aux-unit
-                 --
-                 (parent ?vp-unit2)
-                 (lemma (NOT be)))
                  (?vp-unit2
                  --
                  (parent ?s-unit)
                  (phrase-type (vp)))
                 (?vp-unit1
                  --
-                 (parent ?vp2-unit)
+                 (parent ?vp-unit2)
                  (phrase-type (vp)))
                 (?believe-unit
                  --
@@ -217,7 +205,7 @@
                  (parent ?vp-unit1))
                 (?y-unit
                  --
-                 (parent ?vp-unit)
+                 (parent ?vp-unit1)
                  (phrase-type (sbar)))))
 
 
@@ -238,17 +226,13 @@
                 (?s-unit
                  --
                  (phrase-type (s)))
-                 (?aux-unit
-                 --
-                 (parent ?vp-unit2)
-                 (lemma (NOT be)))
                  (?vp-unit2
                  --
                  (parent ?s-unit)
                  (phrase-type (vp)))
                 (?vp-unit1
                  --
-                 (parent ?vp2-unit)
+                 (parent ?vp-unit2)
                  (phrase-type (vp)))
                 (?believe-unit
                  --
@@ -256,7 +240,7 @@
                  (parent ?vp-unit1))
                 (?y-unit
                  --
-                 (parent ?vp-unit)
+                 (parent ?vp-unit1)
                  (phrase-type (sbar)))))
 
 
