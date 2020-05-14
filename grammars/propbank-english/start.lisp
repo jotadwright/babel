@@ -11,7 +11,7 @@
 
 ;;; examples by Paul and Katrien
 
-(comprehend-and-extract-frames "Paul thinks that Katrien is right.")
+;;(comprehend-and-extract-frames "Paul thinks that Katrien is right.")
 ;; (comprehend-and-extract-frames "Katrien felt that Paul was right.")
 ;; (comprehend-and-extract-frames "Remi expected that Katrien thinks that Paul was right.")
 ;; (comprehend-and-extract-frames "Katrien thinks that Paul was right.")
@@ -22,26 +22,27 @@
 
 ;;; propbank-frames examples for roleset believe.01
 
-;; (comprehend-and-extract-frames "She could hardly believe her eyes.")
+;; (comprehend-and-extract-frames "Cathryin Rice could hardly believe her eyes.")
 ;; (comprehend-and-extract-frames "I believe in the system.")
 ;; (comprehend-and-extract-frames "You believe that Seymour cray can do it again")
 ;; (comprehend-and-extract-frames "The declaration by Economy Minister Nestor Rapanelli is believed to be the first time such an action has been called for.")
 ;; (comprehend-and-extract-frames "For that matter , the Chinese display a willingness to believe in the auspiciousness of just about anything!")
 
 
-;;; Sandbox with variations and additional examples
+;;; Additional examples for roleset believe.01
 
-;; (comprehend-and-extract-frames "Winston could hardly believe that Seymour Cray can do it again.")
-;; (comprehend-and-extract-frames "You believe that Seymour Cray can do it again.")
-;; (comprehend-and-extract-frames "You could not believe that Seymour Cray can do it again.")
-
-;; (comprehend-and-extract-frames "You strongly believe your eyes.")
-;; (comprehend-and-extract-frames "You believe your eyes.")
-;; (comprehend-and-extract-frames "Winston could hardly  believe his eyes.")
-;; (comprehend-and-extract-frames "He strongly believes in the system.")
-;; (comprehend-and-extract-frames "I fully believe in the system.")
-;; (comprehend-and-extract-frames "You believe that Seymour Cray can do it again")
-;; (comprehend-and-extract-frames "This is fully  believed to be the first time such an action has been called for.")
+;; (comprehend-and-extract-frames "She believes his answer.")
+;; (comprehend-and-extract-frames "The minster fully  believes his answer.")
 
 
-;; (comprehend-and-extract-frames "For that matter, the Chinese display a willingness to believe in the auspiciousness of just about anything!")
+;; (comprehend-and-extract-frames "The minister could fully believe in the system.")
+;; (comprehend-and-extract-frames "Winstin barely believes in himself.")
+
+
+;; (comprehend-and-extract-frames "The man could barely believe that Seymour cray could do it again.")
+;; (comprehend-and-extract-frames "Winston could hardly believe that Seymour cray would say something like that.")
+
+;; (comprehend-and-extract-frames "He is believed to be the first to discover a vaccine.")
+
+
+

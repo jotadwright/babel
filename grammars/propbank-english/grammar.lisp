@@ -406,8 +406,145 @@
 ;; prepositional complement cxns
 ;;; with auxiliaries
 
+   (def-fcg-cxn believe.01-prp-aux-prepositional-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit)
+                 (phrase-type(vp)))
+                (?vp-unit1
+                 --
+                 (parent ?vp-unit2)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                 (phrase-type (pp))) ))
 
 
+      (def-fcg-cxn believe.01-nnp-aux-prepositional-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit)
+                 (phrase-type(vp)))
+                (?vp-unit1
+                 --
+                 (parent ?vp-unit2)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                 (phrase-type (pp))) ))
+
+
+      (def-fcg-cxn believe.01-np-aux-prepositional-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (np)))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit)
+                 (phrase-type(vp)))
+                (?vp-unit1
+                 --
+                 (parent ?vp-unit2)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                 (phrase-type (pp))) ))
+
+
+      (def-fcg-cxn believe.01-nn-aux-prepositional-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nn))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit)
+                 (phrase-type(vp)))
+                (?vp-unit1
+                 --
+                 (parent ?vp-unit2)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                 (phrase-type (pp))) ))
+      
 
 ;;;without auxiliaries
 
