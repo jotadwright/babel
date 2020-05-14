@@ -3,6 +3,8 @@
 
 (def-fcg-constructions propbank-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents))
+  :visualization-configurations ((:show-constructional-dependencies . nil))
+ 
   :hierarchy-features (constituents dependents)
   :feature-types ((constituents set)
                   (dependents set)
@@ -12,7 +14,763 @@
                   (meaning set-of-predicates)
                   (footprints set))
 
-  (def-fcg-cxn proper-noun-feel-y-cxn
+ 
+;;; believe.01 cxns
+
+;; arg-m constructions
+;;;without auxiliaries
+
+    (def-fcg-cxn believe.01-arg-m-adv-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:arg-m-adv ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg-m-adv ?o ?rb-unit))))
+                 <-
+                 (?rb-unit
+                 --
+                 (parent ?vp-unit)
+                 (lex-class rb))
+                (?vp-unit
+                 --
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+
+
+;;;with auxiliaries
+
+    (def-fcg-cxn believe.01-aux-arg-m-adv-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:arg-m-adv ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg-m-adv ?o ?rb-unit))))
+                 <-
+                 (?s-unit
+                 --
+                 (phrase-type (s)))
+                 (?rb-unit
+                 --
+                 (parent ?vp-unit2)
+                 (lex-class rb)
+                 (lemma (not not)))                 
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                (parent ?vp-unit2))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
+    
+
+        (def-fcg-cxn believe.01-aux-arg-m-mod-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:arg-m-mod ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg-m-mod ?o ?md-unit))))
+                 <-
+                 (?s-unit
+                 --
+                 (phrase-type (s)))
+                 (?md-unit
+                 --
+                 (parent ?vp-unit2)
+                 (lex-class md))                 
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                (parent ?vp-unit2))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
+
+
+          (def-fcg-cxn believe.01-aux-arg-m-neg-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:arg-m-neg ?neg-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg-m-neg ?o ?neg-unit))))
+                 <-
+                 (?s-unit
+                 --
+                 (phrase-type (s)))
+                 (?neg-unit
+                 --
+                 (parent ?vp-unit2)
+                 (lex-class rb)
+                 (lemma not))                 
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                (parent ?vp-unit2))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
+
+
+    
+
+
+
+
+;;sentential complement cxns
+
+;;; with auxiliaries
+
+  (def-fcg-cxn believe.01-prp-aux-sentential-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp)) 
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                 (?vp-unit2
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?vp-unit1
+                 --
+                 (parent ?vp2-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?sbar-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (sbar)))
+                (?y-unit ;propbank believed is full that-clause
+                 --
+                 (parent ?sbar-unit)
+                 (phrase-type (s)))))
+
+
+
+
+
+;;; without auxiliaries
+
+  (def-fcg-cxn believe.01-prp-sentential-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp)) 
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?sbar-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (sbar)))
+                (?y-unit ;propbank believed is full that-clause
+                 --
+                 (parent ?sbar-unit)
+                 (phrase-type (s)))))
+
+
+    (def-fcg-cxn believe.01-nnp-sentential-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?sbar-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (sbar)))
+                (?y-unit ;propbank believed is full that-clause
+                 --
+                 (parent ?sbar-unit)
+                 (phrase-type (s)))))
+
+
+       (def-fcg-cxn believe.01-np-sentential-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (np)))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?sbar-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (sbar)))
+                (?y-unit ;propbank believed is full that-clause
+                 --
+                 (parent ?sbar-unit)
+                 (phrase-type (s)))))
+
+
+            (def-fcg-cxn believe.01-nn-sentential-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nn))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?sbar-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (sbar)))
+                (?y-unit ;propbank believed is full that-clause
+                 --
+                 (parent ?sbar-unit)
+                 (phrase-type (s))))) 
+
+;; prepositional complement cxns
+
+   (def-fcg-cxn believe.01-prp-prepositional-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (pp))) ))
+
+   (def-fcg-cxn believe.01-nnp-prepositional-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (pp))) ))
+
+
+   (def-fcg-cxn believe.01-np-prepositional-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (np)))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (pp))) ))
+
+
+
+      (def-fcg-cxn believe.01-nn-prepositional-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nn))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (pp))) ))
+
+;; nominal complement cxns
+   
+    (def-fcg-cxn believe.01-prp-nominal-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (np)))))
+
+
+    (def-fcg-cxn believe.01-nnp-nominal-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (np)))))
+
+    
+   (def-fcg-cxn believe.01-np-nominal-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (np)))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (np)))))
+
+
+   (def-fcg-cxn believe.01-nn-nominal-complement-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nn))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (np)))))
+
+
+;; sentential complement passive extraction cxns
+
+    (def-fcg-cxn believe.01-prp-sentential-complement-passive-extraction-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit)
+                       (:arg2 ?z-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)  
+                           (frame-element believed ?o ?y-unit)
+                           (frame-element attribute ?o ?z-unit))));attribute, y-unit is believed to be what?
+                <-
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                --
+                (phrase-type (vp))
+                (parent ?vp-unit2))
+                        
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?z-unit
+                 --
+                 (phrase-type (s vp))
+                 (parent ?vp-unit1))))
+
+
+        (def-fcg-cxn believe.01-nnp-sentential-complement-passive-extraction-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit)
+                       (:arg2 ?z-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)  
+                           (frame-element believed ?o ?y-unit)
+                           (frame-element attribute ?o ?z-unit))));attribute, y-unit is believed to be what?
+                <-
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                --
+                (phrase-type (vp))
+                (parent ?vp-unit2))
+                        
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?z-unit
+                 --
+                 (phrase-type (s vp))
+                 (parent ?vp-unit1))))
+
+  
+    (def-fcg-cxn believe.01-np-sentential-complement-passive-extraction-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit)
+                       (:arg2 ?z-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)  
+                           (frame-element believed ?o ?y-unit)
+                           (frame-element attribute ?o ?z-unit))));attribute, y-unit is believed to be what?
+                <-
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (np)))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                --
+                (phrase-type (vp))
+                (parent ?vp-unit2))
+                        
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?z-unit
+                 --
+                 (phrase-type (s vp))
+                 (parent ?vp-unit1))))
+
+        (def-fcg-cxn believe.01-nn-sentential-complement-passive-extraction-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit)
+                       (:arg2 ?z-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)  
+                           (frame-element believed ?o ?y-unit)
+                           (frame-element attribute ?o ?z-unit))));attribute, y-unit is believed to be what?
+                <-
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nn))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                --
+                (phrase-type (vp))
+                (parent ?vp-unit2))
+                        
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?z-unit
+                 --
+                 (phrase-type (s vp))
+                 (parent ?vp-unit1))))
+
+        
+        (def-fcg-cxn believe.01-dt-sentential-complement-passive-extraction-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit)
+                       (:arg2 ?z-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)  
+                           (frame-element believed ?o ?y-unit)
+                           (frame-element attribute ?o ?z-unit))));attribute, y-unit is believed to be what?
+                <-
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class dt))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                --
+                (phrase-type (vp))
+                (parent ?vp-unit2))
+                        
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?z-unit
+                 --
+                 (phrase-type (s vp))
+                 (parent ?vp-unit1))))            
+   )
+
+
+
+;; examples
+
+ (def-fcg-cxn proper-noun-feel-y-cxn
                ((?feel-unit
                  (frame-evoking +)
                  (args (referent ?o)
@@ -102,6 +860,7 @@
                 (?expect-unit
                  --
                  (lemma expect))))
+
     
   (def-fcg-cxn proper-noun-verb-compclause-cxn
                ((?verb-unit
@@ -134,7 +893,9 @@
                  --
                  (parent ?sbar-unit)
                  (phrase-type (s))))
-               :disable-automatic-footprints t))
+               :disable-automatic-footprints t)
+
+
 
 
 (make-propbank-english-cxns)
