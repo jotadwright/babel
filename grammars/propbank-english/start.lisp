@@ -32,7 +32,7 @@
 ;;; Additional examples for roleset believe.01
 
 ;; (comprehend-and-extract-frames "She believes his answer.")
-;; (comprehend-and-extract-frames "The minster fully  believes his answer.")
+;; (comprehend-and-extract-frames "The minster believes his answer.")
 
 ;; (comprehend-and-extract-frames "The minister could fully believe in the system.")
 ;; (comprehend-and-extract-frames "Winston barely believes in himself.")

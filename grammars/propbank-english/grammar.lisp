@@ -14,6 +14,30 @@
                   (meaning set-of-predicates)
                   (footprints set))
 
+;;;arg-m cxns
+;;without auxiliaries
+
+(def-fcg-cxn believe.01-arg-adv-cxn
+               ((?believe-unit
+                 (args (referent ?o) 
+                  (:arg-m-adv ?beta-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg-m-adv ?o ?rb-unit))))
+                 <-
+                 (?rb-unit
+                 --
+                 (parent ?vp-unit)
+                 (lex-class rb))
+                (?vp-unit
+                 --
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+
+  
 
 ;;with auxiliaries
 
