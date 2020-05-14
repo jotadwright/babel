@@ -22,22 +22,22 @@
 
 ;;; propbank-frames examples for roleset believe.01
 
-;; (comprehend-and-extract-frames "Cathryn Rice could hardly believe her eyes.")
+;; (comprehend-and-extract-frames "She could hardly believe her eyes.")
 ;; (comprehend-and-extract-frames "I believe in the system.")
 ;; (comprehend-and-extract-frames "You believe that Seymour cray can do it again")
 ;; (comprehend-and-extract-frames "The declaration by Economy Minister Nestor Rapanelli is believed to be the first time such an action has been called for.")
 ;; (comprehend-and-extract-frames "For that matter , the Chinese display a willingness to believe in the auspiciousness of just about anything!")
 
 
-;;; Sandbox
+;;; Sandbox with variations and additional examples
 
-;; (comprehend-and-extract-frames "You could hardly believe that Seymour Cray can do it again.")
+;; (comprehend-and-extract-frames "Winston could hardly believe that Seymour Cray can do it again.")
 ;; (comprehend-and-extract-frames "You believe that Seymour Cray can do it again.")
 ;; (comprehend-and-extract-frames "You could not believe that Seymour Cray can do it again.")
 
 ;; (comprehend-and-extract-frames "You strongly believe your eyes.")
 ;; (comprehend-and-extract-frames "You believe your eyes.")
-;; (comprehend-and-extract-frames "You could believe your eyes.")
+;; (comprehend-and-extract-frames "Winston could hardly  believe his eyes.")
 ;; (comprehend-and-extract-frames "He strongly believes in the system.")
 ;; (comprehend-and-extract-frames "I fully believe in the system.")
 ;; (comprehend-and-extract-frames "You believe that Seymour Cray can do it again")
