@@ -10,7 +10,9 @@
                :fcg
                :nlp-tools
                :irl
-               :web-interface)
+               :web-interface
+               :cl-propbank
+               :xmls)
   :serial t
   :components ((:file "package")
                (:file "de-render")
