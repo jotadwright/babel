@@ -15,7 +15,6 @@
                   (footprints set))
 
 ;;;arg-m cxns
-;to do: negation
 
 ;;without auxiliaries
 
@@ -913,7 +912,7 @@
 
 ;;; sentential complement passive extraction cxns
 
-    (def-fcg-cxn believe.01-prp-sentential-complement-passive-extraction-cxn
+    (def-fcg-cxn believe.01-prp-sentential-complement-pass-extraction-cxn
                ((?believe-unit
                  (args (referent ?o)
                        (:arg0 ?x-unit)
@@ -955,7 +954,7 @@
                  (parent ?vp-unit1))))
 
 
-        (def-fcg-cxn believe.01-nnp-sentential-complement-passive-extraction-cxn
+        (def-fcg-cxn believe.01-nnp-sentential-complement-pass-extraction-cxn
                ((?believe-unit
                  (args (referent ?o)
                        (:arg0 ?x-unit)
@@ -997,7 +996,7 @@
                  (parent ?vp-unit1))))
 
   
-    (def-fcg-cxn believe.01-np-sentential-complement-passive-extraction-cxn
+    (def-fcg-cxn believe.01-np-sentential-complement-pass-extraction-cxn
                ((?believe-unit
                  (args (referent ?o)
                        (:arg0 ?x-unit)
@@ -1038,7 +1037,7 @@
                  (phrase-type (s vp))
                  (parent ?vp-unit1))))
 
-        (def-fcg-cxn believe.01-nn-sentential-complement-passive-extraction-cxn
+        (def-fcg-cxn believe.01-nn-sentential-complement-pass-extraction-cxn
                ((?believe-unit
                  (args (referent ?o)
                        (:arg0 ?x-unit)
@@ -1080,7 +1079,7 @@
                  (parent ?vp-unit1))))
 
         
-        (def-fcg-cxn believe.01-dt-sentential-complement-passive-extraction-cxn
+        (def-fcg-cxn believe.01-dt-sentential-complement-pass-extraction-cxn
                ((?believe-unit
                  (args (referent ?o)
                        (:arg0 ?x-unit)
@@ -1626,14 +1625,8 @@
                 (phrase-type (sbar)))))
 
 
-    
-;;; to do: adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
-
-
-
-
-;;; to do: pure passive constructions e.g. It is believed that ..., it is believed to be the case that ...  
-
+;;; passive subject extraposition construction
+   
   (def-fcg-cxn believe.01-pass-subj-extraposition-cxn
                ((?believe-unit
                  (args (referent ?o)
@@ -1670,6 +1663,152 @@
 
 
 
+;;;passive constructions
+;;general passive constructions
+
+  (def-fcg-cxn believe.01-prp-passive-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))              
+ 
+
+ (def-fcg-cxn believe.01-np-passive-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (np)))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+ 
+
+  (def-fcg-cxn believe.01-nnp-passive-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+  
+
+  (def-fcg-cxn believe.01-nn-passive-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nn))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+  
+
+        (def-fcg-cxn believe.01-dt-passive-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class dt))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
 
 
 
@@ -1677,6 +1816,11 @@
 
 ;;; to do: frames in subordinate clauses, e.g. I say this because I believe it is true
 
+;;; to do: add nnp, nns, etc. in subject positions
+
+;;; to do: negation
+
+;;; to do: adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
 
 
    )
