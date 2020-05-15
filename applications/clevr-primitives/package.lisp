@@ -10,5 +10,4 @@
 (export '(*clevr-primitives*))
 
 (def-irl-primitives clevr-primitives
-  :ontology *clevr-ontology*
   :primitive-inventory *clevr-primitives*)
