@@ -22,27 +22,36 @@
                           (not (probe-file *pb-data-storage-file*))))
     (cl-store:store *pb-data* *pb-data-storage-file*))
   ;; Finally return pb-data
-  *pb-data*)
+  (format nil "Loaded ~a predicates into *pb-data*." (length *pb-data*)))
 
 (defun load-pb-data-from-original-xml-files ()
-       "TODO")
+  "Loads all framesets and returns the predicate objects."
+  (loop for file in (directory (merge-pathnames
+                                (make-pathname :directory '(:relative "frames") :name :wild :type "xml")
+                                *propbank-data-directory*))
+        do (format t "Loading ~a~%" file)
+        append (load-pb-file file)))
 
-(defun load-pb-file (frameset)
+; (load-pb-data-from-original-xml-files)
+
+(defun load-pb-file (pathname-or-frameset)
   "Loads a PropBank file and returns a list of predicate objects."
-  (let* ((frameset-xml (read-pb-file frameset))
+  (let* ((frameset-xml (read-pb-file pathname-or-frameset))
          (predicates-xml (xmls:xmlrep-find-child-tags "predicate" frameset-xml)))
     (loop for predicate-xml in predicates-xml
           collect (xml-predicate predicate-xml))))
 
 ;; (load-pb-file 'feel)
 
-(defun read-pb-file (frameset)
-  (with-open-file (inputstream (merge-pathnames
+(defun read-pb-file (pathname-or-frameset)
+  (let ((pathname (if (pathnamep pathname-or-frameset)
+                    pathname-or-frameset
+                    (merge-pathnames
                                 (make-pathname :directory '(:relative "frames")
-                                               :name (string-downcase (symbol-name frameset))
+                                               :name (string-downcase (symbol-name pathname-or-frameset))
                                                :type "xml")
-                                               *propbank-data-directory*)
-                               :direction :input)
-    (xmls:parse inputstream)))
+                                               *propbank-data-directory*))))
+    (with-open-file (inputstream pathname :direction :input)
+      (xmls:parse inputstream))))
 
 ;; (read-pb-file 'feel)

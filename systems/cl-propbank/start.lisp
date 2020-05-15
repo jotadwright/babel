@@ -11,5 +11,7 @@
 (ql:quickload :cl-propbank)
 (in-package :cl-propbank)
 
+(load-pb-data :store-data t
+              :ignore-stored-data t)
 
-(setf *A* (load-pb-file 'study))
+(length *pb-data*)

@@ -103,19 +103,19 @@
 ;; to your init-babel-user.lisp, http://my-machine:8000/
 (defvar *address* (if (boundp 'cl-user::*web-server-host-address*)
                     (eval 'cl-user::*web-server-host-address*)
-                    "127.0.0.1" 
-                    ))
+                    "127.0.0.1" ))
 
 ;; address and port
 (defvar *port* (if (boundp 'cl-user::*web-server-port*)
                    (eval 'cl-user::*web-server-port*)
                    8000))
+
 (defvar *my-server* nil)
 
 (defun start-web-interface (&key (port *port*) (address *address*))
   (if *my-server* 
       (format t "~% ***** web interface already running at http://~a:~d *****~%"
-              *address* *port*)
+              address port)
       (progn
 	(setf *my-server* 
               (start (make-instance 'easy-acceptor 
@@ -126,7 +126,7 @@
                                     :message-log-destination nil
                                     :access-log-destination nil)))
 	(format t "~% ***** started web interface at http://~a:~d *****~%"
-                *address* *port*))))
+                address port))))
   
 ;; automatically start the server when the asdf system is loaded
 (when (and cl-user::*automatically-start-web-interface*

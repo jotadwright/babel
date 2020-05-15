@@ -16,4 +16,4 @@
          (string (cl-ppcre:regex-replace-all "\\)" (string-upcase string) ""))        
          (string (cl-ppcre:regex-replace-all "_" (string-upcase string) "-"))
          (string (cl-ppcre:regex-replace-all " " (string-upcase string) "-")))
-  (make-symbol string)))
+  (intern string)))
