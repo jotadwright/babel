@@ -54,7 +54,9 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
                 collect (format nil "~(~a~)~:[~;,&#160;~]" value
                                 (< i (length (bind-statements result)))))
           (list (format nil " (~,2f)" (score result)))))
-        (bindings-id (make-id 'bindings)))
+        (bindings-id (make-id 'bindings))
+        (target-id (make-id 'target))
+        (chunk-id (make-id 'chunk)))
     (lambda ()
       `((div :class "cer-box")
         ((div :class "cer-title")
@@ -64,19 +66,23 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
          ((tbody)
           ;; chunk
           ((tr)
-           ((td :class "cer-details") "chunk")
            ((td :class "cer-details")
-            ,(make-html (chunk result) :expand-initially t)))
+            ,(make-expand/collapse-all-link chunk-id "chunk"))
+           ((td :class "cer-details")
+            ,(make-html (chunk result) :expand-initially t
+                        :expand/collapse-all-id chunk-id)))
           ;; evaluation tree
+          ;; extract only the path to the composer's target entity
           ((tr)
            ((td :class "cer-details") "evaluation process")
            ((td :class "cer-details")
             ,(make-html (processor (evaluation-node result)))))
           ;; target entity
           ((tr)
-           ((td :class "cer-details") "target entity")
            ((td :class "cer-details")
-            ,(make-html (target-entity result))))
+            ,(make-expand/collapse-all-link target-id "target entity"))
+           ((td :class "cer-details")
+            ,(make-html (target-entity result) :expand/collapse-all-id target-id)))
           ;; bindings
           ((tr)
            ((td :class "cer-details")

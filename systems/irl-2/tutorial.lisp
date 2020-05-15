@@ -662,7 +662,7 @@
 (get-next-solutions *my-composer*)
 
 ;; No solutions left
-(get-next-solutions *my-composer* :silent t)
+(get-next-solutions *my-composer*)
 
 
 ;;   ######################################################
