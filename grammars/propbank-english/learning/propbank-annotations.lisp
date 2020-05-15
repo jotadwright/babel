@@ -11,10 +11,11 @@
 ;;;;;;;;;;;;;;;;
 
 ;; Pointer to propbank annotated corpora
-(defparameter *propbank-annotations-directory* (merge-pathnames "English/propbank-release/data/ontonotes/" *babel-corpora*))
+(defparameter *propbank-annotations-directory* (merge-pathnames "English/propbank-release/data/" *babel-corpora*))
 
 ;; Global variable where propbank annotations will be loaded.
-(defparameter *propbank-annotations* "Propbank annotations will be stored here.")
+
+(defparameter *propbank-annotations* "Propbank annotations will be stored here (train split).")
 
 ;; File wheer propbank annotations will be stored in binary format
 (defparameter *propbank-annoations-storage-file* (babel-pathname :directory '("grammars" "propbank-english" "learning")
@@ -25,6 +26,28 @@
 ;;;;;;;;;;;;;
 ;; Classes ;;
 ;;;;;;;;;;;;;
+
+;; propbank-annotations ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass propbank-annotations ()
+  ((train-split
+    :type list :initarg :train-split 
+    :accessor train-split
+    :initform nil 
+    :documentation "The train split sentences.")
+   (dev-split 
+    :type list :initarg :dev-split 
+    :accessor dev-split
+    :initform nil 
+    :documentation "The dev split sentences.")
+   (test-split 
+    :type list :initarg :test-split 
+    :accessor test-split
+    :initform nil 
+    :documentation "The test split sentences."))
+   (:documentation "Object holding the propbank annotations."))
+
 
 ;; Token ;;
 ;;;;;;;;;;;
@@ -258,8 +281,35 @@
                           (not (probe-file *propbank-annoations-storage-file*))))
     (cl-store:store *propbank-annotations* *propbank-annoations-storage-file*))
   ;; Finally return pb-data
-  (format nil "Loaded ~a annotated sentences into *propbank-annotations*." (length *propbank-annotations*)))
+  (format nil "Loaded ~a annotated sentences into *propbank-annotations*."
+          (+ (length (train-split *propbank-annotations*))
+             (length (dev-split *propbank-annotations*))
+             (length (test-split *propbank-annotations*)))))
 
+
+(defun load-propbank-annotations-from-files ()
+  "Loads all framesets and returns the predicate objects."
+  (let* ((file-names-for-splits (ontonotes-file-lists))
+         (file-names-train (first file-names-for-splits))
+         (file-names-dev (second file-names-for-splits))
+         (file-names-test (third file-names-for-splits)))
+    (make-instance 'propbank-annotations
+                   :train-split (load-split-from-files file-names-train)
+                   :dev-split (load-split-from-files file-names-dev)
+                   :test-split (load-split-from-files file-names-test)))) 
+
+(defun load-split-from-files (file-names-for-split)
+  (loop for file in file-names-for-split
+        if (probe-file file)
+       ; do (format t "Loading ~a~%" file)
+        append (read-propbank-conll-file file)
+        into sentences
+        else
+        do (warn (format nil "File not found: ~s." file))
+        finally
+        do (return sentences)))
+  
+#|
 (defun load-propbank-annotations-from-files ()
   "Loads all framesets and returns the predicate objects."
   (loop for file in (let ((files nil))
@@ -282,6 +332,7 @@
                       files)
         do (format t "Loading ~a~%" file)
         append (read-propbank-conll-file file)))
+|#
 
 ; (load-propbank-annotations-from-files)
 
@@ -321,3 +372,18 @@
           finally
           do (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens))))
           (return conll-sentences))))
+
+
+(defun ontonotes-file-lists ()
+  "Returns the filelists for train, dev and test splits."
+  (loop for split in (list (babel-pathname :directory '("grammars" "propbank-english" "learning") :name "ontonotes-train-list" :type "txt")
+                            (babel-pathname :directory '("grammars" "propbank-english" "learning") :name "ontonotes-dev-list" :type "txt")
+                            (babel-pathname :directory '("grammars" "propbank-english" "learning") :name "ontonotes-test-list" :type "txt"))
+        collect
+        (with-open-file (inputstream split :direction :input)
+          (mapcar #'(lambda (subpath)
+                     (merge-pathnames (string-append subpath ".gold_conll") *propbank-annotations-directory*))
+                  (uiop/stream:read-file-lines inputstream)))))
+
+;; (ontonotes-file-lists)
+
