@@ -77,7 +77,9 @@
     :documentation "A list of propbank roles for this token."))
    (:documentation "Representation of a conll token."))
 
-
+(defmethod print-object ((token conll-token) (stream t))
+  "Printing a conll token."
+  (format stream "<Token: ~s>" (token-string token)))
 
 ;; Frame ;;
 ;;;;;;;;;;;
@@ -99,6 +101,9 @@
     :documentation "The list of frame roles."))
    (:documentation "Representation of a propbank frame."))
 
+(defmethod print-object ((frame propbank-frame) (stream t))
+  "Printing a frame."
+  (format stream "<Frame: ~s>" (frame-name frame)))
 
 ;; Frame Role ;;
 ;;;;;;;;;;;;;;;;
@@ -120,6 +125,10 @@
     :initform nil 
     :documentation "The string of the words belonging to the role."))
    (:documentation "Representation of a propbank frame role."))
+
+(defmethod print-object ((role propbank-frame-role) (stream t))
+  "Printing a frame."
+  (format stream "<Role: ~s>" (role-type role)))
 
 
 ;; sentence ;;
