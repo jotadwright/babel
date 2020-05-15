@@ -53,15 +53,18 @@
   "Create the world and the population of the experiment"
   (setf clevr-world:*clevr-data-path* (get-configuration experiment :clevr-data-path))
   (setf (world experiment)
-        (make-instance 'clevr-world :data-sets (get-configuration experiment :data-sets)
+        (make-instance 'clevr-world
+                       :data-sets (get-configuration experiment :data-sets)
                        :load-questions t))
   (setf (population experiment)
         (list (make-instance 'holophrase-agent :id 'tutor :experiment experiment
                              :grammar *clevr* :ontology (copy-object *clevr-ontology*)
-                             :primitives (make-primitive-inventory (get-configuration experiment :available-primitives))
+                             :primitives (make-primitive-inventory
+                                          (get-configuration experiment :available-primitives)))
               (make-instance 'holophrase-agent :id 'learner :experiment experiment
                              :grammar (make-agent-cxn-set) :ontology (copy-object *clevr-ontology*)
-                             :primitives (make-primitive-inventory (get-configuration experiment :available-primitives)))))
+                             :primitives (make-primitive-inventory
+                                          (get-configuration experiment :available-primitives)))))
   (activate-monitor print-a-dot-for-each-interaction))
 
 ;; ################################

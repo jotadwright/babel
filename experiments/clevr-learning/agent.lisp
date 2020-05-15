@@ -3,6 +3,7 @@
 ;; #########
 ;; + Agent +
 ;; #########
+
 (defclass holophrase-agent (agent)
   ((grammar
     :documentation "The agent's grammar"
@@ -12,7 +13,7 @@
     :accessor ontology :initarg :ontology :initform nil :type blackboard)
    (primitives
     :documentation "The available primitive operations"
-    :accessor primitives :initarg :primitives :initform nil :type list)
+    :accessor primitives :initarg :primitives :initform nil :type primitive-inventory)
    (applicable-chunks
     :documentation "The chunks that can be used for production"
     :accessor applicable-chunks :initarg :applicable-chunks :initform nil :type list)
@@ -47,6 +48,7 @@
 ;; #####################
 ;; + Conceptualisation +
 ;; #####################
+
 (defun get-possible-primitives (answer)
   "get all the primitives that might return the given answer"
   (etypecase answer
@@ -57,7 +59,7 @@
 (defun get-final-primitive (chunk)
   "Get the final primitive from the chunk"
   (first
-   (find (car (target-var chunk))
+   (find (get-target-var chunk)
          (irl-program chunk)
          :test #'member)))
 
@@ -78,7 +80,11 @@
       (setf (applicable-chunks agent)
             (loop for chunk in (shuffle consider-chunks)
                   for solution = (with-disabled-monitors
-                                   (first (evaluate-irl-program (irl-program chunk) (ontology agent))))
+                                   (first (evaluate-irl-program
+                                           (irl-program chunk)
+                                           (ontology agent)
+                                           :primitive-inventory
+                                           (primitives agent))))
                   for answer = (when solution
                                  (get-target-value (irl-program chunk) solution))
                   when (equal-entity answer (found-answer agent))
@@ -114,6 +120,7 @@
 ;; ##############
 ;; + Production +
 ;; ##############
+
 (define-event production-finished (applied-cxn t))
 
 (defmethod produce-question ((agent holophrase-agent))
@@ -161,6 +168,7 @@
 ;; ###########################
 ;; + Tutor validates success +
 ;; ###########################
+
 (defmethod tutor-interprets ((agent holophrase-agent))
   "The tutor gets the utterance from the learner, parses it and
    executes the result in the scene. The answers of both tutor
@@ -168,7 +176,8 @@
   (let* ((irl-program (comprehend (preprocess-sentence (utterance agent))
                                   :cxn-inventory (grammar agent)))
          (solutions (with-disabled-monitors
-                     (evaluate-irl-program irl-program (ontology agent))))
+                     (evaluate-irl-program irl-program (ontology agent)
+                                           :primitive-inventory (primitives agent))))
          solution)
     (when (and solutions (= (length solutions) 1))
       (setf solution (first solutions))
@@ -219,6 +228,7 @@
 ;; ###########
 ;; + Parsing +
 ;; ###########
+
 (define-event parsing-finished (applied-cxn t))
 
 (defmethod parse-question ((agent holophrase-agent))
@@ -235,12 +245,14 @@
 ;; ##################
 ;; + Interpretation +
 ;; ##################
+
 (define-event interpretation-finished (found-answer t))
 
 (defmethod interpret ((agent holophrase-agent))
   "Interpret the meaning in the context"
   (let* ((chunk (get-chunk agent (attr-val (applied-cxn agent) :meaning)))
-         (solutions (evaluate-irl-program (irl-program chunk) (ontology agent))))
+         (solutions (evaluate-irl-program (irl-program chunk) (ontology agent)
+                                          :primitive-inventory (primitives agent))))
     (when (length= solutions 1)
       (let* ((solution (first solutions))
              (answer (get-target-value (irl-program chunk) solution)))
@@ -252,6 +264,7 @@
 ;; ############
 ;; + Adoption +
 ;; ############
+
 (define-event adoption-started)
 (define-event added-to-trash (irl-program list))
 (define-event composition-solution-found (solution chunk-evaluation-result))
@@ -280,7 +293,8 @@
     (let* ((cxn-w-utterance (find (utterance agent) (constructions (grammar agent))
                                   :key #'(lambda (cxn) (attr-val cxn :form)) :test #'string=))
            (solution (compose-new-program agent answer learning-strategy))
-           (chunk (solution->chunk solution :initial-score (get-configuration agent :initial-chunk-score)))
+           (chunk (solution->chunk agent solution
+                                   :initial-score (get-configuration agent :initial-chunk-score)))
            (equivalent-chunk (find-equivalent-chunk agent chunk))
            (interaction-nr (interaction-number (current-interaction (experiment agent)))))
       (notify composition-solution-found solution)

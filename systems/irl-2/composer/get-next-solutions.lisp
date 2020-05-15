@@ -19,7 +19,9 @@
 (define-event chunk-composer-finished
   (solutions list) (composer chunk-composer))
 
-
+(export '(get-next-solutions
+          get-all-solutions
+          get-solutions-until))
 
 (defun enqueue-node (node composer)
   (when (next-handler node)

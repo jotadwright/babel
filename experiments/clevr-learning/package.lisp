@@ -13,4 +13,4 @@
                 :get-target-value
                 :answer->str
                 :program->program-tree)
-  (:shadowing-import-from :fcg :size))
+  (:shadowing-import-from :fcg :size :attributes))

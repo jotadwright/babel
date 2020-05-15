@@ -4,7 +4,8 @@
 ;; chunk
 ;; ----------------------------------------------------------------------------
 
-(export '(create-chunks-from-primitives
+(export '(chunk irl-program
+          create-chunks-from-primitives
           create-chunk-from-primitive
           create-chunk-from-irl-program))
 

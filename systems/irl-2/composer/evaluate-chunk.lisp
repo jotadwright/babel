@@ -1,5 +1,8 @@
 (in-package :irl-2)
 
+(export '(chunk-evaluation-result
+          bind-statements))
+
 (defclass chunk-evaluation-result ()
   ((score 
     :type float :initarg :score :initform 0.0 :accessor score

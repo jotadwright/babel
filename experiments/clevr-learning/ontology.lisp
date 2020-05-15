@@ -12,10 +12,11 @@
 (defun answer->category (ontology answer)
   "Find the category in the ontology that corresponds
    to the answer in string form."
-  (let ((all-categories (loop for field in (fields ontology)
-                              for field-data = (get-data ontology field)
-                              when (listp field-data)
-                              append field-data)))
+  (let ((all-categories
+         (loop for field in (fields ontology)
+               for field-data = (get-data ontology field)
+               when (listp field-data)
+               append field-data)))
     (cond
      ((numberp answer) answer)
      ((stringp answer)
@@ -47,17 +48,30 @@
   (find (id chunk) (constructions (grammar agent))
         :key #'(lambda (cxn) (attr-val cxn :meaning))))
 
-(defun solution->chunk (solution &key (initial-score 0.5))
+(defun solution->chunk (agent solution &key (initial-score 0.5))
   "Store the irl-program AND the bind statements in a chunk"
-  (make-instance 'chunk
-                 :irl-program (append (bind-statements solution)
-                                      (irl-program (chunk solution)))
-                 :target-var (target-var (chunk solution))
-                 :open-vars (let ((all-vars (find-all-anywhere-if #'variable-p
-                                                                  (append (bind-statements solution)
-                                                                          (irl-program (chunk solution))))))
-                              (set-difference (mapcar #'car (open-vars (chunk solution))) all-vars))
-                 :score initial-score))
+  (make-instance
+   'chunk
+   :irl-program (append (bind-statements solution)
+                        (irl-program (chunk solution)))
+   :target-var (let* ((program (irl-program (chunk solution)))
+                      (target-var (get-target-var program)))
+                 (cons target-var
+                       (get-type-of-var target-var program
+                                        :primitive-inventory (primitives agent))))
+   :open-vars (let* ((program (irl-program (chunk solution)))
+                     (all-vars (find-all-anywhere-if #'variable-p
+                                                     (append (bind-statements solution)
+                                                             program)))
+                     (open-vars (set-difference
+                                 (mapcar #'car
+                                         (get-open-vars
+                                          program))
+                                 all-vars)))
+                (mapcar #'(lambda (var)
+                            (get-type-of-var var program
+                                             :primitive-inventory (primitives agent)))))
+   :score initial-score))
 
 (defun find-equivalent-chunk (agent chunk)
   "Find a chunk in the ontology of the agent that has

@@ -239,6 +239,8 @@
 ;; equivalent-irl-programs?
 ;; ---------------------------------------
 
+(export '(equivalent-irl-programs?))
+
 (defgeneric equivalent-irl-programs? (irl-program-1 irl-program-2)
   (:documentation "Checks whether two irl programs are equivalent,
                    that is they contain the same predicates and the

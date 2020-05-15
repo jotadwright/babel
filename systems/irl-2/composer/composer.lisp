@@ -106,6 +106,8 @@
                      :chunk-and-binding-score-with-few-duplicates))
 
 
+(export '(make-chunk-composer))
+
 (defun make-chunk-composer (&key topic meaning initial-chunk chunks
                                  configurations ontology
                                  (primitive-inventory *irl-primitives*))

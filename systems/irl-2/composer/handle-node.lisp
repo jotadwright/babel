@@ -91,11 +91,11 @@
          (when (> (get-configuration composer :max-search-depth)
                   (node-depth node))
            (loop for (new-chunk . source-chunks) in (run-expand-chunk-fns (chunk node) composer)
-                 collect (make-instance 'chunk-composer-node :composer composer
-                                        :source-chunks (append source-chunks (source-chunks node))
-                                        :chunk new-chunk
-                                        :node-number (incf (node-counter composer))
-                                        :node-depth (1+ (node-depth node)))))))
+                 append (make-instance 'chunk-composer-node :composer composer
+                                       :source-chunks (append source-chunks (source-chunks node))
+                                       :chunk new-chunk
+                                       :node-number (incf (node-counter composer))
+                                       :node-depth (1+ (node-depth node)))))))
     (when children
       (push 'expanded (statuses node)))
     (when (and (null children)

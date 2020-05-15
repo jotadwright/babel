@@ -3,6 +3,7 @@
 ;; ####################
 ;; + Initialize Agent +
 ;; ####################
+
 (defun initialize-agent (agent &key context question)
   "Prepare the agent for the interaction"
   (setf (question-object agent) question
@@ -25,6 +26,7 @@
 ;; ###############
 ;; + Interaction +
 ;; ###############
+
 (define-event context-determined (image-path pathname))
 (define-event question-determined (question-object clevr-question))
 
