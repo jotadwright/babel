@@ -705,7 +705,8 @@
                  (create-chunk-from-primitive 'filter-by-size))
    :ontology *ontology* :primitive-inventory *irl-primitives*
    :configurations '((:max-search-depth . 6)
-                     (:check-node-modes :check-duplicate :no-primitive-occurs-more-than-once))))
+                     (:check-node-modes :check-duplicate
+                                        :no-primitive-occurs-more-than-once))))
 
 (get-all-solutions *my-composer-2*) ;; now it only returns relevant results (2)
 
@@ -815,17 +816,18 @@
                                     (bind size-category ?size-category big)))
 
 (setf *my-composer-3*
-      (make-chunk-composer :meaning *partial-meaning-1*
-                           :initial-chunk (make-instance 'chunk :id 'initial
-                                                         :target-var '(?topic . object)
-                                                         :open-vars '((?topic . object)))
-                           :chunks (list
-                                    (create-chunk-from-primitive 'get-context)
-                                    (create-chunk-from-primitive 'unique-entity)
-                                    (create-chunk-from-primitive 'filter-by-shape)
-                                    (create-chunk-from-primitive 'filter-by-size))
-                           :ontology *ontology* :primitive-inventory *irl-primitives*
-                           :configurations '((:max-search-depth . 4))))
+      (make-chunk-composer
+       :meaning *partial-meaning-1*
+       :initial-chunk (make-instance 'chunk :id 'initial
+                                     :target-var '(?topic . object)
+                                     :open-vars '((?topic . object)))
+       :chunks (list
+                (create-chunk-from-primitive 'get-context)
+                (create-chunk-from-primitive 'unique-entity)
+                (create-chunk-from-primitive 'filter-by-shape)
+                (create-chunk-from-primitive 'filter-by-size))
+       :ontology *ontology* :primitive-inventory *irl-primitives*
+       :configurations '((:max-search-depth . 4))))
 
 (get-all-solutions *my-composer-3*)
 ;; This returns two (semantically equivalent) solutions. E.g.:

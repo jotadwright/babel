@@ -72,7 +72,6 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
             ,(make-html (chunk result) :expand-initially t
                         :expand/collapse-all-id chunk-id)))
           ;; evaluation tree
-          ;; extract only the path to the composer's target entity
           ((tr)
            ((td :class "cer-details") "evaluation process")
            ((td :class "cer-details")
@@ -127,6 +126,7 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
     (duplicate . "#520")
     (solution . "#050")
     (bad-evaluation-results . "#822")
+    (match-chunk-failed . "#822")
     (no-evaluation-results . "#337")
     (expanded . "#480")
     (max-depth-reached . "#888")))
