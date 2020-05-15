@@ -5,16 +5,14 @@
 ;; ##################
 
 (define-configuration-default-value :dot-interval 100)
-(define-configuration-default-value :clevr-data-path
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR" "CLEVR-holophrase-learning"))
-                     cl-user:*babel-corpora*))
-(define-configuration-default-value :data-sets '("num_objects_4"))
+(define-configuration-default-value :clevr-data-path *clevr-data-path*)
+(define-configuration-default-value :data-sets '("val"))
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
 ;; Available alignment strategies:
 ;; :no-alignment
 ;; :lateral-inhibition
-(define-configuration-default-value :alignment-strategy :no-alignment) 
+(define-configuration-default-value :alignment-strategy :lateral-inhibition) 
 (define-configuration-default-value :who-aligns? :learner)
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.1)
@@ -42,6 +40,15 @@
   ()
   (:documentation "QA Game"))
 
+(defun make-primitive-inventory (available-primitives)
+  ; copy primitives from *clevr-primitives*
+  (let ((inventory (def-irl-primitives :primitive-inventory *holophrase-primitives*)))
+    (loop for p in available-primitives
+          do (add-primitive
+              (find-primitive p *clevr-primitives*)
+              inventory))
+    inventory))
+
 (defmethod initialize-instance :after ((experiment holophrase-experiment) &key)
   "Create the world and the population of the experiment"
   (setf clevr-world:*clevr-data-path* (get-configuration experiment :clevr-data-path))
@@ -51,10 +58,10 @@
   (setf (population experiment)
         (list (make-instance 'holophrase-agent :id 'tutor :experiment experiment
                              :grammar *clevr* :ontology (copy-object *clevr-ontology*)
-                             :primitives (get-configuration experiment :available-primitives))
+                             :primitives (make-primitive-inventory (get-configuration experiment :available-primitives))
               (make-instance 'holophrase-agent :id 'learner :experiment experiment
                              :grammar (make-agent-cxn-set) :ontology (copy-object *clevr-ontology*)
-                             :primitives (get-configuration experiment :available-primitives))))
+                             :primitives (make-primitive-inventory (get-configuration experiment :available-primitives)))))
   (activate-monitor print-a-dot-for-each-interaction))
 
 ;; ################################
