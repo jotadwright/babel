@@ -46,5 +46,11 @@
 ;; (comprehend-and-extract-frames "The dog has a tendency to believe in everything.")
 ;; (comprehend-and-extract-frames "The Chinese have a strong tendency to believe he is right.")
 
+;; (comprehend-and-extract-frames "It is believed that he lives.")
+;; (comprehend-and-extract-frames "You could believe that he lives.")
+
+;; (comprehend-and-extract-frames "He is believed to be alive")
+
+
 
 
