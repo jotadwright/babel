@@ -321,26 +321,3 @@
           finally
           do (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens))))
           (return conll-sentences))))
-
-
-(defun test ()
-(let ((files nil))
-  (uiop/filesystem:collect-sub*directories
-   *propbank-annotations-directory*
-   ; always recurse
-   (constantly t)
-   ; always return t in collectp,
-   ; otherwise we won't continue recursing
-   (constantly t)
-   ; collect gold_conll files, when found in current dir
-   (lambda (it)
-     (let ((conll_files (directory
-                         (merge-pathnames
-                          (make-pathname :name :wild :type "gold_conll")
-                          it))))
-       (when conll_files
-         (setf files (append files conll_files))))))
-  (format t "Collected ~a files~%" (length files))
-  files)) ; return all files, only need to read them
-
-;; (test)
