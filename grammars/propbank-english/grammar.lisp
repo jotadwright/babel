@@ -15,6 +15,8 @@
                   (footprints set))
 
 ;;;arg-m cxns
+;to do: negation
+
 ;;without auxiliaries
 
 (def-fcg-cxn believe.01-arg-adv-cxn
@@ -115,7 +117,8 @@
                 (?x-unit
                  --
                  (parent ?s-unit)
-                 (lex-class prp)) 
+                 (lex-class prp)
+                 (dependency-label nsubj)) ;distinguish from believe-01-pass-subj-extraposition-cxn
                 (?s-unit
                  --
                  (phrase-type (s)))
@@ -1624,8 +1627,56 @@
 
 
     
-;;; adjectival complement cxns
-;; e.g. the chinese are willing to believe ... are eager to believe ...
+;;; to do: adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
+
+
+
+
+;;; to do: pure passive constructions e.g. It is believed that ..., it is believed to be the case that ...  
+
+  (def-fcg-cxn believe.01-pass-subj-extraposition-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believed ?o ?y-unit))))
+        
+                <-
+                (?subj-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp)
+                 (dependency-label nsubjpass)) ;distinguish from prp-aux-sentential-complement-cxn
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?vp-unit1
+                 --
+                 (parent ?vp-unit2)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                 (phrase-type (sbar)))))
+
+
+
+
+
+
+
+
+;;; to do: frames in subordinate clauses, e.g. I say this because I believe it is true
+
 
 
    )
