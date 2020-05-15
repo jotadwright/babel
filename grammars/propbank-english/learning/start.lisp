@@ -12,11 +12,9 @@
 (load-pb-data :store-data t :ignore-stored-data nil)
 (length *pb-data*)
 
-;; Loading the Propbank annotations (takes a minute to two minutes)
-(load-propbank-annotations :store-data t :ignore-stored-data t)
+;; Loading the Propbank annotations (takes a minute)
+(load-propbank-annotations :store-data t :ignore-stored-data nil)
 (length (train-split *propbank-annotations*))
-
-
 
 
 (defun all-rolesets-for-framenet-frame (framenet-frame-name)
@@ -31,15 +29,11 @@
 ;; (all-rolesets-for-framenet-frame 'opinion)
 
 
-#|
 (defun all-sentences-annotated-with-roleset (roleset)
-  (loop for sentence in *propbank-
-        for rolesets = (rolesets predicate)
-        for rolesets-for-framenet-frame = (loop for roleset in rolesets
-                                                    when (find framenet-frame-name (aliases roleset) :key #'framenet :test #'member)
-                                                    collect (id roleset))
-        when rolesets-for-framenet-frame
-        collect it))
+  (loop for sentence in (train-split *propbank-annotations*)
+        when (find roleset (propbank-frames sentence) :key #'frame-name :test #'string=)
+        collect sentence))
 
-;; (all-rolesets-for-framenet-frame 'opinion)
- |#
+;; (length (all-sentences-annotated-with-roleset "believe.01"))
+
+

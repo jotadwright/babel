@@ -48,6 +48,12 @@
     :documentation "The test split sentences."))
    (:documentation "Object holding the propbank annotations."))
 
+(defmethod print-object ((pa propbank-annotations) (stream t))
+  "Printing a conll token."
+  (format stream "<Propbank-annotations: train (~a), dev (~a), test (~a)>"
+          (length (train-split pa))
+          (length (dev-split pa))
+          (length (test-split pa))))
 
 ;; Token ;;
 ;;;;;;;;;;;
@@ -185,6 +191,9 @@
     :documentation "The propbank frames annotated in the sentence."))
    (:documentation "Representation of a conll sentence."))
 
+(defmethod print-object ((s conll-sentence) (stream t))
+  "Printing a frame."
+  (format stream "<Sentence: ~s>" (sentence-string s)))
 
 (defmethod initialize-instance :after ((sentence conll-sentence) &key &allow-other-keys)
   "Sets all other fields in conll-sentence based on the tokens."
