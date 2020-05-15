@@ -13,7 +13,7 @@
 (length *pb-data*)
 
 ;; Loading the Propbank annotations (takes a minute to two minutes)
-(time (load-propbank-annotations :store-data t :ignore-stored-data t))
+(load-propbank-annotations :store-data t :ignore-stored-data t)
 (length (train-split *propbank-annotations*))
 
 

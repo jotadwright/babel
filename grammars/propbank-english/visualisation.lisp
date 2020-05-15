@@ -183,21 +183,21 @@
                       (expand-initially nil))
   "Visualising a frame."
   `((div :class "entity")
-    ,(let ((element-id (make-id (id e))))
+    ,(let ((element-id (make-id (irl:id e))))
           (make-expandable/collapsable-element 
            element-id expand/collapse-all-id
            `((div :class "entity-box")
              ((div :class "entity-title")
               ((a ,@(make-expand/collapse-link-parameters 
                      element-id t "expand entity")
-                  :name ,(mkstr (id e)))
+                  :name ,(mkstr (irl:id e)))
                ,(format nil "Frame set"))))
            (lambda ()
              `((div :class "entity-box")
                ((div :class "entity-title")
                 ((a ,@(make-expand/collapse-link-parameters element-id nil 
                                                             "collapse entity")
-                    :name ,(mkstr (id e)))
+                    :name ,(mkstr (irl:id e)))
                  ,(format nil "Frame set")))
                ((table :class "entity" :cellpadding "0" :cellspacing "0") 
                 ((tr)
@@ -212,21 +212,21 @@
                       (expand-initially nil))
   "Visualising a frame set."
   `((div :class "entity")
-    ,(let ((element-id (make-id (id e))))
+    ,(let ((element-id (make-id (irl:id e))))
           (make-expandable/collapsable-element 
            element-id expand/collapse-all-id
            `((div :class "entity-box")
              ((div :class "entity-title")
               ((a ,@(make-expand/collapse-link-parameters 
                      element-id t "expand entity")
-                  :name ,(mkstr (id e)))
+                  :name ,(mkstr (irl:id e)))
                ,(format nil "~(~a~)" (frame-name e)))))
            (lambda ()
              `((div :class "entity-box")
                ((div :class "entity-title")
                 ((a ,@(make-expand/collapse-link-parameters element-id nil 
                                                             "collapse entity")
-                    :name ,(mkstr (id e)))
+                    :name ,(mkstr (irl:id e)))
                  ,(format nil "~(~a~)" (frame-name e))))
                ((table :class "entity" :cellpadding "0" :cellspacing "0") 
                 ((tr)

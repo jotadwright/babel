@@ -301,40 +301,12 @@
 (defun load-split-from-files (file-names-for-split)
   (loop for file in file-names-for-split
         if (probe-file file)
-       ; do (format t "Loading ~a~%" file)
         append (read-propbank-conll-file file)
         into sentences
         else
         do (warn (format nil "File not found: ~s." file))
         finally
         do (return sentences)))
-  
-#|
-(defun load-propbank-annotations-from-files ()
-  "Loads all framesets and returns the predicate objects."
-  (loop for file in (let ((files nil))
-                      (uiop/filesystem:collect-sub*directories
-                       *propbank-annotations-directory*
-                       ;; always recurse
-                       (constantly t)
-                       ;; always return t in collectp,
-                       ;; otherwise we won't continue recursing
-                       (constantly t)
-                       ;; collect gold_conll files, when found in current dir
-                       (lambda (it)
-                         (let ((conll_files (directory
-                                             (merge-pathnames
-                                              (make-pathname :name :wild :type "gold_conll")
-                                              it))))
-                           (when conll_files
-                             (setf files (append files conll_files))))))
-                      (format t "Collected ~a files~%" (length files))
-                      files)
-        do (format t "Loading ~a~%" file)
-        append (read-propbank-conll-file file)))
-|#
-
-; (load-propbank-annotations-from-files)
 
 (defun read-propbank-conll-file (pathname)
   "Reads a propbank-conll file and returns a list of conll-sentence objects."
