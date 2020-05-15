@@ -18,4 +18,7 @@
                (:file "de-render")
                (:file "grammar")
                (:file "visualisation")
-               (:file "utils")))
+               (:file "utils")
+               (:module learning
+                :serial t
+                :components ((:file "propbank-annotations")))))

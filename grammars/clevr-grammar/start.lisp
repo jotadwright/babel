@@ -3,24 +3,29 @@
 (activate-monitor trace-fcg)
 
 
-;; Seq2seq example:
-(set-configurations *fcg-constructions*
-                    '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-                      (:priority-mode . :seq2seq-heuristic-additive)
-                      (:seq2seq-endpoint . "http://localhost:8888/next-cxn")))
-
+;; Seq2seq configurations:
 (set-configurations *fcg-constructions*
                     '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
                       (:priority-mode . :seq2seq-heuristic-log-sum)
                       (:seq2seq-endpoint . "http://localhost:8888/next-cxn")))
+
+;; depth first configurations:
+(set-configurations *fcg-constructions*
+                    '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                      (:priority-mode . :nr-of-applied-cxns)))
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
 (comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
 (comprehend "How many blue metal things are left of the green ball and behind the red thing?")
 (comprehend "Do the large metal cube left of the red thing and the small cylinder have the same color?")
 
+(comprehend-and-formulate "What size is the blue metal thing left of the green ball behind the red thing?")
+(comprehend-and-formulate "How many blue metal things are left of the green ball and behind the red thing?")
+(comprehend-and-formulate "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+(comprehend-and-formulate "Do the large metal cube left of the red thing and the small cylinder have the same color?")
+
 ;; zero hop
-(formulate
+(formulate-all
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -29,7 +34,7 @@
    (bind color-category color-1 blue)))
 
 ;; one hop
-(formulate
+(formulate-all
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -162,7 +167,7 @@
    (bind shape-category shape-2 cube)
    (bind color-category color-2 red)))
 
-;; comparison (needs bugfix!!)
+;; comparison (takes long)
 (formulate
  '((get-context context)
    (filter set-1 context shape-1)
@@ -185,11 +190,6 @@
    (bind shape-category shape-2 thing)
    (bind color-category color-2 red)))
 
-;; depth-first example:
-
-(set-configurations *fcg-constructions* '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                                          (:priority-mode . :nr-of-applied-cxns)))
-
 (comprehend-and-formulate "Do the blue thing and the red thing have the same shape?")
 (comprehend-and-formulate "Is the shape of the blue thing the same as the red thing?")
 (comprehend-and-formulate "Is the blue thing the same shape as the red thing?")
@@ -197,11 +197,6 @@
 (comprehend-and-formulate "There is a blue thing; does it have the same shape as the red thing?")
 (comprehend-and-formulate "There is a blue thing; is it the same shape as the red thing?")
 (comprehend-and-formulate "There is a blue thing; is its shape the same as the red thing?")
-
-(comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
-(comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
-(comprehend "How many blue metal things are left of the green ball and behind the red thing?")
-(comprehend "Do the large metal cube left of the red thing and the small cylinder have the same color?")
 
 (formulate
  '((get-context context)

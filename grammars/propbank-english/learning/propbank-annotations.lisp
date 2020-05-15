@@ -11,7 +11,7 @@
 ;;;;;;;;;;;;;;;;
 
 ;; Pointer to propbank annotated corpora
-(defparameter *propbank-annotations-directory* (merge-pathnames "English/propbank-release/data/ontonotes/bc/cnn/00/" *babel-corpora*))
+(defparameter *propbank-annotations-directory* (merge-pathnames "English/propbank-release/data/ontonotes/" *babel-corpora*))
 
 ;; Global variable where propbank annotations will be loaded.
 (defparameter *propbank-annotations* "Propbank annotations will be stored here.")
@@ -77,7 +77,9 @@
     :documentation "A list of propbank roles for this token."))
    (:documentation "Representation of a conll token."))
 
-
+(defmethod print-object ((token conll-token) (stream t))
+  "Printing a conll token."
+  (format stream "<Token: ~s>" (token-string token)))
 
 ;; Frame ;;
 ;;;;;;;;;;;
@@ -99,6 +101,9 @@
     :documentation "The list of frame roles."))
    (:documentation "Representation of a propbank frame."))
 
+(defmethod print-object ((frame propbank-frame) (stream t))
+  "Printing a frame."
+  (format stream "<Frame: ~s>" (frame-name frame)))
 
 ;; Frame Role ;;
 ;;;;;;;;;;;;;;;;
@@ -120,6 +125,10 @@
     :initform nil 
     :documentation "The string of the words belonging to the role."))
    (:documentation "Representation of a propbank frame role."))
+
+(defmethod print-object ((role propbank-frame-role) (stream t))
+  "Printing a frame."
+  (format stream "<Role: ~s>" (role-type role)))
 
 
 ;; sentence ;;
@@ -249,25 +258,32 @@
                           (not (probe-file *propbank-annoations-storage-file*))))
     (cl-store:store *propbank-annotations* *propbank-annoations-storage-file*))
   ;; Finally return pb-data
-  (format nil "Loaded ~a annotated sentences into *propbank-annotations*" (length *propbank-annotations*)))
+  (format nil "Loaded ~a annotated sentences into *propbank-annotations*." (length *propbank-annotations*)))
 
 (defun load-propbank-annotations-from-files ()
   "Loads all framesets and returns the predicate objects."
-  (loop for file in (directory (merge-pathnames
-                                (make-pathname :name :wild :type "gold_conll")
-                                *propbank-annotations-directory*))
+  (loop for file in (let ((files nil))
+                      (uiop/filesystem:collect-sub*directories
+                       *propbank-annotations-directory*
+                       ;; always recurse
+                       (constantly t)
+                       ;; always return t in collectp,
+                       ;; otherwise we won't continue recursing
+                       (constantly t)
+                       ;; collect gold_conll files, when found in current dir
+                       (lambda (it)
+                         (let ((conll_files (directory
+                                             (merge-pathnames
+                                              (make-pathname :name :wild :type "gold_conll")
+                                              it))))
+                           (when conll_files
+                             (setf files (append files conll_files))))))
+                      (format t "Collected ~a files~%" (length files))
+                      files)
         do (format t "Loading ~a~%" file)
         append (read-propbank-conll-file file)))
 
 ; (load-propbank-annotations-from-files)
-
-
-#|
-(directory (merge-pathnames
-            (make-pathname :name :wild :type "gold_conll")
-            (merge-pathnames "English/propbank-release/data/ontonotes/bc/cnn/" *babel-corpora*)))
-
-|#
 
 (defun read-propbank-conll-file (pathname)
   "Reads a propbank-conll file and returns a list of conll-sentence objects."
@@ -305,4 +321,3 @@
           finally
           do (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens))))
           (return conll-sentences))))
- 
