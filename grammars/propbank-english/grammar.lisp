@@ -13,8 +13,44 @@
                   (word-order set-of-predicates)
                   (meaning set-of-predicates)
                   (footprints set))
-;;;arg-m cxns
 
+;experiments with negation
+; neg with aux 
+
+    (def-fcg-cxn believe.01-arg-m-neg-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:arg-m-neg ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg-m-neg ?o ?rb-unit))))
+                 <-
+                 (?s-unit
+                 --
+                 (phrase-type (s)))
+                 (?rb-unit
+                 --
+                 (parent ?vp-unit2)
+                 (lex-class rb)
+                 (dependency-label neg))                 
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                (parent ?vp-unit2))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
+
+
+
+
+  
+;;;arg-m cxns
 ;;without auxiliaries
 
 (def-fcg-cxn believe.01-arg-adv-cxn
@@ -55,7 +91,8 @@
                  (?rb-unit
                  --
                  (parent ?vp-unit2)
-                 (lex-class rb))                 
+                 (lex-class rb)
+                 (dependency-label advmod))                 
                 (?vp-unit2
                  --
                  (phrase-type (vp))
@@ -1958,9 +1995,9 @@ to do:
 
 frames in subordinate clauses, e.g. I say this because I believe it is true
 
-add nnp, nns, etc. in subject positions
+Generalize nnp, nns, etc. in subject and object positions using dependency labels?
 
-negation
+FEE = 'rel' in propbank
 
 adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
 

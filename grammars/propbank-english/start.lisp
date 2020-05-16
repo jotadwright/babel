@@ -37,13 +37,13 @@
 ;; (comprehend-and-extract-frames "Winston barely believes in himself.")
 
 ;; (comprehend-and-extract-frames "You could believe that Seymour cray could do it again.")
-;; (comprehend-and-extract-frames "The man could believe that Seymour cray could do it again.")
+;; (comprehend-and-extract-frames "The man could not believe that Seymour cray could do it again.")
 ;; (comprehend-and-extract-frames "Winston could hardly believe that Seymour cray would say something like that.")
 
 ;; (comprehend-and-extract-frames "He is believed to be the first to discover a vaccine.")
 
 ;; (comprehend-and-extract-frames "The dog has a tendency to believe in everything.")
-;; (comprehend-and-extract-frames "The Chinese have a strong tendency to believe he is right.")
+;; (comprehend-and-extract-frames "The Chinese have a strong tendency to not believe he is right.")
 
 ;; (comprehend-and-extract-frames "It is believed that he lives.")
 ;; (comprehend-and-extract-frames "You could believe that he lives.")
@@ -59,9 +59,7 @@
 ;; (comprehend-and-extract-frames "Winston is believed by them.")
 
 
-
-
-;;
+;; (comprehend-and-extract-frames "He doesn't believe the answer.")
 
 
 
