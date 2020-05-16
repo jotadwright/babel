@@ -55,7 +55,11 @@
 ;; (comprehend-and-extract-frames "It is believed by them")
 
 ;; (comprehend-and-extract-frames "He is believed by them.")
-;; (comprehend-and-extract-frames "He could believe in himself.")
+;; (comprehend-and-extract-frames "The large dogs are believed by them.")
+
+
+
+;;
 
 
 
