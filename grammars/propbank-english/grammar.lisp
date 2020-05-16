@@ -14,8 +14,8 @@
                   (meaning set-of-predicates)
                   (footprints set))
 
-;experiments with negation
-; neg with aux 
+;;;arg-m-cxns
+;;arg-m-neg-cxns
 
     (def-fcg-cxn believe.01-arg-m-neg-cxn
                ((?believe-unit
@@ -25,9 +25,6 @@
                  (meaning ((frame believe.01 ?o)
                            (frame-element arg-m-neg ?o ?rb-unit))))
                  <-
-                 (?s-unit
-                 --
-                 (phrase-type (s)))
                  (?rb-unit
                  --
                  (parent ?vp-unit2)
@@ -35,8 +32,7 @@
                  (dependency-label neg))                 
                 (?vp-unit2
                  --
-                 (phrase-type (vp))
-                 (parent ?s-unit))
+                 (phrase-type (vp)))
                 (?vp-unit1
                  --
                  (phrase-type (vp))
@@ -46,14 +42,9 @@
                  (lemma believe)
                  (parent ?vp-unit1))))
 
+;;arg-m-adv-cxns
 
-
-
-  
-;;;arg-m cxns
-;;without auxiliaries
-
-(def-fcg-cxn believe.01-arg-adv-cxn
+(def-fcg-cxn believe.01-arg-m-adv-cxn
                ((?believe-unit
                  (args (referent ?o) 
                   (:arg-m-adv ?beta-unit))
@@ -73,9 +64,6 @@
                  (lemma believe)
                  (parent ?vp-unit))))
 
-  
-
-;;with auxiliaries
 
     (def-fcg-cxn believe.01-aux-arg-m-adv-cxn
                ((?believe-unit
@@ -85,9 +73,6 @@
                  (meaning ((frame believe.01 ?o)
                            (frame-element arg-m-adv ?o ?rb-unit))))
                  <-
-                 (?s-unit
-                 --
-                 (phrase-type (s)))
                  (?rb-unit
                  --
                  (parent ?vp-unit2)
@@ -95,8 +80,7 @@
                  (dependency-label advmod))                 
                 (?vp-unit2
                  --
-                 (phrase-type (vp))
-                 (parent ?s-unit))
+                 (phrase-type (vp)))
                 (?vp-unit1
                  --
                  (phrase-type (vp))
@@ -105,7 +89,8 @@
                  --
                  (lemma believe)
                  (parent ?vp-unit1))))
-    
+
+;;arg-m-mod-cxns
 
         (def-fcg-cxn believe.01-aux-arg-m-mod-cxn
                ((?believe-unit
@@ -1997,7 +1982,7 @@ frames in subordinate clauses, e.g. I say this because I believe it is true
 
 Generalize nnp, nns, etc. in subject and object positions using dependency labels?
 
-FEE = 'rel' in propbank
+FEE = 'rel' in propbank (add frame-element rel believe to each cxn)
 
 adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
 

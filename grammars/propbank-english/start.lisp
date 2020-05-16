@@ -59,7 +59,7 @@
 ;; (comprehend-and-extract-frames "Winston is believed by them.")
 
 
-;; (comprehend-and-extract-frames "He doesn't believe the answer.")
+;; (comprehend-and-extract-frames "He usually believes the answer.")
 
 
 
