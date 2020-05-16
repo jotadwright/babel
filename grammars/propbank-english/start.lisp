@@ -1,5 +1,4 @@
 
-
 ;; (ql:quickload :propbank-english)
 (in-package :propbank-english)
 
@@ -49,12 +48,12 @@
 ;; (comprehend-and-extract-frames "It is believed that he lives.")
 ;; (comprehend-and-extract-frames "You could believe that he lives.")
 
-;; (comprehend-and-extract-frames "This is believed to be true")
+;; (comprehend-and-extract-frames "This is believed")
 
 ;; (comprehend-and-extract-frames "The story is believed by them")
 ;; (comprehend-and-extract-frames "It is believed by them")
 
-;; (comprehend-and-extract-frames "This is believed.")
+;; (comprehend-and-extract-frames "This is believed by them.")
 
 
 

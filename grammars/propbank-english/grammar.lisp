@@ -1666,7 +1666,7 @@
 ;;;passive constructions
 ;;general passive constructions
 
-  (def-fcg-cxn believe.01-prp-passive-cxn
+  (def-fcg-cxn believe.01-prp-passive-cxn; opinion?
                ((?believe-unit
                  (args (referent ?o)
                        (:arg1 ?y-unit))
@@ -1753,7 +1753,7 @@
                  (parent ?vp-unit))))
   
 
-  (def-fcg-cxn believe.01-nn-passive-cxn
+  (def-fcg-cxn believe.01-nn-passive-cxn ;opinion?
                ((?believe-unit
                  (args (referent ?o)
                        (:arg1 ?y-unit))
@@ -1808,7 +1808,9 @@
                 (?believe-unit
                  --
                  (lemma believe)
-                 (parent ?vp-unit))))
+                 (parent ?vp-unit)))))
+       
+
 
 
 
@@ -1823,14 +1825,55 @@
 ;;; to do: adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
 
 
-   )
+
+#| 
+
+
+
+;;; wip
 
 
 
 
+;;passive-pps xcns (e.g. "this is believed by the consortium")
+
+        (def-fcg-cxn believe.01-dt-passive-pp-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class dt))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+               (?pp-unit
+                --
+                ())
 
 
 ;;; examples
+
+
+
+
 
  (def-fcg-cxn proper-noun-feel-y-cxn
                ((?feel-unit
@@ -1958,7 +2001,7 @@
                :disable-automatic-footprints t)
 
 
-
+ |# 
 
 (make-propbank-english-cxns)
 
