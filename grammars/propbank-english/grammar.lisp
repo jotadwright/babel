@@ -1811,7 +1811,7 @@
                 (?believe-unit
                  --
                  (lemma believe)
-                 (parent ?vp-unit)))))
+                 (parent ?vp-unit))))
 
 ;;passive-prp-cxns e. "He is believed by them."
 
@@ -1859,7 +1859,6 @@
                 (dependency-label pobj))))
 
 
-
       (def-fcg-cxn believe.01-np-passive-pp-cxn
                  ((?believe-unit
                  (args (referent ?o)
@@ -1880,6 +1879,50 @@
                 (?nn-unit
                  --
                  (parent ?y-unit)
+                 (dependency-label nsubjpass))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit2)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+               (?pp-unit
+                --
+                (phrase-type (pp))
+                (parent ?vp-unit1))
+               (?x-unit
+                --
+                (parent ?pp-unit)
+                (dependency-label pobj))))
+
+
+            (def-fcg-cxn believe.01-nnp-passive-pp-cxn
+                 ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp)
                  (dependency-label nsubjpass))
                 (?vp-unit2
                  --

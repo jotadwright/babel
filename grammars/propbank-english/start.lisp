@@ -56,6 +56,8 @@
 
 ;; (comprehend-and-extract-frames "He is believed by them.")
 ;; (comprehend-and-extract-frames "The large dogs are believed by them.")
+;; (comprehend-and-extract-frames "Winston is believed by them.")
+
 
 
 
