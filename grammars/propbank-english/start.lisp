@@ -33,7 +33,7 @@
 ;; (comprehend-and-extract-frames "She believes that he is right.")
 ;; (comprehend-and-extract-frames "Winston believes that he is right.")
 ;; (comprehend-and-extract-frames "The dog believes that he is right.")
-;; (comprehend-and-extract-frames "Dogs believe that he is right.") ;check
+;; (comprehend-and-extract-frames "Dogs believe that he is right.") 
 ;; (comprehend-and-extract-frames "She believes he is right.")
 ;; (comprehend-and-extract-frames "She does not believe that he is right.")
 ;; (comprehend-and-extract-frames "She strongly believes that he is right.")
@@ -41,7 +41,7 @@
 ;; (comprehend-and-extract-frames "She could believe that he is right.")
 ;; (comprehend-and-extract-frames "Winston could believe that he is right.")
 ;; (comprehend-and-extract-frames "The dog could believe that he is right.")
-;; (comprehend-and-extract-frames "Dogs could believe that he is right.") ;check
+;; (comprehend-and-extract-frames "Dogs could believe that he is right.") 
 ;; (comprehend-and-extract-frames "She could believe he is right.")
 ;; (comprehend-and-extract-frames "She could barely believe that he is right.")
 ;; (comprehend-and-extract-frames "She could not believe that he is right.")
@@ -49,12 +49,12 @@
 ;; (comprehend-and-extract-frames "She believes in it.")
 ;; (comprehend-and-extract-frames "Winston believes in it.")
 ;; (comprehend-and-extract-frames "The dog believes in it.")
-;; (comprehend-and-extract-frames "Dogs believe in it.") ;check
+;; (comprehend-and-extract-frames "Dogs believe in it.")
 ;; (comprehend-and-extract-frames "She does not believe in it.")
 ;; (comprehend-and-extract-frames "She strongly believes in it.")
 
 ;; (comprehend-and-extract-frames "She could believe in it.")
-;; (comprehend-and-extract-frames "Winston could believe in it.")
+;; (comprehend-and-extract-frames "Winston could believe in it.") ;check
 ;; (comprehend-and-extract-frames "The dog could believe in it.") ;check
 ;; (comprehend-and-extract-frames "Dogs could believe in it.") ;check
 ;; (comprehend-and-extract-frames "She could not believe in it.")
