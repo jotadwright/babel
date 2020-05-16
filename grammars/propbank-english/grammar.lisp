@@ -13,7 +13,6 @@
                   (word-order set-of-predicates)
                   (meaning set-of-predicates)
                   (footprints set))
-
 ;;;arg-m cxns
 
 ;;without auxiliaries
@@ -388,7 +387,8 @@
                 (?x-unit
                  --
                  (parent ?s-unit)
-                 (lex-class prp))
+                 (lex-class prp)
+                 (dependency-label nsubj)) ;distinguish from believe-01-prp-passive-cxn
                 (?s-unit
                  --
                  (phrase-type (s)))
@@ -407,7 +407,7 @@
                 (?y-unit
                  --
                  (parent ?vp-unit1)
-                 (phrase-type (pp))) ))
+                 (phrase-type (pp)))))
 
 
       (def-fcg-cxn believe.01-nnp-aux-prepositional-complement-cxn
@@ -423,7 +423,8 @@
                 (?x-unit
                  --
                  (parent ?s-unit)
-                 (lex-class nnp))
+                 (lex-class nnp)
+                 (dependency-label nsubj))
                 (?s-unit
                  --
                  (phrase-type (s)))
@@ -458,7 +459,8 @@
                 (?x-unit
                  --
                  (parent ?s-unit)
-                 (phrase-type (np)))
+                 (phrase-type (np))
+                 (dependency-label nsubj))
                 (?s-unit
                  --
                  (phrase-type (s)))
@@ -493,7 +495,8 @@
                 (?x-unit
                  --
                  (parent ?s-unit)
-                 (lex-class nn))
+                 (lex-class nn)
+                 (dependency-label nsubj))
                 (?s-unit
                  --
                  (phrase-type (s)))
@@ -1810,6 +1813,53 @@
                  (lemma believe)
                  (parent ?vp-unit)))))
 
+;;passive-prp-cxns e. "He is believed by them."
+
+      (def-fcg-cxn believe.01-prp-passive-pp-cxn
+                 ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp)
+                 (dependency-label nsubjpass))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit2)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+               (?pp-unit
+                --
+                (phrase-type (pp))
+                (parent ?vp-unit1))
+               (?x-unit
+                --
+                (parent ?pp-unit)
+                (dependency-label pobj))))
+                        
+)
+
 
 
 #| 
@@ -1822,41 +1872,6 @@ add nnp, nns, etc. in subject positions
 negation
 
 adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
-
-
-;;passive-pps xcns (e.g. "this is believed by the consortium")
-
-        (def-fcg-cxn believe.01-dt-passive-pp-cxn
-               ((?believe-unit
-                 (args (referent ?o)
-                       (:arg1 ?y-unit))
-                 (frame-evoking +)
-                 (meaning ((frame believe.01 ?o)
-                            (frame-element believed ?o ?y-unit))))
-                <-
-                (?s-unit
-                 --
-                 (phrase-type (s)))
-                (?y-unit
-                 --
-                 (parent ?s-unit)
-                 (lex-class dt))
-                (?vp-unit
-                 --
-                 (phrase-type (vp))
-                 (parent ?s-unit))
-                (?auxpass-unit
-                 --
-                 (parent ?vp-unit)
-                 (dependency-label auxpass))
-                (?believe-unit
-                 --
-                 (lemma believe)
-                 (parent ?vp-unit))
-               (?pp-unit
-                --
-                ())
-
 
 ;;; examples
 

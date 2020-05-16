@@ -49,12 +49,13 @@
 ;; (comprehend-and-extract-frames "You could believe that he lives.")
 
 ;; (comprehend-and-extract-frames "This is believed")
+;; (comprehend-and-extract-frames "He is believed.")
 
 ;; (comprehend-and-extract-frames "The story is believed by them")
 ;; (comprehend-and-extract-frames "It is believed by them")
 
-;; (comprehend-and-extract-frames "This is believed by them.")
-
+;; (comprehend-and-extract-frames "He is believed by them.")
+;; (comprehend-and-extract-frames "He could believe in himself.")
 
 
 
