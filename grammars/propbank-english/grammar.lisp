@@ -1809,30 +1809,19 @@
                  --
                  (lemma believe)
                  (parent ?vp-unit)))))
-       
-
-
-
-
-
-
-;;; to do: frames in subordinate clauses, e.g. I say this because I believe it is true
-
-;;; to do: add nnp, nns, etc. in subject positions
-
-;;; to do: negation
-
-;;; to do: adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
 
 
 
 #| 
+to do:
 
+frames in subordinate clauses, e.g. I say this because I believe it is true
 
+add nnp, nns, etc. in subject positions
 
-;;; wip
+negation
 
-
+adjectival complement cxns  e.g. the chinese are willing to believe ... are eager to believe ...
 
 
 ;;passive-pps xcns (e.g. "this is believed by the consortium")
@@ -1870,10 +1859,6 @@
 
 
 ;;; examples
-
-
-
-
 
  (def-fcg-cxn proper-noun-feel-y-cxn
                ((?feel-unit
