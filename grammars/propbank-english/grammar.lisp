@@ -1606,6 +1606,49 @@
                  (phrase-type (s vp))
                  (parent ?vp-unit1))))
 
+      (def-fcg-cxn believe.01-dt-sentential-complement-pass-extraction-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit)
+                       (:arg2 ?z-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)  
+                           (frame-element believed ?o ?y-unit)
+                           (frame-element attribute ?o ?z-unit))));attribute, y-unit is believed to be what?
+                <-
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class dt))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?aux-unit
+                 --
+                 (lemma be)
+                 (parent ?vp-unit2))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                --
+                (phrase-type (vp))
+                (parent ?vp-unit2))
+                        
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?z-unit
+                 --
+                 (phrase-type (s vp))
+                 (parent ?vp-unit1))))
+
+      
+
 
 ;;; clausal complement cxns
 
