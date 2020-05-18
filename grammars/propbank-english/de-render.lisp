@@ -10,7 +10,7 @@
                               for node-id = (node-id node)
                               for node-type = (node-type node)
                               if (equal node-type 'phrase)
-                              collect (cons node-id (make-const (format nil "~{~a-~^ ~}" (node-phrase-types node))))
+                              collect (cons node-id (make-const (format nil "~{~a-~}" (node-phrase-types node))))
                               else
                               collect (cons node-id (make-const (node-string node)))))
          ;; Make units
@@ -51,7 +51,7 @@
          (transient-structure (make-instance 'coupled-feature-structure 
                                              :left-pole units
                                              :right-pole '((root)))))
-   (values transient-structure unit-name-ids)))
+    transient-structure))
 
 
 (defun find-adjacency-constraints (node-id spacy-benepar-analysis unit-name-ids)
