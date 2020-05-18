@@ -54,30 +54,30 @@
 ;; (comprehend-and-extract-frames "She strongly believes in it.")
 
 ;; (comprehend-and-extract-frames "She could believe in it.")
-;; (comprehend-and-extract-frames "Winston could believe in it.") ;check
-;; (comprehend-and-extract-frames "The dog could believe in it.") ;check
-;; (comprehend-and-extract-frames "Dogs could believe in it.") ;check
+;; (comprehend-and-extract-frames "Winston could believe in it.")
+;; (comprehend-and-extract-frames "The dog could believe in it.")
+;; (comprehend-and-extract-frames "Dogs could believe in it.")
 ;; (comprehend-and-extract-frames "She could not believe in it.")
 ;; (comprehend-and-extract-frames "She could strongly believe in it.")
 
 ;; (comprehend-and-extract-frames "She could believe the article.")
 ;; (comprehend-and-extract-frames "Winston could believe the article.")
 ;; (comprehend-and-extract-frames "The dog could believe the article.")
-;; (comprehend-and-extract-frames "Dogs believe the article.") ;check
+;; (comprehend-and-extract-frames "Dogs believe the article.") 
 ;; (comprehend-and-extract-frames "She could not believe the article.")
 ;; (comprehend-and-extract-frames "She could strongly believe the article.")
 
 ;; (comprehend-and-extract-frames "She believes the article.")
 ;; (comprehend-and-extract-frames "Winston believes the article.")
 ;; (comprehend-and-extract-frames "The dog believes the article.")
-;; (comprehend-and-extract-frames "Dogs believe the article.") ;check
+;; (comprehend-and-extract-frames "Dogs believe the article.")
 ;; (comprehend-and-extract-frames "She does not believe the article.")
 ;; (comprehend-and-extract-frames "She strongly believes the article.")
 
 ;; (comprehend-and-extract-frames "She is believed to be right.")
 ;; (comprehend-and-extract-frames "Winston is believed to be right.")
 ;; (comprehend-and-extract-frames "The dog is believed to be right.")
-;; (comprehend-and-extract-frames "Dogs are believed to be right.") ;check
+;; (comprehend-and-extract-frames "Dogs are believed to be right.") 
 ;; (comprehend-and-extract-frames "This is believed to be right.")
 ;; (comprehend-and-extract-frames "The article is not believed to be right.")
 ;; (comprehend-and-extract-frames "The article could not be believed to be right") ;check

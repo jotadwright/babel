@@ -580,8 +580,11 @@
                 (?x-unit
                  --
                  (parent ?s-unit)
-                 (phrase-type (np))
-                 (dependency-label nsubj))
+                 (phrase-type (np)))
+                 (?nsubj-unit
+                  --
+                  (parent ?x-unit)
+                  (dependency-label nsubj))
                 (?s-unit
                  --
                  (phrase-type (s)))
@@ -600,7 +603,7 @@
                 (?y-unit
                  --
                  (parent ?vp-unit1)
-                 (phrase-type (pp))) ))
+                 (phrase-type (pp)))))
 
 
 
@@ -727,7 +730,7 @@
                 (?x-unit
                  --
                  (parent ?s-unit)
-                 (lex-class nns)
+                 (lex-class nnp)
                  (dependency-label nsubj))
                 (?s-unit
                  --
@@ -1266,7 +1269,7 @@
                 (?x-unit
                  --
                  (parent ?s-unit)
-                 (lex-class nn))
+                 (lex-class nns))
                 (?s-unit
                  --
                  (phrase-type (s)))
