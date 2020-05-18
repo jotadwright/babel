@@ -1,7 +1,7 @@
 (in-package :propbank-english)
 
 (defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
-                      &key cxn-inventory &allow-other-keys)
+                      &key &allow-other-keys)
   "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
   (let* (;; Query the penelope API for a syntactic analysis
          (spacy-benepar-analysis (nlp-tools:get-penelope-syntactic-analysis utterance))
@@ -51,7 +51,7 @@
          (transient-structure (make-instance 'coupled-feature-structure 
                                              :left-pole units
                                              :right-pole '((root)))))
-    transient-structure))
+   (values transient-structure unit-name-ids)))
 
 
 (defun find-adjacency-constraints (node-id spacy-benepar-analysis unit-name-ids)
