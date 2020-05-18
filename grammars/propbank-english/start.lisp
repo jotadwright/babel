@@ -54,42 +54,46 @@
 ;; (comprehend-and-extract-frames "She strongly believes in it.")
 
 ;; (comprehend-and-extract-frames "She could believe in it.")
-;; (comprehend-and-extract-frames "Winston could believe in it.") ;check
-;; (comprehend-and-extract-frames "The dog could believe in it.") ;check
-;; (comprehend-and-extract-frames "Dogs could believe in it.") ;check
+;; (comprehend-and-extract-frames "Winston could believe in it.")
+;; (comprehend-and-extract-frames "The dog could believe in it.")
+;; (comprehend-and-extract-frames "Dogs could believe in it.")
 ;; (comprehend-and-extract-frames "She could not believe in it.")
 ;; (comprehend-and-extract-frames "She could strongly believe in it.")
 
 ;; (comprehend-and-extract-frames "She could believe the article.")
 ;; (comprehend-and-extract-frames "Winston could believe the article.")
 ;; (comprehend-and-extract-frames "The dog could believe the article.")
-;; (comprehend-and-extract-frames "Dogs believe the article.") ;check
+;; (comprehend-and-extract-frames "Dogs believe the article.") 
 ;; (comprehend-and-extract-frames "She could not believe the article.")
 ;; (comprehend-and-extract-frames "She could strongly believe the article.")
 
 ;; (comprehend-and-extract-frames "She believes the article.")
 ;; (comprehend-and-extract-frames "Winston believes the article.")
 ;; (comprehend-and-extract-frames "The dog believes the article.")
-;; (comprehend-and-extract-frames "Dogs believe the article.") ;check
+;; (comprehend-and-extract-frames "Dogs believe the article.")
 ;; (comprehend-and-extract-frames "She does not believe the article.")
 ;; (comprehend-and-extract-frames "She strongly believes the article.")
 
 ;; (comprehend-and-extract-frames "She is believed to be right.")
 ;; (comprehend-and-extract-frames "Winston is believed to be right.")
 ;; (comprehend-and-extract-frames "The dog is believed to be right.")
-;; (comprehend-and-extract-frames "Dogs are believed to be right.") ;check
+;; (comprehend-and-extract-frames "Dogs are believed to be right.") 
 ;; (comprehend-and-extract-frames "This is believed to be right.")
 ;; (comprehend-and-extract-frames "The article is not believed to be right.")
-;; (comprehend-and-extract-frames "The article could not be believed to be right") ;check
+;; (comprehend-and-extract-frames "The article could not be believed to be right") ;?check
 
 ;; (comprehend-and-extract-frames "The Chinese display a willingness to believe in the auspiciousness of just about anything!")
+;; (comprehend-and-extract-frames "He has a strong tendency to believe the story.")
+;; (comprehend-and-extract-frames "Winston has a strong tendency to believe the story.")
+;; (comprehend-and-extract-frames "The dog has a strong tendency to believe the story.")
+;; (comprehend-and-extract-frames "Politicians have a tendency to believe the story.")
 
 ;; (comprehend-and-extract-frames "She is willing to believe in him.")
 ;; (comprehend-and-extract-frames "Winston is willing to believe in him.")
 ;; (comprehend-and-extract-frames "The dog is willing to believe in him.")
 ;; (comprehend-and-extract-frames "Dogs are willing to believe in him.")
-;; (comprehend-and-extract-frames "She should be willing to believe in him.")
-;; (comprehend-and-extract-frames "She should not be willing to believe in him.")
+;; (comprehend-and-extract-frames "She should be willing to believe in him.") ;check 
+;; (comprehend-and-extract-frames "She should not be willing to believe in him.") ;check 
 
 ;; (comprehend-and-extract-frames "She is willing to believe that he is right.")
 ;; (comprehend-and-extract-frames "Winston is willing to believe that he is right.")
