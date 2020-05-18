@@ -21,4 +21,5 @@
                (:file "utils")
                (:module learning
                 :serial t
-                :components ((:file "propbank-annotations")))))
+                :components ((:file "propbank-annotations")
+                             (:file "learn-propbank-constructions")))))
