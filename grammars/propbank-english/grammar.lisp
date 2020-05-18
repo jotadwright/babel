@@ -3487,11 +3487,6 @@
                 (phrase-type (pp)))))
  
 
-
-
-
-
-
        
 ;;; passive constructions
 ;; passive subject extraposition construction
@@ -3823,11 +3818,13 @@
 
 to do:
 
-generalize clausal/adjectival complement cxcns to dobj lex-classes: e.g. 'He has a tendency to believe him, etc.'
+generalize clausal/adjectival/verbal complement cxcns to dobj lex-classes: e.g. 'He has a tendency to believe him, etc.' (= not specify y-unit lex-class/phrase type)
 
-frames in subordinate clauses, e.g. I say this because I believe it is true
+auxiliaries for passive cxns
 
 FEE = 'rel' in propbank (add frame-element rel believe to each cxn)
+
+Start generalizing cxns for test data
 
 
 ;;; examples
