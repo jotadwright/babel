@@ -122,6 +122,12 @@
 ;; (comprehend-and-extract-frames "Dogs intend to believe that he is right.")
 ;; (comprehend-and-extract-frames "She tends to not believe that he is right.")
 
+;; (comprehend-and-extract-frames "She intends to believe in the truth.")
+;; (comprehend-and-extract-frames "Winston intends to believe in the truth.")
+;; (comprehend-and-extract-frames "The dog intends to believe in the truth.")
+;; (comprehend-and-extract-frames "Dogs intend to believe in the truth.")
+;; (comprehend-and-extract-frames "She tends to not believe in the truth.")
+
 ;; (comprehend-and-extract-frames "It is believed that he is right.")
 ;; (comprehend-and-extract-frames "It should not be believed that he is right.") ;check
 
