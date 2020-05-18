@@ -99,8 +99,10 @@
 ;; (comprehend-and-extract-frames "Winston is willing to believe that he is right.")
 ;; (comprehend-and-extract-frames "The dog is willing to believe that he is right.")
 ;; (comprehend-and-extract-frames "Dogs are willing to believe that he is right.")
-;; (comprehend-and-extract-frames "She should be willing to believe that he is right.")
-;; (comprehend-and-extract-frames "She should not be willing to believe that he is right.")
+;; (comprehend-and-extract-frames "She should be willing to believe that he is right."); check
+;; (comprehend-and-extract-frames "She should not be willing to believe that he is right.") ;check
+
+
 
 ;; (comprehend-and-extract-frames "It is believed that he is right.")
 ;; (comprehend-and-extract-frames "It should not be believed that he is right.") ;check
