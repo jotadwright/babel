@@ -34,6 +34,19 @@
         when (find roleset (propbank-frames sentence) :key #'frame-name :test #'string=)
         collect sentence))
 
-;; (length (all-sentences-annotated-with-roleset "believe.01"))
+;; (length (all-sentences-annotated-with-roleset "say.01"))
 
 
+
+(defun learn-cxn-from-propbank-annotation (propbank-sentence roleset)
+  (let ((frame (find roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'string=))
+        (syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis (sentence-string propbank-sentence))))
+    syntactic-analysis
+
+  ))
+
+;; (learn-cxn-from-propbank-annotation *believe-sentence* "believe.01")
+
+(setf *believe-sentence* (second (all-sentences-annotated-with-roleset "believe.01")))
+
+(all-sentences-annotated-with-roleset "believe.01")
