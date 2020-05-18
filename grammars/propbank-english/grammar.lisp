@@ -3592,6 +3592,47 @@
                  (phrase-type (sbar)))))
 
 
+
+  (def-fcg-cxn believe.01-aux-pass-subj-extraposition-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believed ?o ?y-unit))))
+        
+                <-
+                (?subj-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp)
+                 (dependency-label nsubjpass)) ;distinguish from prp-aux-sentential-complement-cxn
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?vp-unit3
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?vp-unit2
+                 --
+                 (parent ?vp-unit3)
+                 (phrase-type (vp)))
+                (?vp-unit1
+                 --
+                 (parent ?vp-unit2)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                 (phrase-type (sbar)))))
+  
+
+
 ;;general passive constructions
 ; without auxiliaries
 

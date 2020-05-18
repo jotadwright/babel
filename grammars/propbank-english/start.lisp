@@ -131,6 +131,7 @@
 ;; (comprehend-and-extract-frames "She tends to not believe in the truth.")
 
 ;; (comprehend-and-extract-frames "It is believed that he is right.")
+;; (comprehend-and-extract-frames "It is believed to be true.")
 ;; (comprehend-and-extract-frames "It should not be believed that he is right.") ;check
 
 ;; (comprehend-and-extract-frames "She is believed.")
@@ -151,7 +152,7 @@
 ;; (comprehend-and-extract-frames "She should be believed by them.")
 ;; (comprehend-and-extract-frames "She should not readily be believed by them.") 
 
-;; (comprehend-and-extract-frames "She does not say it unless she believes in it.")
+;; (comprehend-and-extract-frames "She does not say it unless she honestly believes in it.")
 
 
 
