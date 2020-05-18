@@ -3527,6 +3527,36 @@
 
 
 ;;general passive constructions
+; without auxiliaries
+
+   (def-fcg-cxn believe.01-np-passive-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (np)))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+ 
 
   (def-fcg-cxn believe.01-prp-passive-cxn;
                ((?believe-unit
@@ -3557,63 +3587,6 @@
                  (parent ?vp-unit))))              
  
 
- (def-fcg-cxn believe.01-np-passive-cxn
-               ((?believe-unit
-                 (args (referent ?o)
-                       (:arg1 ?y-unit))
-                 (frame-evoking +)
-                 (meaning ((frame believe.01 ?o)
-                            (frame-element believed ?o ?y-unit))))
-                <-
-                (?s-unit
-                 --
-                 (phrase-type (s)))
-                (?y-unit
-                 --
-                 (parent ?s-unit)
-                 (phrase-type (np)))
-                (?vp-unit
-                 --
-                 (phrase-type (vp))
-                 (parent ?s-unit))
-                (?auxpass-unit
-                 --
-                 (parent ?vp-unit)
-                 (dependency-label auxpass))
-                (?believe-unit
-                 --
-                 (lemma believe)
-                 (parent ?vp-unit))))
- 
-
-  (def-fcg-cxn believe.01-nnp-passive-cxn
-               ((?believe-unit
-                 (args (referent ?o)
-                       (:arg1 ?y-unit))
-                 (frame-evoking +)
-                 (meaning ((frame believe.01 ?o)
-                            (frame-element believed ?o ?y-unit))))
-                <-
-                (?s-unit
-                 --
-                 (phrase-type (s)))
-                (?y-unit
-                 --
-                 (parent ?s-unit)
-                 (lex-class nnp))
-                (?vp-unit
-                 --
-                 (phrase-type (vp))
-                 (parent ?s-unit))
-                (?auxpass-unit
-                 --
-                 (parent ?vp-unit)
-                 (dependency-label auxpass))
-                (?believe-unit
-                 --
-                 (lemma believe)
-                 (parent ?vp-unit))))
-  
 
   (def-fcg-cxn believe.01-nn-passive-cxn 
                ((?believe-unit
@@ -3642,7 +3615,92 @@
                  --
                  (lemma believe)
                  (parent ?vp-unit))))
-  
+
+  (def-fcg-cxn believe.01-nns-passive-cxn 
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nns))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+
+
+    (def-fcg-cxn believe.01-nnp-passive-cxn 
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+
+      (def-fcg-cxn believe.01-nnps-passive-cxn 
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnps))
+                (?vp-unit
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))))
+
 
         (def-fcg-cxn believe.01-dt-passive-cxn
                ((?believe-unit
@@ -3672,11 +3730,230 @@
                  (lemma believe)
                  (parent ?vp-unit))))
 
+;passives with auxiliaries
 
-        
+  (def-fcg-cxn believe.01-prp-aux-passive-cxn;
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit1)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
 
-;;passive-prp-cxns e. "He is believed by them."
+    (def-fcg-cxn believe.01-np-aux-passive-cxn;
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (np)))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit1)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
 
+    
+  (def-fcg-cxn believe.01-nn-aux-passive-cxn;
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nn))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit1)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
+  
+  (def-fcg-cxn believe.01-nns-aux-passive-cxn;
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nns))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit1)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))    
+
+  (def-fcg-cxn believe.01-nnp-aux-passive-cxn;
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnp))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit1)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))    
+
+  (def-fcg-cxn believe.01-nnps-aux-passive-cxn;
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnps))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit1)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
+
+  (def-fcg-cxn believe.01-dt-aux-passive-cxn;
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                            (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class dt))
+                (?vp-unit2
+                 --
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit1)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))   
+
+  
+;;passive-pp-cxns e.g. "He is believed by them."
+; without auxiliaries 
+  
       (def-fcg-cxn believe.01-prp-passive-pp-cxn
                  ((?believe-unit
                  (args (referent ?o)
@@ -3768,7 +4045,94 @@
                 (dependency-label pobj))))
 
 
-            (def-fcg-cxn believe.01-nnp-passive-pp-cxn
+           (def-fcg-cxn believe.01-nn-passive-pp-cxn
+                 ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nn)
+                 (dependency-label nsubjpass))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit2)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+               (?pp-unit
+                --
+                (phrase-type (pp))
+                (parent ?vp-unit1))
+               (?x-unit
+                --
+                (parent ?pp-unit)
+                (dependency-label pobj))))
+                       
+
+            (def-fcg-cxn believe.01-nns-passive-pp-cxn
+                 ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nns)
+                 (dependency-label nsubjpass))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit2)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+               (?pp-unit
+                --
+                (phrase-type (pp))
+                (parent ?vp-unit1))
+               (?x-unit
+                --
+                (parent ?pp-unit)
+                (dependency-label pobj))))
+            
+          (def-fcg-cxn believe.01-nnp-passive-pp-cxn
                  ((?believe-unit
                  (args (referent ?o)
                        (:arg0 ?x-unit)
@@ -3810,6 +4174,52 @@
                 --
                 (parent ?pp-unit)
                 (dependency-label pobj))))
+
+          (def-fcg-cxn believe.01-nnps-passive-pp-cxn
+                 ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class nnps)
+                 (dependency-label nsubjpass))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit2)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+               (?pp-unit
+                --
+                (phrase-type (pp))
+                (parent ?vp-unit1))
+               (?x-unit
+                --
+                (parent ?pp-unit)
+                (dependency-label pobj))))
+
+
+            
                         
 )
 
@@ -3819,6 +4229,8 @@
 to do:
 
 generalize clausal/adjectival/verbal complement cxcns to dobj lex-classes: e.g. 'He has a tendency to believe him, etc.' (= not specify y-unit lex-class/phrase type)
+
+Idem for passive; capture more possibilitie in nsubjpass position
 
 auxiliaries for passive cxns
 
