@@ -85,7 +85,7 @@
 ;; (comprehend-and-extract-frames "The article could not be believed to be right") ;?check
 
 ;; (comprehend-and-extract-frames "The Chinese display a willingness to believe in the auspiciousness of just about anything!")
-;; (comprehend-and-extract-frames "He has a strong tendency to believe the story.")
+;; (comprehend-and-extract-frames "The man has a strong tendency to believe it.")
 ;; (comprehend-and-extract-frames "Winston has a strong tendency to believe the story.")
 ;; (comprehend-and-extract-frames "The dog has a strong tendency to believe the story.")
 ;; (comprehend-and-extract-frames "Politicians have a tendency to believe the story.")
@@ -132,7 +132,7 @@
 
 ;; (comprehend-and-extract-frames "It is believed that he is right.")
 ;; (comprehend-and-extract-frames "It is believed to be true.")
-;; (comprehend-and-extract-frames "It should not be believed that he is right.") ;check
+;; (comprehend-and-extract-frames "It should not be believed that he is right.") 
 
 ;; (comprehend-and-extract-frames "She is believed.")
 ;; (comprehend-and-extract-frames "Winston is believed.")
