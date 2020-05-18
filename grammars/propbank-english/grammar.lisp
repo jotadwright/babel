@@ -43,6 +43,39 @@
                  (lemma believe)
                  (parent ?vp-unit1))))
 
+
+        (def-fcg-cxn believe.01-pass-arg-m-neg-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:arg-m-neg ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg-m-neg ?o ?rb-unit))))
+                 <-
+                 (?rb-unit
+                 --
+                 (parent ?vp-unit3)
+                 (lex-class rb)
+                 (dependency-label neg))                 
+                (?vp-unit3
+                 --
+                 (phrase-type (vp)))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                (parent ?vp-unit3))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
+
+
+    
+
 ;;arg-m-adv-cxns
 
 (def-fcg-cxn believe.01-arg-m-adv-cxn
@@ -112,6 +145,39 @@
                  --
                  (phrase-type (vp))
                  (parent ?s-unit))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                (parent ?vp-unit2))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))))
+
+
+        (def-fcg-cxn believe.01-aux-pass-arg-m-mod-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:arg-m-mod ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg-m-mod ?o ?md-unit))))
+                 <-
+                 (?s-unit
+                 --
+                 (phrase-type (s)))
+                 (?vp-unit3
+                  --
+                  (phrase-type (vp))
+                  (parent ?s-unit))
+                 (?md-unit
+                 --
+                 (parent ?vp-unit3)
+                 (lex-class md))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit3))
                 (?vp-unit1
                  --
                  (phrase-type (vp))
@@ -4218,7 +4284,56 @@
                 (parent ?pp-unit)
                 (dependency-label pobj))))
 
+;with auxiliaries
 
+      (def-fcg-cxn believe.01-prp-aux-passive-pp-cxn
+                 ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?y-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp)
+                 (dependency-label nsubjpass))
+                (?vp-unit3
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit3))
+                (?vp-unit1
+                 --
+                 (phrase-type (vp))
+                 (parent ?vp-unit2))
+                (?auxpass-unit
+                 --
+                 (parent ?vp-unit2)
+                 (dependency-label auxpass))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+               (?pp-unit
+                --
+                (phrase-type (pp))
+                (parent ?vp-unit1))
+               (?x-unit
+                --
+                (parent ?pp-unit)
+                (dependency-label pobj))))
+
+          
             
                         
 )
