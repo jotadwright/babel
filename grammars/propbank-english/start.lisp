@@ -102,7 +102,25 @@
 ;; (comprehend-and-extract-frames "She should be willing to believe that he is right."); check
 ;; (comprehend-and-extract-frames "She should not be willing to believe that he is right.") ;check
 
+;; (comprehend-and-extract-frames "She is willing to believe him.") ;check
+;; (comprehend-and-extract-frames "Winston is willing to believe him.") ;check
+;; (comprehend-and-extract-frames "The dog is willing to believe him.") ;check
+;; (comprehend-and-extract-frames "Dogs are willing to believe him.") ;check
+;; (comprehend-and-extract-frames "She should be willing to believe him."); check
+;; (comprehend-and-extract-frames "She should not be willing to believe him.") ;check
 
+;; (comprehend-and-extract-frames "She is willing to believe that he is right.")
+;; (comprehend-and-extract-frames "Winston is willing to believe that he is right.")
+;; (comprehend-and-extract-frames "The dog is willing to believe that he is right.")
+;; (comprehend-and-extract-frames "Dogs are willing to believe that he is right.")
+;; (comprehend-and-extract-frames "She should be willing to believe that he is right."); check
+;; (comprehend-and-extract-frames "She should not be willing to believe that he is right.") ;check
+
+;; (comprehend-and-extract-frames "She intends to believe that he is right.")
+;; (comprehend-and-extract-frames "Winston intends to believe that he is right.")
+;; (comprehend-and-extract-frames "The dog intends to believe that he is right.")
+;; (comprehend-and-extract-frames "Dogs intend to believe that he is right.")
+;; (comprehend-and-extract-frames "She tends to not believe that he is right.")
 
 ;; (comprehend-and-extract-frames "It is believed that he is right.")
 ;; (comprehend-and-extract-frames "It should not be believed that he is right.") ;check
@@ -110,7 +128,7 @@
 ;; (comprehend-and-extract-frames "She is believed.")
 ;; (comprehend-and-extract-frames "Winston is believed.")
 ;; (comprehend-and-extract-frames "The dog is believed.")
-;; (comprehend-and-extract-frames "Dogs are believed.")
+;; (comprehend-and-extract-frames "Dogs are believed.") ;check
 ;; (comprehend-and-extract-frames "She is not believed.")
 ;; (comprehend-and-extract-frames "She is barely believed.")
 ;; (comprehend-and-extract-frames "She should be believed.")
