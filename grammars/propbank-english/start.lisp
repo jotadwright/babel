@@ -88,15 +88,12 @@
 ;; (comprehend-and-extract-frames "The dog has a strong tendency to believe the story.")
 ;; (comprehend-and-extract-frames "Politicians have a tendency to believe the story.")
 
-;; (comprehend-and-extract-frames "Politicians tend to believe the story.")
-;; (comprehend-and-extract-frames "Politicians refused to believe the story.")
-
 ;; (comprehend-and-extract-frames "She is willing to believe in him.")
 ;; (comprehend-and-extract-frames "Winston is willing to believe in him.")
 ;; (comprehend-and-extract-frames "The dog is willing to believe in him.")
 ;; (comprehend-and-extract-frames "Dogs are willing to believe in him.")
-;; (comprehend-and-extract-frames "She should be willing to believe in him.")
-;; (comprehend-and-extract-frames "She should not be willing to believe in him.")
+;; (comprehend-and-extract-frames "She should be willing to believe in him.") ;check 
+;; (comprehend-and-extract-frames "She should not be willing to believe in him.") ;check 
 
 ;; (comprehend-and-extract-frames "She is willing to believe that he is right.")
 ;; (comprehend-and-extract-frames "Winston is willing to believe that he is right.")
