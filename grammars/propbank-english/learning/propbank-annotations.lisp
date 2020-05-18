@@ -312,6 +312,8 @@
         if (probe-file file)
         append (read-propbank-conll-file file)
         into sentences
+        and
+        do (format t "Loading file: ~s.~%" file)
         else
         do (warn (format nil "File not found: ~s." file))
         finally
