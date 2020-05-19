@@ -14,7 +14,9 @@
                   (meaning set-of-predicates)
                   (footprints set))
 
-  
+
+;;;; Exploratory hand-written grammar
+
 ;;;arg-m-cxns
 ;;arg-m-neg-cxns
 
@@ -5213,13 +5215,8 @@
 
 to do:
 
-generalize clausal/adjectival/verbal complement cxcns to dobj lex-classes: e.g. 'He has a tendency to believe him, etc.' (= not specify y-unit lex-class/phrase type), she is willing to believe him ,etc.
-
-auxiliaries for passive cxns, complement cxns; generalize?
-
-FEE = 'rel' in propbank (add frame-element rel believe to each cxn)
-
 Start generalizing cxns for test data
+Frame-element-rel
 
 
 ;;; examples
