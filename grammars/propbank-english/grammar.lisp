@@ -3341,6 +3341,281 @@
                 (phrase-type (sbar)))))
 
 
+;adjectival-complement-general/dobj
+
+ (def-fcg-cxn believe.01-np-adj-complement-dobj-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (phrase-type (np))
+                 (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (s))
+                )
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?adjp-unit1
+                 --
+                 (phrase-type (adjp))
+                 (parent ?vp-unit2))
+                (?s-vp-unit
+                 --
+                 (parent ?adjp-unit1)
+                 (phrase-type (s vp)))
+                
+                (?vp-unit1
+                 --
+                 (parent ?s-vp-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                (dependency-label dobj))))
+
+
+
+        (def-fcg-cxn believe.01-prp-adj-complement-dobj-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (lex-class prp)
+                 (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (s))
+                )
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?adjp-unit1
+                 --
+                 (phrase-type (adjp))
+                 (parent ?vp-unit2))
+                (?s-vp-unit
+                 --
+                 (parent ?adjp-unit1)
+                 (phrase-type (s vp)))
+                
+                (?vp-unit1
+                 --
+                 (parent ?s-vp-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                (dependency-label dobj))))
+
+
+        (def-fcg-cxn believe.01-nn-adj-complement-dobj-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (lex-class nn)
+                 (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (s))
+                )
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?adjp-unit1
+                 --
+                 (phrase-type (adjp))
+                 (parent ?vp-unit2))
+                (?s-vp-unit
+                 --
+                 (parent ?adjp-unit1)
+                 (phrase-type (s vp)))
+                
+                (?vp-unit1
+                 --
+                 (parent ?s-vp-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                (dependency-label dobj))))
+
+      (def-fcg-cxn believe.01-nns-adj-complement-dobj-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (lex-class nns)
+                 (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (s))
+                )
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?adjp-unit1
+                 --
+                 (phrase-type (adjp))
+                 (parent ?vp-unit2))
+                (?s-vp-unit
+                 --
+                 (parent ?adjp-unit1)
+                 (phrase-type (s vp)))
+                
+                (?vp-unit1
+                 --
+                 (parent ?s-vp-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                (dependency-label dobj))))
+
+
+      (def-fcg-cxn believe.01-nnp-adj-complement-dobj-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (lex-class nnp)
+                 (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (s))
+                )
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?adjp-unit1
+                 --
+                 (phrase-type (adjp))
+                 (parent ?vp-unit2))
+                (?s-vp-unit
+                 --
+                 (parent ?adjp-unit1)
+                 (phrase-type (s vp)))
+                
+                (?vp-unit1
+                 --
+                 (parent ?s-vp-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                (dependency-label dobj))))
+
+ (def-fcg-cxn believe.01-nnps-adj-complement-dobj-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (lex-class nnps)
+                 (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (s))
+                )
+                (?vp-unit2
+                 --
+                 (phrase-type (vp))
+                 (parent ?s-unit))
+                (?adjp-unit1
+                 --
+                 (phrase-type (adjp))
+                 (parent ?vp-unit2))
+                (?s-vp-unit
+                 --
+                 (parent ?adjp-unit1)
+                 (phrase-type (s vp)))
+                (?vp-unit1
+                 --
+                 (parent ?s-vp-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit1))
+                (?y-unit
+                 --
+                 (parent ?vp-unit1)
+                (dependency-label dobj))))
+
+
+
+      
+
+
+
 ;;;verbal-complement -cxns
 ;;verbal-complement-sbar-cxns
     (def-fcg-cxn believe.01-np-verb-complement-sbar-cxn
