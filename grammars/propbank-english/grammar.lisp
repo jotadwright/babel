@@ -20,17 +20,36 @@
 ;;;argm-cxns
 
 
-
-
 ;;argm-tmp-cxns
+
+
+    (def-fcg-cxn believe.01-argm-tmp-date-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:argm-tmp ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element argm-tmp ?o ?tmp-unit))))
+                 <-
+                 (?believe-unit
+                  --
+                  (lemma believe))
+                  (?tmp-unit
+                   --
+                   ())
+                   (?ner-unit
+                   --
+                   (named-entity-type date)
+                   (parent ?tmp-unit))))
+    
 
     (def-fcg-cxn believe.01-arg-m-tmp-time-cxn
                ((?believe-unit
                   (args (referent ?o)                                               
-                        (:argm-neg ?rb-unit))                                              
+                        (:argm-tmp ?rb-unit))                                              
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
-                           (frame-element argm-tmp ?o ?rb-unit))))
+                           (frame-element argm-tmp ?o ?tmp-unit))))
                  <-
                  (?believe-unit
                   --
@@ -39,20 +58,7 @@
                   --
                   (named-entity-type time))))
 
-    (def-fcg-cxn believe.01-argm-tmp-date-cxn
-               ((?believe-unit
-                  (args (referent ?o)                                               
-                        (:arg-m-neg ?rb-unit))                                              
-                 (frame-evoking +)
-                 (meaning ((frame believe.01 ?o)
-                           (frame-element argm-tmp ?o ?rb-unit))))
-                 <-
-                 (?believe-unit
-                  --
-                  (lemma believe))
-                 (?tmp-unit
-                  --
-                  (named-entity-type date))))
+
 
 
 
@@ -5620,9 +5626,10 @@
 
 3 levels of VPs
 Make arg0 dependency label nsubj explicit (to avoid confusion with a.o. arg-m-tmp)
-generalize cxns for test data
-Frame-element-rel
-Arg-m cxns: check adv vs. mnr 
+Add frame-element-rel
+Check argm-adv vs. mnr
+Refine argm-time, date, etc.
+Check possibilities of NER for location, etc.
 
 
 ;;;; Initial examples

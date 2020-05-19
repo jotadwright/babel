@@ -163,7 +163,7 @@
 
 ;;; Arg-m / NER tests
 
-;; (comprehend-and-extract-frames "During the last year, people did not believe her.")
+;; (comprehend-and-extract-frames "In the spring of 2020, I still believe that  Trump is right.")
 
 
 
