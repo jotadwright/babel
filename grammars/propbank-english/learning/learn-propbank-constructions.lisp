@@ -3,11 +3,54 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              ;;
-;;Learning constructions based on Propbank annotated corpora.   ;;
+;; Learning constructions based on Propbank annotated corpora.  ;;
 ;;                                                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Learning a grammar cxn ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun learn-propbank-grammar (list-of-propbank-sentences list-of-rolesets &key (silent t))
+  (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
+                                :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents))
+                                :visualization-configurations ((:show-constructional-dependencies . nil))
+                                :hierarchy-features (constituents dependents)
+                                :feature-types ((constituents set)
+                                                (dependents set)
+                                                (span sequence)
+                                                (phrase-type set)
+                                                (word-order set-of-predicates)
+                                                (meaning set-of-predicates)
+                                                (footprints set))
+                                :cxn-inventory *propbank-learned-cxn-inventory*))))
+    (loop for sentence in list-of-propbank-sentences
+          for sentence-string = (sentence-string sentence)
+          do
+          (format t "~%")
+          (loop for roleset in list-of-rolesets
+                for f1-score = (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) cxn-inventory (list roleset)
+                                                                                  :silent silent)))
+                   ;; if f1-score under .95
+                   if (< f1-score 0.95)
+                   do
+                   (format t "Sentence: ~a, f1-score ~a --> Learning.~%" sentence-string f1-score)
+                   ;; First try learning with copy of cxn-inventory
+                   (multiple-value-bind (temp-cxn-inventory cxn)
+                       (learn-cxn-from-propbank-annotation sentence roleset (copy-object cxn-inventory))
+                     ;; If now not under .95 anymore, learn with actual cxn-inventory
+                     (if  (< (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) temp-cxn-inventory (list roleset)
+                                                                                :silent silent))) 0.95)
+                       (format t "Learning failed, f1-score ~a.~%" f1-score)
+                       (progn
+                         (format t "Learning was successful (added ~a), f1-score ~a.~%" (name cxn) f1-score)
+                         (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory))))
+                   else do
+                   (format t "Sentence: ~a, f1-score ~a.~%" sentence-string f1-score))
+          finally return cxn-inventory)))
+                   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Learning a single cxn ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -73,7 +116,8 @@ sentence object and a roleset (e.g. 'believe.01')"
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
          (unit-name (variablify (unit-name unit)))
-         (parent (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
+         (parent (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
+                   (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name)))))
          (phrase-type-or-lex-class (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                      `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
                                      `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))
@@ -103,10 +147,12 @@ fillers (arg0, arg1) and the frame-evoking element unit."
          for path = (find-path-in-syntactic-tree (cdr unit-with-role) fee-unit unit-structure) ;;find path between a unit in the transient structure and the FEE unit
          append (loop for unit-name in path
                       for unit = (find unit-name unit-structure :key #'unit-name)
+                      for parent = (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
+                                      (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
                       unless (find (variablify unit-name) cxn-units-with-role :key #'unit-name) ;;check that the unit is not a frame-element
                       collect `(,(variablify unit-name)
                                 --
-                                (parent ,(variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
+                                (parent ,parent)
                                 ,(if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                    `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
                                    `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
