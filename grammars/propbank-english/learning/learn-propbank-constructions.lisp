@@ -27,16 +27,18 @@ sentence object and a roleset (e.g. 'believe.01')"
                                               (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                                 (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
                                                 (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
-         (contributing-unit (make-propbank-contributing-unit units-with-role frame))
-         (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit)))
+         (cxn-name (format nil "~{~a~^+~}-cxn" cxn-name-list))
+         (contributing-unit (make-propbank-contributing-unit units-with-role frame cxn-name))
+         (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit cxn-name)))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure)))
 
     ;;create a new construction and add it to the cxn-inventory
-    (eval `(def-fcg-cxn ,(make-id (format nil "~{~a~^+~}-cxn" cxn-name-list))
+    (eval `(def-fcg-cxn ,(make-id cxn-name)
                         (,contributing-unit
                          <-
                          ,@cxn-units-with-role
                          ,@cxn-units-without-role)
+                        :disable-automatic-footprints t
                         :cxn-inventory ,cxn-inventory))))
 
 
@@ -47,7 +49,7 @@ sentence object and a roleset (e.g. 'believe.01')"
         when (equal unit-span span)
         return unit))
 
-(defun make-propbank-contributing-unit (units-with-role frame)
+(defun make-propbank-contributing-unit (units-with-role frame cxn-name)
   "Make a contributing unit based on a frame and units-with-role."
   (let* ((v-unit (cdr (assoc "V" units-with-role :key #'role-type :test #'string=)))
          (unit-name (variablify (unit-name v-unit)))
@@ -63,9 +65,10 @@ sentence object and a roleset (e.g. 'believe.01')"
     `(,unit-name
       (args ,@args)
       (frame-evoking +)
-      (meaning ,meaning))))
+      (meaning ,meaning)
+      (footprints (,cxn-name)))))
 
-(defun make-propbank-conditional-unit-with-role (unit-with-role)
+(defun make-propbank-conditional-unit-with-role (unit-with-role cxn-name)
   "Makes a conditional unit for a propbank cxn based on a unit in the
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
@@ -80,6 +83,7 @@ initial transient structure that plays a role in the frame."
         --
         (lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))
         (parent ,parent)
+        (footprints (NOT ,cxn-name))
         ,phrase-type-or-lex-class)
       ;;other units only have a parent feature and a phrase-type/lex-class feature
       `(,unit-name
