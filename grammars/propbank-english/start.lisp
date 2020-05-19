@@ -157,8 +157,16 @@
 ;; (comprehend-and-extract-frames "She should be believed by them.")
 ;; (comprehend-and-extract-frames "She should not readily be believed by them.") 
 
-;; (comprehend-and-extract-frames "She does not say it unless she honestly believes in it.")
+;; (comprehend-and-extract-frames "She does not say it unless she honestly believes it.")
 
+
+
+;;; Arg-m / NER tests
+
+;; (comprehend-and-extract-frames "At 5 o'clock, I still believe that Trump is right.")
+;; (comprehend-and-extract-frames "In 2020 Trump's claims cannot be believed.")
+;; (comprehend-and-extract-frames "In America, many people still believe that Trump is right.")
+;; (comprehend-and-extract-frames "Under bridge, many people still believe that Trump is right.")
 
 ;;; Generalization tests
 
