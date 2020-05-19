@@ -90,6 +90,9 @@
 ;; (comprehend-and-extract-frames "The dog has a strong tendency to believe the story.")
 ;; (comprehend-and-extract-frames "Politicians have a tendency to believe the story.")
 
+;; (comprehend-and-extract-frames "She shows a tendency to believe that he is right.")
+;; (comprehend-and-extract-frames "She has shown a tendency to believe that he is right.")
+
 ;; (comprehend-and-extract-frames "She is willing to believe in him.")
 ;; (comprehend-and-extract-frames "Winston is willing to believe in him.")
 ;; (comprehend-and-extract-frames "The dog is willing to believe in him.")
@@ -129,6 +132,8 @@
 ;; (comprehend-and-extract-frames "The dog intends to believe in the truth.")
 ;; (comprehend-and-extract-frames "Dogs intend to believe in the truth.")
 ;; (comprehend-and-extract-frames "She tends to not believe in the truth.")
+
+;; (comprehend-and-extract-frames "She tends to believe him.")
 
 ;; (comprehend-and-extract-frames "It is believed that he is right.")
 ;; (comprehend-and-extract-frames "It is believed to be true.")
