@@ -5205,21 +5205,20 @@
                 (parent ?pp-unit)
                 (dependency-label pobj))))
 
-          
-            
+)           
                         
-)
 
+#|
 
-#| 
+;;;; To do:
 
-to do:
-
-Start generalizing cxns for test data
+3 levels of VPs?  
+generalize cxns for test data
 Frame-element-rel
+Other arg-m cxns (temp etc.)
 
 
-;;; examples
+;;;; Initial examples
 
  (def-fcg-cxn proper-noun-feel-y-cxn
                ((?feel-unit

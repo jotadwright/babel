@@ -160,5 +160,9 @@
 ;; (comprehend-and-extract-frames "She does not say it unless she honestly believes in it.")
 
 
+;;; Generalization tests
+
+;; (comprehend-and-extract-frames "He will not do it unless she believes the story.")
+
 
 
