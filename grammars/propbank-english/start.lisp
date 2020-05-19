@@ -157,7 +157,14 @@
 ;; (comprehend-and-extract-frames "She should be believed by them.")
 ;; (comprehend-and-extract-frames "She should not readily be believed by them.") 
 
-;; (comprehend-and-extract-frames "She does not say it unless she honestly believes in it.")
+;; (comprehend-and-extract-frames "She does not say it unless she honestly believes it.")
+
+
+
+;;; Arg-m / NER tests
+
+;; (comprehend-and-extract-frames "During the last year, people did not believe her.")
+
 
 
 ;;; Generalization tests

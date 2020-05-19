@@ -17,17 +17,55 @@
 
 ;;;; Exploratory hand-written grammar
 
-;;;arg-m-cxns
+;;;argm-cxns
 
-;;arg-m-neg-cxns
 
-    (def-fcg-cxn believe.01-arg-m-neg-cxn
+
+
+;;argm-tmp-cxns
+
+    (def-fcg-cxn believe.01-arg-m-tmp-time-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:argm-neg ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element argm-tmp ?o ?rb-unit))))
+                 <-
+                 (?believe-unit
+                  --
+                  (lemma believe))
+                 (?tmp-unit
+                  --
+                  (named-entity-type time))))
+
+    (def-fcg-cxn believe.01-argm-tmp-date-cxn
                ((?believe-unit
                   (args (referent ?o)                                               
                         (:arg-m-neg ?rb-unit))                                              
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
-                           (frame-element arg-m-neg ?o ?rb-unit))))
+                           (frame-element argm-tmp ?o ?rb-unit))))
+                 <-
+                 (?believe-unit
+                  --
+                  (lemma believe))
+                 (?tmp-unit
+                  --
+                  (named-entity-type date))))
+
+
+
+
+;;argm-neg-cxns
+
+    (def-fcg-cxn believe.01-argm-neg-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:argm-neg ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element argm-neg ?o ?rb-unit))))
                  <-
                  (?rb-unit
                  --
@@ -47,13 +85,13 @@
                  (parent ?vp-unit1))))
 
 
-        (def-fcg-cxn believe.01-pass-arg-m-neg-cxn
+        (def-fcg-cxn believe.01-pass-argm-neg-cxn
                ((?believe-unit
                   (args (referent ?o)                                               
-                        (:arg-m-neg ?rb-unit))                                              
+                        (:argm-neg ?rb-unit))                                              
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
-                           (frame-element arg-m-neg ?o ?rb-unit))))
+                           (frame-element argm-neg ?o ?rb-unit))))
                  <-
                  (?rb-unit
                  --
@@ -80,13 +118,13 @@
    
 ;;arg-m-adv-cxns
 
-(def-fcg-cxn believe.01-arg-m-adv-cxn
+(def-fcg-cxn believe.01-argm-adv-cxn
                ((?believe-unit
                  (args (referent ?o) 
-                  (:arg-m-adv ?beta-unit))
+                  (:argm-adv ?beta-unit))
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
-                           (frame-element arg-m-adv ?o ?rb-unit))))
+                           (frame-element argm-adv ?o ?rb-unit))))
                  <-
                  (?rb-unit
                  --
@@ -101,13 +139,13 @@
                  (parent ?vp-unit))))
 
 
-    (def-fcg-cxn believe.01-aux-arg-m-adv-cxn
+    (def-fcg-cxn believe.01-aux-argm-adv-cxn
                ((?believe-unit
                   (args (referent ?o)                                               
-                        (:arg-m-adv ?rb-unit))                                              
+                        (:argm-adv ?rb-unit))                                              
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
-                           (frame-element arg-m-adv ?o ?rb-unit))))
+                           (frame-element argm-adv ?o ?rb-unit))))
                  <-
                  (?rb-unit
                  --
@@ -126,15 +164,15 @@
                  (lemma believe)
                  (parent ?vp-unit1))))
 
-;;arg-m-mod-cxns
+;;argm-mod-cxns
 
-        (def-fcg-cxn believe.01-aux-arg-m-mod-cxn
+        (def-fcg-cxn believe.01-aux-argm-mod-cxn
                ((?believe-unit
                   (args (referent ?o)                                               
-                        (:arg-m-mod ?rb-unit))                                              
+                        (:argm-mod ?rb-unit))                                              
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
-                           (frame-element arg-m-mod ?o ?md-unit))))
+                           (frame-element argm-mod ?o ?md-unit))))
                  <-
                  (?s-unit
                  --
@@ -157,13 +195,13 @@
                  (parent ?vp-unit1))))
 
 
-        (def-fcg-cxn believe.01-aux-pass-arg-m-mod-cxn
+        (def-fcg-cxn believe.01-aux-pass-argm-mod-cxn
                ((?believe-unit
                   (args (referent ?o)                                               
-                        (:arg-m-mod ?rb-unit))                                              
+                        (:argm-mod ?rb-unit))                                              
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
-                           (frame-element arg-m-mod ?o ?md-unit))))
+                           (frame-element argm-mod ?o ?md-unit))))
                  <-
                  (?s-unit
                  --
@@ -189,8 +227,7 @@
                  (lemma believe)
                  (parent ?vp-unit1))))
 
-
-
+   
         
 ;;;sentential complement cxns
 ;; with auxiliaries
@@ -5581,10 +5618,11 @@
 
 ;;;; To do:
 
-3 levels of VPs?  
+3 levels of VPs
+Make arg0 dependency label nsubj explicit (to avoid confusion with a.o. arg-m-tmp)
 generalize cxns for test data
 Frame-element-rel
-Other arg-m cxns (temp etc.)
+Arg-m cxns: check adv vs. mnr 
 
 
 ;;;; Initial examples
