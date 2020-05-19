@@ -74,7 +74,7 @@
 ;; (comprehend-and-extract-frames "She does not believe the article.")
 ;; (comprehend-and-extract-frames "She strongly believes the article.")
 
-;; (comprehend-and-extract-frames "She believes him.")
+;; (comprehend-and-extract-frames "She could believe him.")
 
 ;; (comprehend-and-extract-frames "She is believed to be right.")
 ;; (comprehend-and-extract-frames "Winston is believed to be right.")
