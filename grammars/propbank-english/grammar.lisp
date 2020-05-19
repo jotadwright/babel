@@ -19,9 +19,7 @@
 
 ;;;argm-cxns
 
-
 ;;argm-tmp-cxns
-
 
     (def-fcg-cxn believe.01-argm-tmp-date-cxn
                ((?believe-unit
@@ -43,10 +41,10 @@
                    (parent ?tmp-unit))))
     
 
-    (def-fcg-cxn believe.01-arg-m-tmp-time-cxn
+    (def-fcg-cxn believe.01-argm-tmp-time-cxn
                ((?believe-unit
                   (args (referent ?o)                                               
-                        (:argm-tmp ?rb-unit))                                              
+                        (:argm-tmp ?tmp-unit))                                              
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
                            (frame-element argm-tmp ?o ?tmp-unit))))
@@ -56,10 +54,51 @@
                   (lemma believe))
                  (?tmp-unit
                   --
-                  (named-entity-type time))))
+                  ())
+                 (?ner-unit
+                  --
+                  (named-entity-type time)
+                  (parent ?tmp-unit))))
 
+;;argm-loc-cxns
 
+   (def-fcg-cxn believe.01-argm-loc-gpe-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:argm-loc ?loc-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element argm-loc ?o ?loc-unit))))
+                 <-
+                 (?believe-unit
+                  --
+                  (lemma believe))
+                 (?loc-unit
+                  --
+                  ())
+                 (?ner-unit
+                  --
+                  (named-entity-type gpe)
+                  (parent ?loc-unit))))
 
+      (def-fcg-cxn believe.01-argm-loc-fac-cxn ;optional, fac is for facilities
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:argm-loc ?loc-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element argm-loc ?o ?loc-unit))))
+                 <-
+                 (?believe-unit
+                  --
+                  (lemma believe))
+                 (?loc-unit
+                  --
+                  ())
+                 (?ner-unit
+                  --
+                  (named-entity-type fac)
+                  (parent ?loc-unit))))
 
 
 
@@ -5630,7 +5669,8 @@ Add frame-element-rel
 Check argm-adv vs. mnr
 Refine argm-time, date, etc.
 Check possibilities of NER for location, etc.
-
+Explore ways of generalizing NER prps etc.
+ 
 
 ;;;; Initial examples
 

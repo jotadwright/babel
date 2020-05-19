@@ -163,9 +163,10 @@
 
 ;;; Arg-m / NER tests
 
-;; (comprehend-and-extract-frames "In the spring of 2020, I still believe that  Trump is right.")
-
-
+;; (comprehend-and-extract-frames "At 5 o'clock, I still believe that Trump is right.")
+;; (comprehend-and-extract-frames "In 2020 Trump's claims cannot be believed.")
+;; (comprehend-and-extract-frames "In America, many people still believe that Trump is right.")
+;; (comprehend-and-extract-frames "Under bridge, many people still believe that Trump is right.")
 
 ;;; Generalization tests
 
