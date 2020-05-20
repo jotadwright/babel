@@ -18,7 +18,6 @@
 ;; (comprehend-and-extract-frames "The man was eating an apple.")
 
 
-
 ;;; propbank-frames examples for roleset believe.01
 
 ;; (comprehend-and-extract-frames "Cathryn Rice could hardly believe her eyes.")
@@ -26,7 +25,6 @@
 ;; (comprehend-and-extract-frames "You believe that Seymour Cray can do it again")
 ;; (comprehend-and-extract-frames "The declaration by Economy Minister Nestor Rapanelli is believed to be the first time such an action has been called for.")
 ;; (comprehend-and-extract-frames "For that matter, the Chinese display a willingness to believe in the auspiciousness of just about anything!")
-
 
 ;;; constructed test examples for roleset believe.01
 
@@ -161,16 +159,24 @@
 
 
 
-;;; Arg-m / NER tests
+;; tests for questions
+
+;; (comprehend-and-extract-frames "You believe it.")
+;; (comprehend-and-extract-frames "Would you believe it?")
+
+
+
+;;; Constructed examples for arg-m NER tests
 
 ;; (comprehend-and-extract-frames "At 5 o'clock, I still believe that Trump is right.")
 ;; (comprehend-and-extract-frames "In 2020 Trump's claims cannot be believed.")
 ;; (comprehend-and-extract-frames "In America, many people still believe that Trump is right.")
-;; (comprehend-and-extract-frames "Under bridge, many people still believe that Trump is right.")
 
-;;; Generalization tests
+
+;;; Constructed examples for generalization tests
 
 ;; (comprehend-and-extract-frames "He will not do it unless she believes the story.")
+
 
 
 

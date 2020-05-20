@@ -1743,6 +1743,39 @@
                  (dependency-label dobj))))
 
 
+        (def-fcg-cxn believe.01-prp-sq--nominal-complement-dobj-cxn
+               ((?believe-unit
+                 (args (referent ?o)
+                       (:arg0 ?x-unit)
+                       (:arg1 ?y-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element believer ?o ?x-unit)
+                           (frame-element believed ?o ?y-unit))))
+                <-
+                (?x-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class prp))
+                (?s-unit
+                 --
+                 (phrase-type (sq)))
+                (?vp-unit
+                 --
+                 (parent ?s-unit)
+                 (phrase-type (vp)))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                 (parent ?vp-unit))
+                (?y-unit
+                 --
+                 (parent ?vp-unit)
+                 (dependency-label dobj))))
+
+    
+
+
     (def-fcg-cxn believe.01-nn-nominal-complement-dobj-cxn
                ((?believe-unit
                  (args (referent ?o)
@@ -1803,6 +1836,7 @@
                  (parent ?vp-unit)
                  (dependency-label dobj))))
 
+   
    (def-fcg-cxn believe.01-nnp-nominal-complement-dobj-cxn
                ((?believe-unit
                  (args (referent ?o)
@@ -1832,6 +1866,7 @@
                  --
                  (parent ?vp-unit)
                  (dependency-label dobj))))
+   
 
 
       (def-fcg-cxn believe.01-nnps-nominal-complement-dobj-cxn
@@ -5664,7 +5699,12 @@
 ;;;; To do:
 
 3 levels of VPs
+Questions; phrase-type  sq instead of s
+
+
 Make arg0 dependency label nsubj explicit (to avoid confusion with a.o. arg-m-tmp)
+
+
 Add frame-element-rel
 Check argm-adv vs. mnr
 Refine argm-time, date, etc.
