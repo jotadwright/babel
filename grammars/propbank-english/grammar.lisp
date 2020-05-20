@@ -272,7 +272,36 @@
                  (lemma believe)
                  (parent ?vp-unit1))))
 
-   
+
+        (def-fcg-cxn believe.01-sq-argm-mod-cxn
+               ((?believe-unit
+                  (args (referent ?o)                                               
+                        (:argm-mod ?rb-unit))                                              
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element argm-mod ?o ?md-unit))))
+                 <-
+                 (?s-unit
+                 --
+                 (phrase-type (sq)))
+                 (?md-unit
+                 --
+                 (parent ?s-unit)
+                 (lex-class md))
+                 (?vp-unit1
+                  --
+                  (phrase-type (vp))
+                  (parent ?s-unit))
+                (?believe-unit
+                 --
+                 (lemma believe)
+                (parent ?vp-unit1))))
+        
+
+
+        
+
+
         
 ;;;sentential complement cxns
 ;; with auxiliaries
@@ -1743,7 +1772,7 @@
                  (dependency-label dobj))))
 
 
-        (def-fcg-cxn believe.01-prp-sq--nominal-complement-dobj-cxn
+        (def-fcg-cxn believe.01-prp-sq-nominal-complement-dobj-cxn
                ((?believe-unit
                  (args (referent ?o)
                        (:arg0 ?x-unit)
@@ -5698,14 +5727,13 @@
 
 ;;;; To do:
 
-3 levels of VPs
+3 levels of VPs (e.g. should have been ...)
 Questions; phrase-type  sq instead of s
-
 
 Make arg0 dependency label nsubj explicit (to avoid confusion with a.o. arg-m-tmp)
 
 
-Add frame-element-rel
+Add frame-element rel
 Check argm-adv vs. mnr
 Refine argm-time, date, etc.
 Check possibilities of NER for location, etc.
