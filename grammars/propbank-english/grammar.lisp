@@ -2,7 +2,8 @@
 
 
 (def-fcg-constructions propbank-english
-  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents))
+  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents)
+                       (:node-tests :restrict-nr-of-nodes :restrict-search-depth))
   :visualization-configurations ((:show-constructional-dependencies . nil))
  
   :hierarchy-features (constituents dependents)
