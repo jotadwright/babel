@@ -24,7 +24,8 @@
 (def-fcg-cxn believe.01-root-arg0-cxn
              ((?frame-unit
                (args (referent ?o)                                               
-                     (:v ?frame-unit))                                              
+                     (:v ?frame-unit)
+                     (:arg0 ?arg0-unit))                                              
                (frame-evoking +)
                (meaning ((frame believe.01 ?o)
                          (frame-element v ?o ?frame-unit)
@@ -46,7 +47,8 @@
 (def-fcg-cxn believe.01-root-arg0-np-cxn
              ((?frame-unit
                (args (referent ?o)                                               
-                     (:v ?frame-unit))                                              
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
                (frame-evoking +)
                (meaning ((frame believe.01 ?o)
                          (frame-element v ?o ?frame-unit)
@@ -70,7 +72,8 @@
 (def-fcg-cxn believe.01-advcl-arg0-cxn
              ((?frame-unit
                (args (referent ?o)                                               
-                     (:v ?frame-unit))                                              
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
                (frame-evoking +)
                (meaning ((frame believe.01 ?o)
                          (frame-element v ?o ?frame-unit)
@@ -92,7 +95,8 @@
 (def-fcg-cxn believe.01-advcl-arg0-np-cxn
              ((?frame-unit
                (args (referent ?o)                                               
-                     (:v ?frame-unit))                                              
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
                (frame-evoking +)
                (meaning ((frame believe.01 ?o)
                          (frame-element v ?o ?frame-unit)
@@ -111,11 +115,12 @@
                (dependency-label advcl)
                (lemma believe))))
 
-;;main clause, active, questions
+;;active, questions
 (def-fcg-cxn believe.01-root-arg0-sq-cxn
              ((?frame-unit
                (args (referent ?o)                                               
-                     (:v ?frame-unit))                                              
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
                (frame-evoking +)
                (meaning ((frame believe.01 ?o)
                          (frame-element v ?o ?frame-unit)
@@ -136,10 +141,33 @@
 
 
 
-
-
-
 ;;; arg-1 cxns
+;; active, main clause
+
+(def-fcg-cxn believe.01-root-arg1-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg1 ?arg1-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg1 ?o ?arg1-unit))))
+              <-
+              (?vp-unit
+               --
+               (phrase-type (vp)))
+              (?arg1-unit
+               --
+               (parent ?vp-unit))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe)
+              (parent ?vp-unit))))
+
+
+
 
 
 ;;; argm cxns

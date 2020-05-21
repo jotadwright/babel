@@ -182,7 +182,7 @@
 
 ;; (comprehend-and-extract-frames "Well , of course we could not believe completely 100 percent of what he said about this , because it is not certain whether they will make accommodations to let Koizumi stay in office .")
 
-;; (comprehend-and-extract-frames "Can the dog believe it?")
+;; (comprehend-and-extract-frames "Would you believe that she said that?")
 
 
 
