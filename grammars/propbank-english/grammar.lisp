@@ -298,11 +298,6 @@
                 (parent ?vp-unit1))))
         
 
-
-        
-
-
-        
 ;;;sentential complement cxns
 ;; with auxiliaries
 
