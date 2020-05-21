@@ -158,11 +158,11 @@
 ;; (comprehend-and-extract-frames "She does not say it unless she honestly believes it.")
 
 
-
 ;; tests for questions
 
 ;; (comprehend-and-extract-frames "You believe it.")
-;; (comprehend-and-extract-frames "Should we believe this?")
+;; (comprehend-and-extract-frames "Do you believe this?")
+;; (comprehend-and-extract-frames "Should you believe this?")
 
 
 ;;; Constructed examples for arg-m NER tests
@@ -175,6 +175,19 @@
 ;;; Constructed examples for generalization tests
 
 ;; (comprehend-and-extract-frames "He will not do it unless she believes the story.")
+
+
+
+;;; Training data
+
+;; (comprehend-and-extract-frames "Well , of course we could not believe completely 100 percent of what he said about this , because it is not certain whether they will make accommodations to let Koizumi stay in office .")
+
+;; (comprehend-and-extract-frames "Would you believe that some liberal Democrats might support President Bush 's Supreme Court Nominee Samuel Alito ?")
+
+
+
+
+
 
 
 

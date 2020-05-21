@@ -15,7 +15,80 @@
                   (meaning set-of-predicates)
                   (footprints set))
 
+;;;; Generalized grammar
 
+;;; arg0-cxns
+;;active, main clause
+
+(def-fcg-cxn believe.01-root-arg0-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (head ?frame-unit)
+              (parent ?s-unit))
+              (?s-unit
+               --
+               (phrase-type (s)))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe))))
+
+(def-fcg-cxn believe.01-root-arg0-np-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (phrase-type (np)))
+              (?nsubj-unit
+               --
+               (parent ?arg0-unit)
+              (dependency-label nsubj)
+              (head ?frame-unit))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe))))
+
+;;active, subordinate clause
+
+
+
+
+
+
+
+
+
+;;;To do: V is advcl
+
+
+;;; arg-1 cxns
+
+
+;;; argm cxns
+
+  
+  
+  )
+
+
+
+#|
 ;;;; Exploratory hand-written grammar
 
 ;;;argm-cxns
@@ -297,6 +370,20 @@
                  --
                  (lemma believe)
                 (parent ?vp-unit1))))
+
+
+;;argm-cau cxns
+ ;pp's starting with 'because', 'cause', etc.
+
+
+;;arg-m-ext cxns
+ ;advs such as 'completely' etc.
+
+;;argm-dis
+ ;discourse markers ('however', 'well', 'of course', 'and ...', )
+ ;dependency-label intj 
+
+        
         
 
 ;;;sentential complement cxns
@@ -5718,8 +5805,6 @@
                 (dependency-label pobj))))
 )           
                         
-
-#|
 
 ;;;; To do:
 
