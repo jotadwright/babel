@@ -22,4 +22,5 @@
                (:module learning
                 :serial t
                 :components ((:file "propbank-annotations")
-                             (:file "learn-propbank-constructions")))))
+                             (:file "learn-propbank-constructions")
+                             (:file "evaluation")))))
