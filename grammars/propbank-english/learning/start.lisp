@@ -9,7 +9,7 @@
 (in-package :propbank-english)
 
 ;; Loading the Propbank frames (takes a few seconds)
-;(load-pb-data :store-data t :ignore-stored-data nil)
+(load-pb-data :store-data t :ignore-stored-data nil)
 ;(length *pb-data*)
 
 ;; Loading the Propbank annotations (takes a minute)
@@ -107,6 +107,10 @@ split to the output buffer."
 
 (loop for sentence in *believe-sentences*
       do (learn-cxn-from-propbank-annotation sentence "believe.01" *propbank-learned-cxn-inventory*))
+
+;; OR
+
+(learn-propbank-grammar *believe-sentences* '("believe.01"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
