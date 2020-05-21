@@ -12,46 +12,59 @@
   ;; Precision = (#correct-predictions / #predictions)
   ;; Recall = (#correct-predictions / #gold-standard-predictions)
   ;; F1-score = 2 * ((precision * recall) / (precision + recall))
-  (loop with number-of-correct-predictions = 0
-        with number-of-predictions = 0
-        with number-of-gold-standard-predictions = 0
-        for sentence in list-of-propbank-sentences
-        for sentence-evaluation-result = (evaluate-propbank-sentence sentence cxn-inventory rolesets :silent silent)
-        do
-        (setf number-of-correct-predictions (+ number-of-correct-predictions (cdr (assoc :nr-of-correct-predictions sentence-evaluation-result))))
-        (setf number-of-predictions (+ number-of-predictions (cdr (assoc :nr-of-predictions sentence-evaluation-result))))
-        (setf number-of-gold-standard-predictions (+ number-of-gold-standard-predictions (cdr (assoc :nr-of-gold-standard-predictions sentence-evaluation-result))))
-        finally
-        (cond ((= 0 number-of-gold-standard-predictions)
-               (return
-                 `((:precision . ,(if (= 0 number-of-predictions) 1.0 0.0))
-                   (:recall . 1.0)
-                   (:f1-score . ,(float (* 2 (/ (* (if (= 0 number-of-predictions) 1.0 0.0)
-                                                   1.0)
-                                                (+ (if (= 0 number-of-predictions) 1.0 0.0)
-                                                   1.0)))))
-                   (:nr-of-correct-predictions . ,number-of-correct-predictions)
-                   (:nr-of-predictions . ,number-of-predictions)
-                   (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))
-              ((= 0 number-of-predictions)
-               (return
-                 `((:precision . 1.0)
-                   (:recall . 0.0)
-                   (:f1-score . 0.0)
-                   (:nr-of-correct-predictions . ,number-of-correct-predictions)
-                   (:nr-of-predictions . ,number-of-predictions)
-                   (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))
-              (t
-               (return
-                 `((:precision . ,(float (/ number-of-correct-predictions number-of-predictions)))
-                   (:recall . ,(float (/ number-of-correct-predictions number-of-gold-standard-predictions)))
-                   (:f1-score . ,(float (* 2 (/ (* (/ number-of-correct-predictions number-of-predictions)
-                                                   (/ number-of-correct-predictions number-of-gold-standard-predictions))
-                                                (+ (/ number-of-correct-predictions number-of-predictions)
-                                                   (/ number-of-correct-predictions number-of-gold-standard-predictions))))))
-                   (:nr-of-correct-predictions . ,number-of-correct-predictions)
-                   (:nr-of-predictions . ,number-of-predictions)
-                   (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions)))))))
+  (let ((evaluation-result (loop with number-of-correct-predictions = 0
+                                 with number-of-predictions = 0
+                                 with number-of-gold-standard-predictions = 0
+                                 for sentence in list-of-propbank-sentences
+                                 for sentence-evaluation-result = (evaluate-propbank-sentence sentence cxn-inventory rolesets :silent silent)
+                                 for sentence-number from 1
+                                 do
+                                 (format t "~%Sentence ~a: ~a~%" sentence-number (sentence-string sentence))
+                                 (setf number-of-correct-predictions (+ number-of-correct-predictions (cdr (assoc :nr-of-correct-predictions sentence-evaluation-result))))
+                                 (setf number-of-predictions (+ number-of-predictions (cdr (assoc :nr-of-predictions sentence-evaluation-result))))
+                                 (setf number-of-gold-standard-predictions (+ number-of-gold-standard-predictions (cdr (assoc :nr-of-gold-standard-predictions sentence-evaluation-result))))
+                                 finally
+                                 (cond ((= 0 number-of-gold-standard-predictions)
+                                        (return
+                                         `((:precision . ,(if (= 0 number-of-predictions) 1.0 0.0))
+                                           (:recall . 1.0)
+                                           (:f1-score . ,(float (* 2 (/ (* (if (= 0 number-of-predictions) 1.0 0.0)
+                                                                           1.0)
+                                                                        (+ (if (= 0 number-of-predictions) 1.0 0.0)
+                                                                           1.0)))))
+                                           (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                                           (:nr-of-predictions . ,number-of-predictions)
+                                           (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))
+                                       ((= 0 number-of-predictions)
+                                        (return
+                                         `((:precision . 1.0)
+                                           (:recall . 0.0)
+                                           (:f1-score . 0.0)
+                                           (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                                           (:nr-of-predictions . ,number-of-predictions)
+                                           (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))
+                                       ((= 0 number-of-correct-predictions)
+                                        (return
+                                         `((:precision . 0.0)
+                                           (:recall . 0.0)
+                                           (:f1-score . 0.0)
+                                           (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                                           (:nr-of-predictions . ,number-of-predictions)
+                                           (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))
+                                       (t
+                                        (return
+                                         `((:precision . ,(float (/ number-of-correct-predictions number-of-predictions)))
+                                           (:recall . ,(float (/ number-of-correct-predictions number-of-gold-standard-predictions)))
+                                           (:f1-score . ,(float (* 2 (/ (* (/ number-of-correct-predictions number-of-predictions)
+                                                                           (/ number-of-correct-predictions number-of-gold-standard-predictions))
+                                                                        (+ (/ number-of-correct-predictions number-of-predictions)
+                                                                           (/ number-of-correct-predictions number-of-gold-standard-predictions))))))
+                                           (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                                           (:nr-of-predictions . ,number-of-predictions)
+                                           (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))))))
+    (format t "~%~%~%############## EVALUATION RESULTS ##############~%")
+    (format t "~a~%" evaluation-result)
+    evaluation-result))
 
 
 (defun evaluate-propbank-sentence (propbank-sentence cxn-inventory rolesets &key (silent nil))
