@@ -111,8 +111,32 @@
                (dependency-label advcl)
                (lemma believe))))
 
+;;main clause, active, questions
+(def-fcg-cxn believe.01-root-arg0-sq-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (head ?frame-unit)
+              (parent ?s-unit))
+              (?s-unit
+               --
+               (phrase-type (sq)))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe))))
 
-;;;To do: V is advcl
+
+
+
 
 
 ;;; arg-1 cxns
