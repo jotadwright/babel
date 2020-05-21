@@ -155,7 +155,7 @@
 ;; (comprehend-and-extract-frames "She should be believed by them.")
 ;; (comprehend-and-extract-frames "She should not readily be believed by them.") 
 
-;; (comprehend-and-extract-frames "She does not say it unless she honestly believes it.")
+;; (comprehend-and-extract-frames "She does not say it unless she really believes that it is true.")
 
 
 ;; tests for questions

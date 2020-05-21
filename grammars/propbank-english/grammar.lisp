@@ -168,6 +168,29 @@
 
 
 
+;; active, subordinate clause
+(def-fcg-cxn believe.01-advcl-arg1-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg1 ?arg1-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg1 ?o ?arg1-unit))))
+              <-
+              (?vp-unit
+               --
+               (phrase-type (vp)))
+              (?arg1-unit
+               --
+               (parent ?vp-unit))
+              
+              (?frame-unit
+               --
+               (dependency-label advcl)
+               (lemma believe)
+              (parent ?vp-unit))))
 
 
 ;;; argm cxns
