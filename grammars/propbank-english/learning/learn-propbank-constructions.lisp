@@ -15,7 +15,8 @@
 
 (defun learn-propbank-grammar (list-of-propbank-sentences list-of-rolesets &key (silent t))
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
-                                :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents))
+                                :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents)
+                                                     (:node-tests  :restrict-nr-of-nodes :restrict-search-depth))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
                                 :feature-types ((constituents set)
@@ -27,6 +28,7 @@
                                                 (footprints set))
                                 :cxn-inventory *propbank-learned-cxn-inventory*))))
     (loop for sentence in list-of-propbank-sentences
+          for sentence-number from 1
           for sentence-string = (sentence-string sentence)
           do
           (format t "~%")
@@ -36,19 +38,20 @@
                    ;; if f1-score under .95
                    if (< f1-score 0.95)
                    do
-                   (format t "Sentence: ~a, f1-score ~a --> Learning.~%" sentence-string f1-score)
+                   (format t "Sentence ~a: ~a, f1-score ~a --> Learning.~%" sentence-number sentence-string f1-score)
                    ;; First try learning with copy of cxn-inventory
                    (multiple-value-bind (temp-cxn-inventory cxn)
                        (learn-cxn-from-propbank-annotation sentence roleset (copy-object cxn-inventory))
                      ;; If now not under .95 anymore, learn with actual cxn-inventory
-                     (if  (< (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) temp-cxn-inventory (list roleset)
-                                                                                :silent silent))) 0.95)
-                       (format t "Learning failed, f1-score ~a.~%" f1-score)
+                     (let ((new-f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) temp-cxn-inventory (list roleset)
+                                                                                :silent silent)))))
+                     (if  (< new-f1-score 0.95)
+                       (format t "Learning failed, f1-score ~a.~%" new-f1-score)
                        (progn
-                         (format t "Learning was successful (added ~a), f1-score ~a.~%" (name cxn) f1-score)
-                         (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory))))
+                         (format t "Learning was successful (added ~a), f1-score ~a.~%" (name cxn) new-f1-score)
+                         (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory)))))
                    else do
-                   (format t "Sentence: ~a, f1-score ~a.~%" sentence-string f1-score))
+                   (format t "Sentence ~a: ~a, f1-score ~a.~%" sentence-number sentence-string f1-score))
           finally return cxn-inventory)))
                    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
