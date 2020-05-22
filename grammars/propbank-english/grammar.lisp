@@ -147,7 +147,6 @@
 ;;; arg-1 cxns
 ;; active, main clause
 
-
 (def-fcg-cxn believe.01-root-arg1-cxn
              ((?frame-unit
                (args (referent ?o)                                               
@@ -187,8 +186,7 @@
                (phrase-type (vp)))
               (?arg1-unit
                --
-               (parent ?vp-unit))
-              
+               (parent ?vp-unit))              
               (?frame-unit
                --
                (dependency-label advcl)
@@ -197,6 +195,51 @@
 
 
 ;; arg1 complement clauses
+
+(def-fcg-cxn believe.01-xcomp-arg1-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg1 ?arg1-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg1 ?o ?arg1-unit))))
+              <-
+              (?vp-unit
+               --
+               (phrase-type (vp)))
+              (?arg1-unit
+               --
+               (parent ?vp-unit))              
+              (?frame-unit
+               --
+               (dependency-label xcomp)
+               (lemma believe)
+              (parent ?vp-unit))))
+
+
+(def-fcg-cxn believe.01-acl-arg1-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg1 ?arg1-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg1 ?o ?arg1-unit))))
+              <-
+              (?vp-unit
+               --
+               (phrase-type (vp)))
+              (?arg1-unit
+               --
+               (parent ?vp-unit))              
+              (?frame-unit
+               --
+               (dependency-label acl)
+               (lemma believe)
+              (parent ?vp-unit))))
 
 
 
@@ -242,29 +285,11 @@
                (lemma believe))))
 
 
-(def-fcg-cxn believe.01-argm-mod-cxn
-             ((?frame-unit
-               (args (referent ?o)                                               
-                     (:v ?frame-unit)
-                     (:argm-mod ?argm-mod-unit))                                              
-               (frame-evoking +)
-               (meaning ((frame believe.01 ?o)
-                         (frame-element v ?o ?frame-unit)
-                         (frame-element argm-mod ?o ?argm-mod-unit))))
-              <-
-              (?argm-mod-unit
-               --
-               (lex-class md)
-               (head ?frame-unit))
-              (?frame-unit
-               --
-               (lemma believe))))
-
 (def-fcg-cxn believe.01-argm-adv-cxn
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
-                     (:argm-adv ?argm-mod-unit))                                              
+                     (:argm-adv ?argm-adv-unit))                                              
                (frame-evoking +)
                (meaning ((frame believe.01 ?o)
                          (frame-element v ?o ?frame-unit)
@@ -277,6 +302,7 @@
               (?frame-unit
                --
                (lemma believe))))
+
 
   )
 

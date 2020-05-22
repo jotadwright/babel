@@ -162,7 +162,7 @@
 
 ;; (comprehend-and-extract-frames "You believe it.")
 ;; (comprehend-and-extract-frames "Do you believe this?")
-;; (comprehend-and-extract-frames "Wouldn't you believe this?")
+;; (comprehend-and-extract-frames "Should she really believe it?")
 
 
 ;;; Constructed examples for arg-m NER tests
