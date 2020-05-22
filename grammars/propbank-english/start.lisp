@@ -174,7 +174,7 @@
 
 ;;; Constructed examples for generalization tests
 
-;; (comprehend-and-extract-frames "He will not believe it unless the dog truly believes the story.")
+;; (comprehend-and-extract-frames "He will not believe that the dog displays a willingness to believe it")
 
 
 

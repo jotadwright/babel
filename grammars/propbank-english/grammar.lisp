@@ -119,8 +119,9 @@
                (lemma believe))))
 
 
-;;active, questions
-(def-fcg-cxn believe.01-root-arg0-sq-cxn
+;;active, complement clause
+
+(def-fcg-cxn believe.01-xcomp-arg0-cxn  ;restrict to deal with multiple subj
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -133,8 +134,100 @@
               (?arg0-unit
               --
               (dependency-label nsubj)
-              (head ?frame-unit)
               (parent ?s-unit))
+              (?s-unit
+               --
+               (phrase-type (s)))
+              (?frame-unit
+               --
+               (dependency-label xcomp)
+               (lemma believe))))
+
+
+(def-fcg-cxn believe.01-xcomp-arg0-np-cxn ;restrict to deal with multiple subj
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (phrase-type (np)))
+              (?nsubj-unit
+               --
+               (parent ?arg0-unit)
+              (dependency-label nsubj))
+              (?frame-unit
+               --
+               (dependency-label xcomp)
+               (lemma believe))))
+
+(def-fcg-cxn believe.01-acl-arg0-cxn ;restrict do deal with multiple subj 
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (parent ?s-unit))
+              (?s-unit
+               --
+               (phrase-type (s)))
+              (?frame-unit
+               --
+               (dependency-label acl)
+               (lemma believe))))
+
+
+(def-fcg-cxn believe.01-acl-arg0-np-cxn ;restrict to deal with multiple subj
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (phrase-type (np)))
+              (?nsubj-unit
+               --
+               (parent ?arg0-unit)
+              (dependency-label nsubj))
+              (?frame-unit
+               --
+               (dependency-label acl)
+               (lemma believe))))
+
+
+;;active, questions
+(def-fcg-cxn believe.01-root-arg0-sq-cxn  
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (parent ?s-unit)
+              (head ?frame-unit))
               (?s-unit
                --
                (phrase-type (sq)))
@@ -142,6 +235,11 @@
                --
                (dependency-label root)
                (lemma believe))))
+
+
+;;arg0 
+
+
 
 
 ;;; arg-1 cxns
@@ -240,9 +338,6 @@
                (dependency-label acl)
                (lemma believe)
               (parent ?vp-unit))))
-
-
-
 
 
 ;;; argm cxns
