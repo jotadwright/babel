@@ -63,7 +63,7 @@
 ;; (comprehend-and-extract-frames "The dog could believe the article.")
 ;; (comprehend-and-extract-frames "Dogs believe the article.") 
 ;; (comprehend-and-extract-frames "She could not believe the article.")
-;; (comprehend-and-extract-frames "She could strongly believe the article.")
+;; (comprehend-and-extract-frames "She could hardly believe the article.")
 
 ;; (comprehend-and-extract-frames "She believes the article.")
 ;; (comprehend-and-extract-frames "Winston believes the article.")
@@ -162,7 +162,7 @@
 
 ;; (comprehend-and-extract-frames "You believe it.")
 ;; (comprehend-and-extract-frames "Do you believe this?")
-;; (comprehend-and-extract-frames "Should you believe this?")
+;; (comprehend-and-extract-frames "Wouldn't you believe this?")
 
 
 ;;; Constructed examples for arg-m NER tests
@@ -174,7 +174,7 @@
 
 ;;; Constructed examples for generalization tests
 
-;; (comprehend-and-extract-frames "He will not believe it unless the dog believes the story.")
+;; (comprehend-and-extract-frames "He will not believe it unless the dog truly believes the story.")
 
 
 

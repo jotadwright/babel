@@ -44,6 +44,7 @@
                (dependency-label root)
                (lemma believe))))
 
+
 (def-fcg-cxn believe.01-root-arg0-np-cxn
              ((?frame-unit
                (args (referent ?o)                                               
@@ -66,6 +67,7 @@
                --
                (dependency-label root)
                (lemma believe))))
+
 
 ;;active, subordinate clause
 
@@ -92,6 +94,7 @@
                (dependency-label advcl)
                (lemma believe))))
 
+
 (def-fcg-cxn believe.01-advcl-arg0-np-cxn
              ((?frame-unit
                (args (referent ?o)                                               
@@ -114,6 +117,7 @@
                --
                (dependency-label advcl)
                (lemma believe))))
+
 
 ;;active, questions
 (def-fcg-cxn believe.01-root-arg0-sq-cxn
@@ -140,9 +144,9 @@
                (lemma believe))))
 
 
-
 ;;; arg-1 cxns
 ;; active, main clause
+
 
 (def-fcg-cxn believe.01-root-arg1-cxn
              ((?frame-unit
@@ -165,7 +169,6 @@
                (dependency-label root)
                (lemma believe)
               (parent ?vp-unit))))
-
 
 
 ;; active, subordinate clause
@@ -193,7 +196,8 @@
               (parent ?vp-unit))))
 
 
-;; passive, main clause
+;; arg1 complement clauses
+
 
 
 
@@ -237,6 +241,42 @@
                --
                (lemma believe))))
 
+
+(def-fcg-cxn believe.01-argm-mod-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:argm-mod ?argm-mod-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element argm-mod ?o ?argm-mod-unit))))
+              <-
+              (?argm-mod-unit
+               --
+               (lex-class md)
+               (head ?frame-unit))
+              (?frame-unit
+               --
+               (lemma believe))))
+
+(def-fcg-cxn believe.01-argm-adv-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:argm-adv ?argm-mod-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element argm-adv ?o ?argm-adv-unit))))
+              <-
+              (?argm-adv-unit
+               --
+               (dependency-label advmod)
+               (head ?frame-unit))
+              (?frame-unit
+               --
+               (lemma believe))))
 
   )
 
