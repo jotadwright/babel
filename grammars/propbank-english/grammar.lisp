@@ -266,6 +266,33 @@
                (lemma believe))))
 
 
+(def-fcg-cxn believe.01-pass-arg0-np-cxn 
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+               --
+               (phrase-type (np))
+               (parent ?pp-unit))
+              (?agent-unit
+               --
+               (dependency-label agent)
+               (head ?frame-unit)
+               (parent ?pp-unit))
+              (?pp-unit
+               --
+               (phrase-type (pp)))
+               (?frame-unit
+               --
+               (lemma believe))))
+
+
 ;;; arg-1 cxns
 ;; active, main clause
 

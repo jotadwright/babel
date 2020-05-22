@@ -153,7 +153,7 @@
 ;; (comprehend-and-extract-frames "The dog is believed by them.")
 ;; (comprehend-and-extract-frames "Dogs are believed by them.") ;check
 ;; (comprehend-and-extract-frames "She is not believed by them.")
-;; (comprehend-and-extract-frames "She is barely believed by them.")
+;; (comprehend-and-extract-frames "She is barely believed by the Chinese.")
 ;; (comprehend-and-extract-frames "She should be believed by them.")
 ;; (comprehend-and-extract-frames "She should not readily be believed by them.") 
 
