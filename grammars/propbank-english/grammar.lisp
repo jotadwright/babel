@@ -353,18 +353,11 @@
                 (?arg1-unit
                  --
                 (dependency-label nsubjpass))
-                (?vp-unit
-                 --
-                 (phrase-type (vp)))
-                (?auxpass-unit
-                 --
-                 (dependency-label auxpass)
-                 (parent ?vp-unit))
                 (?frame-unit
                  --
                  (lemma believe)
-                 (dependency-label root)
-                 (parent ?vp-unit))))
+                 (dependency-label root))))
+  
 
 
 
