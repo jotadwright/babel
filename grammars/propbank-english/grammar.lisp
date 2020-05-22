@@ -237,10 +237,6 @@
                (lemma believe))))
 
 
-;;arg0 
-
-
-
 
 ;;; arg-1 cxns
 ;; active, main clause
@@ -260,7 +256,8 @@
                (phrase-type (vp)))
               (?arg1-unit
                --
-               (parent ?vp-unit))
+               (parent ?vp-unit)
+               (dependency-label (not auxpass)))
               (?frame-unit
                --
                (dependency-label root)
@@ -340,8 +337,40 @@
               (parent ?vp-unit))))
 
 
-;;; argm cxns
 
+;;arg1 passive, main clause
+
+(def-fcg-cxn believe.01-passive-arg1-cxn 
+               ((?frame-unit
+                 (args (referent ?o)
+                       (:v ?frame-unit)
+                       (:arg1 ?arg1-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg1 ?o ?arg1-unit)
+                           (frame-element v ?o ?frame-unit))))
+                <-
+                (?arg1-unit
+                 --
+                (dependency-label nsubjpass))
+                (?vp-unit
+                 --
+                 (phrase-type (vp)))
+                (?auxpass-unit
+                 --
+                 (dependency-label auxpass)
+                 (parent ?vp-unit))
+                (?frame-unit
+                 --
+                 (lemma believe)
+                 (dependency-label root)
+                 (parent ?vp-unit))))
+
+
+
+
+
+;;; argm cxns
 (def-fcg-cxn believe.01-argm-neg-cxn
              ((?frame-unit
                (args (referent ?o)                                               
