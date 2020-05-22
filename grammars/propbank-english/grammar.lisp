@@ -356,6 +356,53 @@
                 (?frame-unit
                  --
                  (lemma believe)
+
+                 (dependency-label root))))
+
+
+(def-fcg-cxn believe.01-passive-arg1-cxn 
+               ((?frame-unit
+                 (args (referent ?o)
+                       (:v ?frame-unit)
+                       (:arg1 ?arg1-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg1 ?o ?arg1-unit)
+                           (frame-element v ?o ?frame-unit))))
+                <-
+                (?arg1-unit
+                 --
+                (dependency-label nsubjpass)
+                (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (s)))
+                (?frame-unit
+                 --
+                 (lemma believe)
+                 (dependency-label root))))
+
+
+(def-fcg-cxn believe.01-passive-arg1-np-cxn 
+               ((?frame-unit
+                 (args (referent ?o)
+                       (:v ?frame-unit)
+                       (:arg1 ?arg1-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg1 ?o ?arg1-unit)
+                           (frame-element v ?o ?frame-unit))))
+                <-
+                (?arg1-unit
+                 --
+                 (phrase-type (np)))
+                (?subjpass-unit
+                 --
+                (dependency-label nsubjpass)
+                (parent ?arg1-unit))
+                (?frame-unit
+                 --
+                 (lemma believe)
                  (dependency-label root))))
   
 
