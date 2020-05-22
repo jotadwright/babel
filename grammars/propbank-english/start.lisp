@@ -144,7 +144,9 @@
 ;; (comprehend-and-extract-frames "She is not believed.")
 ;; (comprehend-and-extract-frames "She is strongly believed.")
 ;; (comprehend-and-extract-frames "She should really be believed.") 
-;; (comprehend-and-extract-frames "She should not be believed.") 
+;; (comprehend-and-extract-frames "She should not be believed.")
+
+;; (comprehend-and-extract-frames "Could the story be believed?")
 
 ;; (comprehend-and-extract-frames "She is believed by them.")
 ;; (comprehend-and-extract-frames "Winston is believed by them.")

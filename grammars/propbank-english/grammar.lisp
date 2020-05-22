@@ -166,6 +166,7 @@
                (dependency-label xcomp)
                (lemma believe))))
 
+
 (def-fcg-cxn believe.01-acl-arg0-cxn ;restrict do deal with multiple subj 
              ((?frame-unit
                (args (referent ?o)                                               
@@ -213,7 +214,7 @@
 
 
 ;;active, questions
-(def-fcg-cxn believe.01-root-arg0-sq-cxn  
+(def-fcg-cxn believe.01-root-arg0-sq-cxn  ;add np version
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -236,6 +237,33 @@
                (dependency-label root)
                (lemma believe))))
 
+;;passive arg0 cxns
+
+(def-fcg-cxn believe.01-pass-arg0-cxn 
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+               --
+               (dependency-label pobj)
+               (parent ?pp-unit))
+              (?agent-unit
+               --
+               (dependency-label agent)
+               (head ?frame-unit)
+               (parent ?pp-unit))
+              (?pp-unit
+               --
+               (phrase-type (pp)))
+               (?frame-unit
+               --
+               (lemma believe))))
 
 
 ;;; arg-1 cxns
@@ -405,7 +433,28 @@
                  (lemma believe)
                  (dependency-label root))))
   
-
+;;arg1 passive questions
+(def-fcg-cxn believe.01-passive-arg1-sq-cxn ;this cxn is problematic because dependencies are not parsed correctly
+               ((?frame-unit
+                 (args (referent ?o)
+                       (:v ?frame-unit)
+                       (:arg1 ?arg1-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg1 ?o ?arg1-unit)
+                           (frame-element v ?o ?frame-unit))))
+                <-
+                (?arg1-unit
+                 --
+                (dependency-label nsubjpass)
+                (parent ?s-unit))
+                (?s-unit
+                 --
+                 (phrase-type (sq)))
+                (?frame-unit
+                 --
+                 (lemma believe)
+                 (dependency-label root))))
 
 
 
