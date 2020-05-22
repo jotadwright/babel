@@ -193,10 +193,51 @@
               (parent ?vp-unit))))
 
 
+;; passive, main clause
+
+
+
+
 ;;; argm cxns
 
-  
-  
+(def-fcg-cxn believe.01-argm-neg-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:argm-neg ?argm-neg-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element argm-neg ?o ?argm-neg-unit))))
+              <-
+              (?argm-neg-unit
+               --
+               (dependency-label neg)
+               (head ?frame-unit))
+              (?frame-unit
+               --
+               (lemma believe))))
+
+
+(def-fcg-cxn believe.01-argm-mod-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:argm-mod ?argm-mod-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element argm-mod ?o ?argm-mod-unit))))
+              <-
+              (?argm-mod-unit
+               --
+               (lex-class md)
+               (head ?frame-unit))
+              (?frame-unit
+               --
+               (lemma believe))))
+
+
   )
 
 
