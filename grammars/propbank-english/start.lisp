@@ -174,7 +174,7 @@
 ;; (comprehend-and-extract-frames "")
 
 
-;; (comprehend-and-extract-frames "Believe whatever you have to .")
+;; (comprehend-and-extract-frames "I believe Mike is over in Jerusalem in the bureau working the telephones , trying to get as much information as he can and once he gets something we 'll deliver it to you . ")
 
 
 

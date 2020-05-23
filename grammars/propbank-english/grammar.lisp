@@ -92,7 +92,6 @@
 
 
 ;;active complement clause
-
 (def-fcg-cxn believe.01-xcomp-arg0-cxn  
              ((?frame-unit
                (args (referent ?o)                                               
@@ -202,8 +201,6 @@
 
 
 ;;passive arg0 cxns
-
-
 (def-fcg-cxn believe.01-pass-arg0-cxn 
              ((?frame-unit
                (args (referent ?o)                                               
@@ -259,7 +256,6 @@
 
 ;;; arg-1 cxns
 ;; active
-
 (def-fcg-cxn believe.01-arg1-dobj-cxn
              ((?frame-unit
                (args (referent ?o)                                               
@@ -423,7 +419,6 @@
 
 
 ;;arg1 passive, main clause
-
 (def-fcg-cxn believe.01-pass-arg1-cxn 
                ((?frame-unit
                  (args (referent ?o)
