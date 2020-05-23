@@ -45,7 +45,10 @@
                (lemma believe))))
 
 
-(def-fcg-cxn believe.01-root-arg0-np-cxn
+
+
+
+(def-fcg-cxn believe.01-root-arg0-np-cxn 
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -296,7 +299,7 @@
 ;;; arg-1 cxns
 ;; active, main clause
 
-(def-fcg-cxn believe.01-root-arg1-cxn
+(def-fcg-cxn believe.01-root-arg1-dobj-cxn
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -312,12 +315,84 @@
               (?arg1-unit
                --
                (parent ?vp-unit)
-               (dependency-label (not auxpass)))
+              (dependency-label dobj))
               (?frame-unit
                --
                (dependency-label root)
                (lemma believe)
               (parent ?vp-unit))))
+
+
+(def-fcg-cxn believe.01-root-arg1-pp-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg1 ?arg1-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg1 ?o ?arg1-unit))))
+              <-
+              (?vp-unit
+               --
+               (phrase-type (vp)))
+              (?arg1-unit
+               --
+               (parent ?vp-unit)
+              (phrase-type (pp)))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe)
+              (parent ?vp-unit))))
+
+(def-fcg-cxn believe.01-root-arg1-np-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg1 ?arg1-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg1 ?o ?arg1-unit))))
+              <-
+              (?vp-unit
+               --
+               (phrase-type (vp)))
+              (?arg1-unit
+               --
+               (parent ?vp-unit)
+              (phrase-type (np)))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe)
+              (parent ?vp-unit))))
+
+
+(def-fcg-cxn believe.01-root-arg1-sbar-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg1 ?arg1-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg1 ?o ?arg1-unit))))
+              <-
+              (?vp-unit
+               --
+               (phrase-type (vp)))
+              (?arg1-unit
+               --
+               (parent ?vp-unit)
+              (phrase-type (sbar)))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe)
+              (parent ?vp-unit))))
+
 
 
 ;; active, subordinate clause

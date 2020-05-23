@@ -28,7 +28,7 @@
 
 ;;; constructed test examples for roleset believe.01
 
-;; (comprehend-and-extract-frames "She believes that he is right.")
+;; (comprehend-and-extract-frames "She believes he is right.")
 ;; (comprehend-and-extract-frames "Winston believes that he is right.")
 ;; (comprehend-and-extract-frames "The dog believes that he is right.")
 ;; (comprehend-and-extract-frames "Dogs believe that he is right.") 
@@ -73,6 +73,7 @@
 ;; (comprehend-and-extract-frames "She strongly believes the article.")
 
 ;; (comprehend-and-extract-frames "She could believe him.")
+;; (comprehend-and-extract-frames "She believes her")
 
 ;; (comprehend-and-extract-frames "She is believed to be right.")
 ;; (comprehend-and-extract-frames "Winston is believed to be right.")
