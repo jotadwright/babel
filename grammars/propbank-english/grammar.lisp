@@ -66,7 +66,6 @@
                (lemma believe))))
 
 
-
 ;;active question
 (def-fcg-cxn believe.01-root-arg0-sq-cxn 
              ((?frame-unit
@@ -204,6 +203,7 @@
 
 ;;passive arg0 cxns
 
+
 (def-fcg-cxn believe.01-pass-arg0-cxn 
              ((?frame-unit
                (args (referent ?o)                                               
@@ -257,8 +257,6 @@
                --
                (lemma believe))))
 
-
-
 ;;; arg-1 cxns
 ;; active
 
@@ -306,6 +304,7 @@
                --
                (lemma believe)
               (parent ?vp-unit))))
+
 
 (def-fcg-cxn believe.01-arg1-np-cxn
              ((?frame-unit
@@ -423,7 +422,6 @@
               (parent ?vp-unit))))
 
 
-
 ;;arg1 passive, main clause
 
 (def-fcg-cxn believe.01-pass-arg1-cxn 
@@ -448,7 +446,6 @@
                  --
                  (lemma believe)
                  (dependency-label root))))
-
 
 
 (def-fcg-cxn believe.01-pass-arg1-np-cxn 
@@ -477,6 +474,7 @@
                  --
                  (lemma believe)
                  (dependency-label root))))
+
 
 ;;c-arg1 cxn
 (def-fcg-cxn believe.01-pass-c-arg1-cxn 
@@ -525,8 +523,6 @@
                  --
                  (lemma believe)
                  (dependency-label root))))
-
-
 
 
 ;;; argm cxns

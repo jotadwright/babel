@@ -174,7 +174,7 @@
 ;; (comprehend-and-extract-frames "")
 
 
-;; (comprehend-and-extract-frames "The former President is believed to be in living in Belgrade with police protection .")
+;; (comprehend-and-extract-frames "Believe whatever you have to .")
 
 
 
