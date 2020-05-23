@@ -136,7 +136,7 @@
 
 ;; (comprehend-and-extract-frames "It is believed that he is right.")
 ;; (comprehend-and-extract-frames "It is believed to be true.")
-;; (comprehend-and-extract-frames "It should not be believed that he is right.") 
+;; (comprehend-and-extract-frames "It should not be believed that he is right.") ;check
 
 ;; (comprehend-and-extract-frames "She is believed.")
 ;; (comprehend-and-extract-frames "Winston is believed.")
@@ -168,6 +168,8 @@
 ;; (comprehend-and-extract-frames "Should she really believe it?")
 
 
+
+
 ;;; Constructed examples for arg-m NER tests
 
 ;; (comprehend-and-extract-frames "At 5 o'clock, I still believe that Trump is right.")
@@ -179,7 +181,7 @@
 
 ;; (comprehend-and-extract-frames "He will not believe that the dog displays a willingness to believe it")
 
-
+;; (comprehend-and-extract-frames "He said that the woman believes him.")
 
 ;;; Training data
 

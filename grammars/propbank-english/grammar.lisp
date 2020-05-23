@@ -19,6 +19,52 @@
 
 ;;; arg0-cxns
 
+(def-fcg-cxn believe.01-arg0-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?s-unit
+               --
+               (phrase-type (s)))
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (head ?frame-unit)
+              (parent ?s-unit))
+              (?frame-unit
+               --
+               (lemma believe))))
+
+(def-fcg-cxn believe.01-arg0-np-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (phrase-type (np)))
+              (?nsubj-unit
+               --
+              (dependency-label nsubj)
+              (head ?frame-unit)
+              (parent ?arg0-unit))
+              (?frame-unit
+               --
+               (lemma believe))))
+
+
+
 ;;active, main clause
 
 (def-fcg-cxn believe.01-root-arg0-cxn
@@ -43,9 +89,6 @@
                --
                (dependency-label root)
                (lemma believe))))
-
-
-
 
 
 (def-fcg-cxn believe.01-root-arg0-np-cxn 
@@ -124,7 +167,7 @@
 
 ;;active, complement clause
 
-(def-fcg-cxn believe.01-xcomp-arg0-cxn  ;restrict to deal with multiple subj
+(def-fcg-cxn believe.01-ccomp-arg0-cxn 
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -137,6 +180,32 @@
               (?arg0-unit
               --
               (dependency-label nsubj)
+              (head ?frame-unit)
+              (parent ?s-unit))
+              (?s-unit
+               --
+               (phrase-type (s)))
+              (?frame-unit
+               --
+               (dependency-label ccomp)
+               (lemma believe))))
+
+
+
+(def-fcg-cxn believe.01-xcomp-arg0-cxn 
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (head ?frame-unit)
               (parent ?s-unit))
               (?s-unit
                --
@@ -147,7 +216,7 @@
                (lemma believe))))
 
 
-(def-fcg-cxn believe.01-xcomp-arg0-np-cxn ;restrict to deal with multiple subj
+(def-fcg-cxn believe.01-xcomp-arg0-np-cxn
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -162,7 +231,7 @@
               (phrase-type (np)))
               (?nsubj-unit
                --
-               (parent ?arg0-unit)
+               (parent ?arg0-unit) ;add head ?frame-unit
               (dependency-label nsubj))
               (?frame-unit
                --
@@ -170,7 +239,7 @@
                (lemma believe))))
 
 
-(def-fcg-cxn believe.01-acl-arg0-cxn ;restrict do deal with multiple subj 
+(def-fcg-cxn believe.01-acl-arg0-cxn  
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -183,7 +252,7 @@
               (?arg0-unit
               --
               (dependency-label nsubj)
-              (parent ?s-unit))
+              (parent ?s-unit)) ;add head ?frame-unit
               (?s-unit
                --
                (phrase-type (s)))
@@ -193,7 +262,7 @@
                (lemma believe))))
 
 
-(def-fcg-cxn believe.01-acl-arg0-np-cxn ;restrict to deal with multiple subj
+(def-fcg-cxn believe.01-acl-arg0-np-cxn 
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -467,6 +536,29 @@
               (parent ?vp-unit))))
 
 
+(def-fcg-cxn believe.01-ccomp-arg1-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg1 ?arg1-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg1 ?o ?arg1-unit))))
+              <-
+              (?vp-unit
+               --
+               (phrase-type (vp)))
+              (?arg1-unit
+               --
+               (parent ?vp-unit))              
+              (?frame-unit
+               --
+               (dependency-label ccomp)
+               (lemma believe)
+              (parent ?vp-unit))))
+
+
 
 ;;arg1 passive, main clause
 
@@ -480,37 +572,18 @@
                            (frame-element arg1 ?o ?arg1-unit)
                            (frame-element v ?o ?frame-unit))))
                 <-
-                (?arg1-unit
+                (?s-unit
                  --
-                (dependency-label nsubjpass))
-                (?frame-unit
-                 --
-                 (lemma believe)
-
-                 (dependency-label root))))
-
-
-(def-fcg-cxn believe.01-passive-arg1-cxn 
-               ((?frame-unit
-                 (args (referent ?o)
-                       (:v ?frame-unit)
-                       (:arg1 ?arg1-unit))
-                 (frame-evoking +)
-                 (meaning ((frame believe.01 ?o)
-                           (frame-element arg1 ?o ?arg1-unit)
-                           (frame-element v ?o ?frame-unit))))
-                <-
+                 (phrase-type (s)))
                 (?arg1-unit
                  --
                 (dependency-label nsubjpass)
                 (parent ?s-unit))
-                (?s-unit
-                 --
-                 (phrase-type (s)))
                 (?frame-unit
                  --
                  (lemma believe)
                  (dependency-label root))))
+
 
 
 (def-fcg-cxn believe.01-passive-arg1-np-cxn 
@@ -523,9 +596,13 @@
                            (frame-element arg1 ?o ?arg1-unit)
                            (frame-element v ?o ?frame-unit))))
                 <-
+                (?s-unit
+                 --
+                 (phrase-type (s)))
                 (?arg1-unit
                  --
-                 (phrase-type (np)))
+                 (phrase-type (np))
+                 (parent ?s-unit))
                 (?subjpass-unit
                  --
                 (dependency-label nsubjpass)
@@ -534,6 +611,33 @@
                  --
                  (lemma believe)
                  (dependency-label root))))
+
+
+(def-fcg-cxn believe.01-passive-arg2-cxn 
+               ((?frame-unit
+                 (args (referent ?o)
+                       (:v ?frame-unit)
+                       (:arg2 ?arg2-unit))
+                 (frame-evoking +)
+                 (meaning ((frame believe.01 ?o)
+                           (frame-element arg2 ?o ?arg2-unit)
+                           (frame-element v ?o ?frame-unit))))
+                <-
+                (?arg2-unit
+                 --
+                 (parent ?vp-unit)
+                 (phrase-type (s vp)))
+                (?vp-unit
+                 --
+                 (phrase-type (vp)))
+                (?frame-unit
+                 --
+                 (lemma believe)
+                 (dependency-label root)
+                 (parent ?vp-unit))))
+
+
+
   
 ;;arg1 passive questions
 (def-fcg-cxn believe.01-passive-arg1-sq-cxn ;this cxn is problematic because dependencies are not parsed correctly
