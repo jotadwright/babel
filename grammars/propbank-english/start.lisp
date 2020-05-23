@@ -23,7 +23,6 @@
 ;; (comprehend-and-extract-frames "Cathryn Rice could hardly believe her eyes.")
 ;; (comprehend-and-extract-frames "I believe in the system.")
 ;; (comprehend-and-extract-frames "You believe that Seymour Cray can do it again")
-;; (comprehend-and-extract-frames "The declaration by Economy Minister Nestor Rapanelli is believed to be the first time such an action has been called for.")
 ;; (comprehend-and-extract-frames "For that matter, the Chinese display a willingness to believe in the auspiciousness of just about anything!")
 
 ;;; constructed test examples for roleset believe.01
@@ -163,7 +162,7 @@
 
 ;; tests for questions
 
-;; (comprehend-and-extract-frames "You believe it.")
+;; (comprehend-and-extract-frames "You could believe it.")
 ;; (comprehend-and-extract-frames "Do you believe this?")
 ;; (comprehend-and-extract-frames "Should she really believe it?")
 

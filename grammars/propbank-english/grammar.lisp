@@ -201,10 +201,6 @@
                (lemma believe))))
 
 
-
-
-
-
 ;;passive arg0 cxns
 
 (def-fcg-cxn believe.01-pass-arg0-cxn 
@@ -263,9 +259,9 @@
 
 
 ;;; arg-1 cxns
-;; active, main clause
+;; active
 
-(def-fcg-cxn believe.01-root-arg1-dobj-cxn
+(def-fcg-cxn believe.01-arg1-dobj-cxn
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -289,7 +285,7 @@
               (parent ?vp-unit))))
 
 
-(def-fcg-cxn believe.01-root-arg1-pp-cxn
+(def-fcg-cxn believe.01-arg1-pp-cxn
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -312,7 +308,7 @@
                (lemma believe)
               (parent ?vp-unit))))
 
-(def-fcg-cxn believe.01-root-arg1-np-cxn
+(def-fcg-cxn believe.01-arg1-np-cxn
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -336,7 +332,7 @@
               (parent ?vp-unit))))
 
 
-(def-fcg-cxn believe.01-root-arg1-sbar-cxn
+(def-fcg-cxn believe.01-arg1-sbar-cxn
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -386,7 +382,6 @@
 
 
 ;; arg1 complement clauses
-
 (def-fcg-cxn believe.01-xcomp-arg1-cxn
              ((?frame-unit
                (args (referent ?o)                                               
@@ -475,7 +470,8 @@
                 (?arg1-unit
                  --
                 (dependency-label nsubjpass)
-                (parent ?s-unit))
+                (parent ?s-unit)
+                (head ?frame-unit))
                 (?frame-unit
                  --
                  (lemma believe)
@@ -503,7 +499,8 @@
                 (?subjpass-unit
                  --
                 (dependency-label nsubjpass)
-                (parent ?arg1-unit))
+                (parent ?arg1-unit)
+                (head ?frame-unit))
                 (?frame-unit
                  --
                  (lemma believe)
@@ -534,10 +531,8 @@
                  (parent ?vp-unit))))
 
 
-
-  
 ;;arg1 passive questions
-(def-fcg-cxn believe.01-passive-arg1-sq-cxn ;this cxn is problematic because dependencies are not parsed correctly
+(def-fcg-cxn believe.01-passive-arg1-sq-cxn
                ((?frame-unit
                  (args (referent ?o)
                        (:v ?frame-unit)
