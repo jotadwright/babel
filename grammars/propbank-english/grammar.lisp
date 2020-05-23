@@ -18,6 +18,7 @@
 ;;;; Generalized grammar
 
 ;;; arg0-cxns
+;;active
 
 (def-fcg-cxn believe.01-arg0-cxn
              ((?frame-unit
@@ -40,6 +41,7 @@
               (?frame-unit
                --
                (lemma believe))))
+
 
 (def-fcg-cxn believe.01-arg0-np-cxn
              ((?frame-unit
@@ -64,14 +66,12 @@
                (lemma believe))))
 
 
-
-;;active, main clause
-
-(def-fcg-cxn believe.01-root-arg0-cxn
+;;active question
+(def-fcg-cxn believe.01-root-arg0-sq-cxn 
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
-                     (:arg0 ?arg0-unit))                                              
+                      (:arg0 ?arg0-unit))                                              
                (frame-evoking +)
                (meaning ((frame believe.01 ?o)
                          (frame-element v ?o ?frame-unit)
@@ -80,44 +80,20 @@
               (?arg0-unit
               --
               (dependency-label nsubj)
-              (head ?frame-unit)
-              (parent ?s-unit))
+              (parent ?s-unit)
+              (head ?frame-unit))
               (?s-unit
                --
-               (phrase-type (s)))
+               (phrase-type (sq)))
               (?frame-unit
                --
                (dependency-label root)
                (lemma believe))))
 
 
-(def-fcg-cxn believe.01-root-arg0-np-cxn 
-             ((?frame-unit
-               (args (referent ?o)                                               
-                     (:v ?frame-unit)
-                      (:arg0 ?arg0-unit))                                              
-               (frame-evoking +)
-               (meaning ((frame believe.01 ?o)
-                         (frame-element v ?o ?frame-unit)
-                         (frame-element arg0 ?o ?arg0-unit))))
-              <-
-              (?arg0-unit
-              --
-              (phrase-type (np)))
-              (?nsubj-unit
-               --
-               (parent ?arg0-unit)
-              (dependency-label nsubj)
-              (head ?frame-unit))
-              (?frame-unit
-               --
-               (dependency-label root)
-               (lemma believe))))
+;;active complement clause
 
-
-;;active, subordinate clause
-
-(def-fcg-cxn believe.01-advcl-arg0-cxn
+(def-fcg-cxn believe.01-xcomp-arg0-cxn  
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -130,93 +106,21 @@
               (?arg0-unit
               --
               (dependency-label nsubj)
-              (head ?frame-unit)
-              (parent ?s-unit))
+              (parent ?s-unit)
+              (head ?root-unit))
               (?s-unit
                --
                (phrase-type (s)))
-              (?frame-unit
+              (?root-unit
                --
-               (dependency-label advcl)
-               (lemma believe))))
-
-
-(def-fcg-cxn believe.01-advcl-arg0-np-cxn
-             ((?frame-unit
-               (args (referent ?o)                                               
-                     (:v ?frame-unit)
-                      (:arg0 ?arg0-unit))                                              
-               (frame-evoking +)
-               (meaning ((frame believe.01 ?o)
-                         (frame-element v ?o ?frame-unit)
-                         (frame-element arg0 ?o ?arg0-unit))))
-              <-
-              (?arg0-unit
-              --
-              (phrase-type (np)))
-              (?nsubj-unit
-               --
-               (parent ?arg0-unit)
-              (dependency-label nsubj)
-              (head ?frame-unit))
-              (?frame-unit
-               --
-               (dependency-label advcl)
-               (lemma believe))))
-
-
-;;active, complement clause
-
-(def-fcg-cxn believe.01-ccomp-arg0-cxn 
-             ((?frame-unit
-               (args (referent ?o)                                               
-                     (:v ?frame-unit)
-                      (:arg0 ?arg0-unit))                                              
-               (frame-evoking +)
-               (meaning ((frame believe.01 ?o)
-                         (frame-element v ?o ?frame-unit)
-                         (frame-element arg0 ?o ?arg0-unit))))
-              <-
-              (?arg0-unit
-              --
-              (dependency-label nsubj)
-              (head ?frame-unit)
-              (parent ?s-unit))
-              (?s-unit
-               --
-               (phrase-type (s)))
-              (?frame-unit
-               --
-               (dependency-label ccomp)
-               (lemma believe))))
-
-
-
-(def-fcg-cxn believe.01-xcomp-arg0-cxn 
-             ((?frame-unit
-               (args (referent ?o)                                               
-                     (:v ?frame-unit)
-                      (:arg0 ?arg0-unit))                                              
-               (frame-evoking +)
-               (meaning ((frame believe.01 ?o)
-                         (frame-element v ?o ?frame-unit)
-                         (frame-element arg0 ?o ?arg0-unit))))
-              <-
-              (?arg0-unit
-              --
-              (dependency-label nsubj)
-              (head ?frame-unit)
-              (parent ?s-unit))
-              (?s-unit
-               --
-               (phrase-type (s)))
+               (dependency-label root))
               (?frame-unit
                --
                (dependency-label xcomp)
                (lemma believe))))
 
 
-(def-fcg-cxn believe.01-xcomp-arg0-np-cxn
+(def-fcg-cxn believe.01-xcomp-arg0-np-cxn 
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
@@ -231,8 +135,12 @@
               (phrase-type (np)))
               (?nsubj-unit
                --
-               (parent ?arg0-unit) ;add head ?frame-unit
-              (dependency-label nsubj))
+               (parent ?arg0-unit)
+              (dependency-label nsubj)
+              (head ?root-unit))
+              (?root-unit
+               --
+               (dependency-label root))
               (?frame-unit
                --
                (dependency-label xcomp)
@@ -252,10 +160,14 @@
               (?arg0-unit
               --
               (dependency-label nsubj)
-              (parent ?s-unit)) ;add head ?frame-unit
+              (parent ?s-unit)
+              (head ?root-unit))
               (?s-unit
                --
                (phrase-type (s)))
+              (?root-unit
+               --
+               (dependency-label root))
               (?frame-unit
                --
                (dependency-label acl)
@@ -278,36 +190,20 @@
               (?nsubj-unit
                --
                (parent ?arg0-unit)
-              (dependency-label nsubj))
+              (dependency-label nsubj)
+              (head ?root-unit))
+              (?root-unit
+               --
+               (dependency-label root))
               (?frame-unit
                --
                (dependency-label acl)
                (lemma believe))))
 
 
-;;active, questions
-(def-fcg-cxn believe.01-root-arg0-sq-cxn  ;add np version
-             ((?frame-unit
-               (args (referent ?o)                                               
-                     (:v ?frame-unit)
-                      (:arg0 ?arg0-unit))                                              
-               (frame-evoking +)
-               (meaning ((frame believe.01 ?o)
-                         (frame-element v ?o ?frame-unit)
-                         (frame-element arg0 ?o ?arg0-unit))))
-              <-
-              (?arg0-unit
-              --
-              (dependency-label nsubj)
-              (parent ?s-unit)
-              (head ?frame-unit))
-              (?s-unit
-               --
-               (phrase-type (sq)))
-              (?frame-unit
-               --
-               (dependency-label root)
-               (lemma believe))))
+
+
+
 
 ;;passive arg0 cxns
 
@@ -363,6 +259,7 @@
                (?frame-unit
                --
                (lemma believe))))
+
 
 
 ;;; arg-1 cxns
@@ -726,8 +623,8 @@
   )
 
 
-
 #|
+
 ;;;; Exploratory hand-written grammar
 
 ;;;argm-cxns
@@ -6442,6 +6339,136 @@
                 --
                 (parent ?pp-unit)
                 (dependency-label pobj))))
+
+
+
+;;;unused generalization examples
+;;active, main clause
+
+(def-fcg-cxn believe.01-root-arg0-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                     (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (head ?frame-unit)
+              (parent ?s-unit))
+              (?s-unit
+               --
+               (phrase-type (s)))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe))))
+
+
+(def-fcg-cxn believe.01-root-arg0-np-cxn 
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (phrase-type (np)))
+              (?nsubj-unit
+               --
+               (parent ?arg0-unit)
+              (dependency-label nsubj)
+              (head ?frame-unit))
+              (?frame-unit
+               --
+               (dependency-label root)
+               (lemma believe))))
+
+
+;;active, subordinate clause
+
+(def-fcg-cxn believe.01-advcl-arg0-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (head ?frame-unit)
+              (parent ?s-unit))
+              (?s-unit
+               --
+               (phrase-type (s)))
+              (?frame-unit
+               --
+               (dependency-label advcl)
+               (lemma believe))))
+
+
+(def-fcg-cxn believe.01-advcl-arg0-np-cxn
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (phrase-type (np)))
+              (?nsubj-unit
+               --
+               (parent ?arg0-unit)
+              (dependency-label nsubj)
+              (head ?frame-unit))
+              (?frame-unit
+               --
+               (dependency-label advcl)
+               (lemma believe))))
+
+
+(def-fcg-cxn believe.01-ccomp-arg0-cxn 
+             ((?frame-unit
+               (args (referent ?o)                                               
+                     (:v ?frame-unit)
+                      (:arg0 ?arg0-unit))                                              
+               (frame-evoking +)
+               (meaning ((frame believe.01 ?o)
+                         (frame-element v ?o ?frame-unit)
+                         (frame-element arg0 ?o ?arg0-unit))))
+              <-
+              (?arg0-unit
+              --
+              (dependency-label nsubj)
+              (head ?frame-unit)
+              (parent ?s-unit))
+              (?s-unit
+               --
+               (phrase-type (s)))
+              (?frame-unit
+               --
+               (dependency-label ccomp)
+               (lemma believe))))
+
+
+
+      
 )           
                         
 
@@ -6586,6 +6613,7 @@ Explore ways of generalizing NER prps etc.
                  (parent ?sbar-unit)
                  (phrase-type (s))))
                :disable-automatic-footprints t)
+
 
 
  |# 
