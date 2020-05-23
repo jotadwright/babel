@@ -280,7 +280,6 @@
               (dependency-label dobj))
               (?frame-unit
                --
-               (dependency-label root)
                (lemma believe)
               (parent ?vp-unit))))
 
@@ -304,7 +303,6 @@
               (phrase-type (pp)))
               (?frame-unit
                --
-               (dependency-label root)
                (lemma believe)
               (parent ?vp-unit))))
 
@@ -327,7 +325,6 @@
               (phrase-type (np)))
               (?frame-unit
                --
-               (dependency-label root)
                (lemma believe)
               (parent ?vp-unit))))
 
@@ -351,37 +348,11 @@
               (phrase-type (sbar)))
               (?frame-unit
                --
-               (dependency-label root)
                (lemma believe)
               (parent ?vp-unit))))
 
 
-
-;; active, subordinate clause
-(def-fcg-cxn believe.01-advcl-arg1-cxn
-             ((?frame-unit
-               (args (referent ?o)                                               
-                     (:v ?frame-unit)
-                     (:arg1 ?arg1-unit))                                              
-               (frame-evoking +)
-               (meaning ((frame believe.01 ?o)
-                         (frame-element v ?o ?frame-unit)
-                         (frame-element arg1 ?o ?arg1-unit))))
-              <-
-              (?vp-unit
-               --
-               (phrase-type (vp)))
-              (?arg1-unit
-               --
-               (parent ?vp-unit))              
-              (?frame-unit
-               --
-               (dependency-label advcl)
-               (lemma believe)
-              (parent ?vp-unit))))
-
-
-;; arg1 complement clauses
+;; complement clauses
 (def-fcg-cxn believe.01-xcomp-arg1-cxn
              ((?frame-unit
                (args (referent ?o)                                               
@@ -454,7 +425,7 @@
 
 ;;arg1 passive, main clause
 
-(def-fcg-cxn believe.01-passive-arg1-cxn 
+(def-fcg-cxn believe.01-pass-arg1-cxn 
                ((?frame-unit
                  (args (referent ?o)
                        (:v ?frame-unit)
@@ -479,7 +450,7 @@
 
 
 
-(def-fcg-cxn believe.01-passive-arg1-np-cxn 
+(def-fcg-cxn believe.01-pass-arg1-np-cxn 
                ((?frame-unit
                  (args (referent ?o)
                        (:v ?frame-unit)
@@ -507,7 +478,7 @@
                  (dependency-label root))))
 
 
-(def-fcg-cxn believe.01-passive-arg2-cxn 
+(def-fcg-cxn believe.01-pass-arg2-cxn 
                ((?frame-unit
                  (args (referent ?o)
                        (:v ?frame-unit)
@@ -532,7 +503,7 @@
 
 
 ;;arg1 passive questions
-(def-fcg-cxn believe.01-passive-arg1-sq-cxn
+(def-fcg-cxn believe.01-pass-arg1-sq-cxn
                ((?frame-unit
                  (args (referent ?o)
                        (:v ?frame-unit)
@@ -6466,20 +6437,6 @@
       
 )           
                         
-
-;;;; To do:
-
-3 levels of VPs (e.g. should have been ...)
-Questions; phrase-type  sq instead of s
-
-Make arg0 dependency label nsubj explicit (to avoid confusion with a.o. arg-m-tmp)
-
-
-Add frame-element rel
-Check argm-adv vs. mnr
-Refine argm-time, date, etc.
-Check possibilities of NER for location, etc.
-Explore ways of generalizing NER prps etc.
  
 
 ;;;; Initial examples

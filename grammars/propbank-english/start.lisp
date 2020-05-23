@@ -157,17 +157,11 @@
 ;; (comprehend-and-extract-frames "She should be believed by them.")
 ;; (comprehend-and-extract-frames "She should not readily be believed by them.") 
 
-;; (comprehend-and-extract-frames "She does not say it unless she really believes that it is true.")
-
-
 ;; tests for questions
 
 ;; (comprehend-and-extract-frames "You could believe it.")
 ;; (comprehend-and-extract-frames "Do you believe this?")
 ;; (comprehend-and-extract-frames "Should she really believe it?")
-
-
-
 
 ;;; Constructed examples for arg-m NER tests
 
@@ -176,17 +170,19 @@
 ;; (comprehend-and-extract-frames "In America, many people still believe that Trump is right.")
 
 
-;;; Constructed examples for generalization tests
+;;; Training data tests
+;; (comprehend-and-extract-frames "")
 
-;; (comprehend-and-extract-frames "He will not believe that the dog displays a willingness to believe it")
-
-;; (comprehend-and-extract-frames "He said that she believes him.")
-
-;;; Training data
 
 ;; (comprehend-and-extract-frames "Well , of course we could not believe completely 100 percent of what he said about this , because it is not certain whether they will make accommodations to let Koizumi stay in office .")
 
 ;; (comprehend-and-extract-frames "Would you believe that she said that?")
+
+;; (comprehend-and-extract-frames "However , then there is a lot of nationalist sentiment , that is , Japan believes that the Soviet Union unilaterally broke the Pact of Neutrality , sending troops into Northeast China and defeating the Kwantung Army .")
+
+
+;; (comprehend-and-extract-frames "So , to say that the US government or the US president had such an idea , you think many people may easily believe it.")
+
 
 
 
