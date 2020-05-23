@@ -174,24 +174,7 @@
 ;; (comprehend-and-extract-frames "")
 
 
-;; (comprehend-and-extract-frames "Well , of course we could not believe completely 100 percent of what he said about this , because it is not certain whether they will make accommodations to let Koizumi stay in office .")
-
-;; (comprehend-and-extract-frames "Would you believe that she said that?")
-
-;; (comprehend-and-extract-frames "However , then there is a lot of nationalist sentiment , that is , Japan believes that the Soviet Union unilaterally broke the Pact of Neutrality , sending troops into Northeast China and defeating the Kwantung Army .")
-
-
-;; (comprehend-and-extract-frames "So , to say that the US government or the US president had such an idea , you think many people may easily believe it.")
-
-;; (comprehend-and-extract-frames "They do n't believe a lot of the charges are true.")
-
-;; (comprehend-and-extract-frames "")
-
-
-;; (comprehend-and-extract-frames "")
-
-
-
+;; (comprehend-and-extract-frames "The former President is believed to be in living in Belgrade with police protection .")
 
 
 

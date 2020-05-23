@@ -66,6 +66,7 @@
                (lemma believe))))
 
 
+
 ;;active question
 (def-fcg-cxn believe.01-root-arg0-sq-cxn 
              ((?frame-unit
@@ -477,18 +478,18 @@
                  (lemma believe)
                  (dependency-label root))))
 
-
-(def-fcg-cxn believe.01-pass-arg2-cxn 
+;;c-arg1 cxn
+(def-fcg-cxn believe.01-pass-c-arg1-cxn 
                ((?frame-unit
                  (args (referent ?o)
                        (:v ?frame-unit)
-                       (:arg2 ?arg2-unit))
+                       (:c-arg1 ?c-arg1-unit))
                  (frame-evoking +)
                  (meaning ((frame believe.01 ?o)
-                           (frame-element arg2 ?o ?arg2-unit)
+                           (frame-element c-arg1 ?o ?c-arg1-unit)
                            (frame-element v ?o ?frame-unit))))
                 <-
-                (?arg2-unit
+                (?c-arg1-unit
                  --
                  (parent ?vp-unit)
                  (phrase-type (s vp)))
