@@ -183,9 +183,12 @@
 
 ;; (comprehend-and-extract-frames "So , to say that the US government or the US president had such an idea , you think many people may easily believe it.")
 
+;; (comprehend-and-extract-frames "They do n't believe a lot of the charges are true.")
+
+;; (comprehend-and-extract-frames "")
 
 
-
+;; (comprehend-and-extract-frames "")
 
 
 

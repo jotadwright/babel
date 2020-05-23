@@ -567,25 +567,23 @@
                (lemma believe))))
 
 
-(def-fcg-cxn believe.01-argm-adv-cxn
+(def-fcg-cxn believe.01-argm-mnr-cxn
              ((?frame-unit
                (args (referent ?o)                                               
                      (:v ?frame-unit)
-                     (:argm-adv ?argm-adv-unit))                                              
+                     (:argm-mnr ?argm-mnr-unit))                                              
                (frame-evoking +)
                (meaning ((frame believe.01 ?o)
                          (frame-element v ?o ?frame-unit)
-                         (frame-element argm-adv ?o ?argm-adv-unit))))
+                         (frame-element argm-mnr ?o ?argm-mnr-unit))))
               <-
-              (?argm-adv-unit
+              (?argm-mnr-unit
                --
                (dependency-label advmod)
                (head ?frame-unit))
               (?frame-unit
                --
                (lemma believe))))
-
-
   )
 
 
