@@ -31,7 +31,7 @@
 
 (defun all-sentences-annotated-with-roleset (roleset &key (split #'train-split)) ;;or #'dev-split
   (loop for sentence in (funcall split *propbank-annotations*)
-        when (find roleset (propbank-frames sentence) :key #'frame-name :test #'string=)
+        when (find roleset (propbank-frames sentence) :key #'frame-name :test #'equalp)
         collect sentence))
 
 ;; Retrieve all sentences in training set for a given roleset:
@@ -58,7 +58,7 @@ split to the output buffer."
                    finally (format t "~%")))))
 
 
-(print-propbank-sentences-with-annotation "believe.01")
+;; (print-propbank-sentences-with-annotation "believe.01")
 
 
 
@@ -70,22 +70,7 @@ split to the output buffer."
 (defparameter *believe-sentence* (third (all-sentences-annotated-with-roleset "believe.01")))
 
 ;;Create an empty cxn inventory
-(defparameter *propbank-learned-cxn-inventory* nil)
-
-(def-fcg-constructions propbank-learned-english
-  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents)
-                       (:node-tests :restrict-nr-of-nodes :restrict-search-depth))
-  :visualization-configurations ((:show-constructional-dependencies . nil))
-  :hierarchy-features (constituents dependents)
-  :feature-types ((constituents set)
-                  (dependents set)
-                  (span sequence)
-                  (phrase-type set)
-                  (word-order set-of-predicates)
-                  (meaning set-of-predicates)
-                  (footprints set))
-  :cxn-inventory *propbank-learned-cxn-inventory*)
-
+(defparameter *propbank-learned-cxn-inventory-test* nil)
 
 ;; Activate FCG monitor and start Penelope (if using Spacy API locally)
 ;(activate-monitor trace-fcg)
@@ -101,17 +86,16 @@ split to the output buffer."
 
 ;;Try out the same for multiple sentences of a given roleset
 ;;----------------------------------------------------------
-(defparameter *believe-sentences* (loop with all-sentences-annotated-with-roleset  = (all-sentences-annotated-with-roleset "believe.01")
-                                        for i from 1 to 40
-                                        collect (nth i all-sentences-annotated-with-roleset)))
+(defparameter *opinion-sentences* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
 
-(loop for sentence in *believe-sentences*
-      do (learn-cxn-from-propbank-annotation sentence "believe.01" *propbank-learned-cxn-inventory*))
+(length *opinion-sentences*)
 
-;; OR
+(learn-propbank-grammar *opinion-sentences*
+                        :cxn-inventory '*propbank-learned-cxn-inventory-opinion*
+                        :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
 
-(learn-propbank-grammar *believe-sentences* '("believe.01"))
-
+*propbank-learned-cxn-inventory-opinion*
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Evaluate a grammar on the propbank sentences .  ;;
@@ -119,8 +103,18 @@ split to the output buffer."
 
 
 ;;Evaluating the learned grammar:
-(evaluate-propbank-sentences *believe-sentences* *propbank-learned-cxn-inventory* '("believe.01"))
+(evaluate-propbank-sentences ;(all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)
+ *believe-sentences*
+ *propbank-learned-cxn-inventory*
+                             :selected-rolesets  '("")
+                             )
 
 
 ;;Evaluating the written grammar:
-(evaluate-propbank-sentences *believe-sentences* *fcg-constructions* '("believe.01"))
+(evaluate-propbank-sentences ;(all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)
+ *believe-sentences*
+ 
+                             *fcg-constructions*
+                            ; :selected-rolesets nil
+                             :selected-rolesets '("stop.01")
+                             )

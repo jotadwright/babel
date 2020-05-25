@@ -7,7 +7,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun evaluate-propbank-sentences (list-of-propbank-sentences cxn-inventory rolesets &key (silent nil))
+(defun evaluate-propbank-sentences (list-of-propbank-sentences cxn-inventory &key (selected-rolesets nil) (silent nil) (print-to-standard-output t))
   "Returns a.o. precision, recall, F1 score for evaluation of list-of-propbank-sentences."
   ;; Precision = (#correct-predictions / #predictions)
   ;; Recall = (#correct-predictions / #gold-standard-predictions)
@@ -16,10 +16,11 @@
                                  with number-of-predictions = 0
                                  with number-of-gold-standard-predictions = 0
                                  for sentence in list-of-propbank-sentences
-                                 for sentence-evaluation-result = (evaluate-propbank-sentence sentence cxn-inventory rolesets :silent silent)
+                                 for sentence-evaluation-result = (evaluate-propbank-sentence sentence cxn-inventory :selected-rolesets selected-rolesets :silent silent)
                                  for sentence-number from 1
                                  do
-                                 (format t "~%Sentence ~a: ~a~%" sentence-number (sentence-string sentence))
+                                 (when print-to-standard-output
+                                   (format t "~%Sentence ~a: ~a~%" sentence-number (sentence-string sentence)))
                                  (setf number-of-correct-predictions (+ number-of-correct-predictions (cdr (assoc :nr-of-correct-predictions sentence-evaluation-result))))
                                  (setf number-of-predictions (+ number-of-predictions (cdr (assoc :nr-of-predictions sentence-evaluation-result))))
                                  (setf number-of-gold-standard-predictions (+ number-of-gold-standard-predictions (cdr (assoc :nr-of-gold-standard-predictions sentence-evaluation-result))))
@@ -62,12 +63,13 @@
                                            (:nr-of-correct-predictions . ,number-of-correct-predictions)
                                            (:nr-of-predictions . ,number-of-predictions)
                                            (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))))))
-    (format t "~%~%~%############## EVALUATION RESULTS ##############~%")
-    (format t "~a~%" evaluation-result)
+    (when print-to-standard-output
+      (format t "~%~%~%############## EVALUATION RESULTS ##############~%")
+      (format t "~a~%" evaluation-result))
     evaluation-result))
 
 
-(defun evaluate-propbank-sentence (propbank-sentence cxn-inventory rolesets &key (silent nil))
+(defun evaluate-propbank-sentence (propbank-sentence cxn-inventory &key (selected-rolesets nil) (silent nil))
   "Evaluates a conll sentence in terms of number-of-predictions, number-of-correct-predictions and number-of-gold-standard-predictions."
   (let* ((sentence-string (sentence-string propbank-sentence))
          (solution-and-cipn (multiple-value-list (comprehend sentence-string :cxn-inventory cxn-inventory :silent silent)))
@@ -76,7 +78,8 @@
          ;; Number of gold-standard predictions
          (number-of-gold-standard-predictions (loop with number-of-gold-standard-predictions = 0
                                                     for frame in (propbank-frames propbank-sentence)
-                                                    if (find (frame-name frame) rolesets :test #'string=)
+                                                    if (or (null selected-rolesets)
+                                                           (find (frame-name frame) selected-rolesets :test #'equalp))
                                                     do (loop for role in (frame-roles frame)
                                                              do
                                                              (setf number-of-gold-standard-predictions (+ number-of-gold-standard-predictions (length (indices role)))))
@@ -85,7 +88,8 @@
          ;; Number of predication made by the grammar
          (number-of-predictions (loop with number-of-predictions = 0
                                       for frame in (frames extracted-frames)
-                                      if (find (symbol-name (frame-name frame)) rolesets :test #'equalp)
+                                      if (or (null selected-rolesets)
+                                             (find (symbol-name (frame-name frame)) selected-rolesets :test #'equalp))
                                       do
                                       ;; for frame-elements
                                       (loop for role in (frame-elements frame)
@@ -100,7 +104,8 @@
          (number-of-correct-predictions (loop with number-of-correct-predictions = 0
                                               for predicted-frame in (frames extracted-frames)
                                               ;; check whether we're interested in the frame
-                                              if (find (symbol-name (frame-name predicted-frame)) rolesets :test #'equalp)
+                                              if (or (null selected-rolesets)
+                                                     (find (symbol-name (frame-name predicted-frame)) selected-rolesets :test #'equalp))
                                               do
                                               ;; For frame elements
                                               (loop for predicted-frame-element in (frame-elements predicted-frame)

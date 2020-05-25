@@ -13,7 +13,7 @@
 ;; Learning a grammar cxn ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun learn-propbank-grammar (list-of-propbank-sentences list-of-rolesets &key (silent t))
+(defun learn-propbank-grammar (list-of-propbank-sentences &key (selected-rolesets nil) (silent t) (cxn-inventory '*propbank-learned-cxn-inventory*))
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
                                 :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents)
                                                      (:node-tests  :restrict-nr-of-nodes :restrict-search-depth))
@@ -26,32 +26,39 @@
                                                 (word-order set-of-predicates)
                                                 (meaning set-of-predicates)
                                                 (footprints set))
-                                :cxn-inventory *propbank-learned-cxn-inventory*))))
+                                :cxn-inventory ,cxn-inventory))))
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
           for sentence-string = (sentence-string sentence)
+          for rolesets = (if selected-rolesets
+                           (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
+                           (all-rolesets sentence))
           do
-          (format t "~%")
-          (loop for roleset in list-of-rolesets
-                for f1-score = (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) cxn-inventory (list roleset)
-                                                                                  :silent silent)))
+          (format t "~%~%---> Sentence ~a: ~a~%" sentence-number sentence-string)
+          (loop for roleset in rolesets
+                for f1-score = (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) cxn-inventory
+                                                                                  :selected-rolesets (list roleset)
+                                                                                  :silent silent
+                                                                                  :print-to-standard-output nil)))
                    ;; if f1-score under .95
                    if (< f1-score 0.95)
                    do
-                   (format t "Sentence ~a: ~a, f1-score ~a --> Learning.~%" sentence-number sentence-string f1-score)
+                   (format t "~%Roleset ~a: f1-score ~a --> Learning.~%"  roleset f1-score)
                    ;; First try learning with copy of cxn-inventory
                    (multiple-value-bind (temp-cxn-inventory cxn)
                        (learn-cxn-from-propbank-annotation sentence roleset (copy-object cxn-inventory))
                      ;; If now not under .95 anymore, learn with actual cxn-inventory
-                     (let ((new-f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) temp-cxn-inventory (list roleset)
-                                                                                :silent silent)))))
+                     (let ((new-f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) temp-cxn-inventory
+                                                                                            :selected-rolesets (list roleset)
+                                                                                            :silent silent
+                                                                                            :print-to-standard-output nil)))))
                      (if  (< new-f1-score 0.95)
                        (format t "Learning failed, f1-score ~a.~%" new-f1-score)
                        (progn
                          (format t "Learning was successful (added ~a), f1-score ~a.~%" (name cxn) new-f1-score)
                          (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory)))))
                    else do
-                   (format t "Sentence ~a: ~a, f1-score ~a.~%" sentence-number sentence-string f1-score))
+                   (format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score))
           finally return cxn-inventory)))
                    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -61,7 +68,7 @@
 (defun learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory)
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
-  (let* ((frame (find roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'string=))
+  (let* ((frame (find roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp))
          (unit-structure (left-pole-structure (de-render (sentence-string propbank-sentence) :de-render-constituents-dependents)))
          (units-with-role (loop for role in (frame-roles frame) ;;find all units that correspond to annotated frame elements
                                 for role-start = (first (indices role))
@@ -73,7 +80,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                               (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                                 (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
                                                 (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
-         (cxn-name (format nil "~{~a~^+~}-cxn" cxn-name-list))
+         (cxn-name (format nil "~a-~{~a~^+~}-cxn" roleset cxn-name-list))
          (contributing-unit (make-propbank-contributing-unit units-with-role frame cxn-name))
          (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit cxn-name)))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure)))
@@ -201,8 +208,9 @@ start to end(v-unit)"
           (push new-state new-states))))
     new-states))
 
-
-
+(defmethod all-rolesets ((sentence conll-sentence))
+  "Returns all propbank frames with which a sentence was annotated."
+  (mapcar #'frame-name (propbank-frames sentence)))
 
                
        
