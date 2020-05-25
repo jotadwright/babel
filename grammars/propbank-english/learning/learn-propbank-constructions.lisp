@@ -45,18 +45,20 @@
                    do
                    (format t "~%Roleset ~a: f1-score ~a --> Learning.~%"  roleset f1-score)
                    ;; First try learning with copy of cxn-inventory
-                   (multiple-value-bind (temp-cxn-inventory cxn)
-                       (learn-cxn-from-propbank-annotation sentence roleset (copy-object cxn-inventory))
+                   (let ((temp-cxn-inventory
+                          (learn-cxn-from-propbank-annotation sentence roleset (copy-object cxn-inventory))))
                      ;; If now not under .95 anymore, learn with actual cxn-inventory
-                     (let ((new-f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) temp-cxn-inventory
-                                                                                            :selected-rolesets (list roleset)
-                                                                                            :silent silent
-                                                                                            :print-to-standard-output nil)))))
-                     (if  (< new-f1-score 0.95)
-                       (format t "Learning failed, f1-score ~a.~%" new-f1-score)
-                       (progn
-                         (format t "Learning was successful (added ~a), f1-score ~a.~%" (name cxn) new-f1-score)
-                         (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory)))))
+                     (if temp-cxn-inventory
+                       (let ((new-f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences (list sentence) temp-cxn-inventory
+                                                                                              :selected-rolesets (list roleset)
+                                                                                              :silent silent
+                                                                                              :print-to-standard-output nil)))))
+                         (if  (< new-f1-score 0.95)
+                           (format t "Learning failed, f1-score ~a.~%" new-f1-score)
+                           (progn
+                             (format t "Learning was successful, f1-score ~a.~%"  new-f1-score)
+                             (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory))))
+                       (format t "Nothing could be learned. ~%")))
                    else do
                    (format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score))
           finally return cxn-inventory)))
@@ -68,31 +70,34 @@
 (defun learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory)
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
-  (let* ((frame (find roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp))
-         (unit-structure (left-pole-structure (de-render (sentence-string propbank-sentence) :de-render-constituents-dependents)))
-         (units-with-role (loop for role in (frame-roles frame) ;;find all units that correspond to annotated frame elements
-                                for role-start = (first (indices role))
-                                for role-end = (+ (last-elt (indices role)) 1)
-                                for unit = (find-unit-by-span unit-structure (list role-start role-end))
-                                collect (cons role unit)))
-         (cxn-name-list (loop for (role . unit) in units-with-role
-                              collect (format nil "~a:~a" (role-type role) ;;create a name based on role-types and lex-class/phrase-type
-                                              (if (find '(node-type leaf) (unit-body unit) :test #'equal)
-                                                (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
-                                                (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
-         (cxn-name (format nil "~a-~{~a~^+~}-cxn" roleset cxn-name-list))
-         (contributing-unit (make-propbank-contributing-unit units-with-role frame cxn-name))
-         (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit cxn-name)))
-         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure)))
+  (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
+      (dolist (frame frames cxn-inventory)
+         (let* ((unit-structure (left-pole-structure (de-render (sentence-string propbank-sentence) :de-render-constituents-dependents)))
+                (units-with-role (loop for role in (frame-roles frame) ;;find all units that correspond to annotated frame elements
+                                       for role-start = (first (indices role))
+                                       for role-end = (+ (last-elt (indices role)) 1)
+                                       for unit = (find-unit-by-span unit-structure (list role-start role-end))
+                                       when unit
+                                       collect (cons role unit)))
+                (cxn-name-list (loop for (role . unit) in units-with-role
+                                     collect (format nil "~a:~a" (role-type role) ;;create a name based on role-types and lex-class/phrase-type
+                                                     (if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                                       (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
+                                                       (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
+                (cxn-name (format nil "~a-~{~a~^+~}-cxn" roleset cxn-name-list))
+                (contributing-unit (make-propbank-contributing-unit units-with-role frame cxn-name))
+                (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit cxn-name)))
+                (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure)))
 
-    ;;create a new construction and add it to the cxn-inventory
-    (eval `(def-fcg-cxn ,(make-id cxn-name)
-                        (,contributing-unit
-                         <-
-                         ,@cxn-units-with-role
-                         ,@cxn-units-without-role)
-                        :disable-automatic-footprints t
-                        :cxn-inventory ,cxn-inventory))))
+           (when cxn-units-with-role
+             ;;create a new construction and add it to the cxn-inventory
+             (eval `(def-fcg-cxn ,(make-id cxn-name)
+                                 (,contributing-unit
+                                  <-
+                                  ,@cxn-units-with-role
+                                  ,@cxn-units-without-role)
+                                 :disable-automatic-footprints t
+                                 :cxn-inventory ,cxn-inventory)))))))
 
 
 (defun find-unit-by-span (transient-structure span)
