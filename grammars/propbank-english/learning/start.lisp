@@ -70,7 +70,19 @@ split to the output buffer."
 (defparameter *believe-sentence* (third (all-sentences-annotated-with-roleset "believe.01")))
 
 ;;Create an empty cxn inventory
-(defparameter *propbank-learned-cxn-inventory-test* nil)
+(def-fcg-constructions propbank-learned-english
+  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents) ;;:de-render-constituents-dependents-without-tokenisation
+                       (:node-tests  :restrict-nr-of-nodes :restrict-search-depth))
+  :visualization-configurations ((:show-constructional-dependencies . nil))
+  :hierarchy-features (constituents dependents)
+  :feature-types ((constituents set)
+                  (dependents set)
+                  (span sequence)
+                  (phrase-type set)
+                  (word-order set-of-predicates)
+                  (meaning set-of-predicates)
+                  (footprints set))
+  :cxn-inventory *propbank-learned-cxn-inventory*)
 
 ;; Activate FCG monitor and start Penelope (if using Spacy API locally)
 ;(activate-monitor trace-fcg)
@@ -93,14 +105,12 @@ split to the output buffer."
 
 (length *opinion-sentences*)
 
-(defparameter *selection* (loop for i from 1 to 20
-                                for sentence in *opinion-sentences*
-                                collect sentence))
 
-(learn-propbank-grammar *selection*
+(learn-propbank-grammar (subseq *opinion-sentences* 0 2 )
                         :cxn-inventory '*propbank-learned-cxn-inventory*
                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                        :silent nil)
+                        :silent t
+                        :tokenisation t)
 
 (setf *selected-sentence* (find "Do n't think of it as a literary competition ." *opinion-sentences* :key #'sentence-string :test #'string=))
 
@@ -115,8 +125,12 @@ split to the output buffer."
 
 ;; FREQUENTLY OCCURRING PROBLEMS 
 ;;------------------------------
-;; TO DO: Check evaluation for the cases where only the FEE could be found!
 
+(activate-monitor trace-fcg)
+;;Probleem met quotes (to do: test zonder tokenisation)
+(defparameter *selected-sentence* (find "`` You people here think this is Russian music , '' she said with disdain , and called over to the waitress : `` Could you turn it off ? ''" *opinion-sentences* :key #'sentence-string :test #'equalp))
+(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory-opinion*)
+(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory-opinion*)
 
 
 ;;Hier zie ik niet waarom de F1 score niet 100% is

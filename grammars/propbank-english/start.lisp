@@ -20,7 +20,7 @@
 
 ;;; propbank-frames examples for roleset believe.01
 
-;; (comprehend-and-extract-frames "Cathryn Rice could hardly believe her eyes.")
+;; (comprehend-and-extract-frames "Cathryn Rice could hardly believe her eyes .")
 ;; (comprehend-and-extract-frames "I believe in the system.")
 ;; (comprehend-and-extract-frames "You believe that Seymour Cray can do it again")
 ;; (comprehend-and-extract-frames "For that matter, the Chinese display a willingness to believe in the auspiciousness of just about anything!")

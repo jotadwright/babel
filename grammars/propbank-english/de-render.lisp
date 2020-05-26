@@ -1,11 +1,7 @@
 (in-package :propbank-english)
 
-(defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
-                      &key &allow-other-keys)
-  "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
-  (let* (;; Query the penelope API for a syntactic analysis
-         (spacy-benepar-analysis (nlp-tools:get-penelope-syntactic-analysis utterance))
-         ;; Make unit names for the different units, and store them with the unit id.
+(defun create-initial-transient-structure-based-on-benepar-analysis (spacy-benepar-analysis)
+  (let* (;; Make unit names for the different units, and store them with the unit id.
          (unit-name-ids (loop for node in spacy-benepar-analysis
                               for node-id = (node-id node)
                               for node-type = (node-type node)
@@ -52,6 +48,22 @@
                                              :left-pole units
                                              :right-pole '((root)))))
     transient-structure))
+
+
+(defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
+                      &key &allow-other-keys)
+   (let (;; Query the penelope API for a syntactic analysis
+          (spacy-benepar-analysis (nlp-tools:get-penelope-syntactic-analysis utterance)))
+     (create-initial-transient-structure-based-on-benepar-analysis spacy-benepar-analysis)))
+
+  
+(defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents-without-tokenisation))
+                      &key &allow-other-keys)
+  "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
+  (let* ((list-utterance (remove-if #'(lambda (string) (equalp string "")) (split utterance #\Space)))
+         ;; Query the penelope API for a syntactic analysis
+         (spacy-benepar-analysis (nlp-tools:get-penelope-syntactic-analysis list-utterance)))
+       (create-initial-transient-structure-based-on-benepar-analysis spacy-benepar-analysis)))
 
 
 (defun find-adjacency-constraints (node-id spacy-benepar-analysis unit-name-ids)
