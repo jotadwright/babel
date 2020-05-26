@@ -193,20 +193,13 @@ fillers (arg0, arg1) and the frame-evoking element unit."
                                               :test #'equalp )))
          (form-constraints-in-unit (feature-value (find 'word-order (unit-body unit) :key #'first :test #'equalp))))
 
-    ;;children unit names are variables: make them symbols again
-    (setf children-per-type
-          (loop for children in children-per-type
-                collect (loop for (unit-name . unit-body) in children
-                             collect (cons (make-symbol (subseq (format nil "~a" unit-name) 1))
-                                           unit-body))))
-    
     (loop for fc in form-constraints-in-unit
-          for first-unit-name = (second fc)
-          for second-unit-name = (third fc)
+          for first-unit-name = (variablify (second fc))
+          for second-unit-name = (variablify (third fc))
           for fcs-to-keep = (loop for group in children-per-type
                                   if (and (find first-unit-name group :key #'unit-name :test #'string=)
                                           (find second-unit-name group :key #'unit-name :test #'string=))
-                                  collect (list (first fc) (variablify first-unit-name) (variablify second-unit-name)))
+                                  collect (list (first fc) first-unit-name second-unit-name))
           finally return fcs-to-keep)))
 
 
