@@ -160,18 +160,47 @@ fillers (arg0, arg1) and the frame-evoking element unit."
                                                                units-with-role))
          for unit-with-role in (remove fee-unit units-with-role :test #'equal) ;;discard the frame-evoking element (FEE) unit
          for path = (find-path-in-syntactic-tree (cdr unit-with-role) fee-unit unit-structure) ;;find path between a unit in the transient structure and the FEE unit
+
          append (loop for unit-name in path
                       for unit = (find unit-name unit-structure :key #'unit-name)
                       for parent = (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
                                       (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
+                      for form-constraints-for-children-with-role-and-same-type = (make-form-constraints-for-children-with-role-and-same-type unit cxn-units-with-role)
+
                       unless (find (variablify unit-name) cxn-units-with-role :key #'unit-name) ;;check that the unit is not a frame-element
                       collect `(,(variablify unit-name)
                                 --
                                 (parent ,parent)
+                                (word-order ,form-constraints-for-children-with-role-and-same-type)
                                 ,(if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                    `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
                                    `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
                                                     :key #'unit-name))
+
+#|
+
+(defun make-form-constraints-for-children-with-role-and-same-type (unit cxn-units-with-role)
+  (let* ((children (loop for role-unit in cxn-units-with-role
+                         when (equalp (subseq (symbol-name (feature-value (find 'parent (cddr role-unit) :key #'first :test #'equalp))) 1)
+                                      (symbol-name (unit-name unit)))
+                         collect role-unit))
+         (children-per-type (group-by children #'(lambda (unit)
+                                                   (if (find '(node-type leaf) (cddr unit) :test #'equal)
+                                                     (feature-value (find 'lex-class (cddr unit) :key #'first :test #'equalp))
+                                                     (feature-value (find 'phrase-type (cddr unit) :key #'first :test #'equalp)))
+                                                   :test #'equalp )))
+         (form-constraints-in-unit (feature-value (find 'word-order (unit-body unit) :key #'first :test #'equalp))))
+
+    (loop for fc in form-constraints-in-unit
+          for first-unit-name = (second fc)
+          for second-unit-name = (third fc)
+          for fcs-to-keep = (loop for group in children-per-type
+                                  if (and (find first-unit-name group :key #'unit-name)
+                                          (find second-unit-name group :key #'unit-name))
+                                  collect fc)
+          finally return fcs-to-keep)))
+
+|#
 
 (defun find-path-in-syntactic-tree (unit v-unit unit-structure)
   "A search process that finds a path between two units in a transient
@@ -217,5 +246,11 @@ start to end(v-unit)"
   "Returns all propbank frames with which a sentence was annotated."
   (mapcar #'frame-name (propbank-frames sentence)))
 
-               
-       
+
+;(setf *T* (first *opinion-sentences*))
+
+;(defmethod compatible-constituents-p ((sentence conll-sentence))
+;  "Returns T if all annotated roles correspond to a constituent in de spacy-benepar tree."
+;  (loop for frame in (propbank-frames sentence)
+;        always (loop for role in (frame-roles frame)
+;                     always )))

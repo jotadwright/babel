@@ -93,19 +93,23 @@ split to the output buffer."
 
 (length *opinion-sentences*)
 
-(defparameter *selection* (loop for i from 0 to 20
-                              for sentence in *opinion-sentences*
-                              collect sentence))
+(defparameter *selection* (loop for i from 1 to 20
+                                for sentence in *opinion-sentences*
+                                collect sentence))
 
 (learn-propbank-grammar *selection*
-                        :cxn-inventory '*propbank-learned-cxn-inventory-opinion*
-                        :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
+                        :cxn-inventory '*propbank-learned-cxn-inventory*
+                        :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                        :silent nil)
 
-*propbank-learned-cxn-inventory-opinion*
+(setf *selected-sentence* (find "Do n't think of it as a literary competition ." *opinion-sentences* :key #'sentence-string :test #'string=))
+
+(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (evaluate-propbank-sentences
- *selection*
- *propbank-learned-cxn-inventory-opinion*
+ (list *selected-sentence* )
+ *propbank-learned-cxn-inventory*
                              :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                              )
 
@@ -114,28 +118,27 @@ split to the output buffer."
 ;; TO DO: Check evaluation for the cases where only the FEE could be found!
 
 
-;;Probleem met quotes (zitten niet in FRAME annotatie?)
-(defparameter *selected-sentence* (find "`` You people here think this is Russian music , '' she said with disdain , and called over to the waitress : `` Could you turn it off ? ''" *selection* :key #'sentence-string :test #'equalp))
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory-opinion*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory-opinion*)
-
 
 ;;Hier zie ik niet waarom de F1 score niet 100% is
 ;;((:NR-OF-CORRECT-PREDICTIONS . 24) (:NR-OF-PREDICTIONS . 25) (:NR-OF-GOLD-STANDARD-PREDICTIONS . 26))
-(setf *selected-sentence* (find "First , I think the arrival of the wolves as %pw , description and appraisal , is , I think , a very good appraisal ." *selection* :key #'sentence-string :test #'string=))
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory-opinion*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory-opinion*)
+(setf *selected-sentence* (find "First , I think the arrival of the wolves as %pw , description and appraisal , is , I think , a very good appraisal ." *opinion-sentences* :key #'sentence-string :test #'string=))
+(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
 
 
 ;;Kan dit iets te maken hebben met het feit dat er 3 ARGM-DIS zijn??
 ;;((:NR-OF-CORRECT-PREDICTIONS . 15) (:NR-OF-PREDICTIONS . 21) (:NR-OF-GOLD-STANDARD-PREDICTIONS . 21))
-(setf *selected-sentence* (find "Ay Today , Wendao , so when you mentioned court , I thought of this kind of controversy over the Qiu Xinghua court case ." *selection* :key #'sentence-string :test #'string=))
+(setf *selected-sentence* (find "Ay Today , Wendao , so when you mentioned court , I thought of this kind of controversy over the Qiu Xinghua court case ." *opinion-sentences* :key #'sentence-string :test #'string=))
+
+(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
+(evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("think.01"))
 
 
 ;;Onoplosbaar: Argm-prp is geen constituent (houden we NIL of beter niet toevoegen aan frame?)
 (setf *selected-sentence* (find "He wants to enhance Russia 's standing in the world and to do that he believes that Moscow must assume a greater role in international affairs ." *selection* :key #'sentence-string :test #'string=))
-(learn-cxn-from-propbank-annotation *selected-sentence* "believe.01" *propbank-learned-cxn-inventory-opinion*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory-opinion*)
+(learn-cxn-from-propbank-annotation *selected-sentence* "believe.01" *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
 
 
 
