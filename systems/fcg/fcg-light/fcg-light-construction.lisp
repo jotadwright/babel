@@ -135,7 +135,7 @@
 
 (defmethod fcg-unit-feature ((unit contributing-unit) name &optional (include-hash nil))
   (let ((found nil))
-    (loop for feature in (unit-structure feature)
+    (loop for feature in (unit-structure unit)
           until found
           do (cond ((eq (feature-name feature) name)
 		    (setq found feature))
@@ -376,22 +376,12 @@ value has become NIL."
 
 (defmethod copy-object-content ((source fcg-construction-set)
                                 (destination fcg-construction-set))
-  (let ((configuration-destination (copy-object (configuration source)))
-        (viualization-configuration-destination (copy-object (visualization-configuration source)))
-        (blackboard-destination (copy-object (blackboard source))))
     (setf (constructions destination) (copy-list (constructions source)))
     (setf (feature-types destination) (copy-list (feature-types source)))
-    (setf (configuration destination) configuration-destination)
-    (setf (blackboard destination) blackboard-destination)
-    (setf (processing-cxn-inventory destination)
-          (copy-object (processing-cxn-inventory source)))))
-          ;(make-instance 'construction-set ;; deep copy (well, not for the constructions themselves)
-          ;               :original-cxn-set destination
-          ;               :constructions  (copy-list (constructions (processing-cxn-inventory source)))
-          ;               :configuration configuration-destination
-          ;               :visualization-configuration viualization-configuration-destination
-          ;               :blackboard blackboard-destination
-          ;               :trash  (copy-list (trash (processing-cxn-inventory source)))))))
+    (setf (configuration destination) (copy-object (configuration source)))
+    (setf (visualization-configuration destination) (copy-object (visualization-configuration source)))
+    (setf (blackboard destination)  (copy-object (blackboard source)))
+    (setf (processing-cxn-inventory destination) (copy-object (processing-cxn-inventory source))))
 
 (defun copy-fcg-construction-set-without-cxns (fcg-construction-set)
   "Make a copy of an FCG construction set, without copying the

@@ -250,7 +250,8 @@ is overwritten."
   ;; but the method combination tries to do it again here
   (unless (string= (type-of source) 'fcg-construction-set) 
     (setf (configuration destination) (copy-object (configuration source)))
-    (setf (blackboard destination) (blackboard source)))
+    (setf (blackboard destination) (blackboard source))
+    (setf (visualization-configuration destination) (visualization-configuration source)))
   (setf (cxn-pathnames destination) (copy-object (cxn-pathnames destination)))
   (setf (hierarchy-features destination) (copy-list (hierarchy-features source)))
   (setf (original-cxn-set destination) (original-cxn-set source))
