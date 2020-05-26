@@ -15,7 +15,7 @@
                   (meaning set-of-predicates)
                   (footprints set))
 
-;;;; Generalized grammar (evaluated)
+;;;; Generalized grammar
 
 ;;; arg0-cxns
 ;;active
