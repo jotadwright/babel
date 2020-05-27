@@ -31,13 +31,13 @@
 (defgeneric de-render (utterance mode &key &allow-other-keys)
   (:documentation "De-renders an utterance into a coupled feature structure."))
 
-(defgeneric produce (meaning construction-inventory &optional silent)
+(defgeneric produce (meaning construction-inventory &key silent &allow-other-keys)
   (:documentation "produces an utterance for meaning"))
 
 (defgeneric produce-all (meaning construction-inventory &key silent n)
   (:documentation "produces all or max n utterances meaning"))
 
-(defgeneric parse (utterance construction-inventory &optional silent)
+(defgeneric parse (utterance construction-inventory &key silent &allow-other-keys)
   (:documentation "parses an utterance"))
 
 (defgeneric parse-all (utterance construction-inventory &key silent n)

@@ -880,7 +880,7 @@ added here. Preprocessing is only used in parsing currently."
   )
 
 (defmethod produce ((meaning list) (construction-inventory construction-inventory)
-                    &optional silent)
+                    &key (silent nil))
   "Default produce method for a construction-inventory."
   (let ((initial-cfs (create-initial-structure 
 		      meaning 
@@ -934,7 +934,7 @@ added here. Preprocessing is only used in parsing currently."
 ;; -----------------------------------------------------------------------------
 
 (defmethod parse ((utterance t) (construction-inventory construction-inventory)
-                  &optional silent)
+                  &key (silent nil))
   ;(set-hierarchy-feature (first (hierarchy-features construction-inventory))) ;; to check
   (let ((initial-cfs (de-render utterance (get-configuration construction-inventory :de-render-mode)
                                 :cxn-inventory (original-cxn-set construction-inventory))))
@@ -954,7 +954,7 @@ added here. Preprocessing is only used in parsing currently."
         (values meaning solution cip)))))
 
 (defmethod parse ((utterance t) (construction-inventory construction-inventory-collection)
-                  &optional silent)
+                  &key (silent nil))
   ;(set-hierarchy-feature (first (hierarchy-features construction-inventory)))
   (let ((initial-cfs (de-render utterance (get-configuration construction-inventory :de-render-mode))))
     

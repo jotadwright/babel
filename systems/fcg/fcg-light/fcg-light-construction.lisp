@@ -770,7 +770,7 @@ construction on the fly."
   "comprehend the input utterance with a given FCG grammar"
   (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     (if processing-cxn-inventory
-      (parse utterance processing-cxn-inventory silent)
+      (parse utterance processing-cxn-inventory :silent silent)
       (format nil "Failed. ~a does not contain a processing-cxn-inventory" cxn-inventory))))
 
 (defgeneric comprehend-all (utterance &key cxn-inventory silent n &allow-other-keys))
@@ -790,7 +790,7 @@ construction on the fly."
   "formulate the input meaning in FCG Light"
   (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     (if processing-cxn-inventory
-      (produce meaning processing-cxn-inventory silent)
+      (produce meaning processing-cxn-inventory :silent silent)
       (format nil "Failed. ~a does not contain a processing-cxn-inventory" cxn-inventory))))
 
 (defgeneric formulate-all (meaning &key cxn-inventory silent n &allow-other-keys))
