@@ -1,5 +1,41 @@
 (in-package :propbank-english)
 
+
+(defmethod comprehend ((utterance string) &key (syntactic-analysis nil) (cxn-inventory *fcg-constructions*)  (silent nil))
+  (parse utterance (processing-cxn-inventory cxn-inventory) :silent silent :syntactic-analysis syntactic-analysis))
+
+(defmethod parse ((utterance string) (construction-inventory construction-inventory)
+                  &key (silent nil) (syntactic-analysis nil))
+  (let ((initial-cfs (de-render utterance (get-configuration construction-inventory :de-render-mode)
+                                :syntactic-analysis syntactic-analysis)))
+    
+    (set-data (blackboard construction-inventory) :input utterance)
+                                       
+    (unless silent (notify parse-started (listify utterance) initial-cfs))
+    (multiple-value-bind
+        (solution cip)
+        (fcg-apply construction-inventory initial-cfs '<- :notify (not silent))
+      (let ((meaning 
+             (and solution
+                  (extract-meanings
+                   (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
+        (unless silent (notify parse-finished meaning construction-inventory))
+        (values meaning solution cip)))))
+
+(defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
+                      &key (syntactic-analysis nil) &allow-other-keys)
+  "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
+  (let ((spacy-benepar-analysis (or syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis utterance))))
+    (create-initial-transient-structure-based-on-benepar-analysis spacy-benepar-analysis)))
+
+  
+(defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents-without-tokenisation))
+                      &key (syntactic-analysis nil) &allow-other-keys)
+  "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
+  (let* ((list-utterance (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t))
+         (spacy-benepar-analysis (or syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis list-utterance))))
+    (create-initial-transient-structure-based-on-benepar-analysis spacy-benepar-analysis)))
+
 (defun create-initial-transient-structure-based-on-benepar-analysis (spacy-benepar-analysis)
   (let* (;; Make unit names for the different units, and store them with the unit id.
          (unit-name-ids (loop for node in spacy-benepar-analysis
@@ -48,23 +84,6 @@
                                              :left-pole units
                                              :right-pole '((root)))))
     transient-structure))
-
-
-(defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
-                      &key &allow-other-keys)
-   (let (;; Query the penelope API for a syntactic analysis
-          (spacy-benepar-analysis (nlp-tools:get-penelope-syntactic-analysis utterance)))
-     (create-initial-transient-structure-based-on-benepar-analysis spacy-benepar-analysis)))
-
-  
-(defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents-without-tokenisation))
-                      &key &allow-other-keys)
-  "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
-  (let* ((list-utterance (remove-if #'(lambda (string) (equalp string "")) (split utterance #\Space)))
-         ;; Query the penelope API for a syntactic analysis
-         (spacy-benepar-analysis (nlp-tools:get-penelope-syntactic-analysis list-utterance)))
-       (create-initial-transient-structure-based-on-benepar-analysis spacy-benepar-analysis)))
-
 
 (defun find-adjacency-constraints (node-id spacy-benepar-analysis unit-name-ids)
   "Returns a set of adjacency constraints for a given node id."

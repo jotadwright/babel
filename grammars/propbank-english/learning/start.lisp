@@ -71,7 +71,7 @@ split to the output buffer."
 
 ;;Create an empty cxn inventory
 (def-fcg-constructions propbank-learned-english
-  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents) ;;:de-render-constituents-dependents-without-tokenisation
+  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
                        (:node-tests  :restrict-nr-of-nodes :restrict-search-depth))
   :visualization-configurations ((:show-constructional-dependencies . nil))
   :hierarchy-features (constituents dependents)
@@ -106,11 +106,18 @@ split to the output buffer."
 (length *opinion-sentences*)
 
 
-(learn-propbank-grammar (subseq *opinion-sentences* 0 2 )
+(learn-propbank-grammar (subseq *opinion-sentences* 0 20)
                         :cxn-inventory '*propbank-learned-cxn-inventory*
                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                        :silent t
-                        :tokenisation t)
+                        :silent nil
+                        :tokenize? nil)
+
+(evaluate-propbank-sentences
+ (subseq *opinion-sentences* 0 20)
+ *propbank-learned-cxn-inventory*
+ :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
+
+
 
 (setf *selected-sentence* (find "Do n't think of it as a literary competition ." *opinion-sentences* :key #'sentence-string :test #'string=))
 
@@ -127,33 +134,44 @@ split to the output buffer."
 ;;------------------------------
 
 (activate-monitor trace-fcg)
-;;Probleem met quotes (to do: test zonder tokenisation)
+
+;; OPGELOST
+;;Probleem met quotes 
 (defparameter *selected-sentence* (find "`` You people here think this is Russian music , '' she said with disdain , and called over to the waitress : `` Could you turn it off ? ''" *opinion-sentences* :key #'sentence-string :test #'equalp))
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory-opinion*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory-opinion*)
+(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
+(spacy-benepar-compatible-annotation *selected-sentence* "think.01" :tokenize? nil)
+(spacy-benepar-compatible-annotation *selected-sentence* "think.01" :tokenize? t)
+(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
+(evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("think.01"))
 
-
+;; OPGELOST
 ;;Hier zie ik niet waarom de F1 score niet 100% is
 ;;((:NR-OF-CORRECT-PREDICTIONS . 24) (:NR-OF-PREDICTIONS . 25) (:NR-OF-GOLD-STANDARD-PREDICTIONS . 26))
 (setf *selected-sentence* (find "First , I think the arrival of the wolves as %pw , description and appraisal , is , I think , a very good appraisal ." *opinion-sentences* :key #'sentence-string :test #'string=))
+(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? t)
+(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? nil)
 (learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
+(evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("think.01"))
 
-
+;; OPGELOST
 ;;Kan dit iets te maken hebben met het feit dat er 3 ARGM-DIS zijn??
 ;;((:NR-OF-CORRECT-PREDICTIONS . 15) (:NR-OF-PREDICTIONS . 21) (:NR-OF-GOLD-STANDARD-PREDICTIONS . 21))
 (setf *selected-sentence* (find "Ay Today , Wendao , so when you mentioned court , I thought of this kind of controversy over the Qiu Xinghua court case ." *opinion-sentences* :key #'sentence-string :test #'string=))
-
+(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? t)
+(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? nil)
 (learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
 (evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("think.01"))
 
 
 ;;Onoplosbaar: Argm-prp is geen constituent (houden we NIL of beter niet toevoegen aan frame?)
-(setf *selected-sentence* (find "He wants to enhance Russia 's standing in the world and to do that he believes that Moscow must assume a greater role in international affairs ." *selection* :key #'sentence-string :test #'string=))
+(setf *selected-sentence* (find "He wants to enhance Russia 's standing in the world and to do that he believes that Moscow must assume a greater role in international affairs ." *opinion-sentences* :key #'sentence-string :test #'string=))
+(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? t)
+(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? nil)
 (learn-cxn-from-propbank-annotation *selected-sentence* "believe.01" *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
-
+(evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("believe.01"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
