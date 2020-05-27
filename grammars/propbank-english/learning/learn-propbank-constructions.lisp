@@ -173,7 +173,8 @@ fillers (arg0, arg1) and the frame-evoking element unit."
                       collect `(,(variablify unit-name)
                                 --
                                 (parent ,parent)
-                                (word-order ,form-constraints-for-children-with-role-and-same-type)
+                                ,(when form-constraints-for-children-with-role-and-same-type
+                                   `(word-order ,form-constraints-for-children-with-role-and-same-type))
                                 ,(if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                    `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
                                    `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
