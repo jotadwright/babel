@@ -72,7 +72,12 @@ split to the output buffer."
 ;;Create an empty cxn inventory
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
-                       (:node-tests  :restrict-nr-of-nodes :restrict-search-depth))
+                       (:node-tests  :restrict-nr-of-nodes :restrict-search-depth)
+                       (:node-expansion-mode . :multiple-cxns)
+                       (:priority-mode . :nr-of-applied-cxns)
+                       (:queue-mode . :greedy-best-first)
+                       (:hash-mode . :hash-lemma)
+                       (:cxn-supplier-mode . :hashed-simple-queue))
   :visualization-configurations ((:show-constructional-dependencies . nil))
   :hierarchy-features (constituents dependents)
   :feature-types ((constituents set)
@@ -82,7 +87,8 @@ split to the output buffer."
                   (word-order set-of-predicates)
                   (meaning set-of-predicates)
                   (footprints set))
-  :cxn-inventory *propbank-learned-cxn-inventory*)
+  :cxn-inventory *propbank-learned-cxn-inventory*
+  :hashed t)
 
 ;; Activate FCG monitor and start Penelope (if using Spacy API locally)
 ;(activate-monitor trace-fcg)
@@ -103,37 +109,47 @@ split to the output buffer."
 (defparameter *opinion-sentences* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
 
-(length *opinion-sentences*)
+(defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
+(length *opinion-sentences-dev*)
 
-(learn-propbank-grammar (subseq *opinion-sentences* 0 20)
+(learn-propbank-grammar *opinion-sentences*
                         :cxn-inventory '*propbank-learned-cxn-inventory*
                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                        :silent nil
+                        :silent t
                         :tokenize? nil)
 
 (evaluate-propbank-sentences
  (subseq *opinion-sentences* 0 20)
  *propbank-learned-cxn-inventory*
- :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
+ ;:selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ )
 
 
 
-(setf *selected-sentence* (find "Do n't think of it as a literary competition ." *opinion-sentences* :key #'sentence-string :test #'string=))
+(setf *selected-sentence* (find "Do n't think of it as a literary competition ."
+                                *opinion-sentences* :key #'sentence-string :test #'string=))
 
 (learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (evaluate-propbank-sentences
- (list *selected-sentence* )
+ *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
-                             :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                             )
+ :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ :silent t)
 
 ;; FREQUENTLY OCCURRING PROBLEMS 
 ;;------------------------------
 
 (activate-monitor trace-fcg)
+
+
+;; lang
+(defparameter *selected-sentence* (find "In a way presidents do n't normally pay as much attention to Northern Ireland as Clinton has , so he has actually paid the Irish question probably too much attention for a President , and what that means is that the people involved in the peace process here believe they are more important than they actually are" *opinion-sentences* :key #'sentence-string :test #'equalp))
+In a way presidents do n't normally pay as much attention to Northern Ireland as Clinton has , so he has actually paid the Irish question probably too much attention for a President , and what that means is that the people involved in the peace process here believe they are more important than they actually are
+
 
 ;; OPGELOST
 ;;Probleem met quotes 
@@ -180,11 +196,9 @@ split to the output buffer."
 
 
 ;;Evaluating the learned grammar:
-(evaluate-propbank-sentences ;(all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)
- *believe-sentences*
+(evaluate-propbank-sentences (all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)
  *propbank-learned-cxn-inventory*
-                             :selected-rolesets  '("")
-                             )
+                             :selected-rolesets  '("believe.01"))
 
 
 ;;Evaluating the written grammar:
@@ -195,3 +209,4 @@ split to the output buffer."
                             ; :selected-rolesets nil
                              :selected-rolesets '("stop.01")
                              )
+(length (all-sentences-annotated-with-roleset "believe.01" :split #'dev-split))

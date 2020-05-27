@@ -20,7 +20,12 @@
                                 :fcg-configurations ((:de-render-mode .  ,(if tokenize?
                                                                             :de-render-constituents-dependents
                                                                             :de-render-constituents-dependents-without-tokenisation))
-                                                     (:node-tests  :restrict-nr-of-nodes :restrict-search-depth))
+                                                     (:node-tests  :restrict-nr-of-nodes :restrict-search-depth)
+                                                     (:node-expansion-mode . :multiple-cxns)
+                                                     (:priority-mode . :nr-of-applied-cxns)
+                                                     (:queue-mode . :greedy-best-first)
+                                                     (:hash-mode . :hash-lemma)
+                                                     (:cxn-supplier-mode . :hashed-simple-queue))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
                                 :feature-types ((constituents set)
@@ -30,7 +35,8 @@
                                                 (word-order set-of-predicates)
                                                 (meaning set-of-predicates)
                                                 (footprints set))
-                                :cxn-inventory ,cxn-inventory))))
+                                :cxn-inventory ,cxn-inventory
+                                :hashed t))))
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
           for sentence-string = (sentence-string sentence)
@@ -102,6 +108,9 @@ sentence object and a roleset (e.g. 'believe.01')"
                                                      (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                                        (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
                                                        (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
+                (lemma (loop for (role . unit) in units-with-role
+                             when (string= "V" (role-type role))
+                             return (feature-value (find 'lemma (unit-body unit) :key #'feature-name))))
                 (cxn-name (format nil "~a-~{~a~^+~}-cxn" roleset cxn-name-list))
                 (contributing-unit (make-propbank-contributing-unit units-with-role frame cxn-name))
                 (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit cxn-name)))
@@ -115,6 +124,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                   ,@cxn-units-with-role
                                   ,@cxn-units-without-role)
                                  :disable-automatic-footprints t
+                                 :attributes (:lemma ,lemma)
                                  :cxn-inventory ,cxn-inventory)))))))
 
 

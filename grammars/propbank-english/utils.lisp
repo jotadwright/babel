@@ -7,3 +7,21 @@
     (unless silent
       (add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
       (add-element (make-html (extract-frames (car-resulting-cfs (cipn-car cipn))) :expand-initially t)))))
+
+
+(defmethod hash ((construction construction)
+                 (mode (eql :hash-lemma))
+                 &key &allow-other-keys)
+  "Returns the lemma from the attributes of the construction"
+  (when (attr-val construction :lemma)
+     (remove nil (list (attr-val construction :lemma)))))
+
+
+(defmethod hash ((node cip-node)
+                 (mode (eql :hash-lemma)) 
+                 &key &allow-other-keys)
+  "Checks all units for a lemma feature."
+  (loop for unit in (fcg-get-transient-unit-structure node)
+        for lemma = (unit-feature-value unit 'lemma)
+        when lemma
+        collect it))
