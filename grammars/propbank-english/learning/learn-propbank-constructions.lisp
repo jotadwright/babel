@@ -18,8 +18,8 @@
                                                           (list-of-syntactic-analyses nil))
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
                                 :fcg-configurations ((:de-render-mode .  ,(if tokenize?
-                                                                           :de-render-constituents-dependents
-                                                                           :de-render-constituents-dependents-without-tokenisation))
+                                                                            :de-render-constituents-dependents
+                                                                            :de-render-constituents-dependents-without-tokenisation))
                                                      (:node-tests  :restrict-nr-of-nodes :restrict-search-depth))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
@@ -33,44 +33,51 @@
                                 :cxn-inventory ,cxn-inventory))))
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
-          for syntactic-analysis = (nth1 sentence-number list-of-syntactic-analyses)
           for sentence-string = (sentence-string sentence)
+          for syntactic-analysis = (or (nth1 sentence-number list-of-syntactic-analyses)
+                                       (if tokenize?
+                                         (nlp-tools:get-penelope-syntactic-analysis sentence-string)
+                                         (nlp-tools:get-penelope-syntactic-analysis
+                                          (split-sequence:split-sequence #\Space sentence-string
+                                                                         :remove-empty-subseqs t))))
           for rolesets = (if selected-rolesets
                            (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
                            (all-rolesets sentence))
           do
           (format t "~%~%---> Sentence ~a: ~a~%" sentence-number sentence-string)
           (loop for roleset in rolesets
-                for f1-score = (cdr (assoc :f1-score (evaluate-propbank-sentences
-                                                      (list sentence) cxn-inventory
-                                                      :list-of-syntactic-analyses (list syntactic-analysis)
-                                                      :selected-rolesets (list roleset)
-                                                      :silent silent
-                                                      :print-to-standard-output nil)))
-                   ;; if f1-score under .95
-                   if (< f1-score 0.95)
-                   do
-                   (format t "~%Roleset ~a: f1-score ~a --> Learning.~%"  roleset f1-score)
-                   ;; First try learning with copy of cxn-inventory
-                   (let ((temp-cxn-inventory
-                          (learn-cxn-from-propbank-annotation sentence roleset (copy-object cxn-inventory))))
-                     ;; If now not under .95 anymore, learn with actual cxn-inventory
-                     (if temp-cxn-inventory
-                       (let ((new-f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
-                                                                  (list sentence) temp-cxn-inventory
-                                                                  :list-of-syntactic-analyses (list syntactic-analysis)
-                                                                  :selected-rolesets (list roleset)
-                                                                  :silent silent
-                                                                  :print-to-standard-output nil)))))
-                         (if  (< new-f1-score 0.95)
-                           (format t "Learning failed, f1-score ~a.~%" new-f1-score)
-                           (progn
-                             (format t "Learning was successful, f1-score ~a.~%"  new-f1-score)
-                             (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory :syntactic-analysis syntactic-analysis))))
-                       (format t "Nothing could be learned. ~%")))
-                   else do
-                   (format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score))
-          finally return cxn-inventory)))
+                if (spacy-benepar-compatible-annotation sentence roleset :syntactic-analysis syntactic-analysis)
+                do
+                (let ((f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
+                                                       (list sentence) cxn-inventory
+                                                       :list-of-syntactic-analyses (list syntactic-analysis)
+                                                       :selected-rolesets (list roleset)
+                                                       :silent silent
+                                                       :print-to-standard-output nil)))))
+                  ;; if f1-score under 1.0
+                  (if (< f1-score 1.0)
+                    (progn
+                      (format t "~%Roleset ~a: f1-score ~a --> Learning.~%"  roleset f1-score)
+                      ;; First try learning with copy of cxn-inventory
+                      (let ((temp-cxn-inventory
+                             (learn-cxn-from-propbank-annotation sentence roleset (copy-object cxn-inventory)
+                                                                 :syntactic-analysis syntactic-analysis)))
+                        ;; If now not under .95 anymore, learn with actual cxn-inventory
+                        (if temp-cxn-inventory
+                          (let ((new-f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
+                                                                     (list sentence) temp-cxn-inventory
+                                                                     :list-of-syntactic-analyses (list syntactic-analysis)
+                                                                     :selected-rolesets (list roleset)
+                                                                     :silent silent
+                                                                     :print-to-standard-output nil)))))
+                            (if  (< new-f1-score f1-score)
+                              (format t "Learning failed, f1-score ~a.~%" new-f1-score)
+                              (progn
+                                (format t "Learning was successful, f1-score ~a.~%"  new-f1-score)
+                                (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory :syntactic-analysis syntactic-analysis))))
+                          (format t "Nothing could be learned. ~%"))))
+                    (format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score)))
+                finally return cxn-inventory))))
                    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Learning a single cxn ;;
