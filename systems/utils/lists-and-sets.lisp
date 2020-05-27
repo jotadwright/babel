@@ -24,7 +24,7 @@
   (mapconcat #'identity list separator))
 
 
-(export '(listify))
+(export '(listify nth1))
 
 (defun listify (element)
   "Creates (list element) only when element is not (1) a list or (2)
@@ -1117,5 +1117,9 @@ destroy the original lists"
      for item = (next-item iterator)
      while item
      collect item))
+
+(defun nth1 (orig-n orig-list)
+  "Nth element starting to count from 1."
+  (nth (- orig-n 1) orig-list))
 
 
