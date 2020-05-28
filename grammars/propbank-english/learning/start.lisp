@@ -72,7 +72,7 @@ split to the output buffer."
 ;;Create an empty cxn inventory
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
-                       (:node-tests  :restrict-nr-of-nodes :restrict-search-depth)
+                       (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
                        (:node-expansion-mode . :multiple-cxns)
                        (:priority-mode . :nr-of-applied-cxns)
                        (:queue-mode . :greedy-best-first)
