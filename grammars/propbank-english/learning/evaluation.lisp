@@ -145,7 +145,7 @@
           if (when (and (equalp (frame-name gold-frame) (symbol-name predicted-frame-name))
                         (eql (index (frame-evoking-element predicted-frame)) (first (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp)))))
                (loop for gold-role in (find-all (symbol-name predicted-role) (frame-roles gold-frame) :key #'role-type :test #'equalp)
-                     if (find index (indices  gold-role))
+                     if (find index (indices gold-role))
                      return t))
           do
           (return t))))
