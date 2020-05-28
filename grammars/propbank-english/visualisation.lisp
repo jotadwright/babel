@@ -148,9 +148,7 @@
           collect
           (make-instance 'frame-element
                  :fe-name (second predicate)
-                 :fe-role (loop for arg in (feature-value (find 'args (unit-body unit) :key #'feature-name))
-                             when (equalp (second arg) (fourth predicate))
-                             return (first arg))
+                 :fe-role (second predicate)
                  :fe-string (second (find 'string (unit-body fe-consituent-unit) :key #'feature-name))
                  :indices (when (second (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name)))
                             (loop for i
