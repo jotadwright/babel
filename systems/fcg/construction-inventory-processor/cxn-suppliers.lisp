@@ -277,36 +277,6 @@
   (pop (remaining-constructions cxn-supplier)))
 
 
-#|
-
-(defmethod hash ((construction construction)
-                 (mode (eql :hash-word-entity-root))
-                 &key &allow-other-keys)
-  "Returns the string and meaning from the attributes of the construction"
-  (when (or (attr-val construction :string)
-            (attr-val construction :meaning))
-    (list (attr-val construction :string)
-          (attr-val construction :meaning))))
-
-(defmethod hash ((node cip-node)
-                 (mode (eql :hash-word-entity-root)) ;; For using hashed construction sets in the root.
-                 &key &allow-other-keys)
-  "Checks the root and returns entities (for IRL meanings) or predicates."
-  (let ((transient-structure (car-resulting-cfs (cipn-car node))))
-    (if (eq '<- (direction (cip node)))
-      (let ((strings (extract-string (get-root (right-pole-structure transient-structure)))))
-        (mapcar #'third strings))
-      ;; In production return the meanings.
-      (loop with meanings = (extract-meaning (get-root (left-pole-structure transient-structure)))
-            for m in meanings
-            ;; collect the "entity" or "predicate":
-            collect (if (and (eq (first m) 'bind)
-                             (fourth m))
-                      (fourth m)
-                      (first m))))))
-
-|#
-
 (defmethod hash ((construction construction)
                  (mode (eql :hash-word-entity-root-one-pole))
                  &key &allow-other-keys)
@@ -476,3 +446,47 @@
     (if (eql (car-direction (cipn-car node)) '<-)
       (append strings lex-ids)
       (append meanings lex-ids))))
+
+
+;; hashed-and-scored ;;
+;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defun constructions-for-application-hashed-and-scored (node)
+  "computes all constructions that could be applied for this node
+   plus nil hashed constructions"
+  (let ((constructions
+         ;; get all constructions compatible
+         ;; with the hashes of the node
+         ;; append nil hashed constructions
+         (remove-duplicates
+          (append
+           (loop
+            for hash in (hash node (get-configuration node :hash-mode))
+            append (gethash hash (constructions-hash-table (construction-inventory node))))
+           (gethash nil (constructions-hash-table (construction-inventory node)))))))
+    ;; shuffle if requested
+    (when (get-configuration node :shuffle-cxns-before-application)
+      (setq constructions 
+            (shuffle constructions)))
+    ;; sort 
+    (setq constructions
+          (sort constructions #'> :key #'(lambda (cxn) (attr-val cxn :score))))
+    ;; return constructions
+    constructions))
+
+(defclass cxn-supplier-hashed-and-scored ()
+  ((remaining-constructions
+    :type list :initarg :remaining-constructions
+    :accessor remaining-constructions
+    :documentation "A list of constructions that are still to try")))
+
+(defmethod create-cxn-supplier ((node cip-node)
+                                (mode (eql :hashed-and-scored)))
+  (make-instance
+   'cxn-supplier-hashed-and-scored
+   :remaining-constructions (constructions-for-application-hashed-and-scored node)))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-and-scored)
+                     (node cip-node))
+  (pop (remaining-constructions cxn-supplier)))
