@@ -134,13 +134,13 @@ split to the output buffer."
                            :type "fcg")))
 
 (evaluate-propbank-sentences
- (subseq *opinion-sentences* 0 20)
+ (subseq *opinion-sentences* 20 50)
  *propbank-learned-cxn-inventory*
- ;:selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  )
 
 
-;; Hier kan dezelfde constructie ogenschijnlijk op dezelfde manier toepassen:
+;; Hier kan dezelfde constructie ogenschijnlijk op dezelfde manier toepassen (en dit gebeurt in heel veel zinnen):
 
 (setf *selected-sentence* (find "I think the President , I think the Secretary of Defense and all others who are responsible for offering that sort of leadership in this country has have those same objectives ."
                                 *opinion-sentences* :key #'sentence-string :test #'string=))
