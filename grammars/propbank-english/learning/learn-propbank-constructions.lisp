@@ -26,7 +26,7 @@
                                                      (:priority-mode . :nr-of-applied-cxns)
                                                      (:queue-mode . :greedy-best-first)
                                                      (:hash-mode . :hash-lemma)
-                                                     (:cxn-supplier-mode . :hashed-simple-queue))
+                                                     (:cxn-supplier-mode . :hashed-and-scored))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
                                 :feature-types ((constituents set)
@@ -125,7 +125,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                   ,@cxn-units-with-role
                                   ,@cxn-units-without-role)
                                  :disable-automatic-footprints t
-                                 :attributes (:lemma ,lemma)
+                                 :attributes (:lemma ,lemma :score ,(length cxn-units-with-role))
                                  :cxn-inventory ,cxn-inventory)))))))
 
 
