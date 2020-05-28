@@ -73,6 +73,7 @@ split to the output buffer."
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
                        (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
+                       (:max-nr-of-nodes . 100)
                        (:node-expansion-mode . :multiple-cxns)
                        (:priority-mode . :nr-of-applied-cxns)
                        (:queue-mode . :greedy-best-first)
@@ -112,13 +113,25 @@ split to the output buffer."
 (defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
-(length *opinion-sentences-dev*)
+(length *opinion-sentences*)
 
 (learn-propbank-grammar *opinion-sentences*
                         :cxn-inventory '*propbank-learned-cxn-inventory*
                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                         :silent t
                         :tokenize? nil)
+
+;;for storing learned grammar
+(cl-store:store *propbank-learned-cxn-inventory*
+                (babel-pathname :directory '("grammars" "propbank-english" "learning")
+                                :name "learned-grammar"
+                                :type "fcg"))
+
+;;and later restoring it
+(defparameter *restored-grammar*
+  (restore (babel-pathname :directory '("grammars" "propbank-english" "learning")
+                           :name "learned-grammar"
+                           :type "fcg")))
 
 (evaluate-propbank-sentences
  (subseq *opinion-sentences* 0 20)
@@ -127,8 +140,9 @@ split to the output buffer."
  )
 
 
+;; Hier kan dezelfde constructie ogenschijnlijk op dezelfde manier toepassen:
 
-(setf *selected-sentence* (find "Do n't think of it as a literary competition ."
+(setf *selected-sentence* (find "I think the President , I think the Secretary of Defense and all others who are responsible for offering that sort of leadership in this country has have those same objectives ."
                                 *opinion-sentences* :key #'sentence-string :test #'string=))
 
 (learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)

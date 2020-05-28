@@ -119,7 +119,7 @@ sentence object and a roleset (e.g. 'believe.01')"
 
            (when (and cxn-units-with-role lemma)
              ;;create a new construction and add it to the cxn-inventory
-             (eval `(def-fcg-cxn ,(make-id cxn-name)
+             (eval `(def-fcg-cxn ,(make-id cxn-name) 
                                  (,contributing-unit
                                   <-
                                   ,@cxn-units-with-role

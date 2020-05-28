@@ -12,7 +12,8 @@
                :irl
                :web-interface
                :cl-propbank
-               :xmls)
+               :xmls
+               :cl-store)
   :serial t
   :components ((:file "package")
                (:file "de-render")
