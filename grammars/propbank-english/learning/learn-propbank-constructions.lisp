@@ -20,7 +20,8 @@
                                 :fcg-configurations ((:de-render-mode .  ,(if tokenize?
                                                                             :de-render-constituents-dependents
                                                                             :de-render-constituents-dependents-without-tokenisation))
-                                                     (:node-tests  :restrict-nr-of-nodes :restrict-search-depth)
+                                                     (:node-tests  :restrict-nr-of-nodes)
+                                                     (:max-nr-of-nodes . 100)
                                                      (:node-expansion-mode . :multiple-cxns)
                                                      (:priority-mode . :nr-of-applied-cxns)
                                                      (:queue-mode . :greedy-best-first)
@@ -116,7 +117,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                 (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit cxn-name)))
                 (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure)))
 
-           (when cxn-units-with-role
+           (when (and cxn-units-with-role lemma)
              ;;create a new construction and add it to the cxn-inventory
              (eval `(def-fcg-cxn ,(make-id cxn-name)
                                  (,contributing-unit
