@@ -20,7 +20,7 @@
                                 :fcg-configurations ((:de-render-mode .  ,(if tokenize?
                                                                             :de-render-constituents-dependents
                                                                             :de-render-constituents-dependents-without-tokenisation))
-                                                     (:node-tests  :restrict-nr-of-nodes)
+                                                     (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
                                                      (:max-nr-of-nodes . 100)
                                                      (:node-expansion-mode . :multiple-cxns)
                                                      (:priority-mode . :nr-of-applied-cxns)
