@@ -103,7 +103,7 @@ split to the output buffer."
 
 
 
-
+def-fcg-cxn
 
 ;;Try out the same for multiple sentences of a given roleset
 ;;----------------------------------------------------------
@@ -146,13 +146,17 @@ split to the output buffer."
                                 *opinion-sentences* :key #'sentence-string :test #'string=))
 
 (learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *restored-grammar*)
 
 (evaluate-propbank-sentences
  *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
  :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t)
+
+
+(add-cxn *saved-cxn* *restored-grammar*)
+
 
 ;; FREQUENTLY OCCURRING PROBLEMS 
 ;;------------------------------
