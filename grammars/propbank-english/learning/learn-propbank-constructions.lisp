@@ -112,14 +112,15 @@ sentence object and a roleset (e.g. 'believe.01')"
                 (lemma (loop for (role . unit) in units-with-role
                              when (string= "V" (role-type role))
                              return (feature-value (find 'lemma (unit-body unit) :key #'feature-name))))
-                (cxn-name (format nil "~a-~{~a~^+~}-cxn" roleset cxn-name-list))
-                (contributing-unit (make-propbank-contributing-unit units-with-role frame cxn-name))
-                (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit cxn-name)))
-                (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure)))
+                (footprint-name (format nil "~a-~{~a~^+~}-cxn" roleset cxn-name-list))
+                (contributing-unit (make-propbank-contributing-unit units-with-role frame footprint-name))
+                (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role unit footprint-name)))
+                (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure))
+                (cxn-name (format nil "~a-~{~a~^+~}+~a-cxn" roleset cxn-name-list (length cxn-units-without-role))))
 
            (when (and cxn-units-with-role lemma)
              ;;create a new construction and add it to the cxn-inventory
-             (eval `(def-fcg-cxn ,(make-id cxn-name) 
+             (eval `(def-fcg-cxn ,(intern (upcase cxn-name))
                                  (,contributing-unit
                                   <-
                                   ,@cxn-units-with-role
@@ -128,7 +129,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                  :attributes (:lemma ,lemma :score ,(length cxn-units-with-role))
                                  :cxn-inventory ,cxn-inventory)))))))
 
-
+  
 (defun find-unit-by-span (transient-structure span)
   "Return a unit with span span"
   (loop for unit in transient-structure
