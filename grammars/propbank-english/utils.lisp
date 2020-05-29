@@ -41,7 +41,8 @@ frame-element filler occurs in more than one slot). "
           
           when (> (length frame-elements) (length (remove-duplicates frame-elements :key #'fourth :test #'equalp)))
           do (push frame-var double-role-assignments)
-          finally 
+          finally
+          return
           (if double-role-assignments
             ;;some frames contain frame-elements that have identical slot fillers
             (and (push 'double-role-assignment (statuses node)) nil)
