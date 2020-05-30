@@ -47,3 +47,13 @@ frame-element filler occurs in more than one slot). "
             ;;some frames contain frame-elements that have identical slot fillers
             (and (push 'double-role-assignment (statuses node)) nil)
             t))))
+
+(defmethod cip-goal-test ((node cip-node) (mode (eql :no-valid-children)))
+  "Checks whether there are no more applicable constructions when a node is
+fully expanded and no constructions could apply to its children
+nodes."
+  (and (or (not (children node))
+	   (loop for child in (children node)
+                 never (and (cxn-applied child)
+                            (not (find 'double-role-assignment (statuses child))))))
+       (fully-expanded? node)))
