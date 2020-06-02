@@ -27,7 +27,10 @@
                                                      (:priority-mode . :nr-of-applied-cxns)
                                                      (:queue-mode . :greedy-best-first)
                                                      (:hash-mode . :hash-lemma)
-                                                     (:cxn-supplier-mode . :hashed-and-scored))
+                                                     (:parse-order multi-argument-with-lemma multi-argument-without-lemma single-argument-with-lemma)
+                                                     (:learning-modes :multi-argument-with-lemma
+                                                      :multi-argument-without-lemma :single-argument-with-lemma)
+                                                     (:cxn-supplier-mode . :hashed-scored-labeled))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
                                 :feature-types ((constituents sequence)
@@ -62,28 +65,13 @@
                                                        :selected-rolesets (list roleset)
                                                        :silent silent
                                                        :print-to-standard-output nil)))))
-                  ;; if f1-score under 1.0
+                  ;; no learning needed if F1 score is already 1.
                   (if (< f1-score 1.0)
                     (progn
                       (format t "~%Roleset ~a: f1-score ~a --> Learning.~%"  roleset f1-score)
-                      ;; First try learning with copy of cxn-inventory
-                      (let ((temp-cxn-inventory
-                             (learn-cxn-from-propbank-annotation sentence roleset (copy-object cxn-inventory)
-                                                                 :syntactic-analysis syntactic-analysis)))
-                        ;; If now not under .95 anymore, learn with actual cxn-inventory
-                        (if temp-cxn-inventory
-                          (let ((new-f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
-                                                                     (list sentence) temp-cxn-inventory
-                                                                     :list-of-syntactic-analyses (list syntactic-analysis)
-                                                                     :selected-rolesets (list roleset)
-                                                                     :silent silent
-                                                                     :print-to-standard-output nil)))))
-                            (if  (<= new-f1-score f1-score)
-                              (format t "Learning failed, f1-score ~a.~%" new-f1-score)
-                              (progn
-                                (format t "Learning was successful, f1-score ~a.~%"  new-f1-score)
-                                (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory :syntactic-analysis syntactic-analysis))))
-                          (format t "Nothing could be learned. ~%"))))
+                      (loop for mode in (get-configuration cxn-inventory :learning-modes)
+                            do
+                            (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis)))
                     (format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score)))
                 finally return cxn-inventory))))
                    
@@ -91,7 +79,9 @@
 ;; Learning a single cxn ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory &key (syntactic-analysis nil))
+(defgeneric learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode &key syntactic-analysis))
+
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-with-lemma)) &key (syntactic-analysis nil))
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
   (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
@@ -108,7 +98,48 @@ sentence object and a roleset (e.g. 'believe.01')"
                 (cxn-name-list (loop for (role . unit) in units-with-role
                                      collect (format nil "~a:~a" (role-type role) ;;create a name based on role-types and lex-class/phrase-type
                                                      (if (find '(node-type leaf) (unit-body unit) :test #'equal)
-                                                       (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
+                                                       (format nil "~a" (cadr (find 'lemma (unit-body unit) :key #'feature-name)))
+                                                       (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
+                (lemma (loop for (role . unit) in units-with-role
+                             when (string= "V" (role-type role))
+                             return (feature-value (find 'lemma (unit-body unit) :key #'feature-name))))
+                (footprint-name (format nil "~a-~{~a~^+~}-cxn" roleset cxn-name-list))
+                (contributing-unit (make-propbank-contributing-unit units-with-role frame footprint-name))
+                (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role-with-lemma unit footprint-name)))
+                (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure))
+                (cxn-name (format nil "~a-~{~a~^+~}+~a-cxn" roleset cxn-name-list (length cxn-units-without-role))))
+
+           (when (and cxn-units-with-role lemma)
+             ;;create a new construction and add it to the cxn-inventory
+             (eval `(def-fcg-cxn ,(make-id (upcase cxn-name))
+                                 (,contributing-unit
+                                  <-
+                                  ,@cxn-units-with-role
+                                  ,@cxn-units-without-role)
+                                 :disable-automatic-footprints t
+                                 :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label multi-argument-with-lemma)
+                                 :cxn-inventory ,cxn-inventory)))))))
+
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-without-lemma)) &key (syntactic-analysis nil))
+  "Adds a new construction to the cxn-inventory based on a propbank
+sentence object and a roleset (e.g. 'believe.01')"
+  (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
+      (dolist (frame frames cxn-inventory)
+        (let* ((unit-structure (left-pole-structure (de-render (sentence-string propbank-sentence)
+                                                               (get-configuration cxn-inventory :de-render-mode)
+                                                               :syntactic-analysis syntactic-analysis)))
+                (units-with-role (loop for role in (frame-roles frame) ;;find all units that correspond to annotated frame elements
+                                       for role-start = (first (indices role))
+                                       for role-end = (+ (last-elt (indices role)) 1)
+                                       for unit = (find-unit-by-span unit-structure (list role-start role-end))
+                                       when unit
+                                       collect (cons role unit)))
+                (cxn-name-list (loop for (role . unit) in units-with-role
+                                     collect (format nil "~a:~a" (role-type role) ;;create a name based on role-types and lex-class/phrase-type
+                                                     (if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                                       (if (equalp (role-type role) "V")
+                                                         (format nil "~a" (cadr (find 'lemma (unit-body unit) :key #'feature-name)))
+                                                         (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name))))
                                                        (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
                 (lemma (loop for (role . unit) in units-with-role
                              when (string= "V" (role-type role))
@@ -127,8 +158,60 @@ sentence object and a roleset (e.g. 'believe.01')"
                                   ,@cxn-units-with-role
                                   ,@cxn-units-without-role)
                                  :disable-automatic-footprints t
-                                 :attributes (:lemma ,lemma :score ,(length cxn-units-with-role))
+                                 :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label multi-argument-without-lemma)
                                  :cxn-inventory ,cxn-inventory)))))))
+
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :single-argument-with-lemma)) &key (syntactic-analysis nil))
+  "Adds a new construction to the cxn-inventory based on a propbank
+sentence object and a roleset (e.g. 'believe.01')"
+  (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
+    (dolist (frame frames cxn-inventory)
+      (let* ((unit-structure (left-pole-structure (de-render (sentence-string propbank-sentence)
+                                                             (get-configuration cxn-inventory :de-render-mode)
+                                                             :syntactic-analysis syntactic-analysis)))
+             (units-with-role (loop for role in (frame-roles frame) ;;find all units that correspond to annotated frame elements
+                                    for role-start = (first (indices role))
+                                    for role-end = (+ (last-elt (indices role)) 1)
+                                    for unit = (find-unit-by-span unit-structure (list role-start role-end))
+                                    when unit
+                                    collect (cons role unit)))
+             (v-unit (find "V" units-with-role
+                           :key #'(lambda (unit-with-role)
+                                    (role-type (car unit-with-role)))
+                           :test #'equalp))
+             (lemma (loop for (role . unit) in units-with-role
+                             when (string= "V" (role-type role))
+                             return (feature-value (find 'lemma (unit-body unit) :key #'feature-name)))))
+        (loop for (role . unit) in units-with-role
+              for footprint-name = (format nil "~a-~a+~a-cxn" roleset (format nil "~a:~a" (role-type role) 
+                                                                              (if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                                                                (format nil "~a" (cadr (find 'lemma (unit-body unit) :key #'feature-name)))
+                                                                                (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))
+                                           (format nil "V:~a" (cadr (find 'lemma (unit-body v-unit) :key #'feature-name))))
+              for cxn-units-with-role = (append (list (make-propbank-conditional-unit-with-role-with-lemma (cons role unit) footprint-name))
+                                                (unless (equalp (cons role unit) v-unit)
+                                                  (list (make-propbank-conditional-unit-with-role-with-lemma v-unit footprint-name))))
+              for cxn-units-without-role = (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure)
+              for cxn-name = (format nil "~a-~a+~a+~a-cxn" roleset (format nil "~a:~a" (role-type role) 
+                                                                           (if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                                                             (format nil "~a" (cadr (find 'lemma (unit-body unit) :key #'feature-name)))
+                                                                             (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))
+                                     (format nil "V:~a" (cadr (find 'lemma (unit-body v-unit) :key #'feature-name)))
+                                     (length cxn-units-without-role))
+              for contributing-unit = (make-propbank-contributing-unit (if (equalp v-unit (cons role unit))
+                                                                        (list (cons role unit))
+                                                                        (list (cons role unit) v-unit)) frame footprint-name)
+              do
+              (when (and cxn-units-with-role lemma)
+                (eval `(def-fcg-cxn ,(make-id (upcase cxn-name))
+                                    (,contributing-unit
+                                     <-
+                                     ,@cxn-units-with-role
+                                     ,@cxn-units-without-role)
+                                    :disable-automatic-footprints t
+                                    :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label single-argument-with-lemma)
+                                    :cxn-inventory ,cxn-inventory))))))))
+
 
   
 (defun find-unit-by-span (transient-structure span)
@@ -144,12 +227,19 @@ sentence object and a roleset (e.g. 'believe.01')"
          (unit-name (variablify (unit-name v-unit)))
          (args (loop for r in (frame-roles frame)
                      if (string= (role-type r) "V")
-                     collect '(referent ?f)
-                     else collect `(,(make-kw (role-type r)) ,(variablify (unit-name (cdr (assoc r units-with-role)))))))
+                     collect `(referent ,unit-name)
+                     else
+                     if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
+                                                                     (role-type (car unit-with-role))) :test #'equalp)
+
+                     collect `(,(make-kw (role-type r)) ,(variablify (unit-name (cdr (assoc r units-with-role)))))))
          (meaning (loop for r in (frame-roles frame)
                      if (string= (role-type r) "V")
-                     collect `(frame ,(intern (upcase (frame-name frame))) ?f)
-                     else collect `(frame-element ,(intern (upcase (role-type r))) ?f
+                     collect `(frame ,(intern (upcase (frame-name frame))) ,unit-name)
+                     else
+                     if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
+                                                                     (role-type (car unit-with-role))) :test #'equalp)
+                     collect `(frame-element ,(intern (upcase (role-type r))) ,unit-name
                                                   ,(variablify (unit-name (cdr (assoc r units-with-role))))))))
     `(,unit-name
       (args ,@args)
@@ -181,6 +271,32 @@ initial transient structure that plays a role in the frame."
         (parent ,parent)
         ,phrase-type-or-lex-class))))
 
+
+(defun make-propbank-conditional-unit-with-role-with-lemma (unit-with-role cxn-name)
+  "Makes a conditional unit for a propbank cxn based on a unit in the
+initial transient structure that plays a role in the frame."
+  (let* ((unit (cdr unit-with-role))
+         (unit-name (variablify (unit-name unit)))
+         (parent (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
+                   (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name)))))
+         (phrase-type-or-lex-class (if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                     `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
+                                     `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))
+    (if  (string= (role-type (car unit-with-role)) "V")
+      ;;a FEE unit also has the feature lemma
+      `(,unit-name
+        --
+        (lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))
+        (parent ,parent)
+        (footprints (NOT ,cxn-name))
+        ,phrase-type-or-lex-class)
+      ;;other units only have a parent feature and a phrase-type/lex-class feature
+      `(,unit-name
+        --
+        (parent ,parent)
+        ,@(if (find '(node-type leaf) (unit-body unit) :test #'equal)
+            `((lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))))
+        ,phrase-type-or-lex-class))))
 
 (defun make-propbank-conditional-units-without-role (units-with-role cxn-units-with-role unit-structure)
   "Makes conditional units that are needed in a propbank cxn to encode
