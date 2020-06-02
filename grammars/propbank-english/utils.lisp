@@ -57,3 +57,47 @@ nodes."
                  never (and (cxn-applied child)
                             (not (find 'double-role-assignment (statuses child))))))
        (fully-expanded? node)))
+
+
+(defun all-rolesets-for-framenet-frame (framenet-frame-name)
+  (loop for predicate in *pb-data*
+        for rolesets = (rolesets predicate)
+        for rolesets-for-framenet-frame = (loop for roleset in rolesets
+                                                    when (find framenet-frame-name (aliases roleset) :key #'framenet :test #'member)
+                                                    collect (id roleset))
+        when rolesets-for-framenet-frame
+        collect it))
+
+;; (all-rolesets-for-framenet-frame 'opinion)
+
+
+(defun all-sentences-annotated-with-roleset (roleset &key (split #'train-split)) ;;or #'dev-split
+  (loop for sentence in (funcall split *propbank-annotations*)
+        when (find roleset (propbank-frames sentence) :key #'frame-name :test #'equalp)
+        collect sentence))
+
+;; Retrieve all sentences in training set for a given roleset:
+;; (all-sentences-annotated-with-roleset "believe.01")
+
+;; Retrieve all sentences in de development set for a given roleset (for evaluation):
+;; (length (all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)) ;;call #'length for checking number
+
+
+(defun print-propbank-sentences-with-annotation (roleset &key (split #'train-split))
+  "Print the annotation of a given roleset for every sentence of the
+split to the output buffer."
+  (loop for sentence in (funcall split *propbank-annotations*)
+        for sentence-string = (sentence-string sentence)
+        for selected-frame = (loop for frame in (propbank-frames sentence)
+                                   when (string= (frame-name frame) roleset)
+                                   return frame)
+        when selected-frame ;;only print if selected roleset is present in sentence
+        do (let ((roles-with-indices (loop for role in (frame-roles selected-frame)
+                                       collect (cons (role-type role) (role-string role)))))
+             (format t "~a ~%" sentence-string)
+             (loop for (role-type . role-string) in roles-with-indices
+                   do (format t "~a: ~a ~%" role-type role-string)
+                   finally (format t "~%")))))
+
+
+;; (print-propbank-sentences-with-annotation "believe.01")
