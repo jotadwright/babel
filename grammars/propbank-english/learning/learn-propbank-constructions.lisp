@@ -27,7 +27,12 @@
                                                      (:priority-mode . :nr-of-applied-cxns)
                                                      (:queue-mode . :greedy-best-first)
                                                      (:hash-mode . :hash-lemma)
-                                                     (:parse-order multi-argument-with-lemma multi-argument-without-lemma single-argument-with-lemma)
+                                                     (:parse-order
+                                                      multi-argument-with-lemma
+                                                      multi-argument-without-lemma
+                                                      single-argument-with-lemma)
+                                                     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+                                                     (:equivalent-cxn-key . identity)
                                                      (:learning-modes :multi-argument-with-lemma
                                                       :multi-argument-without-lemma :single-argument-with-lemma)
                                                      (:cxn-supplier-mode . :hashed-scored-labeled))
