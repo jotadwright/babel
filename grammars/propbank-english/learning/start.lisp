@@ -37,6 +37,7 @@
                        (:queue-mode . :greedy-best-first)
                        (:hash-mode . :hash-lemma)
                        (:cxn-supplier-mode . :hashed-scored-labeled)
+                       (c . #'equivalent-propbank-construction)
                        (:learning-mode ;:multi-argument-with-lemma :multi-argument-without-lemma
                         :single-argument-with-lemma
                         ))
@@ -106,7 +107,59 @@
  :silent t
  )
 
-(activate-monitor trace-fcg)
+(add-element (make-html *propbank-learned-cxn-inventory* ))
+
+(defun fcg::equivalent-propbank-construction  (cxn-1 cxn-2)
+  (cond ((eq 'fcg::processing-construction (type-of cxn-1))
+         (and ;(equalp (name cxn-1) (name cxn-2))
+              (= (length (right-pole-structure cxn-1)) (length (right-pole-structure cxn-2)))
+              (equalp (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'lex-class (unit-body unit) :key #'first)))
+                                                   (right-pole-structure cxn-1)))
+                               (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'lex-class (unit-body unit) :key #'first)))
+                                                   (right-pole-structure cxn-2))))
+              (equalp (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'phrase-type (unit-body unit) :key #'first)))
+                                                   (right-pole-structure cxn-1)))
+                               (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'phrase-type (unit-body unit) :key #'first)))
+                                                   (right-pole-structure cxn-2)))
+                               )
+              (equalp (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'lemma (unit-body unit) :key #'first)))
+                                                   (right-pole-structure cxn-1)))
+                               (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'lemma (unit-body unit) :key #'first)))
+                                                   (right-pole-structure cxn-2)))
+                               )))
+  ((eq (type-of cxn-1) 'fcg-construction)
+   (and (= (length (conditional-part cxn-1)) (length (conditional-part cxn-2)))
+              (equalp (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'lex-class (comprehension-lock unit) :key #'first)))
+                                                   (conditional-part cxn-1)))
+                               (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'lex-class (comprehension-lock unit) :key #'first)))
+                                                   (conditional-part cxn-2)))
+                               )
+              (equalp (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
+                                                   (conditional-part cxn-1)))
+                               (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
+                                                   (conditional-part cxn-2)))
+                               )
+              (equalp (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'lemma (comprehension-lock unit) :key #'first)))
+                                                   (conditional-part cxn-1)))
+                               (remove nil (mapcar #'(lambda (unit)
+                                                       (second (find 'lemma (comprehension-lock unit) :key #'first)))
+                                                   (conditional-part cxn-2)))
+                               )))))
+
+
+
+
 
 
 (setf *selected-sentence* (find "Investors here still expect Ford Motor Co. or General Motors Corp. to bid for Jaguar ."
@@ -125,6 +178,8 @@
 (activate-monitor trace-fcg)
 (comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
 
+(with-activated-monitor trace-fcg
+  (comprehend-and-extract-frames "Mr. Barak may believe that by winning regional support of the deal he can convince the Palestinian leader Yasser Arafat to agree to the proposals , but even if both sides do agree to compromise on these , the most divisive and thorny issues , they 'll face considerable domestic opposition to a final peace deal ." :cxn-inventory *propbank-learned-cxn-inventory*))
 (evaluate-propbank-sentences
  *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
