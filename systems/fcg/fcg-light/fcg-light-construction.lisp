@@ -611,7 +611,9 @@ construction on the fly."
             (pathname #+:lispworks (lispworks:current-pathname)
                       #-:lispworks nil))
        (set-data fcg-cxn :cxn-pathname pathname)
-       (add-cxn fcg-cxn ,cxn-inventory))))
+       (add-cxn fcg-cxn ,cxn-inventory
+                :equivalent-test (or (get-configuration ,cxn-inventory :equivalent-cxn-fn) #'eql)
+                :equivalent-key (or (get-configuration ,cxn-inventory :equivalent-cxn-key) #'name)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing an FCG Light Feature Structure    ;;
