@@ -21,6 +21,7 @@
                                                                             :de-render-constituents-dependents
                                                                             :de-render-constituents-dependents-without-tokenisation))
                                                      (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
+                                                     (:parse-goal-tests :no-valid-children)
                                                      (:max-nr-of-nodes . 100)
                                                      (:node-expansion-mode . :multiple-cxns)
                                                      (:priority-mode . :nr-of-applied-cxns)
@@ -29,8 +30,8 @@
                                                      (:cxn-supplier-mode . :hashed-and-scored))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
-                                :feature-types ((constituents set)
-                                                (dependents set)
+                                :feature-types ((constituents sequence)
+                                                (dependents sequence)
                                                 (span sequence)
                                                 (phrase-type set)
                                                 (word-order set-of-predicates)
@@ -77,7 +78,7 @@
                                                                      :selected-rolesets (list roleset)
                                                                      :silent silent
                                                                      :print-to-standard-output nil)))))
-                            (if  (< new-f1-score f1-score)
+                            (if  (<= new-f1-score f1-score)
                               (format t "Learning failed, f1-score ~a.~%" new-f1-score)
                               (progn
                                 (format t "Learning was successful, f1-score ~a.~%"  new-f1-score)
@@ -120,7 +121,7 @@ sentence object and a roleset (e.g. 'believe.01')"
 
            (when (and cxn-units-with-role lemma)
              ;;create a new construction and add it to the cxn-inventory
-             (eval `(def-fcg-cxn ,(intern (upcase cxn-name))
+             (eval `(def-fcg-cxn ,(make-id (upcase cxn-name))
                                  (,contributing-unit
                                   <-
                                   ,@cxn-units-with-role
