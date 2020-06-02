@@ -17,50 +17,6 @@
 ;(length (train-split *propbank-annotations*))
 
 
-(defun all-rolesets-for-framenet-frame (framenet-frame-name)
-  (loop for predicate in *pb-data*
-        for rolesets = (rolesets predicate)
-        for rolesets-for-framenet-frame = (loop for roleset in rolesets
-                                                    when (find framenet-frame-name (aliases roleset) :key #'framenet :test #'member)
-                                                    collect (id roleset))
-        when rolesets-for-framenet-frame
-        collect it))
-
-;; (all-rolesets-for-framenet-frame 'opinion)
-
-
-(defun all-sentences-annotated-with-roleset (roleset &key (split #'train-split)) ;;or #'dev-split
-  (loop for sentence in (funcall split *propbank-annotations*)
-        when (find roleset (propbank-frames sentence) :key #'frame-name :test #'equalp)
-        collect sentence))
-
-;; Retrieve all sentences in training set for a given roleset:
-;; (all-sentences-annotated-with-roleset "believe.01")
-
-;; Retrieve all sentences in de development set for a given roleset (for evaluation):
-;; (length (all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)) ;;call #'length for checking number
-
-
-(defun print-propbank-sentences-with-annotation (roleset &key (split #'train-split))
-  "Print the annotation of a given roleset for every sentence of the
-split to the output buffer."
-  (loop for sentence in (funcall split *propbank-annotations*)
-        for sentence-string = (sentence-string sentence)
-        for selected-frame = (loop for frame in (propbank-frames sentence)
-                                   when (string= (frame-name frame) roleset)
-                                   return frame)
-        when selected-frame ;;only print if selected roleset is present in sentence
-        do (let ((roles-with-indices (loop for role in (frame-roles selected-frame)
-                                       collect (cons (role-type role) (role-string role)))))
-             (format t "~a ~%" sentence-string)
-             (loop for (role-type . role-string) in roles-with-indices
-                   do (format t "~a: ~a ~%" role-type role-string)
-                   finally (format t "~%")))))
-
-
-;; (print-propbank-sentences-with-annotation "believe.01")
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Test learning based on Propbank sentences.  ;;
@@ -73,12 +29,17 @@ split to the output buffer."
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
                        (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
+                       (:parse-goal-tests :no-valid-children)
                        (:max-nr-of-nodes . 100)
+                       (:parse-order multi-argument-with-lemma multi-argument-without-lemma single-argument-with-lemma)
                        (:node-expansion-mode . :multiple-cxns)
                        (:priority-mode . :nr-of-applied-cxns)
                        (:queue-mode . :greedy-best-first)
                        (:hash-mode . :hash-lemma)
-                       (:cxn-supplier-mode . :hashed-simple-queue))
+                       (:cxn-supplier-mode . :hashed-scored-labeled)
+                       (:learning-mode ;:multi-argument-with-lemma :multi-argument-without-lemma
+                        :single-argument-with-lemma
+                        ))
   :visualization-configurations ((:show-constructional-dependencies . nil))
   :hierarchy-features (constituents dependents)
   :feature-types ((constituents set)
@@ -103,7 +64,6 @@ split to the output buffer."
 
 
 
-def-fcg-cxn
 
 ;;Try out the same for multiple sentences of a given roleset
 ;;----------------------------------------------------------
@@ -113,11 +73,17 @@ def-fcg-cxn
 (defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
-(length *opinion-sentences*)
+(length *believe-sentences-dev*)
 
-(learn-propbank-grammar *opinion-sentences*
+(defparameter *believe-sentences* (shuffle (loop for roleset in '("BELIEVE.01")
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
+
+(defparameter *believe-sentences-dev* (shuffle (loop for roleset in '("BELIEVE.01")
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
+
+(learn-propbank-grammar *believe-sentences*
                         :cxn-inventory '*propbank-learned-cxn-inventory*
-                        :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                        :selected-rolesets '("BELIEVE.01")
                         :silent t
                         :tokenize? nil)
 
@@ -134,19 +100,30 @@ def-fcg-cxn
                            :type "fcg")))
 
 (evaluate-propbank-sentences
- (subseq *opinion-sentences* 20 50)
+ *believe-sentences-dev*
  *propbank-learned-cxn-inventory*
- :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ :selected-rolesets  '("BELIEVE.01")
+ :silent t
  )
 
+(activate-monitor trace-fcg)
 
-;; Hier kan dezelfde constructie ogenschijnlijk op dezelfde manier toepassen (en dit gebeurt in heel veel zinnen):
 
-(setf *selected-sentence* (find "I think the President , I think the Secretary of Defense and all others who are responsible for offering that sort of leadership in this country has have those same objectives ."
-                                *opinion-sentences* :key #'sentence-string :test #'string=))
+(setf *selected-sentence* (find "Investors here still expect Ford Motor Co. or General Motors Corp. to bid for Jaguar ."
+                                *opinion-sentences-dev* :key #'sentence-string :test #'string=))
 
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *restored-grammar*)
+(learn-cxn-from-propbank-annotation *selected-sentence* "expect.01" *propbank-learned-cxn-inventory* :single-argument-with-lemma)
+(learn-propbank-grammar (list *selected-sentence*)
+                        :cxn-inventory '*propbank-learned-cxn-inventory*
+                        :selected-rolesets '("expect.01")
+                        :silent t
+                        :tokenize? nil)
+
+(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
+
+
+(activate-monitor trace-fcg)
+(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (evaluate-propbank-sentences
  *opinion-sentences-dev*
