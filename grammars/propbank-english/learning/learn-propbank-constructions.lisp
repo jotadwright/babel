@@ -30,11 +30,13 @@
                                                      (:parse-order
                                                       multi-argument-with-lemma
                                                       multi-argument-without-lemma
-                                                      single-argument-with-lemma)
+                                                      single-argument-with-lemma
+                                                      single-argument-without-lemma)
                                                      (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
                                                      (:equivalent-cxn-key . identity)
                                                      (:learning-modes :multi-argument-with-lemma
-                                                      :multi-argument-without-lemma :single-argument-with-lemma)
+                                                      :multi-argument-without-lemma :single-argument-with-lemma
+                                                      :single-argument-without-lemma)
                                                      (:cxn-supplier-mode . :hashed-scored-labeled))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
@@ -218,6 +220,61 @@ sentence object and a roleset (e.g. 'believe.01')"
                                      ,@cxn-units-without-role)
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label single-argument-with-lemma)
+                                    :cxn-inventory ,cxn-inventory))))))))
+
+
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :single-argument-without-lemma)) &key (syntactic-analysis nil))
+  "Adds a new construction to the cxn-inventory based on a propbank
+sentence object and a roleset (e.g. 'believe.01')"
+  (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
+    (dolist (frame frames cxn-inventory)
+      (let* ((unit-structure (left-pole-structure (de-render (sentence-string propbank-sentence)
+                                                             (get-configuration cxn-inventory :de-render-mode)
+                                                             :syntactic-analysis syntactic-analysis)))
+             (units-with-role (loop for role in (frame-roles frame) ;;find all units that correspond to annotated frame elements
+                                    for role-start = (first (indices role))
+                                    for role-end = (+ (last-elt (indices role)) 1)
+                                    for unit = (find-unit-by-span unit-structure (list role-start role-end))
+                                    when unit
+                                    collect (cons role unit)))
+             (v-unit (find "V" units-with-role
+                           :key #'(lambda (unit-with-role)
+                                    (role-type (car unit-with-role)))
+                           :test #'equalp))
+             (lemma (loop for (role . unit) in units-with-role
+                             when (string= "V" (role-type role))
+                             return (feature-value (find 'lemma (unit-body unit) :key #'feature-name)))))
+        (loop for (role . unit) in units-with-role
+              for footprint-name = (format nil "~a-~a+~a-cxn" roleset (format nil "~a:~a" (role-type role) 
+                                                                              (if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                                                                (format nil "~a" (cadr (find 'lemma (unit-body unit) :key #'feature-name)))
+                                                                                (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))
+                                           (format nil "V:~a" (cadr (find 'lemma (unit-body v-unit) :key #'feature-name))))
+              for cxn-units-with-role = (append (list (make-propbank-conditional-unit-with-role (cons role unit) footprint-name))
+                                                (unless (equalp (cons role unit) v-unit)
+                                                  (list (make-propbank-conditional-unit-with-role v-unit footprint-name))))
+              for cxn-units-without-role = (make-propbank-conditional-units-without-role (if (equalp v-unit (cons role unit))
+                                                                                           (list (cons role unit))
+                                                                                           (list (cons role unit) v-unit))
+                                                                                         cxn-units-with-role unit-structure)
+              for cxn-name = (format nil "~a-~a+~a+~a-cxn" roleset (format nil "~a:~a" (role-type role) 
+                                                                           (if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                                                             (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
+                                                                             (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))
+                                     (format nil "V:~a" (cadr (find 'lemma (unit-body v-unit) :key #'feature-name)))
+                                     (length cxn-units-without-role))
+              for contributing-unit = (make-propbank-contributing-unit (if (equalp v-unit (cons role unit))
+                                                                        (list (cons role unit))
+                                                                        (list (cons role unit) v-unit)) frame footprint-name)
+              do
+              (when (and cxn-units-with-role lemma)
+                (eval `(def-fcg-cxn ,(make-id (upcase cxn-name))
+                                    (,contributing-unit
+                                     <-
+                                     ,@cxn-units-with-role
+                                     ,@cxn-units-without-role)
+                                    :disable-automatic-footprints t
+                                    :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label single-argument-without-lemma)
                                     :cxn-inventory ,cxn-inventory))))))))
 
 
