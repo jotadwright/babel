@@ -31,13 +31,14 @@
                        (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
                        (:parse-goal-tests :no-valid-children)
                        (:max-nr-of-nodes . 100)
-                       (:parse-order multi-argument-with-lemma multi-argument-without-lemma single-argument-with-lemma)
+                       (:parse-order multi-argument-with-lemma multi-argument-without-lemma single-argument-with-lemma single-argument-without-lemma)
                        (:node-expansion-mode . :multiple-cxns)
                        (:priority-mode . :nr-of-applied-cxns)
                        (:queue-mode . :greedy-best-first)
                        (:hash-mode . :hash-lemma)
                        (:cxn-supplier-mode . :hashed-scored-labeled)
-                       (c . #'equivalent-propbank-construction)
+                       (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+                       (:equivalent-cxn-key . identity)
                        (:learning-mode ;:multi-argument-with-lemma :multi-argument-without-lemma
                         :single-argument-with-lemma
                         ))
@@ -58,9 +59,10 @@
 ;(setf nlp-tools::*penelope-host* "http://localhost:5000")
 
 ;; Learn a construction based on the selected sentence
-(learn-cxn-from-propbank-annotation *believe-sentence* "believe.01" *propbank-learned-cxn-inventory*)
+(learn-cxn-from-propbank-annotation *believe-sentence* "believe.01" *propbank-learned-cxn-inventory* :single-argument-with-lemma)
 
 ;;Try out the learned construction in comprehension
+(activate-monitor trace-fcg)
 (comprehend-and-extract-frames (sentence-string *believe-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
 
 
@@ -106,6 +108,8 @@
  :selected-rolesets  '("BELIEVE.01")
  :silent t
  )
+
+(deactivate-all-monitors)
 
 (add-element (make-html *propbank-learned-cxn-inventory* ))
 
@@ -176,10 +180,12 @@
 
 
 (activate-monitor trace-fcg)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames (sentence-string (fifth *believ) :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (with-activated-monitor trace-fcg
-  (comprehend-and-extract-frames "Mr. Barak may believe that by winning regional support of the deal he can convince the Palestinian leader Yasser Arafat to agree to the proposals , but even if both sides do agree to compromise on these , the most divisive and thorny issues , they 'll face considerable domestic opposition to a final peace deal ." :cxn-inventory *propbank-learned-cxn-inventory*))
+  (comprehend-and-extract-frames (sentence-string (fifth *believe-sentences*)) :cxn-inventory *restored-grammar*))
+
+)
 (evaluate-propbank-sentences
  *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
