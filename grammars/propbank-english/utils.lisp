@@ -39,7 +39,10 @@ frame-element filler occurs in more than one slot). "
                                      when (equalp (first predicate) 'frame-element)
                                      collect predicate)
           
-          when (> (length frame-elements) (length (remove-duplicates frame-elements :key #'fourth :test #'equalp)))
+          when (or (> (length frame-elements) (length (remove-duplicates frame-elements :key #'fourth :test #'equalp)))
+                    (loop for fe in frame-elements
+                          for other-fes = (remove fe frame-elements :key #'fourth :test #'equalp)
+                          thereis (subconstituent-p (fourth fe) (mapcar #'fourth other-fes) (left-pole-structure (car-resulting-cfs (cipn-car node))))))
           do (push frame-var double-role-assignments)
           finally
           return
@@ -47,6 +50,20 @@ frame-element filler occurs in more than one slot). "
             ;;some frames contain frame-elements that have identical slot fillers
             (and (push 'double-role-assignment (statuses node)) nil)
             t))))
+
+(defun subconstituent-p (frame-element other-frame-elements unit-structure)
+  (loop for ofe in other-frame-elements
+        when (subconstituent-p-aux frame-element ofe unit-structure)
+        do (return t)))
+
+(defun subconstituent-p-aux (frame-element other-frame-element unit-structure)
+  (let ((parent (cadr (find 'parent (unit-body (find frame-element unit-structure :key #'unit-name)) :key #'feature-name))))
+    (cond ((null parent)
+           nil)
+          ((equalp parent other-frame-element)
+           t)
+          ((subconstituent-p-aux parent other-frame-element unit-structure)
+           t))))
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :no-valid-children)))
   "Checks whether there are no more applicable constructions when a node is
