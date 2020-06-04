@@ -61,14 +61,13 @@
           for rolesets = (if selected-rolesets
                            (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
                            (all-rolesets sentence))
-         ; for final-cipn = (second (multiple-value-list (comprehend sentence :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))
+          for final-cipn = (second (multiple-value-list (comprehend sentence :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))
           do
           (format t "~%~%---> Sentence ~a: ~a~%" sentence-number sentence-string)
           (loop for roleset in rolesets
                 if (spacy-benepar-compatible-annotation sentence roleset :syntactic-analysis syntactic-analysis)
                 do
-                
-                #|(let ((f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
+                (let ((f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
                                                        (list sentence) cxn-inventory
                                                        :list-of-syntactic-analyses (list syntactic-analysis)
                                                        :selected-rolesets (list roleset)
@@ -79,13 +78,75 @@
                   (if (< f1-score 1.0)
                     (progn
                       (format t "~%Roleset ~a: f1-score ~a --> Learning.~%"  roleset f1-score)
-                      |#
+                      (loop for mode in (get-configuration cxn-inventory :learning-modes)
+                            do
+                            (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis)))
+                    (format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score)))
+                finally return cxn-inventory))))
+
+
+
+(defun learn-propbank-grammar-no-comprehension (list-of-propbank-sentences &key (selected-rolesets nil) (silent t)
+                                                          (tokenize? nil) (cxn-inventory '*propbank-learned-cxn-inventory*)
+                                                          (list-of-syntactic-analyses nil))
+  (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
+                                :fcg-configurations ((:de-render-mode .  ,(if tokenize?
+                                                                            :de-render-constituents-dependents
+                                                                            :de-render-constituents-dependents-without-tokenisation))
+                                                     (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
+                                                     (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
+                                                     (:max-nr-of-nodes . 100)
+                                                     (:node-expansion-mode . :multiple-cxns)
+                                                     (:priority-mode . :nr-of-applied-cxns)
+                                                     (:queue-mode . :greedy-best-first)
+                                                     (:hash-mode . :hash-lemma)
+                                                     (:parse-order
+                                                      multi-argument-with-lemma
+                                                      multi-argument-without-lemma
+                                                      single-argument-with-lemma
+                                                      single-argument-without-lemma)
+                                                     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+                                                     (:equivalent-cxn-key . identity)
+                                                     (:learning-modes :multi-argument-with-lemma
+                                                      :multi-argument-without-lemma) ;:single-argument-with-lemma)
+                                                     ; :single-argument-without-lemma)
+                                                     (:cxn-supplier-mode . :hashed-scored-labeled))
+                                :visualization-configurations ((:show-constructional-dependencies . nil))
+                                :hierarchy-features (constituents dependents)
+                                :feature-types ((constituents sequence)
+                                                (dependents sequence)
+                                                (span sequence)
+                                                (phrase-type set)
+                                                (word-order set-of-predicates)
+                                                (meaning set-of-predicates)
+                                                (footprints set))
+                                :cxn-inventory ,cxn-inventory
+                                :hashed t))))
+    (loop for sentence in list-of-propbank-sentences
+          for sentence-number from 1
+          for sentence-string = (sentence-string sentence)
+          for syntactic-analysis = (or (nth1 sentence-number list-of-syntactic-analyses)
+                                       (if tokenize?
+                                         (nlp-tools:get-penelope-syntactic-analysis sentence-string)
+                                         (nlp-tools:get-penelope-syntactic-analysis
+                                          (split-sequence:split-sequence #\Space sentence-string
+                                                                         :remove-empty-subseqs t))))
+          for rolesets = (if selected-rolesets
+                           (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
+                           (all-rolesets sentence))
+          do
+          (format t "~%~%---> Sentence ~a: ~a~%" sentence-number sentence-string)
+          (loop for roleset in rolesets
+                if (spacy-benepar-compatible-annotation sentence roleset :syntactic-analysis syntactic-analysis)
+                do
                 (loop for mode in (get-configuration cxn-inventory :learning-modes)
                       do
-                      (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis))
-                finally (format t "Size of construction-inventory after learning: ~a ~%" (size cxn-inventory)))
-                    ;(format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score)))
-          finally return cxn-inventory)))
+                      (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis)
+                      (format t "~%Roleset ~a.~%"  roleset)))
+          finally
+          return cxn-inventory)))
+
+
                    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Learning a single cxn ;;
