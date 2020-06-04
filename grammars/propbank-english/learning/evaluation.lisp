@@ -9,7 +9,7 @@
 
 (defun evaluate-propbank-sentences (list-of-propbank-sentences cxn-inventory &key
                                                                (selected-rolesets nil) (silent nil) (print-to-standard-output t)
-                                                               (list-of-syntactic-analyses nil))
+                                                               (list-of-syntactic-analyses nil) (list-of-cipns nil))
   "Returns a.o. precision, recall, F1 score for evaluation of list-of-propbank-sentences."
   ;; Precision = (#correct-predictions / #predictions)
   ;; Recall = (#correct-predictions / #gold-standard-predictions)
@@ -22,7 +22,9 @@
                                  for sentence-evaluation-result = (evaluate-propbank-sentence sentence cxn-inventory
                                                                                               :selected-rolesets selected-rolesets
                                                                                               :silent silent
+                                                                                              :cipn (nth1 sentence-number list-of-cipns)
                                                                                               :syntactic-analysis (nth1 sentence-number list-of-syntactic-analyses))
+                                 
                                  do
                                  (when print-to-standard-output
                                    (format t "~%Sentence ~a: ~a~%" sentence-number (sentence-string sentence)))
@@ -74,12 +76,12 @@
     evaluation-result))
 
 
-(defun evaluate-propbank-sentence (propbank-sentence cxn-inventory &key (selected-rolesets nil) (silent nil) (syntactic-analysis nil))
+(defun evaluate-propbank-sentence (propbank-sentence cxn-inventory &key (selected-rolesets nil) (silent nil) (syntactic-analysis nil) (cipn nil))
   "Evaluates a conll sentence in terms of number-of-predictions, number-of-correct-predictions and number-of-gold-standard-predictions."
   (let* ((sentence-string (sentence-string propbank-sentence))
-         (solution-and-cipn (multiple-value-list (comprehend propbank-sentence :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))
-         (cipn (second solution-and-cipn))
-         (extracted-frames (extract-frames (car-resulting-cfs (cipn-car cipn))))
+         (final-node (or cipn
+                         (second (multiple-value-list (comprehend propbank-sentence :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))))
+         (extracted-frames (extract-frames (car-resulting-cfs (cipn-car final-node))))
          ;; Number of gold-standard predictions
          (number-of-gold-standard-predictions (loop with number-of-gold-standard-predictions = 0
                                                     for frame in (propbank-frames propbank-sentence)

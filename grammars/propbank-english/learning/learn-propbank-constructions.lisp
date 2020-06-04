@@ -35,7 +35,7 @@
                                                      (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
                                                      (:equivalent-cxn-key . identity)
                                                      (:learning-modes :multi-argument-with-lemma
-                                                      :multi-argument-without-lemma :single-argument-with-lemma)
+                                                      :multi-argument-without-lemma) ;:single-argument-with-lemma)
                                                      ; :single-argument-without-lemma)
                                                      (:cxn-supplier-mode . :hashed-scored-labeled))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
@@ -61,6 +61,7 @@
           for rolesets = (if selected-rolesets
                            (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
                            (all-rolesets sentence))
+          for final-cipn = (second (multiple-value-list (comprehend sentence :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))
           do
           (format t "~%~%---> Sentence ~a: ~a~%" sentence-number sentence-string)
           (loop for roleset in rolesets
@@ -71,6 +72,7 @@
                                                        :list-of-syntactic-analyses (list syntactic-analysis)
                                                        :selected-rolesets (list roleset)
                                                        :silent silent
+                                                       :list-of-cipns (list final-cipn)
                                                        :print-to-standard-output nil)))))
                   ;; no learning needed if F1 score is already 1.
                   (if (< f1-score 1.0)
