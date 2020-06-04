@@ -136,7 +136,7 @@
 ;;;;;;;;;;;;;;;;
 
 (evaluate-propbank-sentences
- *opinion-sentences*
+ length *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
  :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t)
