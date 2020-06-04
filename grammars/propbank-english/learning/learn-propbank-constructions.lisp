@@ -61,13 +61,14 @@
           for rolesets = (if selected-rolesets
                            (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
                            (all-rolesets sentence))
-          for final-cipn = (second (multiple-value-list (comprehend sentence :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))
+         ; for final-cipn = (second (multiple-value-list (comprehend sentence :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))
           do
           (format t "~%~%---> Sentence ~a: ~a~%" sentence-number sentence-string)
           (loop for roleset in rolesets
                 if (spacy-benepar-compatible-annotation sentence roleset :syntactic-analysis syntactic-analysis)
                 do
-                (let ((f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
+                
+                #|(let ((f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
                                                        (list sentence) cxn-inventory
                                                        :list-of-syntactic-analyses (list syntactic-analysis)
                                                        :selected-rolesets (list roleset)
@@ -78,11 +79,13 @@
                   (if (< f1-score 1.0)
                     (progn
                       (format t "~%Roleset ~a: f1-score ~a --> Learning.~%"  roleset f1-score)
-                      (loop for mode in (get-configuration cxn-inventory :learning-modes)
-                            do
-                            (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis)))
-                    (format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score)))
-                finally return cxn-inventory))))
+                      |#
+                (loop for mode in (get-configuration cxn-inventory :learning-modes)
+                      do
+                      (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis))
+                finally (format t "Size of construction-inventory after learning: ~a ~%" (size cxn-inventory)))
+                    ;(format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score)))
+          finally return cxn-inventory)))
                    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Learning a single cxn ;;
