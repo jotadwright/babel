@@ -113,7 +113,7 @@
      :multi-argument-without-lemma
      :single-argument-with-lemma
      :single-argument-without-lemma)
-    (:cxn-supplier-mode . :hashed-scored-labeled)))s
+    (:cxn-supplier-mode . :hashed-scored-labeled)))
 
 
 (learn-propbank-grammar *opinion-sentences*
@@ -136,10 +136,16 @@
 ;;;;;;;;;;;;;;;;
 
 (evaluate-propbank-sentences
- length *opinion-sentences-dev*
+ *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
  :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t)
+
+(evaluate-propbank-sentences-per-roleset
+ *opinion-sentences-dev*
+ *propbank-learned-cxn-inventory*
+ :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ )
 
 
 ;;;;;;;;;;;;;
