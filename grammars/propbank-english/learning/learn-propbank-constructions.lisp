@@ -15,29 +15,10 @@
 
 (defun learn-propbank-grammar (list-of-propbank-sentences &key (selected-rolesets nil) (silent t)
                                                           (tokenize? nil) (cxn-inventory '*propbank-learned-cxn-inventory*)
+                                                          (fcg-configuration nil)
                                                           (list-of-syntactic-analyses nil))
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
-                                :fcg-configurations ((:de-render-mode .  ,(if tokenize?
-                                                                            :de-render-constituents-dependents
-                                                                            :de-render-constituents-dependents-without-tokenisation))
-                                                     (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
-                                                     (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
-                                                     (:max-nr-of-nodes . 100)
-                                                     (:node-expansion-mode . :multiple-cxns)
-                                                     (:priority-mode . :nr-of-applied-cxns)
-                                                     (:queue-mode . :greedy-best-first)
-                                                     (:hash-mode . :hash-lemma)
-                                                     (:parse-order
-                                                      multi-argument-with-lemma
-                                                      multi-argument-without-lemma
-                                                      single-argument-with-lemma
-                                                      single-argument-without-lemma)
-                                                     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
-                                                     (:equivalent-cxn-key . identity)
-                                                     (:learning-modes :multi-argument-with-lemma
-                                                      :multi-argument-without-lemma) ;:single-argument-with-lemma)
-                                                     ; :single-argument-without-lemma)
-                                                     (:cxn-supplier-mode . :hashed-scored-labeled))
+                                :fcg-configurations ,fcg-configuration
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
                                 :feature-types ((constituents sequence)
@@ -85,34 +66,13 @@
                 finally return cxn-inventory))))
 
 
-
 (defun learn-propbank-grammar-no-comprehension (list-of-propbank-sentences &key (selected-rolesets nil) (silent t)
                                                           (tokenize? nil) (cxn-inventory '*propbank-learned-cxn-inventory*)
+                                                          (fcg-configuration nil)
                                                           (list-of-syntactic-analyses nil))
+  "Learn cxns without comprhending the sentences (= always learn)."
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
-                                :fcg-configurations ((:de-render-mode .  ,(if tokenize?
-                                                                            :de-render-constituents-dependents
-                                                                            :de-render-constituents-dependents-without-tokenisation))
-                                                     (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
-                                                     (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
-                                                     (:max-nr-of-nodes . 100)
-                                                     (:node-expansion-mode . :multiple-cxns)
-                                                     (:priority-mode . :nr-of-applied-cxns)
-                                                     (:queue-mode . :greedy-best-first)
-                                                     (:hash-mode . :hash-lemma)
-                                                     (:parse-order
-                                                      multi-argument-with-lemma
-                                                      multi-argument-without-lemma
-                                                      single-argument-with-lemma
-                                                      single-argument-without-lemma)
-                                                     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
-                                                     (:equivalent-cxn-key . identity)
-                                                     (:learning-modes
-                                                      :multi-argument-with-lemma
-                                                      :multi-argument-without-lemma
-                                                      :single-argument-with-lemma
-                                                      :single-argument-without-lemma)
-                                                     (:cxn-supplier-mode . :hashed-scored-labeled))
+                                :fcg-configurations ,fcg-configuration
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
                                 :feature-types ((constituents sequence)

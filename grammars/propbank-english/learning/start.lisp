@@ -92,15 +92,40 @@
 ;; Training ;;
 ;;;;;;;;;;;;;;
 
+(defparameter *training-configuration*
+  '((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation)
+    (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
+    (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
+    (:max-nr-of-nodes . 100)
+    (:node-expansion-mode . :multiple-cxns)
+    (:priority-mode . :nr-of-applied-cxns)
+    (:queue-mode . :greedy-best-first)
+    (:hash-mode . :hash-lemma)
+    (:parse-order
+     multi-argument-with-lemma
+     multi-argument-without-lemma
+     single-argument-with-lemma
+     single-argument-without-lemma)
+    (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+    (:equivalent-cxn-key . identity)
+    (:learning-modes
+     :multi-argument-with-lemma
+     :multi-argument-without-lemma
+     :single-argument-with-lemma
+     :single-argument-without-lemma)
+    (:cxn-supplier-mode . :hashed-scored-labeled)))s
+
 
 (learn-propbank-grammar *opinion-sentences*
                         :cxn-inventory '*propbank-learned-cxn-inventory*
+                        :configuration *training-configuration*
                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                         :silent t
                         :tokenize? nil)
 
 (learn-propbank-grammar-no-comprehension *opinion-sentences*
                                          :cxn-inventory '*propbank-learned-cxn-inventory*
+                                         :configuration *training-configuration*
                                          :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                          :silent t
                                          :tokenize? nil)
@@ -117,7 +142,6 @@
  :silent t)
 
 
-
 ;;;;;;;;;;;;;
 ;; Testing ;;
 ;;;;;;;;;;;;;
@@ -130,6 +154,7 @@
 
 (learn-propbank-grammar (list *selected-sentence*)
                         :cxn-inventory '*propbank-learned-cxn-inventory*
+                        :configuration *training-configuration*
                         :selected-rolesets '("expect.01")
                         :silent t
                         :tokenize? nil)
