@@ -25,6 +25,8 @@
 ;;Select a sentence object
 (defparameter *believe-sentence* (third (all-sentences-annotated-with-roleset "believe.01")))
 
+(defparameter *difficult-sentence* (nth 6063 (train-split *propbank-annotations*))) ;;13 frames!
+
 ;;Create an empty cxn inventory
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
@@ -84,28 +86,28 @@
 (defparameter *believe-sentences-dev* (shuffle (loop for roleset in '("BELIEVE.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
-(learn-propbank-grammar *believe-sentences*
+(learn-propbank-grammar *opinion-sentences*
                         :cxn-inventory '*propbank-learned-cxn-inventory*
-                        :selected-rolesets '("BELIEVE.01")
+                        :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                         :silent t
                         :tokenize? nil)
 
 ;;for storing learned grammar
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                                :name "learned-grammar"
+                                :name "learned-grammar-single-argument-without-lemma-opinion"
                                 :type "fcg"))
 
 ;;and later restoring it
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                           :name "learned-grammar"
+                           :name "learned-grammar-all-rolesets-3500-sentences"
                            :type "fcg")))
 
 (evaluate-propbank-sentences
- *believe-sentences-dev*
+ *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
- :selected-rolesets  '("BELIEVE.01")
+ :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t
  )
 

@@ -134,6 +134,13 @@
   "Printing a frame."
   (format stream "<Frame: ~s>" (frame-name frame)))
 
+(defmethod copy-object-content ((source propbank-frame) (destination propbank-frame))
+  
+  (setf (frame-name destination) (frame-name source))
+  (setf (propbank-frame-file destination) (propbank-frame-file source))
+  (setf (frame-roles destination) (frame-roles source)))
+
+
 ;; Frame Role ;;
 ;;;;;;;;;;;;;;;;
 

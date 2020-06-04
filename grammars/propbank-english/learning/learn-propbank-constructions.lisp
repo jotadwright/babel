@@ -21,7 +21,7 @@
                                                                             :de-render-constituents-dependents
                                                                             :de-render-constituents-dependents-without-tokenisation))
                                                      (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
-                                                     (:parse-goal-tests :no-valid-children)
+                                                     (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
                                                      (:max-nr-of-nodes . 100)
                                                      (:node-expansion-mode . :multiple-cxns)
                                                      (:priority-mode . :nr-of-applied-cxns)
@@ -35,8 +35,8 @@
                                                      (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
                                                      (:equivalent-cxn-key . identity)
                                                      (:learning-modes :multi-argument-with-lemma
-                                                      :multi-argument-without-lemma :single-argument-with-lemma
-                                                      :single-argument-without-lemma)
+                                                      :multi-argument-without-lemma :single-argument-with-lemma)
+                                                     ; :single-argument-without-lemma)
                                                      (:cxn-supplier-mode . :hashed-scored-labeled))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
