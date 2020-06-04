@@ -118,14 +118,14 @@
 
 (learn-propbank-grammar *opinion-sentences*
                         :cxn-inventory '*propbank-learned-cxn-inventory*
-                        :configuration *training-configuration*
+                        :fcg-configuration *training-configuration*
                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                         :silent t
                         :tokenize? nil)
 
 (learn-propbank-grammar-no-comprehension *opinion-sentences*
                                          :cxn-inventory '*propbank-learned-cxn-inventory*
-                                         :configuration *training-configuration*
+                                         :fcg-configuration *training-configuration*
                                          :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                          :silent t
                                          :tokenize? nil)
@@ -154,7 +154,7 @@
 
 (learn-propbank-grammar (list *selected-sentence*)
                         :cxn-inventory '*propbank-learned-cxn-inventory*
-                        :configuration *training-configuration*
+                        :fcg-configuration *training-configuration*
                         :selected-rolesets '("expect.01")
                         :silent t
                         :tokenize? nil)
