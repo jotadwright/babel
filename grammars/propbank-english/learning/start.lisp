@@ -31,7 +31,7 @@
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
                        (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
-                       (:parse-goal-tests :no-valid-children)
+                       (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
                        (:max-nr-of-nodes . 100)
                        (:parse-order multi-argument-with-lemma multi-argument-without-lemma single-argument-with-lemma single-argument-without-lemma)
                        (:node-expansion-mode . :multiple-cxns)
@@ -103,6 +103,12 @@
   (restore (babel-pathname :directory '("grammars" "propbank-english" "learning")
                            :name "learned-grammar-all-rolesets-3500-sentences"
                            :type "fcg")))
+
+(set-configuration *restored-grammar* :parse-goal-tests '(:gold-standard-meaning))
+(set-configuration *restored-grammar* :max-search-depth 25)
+(set-configuration *restored-grammar* :node-tests '(:check-double-role-assignment :restrict-nr-of-nodes))
+
+(comprehend-and-extract-frames *believe-sentence* :cxn-inventory *restored-grammar* :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01") )
 
 (evaluate-propbank-sentences
  *opinion-sentences-dev*

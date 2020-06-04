@@ -128,91 +128,96 @@ nodes."
 
 (defmethod cip-goal-test ((cipn cip-node) (mode (eql :gold-standard-meaning)))
   ""
-  (let* ((extracted-frames (extract-frames (car-resulting-cfs (cipn-car cipn))))
-         (selected-rolesets (get-data (car-resulting-cfs (cipn-car cipn)) :selected-rolesets))
-         (annotated-frames (get-data (car-resulting-cfs (cipn-car cipn)) :annotation))
-         (number-of-gold-standard-predictions (loop with number-of-gold-standard-predictions = 0
-                                                    for frame in annotated-frames
-                                                    if (or (null selected-rolesets)
-                                                           (find (frame-name frame) selected-rolesets :test #'equalp))
-                                                    do (loop for role in (frame-roles frame)
-                                                             do
-                                                             (setf number-of-gold-standard-predictions (+ number-of-gold-standard-predictions (length (indices role)))))
-                                                    finally
-                                                    return number-of-gold-standard-predictions))
-         ;; Number of predication made by the grammar
-         (number-of-predictions (loop with number-of-predictions = 0
-                                      for frame in (frames extracted-frames)
-                                      if (or (null selected-rolesets)
-                                             (find (symbol-name (frame-name frame)) selected-rolesets :test #'equalp))
-                                      do
-                                      ;; for frame-elements
-                                      (loop for role in (frame-elements frame)
-                                            do
-                                            (setf number-of-predictions (+ number-of-predictions (length (indices role)))))
-                                      ;; from frame-evoking-element
-                                      (when (and (frame-evoking-element frame) (index (frame-evoking-element frame)))
-                                        (setf number-of-predictions (+ number-of-predictions 1)))
-                                      finally
-                                      return number-of-predictions))
-         ;; Number of correct predictions made
-         (number-of-correct-predictions (loop with number-of-correct-predictions = 0
-                                              for predicted-frame in (frames extracted-frames)
-                                              ;; check whether we're interested in the frame
-                                              if (or (null selected-rolesets)
-                                                     (find (symbol-name (frame-name predicted-frame)) selected-rolesets :test #'equalp))
-                                              do
-                                              ;; For frame elements
-                                              (loop for predicted-frame-element in (frame-elements predicted-frame)
-                                                    for predicted-indices = (indices predicted-frame-element)
-                                                    do (loop for index in predicted-indices
-                                                             when (correctly-predicted-index-p index predicted-frame-element predicted-frame
-                                                                                               annotated-frames)
-                                                             do (setf number-of-correct-predictions (+ number-of-correct-predictions 1))))
-                                              ;; For frame-evoking element
-                                              (when (correctly-predicted-fee-index-p (index (frame-evoking-element predicted-frame))
-                                                                                     predicted-frame
-                                                                                     annotated-frames)
-                                                (setf number-of-correct-predictions (+ number-of-correct-predictions 1)))
-                                              finally
-                                              return number-of-correct-predictions))
-         (result (cond ((= 0 number-of-gold-standard-predictions)
-                        `((:precision . ,(if (= 0 number-of-predictions) 1.0 0.0))
-                          (:recall . 1.0)
-                          (:f1-score . ,(float (* 2 (/ (* (if (= 0 number-of-predictions) 1.0 0.0)
-                                                          1.0)
-                                                       (+ (if (= 0 number-of-predictions) 1.0 0.0)
-                                                          1.0)))))
-                          (:nr-of-correct-predictions . ,number-of-correct-predictions)
-                          (:nr-of-predictions . ,number-of-predictions)
-                          (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions)))
-                       ((= 0 number-of-predictions)
-                        `((:precision . 1.0)
-                          (:recall . 0.0)
-                          (:f1-score . 0.0)
-                          (:nr-of-correct-predictions . ,number-of-correct-predictions)
-                          (:nr-of-predictions . ,number-of-predictions)
-                          (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions)))
-                       ((= 0 number-of-correct-predictions)
-                        `((:precision . 0.0)
-                          (:recall . 0.0)
-                          (:f1-score . 0.0)
-                          (:nr-of-correct-predictions . ,number-of-correct-predictions)
-                          (:nr-of-predictions . ,number-of-predictions)
-                          (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions)))
-                       (t
-                        `((:precision . ,(float (/ number-of-correct-predictions number-of-predictions)))
-                          (:recall . ,(float (/ number-of-correct-predictions number-of-gold-standard-predictions)))
-                          (:f1-score . ,(float (* 2 (/ (* (/ number-of-correct-predictions number-of-predictions)
-                                                          (/ number-of-correct-predictions number-of-gold-standard-predictions))
-                                                       (+ (/ number-of-correct-predictions number-of-predictions)
-                                                          (/ number-of-correct-predictions number-of-gold-standard-predictions))))))
-                          (:nr-of-correct-predictions . ,number-of-correct-predictions)
-                          (:nr-of-predictions . ,number-of-predictions)
-                          (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))))
+  (or (and (or (not (children cipn))
+	   (loop for child in (children cipn)
+                 never (and (cxn-applied child)
+                            (not (find 'double-role-assignment (statuses child))))))
+       (fully-expanded? cipn))
+      (let* ((extracted-frames (extract-frames (car-resulting-cfs (cipn-car cipn))))
+             (selected-rolesets (get-data (car-resulting-cfs (cipn-car cipn)) :selected-rolesets))
+             (annotated-frames (get-data (car-resulting-cfs (cipn-car cipn)) :annotation))
+             (number-of-gold-standard-predictions (loop with number-of-gold-standard-predictions = 0
+                                                        for frame in annotated-frames
+                                                        if (or (null selected-rolesets)
+                                                               (find (frame-name frame) selected-rolesets :test #'equalp))
+                                                        do (loop for role in (frame-roles frame)
+                                                                 do
+                                                                 (setf number-of-gold-standard-predictions (+ number-of-gold-standard-predictions (length (indices role)))))
+                                                        finally
+                                                        return number-of-gold-standard-predictions))
+             ;; Number of predication made by the grammar
+             (number-of-predictions (loop with number-of-predictions = 0
+                                          for frame in (frames extracted-frames)
+                                          if (or (null selected-rolesets)
+                                                 (find (symbol-name (frame-name frame)) selected-rolesets :test #'equalp))
+                                          do
+                                          ;; for frame-elements
+                                          (loop for role in (frame-elements frame)
+                                                do
+                                                (setf number-of-predictions (+ number-of-predictions (length (indices role)))))
+                                          ;; from frame-evoking-element
+                                          (when (and (frame-evoking-element frame) (index (frame-evoking-element frame)))
+                                            (setf number-of-predictions (+ number-of-predictions 1)))
+                                          finally
+                                          return number-of-predictions))
+             ;; Number of correct predictions made
+             (number-of-correct-predictions (loop with number-of-correct-predictions = 0
+                                                  for predicted-frame in (frames extracted-frames)
+                                                  ;; check whether we're interested in the frame
+                                                  if (or (null selected-rolesets)
+                                                         (find (symbol-name (frame-name predicted-frame)) selected-rolesets :test #'equalp))
+                                                  do
+                                                  ;; For frame elements
+                                                  (loop for predicted-frame-element in (frame-elements predicted-frame)
+                                                        for predicted-indices = (indices predicted-frame-element)
+                                                        do (loop for index in predicted-indices
+                                                                 when (correctly-predicted-index-p index predicted-frame-element predicted-frame
+                                                                                                   annotated-frames)
+                                                                 do (setf number-of-correct-predictions (+ number-of-correct-predictions 1))))
+                                                  ;; For frame-evoking element
+                                                  (when (correctly-predicted-fee-index-p (index (frame-evoking-element predicted-frame))
+                                                                                         predicted-frame
+                                                                                         annotated-frames)
+                                                    (setf number-of-correct-predictions (+ number-of-correct-predictions 1)))
+                                                  finally
+                                                  return number-of-correct-predictions))
+             (result (cond ((= 0 number-of-gold-standard-predictions)
+                            `((:precision . ,(if (= 0 number-of-predictions) 1.0 0.0))
+                              (:recall . 1.0)
+                              (:f1-score . ,(float (* 2 (/ (* (if (= 0 number-of-predictions) 1.0 0.0)
+                                                              1.0)
+                                                           (+ (if (= 0 number-of-predictions) 1.0 0.0)
+                                                              1.0)))))
+                              (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                              (:nr-of-predictions . ,number-of-predictions)
+                              (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions)))
+                           ((= 0 number-of-predictions)
+                            `((:precision . 1.0)
+                              (:recall . 0.0)
+                              (:f1-score . 0.0)
+                              (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                              (:nr-of-predictions . ,number-of-predictions)
+                              (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions)))
+                           ((= 0 number-of-correct-predictions)
+                            `((:precision . 0.0)
+                              (:recall . 0.0)
+                              (:f1-score . 0.0)
+                              (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                              (:nr-of-predictions . ,number-of-predictions)
+                              (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions)))
+                           (t
+                            `((:precision . ,(float (/ number-of-correct-predictions number-of-predictions)))
+                              (:recall . ,(float (/ number-of-correct-predictions number-of-gold-standard-predictions)))
+                              (:f1-score . ,(float (* 2 (/ (* (/ number-of-correct-predictions number-of-predictions)
+                                                              (/ number-of-correct-predictions number-of-gold-standard-predictions))
+                                                           (+ (/ number-of-correct-predictions number-of-predictions)
+                                                              (/ number-of-correct-predictions number-of-gold-standard-predictions))))))
+                              (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                              (:nr-of-predictions . ,number-of-predictions)
+                              (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))))
     
-    (when (= (cdr (assoc :f1-score result)) 1.0)
-      t)))
+        (when (= (cdr (assoc :f1-score result)) 1.0)
+          t))))
 
 
 
