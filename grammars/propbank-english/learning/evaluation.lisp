@@ -92,7 +92,7 @@
                                                              (setf number-of-gold-standard-predictions (+ number-of-gold-standard-predictions (length (indices role)))))
                                                     finally
                                                     return number-of-gold-standard-predictions))
-         ;; Number of predication made by the grammar
+         ;; Number of prediction made by the grammar
          (number-of-predictions (loop with number-of-predictions = 0
                                       for frame in (frames extracted-frames)
                                       if (or (null selected-rolesets)
