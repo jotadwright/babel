@@ -77,7 +77,7 @@
 (defun evaluate-propbank-sentence (propbank-sentence cxn-inventory &key (selected-rolesets nil) (silent nil) (syntactic-analysis nil))
   "Evaluates a conll sentence in terms of number-of-predictions, number-of-correct-predictions and number-of-gold-standard-predictions."
   (let* ((sentence-string (sentence-string propbank-sentence))
-         (solution-and-cipn (multiple-value-list (comprehend sentence-string :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))
+         (solution-and-cipn (multiple-value-list (comprehend propbank-sentence :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)))
          (cipn (second solution-and-cipn))
          (extracted-frames (extract-frames (car-resulting-cfs (cipn-car cipn))))
          ;; Number of gold-standard predictions
