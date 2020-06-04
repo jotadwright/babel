@@ -107,9 +107,11 @@
                                                       single-argument-without-lemma)
                                                      (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
                                                      (:equivalent-cxn-key . identity)
-                                                     (:learning-modes :multi-argument-with-lemma
-                                                      :multi-argument-without-lemma) ;:single-argument-with-lemma)
-                                                     ; :single-argument-without-lemma)
+                                                     (:learning-modes
+                                                      :multi-argument-with-lemma
+                                                      :multi-argument-without-lemma
+                                                      :single-argument-with-lemma
+                                                      :single-argument-without-lemma)
                                                      (:cxn-supplier-mode . :hashed-scored-labeled))
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
                                 :hierarchy-features (constituents dependents)
@@ -135,14 +137,13 @@
                            (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
                            (all-rolesets sentence))
           do
-          (format t "~%~%---> Sentence ~a: ~a~%" sentence-number sentence-string)
+          (format t "~%---> Sentence ~a." sentence-number)
           (loop for roleset in rolesets
                 if (spacy-benepar-compatible-annotation sentence roleset :syntactic-analysis syntactic-analysis)
                 do
                 (loop for mode in (get-configuration cxn-inventory :learning-modes)
                       do
-                      (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis)
-                      (format t "~%Roleset ~a.~%"  roleset)))
+                      (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis)))
           finally
           return cxn-inventory)))
 
