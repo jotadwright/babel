@@ -19,9 +19,10 @@
                (:file "de-render")
                (:file "grammar")
                (:file "visualisation")
-               (:file "utils")
+               
                (:module learning
                 :serial t
                 :components ((:file "propbank-annotations")
                              (:file "evaluation")
-                             (:file "learn-propbank-constructions")))))
+                             (:file "learn-propbank-constructions")))
+               (:file "utils")))
