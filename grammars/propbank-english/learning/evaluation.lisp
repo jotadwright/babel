@@ -93,8 +93,9 @@
                                                                                    :silent silent
                                                                                    :selected-rolesets selected-rolesets))))))
          (all-rolesets (or selected-rolesets
-                           (loop for sentence in list-of-propbank-sentences
-                             append (mapcar #'frame-name (propbank-frames sentence)))))
+                           (remove-duplicates (loop for sentence in list-of-propbank-sentences
+                                                    append (mapcar #'frame-name (propbank-frames sentence)))
+                                              :test #'equalp)))
          (evaluation-results-per-roleset (loop for roleset in all-rolesets
                                                collect (loop with number-of-correct-predictions = 0
                                                              with number-of-predictions = 0
