@@ -36,8 +36,9 @@
                        (:cxn-supplier-mode . :hashed-scored-labeled)
                        (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
                        (:equivalent-cxn-key . identity)
-                       (:learning-mode ;:multi-argument-with-lemma :multi-argument-without-lemma
-                        :single-argument-with-lemma))
+                       (:learning-mode :multi-argument-with-lemma :multi-argument-without-lemma
+                       ; :single-argument-with-lemma
+                        ))
   :visualization-configurations ((:show-constructional-dependencies . nil))
   :hierarchy-features (constituents dependents)
   :feature-types ((constituents set)
@@ -84,9 +85,8 @@
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                           :name "learned-grammar-single-argument-with-three-first-strategies-opinion"
+                           :name "learned-grammar-multi-argument-allsentences"
                            :type "fcg")))
-
 
 ;;;;;;;;;;;;;;
 ;; Training ;;
@@ -169,4 +169,76 @@
   (comprehend-and-extract-frames *selected-sentence* :cxn-inventory *restored-grammar* :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")))
 
 (evaluate-propbank-sentences
- (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t)
+ (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t))
+
+;; Testing new sentences with learned grammar 
+;; Guardian FISH article
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-configuration *restored-grammar* :parse-goal-tests '(:no-valid-children))
+(set-configuration *restored-grammar* :de-render-mode :de-render-constituents-dependents)
+
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar*)
+
+;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
+(comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date." :cxn-inventory *restored-grammar*)
+
+;;attribute.01 wordt niet gevonden > 'ARG1:NP - has been attributed - ARG2:PP nooit gezien in training'
+(comprehend-and-extract-frames "The fall in oxygen levels has been attributed to global warming and the authors warn that if it continues unchecked, the amount of oxygen lost could reach up to 7% by 2100." :cxn-inventory *restored-grammar*)
+(add-element (make-html (find-cxn "ATTRIBUTE.01-ARG1:NP+V:ATTRIBUTE+ARG2:PP+2-CXN-6" *restored-grammar* :hash-key 'PROPBANK-ENGLISH::ATTRIBUTE :test #'string=)))
+
+;;adapt-cxn niet geleerd:
+(comprehend-and-extract-frames "Very few marine organisms are able to adapt to low levels of oxygen." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "The paper contains analysis of wide-ranging data from 1960 to 2010, documenting changes in oxygen distribution in the entire ocean for the first time ." :cxn-inventory *restored-grammar*)
+
+;;verkeerde analyse (mss quotes anders zetten?)
+(comprehend-and-extract-frames "Since large fish in particular avoid or do not survive in areas with low oxygen content, these changes can have far-reaching biological consequences, said Dr Sunke Schmidtko, the report's lead author . " :cxn-inventory *restored-grammar*)
+
+;;have? mss have uitschakelen voor toepassingen?
+(comprehend-and-extract-frames "Some areas have seen a greater drop than others ." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "The Pacific - the planet's largest ocean - has suffered the greatest volume of oxygen loss, while the Arctic witnessed the sharpest decline by percentage ." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames " ' While the slight decrease of oxygen in the atmosphere is currently considered non-critical, the oxygen losses in the ocean can have far-reaching consequences because of the uneven distribution, ' added another of the report's authors, Lothar Stramma ." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "It is increasingly clear that the heaviest burden of climate change is falling on the planet's oceans, which absorb more than 30% of the carbon produced on land ." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Rising sea levels are taking their toll on many of the world's poorest places ." :cxn-inventory *restored-grammar*)
+
+;;DEVASTATE niet gevonden!(sparseness) ARG0:NP - have devastated - ARG1:NP
+(comprehend-and-extract-frames "Warming waters have devastated corals - including the Great Barrier Reef - in bleaching events." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Acidic oceans, caused by a drop in PH levels as carbon is absorbed, threaten creatures' ability to build their calcium-based shells and other structures." :cxn-inventory *restored-grammar*)
+
+;;CAUSED niet gevonden! Triggered ook niet!
+(comprehend-and-extract-frames "Warming waters have also caused reproductive problems in species such as cod, and triggered their migration to colder climates." :cxn-inventory *restored-grammar*)
+
+;; goed
+(comprehend-and-extract-frames "Lower oxygen levels in larger parts of the ocean are expected to force animals to seek out ever shrinking patches of habitable water, with significant impacts on the ecosystem and food web." :cxn-inventory *restored-grammar*)
+
+
+(comprehend-and-extract-frames "Callum Roberts, the author of Ocean of Life and a marine conservation biologist at the University of York, is unsurprised by the latest findings." :cxn-inventory *restored-grammar*)
+
+;goed maar veel be's en have's(!!) >> vreemde have cxn geleerd! enkel pronoun, geen v
+(comprehend-and-extract-frames "'What we're seeing is fallout from global warming,' he says." :cxn-inventory *restored-grammar*)
+
+
+(comprehend-and-extract-frames "'It's straightforward physics and chemistry playing out in front of our eyes, entirely in keeping with what we'd expect and yet another nail in coffin of climate change denial.'" :cxn-inventory *restored-grammar*)
+
+
+(comprehend-and-extract-frames "Scientists have long predicted ocean deoxygenation due to climate change, but confirmation on this global scale, and at deep sea level, is concerning them." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Last year, Matthew Long, an oceanographer at the National Center for Atmospheric Research in Colorado, predicted that oxygen loss would become evident 'across large regions of the oceans' between 2030 and 2040." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Reacting to the German findings, Long said it was 'alarming to see this signal begin to emerge clearly in the observational data', while Roberts said, 'We now have a measurable change which is attributable to global warming.'" :cxn-inventory *restored-grammar*)
+
+
+
+(comprehend-and-extract-frames "The report explains that the ocean's oxygen supply is threatened by global warming in two ways." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Warmer water is less able to contain oxygen than cold, so as the oceans warm, oxygen is reduced." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames  "Warmer water is also less dense, so the oxygen-rich surface layer cannot easily sink and circulate. " :cxn-inventory *restored-grammar*)
