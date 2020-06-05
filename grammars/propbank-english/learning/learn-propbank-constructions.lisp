@@ -129,17 +129,29 @@ sentence object and a roleset (e.g. 'believe.01')"
                                        for unit = (find-unit-by-span unit-structure (list role-start role-end))
                                        when unit
                                        collect (cons role unit)))
+                (pp-units-with-role (loop for unit-w-role in units-with-role
+                                          when (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type))
+                                          collect unit-w-role))
+                (preposition-units (when pp-units-with-role
+                                     (loop for pp-unit in pp-units-with-role
+                                           collect (make-preposition-unit pp-unit unit-structure))))
                 (cxn-name-list (loop for (role . unit) in units-with-role
+                                     for i = -1
                                      collect (format nil "~a:~a" (role-type role) ;;create a name based on role-types and lex-class/phrase-type
                                                      (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                                        (format nil "~a" (cadr (find 'lemma (unit-body unit) :key #'feature-name)))
-                                                       (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
+                                                       (if (find 'pp (unit-feature-value (cdr unit) 'phrase-type))
+                                                         (progn (incf i)
+                                                           (format nil "~{~a~}(~a)" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name))
+                                                                 (cadr (find 'lemma (nthcdr 2 (nth i preposition-units)) :key #'feature-name))))
+                                                         (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))))
                 (lemma (loop for (role . unit) in units-with-role
                              when (string= "V" (role-type role))
                              return (feature-value (find 'lemma (unit-body unit) :key #'feature-name))))
                 (footprint-name (format nil "~a-~{~a~^+~}-cxn" roleset cxn-name-list))
                 (contributing-unit (make-propbank-contributing-unit units-with-role frame footprint-name))
-                (cxn-units-with-role (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role-with-lemma unit footprint-name)))
+                (cxn-units-with-role
+                 (loop for unit in units-with-role collect (make-propbank-conditional-unit-with-role-with-lemma unit footprint-name)))
                 (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role unit-structure))
                 (cxn-name (format nil "~a-~{~a~^+~}+~a-cxn" roleset cxn-name-list (length cxn-units-without-role))))
 
@@ -149,7 +161,8 @@ sentence object and a roleset (e.g. 'believe.01')"
                                  (,contributing-unit
                                   <-
                                   ,@cxn-units-with-role
-                                  ,@cxn-units-without-role)
+                                  ,@cxn-units-without-role
+                                  ,@preposition-units)
                                  :disable-automatic-footprints t
                                  :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label multi-argument-with-lemma)
                                  :cxn-inventory ,cxn-inventory)))))))
@@ -190,7 +203,8 @@ sentence object and a roleset (e.g. 'believe.01')"
                                  (,contributing-unit
                                   <-
                                   ,@cxn-units-with-role
-                                  ,@cxn-units-without-role)
+                                  ,@cxn-units-without-role
+                                  )
                                  :disable-automatic-footprints t
                                  :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label multi-argument-without-lemma)
                                  :cxn-inventory ,cxn-inventory)))))))
@@ -210,13 +224,24 @@ sentence object and a roleset (e.g. 'believe.01')"
                                        for unit = (find-unit-by-span unit-structure (list role-start role-end))
                                        when (and unit (not (search "ARGM" (role-type role)))) ;;do not learn non-core roles
                                        collect (cons role unit)))
+                (pp-units-with-role (loop for unit-w-role in units-with-role
+                                          when (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type))
+                                          collect unit-w-role))
+                (preposition-units (when pp-units-with-role
+                                     (loop for pp-unit in pp-units-with-role
+                                           collect (make-preposition-unit pp-unit unit-structure))))
                 (cxn-name-list (loop for (role . unit) in units-with-role
+                                     for i = -1
                                      collect (format nil "~a:~a" (role-type role) ;;create a name based on role-types and lex-class/phrase-type
                                                      (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                                        (if (equalp (role-type role) "V")
                                                          (format nil "~a" (cadr (find 'lemma (unit-body unit) :key #'feature-name)))
                                                          (format nil "~a" (cadr (find 'lex-class (unit-body unit) :key #'feature-name))))
-                                                       (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
+                                                       (if (find 'pp (unit-feature-value (cdr unit) 'phrase-type))
+                                                         (progn (incf i)
+                                                           (format nil "~{~a~}(~a)" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name))
+                                                                 (cadr (find 'lemma (nthcdr 2 (nth i preposition-units)) :key #'feature-name))))
+                                                         (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))))
                 (lemma (loop for (role . unit) in units-with-role
                              when (string= "V" (role-type role))
                              return (feature-value (find 'lemma (unit-body unit) :key #'feature-name))))
@@ -232,7 +257,8 @@ sentence object and a roleset (e.g. 'believe.01')"
                                  (,contributing-unit
                                   <-
                                   ,@cxn-units-with-role
-                                  ,@cxn-units-without-role)
+                                  ,@cxn-units-without-role
+                                  ,@preposition-units)
                                  :disable-automatic-footprints t
                                  :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label multi-argument-without-lemma)
                                  :cxn-inventory ,cxn-inventory)))))))
@@ -340,11 +366,11 @@ sentence object and a roleset (e.g. 'believe.01')"
                                                                                            (list (cons role unit))
                                                                                            (list (cons role unit) v-unit))
                                                                                          cxn-units-with-role unit-structure)
-              for preposition-unit = (make-preposition-unit (cons role unit) unit-structure)
+              for cxn-preposition-unit = (make-preposition-unit (cons role unit) unit-structure)
               for cxn-name = (format nil "~a-~a+~a+~a-cxn" roleset
                                      (format nil "~a:~a(~a)" (role-type role)
                                                (format nil "~{~a~}" (cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))
-                                               (cadr (find 'lemma (nthcdr 2 preposition-unit) :key #'feature-name)))
+                                               (cadr (find 'lemma (nthcdr 2 cxn-preposition-unit) :key #'feature-name)))
                                      (format nil "V:~a"
                                              (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                                (format nil "~a" (cadr (find 'lemma (unit-body v-unit) :key #'feature-name)))
@@ -360,7 +386,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                      <-
                                      ,@cxn-units-with-role
                                      ,@cxn-units-without-role
-                                     ,preposition-unit)
+                                     ,cxn-preposition-unit)
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label multi-argument-with-lemma)
                                     :cxn-inventory ,cxn-inventory))))))))
