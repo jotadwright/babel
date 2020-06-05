@@ -110,9 +110,13 @@
     (:equivalent-cxn-key . identity)
     (:learning-modes
      :multi-argument-with-lemma
+     :argm-with-lemma-with-v-lex-class
+     :argm-pp-with-v-lemma
+     :multi-argument-core-only
      :multi-argument-without-lemma
-     :single-argument-with-lemma
-     :single-argument-without-lemma)
+     ;:single-argument-with-lemma
+     ;:single-argument-without-lemma
+     )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
 
@@ -154,9 +158,9 @@
 
 
 (setf *selected-sentence*
-      (find "Investors here still expect Ford Motor Co. or General Motors Corp. to bid for Jaguar ." *opinion-sentences-dev* :key #'sentence-string :test #'string=))
+      (find "Bramalea said it expects to complete the issue by the end of the month ." *opinion-sentences-dev* :key #'sentence-string :test #'string=))
 
-(learn-cxn-from-propbank-annotation *selected-sentence* "expect.01" *propbank-learned-cxn-inventory* :single-argument-with-lemma)
+(learn-cxn-from-propbank-annotation *selected-sentence* "complete.01" *propbank-learned-cxn-inventory* :argm-pp-with-v-lemma)
 
 (learn-propbank-grammar (list *selected-sentence*)
                         :cxn-inventory '*propbank-learned-cxn-inventory*
@@ -164,9 +168,11 @@
                         :selected-rolesets '("expect.01")
                         :silent t
                         :tokenize? nil)
-
+(activate-monitor trace-fcg)
 (with-activated-monitor trace-fcg
-  (comprehend-and-extract-frames *selected-sentence* :cxn-inventory *restored-grammar* :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")))
+  (comprehend-and-extract-frames *selected-sentence* :cxn-inventory *propbank-learned-cxn-inventory*))
+
+(add-element (make-html *propbank-learned-cxn-inventory*))
 
 (evaluate-propbank-sentences
  (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t))
@@ -182,6 +188,8 @@
 
 ;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
 (comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "He goes to the store" :cxn-inventory *restored-grammar*)
 
 (comprehend-and-extract-frames "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date." :cxn-inventory *restored-grammar*)
 
