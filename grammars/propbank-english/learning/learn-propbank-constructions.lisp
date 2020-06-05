@@ -277,7 +277,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                                                                            (list (cons role unit))
                                                                                            (list (cons role unit) v-unit))
                                                                                          cxn-units-with-role unit-structure)
-              for cxn-name = (format nil "~a-~a+~a+~a-cxn" roleset
+              for cxn-name = (format nil "~a-~a+~a+~a-cxn" "all-frames"
                                      (format nil "~a:~a" (role-type role) 
                                              (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                                (format nil "~a" (cadr (find 'lemma (unit-body unit) :key #'feature-name)))
