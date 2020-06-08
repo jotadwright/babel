@@ -10,4 +10,6 @@
    :encode-json-alist-to-string
    :decode-json-from-string)
   (:import-from :drakma
-   :http-request))
+   :http-request)
+  (:import-from :parse-float
+   :parse-float))

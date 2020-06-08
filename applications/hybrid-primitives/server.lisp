@@ -1,6 +1,8 @@
 
 (in-package :hybrid-primitives)
 
+(export '(load-image))
+
 (defun load-image (endpoint image-name)
   "Load a CLEVR image before starting
    the IRL program evaluation"
@@ -42,8 +44,27 @@
       (cond
        ;; if bindings, return them
        ((assoc :bindings response-data)
-        (rest (assoc :bindings response-data)))
+        (process-bindings
+         (rest (assoc :bindings response-data))))
        ;; if consistent, return it
        ((assoc :consistent response-data)
         (rest (assoc :consistent response-data))))))))
+
+(defun process-bindings (bindings)
+  "Process the new binding such that they are easier
+   to handle in the primitive definition. The variable
+   should always refer to some internal symbol (i.e.
+   a slot spec of the primitive), the score is always
+   a float between 0 and 1 and the value can be anything,
+   so it is left as is. Is is up to the primitive definition
+   to further process the value.
+   The new bindings are returned as a list of lists of dictionaries.
+   This is because multiple variables can be bound in 1 go and
+   the same variable can be bound multiple times."
+  (loop for bind-set in bindings
+        collect (loop for bind-statement in bind-set
+                      collect (list
+                               (internal-symb (upcase (rest (assoc :variable bind-statement))))
+                               (parse-float (rest (assoc :score bind-statement)))
+                               (rest (assoc :value bind-statement))))))
     

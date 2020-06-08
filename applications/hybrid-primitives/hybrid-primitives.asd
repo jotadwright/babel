@@ -11,9 +11,11 @@
                :fcg
                :cl-json
                :drakma
-               :clevr-world)
+               :clevr-world
+               :parse-float)
   :serial t
   :components ((:file "package")
+               (:file "server")
                (:file "get-context")
                (:file "filter")
                (:file "query")

@@ -8,15 +8,26 @@
 
 (defprimitive count! ((target-num number)
                       (source-attn attention))
-              )
-
-(defprimitive count! ((target-num number)
-                      (source-set clevr-object-set))
   ;; first case; given source-set, compute target
-  ((source-set => target-num)
-   (bind (target-num 1.0 (length (objects source-set)))))
-  
+  ((source-attn => target-num)
+   (let ((new-bindings
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . 'count)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:target-num . nil)))))))
+     (loop for bind-set in new-bindings
+           do (bind (loop for (variable score value) in bind-set
+                          collect (list variable score
+                                        (parse-integer value)))))))
+
   ;; second case; given source and target, check consistency
   ((source-set target-num =>)
-   (= target-num (length (objects source-set)))))
+   (let ((consistentp
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitve . 'count)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:target-num . ,target-num)))))))
+     consistentp)))
 
