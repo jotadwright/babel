@@ -7,7 +7,7 @@
 (export '(category attribute shape-category size-category
           color-category material-category spatial-relation-category
           spatial-relation boolean-category bool
-          attribute-category attribute
+          attribute-category attribute attention
           shapes sizes colors materials spatial-relations attributes))
 
 (defclass category (entity) ()
@@ -43,6 +43,11 @@
 (defclass attribute-category (category)
   ((attribute :type symbol :initarg :attribute :reader attribute))
   (:documentation "A category to represent object attributes"))
+
+(defclass attention (entity) ()
+  ;; an attention holds only an ID for now
+  ;; can hold an image also later (for visualization)
+  (:documentation "A symbolic representation of an intermediate attention"))
 
 ;; ################################
 ;; clevr ontology
@@ -134,3 +139,6 @@
   (make-instance 'attribute-category
                  :id (id attribute-cat)
                  :attribute (attribute attribute-cat)))
+
+(defmethod copy-object ((attention attention))
+  (make-instance 'attention :id (id attention)))
