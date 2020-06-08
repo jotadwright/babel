@@ -1,26 +1,6 @@
 (in-package :propbank-english)
 
 
-(defmethod comprehend ((utterance string) &key (syntactic-analysis nil) (cxn-inventory *fcg-constructions*)  (silent nil))
-  (parse utterance (processing-cxn-inventory cxn-inventory) :silent silent :syntactic-analysis syntactic-analysis))
-
-(defmethod parse ((utterance string) (construction-inventory construction-inventory)
-                  &key (silent nil) (syntactic-analysis nil))
-  (let ((initial-cfs (de-render utterance (get-configuration construction-inventory :de-render-mode)
-                                :syntactic-analysis syntactic-analysis)))
-    
-    (set-data (blackboard construction-inventory) :input utterance)
-                                       
-    (unless silent (notify parse-started (listify utterance) initial-cfs))
-    (multiple-value-bind
-        (solution cip)
-        (fcg-apply construction-inventory initial-cfs '<- :notify (not silent))
-      (let ((meaning 
-             (and solution
-                  (extract-meanings
-                   (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
-        (unless silent (notify parse-finished meaning construction-inventory))
-        (values meaning solution cip)))))
 
 (defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
                       &key (syntactic-analysis nil) &allow-other-keys)

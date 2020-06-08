@@ -225,7 +225,7 @@ of strings, each list corresponding to a named entity."
 ;; Constituency and Dependency parsing ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun run-penelope-syntactic-parser (sentence &key (model "en"))
+(defun run-penelope-syntactic-parser (sentence &key (model "en_benepar"))
   "Call the penelope server to get the dependency and constituency structure of a sentence."
   (unless (or (stringp sentence)
               (listp sentence))
@@ -238,7 +238,7 @@ of strings, each list corresponding to a named entity."
 
 ;; (run-penelope-syntactic-parser "April is the fourth month of the year")
 
-(defun get-penelope-syntactic-analysis (utterance &key (model "en"))
+(defun get-penelope-syntactic-analysis (utterance &key (model "en_benepar"))
   "Returns a syntacic tree analysis in the form of constituents and dependents."
    (rest (assoc :tree (first (rest (assoc :trees (run-penelope-syntactic-parser utterance :model model)))))))
 

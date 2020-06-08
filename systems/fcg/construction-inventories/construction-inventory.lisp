@@ -124,6 +124,10 @@ is overwritten."
                      :show-meaning/utterance nil :replace nil)
   (set-configuration construction-inventory
                      :update-boundaries-feature 'subunits)
+  (set-configuration construction-inventory
+                     :equivalent-cxn-key #'name)
+  (set-configuration construction-inventory
+                     :equivalent-cxn-fn #'eql)
   
   ;; Set default visualization configuration
   (set-configuration (visualization-configuration construction-inventory) :coupled-mode nil :replace nil)

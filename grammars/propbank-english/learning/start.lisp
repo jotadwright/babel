@@ -16,68 +16,29 @@
 (load-propbank-annotations :store-data nil :ignore-stored-data nil)
 ;(length (train-split *propbank-annotations*))
 
+;; Activating spacy-api locally
+(setf nlp-tools::*penelope-host* "http://localhost:5000")
 
-(defun all-rolesets-for-framenet-frame (framenet-frame-name)
-  (loop for predicate in *pb-data*
-        for rolesets = (rolesets predicate)
-        for rolesets-for-framenet-frame = (loop for roleset in rolesets
-                                                    when (find framenet-frame-name (aliases roleset) :key #'framenet :test #'member)
-                                                    collect (id roleset))
-        when rolesets-for-framenet-frame
-        collect it))
-
-;; (all-rolesets-for-framenet-frame 'opinion)
-
-
-(defun all-sentences-annotated-with-roleset (roleset &key (split #'train-split)) ;;or #'dev-split
-  (loop for sentence in (funcall split *propbank-annotations*)
-        when (find roleset (propbank-frames sentence) :key #'frame-name :test #'equalp)
-        collect sentence))
-
-;; Retrieve all sentences in training set for a given roleset:
-;; (all-sentences-annotated-with-roleset "believe.01")
-
-;; Retrieve all sentences in de development set for a given roleset (for evaluation):
-;; (length (all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)) ;;call #'length for checking number
-
-
-(defun print-propbank-sentences-with-annotation (roleset &key (split #'train-split))
-  "Print the annotation of a given roleset for every sentence of the
-split to the output buffer."
-  (loop for sentence in (funcall split *propbank-annotations*)
-        for sentence-string = (sentence-string sentence)
-        for selected-frame = (loop for frame in (propbank-frames sentence)
-                                   when (string= (frame-name frame) roleset)
-                                   return frame)
-        when selected-frame ;;only print if selected roleset is present in sentence
-        do (let ((roles-with-indices (loop for role in (frame-roles selected-frame)
-                                       collect (cons (role-type role) (role-string role)))))
-             (format t "~a ~%" sentence-string)
-             (loop for (role-type . role-string) in roles-with-indices
-                   do (format t "~a: ~a ~%" role-type role-string)
-                   finally (format t "~%")))))
-
-
-;; (print-propbank-sentences-with-annotation "believe.01")
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Test learning based on Propbank sentences.  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;Select a sentence object
-(defparameter *believe-sentence* (third (all-sentences-annotated-with-roleset "believe.01")))
+;; Activating trace-fcg
+(activate-monitor trace-fcg)
 
 ;;Create an empty cxn inventory
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
-                       (:node-tests  :restrict-nr-of-nodes :restrict-search-depth)
+                       (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
+                       (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
+                       (:max-nr-of-nodes . 100)
+                       (:parse-order multi-argument-with-lemma multi-argument-without-lemma single-argument-with-lemma single-argument-without-lemma)
                        (:node-expansion-mode . :multiple-cxns)
                        (:priority-mode . :nr-of-applied-cxns)
                        (:queue-mode . :greedy-best-first)
                        (:hash-mode . :hash-lemma)
-                       (:cxn-supplier-mode . :hashed-simple-queue))
+                       (:cxn-supplier-mode . :hashed-scored-labeled)
+                       (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+                       (:equivalent-cxn-key . identity)
+                       (:learning-mode :multi-argument-with-lemma :multi-argument-without-lemma
+                       ; :single-argument-with-lemma
+                        ))
   :visualization-configurations ((:show-constructional-dependencies . nil))
   :hierarchy-features (constituents dependents)
   :feature-types ((constituents set)
@@ -90,49 +51,93 @@ split to the output buffer."
   :cxn-inventory *propbank-learned-cxn-inventory*
   :hashed t)
 
-;; Activate FCG monitor and start Penelope (if using Spacy API locally)
-;(activate-monitor trace-fcg)
-;(setf nlp-tools::*penelope-host* "http://localhost:5000")
 
-;; Learn a construction based on the selected sentence
-(learn-cxn-from-propbank-annotation *believe-sentence* "believe.01" *propbank-learned-cxn-inventory*)
+;;;;;;;;;;;
+;; Data  ;;
+;;;;;;;;;;;
 
-;;Try out the learned construction in comprehension
-(comprehend-and-extract-frames (sentence-string *believe-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
-
-
-
-
-
-;;Try out the same for multiple sentences of a given roleset
-;;----------------------------------------------------------
 (defparameter *opinion-sentences* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
 
 (defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
-(length *opinion-sentences-dev*)
+(defparameter *believe-sentences* (shuffle (loop for roleset in '("BELIEVE.01")
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
+
+(defparameter *believe-sentences-dev* (shuffle (loop for roleset in '("BELIEVE.01")
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
+
+(defparameter *believe-sentence* (third (all-sentences-annotated-with-roleset "believe.01")))
+
+(defparameter *difficult-sentence* (nth 6063 (train-split *propbank-annotations*))) ;;13 frames!
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Storing and restoring grammars ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(cl-store:store *propbank-learned-cxn-inventory*
+                (babel-pathname :directory '("grammars" "propbank-english" "learning")
+                                :name "learned-grammar-single-argument-without-lemma-opinion"
+                                :type "fcg"))
+
+(defparameter *restored-grammar*
+  (restore (babel-pathname :directory '("grammars" "propbank-english" "learning")
+                           :name "learned-grammar-multi-argument-allsentences"
+                           :type "fcg")))
+
+;;;;;;;;;;;;;;
+;; Training ;;
+;;;;;;;;;;;;;;
+
+(defparameter *training-configuration*
+  '((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation)
+    (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
+    (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
+    (:max-nr-of-nodes . 100)
+    (:node-expansion-mode . :multiple-cxns)
+    (:priority-mode . :nr-of-applied-cxns)
+    (:queue-mode . :greedy-best-first)
+    (:hash-mode . :hash-lemma)
+    (:parse-order
+     multi-argument-with-lemma
+     multi-argument-without-lemma
+     single-argument-with-lemma
+     single-argument-without-lemma)
+    (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+    (:equivalent-cxn-key . identity)
+    (:learning-modes
+     :multi-argument-with-lemma
+     :argm-with-lemma-with-v-lex-class
+     :argm-pp-with-v-lemma
+     :multi-argument-core-only
+     :multi-argument-without-lemma
+     ;:single-argument-with-lemma
+     ;:single-argument-without-lemma
+     )
+    (:cxn-supplier-mode . :hashed-scored-labeled)))
+
 
 (learn-propbank-grammar *opinion-sentences*
                         :cxn-inventory '*propbank-learned-cxn-inventory*
+                        :fcg-configuration *training-configuration*
                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                         :silent t
                         :tokenize? nil)
 
-(evaluate-propbank-sentences
- (subseq *opinion-sentences* 0 20)
- *propbank-learned-cxn-inventory*
- ;:selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
- )
+(learn-propbank-grammar-no-comprehension *opinion-sentences*
+                                         :cxn-inventory '*propbank-learned-cxn-inventory*
+                                         :fcg-configuration *training-configuration*
+                                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                                         :silent t
+                                         :tokenize? nil)
 
 
-
-(setf *selected-sentence* (find "Do n't think of it as a literary competition ."
-                                *opinion-sentences* :key #'sentence-string :test #'string=))
-
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
+;;;;;;;;;;;;;;;;
+;; Evaluation ;;
+;;;;;;;;;;;;;;;;
 
 (evaluate-propbank-sentences
  *opinion-sentences-dev*
@@ -140,73 +145,108 @@ split to the output buffer."
  :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t)
 
-;; FREQUENTLY OCCURRING PROBLEMS 
-;;------------------------------
-
-(activate-monitor trace-fcg)
-
-
-;; lang
-(defparameter *selected-sentence* (find "In a way presidents do n't normally pay as much attention to Northern Ireland as Clinton has , so he has actually paid the Irish question probably too much attention for a President , and what that means is that the people involved in the peace process here believe they are more important than they actually are" *opinion-sentences* :key #'sentence-string :test #'equalp))
-In a way presidents do n't normally pay as much attention to Northern Ireland as Clinton has , so he has actually paid the Irish question probably too much attention for a President , and what that means is that the people involved in the peace process here believe they are more important than they actually are
-
-
-;; OPGELOST
-;;Probleem met quotes 
-(defparameter *selected-sentence* (find "`` You people here think this is Russian music , '' she said with disdain , and called over to the waitress : `` Could you turn it off ? ''" *opinion-sentences* :key #'sentence-string :test #'equalp))
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
-(spacy-benepar-compatible-annotation *selected-sentence* "think.01" :tokenize? nil)
-(spacy-benepar-compatible-annotation *selected-sentence* "think.01" :tokenize? t)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
-(evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("think.01"))
-
-;; OPGELOST
-;;Hier zie ik niet waarom de F1 score niet 100% is
-;;((:NR-OF-CORRECT-PREDICTIONS . 24) (:NR-OF-PREDICTIONS . 25) (:NR-OF-GOLD-STANDARD-PREDICTIONS . 26))
-(setf *selected-sentence* (find "First , I think the arrival of the wolves as %pw , description and appraisal , is , I think , a very good appraisal ." *opinion-sentences* :key #'sentence-string :test #'string=))
-(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? t)
-(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? nil)
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
-(evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("think.01"))
-
-;; OPGELOST
-;;Kan dit iets te maken hebben met het feit dat er 3 ARGM-DIS zijn??
-;;((:NR-OF-CORRECT-PREDICTIONS . 15) (:NR-OF-PREDICTIONS . 21) (:NR-OF-GOLD-STANDARD-PREDICTIONS . 21))
-(setf *selected-sentence* (find "Ay Today , Wendao , so when you mentioned court , I thought of this kind of controversy over the Qiu Xinghua court case ." *opinion-sentences* :key #'sentence-string :test #'string=))
-(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? t)
-(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? nil)
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
-(evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("think.01"))
-
-
-;;Onoplosbaar: Argm-prp is geen constituent (houden we NIL of beter niet toevoegen aan frame?)
-(setf *selected-sentence* (find "He wants to enhance Russia 's standing in the world and to do that he believes that Moscow must assume a greater role in international affairs ." *opinion-sentences* :key #'sentence-string :test #'string=))
-(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? t)
-(spacy-benepar-compatible-annotation *selected-sentence* :tokenize? nil)
-(learn-cxn-from-propbank-annotation *selected-sentence* "believe.01" *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames (sentence-string *selected-sentence*) :cxn-inventory *propbank-learned-cxn-inventory*)
-(evaluate-propbank-sentences `(,*selected-sentence*) *propbank-learned-cxn-inventory* :selected-rolesets '("believe.01"))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Evaluate a grammar on the propbank sentences .  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;Evaluating the learned grammar:
-(evaluate-propbank-sentences (all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)
+(evaluate-propbank-sentences-per-roleset
+ *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
-                             :selected-rolesets  '("believe.01"))
+ :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ )
 
 
-;;Evaluating the written grammar:
-(evaluate-propbank-sentences ;(all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)
- *believe-sentences*
- 
-                             *fcg-constructions*
-                            ; :selected-rolesets nil
-                             :selected-rolesets '("stop.01")
-                             )
-(length (all-sentences-annotated-with-roleset "believe.01" :split #'dev-split))
+;;;;;;;;;;;;;
+;; Testing ;;
+;;;;;;;;;;;;;
+
+
+(setf *selected-sentence*
+      (find "Bramalea said it expects to complete the issue by the end of the month ." *opinion-sentences-dev* :key #'sentence-string :test #'string=))
+
+(learn-cxn-from-propbank-annotation *selected-sentence* "complete.01" *propbank-learned-cxn-inventory* :argm-pp-with-v-lemma)
+
+(learn-propbank-grammar (list *selected-sentence*)
+                        :cxn-inventory '*propbank-learned-cxn-inventory*
+                        :fcg-configuration *training-configuration*
+                        :selected-rolesets '("expect.01")
+                        :silent t
+                        :tokenize? nil)
+(activate-monitor trace-fcg)
+(with-activated-monitor trace-fcg
+  (comprehend-and-extract-frames *selected-sentence* :cxn-inventory *propbank-learned-cxn-inventory*))
+
+(add-element (make-html *propbank-learned-cxn-inventory*))
+
+(evaluate-propbank-sentences
+ (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t))
+
+;; Testing new sentences with learned grammar 
+;; Guardian FISH article
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-configuration *restored-grammar* :parse-goal-tests '(:no-valid-children))
+(set-configuration *restored-grammar* :de-render-mode :de-render-constituents-dependents)
+
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar*)
+
+;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
+(comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "He goes to the store" :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date." :cxn-inventory *restored-grammar*)
+
+;;attribute.01 wordt niet gevonden > 'ARG1:NP - has been attributed - ARG2:PP nooit gezien in training'
+(comprehend-and-extract-frames "The fall in oxygen levels has been attributed to global warming and the authors warn that if it continues unchecked, the amount of oxygen lost could reach up to 7% by 2100." :cxn-inventory *restored-grammar*)
+(add-element (make-html (find-cxn "ATTRIBUTE.01-ARG1:NP+V:ATTRIBUTE+ARG2:PP+2-CXN-6" *restored-grammar* :hash-key 'PROPBANK-ENGLISH::ATTRIBUTE :test #'string=)))
+
+;;adapt-cxn niet geleerd:
+(comprehend-and-extract-frames "Very few marine organisms are able to adapt to low levels of oxygen." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "The paper contains analysis of wide-ranging data from 1960 to 2010, documenting changes in oxygen distribution in the entire ocean for the first time ." :cxn-inventory *restored-grammar*)
+
+;;verkeerde analyse (mss quotes anders zetten?)
+(comprehend-and-extract-frames "Since large fish in particular avoid or do not survive in areas with low oxygen content, these changes can have far-reaching biological consequences, said Dr Sunke Schmidtko, the report's lead author . " :cxn-inventory *restored-grammar*)
+
+;;have? mss have uitschakelen voor toepassingen?
+(comprehend-and-extract-frames "Some areas have seen a greater drop than others ." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "The Pacific - the planet's largest ocean - has suffered the greatest volume of oxygen loss, while the Arctic witnessed the sharpest decline by percentage ." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames " ' While the slight decrease of oxygen in the atmosphere is currently considered non-critical, the oxygen losses in the ocean can have far-reaching consequences because of the uneven distribution, ' added another of the report's authors, Lothar Stramma ." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "It is increasingly clear that the heaviest burden of climate change is falling on the planet's oceans, which absorb more than 30% of the carbon produced on land ." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Rising sea levels are taking their toll on many of the world's poorest places ." :cxn-inventory *restored-grammar*)
+
+;;DEVASTATE niet gevonden!(sparseness) ARG0:NP - have devastated - ARG1:NP
+(comprehend-and-extract-frames "Warming waters have devastated corals - including the Great Barrier Reef - in bleaching events." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Acidic oceans, caused by a drop in PH levels as carbon is absorbed, threaten creatures' ability to build their calcium-based shells and other structures." :cxn-inventory *restored-grammar*)
+
+;;CAUSED niet gevonden! Triggered ook niet!
+(comprehend-and-extract-frames "Warming waters have also caused reproductive problems in species such as cod, and triggered their migration to colder climates." :cxn-inventory *restored-grammar*)
+
+;; goed
+(comprehend-and-extract-frames "Lower oxygen levels in larger parts of the ocean are expected to force animals to seek out ever shrinking patches of habitable water, with significant impacts on the ecosystem and food web." :cxn-inventory *restored-grammar*)
+
+
+(comprehend-and-extract-frames "Callum Roberts, the author of Ocean of Life and a marine conservation biologist at the University of York, is unsurprised by the latest findings." :cxn-inventory *restored-grammar*)
+
+;goed maar veel be's en have's(!!) >> vreemde have cxn geleerd! enkel pronoun, geen v
+(comprehend-and-extract-frames "'What we're seeing is fallout from global warming,' he says." :cxn-inventory *restored-grammar*)
+
+
+(comprehend-and-extract-frames "'It's straightforward physics and chemistry playing out in front of our eyes, entirely in keeping with what we'd expect and yet another nail in coffin of climate change denial.'" :cxn-inventory *restored-grammar*)
+
+
+(comprehend-and-extract-frames "Scientists have long predicted ocean deoxygenation due to climate change, but confirmation on this global scale, and at deep sea level, is concerning them." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Last year, Matthew Long, an oceanographer at the National Center for Atmospheric Research in Colorado, predicted that oxygen loss would become evident 'across large regions of the oceans' between 2030 and 2040." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Reacting to the German findings, Long said it was 'alarming to see this signal begin to emerge clearly in the observational data', while Roberts said, 'We now have a measurable change which is attributable to global warming.'" :cxn-inventory *restored-grammar*)
+
+
+
+(comprehend-and-extract-frames "The report explains that the ocean's oxygen supply is threatened by global warming in two ways." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Warmer water is less able to contain oxygen than cold, so as the oceans warm, oxygen is reduced." :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames  "Warmer water is also less dense, so the oxygen-rich surface layer cannot easily sink and circulate. " :cxn-inventory *restored-grammar*)

@@ -346,7 +346,7 @@ value has become NIL."
         (push to-delete (trash construction-set)))
       (loop
        with hashes = (hash to-delete (get-configuration construction-set :hash-mode))
-       for hash in (if (null hashes) (list nil) hashes)
+       for hash in (listify hashes)
        do
        (setf (gethash hash (constructions-hash-table construction-set))
                 (remove to-delete (gethash hash (constructions-hash-table construction-set))))
@@ -354,7 +354,6 @@ value has become NIL."
        (unless (gethash hash (constructions-hash-table construction-set))
          (remhash hash (constructions-hash-table construction-set))))
       to-delete)))
-
 
 (defmethod copy-object ((cxn fcg-construction))
   "Copies an fcg-construction object"
@@ -612,7 +611,9 @@ construction on the fly."
             (pathname #+:lispworks (lispworks:current-pathname)
                       #-:lispworks nil))
        (set-data fcg-cxn :cxn-pathname pathname)
-       (add-cxn fcg-cxn ,cxn-inventory))))
+       (add-cxn fcg-cxn ,cxn-inventory
+                :equivalent-test (or (get-configuration ,cxn-inventory :equivalent-cxn-fn) #'eql)
+                :equivalent-key (or (get-configuration ,cxn-inventory :equivalent-cxn-key) #'name)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing an FCG Light Feature Structure    ;;
