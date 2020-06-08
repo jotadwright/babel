@@ -195,7 +195,12 @@
     :type string 
     :accessor propbank-frames
     :initform nil 
-    :documentation "The propbank frames annotated in the sentence."))
+    :documentation "The propbank frames annotated in the sentence.")
+  (syntactic-analysis 
+    :type list 
+    :accessor syntactic-analysis
+    :initform nil 
+    :documentation "The Spacy-Benepar syntactic analysis of the sentence."))
    (:documentation "Representation of a conll sentence."))
 
 (defmethod print-object ((s conll-sentence) (stream t))
@@ -210,6 +215,8 @@
   (setf (sentence-id sentence) (sentence-id (first (tokens sentence))))
   ;; sentence string
   (setf (sentence-string sentence) (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
+  ;; syntactic anlysis
+  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis (mapcar #'token-string (tokens sentence))))
   ;; propbank frames
   (setf (propbank-frames sentence) (loop for role-number from 0 upto (- (length (propbank-roles (first (tokens sentence)))) 1)
         collect (loop with frame-name = nil
