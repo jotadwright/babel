@@ -6,63 +6,68 @@
 ;; RELATE primtive ;;
 ;; ------------------
 
-(defgeneric apply-spatial-relation (object spatial-relation-category context)
-  (:documentation "Apply the spatial relation to the object"))
-
-(defmethod apply-spatial-relation ((object clevr-object)
-                                   (spatial-relation-category spatial-relation-category)
-                                   (context clevr-object-set))
-  (let* ((related-ids (rest
-                       (assoc (spatial-relation spatial-relation-category)
-                              (relationships object))))
-         (related-objects (loop for id in related-ids
-                                for found = (find-entity-by-id context id)
-                                when found
-                                collect found)))
-    (when related-objects
-      (make-instance 'clevr-object-set :objects related-objects))))
-
 (defprimitive relate ((target-attn attention)
                       (source-attn attention)
                       (spatial-relation spatial-relation-category))
-              )
-
-(defprimitive relate ((target-set clevr-object-set)
-                      (source-object clevr-object)
-                      (spatial-relation spatial-relation-category))
   ;; first case; given source-object and spatial relation, compute the target set
-  ((source-object spatial-relation => target-set)
-   (let ((related-set (apply-spatial-relation
-                       source-object
-                       spatial-relation
-                       (get-data ontology 'clevr-context))))
-     (if related-set
-       (bind (target-set 1.0 related-set))
-       (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
-
+  ((source-attn spatial-relation => target-attn)
+   (let ((new-bindings
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . relate)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:spatial-relation . ,(spatial-relation spatial-relation))
+                      (:target-attn . nil)))))))
+     (loop for bind-set in new-bindings
+           do `(bind ,@(loop for (variable score value) in bind-set
+                             collect (list variable score
+                                           (make-instance 'attention
+                                                          :id (internal-symb (upcase value)))))))))
   ;; second case; given source-object and target set, compute the spatial relation
-  ((source-object target-set => spatial-relation)
-   (let* ((context (get-data ontology 'clevr-context))
-          (computed-relation
-           (find-if #'(lambda (relation)
-                        (equal-entity
-                         target-set
-                         (apply-spatial-relation source-object relation context)))
-                    (get-data ontology 'spatial-relations))))
-     (when computed-relation
-       (bind (spatial-relation 1.0 computed-relation)))))
+  ((source-attn target-attn => spatial-relation)
+   (let ((new-bindings
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . relate)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:spatial-relation . nil)
+                      (:target-attn . ,(id target-attn))))))))
+     (loop for bind-set in new-bindings
+           do `(bind ,@(loop for (variable score value) in bind-set
+                             collect (list variable score
+                                           (find (internal-symb (upcase value))
+                                                 (get-data ontology 'spatial-relation)
+                                                 :key #'spatial-relation)))))))
 
   ;; third case; given source-object, compute pairs of target-set and spatial-relation
-  ((source-object => target-set spatial-relation)
-   (let ((context (get-data ontology 'clevr-context)))
-     (loop for relation in (get-data ontology 'spatial-relations)
-           for set = (apply-spatial-relation source-object relation context)
-           when set
-           do (bind (target-set 1.0 set)
-                    (spatial-relation 1.0 relation)))))
+  ((source-attn => target-attn spatial-relation)
+   (let ((new-bindings
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . relate)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:spatial-relation . nil)
+                      (:target-attn . nil)))))))
+     (loop for bind-set in new-bindings
+           do `(bind ,@(loop for (variable score value) in bind-set
+                             collect (list variable score
+                                           (case variable
+                                             (spatial-relation
+                                              (find (internal-symb (upcase value))
+                                                    (get-data ontology 'spatial-relation)
+                                                    :key #'spatial-relation))
+                                             (target-attn
+                                              (make-instance 'attention
+                                                             :id (internal-symb (upcase value)))))))))))
 
   ;; fourth case; given source-object, target-set and spatial-relation
   ;; check for consistency
-  ((source-object target-set spatial-relation =>)
-   (let ((context (get-data ontology 'clevr-context)))
-     (equal-entity target-set (apply-spatial-relation source-object spatial-relation context)))))
+  ((source-attn target-attn spatial-relation =>)
+   (let ((consistentp
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . relate)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:spatial-relation . ,(spatial-relation spatial-relation))
+                      (:target-attn . ,(id target-attn))))))))
+     consistentp)))

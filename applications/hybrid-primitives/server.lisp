@@ -3,6 +3,7 @@
 
 (export '(load-image))
 
+
 (defun load-image (endpoint image-name)
   "Load a CLEVR image before starting
    the IRL program evaluation"
@@ -17,6 +18,7 @@
          (response-code (second response)))
     (unless (= response-code 200)
       (error "Something went wrong while loading ~a" image-name))))
+
 
 (defun evaluate-neural-primitive (endpoint data)
   "Evaluate a neural primitive. Check if the response
@@ -49,6 +51,7 @@
        ;; if consistent, return it
        ((assoc :consistent response-data)
         (rest (assoc :consistent response-data))))))))
+
 
 (defun process-bindings (bindings)
   "Process the new binding such that they are easier

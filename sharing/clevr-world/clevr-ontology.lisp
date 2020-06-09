@@ -8,7 +8,8 @@
           color-category material-category spatial-relation-category
           spatial-relation boolean-category bool
           attribute-category attribute attention
-          shapes sizes colors materials spatial-relations attributes))
+          shapes sizes colors materials spatial-relations attributes
+          category-value))
 
 (defclass category (entity) ()
   (:documentation "Abstract base class for all categories"))
@@ -48,6 +49,28 @@
   ;; an attention holds only an ID for now
   ;; can hold an image also later (for visualization)
   (:documentation "A symbolic representation of an intermediate attention"))
+
+;; ################################
+;; category-value
+;; ################################
+
+(defgeneric category-value (category)
+  (:documentation "Obtain the value of the category"))
+
+(defmethod category-value ((shape-category shape-category))
+  (shape shape-category))
+(defmethod category-value ((size-category size-category))
+  (size size-category))
+(defmethod category-value ((color-category color-category))
+  (color color-category))
+(defmethod category-value ((material-category material-category))
+  (material material-category))
+(defmethod category-value ((spatial-relation-category spatial-relation-category))
+  (spatial-relation spatial-relation-category))
+(defmethod category-value ((boolean-category boolean-category))
+  (bool boolean-category))
+(defmethod category-value ((attribute-category attribute-category))
+  (attribute attribute-category))
 
 ;; ################################
 ;; clevr ontology

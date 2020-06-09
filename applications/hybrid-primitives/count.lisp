@@ -13,20 +13,20 @@
    (let ((new-bindings
           (evaluate-neural-primitive
            (get-data ontology 'endpoint)
-           `((:primitive . 'count)
+           `((:primitive . count)
              (:slots ((:source-attn . ,(id source-attn))
                       (:target-num . nil)))))))
      (loop for bind-set in new-bindings
-           do (bind (loop for (variable score value) in bind-set
-                          collect (list variable score
-                                        (parse-integer value)))))))
+           do `(bind ,@(loop for (variable score value) in bind-set
+                             collect (list variable score
+                                           (parse-integer value)))))))
 
   ;; second case; given source and target, check consistency
-  ((source-set target-num =>)
+  ((source-attn target-num =>)
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'endpoint)
-           `((:primitve . 'count)
+           `((:primitve . count)
              (:slots ((:source-attn . ,(id source-attn))
                       (:target-num . ,target-num)))))))
      consistentp)))

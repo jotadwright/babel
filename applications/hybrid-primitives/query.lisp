@@ -6,55 +6,72 @@
 ;; QUERY primtive ;;
 ;; -----------------
 
-(defgeneric query-object-attribute (object attribute ontology)
-  (:documentation "Extract the attribute from the object and
-   get the corresponding category from the ontology"))
-
-(defmethod query-object-attribute ((object clevr-object)
-                                   (attribute-category attribute-category)
-                                   ontology)
-  "Given an object and an attribute; get the attribute
-   from the object and create a category from it."
-  (case (attribute attribute-category)
-    (shape (find-entity-by-id ontology (shape object)))
-    (size (find-entity-by-id ontology (size object)))
-    (color (find-entity-by-id ontology (color object)))
-    (material (find-entity-by-id ontology (material object)))))
-
 (defprimitive query ((target-category attribute)
                      (source-attn attention)
                      (attribute attribute-category))
-              )
-
-(defprimitive query ((target-category attribute)
-                     (source-object clevr-object)
-                     (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
-  ((source-object attribute => target-category)
-   (bind (target-category 1.0 (query-object-attribute source-object attribute ontology))))
+  ((source-attn attribute => target-category)
+   (let ((new-bindings
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . query)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:attribute . ,(attribute attribute))
+                      (:target-category . nil)))))))
+     (loop for bind-set in new-bindings
+           do `(bind ,@(loop for (variable score value) in bind-set
+                             collect (list variable score
+                                           (find-entity-by-id
+                                            ontology
+                                            (internal-symb (upcase value)))))))))
 
   ;; second case; given source-object and target-category, compute the attribute
-  ((source-object target-category => attribute)
-   (let ((computed-attribute
-          (find-if #'(lambda (attr)
-                       (equal-entity
-                        target-category
-                        (query-object-attribute source-object attr ontology)))
-                   (get-data ontology 'attributes))))
-     (when computed-attribute
-       (bind (attribute 1.0 computed-attribute)))))
+  ((source-attn target-category => attribute)
+   (let ((new-bindings
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . query)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:target-category . ,(category-value target-category))
+                      (:attribute . nil)))))))
+     (loop for bind-set in new-bindings
+           do `(bind ,@(loop for (variable score value) in bind-set
+                             collect (list variable score
+                                           (find (internal-symb (upcase value))
+                                                 (get-data ontology 'attributes)
+                                                 :key #'id)))))))
 
   ;; third case; given source-object, compute pairs of attribute and target-category
-  ((source-object => target-category attribute)
-   (loop for attr in (get-data ontology 'attributes)
-         for target-cat = (query-object-attribute source-object attr ontology)
-         when target-cat
-         do (bind (attribute 1.0 attr)
-                  (target-category 1.0 target-cat))))
-
+  ((source-attn => attribute target-category)
+   (let ((new-bindings
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . query)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:target-category . nil)
+                      (:attribute . nil)))))))
+     (loop for bind-set in new-bindings
+           do `(bind ,@(loop for (variable score value) in bind-set
+                             collect (list variable score
+                                           (case variable
+                                             (target-category
+                                              (find-entity-by-id
+                                               ontology
+                                               (internal-symb (upcase value))))
+                                             (attribute 
+                                              (find (internal-symb (upcase value))
+                                                    (get-data ontology 'attributes)
+                                                    :key #'attribute)))))))))
+  
   ;; fourth case; if given source-object, attribute and target-category, check
   ;; for consistency
-  ((source-object attribute target-category =>)
-   (equal-entity target-category (query-object-attribute source-object attribute ontology))))
-
+  ((source-attn attribute target-category =>)
+   (let ((consistentp
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . query)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:target-category . ,(category-value target-category))
+                      (:attribute . ,(attribute attribute))))))))
+     consistentp)))
 

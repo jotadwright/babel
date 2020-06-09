@@ -8,18 +8,28 @@
 
 (defprimitive unique ((target-attn attention)
                       (source-attn attention))
-              )
-
-(defprimitive unique ((target-object clevr-object)
-                      (source-set clevr-object-set))
   ;; first case; given source set, compute target object
-  ((source-set => target-object)
-   (when (length= (objects source-set) 1)
-     (bind (target-object 1.0 (first (objects source-set))))))
+  ((source-attn => target-attn)
+   (let ((new-bindings
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . unique)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:target-attn . nil)))))))
+     (loop for bind-set in new-bindings
+           do `(bind ,@(loop for (variable score value) in bind-set
+                             collect (list variable score
+                                           (make-instance 'attention
+                                                          :id (internal-symb (upcase value)))))))))
 
   ;; second case; given source set and target object
   ;; check for consistency
-  ((source-set target-object =>)
-   (and (length= (objects source-set) 1)
-        (equal-entity target-object (first (objects source-set))))))
+  ((source-attn target-attn =>)
+   (let ((consistentp
+          (evaluate-neural-primitive
+           (get-data ontology 'endpoint)
+           `((:primitive . unique)
+             (:slots ((:source-attn . ,(id source-attn))
+                      (:target-attn . ,(id target-attn))))))))
+     consistentp)))
 
