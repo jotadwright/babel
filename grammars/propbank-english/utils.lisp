@@ -1,54 +1,16 @@
-
-(in-package :fcg)
-
-(defmethod comprehend ((utterance propbank-english::conll-sentence) &key (cxn-inventory *fcg-constructions*) (silent nil) (syntactic-analysis nil)
-                       (selected-rolesets nil))
-  (let ((initial-cfs (de-render (propbank-english::sentence-string utterance) (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory
-                                :syntactic-analysis syntactic-analysis))
-        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
-    ;; Add sentence annotation to blackboard
-    (set-data initial-cfs :annotation (propbank-english::propbank-frames utterance))
-    (set-data initial-cfs :selected-rolesets selected-rolesets)
-    ;; Notification
-    (unless silent (notify parse-started (listify utterance) initial-cfs))
-    ;; Construction application
-    (multiple-value-bind (solution cip)
-        (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent))
-      (let ((meaning (and solution
-                          (extract-meanings
-                           (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
-        ;; Notification
-        (unless silent (notify parse-finished meaning processing-cxn-inventory))
-        ;; Return value
-        (values meaning solution cip)))))
-
-(defmethod comprehend ((utterance string) &key (syntactic-analysis nil) (cxn-inventory *fcg-constructions*)  (silent nil))
-  (parse utterance (processing-cxn-inventory cxn-inventory) :silent silent :syntactic-analysis syntactic-analysis))
-
-(defmethod parse ((utterance string) (construction-inventory construction-inventory)
-                  &key (silent nil) (syntactic-analysis nil))
-  (let ((initial-cfs (de-render utterance (get-configuration construction-inventory :de-render-mode)
-                                :syntactic-analysis syntactic-analysis)))
-    
-    (set-data (blackboard construction-inventory) :input utterance)
-                                       
-    (unless silent (notify parse-started (listify utterance) initial-cfs))
-    (multiple-value-bind
-        (solution cip)
-        (fcg-apply construction-inventory initial-cfs '<- :notify (not silent))
-      (let ((meaning 
-             (and solution
-                  (extract-meanings
-                   (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
-        (unless silent (notify parse-finished meaning construction-inventory))
-        (values meaning solution cip)))))
-
-
-
 (in-package :propbank-english)
 
-(defun comprehend-and-extract-frames (utterance &key (cxn-inventory *fcg-constructions*) (silent nil) (syntactic-analysis nil)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                             ;;
+;; Functions and Methods supporting FCG processing or PropBank English grammar ;;
+;;                                                                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun comprehend-and-extract-frames (utterance &key (cxn-inventory *fcg-constructions*)
+                                                (silent nil)
+                                                (syntactic-analysis nil)
                                                 (selected-rolesets nil))
+  "Comprehends an utterance and visualises the extracted frames."
   (multiple-value-bind (solution cipn)
       (comprehend utterance :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)
     (declare (ignore solution))
@@ -57,7 +19,38 @@
       (add-element (make-html (extract-frames (car-resulting-cfs (cipn-car cipn))) :expand-initially t)))))
 
 
+;; Comprehend Methods ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmethod comprehend ((utterance conll-sentence) &key (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) &allow-other-keys)
+  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory)))
+    (set-data initial-cfs :annotation (propbank-frames utterance))
+    (unless silent (notify parse-started (listify (sentence-string utterance)) initial-cfs))
+    (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets silent)))
+
+
+(defmethod comprehend ((utterance string) &key (syntactic-analysis nil) (cxn-inventory *fcg-constructions*)  (silent nil) (selected-rolesets nil))
+  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis)))
+    (unless silent (notify parse-started (listify utterance) initial-cfs))
+    (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets silent)))
+
+
+(defun comprehend-with-rolesets (initial-cfs cxn-inventory selected-rolesets silent)
+  (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+    (set-data initial-cfs :selected-rolesets selected-rolesets)
+    ;; Construction application
+    (multiple-value-bind (solution cip)
+        (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent))
+      (let ((meaning (when solution
+                          (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
+        ;; Notification
+        (unless silent (notify parse-finished meaning processing-cxn-inventory))
+        ;; Return value
+        (values meaning solution cip)))))
+
+
+;; Hash Methods ;;
+;;;;;;;;;;;;;;;;;;
 
 (defmethod hash ((construction construction)
                  (mode (eql :hash-lemma))
@@ -76,6 +69,9 @@
         when lemma
         collect it))
 
+
+;; Node Tests   ;;
+;;;;;;;;;;;;;;;;;;
 
 (defmethod cip-node-test ((node cip-node) (mode (eql :check-double-role-assignment)))
   "Node test that checks if there is a frame in the resulting meaning
@@ -115,6 +111,10 @@ frame-element filler occurs in more than one slot). "
           ((subconstituent-p-aux parent other-frame-element unit-structure)
            t))))
 
+
+;; Goal tests   ;;
+;;;;;;;;;;;;;;;;;;
+
 (defmethod cip-goal-test ((node cip-node) (mode (eql :no-valid-children)))
   "Checks whether there are no more applicable constructions when a node is
 fully expanded and no constructions could apply to its children
@@ -127,7 +127,7 @@ nodes."
 
 
 (defmethod cip-goal-test ((cipn cip-node) (mode (eql :gold-standard-meaning)))
-  ""
+  "Returns true if no more valid children or gold standard meaning reached."
   (or (and (or (not (children cipn))
 	   (loop for child in (children cipn)
                  never (and (cxn-applied child)
@@ -220,6 +220,8 @@ nodes."
           t))))
 
 
+;; Browsing PropBank data ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun all-rolesets-for-framenet-frame (framenet-frame-name)
   (loop for predicate in *pb-data*
@@ -265,10 +267,14 @@ split to the output buffer."
 ;; (print-propbank-sentences-with-annotation "believe.01")
 
 
+;; Comparing Propbank Constructions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (defun fcg::equivalent-propbank-construction  (cxn-1 cxn-2)
+  "Returns true if cxn-1 and cxn-2 are considered equivalent."
   (cond ((eq 'fcg::processing-construction (type-of cxn-1))
-         (and ;(equalp (name cxn-1) (name cxn-2))
-              (= (length (right-pole-structure cxn-1)) (length (right-pole-structure cxn-2)))
+         (and (= (length (right-pole-structure cxn-1)) (length (right-pole-structure cxn-2)))
               (equalp (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'lex-class (unit-body unit) :key #'first)))
                                                    (right-pole-structure cxn-1)))
@@ -280,8 +286,7 @@ split to the output buffer."
                                                    (right-pole-structure cxn-1)))
                                (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'phrase-type (unit-body unit) :key #'first)))
-                                                   (right-pole-structure cxn-2)))
-                               )
+                                                   (right-pole-structure cxn-2))))
               (equalp (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'lemma (unit-body unit) :key #'first)))
                                                    (right-pole-structure cxn-1)))
@@ -295,19 +300,16 @@ split to the output buffer."
                                                    (conditional-part cxn-1)))
                                (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'lex-class (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-2)))
-                               )
+                                                   (conditional-part cxn-2))))
               (equalp (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
                                                    (conditional-part cxn-1)))
                                (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-2)))
-                               )
+                                                   (conditional-part cxn-2))))
               (equalp (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'lemma (comprehension-lock unit) :key #'first)))
                                                    (conditional-part cxn-1)))
                                (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'lemma (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-2)))
-                               )))))
+                                                   (conditional-part cxn-2))))))))

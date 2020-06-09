@@ -9,7 +9,7 @@
 (in-package :propbank-english)
 
 ;; Loading the Propbank frames (takes a few seconds)
-(load-pb-data :store-data t :ignore-stored-data nil)
+(load-pb-data :store-data nil :ignore-stored-data nil)
 ;(length *pb-data*)
 
 ;; Loading the Propbank annotations (takes a minute)
@@ -80,7 +80,7 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                                :name "learned-grammar-single-argument-without-lemma-opinion"
+                                :name "learned-grammar-multi-core-argm-lemma-and-arg-pp"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
@@ -109,47 +109,53 @@
     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
     (:equivalent-cxn-key . identity)
     (:learning-modes
-     :multi-argument-with-lemma
+     ;:multi-argument-with-lemma
      :argm-with-lemma-with-v-lex-class
      :argm-pp-with-v-lemma
      :multi-argument-core-only
-     :multi-argument-without-lemma
+     ;:multi-argument-without-lemma
      ;:single-argument-with-lemma
      ;:single-argument-without-lemma
      )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
 
-(learn-propbank-grammar *opinion-sentences*
-                        :cxn-inventory '*propbank-learned-cxn-inventory*
-                        :fcg-configuration *training-configuration*
-                        :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                        :silent t
-                        :tokenize? nil)
+(with-disabled-monitor-notifications
+  (learn-propbank-grammar *opinion-sentences*
+                          :cxn-inventory '*propbank-learned-cxn-inventory*
+                          :fcg-configuration *training-configuration*
+                          :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                          :silent t
+                          :tokenize? nil))
 
-(learn-propbank-grammar-no-comprehension *opinion-sentences*
-                                         :cxn-inventory '*propbank-learned-cxn-inventory*
-                                         :fcg-configuration *training-configuration*
-                                         :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                         :silent t
-                                         :tokenize? nil)
+(with-disabled-monitor-notifications
+  (learn-propbank-grammar-no-comprehension *opinion-sentences*
+                                           :list-of-syntactic-analyses (mapcar #'syntactic-analysis *opinion-sentences*)
+                                           :cxn-inventory '*propbank-learned-cxn-inventory*
+                                           :fcg-configuration *training-configuration*
+                                           :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                                           :silent t
+                                           :tokenize? nil))
 
 
 ;;;;;;;;;;;;;;;;
 ;; Evaluation ;;
 ;;;;;;;;;;;;;;;;
 
+(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
+(set-configuration *propbank-learned-cxn-inventory* :parse-order '(multi-argument-core-only argm-pp-with-lemma argm-with-lemma))
+
 (evaluate-propbank-sentences
  *opinion-sentences-dev*
  *propbank-learned-cxn-inventory*
+ :list-of-syntactic-analyses (mapcar #'syntactic-analysis *opinion-sentences-dev*)
  :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t)
 
 (evaluate-propbank-sentences-per-roleset
- *opinion-sentences-dev*
+ (subseq (shuffle (dev-split *propbank-annotations*))  0 100)
  *propbank-learned-cxn-inventory*
- :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
- )
+ :silent t)
 
 
 ;;;;;;;;;;;;;
@@ -158,7 +164,7 @@
 
 
 (setf *selected-sentence*
-      (find "Bramalea said it expects to complete the issue by the end of the month ." *opinion-sentences-dev* :key #'sentence-string :test #'string=))
+      (find "At this , a call was made to the governor of Wadi al - Dawasir by my uncle on his mobile phone , \" later my lawyer \" thinking that he was at the Wadi , and an argument took place with him ." *opinion-sentences* :key #'sentence-string :test #'string=))
 
 (learn-cxn-from-propbank-annotation *selected-sentence* "complete.01" *propbank-learned-cxn-inventory* :argm-pp-with-v-lemma)
 
@@ -170,7 +176,13 @@
                         :tokenize? nil)
 (activate-monitor trace-fcg)
 (with-activated-monitor trace-fcg
-  (comprehend-and-extract-frames *selected-sentence* :cxn-inventory *propbank-learned-cxn-inventory*))
+  (add-element (make-html (second (multiple-value-list (comprehend *selected-sentence* :cxn-inventory *propbank-learned-cxn-inventory*)
+                                                       )))))
+
+(add-element (make-html (first (multiple-value-list (comprehend *selected-sentence* :cxn-inventory *propbank-learned-cxn-inventory*)
+                                                       ))))
+
+(add-element (make-html (de-render (sentence-string *selected-sentence*) :de-render-constituents-dependents-without-tokenisation)))
 
 (add-element (make-html *propbank-learned-cxn-inventory*))
 
