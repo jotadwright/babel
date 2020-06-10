@@ -26,7 +26,7 @@
           interactions))
 
 (defclass experiment (blackboard configuration)
-  ((id :initarg id :accessor id :initform (make-id 'experiment)
+  ((id :initarg :id :accessor id :initform (make-id 'experiment)
        :documentation "id of the experiment")
    (agents
     :documentation "A list of agents to be used in the experiment."
@@ -231,7 +231,7 @@
 
 (defun run-batch-for-different-configurations
        (&key experiment-class number-of-interactions number-of-series              
-             monitors shared-configuration configurations 
+             named-configurations shared-configuration monitors
              (output-dir (error "Please supply an :output-dir for monitoring")))
   "Runs multiple batches of series. Every batch takes a
 different (named) configuration. Each configuration in configurations
@@ -243,7 +243,7 @@ to the directory of (or subdir in) your experiment. If it is set then
 all data-outputting monitors will be overridden to output there. For
 each named configuration a subdir will be made there with the given
 name."
-  (loop for configuration in configurations
+  (loop for configuration in named-configurations
         unless (and (listp configuration) 
                     (symbolp (first configuration)) 
                     (listp (second configuration)))

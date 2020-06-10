@@ -25,7 +25,8 @@
           speakerp hearerp))
 
 (defclass agent (configuration blackboard)
-  ((experiment :initarg :experiment :accessor experiment :initform nil
+  ((experiment :initarg :experiment :initform nil
+               :accessor experiment :accessor owner
                :documentation "The experiment this agent is part of")
    (id
     :documentation "The unique identifier of this agent."
@@ -58,18 +59,6 @@
 
 (defmethod hearerp ((agent agent))
   (eql (discourse-role agent) 'hearer))
-
-;; ----------------------------------------------------------------------------
-;; get-configuration
-
-(defmethod get-configuration ((agent agent) key &key &allow-other-keys)
-  "get-configuration for a agent tries the experiment if no configuration
-   is found in the agent"
-  (multiple-value-bind (entry found)
-      (call-next-method)
-    (if found
-      (values entry found)
-      (get-configuration (experiment agent) key))))
 
 ;; ----------------------------------------------------------------------------
 ;; print-object
