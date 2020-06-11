@@ -102,10 +102,9 @@
     (:queue-mode . :greedy-best-first)
     (:hash-mode . :hash-lemma)
     (:parse-order
-     multi-argument-with-lemma
-     multi-argument-without-lemma
-     single-argument-with-lemma
-     single-argument-without-lemma)
+     multi-argument-core-only
+     argm-pp-with-lemma
+     argm-with-lemma)
     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
     (:equivalent-cxn-key . identity)
     (:learning-modes
@@ -128,15 +127,6 @@
                           :silent t
                           :tokenize? nil))
 
-(with-disabled-monitor-notifications
-  (learn-propbank-grammar-no-comprehension *opinion-sentences*
-                                           :list-of-syntactic-analyses (mapcar #'syntactic-analysis *opinion-sentences*)
-                                           :cxn-inventory '*propbank-learned-cxn-inventory*
-                                           :fcg-configuration *training-configuration*
-                                           :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                           :silent t
-                                           :tokenize? nil))
-
 
 ;;;;;;;;;;;;;;;;
 ;; Evaluation ;;
@@ -153,7 +143,7 @@
  :silent t)
 
 (evaluate-propbank-sentences-per-roleset
- (subseq (shuffle (dev-split *propbank-annotations*))  0 100)
+ (subseq (shuffle (dev-split *propbank-annotations*))  0 5)
  *propbank-learned-cxn-inventory*
  :silent t)
 

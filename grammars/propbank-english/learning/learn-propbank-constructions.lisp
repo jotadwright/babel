@@ -7,16 +7,11 @@
 ;;                                                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Learning a grammar cxn ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun learn-propbank-grammar (list-of-propbank-sentences &key (selected-rolesets nil) (silent t)
-                                                          (tokenize? nil) (cxn-inventory '*propbank-learned-cxn-inventory*)
-                                                          (fcg-configuration nil)
-                                                          (list-of-syntactic-analyses nil))
+(defun learn-propbank-grammar (list-of-propbank-sentences &key
+                                                          (selected-rolesets nil) 
+                                                          (cxn-inventory '*propbank-learned-cxn-inventory*)
+                                                          (fcg-configuration nil))
+  "Learns a Propbank Grammar."
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
                                 :fcg-configurations ,fcg-configuration
                                 :visualization-configurations ((:show-constructional-dependencies . nil))
@@ -32,66 +27,7 @@
                                 :hashed t))))
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
-          for sentence-string = (sentence-string sentence)
           for syntactic-analysis = (syntactic-analysis sentence)
-          for rolesets = (if selected-rolesets
-                           (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
-                           (all-rolesets sentence))
-          for final-cipn = (second (multiple-value-list
-                                    (comprehend sentence :cxn-inventory cxn-inventory
-                                                :silent silent
-                                                :syntactic-analysis syntactic-analysis
-                                                :selected-rolesets selected-rolesets)))
-          do
-          (format t "~%~%---> Sentence ~a: ~a~%" sentence-number sentence-string)
-          (loop for roleset in rolesets
-                if (spacy-benepar-compatible-annotation sentence roleset :syntactic-analysis syntactic-analysis)
-                do
-                (let ((f1-score (cdr (assoc :f1-score (evaluate-propbank-sentences
-                                                       (list sentence) cxn-inventory
-                                                       :list-of-syntactic-analyses (list syntactic-analysis)
-                                                       :selected-rolesets (list roleset)
-                                                       :silent silent
-                                                       :list-of-cipns (list final-cipn)
-                                                       :print-to-standard-output nil)))))
-                  ;; no learning needed if F1 score is already 1.
-                  (if (< f1-score 1.0)
-                    (progn
-                      (format t "~%Roleset ~a: f1-score ~a --> Learning.~%"  roleset f1-score)
-                      (loop for mode in (get-configuration cxn-inventory :learning-modes)
-                            do
-                            (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis)))
-                    (format t "~%Roleset ~a: f1-score ~a.~%"  roleset f1-score)))
-                finally return cxn-inventory))))
-
-
-(defun learn-propbank-grammar-no-comprehension (list-of-propbank-sentences &key (selected-rolesets nil) (silent t)
-                                                          (tokenize? nil) (cxn-inventory '*propbank-learned-cxn-inventory*)
-                                                          (fcg-configuration nil)
-                                                          (list-of-syntactic-analyses nil))
-  "Learn cxns without comprhending the sentences (= always learn)."
-  (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
-                                :fcg-configurations ,fcg-configuration
-                                :visualization-configurations ((:show-constructional-dependencies . nil))
-                                :hierarchy-features (constituents dependents)
-                                :feature-types ((constituents sequence)
-                                                (dependents sequence)
-                                                (span sequence)
-                                                (phrase-type set)
-                                                (word-order set-of-predicates)
-                                                (meaning set-of-predicates)
-                                                (footprints set))
-                                :cxn-inventory ,cxn-inventory
-                                :hashed t))))
-    (loop for sentence in list-of-propbank-sentences
-          for sentence-number from 1
-          for sentence-string = (sentence-string sentence)
-          for syntactic-analysis = (or (nth1 sentence-number list-of-syntactic-analyses)
-                                       (if tokenize?
-                                         (nlp-tools:get-penelope-syntactic-analysis sentence-string)
-                                         (nlp-tools:get-penelope-syntactic-analysis
-                                          (split-sequence:split-sequence #\Space sentence-string
-                                                                         :remove-empty-subseqs t))))
           for rolesets = (if selected-rolesets
                            (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
                            (all-rolesets sentence))
@@ -102,19 +38,95 @@
                 do
                 (loop for mode in (get-configuration cxn-inventory :learning-modes)
                       do
-                      (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode :syntactic-analysis syntactic-analysis)))
+                      (learn-cxn-from-propbank-annotation sentence roleset cxn-inventory mode)))
           finally
           return cxn-inventory)))
-
 
                    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Learning a single cxn ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode &key syntactic-analysis))
 
-(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-with-lemma)) &key (syntactic-analysis nil))
+(defgeneric learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode))
+
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-core-roles)))
+  "Learns a construction capturing all core roles."
+  ;; Looping over all frame instances for roleset annotated in sentence
+  (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
+        with ts-unit-structure = (ts-unit-structure propbank-sentence cxn-inventory)
+        for gold-frame in gold-frames
+        for core-units-with-role = (remove-if #'(lambda (unit-with-role)
+                                                  (search "ARGM" (role-type (car unit-with-role))))
+                                              (units-with-role ts-unit-structure gold-frame))
+        for footprint = (make-id "footprint")
+        for v-lemma = (v-lemma core-units-with-role)
+        for pp-units-with-role = (remove-if-not #'(lambda (unit-w-role)
+                                                    (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type)))
+                                                core-units-with-role)
+        for contributing-unit = (make-propbank-contributing-unit core-units-with-role gold-frame footprint :include-frame-name t)
+        for cxn-units-with-role = (loop for unit in core-units-with-role
+                                        collect
+                                        (make-propbank-conditional-unit-with-role unit footprint :include-v-lemma t :include-fe-lemma nil))
+        for cxn-units-without-role  = (make-propbank-conditional-units-without-role core-units-with-role
+                                                                                    cxn-units-with-role ts-unit-structure)
+        for cxn-preposition-units = (loop for pp-unit in pp-units-with-role
+                                          collect (make-preposition-unit pp-unit ts-unit-structure))
+        for cxn-name = (make-cxn-name roleset core-units-with-role cxn-units-without-role cxn-units-without-role cxn-preposition-units)
+        do
+        ;; assertions
+        (assert (and cxn-units-with-role v-lemma))
+        ;;;
+        (when (and cxn-units-with-role v-lemma)
+          ;;create a new construction and add it to the cxn-inventory
+          (eval `(def-fcg-cxn ,cxn-name
+                              (,contributing-unit
+                               <-
+                               ,@cxn-units-with-role
+                               ,@cxn-units-without-role
+                               ,@(loop for unit in cxn-preposition-units
+                                       append unit))
+                              :disable-automatic-footprints t
+                              :attributes (:lemma ,v-lemma
+                                           :score ,(length cxn-units-with-role)
+                                           :label multi-argument-core-roles)
+                              :cxn-inventory ,cxn-inventory)))
+        finally
+        return cxn-inventory))
+
+(defun make-cxn-name (roleset ts-units-with-role cxn-units-with-role cxn-units-without-role preposition-units)
+  (loop for (role . unit) in ts-units-with-role
+        for cxn-unit = (find (variablify (unit-name unit)) cxn-units-with-role :key #'unit-name)
+        for pp-unit-number = 0  
+        collect (format nil "~a:~a"
+                        (role-type role)
+                        (cond
+                         ;; unit is a pp
+                         ((find 'pp (unit-feature-value (unit-body unit) 'phrase-type))
+                          (incf pp-unit-number)
+                          (format nil "~{~a~}(~a)" (unit-feature-value 'phrase-type unit)
+                                  (second (find 'lemma
+                                                (if (= 1 (length preposition-units))
+                                                  (nthcdr 2 (first (nth1 pp-unit-number preposition-units)))
+                                                  (format nil "cc-~a" (nthcdr 2 (third (nth1 pp-unit-number preposition-units)))))
+                                                :key #'feature-name))))
+                         ;; unit contains a lemma
+                         ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
+                         ;; unit contains a phrase-type
+                         ((feature-value (find 'phrase-type (cddr cxn-unit) :key #'feature-name))
+                          (format nil "~{~a~}" (feature-value (find 'phrase-type (cddr cxn-unit) :key #'feature-name))))
+                          ;; unit contains a lex-class
+                          ((feature-value (find 'lex-class (cddr cxn-unit) :key #'feature-name)))))
+        into roles
+        finally return (make-id (upcase (format nil "~a-~{~a~^+~}+~a-cxn" roleset roles (length cxn-units-without-role))))))
+
+
+
+  
+
+#|
+
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-with-lemma)))
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
   (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
@@ -166,7 +178,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                  :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label multi-argument-with-lemma)
                                  :cxn-inventory ,cxn-inventory)))))))
 
-(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-without-lemma)) &key (syntactic-analysis nil))
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-without-lemma)))
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
   (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
@@ -209,7 +221,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                  :cxn-inventory ,cxn-inventory)))))))
 
 
-(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-core-only)) &key (syntactic-analysis nil))
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-core-only)))
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
   (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
@@ -275,7 +287,7 @@ sentence object and a roleset (e.g. 'believe.01')"
 
 
 
-(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-with-lemma-with-v-lex-class)) &key (syntactic-analysis nil))
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-with-lemma-with-v-lex-class)))
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
   (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
@@ -337,7 +349,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                     :cxn-inventory ,cxn-inventory))))))))
 
 
-(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-pp-with-v-lemma)) &key (syntactic-analysis nil))
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-pp-with-v-lemma)))
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
   (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
@@ -403,7 +415,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                     :cxn-inventory ,cxn-inventory))))))))
 
 
-(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :single-argument-without-lemma)) &key (syntactic-analysis nil))
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :single-argument-without-lemma)))
   "Adds a new construction to the cxn-inventory based on a propbank
 sentence object and a roleset (e.g. 'believe.01')"
   (let ((frames (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)))
@@ -456,7 +468,7 @@ sentence object and a roleset (e.g. 'believe.01')"
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,lemma :score ,(length cxn-units-with-role) :label single-argument-without-lemma)
                                     :cxn-inventory ,cxn-inventory))))))))
-
+|#
 
   
 (defun find-unit-by-span (transient-structure span)
@@ -466,59 +478,37 @@ sentence object and a roleset (e.g. 'believe.01')"
         when (equal unit-span span)
         return unit))
 
-(defun make-propbank-contributing-unit (units-with-role frame cxn-name)
-  "Make a contributing unit based on a frame and units-with-role."
-  (let* ((v-unit (cdr (assoc "V" units-with-role :key #'role-type :test #'string=)))
-         (unit-name (variablify (unit-name v-unit)))
-         (args (loop for r in (frame-roles frame)
+(defun make-propbank-contributing-unit (units-with-role gold-frame footprint &key (include-frame-name t))
+  "Make a contributing unit based on a gold-frame and units-with-role."
+  (let* ((v-unit (cdr (assoc "V" units-with-role :key #'role-type :test #'equalp)))
+         (v-unit-name (variablify (unit-name v-unit)))
+         (args (loop for r in (frame-roles gold-frame)
                      if (string= (role-type r) "V")
-                     collect `(referent ,unit-name)
+                     collect `(referent ,v-unit-name)
                      else
                      if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
                                                                      (role-type (car unit-with-role))) :test #'equalp)
 
-                     collect `(,(make-kw (role-type r)) ,(variablify (unit-name (cdr (assoc r units-with-role)))))))
-         (meaning (loop for r in (frame-roles frame)
-                     if (string= (role-type r) "V")
-                     collect `(frame ,(intern (upcase (frame-name frame))) ,unit-name)
-                     else
-                     if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
-                                                                     (role-type (car unit-with-role))) :test #'equalp)
-                     collect `(frame-element ,(intern (upcase (role-type r))) ,unit-name
-                                                  ,(variablify (unit-name (cdr (assoc r units-with-role))))))))
-    `(,unit-name
+                     collect `(,(make-kw (role-type r))
+                               ,(variablify (unit-name (cdr (assoc r units-with-role)))))))
+         (meaning (loop for r in (frame-roles gold-frame)
+                        for frame-name = (if include-frame-name
+                                           (intern (upcase (frame-name gold-frame)))
+                                           '?frame)
+                        if (string= (role-type r) "V")
+                        collect `(frame ,frame-name ,v-unit-name)
+                        else
+                        if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
+                                                                        (role-type (car unit-with-role))) :test #'equalp)
+                        collect `(frame-element ,(intern (upcase (role-type r))) ,v-unit-name
+                                                ,(variablify (unit-name (cdr (assoc r units-with-role))))))))
+    `(,v-unit-name
       (args ,@args)
       (frame-evoking +)
       (meaning ,meaning)
-      (footprints (,cxn-name)))))
+      (footprints (,footprint)))))
 
-(defun make-propbank-contributing-unit-without-frame-name (units-with-role frame cxn-name)
-  "Make a contributing unit based on a frame and units-with-role."
-  (let* ((v-unit (cdr (assoc "V" units-with-role :key #'role-type :test #'string=)))
-         (unit-name (variablify (unit-name v-unit)))
-         (args (loop for r in (frame-roles frame)
-                     if (string= (role-type r) "V")
-                     collect `(referent ,unit-name)
-                     else
-                     if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
-                                                                     (role-type (car unit-with-role))) :test #'equalp)
-
-                     collect `(,(make-kw (role-type r)) ,(variablify (unit-name (cdr (assoc r units-with-role)))))))
-         (meaning (loop for r in (frame-roles frame)
-                     if (string= (role-type r) "V")
-                     collect `(frame ?frame ,unit-name)
-                     else
-                     if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
-                                                                     (role-type (car unit-with-role))) :test #'equalp)
-                     collect `(frame-element ,(intern (upcase (role-type r))) ,unit-name
-                                                  ,(variablify (unit-name (cdr (assoc r units-with-role))))))))
-    `(,unit-name
-      (args ,@args)
-      (frame-evoking +)
-      (meaning ,meaning)
-      (footprints (,cxn-name)))))
-
-(defun make-propbank-conditional-unit-with-role (unit-with-role cxn-name)
+(defun make-propbank-conditional-unit-with-role (unit-with-role footprint &key (include-v-lemma t) (include-fe-lemma nil))
   "Makes a conditional unit for a propbank cxn based on a unit in the
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
@@ -527,44 +517,20 @@ initial transient structure that plays a role in the frame."
                    (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name)))))
          (phrase-type-or-lex-class (if (find '(node-type leaf) (unit-body unit) :test #'equal)
                                      `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
-                                     `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))
-    (if  (string= (role-type (car unit-with-role)) "V")
-      ;;a FEE unit also has the feature lemma
-      `(,unit-name
-        --
-        (lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))
-        (parent ,parent)
-        (footprints (NOT ,cxn-name))
-        ,phrase-type-or-lex-class)
-      ;;other units only have a parent feature and a phrase-type/lex-class feature
+                                     `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))
+         (v-unit? (string= (role-type (car unit-with-role)) "V"))
+         (leaf? (find '(node-type leaf) (unit-body unit) :test #'equal)))
+      ;;a FEE unit also has the features lemma and footprints
       `(,unit-name
         --
         (parent ,parent)
-        ,phrase-type-or-lex-class))))
+        ,phrase-type-or-lex-class
+        ,@(when v-unit? `((footprints (NOT ,footprint))))
+        ,@(when (and v-unit? include-v-lemma leaf?)
+            `((lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))))
+        ,@(when (and (not v-unit?) include-fe-lemma leaf?)
+            `((lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name))))))))
 
-(defun make-propbank-conditional-unit-with-role-without-v-lemma (unit-with-role cxn-name)
-  "Makes a conditional unit for a propbank cxn based on a unit in the
-initial transient structure that plays a role in the frame."
-  (let* ((unit (cdr unit-with-role))
-         (unit-name (variablify (unit-name unit)))
-         (parent (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
-                   (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name)))))
-         (phrase-type-or-lex-class (if (find '(node-type leaf) (unit-body unit) :test #'equal)
-                                     `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
-                                     `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))
-    (if  (string= (role-type (car unit-with-role)) "V")
-      ;;a FEE unit does not have the feature lemma
-      `(,unit-name
-        --
-        (parent ,parent)
-        (footprints (NOT ,cxn-name))
-        ,phrase-type-or-lex-class)
-      ;;other unit has a parent feature, lemma and a phrase-type/lex-class feature
-      `(,unit-name
-        --
-        (parent ,parent)
-        (lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))
-        ,phrase-type-or-lex-class))))
 
 (defun make-preposition-unit (unit-with-role unit-structure)
   (let* ((pp-unit (cdr unit-with-role))
@@ -612,33 +578,6 @@ initial transient structure that plays a role in the frame."
                 (lemma ,(cadr (find 'lemma (unit-body prep-unit) :key #'feature-name)))))))))))
 
              
-
-(defun make-propbank-conditional-unit-with-role-with-lemma (unit-with-role cxn-name)
-  "Makes a conditional unit for a propbank cxn based on a unit in the
-initial transient structure that plays a role in the frame."
-  (let* ((unit (cdr unit-with-role))
-         (unit-name (variablify (unit-name unit)))
-         (parent (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
-                   (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name)))))
-         (phrase-type-or-lex-class (if (find '(node-type leaf) (unit-body unit) :test #'equal)
-                                     `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
-                                     `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))
-    (if  (string= (role-type (car unit-with-role)) "V")
-      ;;a FEE unit also has the feature lemma
-      `(,unit-name
-        --
-        (lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))
-        (parent ,parent)
-        (footprints (NOT ,cxn-name))
-        ,phrase-type-or-lex-class)
-      ;;other units only have a parent feature and a phrase-type/lex-class feature
-      `(,unit-name
-        --
-        (parent ,parent)
-        ,@(if (find '(node-type leaf) (unit-body unit) :test #'equal)
-            `((lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))))
-        ,phrase-type-or-lex-class))))
-
 (defun make-propbank-conditional-units-without-role (units-with-role cxn-units-with-role unit-structure)
   "Makes conditional units that are needed in a propbank cxn to encode
 the paths in the syntactic tree between units that function as slot
@@ -737,4 +676,25 @@ start to end(v-unit)"
 (defmethod all-rolesets ((sentence conll-sentence))
   "Returns all propbank frames with which a sentence was annotated."
   (mapcar #'frame-name (propbank-frames sentence)))
+
+
+(defmethod ts-unit-structure ((sentence conll-sentence) (cxn-inventory fcg-construction-set))
+  "Returns the unit structure based on the syntactic analysis."
+  (left-pole-structure (de-render sentence (get-configuration cxn-inventory :de-render-mode))))
+
+(defun units-with-role (ts-unit-structure gold-frame)
+  "Returns (cons . units) for each unit in the unit-structure that is an elements of the frame."
+  (loop for role in (frame-roles gold-frame) ;;find all units that correspond to annotated frame elements
+        for role-start = (first (indices role))
+        for role-end = (+ (last-elt (indices role)) 1)
+        for unit = (find-unit-by-span ts-unit-structure (list role-start role-end))
+        collect (cons role unit)))
+
+(defun v-lemma (units-with-role)
+  "Returns the lemma of the V."
+  (loop for (role . unit) in units-with-role
+        when (string= "V" (role-type role))
+        return (feature-value (find 'lemma (unit-body unit) :key #'feature-name))))
+
+
 

@@ -16,7 +16,6 @@
                :cl-store)
   :serial t
   :components ((:file "package")
-               (:file "de-render")
                (:file "grammar")
                (:file "visualisation")
                
@@ -25,4 +24,5 @@
                 :components ((:file "propbank-annotations")
                              (:file "evaluation")
                              (:file "learn-propbank-constructions")))
+               (:file "de-render")
                (:file "utils")))
