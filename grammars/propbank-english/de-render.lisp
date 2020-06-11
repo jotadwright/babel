@@ -1,20 +1,28 @@
 (in-package :propbank-english)
 
+;;;;;;;;;;;;;;;;;;
+;;              ;;
+;; De-rendering ;;
+;;              ;;
+;;;;;;;;;;;;;;;;;;
+
+(defmethod de-render ((utterance conll-sentence) (mode (eql :de-render-constituents-dependents))
+                      &key &allow-other-keys)
+  "De-renders a conll-sentence."
+  (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis utterance)))
 
 
 (defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
-                      &key (syntactic-analysis nil) &allow-other-keys)
+                      &key (syntactic-analysis nil) (tokenize? t) &allow-other-keys)
   "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
-  (let ((spacy-benepar-analysis (or syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis utterance))))
-    (create-initial-transient-structure-based-on-benepar-analysis spacy-benepar-analysis)))
+  (let ((syntactic-analysis (cond (syntactic-analysis)
+                                  (tokenize?
+                                   (nlp-tools:get-penelope-syntactic-analysis utterance))
+                                  ((not tokenize?)
+                                   (nlp-tools:get-penelope-syntactic-analysis
+                                    (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t))))))
+    (create-initial-transient-structure-based-on-benepar-analysis syntactic-analysis)))
 
-  
-(defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents-without-tokenisation))
-                      &key (syntactic-analysis nil) &allow-other-keys)
-  "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
-  (let* ((list-utterance (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t))
-         (spacy-benepar-analysis (or syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis list-utterance))))
-    (create-initial-transient-structure-based-on-benepar-analysis spacy-benepar-analysis)))
 
 (defun create-initial-transient-structure-based-on-benepar-analysis (spacy-benepar-analysis)
   (let* (;; Make unit names for the different units, and store them with the unit id.
