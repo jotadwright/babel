@@ -46,6 +46,20 @@
 ;; Learning a single cxn ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun lex-classes (cxn-units)
+  (mapcar #'(lambda (unit)
+              (second (find 'lex-class (cddr unit) :key #'first)))
+          cxn-units))
+
+(defun phrase-types (cxn-units)
+  (mapcar #'(lambda (unit)
+              (second (find 'phrase-type (cddr unit) :key #'first)))
+          cxn-units))
+
+(defun lemmas (cxn-units)
+  (mapcar #'(lambda (unit)
+              (second (find 'lemma (cddr unit) :key #'first)))
+          cxn-units))
 
 (defgeneric learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode))
 
@@ -72,9 +86,25 @@
         for cxn-preposition-units = (loop for pp-unit in pp-units-with-role
                                           collect (make-preposition-unit pp-unit ts-unit-structure))
         for cxn-name = (make-cxn-name roleset core-units-with-role cxn-units-with-role cxn-units-without-role cxn-preposition-units)
+        for cxn-preposition-units-flat = (loop for unit in cxn-preposition-units append unit)
+        for equivalent-cxn = (find-equivalent-cxn v-lemma
+                                                  (lex-classes (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units-flat))
+                                                  (phrase-types (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units-flat))
+                                                  (lemmas (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units-flat))
+                                                  cxn-inventory)
+        when equivalent-cxn 
+        do
+        (incf (attr-val equivalent-cxn :frequency))
+        else
         do
         ;; assertions
-        (assert (and cxn-units-with-role v-lemma))
+        ;(assert (and cxn-units-with-role v-lemma))
         ;;;
         (when (and cxn-units-with-role v-lemma)
           ;;create a new construction and add it to the cxn-inventory
@@ -83,12 +113,12 @@
                                <-
                                ,@cxn-units-with-role
                                ,@cxn-units-without-role
-                               ,@(loop for unit in cxn-preposition-units
-                                       append unit))
+                               ,@cxn-preposition-units-flat)
                               :disable-automatic-footprints t
                               :attributes (:lemma ,v-lemma
                                            :score ,(length cxn-units-with-role)
-                                           :label multi-argument-core-roles)
+                                           :label multi-argument-core-roles
+                                           :frequency 1)
                               :cxn-inventory ,cxn-inventory)))
         finally
         return cxn-inventory))
@@ -118,9 +148,18 @@
               for cxn-units-without-role  = (make-propbank-conditional-units-without-role (list v-unit argm-unit)
                                                                                           cxn-units-with-role ts-unit-structure)
               for cxn-name = (make-cxn-name nil (list v-unit argm-unit) cxn-units-with-role cxn-units-without-role nil)
+              for equivalent-cxn = (find-equivalent-cxn argm-lemma
+                                                  (lex-classes (append cxn-units-with-role cxn-units-without-role))
+                                                  (phrase-types (append cxn-units-with-role cxn-units-without-role))
+                                                  (lemmas (append cxn-units-with-role cxn-units-without-role))
+                                                  cxn-inventory)
+              when equivalent-cxn 
+              do
+              (incf (attr-val equivalent-cxn :frequency))
+              else
               do
               ;; assertions
-              (assert (and cxn-units-with-role v-lex-class))
+              ;(assert (and cxn-units-with-role v-lex-class))
               ;;;
               (when (and cxn-units-with-role v-lex-class)
                 ;;create a new construction and add it to the cxn-inventory
@@ -132,7 +171,8 @@
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,argm-lemma
                                                  :score ,(length cxn-units-with-role)
-                                                 :label argm-with-lemma)
+                                                 :label argm-with-lemma
+                                                 :frequency 1)
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
@@ -162,10 +202,25 @@
               for cxn-units-without-role  = (make-propbank-conditional-units-without-role (list v-unit argm-unit)
                                                                                           cxn-units-with-role ts-unit-structure)
               for cxn-name = (make-cxn-name roleset (list v-unit argm-unit) cxn-units-with-role cxn-units-without-role (list cxn-preposition-units))
+              for equivalent-cxn = (find-equivalent-cxn v-lemma
+                                                  (lex-classes (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units))
+                                                  (phrase-types (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units))
+                                                  (lemmas (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units))
+                                                  cxn-inventory)
+              when equivalent-cxn 
+              do
+              (incf (attr-val equivalent-cxn :frequency))
+              else
               do
               ;; assertions
-              (assert (and cxn-units-with-role ;cxn-preposition-units
-                           v-lemma))
+             ; (assert (and cxn-units-with-role ;cxn-preposition-units
+              ;             v-lemma))
               ;;;
               (when (and cxn-units-with-role cxn-preposition-units v-lemma)
                 ;;create a new construction and add it to the cxn-inventory
@@ -178,7 +233,8 @@
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,v-lemma
                                                  :score ,(length cxn-units-with-role)
-                                                 :label argm-pp)
+                                                 :label argm-pp
+                                                 :frequency 1)
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
@@ -448,4 +504,22 @@ start to end(v-unit)"
 (defun argm-lemma (unit-with-role)
   "Returns the lemma of the unit."
   (feature-value (find 'lemma (unit-body (cdr unit-with-role)) :key #'feature-name)))
+
+
+(defun find-equivalent-cxn (hash-key lex-classes phrase-types lemmas cxn-inventory)
+  "Returns true if an equivalent-cxn is already present in the cxn-inventory."
+  (loop for cxn in (gethash hash-key (constructions-hash-table cxn-inventory))
+        when (and (equalp lex-classes
+                           (mapcar #'(lambda (unit)
+                                       (second (find 'lex-class (comprehension-lock unit) :key #'first)))
+                                   (conditional-part cxn)))
+                   (equalp phrase-types
+                           (mapcar #'(lambda (unit)
+                                       (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
+                                   (conditional-part cxn)))
+                   (equalp lemmas
+                           (mapcar #'(lambda (unit)
+                                       (second (find 'lemma (comprehension-lock unit) :key #'first)))
+                                   (conditional-part cxn))))
+        return cxn))
 
