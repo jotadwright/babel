@@ -13,31 +13,31 @@
   ((source-attn attribute => target-category)
    (let ((new-bindings
           (evaluate-neural-primitive
-           (get-data ontology 'endpoint)
-           `((:primitive . query)
-             (:slots ((:source-attn . ,(id source-attn))
-                      (:attribute . ,(attribute attribute))
-                      (:target-category . nil)))))))
+           (get-data ontology 'server-address)
+           `(:primitive query
+             :slots (:source-attn ,(id source-attn)
+                     :attribute ,(attribute attribute)
+                     :target-category nil)))))
      (loop for bind-set in new-bindings
            do `(bind ,@(loop for (variable score value) in bind-set
                              collect (list variable score
                                            (find-entity-by-id
                                             ontology
-                                            (internal-symb (upcase value)))))))))
+                                            (internal-symb value))))))))
 
   ;; second case; given source-object and target-category, compute the attribute
   ((source-attn target-category => attribute)
    (let ((new-bindings
           (evaluate-neural-primitive
-           (get-data ontology 'endpoint)
-           `((:primitive . query)
-             (:slots ((:source-attn . ,(id source-attn))
-                      (:target-category . ,(category-value target-category))
-                      (:attribute . nil)))))))
+           (get-data ontology 'server-address)
+           `(:primitive query
+             :slots (:source-attn ,(id source-attn)
+                     :target-category ,(category-value target-category)
+                     :attribute nil)))))
      (loop for bind-set in new-bindings
            do `(bind ,@(loop for (variable score value) in bind-set
                              collect (list variable score
-                                           (find (internal-symb (upcase value))
+                                           (find (internal-symb value)
                                                  (get-data ontology 'attributes)
                                                  :key #'id)))))))
 
@@ -45,11 +45,11 @@
   ((source-attn => attribute target-category)
    (let ((new-bindings
           (evaluate-neural-primitive
-           (get-data ontology 'endpoint)
-           `((:primitive . query)
-             (:slots ((:source-attn . ,(id source-attn))
-                      (:target-category . nil)
-                      (:attribute . nil)))))))
+           (get-data ontology 'server-address)
+           `(:primitive query
+             :slots (:source-attn ,(id source-attn)
+                     :target-category nil
+                     :attribute nil)))))
      (loop for bind-set in new-bindings
            do `(bind ,@(loop for (variable score value) in bind-set
                              collect (list variable score
@@ -57,9 +57,9 @@
                                              (target-category
                                               (find-entity-by-id
                                                ontology
-                                               (internal-symb (upcase value))))
+                                               (internal-symb value)))
                                              (attribute 
-                                              (find (internal-symb (upcase value))
+                                              (find (internal-symb value)
                                                     (get-data ontology 'attributes)
                                                     :key #'attribute)))))))))
   
@@ -68,10 +68,10 @@
   ((source-attn attribute target-category =>)
    (let ((consistentp
           (evaluate-neural-primitive
-           (get-data ontology 'endpoint)
-           `((:primitive . query)
-             (:slots ((:source-attn . ,(id source-attn))
-                      (:target-category . ,(category-value target-category))
-                      (:attribute . ,(attribute attribute))))))))
+           (get-data ontology 'server-address)
+           `(:primitive query
+             :slots (:source-attn ,(id source-attn)
+                     :target-category ,(category-value target-category)
+                     :attribute ,(attribute attribute))))))
      consistentp)))
 

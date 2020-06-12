@@ -3,32 +3,35 @@
 
 (export '(load-image))
 
-(defun do-irl-request (endpoint data)
-  (let ((server-address "http://localhost:8888/"))
-    (multiple-value-bind (response code headers
-                          uri stream must-close
-                          reason-phrase)
-        (http-request (mkstr server-address endpoint)
-                      :method :post :content-type "application/json"
-                      :content (replace-char (downcase (to-json data)) #\- #\_))
-      (declare (ignorable headers uri stream must-close reason-phrase))
-      (values (parse (upcase (replace-char response #\_ #\-))) code))))
+(defun do-irl-request (server-address endpoint data)
+  (multiple-value-bind (response code headers
+                                 uri stream must-close
+                                 reason-phrase)
+      (http-request (mkstr server-address endpoint)
+                    :method :post :content-type "application/json"
+                    :content (replace-char (downcase (to-json data)) #\- #\_))
+    (declare (ignorable headers uri stream must-close reason-phrase))
+    (values (parse (upcase (replace-char response #\_ #\-))) code)))
 
-(defun load-image (image-name)
+(defun load-image (server-address image-name)
   "Load a CLEVR image before starting
    the IRL program evaluation"
   (multiple-value-bind (response code)
-      (do-irl-request "init_image" `(:name ,image-name))
+      (do-irl-request server-address
+                      "init_image"
+                      `(:name ,image-name))
     (declare (ignorable response))
     (unless (= code 200)
       (error "Something went wrong while loading ~a" image-name))))
 
 
-(defun evaluate-neural-primitive (data)
+(defun evaluate-neural-primitive (server-address data)
   "Evaluate a neural primitive. Check if the response
    status code is ok and return the relevant data"
   (multiple-value-bind (response code)
-      (do-irl-request "evaluate_neural_primitive" data)
+      (do-irl-request server-address
+                      "evaluate_neural_primitive"
+                      data)
     (cond
      ((= code 400) ; something went wrong
       (let ((error-type (getf response :error-type))

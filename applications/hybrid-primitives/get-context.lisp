@@ -11,21 +11,21 @@
   ((context =>)
    (let ((consistentp
           (evaluate-neural-primitive
-           (get-data ontology 'endpoint)
-           `((:primitive . get-context)
-             (:slots . ((:context . ,(id context))))))))
+           (get-data ontology 'server-address)
+           `(:primitive get-context
+             :slots (:context ,(id context))))))
      consistentp))
 
   ;; second case; bind the context from the ontology
   ((=> context)
    (let ((new-bindings
           (evaluate-neural-primitive
-           (get-data ontology 'endpoint)
-           `((:primitive . get-context)
-             (:slots . ((:context . nil)))))))
+           (get-data ontology 'server-address)
+           `(:primitive get-context
+             :slots (:context nil)))))
      (loop for bind-set in new-bindings
            do `(bind ,@(loop for (variable score value) in bind-set
                              collect (list variable score
                                            (make-instance 'attention
-                                                          :id (internal-symb (upcase value))))))))))
+                                                          :id (internal-symb value)))))))))
 

@@ -3,11 +3,13 @@
 (in-package :hybrid-primitives)
 
 ;; initialize the server by loading a scene (i.e. an image)
-(load-image "CLEVR_val_000000.png")
+(load-image "http://localhost:8888/"
+            "CLEVR_val_000000.png")
 
 ;; evaluate the get-context primitive
 (defvar context-bindings
   (evaluate-neural-primitive
+   "http://localhost:8888/"
    `(:primitive get-context
      :slots (:context nil))))
 (defvar context-attn
@@ -17,6 +19,7 @@
 
 (defvar filter-bindings
   (evaluate-neural-primitive
+   "http://localhost:8888/"
    `(:primitive filter
      :slots (:source-attn ,context-attn
              :category blue
@@ -28,6 +31,7 @@
 
 (defvar count-bindings
   (evaluate-neural-primitive
+   "http://localhost:8888/"
    `(:primitive count
      :slots (:source-attn ,filter-attn
              :target-num nil))))
