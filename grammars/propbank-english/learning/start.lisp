@@ -93,7 +93,7 @@
 ;;;;;;;;;;;;;;
 
 (defparameter *training-configuration*
-  '((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation)
+  '((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
     (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
     (:max-nr-of-nodes . 100)
@@ -102,19 +102,18 @@
     (:queue-mode . :greedy-best-first)
     (:hash-mode . :hash-lemma)
     (:parse-order
-     multi-argument-core-only
-     argm-pp-with-lemma
-     argm-with-lemma)
+     multi-argument-core-roles
+     argm-with-lemma
+     argm-pp
+     )
     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
     (:equivalent-cxn-key . identity)
     (:learning-modes
-     ;:multi-argument-with-lemma
-     :argm-with-lemma-with-v-lex-class
-     :argm-pp-with-v-lemma
-     :multi-argument-core-only
-     ;:multi-argument-without-lemma
-     ;:single-argument-with-lemma
-     ;:single-argument-without-lemma
+
+     :multi-argument-core-roles
+     :argm-with-lemma
+     :argm-pp
+   
      )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
@@ -123,9 +122,7 @@
   (learn-propbank-grammar *opinion-sentences*
                           :cxn-inventory '*propbank-learned-cxn-inventory*
                           :fcg-configuration *training-configuration*
-                          :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                          :silent t
-                          :tokenize? nil))
+                          :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")))
 
 
 ;;;;;;;;;;;;;;;;
@@ -136,17 +133,21 @@
 (set-configuration *propbank-learned-cxn-inventory* :parse-order '(multi-argument-core-only argm-pp-with-lemma argm-with-lemma))
 
 (evaluate-propbank-sentences
- *opinion-sentences-dev*
+ (subseq *opinion-sentences-dev* 0 10)
  *propbank-learned-cxn-inventory*
- :list-of-syntactic-analyses (mapcar #'syntactic-analysis *opinion-sentences-dev*)
  :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t)
 
 (evaluate-propbank-sentences-per-roleset
- (subseq (shuffle (dev-split *propbank-annotations*))  0 5)
+ (subseq *opinion-sentences-dev* 0 1)
  *propbank-learned-cxn-inventory*
- :silent t)
+ :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ :silent nil)
 
+(deactivate-all-monitors)
+(activate-monitor trace-fcg)
+
+(add-element (make-html *propbank-learned-cxn-inventory*))
 
 ;;;;;;;;;;;;;
 ;; Testing ;;
@@ -154,9 +155,9 @@
 
 
 (setf *selected-sentence*
-      (find "At this , a call was made to the governor of Wadi al - Dawasir by my uncle on his mobile phone , \" later my lawyer \" thinking that he was at the Wadi , and an argument took place with him ." *opinion-sentences* :key #'sentence-string :test #'string=))
+      (find "`` We want people to think of Lake View as an historical park and educational experience ... ." *opinion-sentences* :key #'sentence-string :test #'string=))
 
-(learn-cxn-from-propbank-annotation *selected-sentence* "complete.01" *propbank-learned-cxn-inventory* :argm-pp-with-v-lemma)
+(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory* :multi-argument-core-roles)
 
 (learn-propbank-grammar (list *selected-sentence*)
                         :cxn-inventory '*propbank-learned-cxn-inventory*
@@ -179,12 +180,15 @@
 (evaluate-propbank-sentences
  (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t))
 
+(activate-monitor trace-fcg)
+(comprehend-and-extract-frames "I would like to order a still water ." :cxn-inventory *propbank-learned-cxn-inventory*)
+
 ;; Testing new sentences with learned grammar 
 ;; Guardian FISH article
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(set-configuration *restored-grammar* :parse-goal-tests '(:no-valid-children))
-(set-configuration *restored-grammar* :de-render-mode :de-render-constituents-dependents)
+(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
+(set-configuration *propbank-learned-cxn-inventory* :parse-order '(:multi-argument-core-roles))
 
 (comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar*)
 

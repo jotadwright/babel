@@ -387,14 +387,9 @@
 
 ;; (ontonotes-file-lists)
 
-(defmethod spacy-benepar-compatible-annotation ((sentence conll-sentence) role-set &key (tokenize? nil) (syntactic-analysis nil))
+(defmethod spacy-benepar-compatible-annotation ((sentence conll-sentence) role-set)
   "Returns T if all annotated roles correspond to a constituent in de spacy-benepar tree."
-  (let ((syntactic-analysis (or syntactic-analysis
-                                (if tokenize?
-                                  (nlp-tools:get-penelope-syntactic-analysis (sentence-string sentence))
-                                  (nlp-tools:get-penelope-syntactic-analysis (split-sequence:split-sequence #\Space
-                                                                                                            (sentence-string sentence)
-                                                                                                            :remove-empty-subseqs t)))))
+  (let ((syntactic-analysis (syntactic-analysis sentence))
         (all-roles (loop for frame in (propbank-frames sentence)
                          if (equalp (frame-name frame) role-set)
                          append (frame-roles frame))))

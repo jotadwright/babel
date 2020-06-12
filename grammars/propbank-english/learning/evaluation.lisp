@@ -237,5 +237,5 @@
   "Computes F1-Score."
   (let ((precision (compute-precision nr-of-correct-predictions total-nr-of-predictions))
         (recall (compute-recall nr-of-correct-predictions nr-of-gold-standard-predictions)))
-    (when (and precision recall)
+    (when (and precision recall (> (+ precision recall) 0.0))
       (float (* 2 (/ (* precision recall) (+ precision recall)))))))
