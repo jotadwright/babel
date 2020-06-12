@@ -284,8 +284,9 @@
                      if (string= (role-type r) "V")
                      collect `(referent ,v-unit-name)
                      else
-                     if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
+                     if (and (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
                                                                      (role-type (car unit-with-role))) :test #'equalp)
+                             (unit-name (cdr (assoc r units-with-role))))
 
                      collect `(,(make-kw (role-type r))
                                ,(variablify (unit-name (cdr (assoc r units-with-role)))))))
@@ -296,8 +297,9 @@
                         if (string= (role-type r) "V")
                         collect `(frame ,frame-name ,v-unit-name)
                         else
-                        if (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
-                                                                        (role-type (car unit-with-role))) :test #'equalp)
+                        if (and (find (role-type r) units-with-role :key #'(lambda (unit-with-role)
+                                                                     (role-type (car unit-with-role))) :test #'equalp)
+                             (unit-name (cdr (assoc r units-with-role))))
                         collect `(frame-element ,(intern (upcase (role-type r))) ,v-unit-name
                                                 ,(variablify (unit-name (cdr (assoc r units-with-role))))))))
     `(,v-unit-name
