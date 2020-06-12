@@ -9,7 +9,8 @@
                :web-interface
                :irl
                :fcg
-               :cl-json
+               ;:cl-json
+               :jonathan
                :drakma
                :clevr-world
                :parse-float)

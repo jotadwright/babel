@@ -298,7 +298,7 @@
                    (push
                     `(get-context ,context-variable)
                     irl-program))
-                 (let ((v (make-var 'context)))
+                 (let ((v (make-var)))
                    (setf context-variable v)
                    (push
                     `(get-context ,context-variable)
@@ -320,9 +320,10 @@
                                    keep-fn)
                       irl-program)))))
     (unless use-variables-p
-      (fcg::instantiate-variables irl-program))
+      (setf irl-program
+            (fcg::instantiate-variables irl-program)))
     (remove-duplicates irl-program :test #'equal)))
     
 
-;(pprint (rpn->irl "get-context filter_color[cyan] filter_material[rubber] filter_shape[cube] unique relate_front filter_size[small] filter_color[cyan] filter_material[rubber] filter_shape[cube] exist"))             
+;(pprint (rpn->irl "get-context filter_color[cyan] filter_material[rubber] filter_shape[cube] unique relate_front filter_size[small] filter_color[cyan] filter_material[rubber] filter_shape[cube] exist" :use-variables-p t)        
     
