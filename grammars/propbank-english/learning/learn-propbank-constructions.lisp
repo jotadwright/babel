@@ -63,6 +63,80 @@
 
 (defgeneric learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode))
 
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-all-roles)))
+  "Learns a construction capturing all core roles."
+  ;; Looping over all frame instances for roleset annotated in sentence
+  (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
+        with ts-unit-structure = (ts-unit-structure propbank-sentence cxn-inventory)
+        for gold-frame in gold-frames
+        for units-with-role = (units-with-role ts-unit-structure gold-frame)
+        for core-units-with-role = (remove-if #'(lambda (unit-with-role)
+                                                  (search "ARGM" (role-type (car unit-with-role))))
+                                              units-with-role)
+        for argm-units-with-lemma = (remove-if-not #'(lambda (unit-with-role)
+                                                  (search "ARGM" (role-type (car unit-with-role))))
+                                              units-with-role)
+        for v-lemma = (v-lemma core-units-with-role)
+        for footprint = v-lemma ;; (make-id "footprint")
+        for pp-units-with-role = (remove-if-not #'(lambda (unit-w-role)
+                                                    (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type)))
+                                                units-with-role)
+        for contributing-unit = (make-propbank-contributing-unit core-units-with-role gold-frame footprint :include-frame-name t)
+        for cxn-units-with-role = (loop for unit in core-units-with-role
+                                        collect
+                                        (make-propbank-conditional-unit-with-role unit footprint :include-v-lemma t :include-fe-lemma nil))
+        for cxn-units-with-lemma = (loop for unit in argm-units-with-lemma
+                                        collect
+                                        (make-propbank-conditional-unit-with-role unit footprint :include-v-lemma t :include-fe-lemma t))
+        for cxn-units-without-role  = (make-propbank-conditional-units-without-role (append core-units-with-role argm-units-with-lemma)
+                                                                                    (append cxn-units-with-role cxn-units-with-lemma)
+                                                                                    ts-unit-structure)
+        for cxn-preposition-units = (loop for pp-unit in pp-units-with-role
+                                          collect (make-preposition-unit pp-unit ts-unit-structure))
+        for cxn-name = (make-cxn-name roleset
+                                      (append core-units-with-role argm-units-with-lemma)
+                                      (append cxn-units-with-role cxn-units-with-lemma)
+                                      cxn-units-without-role
+                                      cxn-preposition-units)
+        for cxn-preposition-units-flat = (loop for unit in cxn-preposition-units append unit)
+        for equivalent-cxn = (find-equivalent-cxn v-lemma
+                                                  (lex-classes (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units-flat))
+                                                  (phrase-types (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units-flat))
+                                                  (lemmas (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-preposition-units-flat))
+                                                  cxn-inventory)
+        when equivalent-cxn 
+        do
+        (incf (attr-val equivalent-cxn :frequency))
+        else
+        do
+        ;; assertions
+        ;(assert (and cxn-units-with-role v-lemma))
+        ;;;
+        (when (and cxn-units-with-role v-lemma)
+          ;;create a new construction and add it to the cxn-inventory
+          (eval `(def-fcg-cxn ,cxn-name
+                              (,contributing-unit
+                               <-
+                               ,@cxn-units-with-role
+                               ,@cxn-units-with-lemma
+                               ,@cxn-units-without-role
+                               ,@cxn-preposition-units-flat)
+                              :disable-automatic-footprints t
+                              :attributes (:lemma ,v-lemma
+                                           :score ,(length cxn-units-with-role)
+                                           :label multi-argument-core-roles
+                                           :frequency 1)
+                              :cxn-inventory ,cxn-inventory)))
+        finally
+        return cxn-inventory))
+
+
 (defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :multi-argument-core-roles)))
   "Learns a construction capturing all core roles."
   ;; Looping over all frame instances for roleset annotated in sentence
@@ -72,8 +146,8 @@
         for core-units-with-role = (remove-if #'(lambda (unit-with-role)
                                                   (search "ARGM" (role-type (car unit-with-role))))
                                               (units-with-role ts-unit-structure gold-frame))
-        for footprint = (make-id "footprint")
         for v-lemma = (v-lemma core-units-with-role)
+        for footprint = v-lemma ;; (make-id "footprint")
         for pp-units-with-role = (remove-if-not #'(lambda (unit-w-role)
                                                     (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type)))
                                                 core-units-with-role)
