@@ -135,7 +135,8 @@
                                                                   :silent silent
                                                                   :syntactic-analysis syntactic-analysis
                                                                   :selected-rolesets selected-rolesets)))))
-         (extracted-frames (extract-frames (car-resulting-cfs (cipn-car final-node))))
+         (extracted-frame-set  (extract-frames (car-resulting-cfs (cipn-car final-node))))
+         (extracted-frames (remove-if-not #'frame-with-name (frames extracted-frame-set)))
          ;; Number of gold-standard predictions
          (number-of-gold-standard-predictions (loop with number-of-gold-standard-predictions = 0
                                                     for frame in (propbank-frames propbank-sentence)
@@ -148,7 +149,7 @@
                                                     return number-of-gold-standard-predictions))
          ;; Number of predictions made by the grammar
          (number-of-predictions (loop with number-of-predictions = 0
-                                      for frame in (frames extracted-frames)
+                                      for frame in extracted-frames
                                       if (or (null selected-rolesets)
                                              (find (symbol-name (frame-name frame)) selected-rolesets :test #'equalp))
                                       do
@@ -163,7 +164,7 @@
                                       return number-of-predictions))
          ;; Number of correct predictions made
          (number-of-correct-predictions (loop with number-of-correct-predictions = 0
-                                              for predicted-frame in (frames extracted-frames)
+                                              for predicted-frame in extracted-frames
                                               ;; check whether we're interested in the frame
                                               if (or (null selected-rolesets)
                                                      (find (symbol-name (frame-name predicted-frame)) selected-rolesets :test #'equalp))
@@ -186,7 +187,7 @@
     ;; Printing
     (unless silent
       (add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
-      (add-element (make-html extracted-frames :expand-initially t)))
+      (add-element (make-html extracted-frame-set :expand-initially t)))
     ;; Return the results as an a-list.
     `((:precision . ,(compute-precision number-of-correct-predictions number-of-predictions))
       (:recall . ,(compute-recall number-of-correct-predictions number-of-gold-standard-predictions))
@@ -218,6 +219,10 @@
                   (find index (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp))))
           do
           (return t))))
+
+(defmethod frame-with-name ((frame frame))
+  "Return t if the frame has a non-variable name."
+  (not (equalp "?" (subseq (symbol-name (frame-name frame)) 0 1))))
 
 
 ;; Precision, Recall and F1-score ;;
