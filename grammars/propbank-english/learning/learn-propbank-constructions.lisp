@@ -77,11 +77,11 @@
                                                   (search "ARGM" (role-type (car unit-with-role))))
                                               units-with-role)
         for v-lemma = (v-lemma core-units-with-role)
-        for footprint = v-lemma ;; (make-id "footprint")
+        for footprint = 'frame-evoking-element
         for pp-units-with-role = (remove-if-not #'(lambda (unit-w-role)
                                                     (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type)))
                                                 units-with-role)
-        for contributing-unit = (make-propbank-contributing-unit core-units-with-role gold-frame footprint :include-frame-name t)
+        for contributing-unit = (make-propbank-contributing-unit units-with-role gold-frame footprint :include-frame-name t)
         for cxn-units-with-role = (loop for unit in core-units-with-role
                                         collect
                                         (make-propbank-conditional-unit-with-role unit footprint :include-v-lemma t :include-fe-lemma nil))
@@ -147,7 +147,7 @@
                                                   (search "ARGM" (role-type (car unit-with-role))))
                                               (units-with-role ts-unit-structure gold-frame))
         for v-lemma = (v-lemma core-units-with-role)
-        for footprint = v-lemma ;; (make-id "footprint")
+        for footprint = 'frame-evoking-element
         for pp-units-with-role = (remove-if-not #'(lambda (unit-w-role)
                                                     (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type)))
                                                 core-units-with-role)
@@ -382,7 +382,7 @@
       (meaning ,meaning)
       (footprints (,footprint)))))
 
-(defun make-propbank-conditional-unit-with-role (unit-with-role footprint &key (include-v-lemma t) (include-fe-lemma nil))
+(defun make-propbank-conditional-unit-with-role (unit-with-role footprint &key (include-v-lemma t) (include-fe-lemma nil) (include-v-dependency-label nil))
   "Makes a conditional unit for a propbank cxn based on a unit in the
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
@@ -400,6 +400,8 @@ initial transient structure that plays a role in the frame."
         (parent ,parent)
         ,phrase-type-or-lex-class
         ,@(when v-unit? `((footprints (NOT ,footprint))))
+        ,@(when (and v-unit? include-v-dependency-label)
+            `((dependency-label ,(cadr (find 'dependency-label (unit-body unit) :key #'feature-name)))))
         ,@(when (and v-unit? include-v-lemma leaf?)
             `((lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))))
         ,@(when (and (not v-unit?) include-fe-lemma leaf?)
