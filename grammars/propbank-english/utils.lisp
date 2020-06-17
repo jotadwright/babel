@@ -267,6 +267,37 @@ split to the output buffer."
 ;; (print-propbank-sentences-with-annotation "believe.01")
 
 
+;; Cleaning the grammar ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun clean-grammar (grammar &key (destructive t) (remove-cxns-with-freq-1 nil)
+                              (remove-v-prons nil))
+  
+  (let ((cxn-inventory (if destructive grammar (copy-object grammar))))
+        (when remove-v-prons
+          (with-disabled-monitor-notifications
+            (delete-cxn
+             (find-cxn "HAVE.02-V:-PRON-+0-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
+             cxn-inventory)
+            (delete-cxn
+             (find-cxn "BE.01-ARG1:NP+V:-PRON-+ARG2:RB+2-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
+             cxn-inventory)))
+  
+        (when remove-cxns-with-freq-1
+          (loop for cxn in (constructions-list cxn-inventory)
+                when (= 1 (attr-val cxn :frequency))
+                do (with-disabled-monitor-notifications (delete-cxn cxn cxn-inventory))
+                finally return cxn-inventory))
+        cxn-inventory))
+
+
+(defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
+  (remove-if-not #'(lambda (sentence)
+                     (loop for roleset in (or rolesets (all-rolesets sentence)à)
+                           always (spacy-benepar-compatible-annotation sentence roleset)))
+                 list-of-sentences))
+
+
 ;; Comparing Propbank Constructions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
