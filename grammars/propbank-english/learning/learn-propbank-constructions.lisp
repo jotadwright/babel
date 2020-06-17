@@ -460,26 +460,27 @@ the paths in the syntactic tree between units that function as slot
 fillers (arg0, arg1) and the frame-evoking element unit."
   (remove-duplicates
    (loop with fee-unit = (cdr (find-if #'(lambda(unit-with-role) (string= (role-type (car unit-with-role)) "V"))
-                                                               units-with-role))
+                                       units-with-role))
          for unit-with-role in (remove fee-unit units-with-role :test #'equal) ;;discard the frame-evoking element (FEE) unit
          for path = (find-path-in-syntactic-tree (cdr unit-with-role) fee-unit unit-structure) ;;find path between a unit in the transient structure and the FEE unit
 
          append (loop for unit-name in path
                       for unit = (find unit-name unit-structure :key #'unit-name)
                       for parent = (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
-                                      (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
+                                     (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
                       for form-constraints-for-children-with-role-and-same-type = (make-form-constraints-for-children-with-role-and-same-type unit cxn-units-with-role)
 
                       unless (find (variablify unit-name) cxn-units-with-role :key #'unit-name) ;;check that the unit is not a frame-element
                       collect `(,(variablify unit-name)
                                 --
-                                (parent ,parent)
-                                ,(when form-constraints-for-children-with-role-and-same-type
-                                   `(word-order ,form-constraints-for-children-with-role-and-same-type))
-                                ,(if (find '(node-type leaf) (unit-body unit) :test #'equal)
-                                   `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
-                                   `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
-                                                    :key #'unit-name))
+                                ,@(when parent
+                                    `((parent ,parent)))
+                                ,@(when form-constraints-for-children-with-role-and-same-type
+                                   `((word-order ,form-constraints-for-children-with-role-and-same-type)))
+                                ,@(if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                   `((lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name))))
+                                   `((phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))))
+   :key #'unit-name))
 
 
 (defun make-form-constraints-for-children-with-role-and-same-type (unit cxn-units-with-role)
