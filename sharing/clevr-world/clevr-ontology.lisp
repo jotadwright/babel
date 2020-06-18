@@ -7,7 +7,7 @@
 (export '(category attribute shape-category size-category
           color-category material-category spatial-relation-category
           spatial-relation boolean-category bool
-          attribute-category attribute attention
+          attribute-category attribute attention img-path
           shapes sizes colors materials spatial-relations attributes
           category-value))
 
@@ -45,9 +45,9 @@
   ((attribute :type symbol :initarg :attribute :reader attribute))
   (:documentation "A category to represent object attributes"))
 
-(defclass attention (entity) ()
-  ;; an attention holds only an ID for now
-  ;; can hold an image also later (for visualization)
+(defclass attention (entity)
+  ((img-path :type (or null pathname) :initarg :img-path
+             :accessor img-path :initform nil))
   (:documentation "A symbolic representation of an intermediate attention"))
 
 ;; ################################

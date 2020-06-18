@@ -271,3 +271,14 @@ div.clevr-scene-table {
   `(((div :class "entity-details")
      ,(format nil "~a" (category-value category)))))
 
+
+(defmethod make-html-for-entity-details ((attn attention) &key)
+  (when (img-path attn)
+    (copy-file (img-path attn) (pathname "~/Sites/"))
+    (if (null cl-user::*localhost-user-dir*)
+      (warn "Set your *localhost-user-dir* in init-babel")
+      `(((div :class "entity-details")
+         ((img :src ,(string-append cl-user::*localhost-user-dir*
+                                    (format nil "~a.~a"
+                                            (pathname-name (img-path attn))
+                                            (pathname-type (img-path attn)))))))))))
