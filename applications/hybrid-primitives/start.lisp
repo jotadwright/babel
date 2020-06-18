@@ -7,15 +7,19 @@
             "CLEVR_val_000000.png")
 
 ;; evaluate the get-context primitive
-(defvar context-bindings
-  (evaluate-neural-primitive
-   "http://localhost:8888/"
-   `(:primitive get-context
-     :slots (:context nil))))
-(defvar context-attn
-  (loop for bind-set in context-bindings
-        return (loop for statement in bind-set
-                     return (internal-symb (third statement)))))
+(setf context-attn
+  (multiple-value-bind (bind-scores bind-values)
+      (evaluate-neural-primitive
+       "http://localhost:8888/"
+       `(:primitive get-context
+         :slots (:context nil)))
+    (loop for values in bind-values
+          return (intern (getf values 'context)
+                         :hybrid-primitives))))
+
+(setf path
+      (request-attn "http://localhost:8888/"
+                    (make-instance 'attention :id context-attn)))
 
 (defvar filter-bindings
   (evaluate-neural-primitive

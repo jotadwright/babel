@@ -13,6 +13,7 @@
     (declare (ignorable headers uri stream must-close reason-phrase))
     (values (parse (upcase (replace-char response #\_ #\-))) code)))
 
+
 (defun load-image (server-address image-name)
   "Load a CLEVR image before starting
    the IRL program evaluation"
@@ -73,3 +74,25 @@
                                              :hybrid-primitives)
                                      (getf bind-statement :value))))))
     (values bind-scores bind-values)))
+
+
+(defun request-attn (server-address attention)
+  (multiple-value-bind (byte-array code headers
+                                   uri stream must-close
+                                   reason-phrase)
+      (http-request (replace-char
+                     (downcase
+                      (mkstr server-address
+                             (format nil "attn/~a"
+                                     (id attention))))
+                     #\- #\_)
+                    :method :get)
+    (declare (ignorable headers uri stream must-close reason-phrase))
+    (when (= code 200)
+      (let ((filepath (babel-pathname :directory '(".tmp") :type "png"
+                                      :name (downcase (mkstr (id attention))))))
+        (with-open-file (stream filepath :direction :output
+                                :element-type 'unsigned-byte)
+          (loop for byte across byte-array
+                do (write-byte byte stream)))
+        filepath))))
