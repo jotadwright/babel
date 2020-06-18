@@ -6,7 +6,7 @@
 ;; Seq2seq configurations:
 (set-configurations *fcg-constructions*
                     '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-                      (:priority-mode . :seq2seq-heuristic-log-sum)
+                      (:priority-mode . :seq2seq-heuristic-additive)
                       (:seq2seq-endpoint . "http://localhost:8888/next-cxn")))
 
 ;; depth first configurations:
