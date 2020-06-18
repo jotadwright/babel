@@ -10,17 +10,19 @@
                       (source-attn attention))
   ;; first case; given source set, compute target object
   ((source-attn => target-attn)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive unique
-             :slots (:source-attn ,(id source-attn)
-                     :target-attn nil)))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             collect (list variable score
-                                           (make-instance 'attention
-                                                          :id (internal-symb value))))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive unique
+          :slots (:source-attn ,(id source-attn)
+                  :target-attn nil)))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (target-attn
+                     (getf scores 'target-attn)
+                     (make-instance 'attention
+                                    :id (intern (getf values 'target-attn)
+                                                :hybrid-primitives)))))))
 
   ;; second case; given source set and target object
   ;; check for consistency

@@ -11,57 +11,63 @@
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
   ((source-attn attribute => target-category)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive query
-             :slots (:source-attn ,(id source-attn)
-                     :attribute ,(attribute attribute)
-                     :target-category nil)))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             collect (list variable score
-                                           (find-entity-by-id
-                                            ontology
-                                            (internal-symb value))))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive query
+          :slots (:source-attn ,(id source-attn)
+                  :attribute ,(attribute attribute)
+                  :target-category nil)))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (target-category
+                     (getf scores 'target-category)
+                     (find-entity-by-id
+                      ontology
+                      (intern (getf values 'target-category)
+                              :hybrid-primitives)))))))
 
   ;; second case; given source-object and target-category, compute the attribute
   ((source-attn target-category => attribute)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive query
-             :slots (:source-attn ,(id source-attn)
-                     :target-category ,(category-value target-category)
-                     :attribute nil)))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             collect (list variable score
-                                           (find (internal-symb value)
-                                                 (get-data ontology 'attributes)
-                                                 :key #'id)))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive query
+          :slots (:source-attn ,(id source-attn)
+                  :target-category ,(category-value target-category)
+                  :attribute nil)))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (attribute
+                     (getf scores 'attribute)
+                     (find (intern (getf values 'attribute)
+                                   :hybrid-primitives)
+                           (get-data ontology 'attributes)
+                           :key #'id))))))
 
   ;; third case; given source-object, compute pairs of attribute and target-category
   ((source-attn => attribute target-category)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive query
-             :slots (:source-attn ,(id source-attn)
-                     :target-category nil
-                     :attribute nil)))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             collect (list variable score
-                                           (case variable
-                                             (target-category
-                                              (find-entity-by-id
-                                               ontology
-                                               (internal-symb value)))
-                                             (attribute 
-                                              (find (internal-symb value)
-                                                    (get-data ontology 'attributes)
-                                                    :key #'attribute)))))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive query
+          :slots (:source-attn ,(id source-attn)
+                  :target-category nil
+                  :attribute nil)))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (attribute
+                     (getf scores 'attribute)
+                     (find (intern (getf values 'attribute)
+                                   :hybrid-primitives)
+                           (get-data ontology 'attributes)
+                           :key #'id))
+                    (target-category
+                     (getf scores 'target-category)
+                     (find-entity-by-id
+                      ontology
+                      (intern (getf values 'target-category)
+                              :hybrid-primitives)))))))
   
   ;; fourth case; if given source-object, attribute and target-category, check
   ;; for consistency

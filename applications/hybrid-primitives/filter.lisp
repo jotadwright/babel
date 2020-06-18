@@ -11,53 +11,61 @@
                       (category attribute))
   ;; first case: if given source-set and category, compute target-set
   ((source-attn category => target-attn)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive filter
-             :slots (:source-attn ,(id source-attn)
-                     :category  ,(category-value category)
-                     :target-attn nil)))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             collect (list variable score
-                                           (make-instance 'attention
-                                                          :id (internal-symb value))))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive filter
+          :slots (:source-attn ,(id source-attn)
+                  :category  ,(category-value category)
+                  :target-attn nil)))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (target-attn
+                     (getf scores 'target-attn)
+                     (make-instance 'attention
+                                    :id (intern (getf values 'target-attn)
+                                                :hybrid-primitives)))))))
 
   ;; second case: if given source-set and target-set, compute category
   ((source-attn target-attn => category)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive filter
-             :slots (:source-attn ,(id source-attn)
-                     :category  nil
-                     :target-attn ,(id target-attn))))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             collect (list variable score
-                                           (find-entity-by-id
-                                            ontology
-                                            (internal-symb value))))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive filter
+          :slots (:source-attn ,(id source-attn)
+                  :category  nil
+                  :target-attn ,(id target-attn))))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (category
+                     (getf scores 'category)
+                     (find-entity-by-id
+                      ontology
+                      (intern (getf values 'category)
+                              :hybrid-primitives)))))))
 
   ;; third case: if given source-set, compute pairs of target-set and category
   ((source-attn => target-attn category)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive filter
-             :slots (:source-attn ,(id source-attn)
-                     :category nil
-                     :target-attn nil)))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             collect (list variable score
-                                           (case variable
-                                             (category (find-entity-by-id
-                                                        ontology
-                                                        (internal-symb value)))
-                                             (target-attn (make-instance 'attention
-                                                                         :id (internal-symb value))))))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive filter
+          :slots (:source-attn ,(id source-attn)
+                  :category nil
+                  :target-attn nil)))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (target-attn
+                     (getf scores 'target-attn)
+                     (make-instance 'attention
+                                    :id (intern (getf values 'target-attn)
+                                                :hybrid-primitives)))
+                    (category
+                     (getf scores 'category)
+                     (find-entity-by-id
+                      ontology
+                      (intern (getf values 'category)
+                              :hybrid-primitives)))))))
 
   ;; fourth case: if given source-set, target-set and category, check for consistency
   ((source-attn target-attn category =>)

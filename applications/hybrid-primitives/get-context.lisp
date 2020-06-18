@@ -18,14 +18,16 @@
 
   ;; second case; bind the context from the ontology
   ((=> context)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive get-context
-             :slots (:context nil)))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             collect (list variable score
-                                           (make-instance 'attention
-                                                          :id (internal-symb value)))))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive get-context
+          :slots (:context nil)))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (context
+                     (getf scores 'context)
+                     (make-instance 'attention
+                                    :id (intern (getf values 'context)
+                                                :hybrid-primitives))))))))
 

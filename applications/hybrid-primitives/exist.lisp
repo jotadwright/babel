@@ -10,18 +10,20 @@
                      (source-attn attention))
   ((source-attn => target-bool)
    ;; first case; give source-set, compute target-bool
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive exist
-             :slots (:target-bool nil
-                     :source-attn ,(id source-attn))))))
-     (loop for bind-set in new-bindings
-           do `(bind ,@(loop for (variable score value) in bind-set
-                             for yes/no = (internal-symb value)
-                             collect (list variable score
-                                           (find-entity-by-id
-                                            ontology yes/no)))))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive exist
+          :slots (:target-bool nil
+                  :source-attn ,(id source-attn))))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (target-bool
+                     (getf scores 'target-bool)
+                     (find-entity-by-id
+                      ontology
+                      (intern (getf values 'target-bool)
+                              :hybrid-primitives)))))))
   
   ;; second case; given source-set and target-bool, check consistency
   ((source-attn target-bool =>)

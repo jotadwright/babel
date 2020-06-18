@@ -58,9 +58,18 @@
    The new bindings are returned as a list of lists of dictionaries.
    This is because multiple variables can be bound in 1 go and
    the same variable can be bound multiple times."
-  (loop for bind-set in bindings
-        collect (loop for bind-statement in bind-set
-                      collect (list
-                               (internal-symb (getf bind-statement :variable))
-                               (getf bind-statement :score)
-                               (getf bind-statement :value)))))
+  (let ((bind-scores
+         (loop for bind-set in bindings
+               collect (loop for bind-statement in bind-set
+                             append (list
+                                     (intern (getf bind-statement :variable)
+                                             :hybrid-primitives)
+                                     (getf bind-statement :score)))))
+        (bind-values
+         (loop for bind-set in bindings
+               collect (loop for bind-statement in bind-set
+                             append (list
+                                     (intern (getf bind-statement :variable)
+                                             :hybrid-primitives)
+                                     (getf bind-statement :value))))))
+    (values bind-scores bind-values)))

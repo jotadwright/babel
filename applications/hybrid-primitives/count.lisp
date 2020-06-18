@@ -10,14 +10,17 @@
                       (source-attn attention))
   ;; first case; given source-set, compute target
   ((source-attn => target-num)
-   (let ((new-bindings
-          (evaluate-neural-primitive
-           (get-data ontology 'server-address)
-           `(:primitive count
-             :slots (:source-attn ,(id source-attn)
-                     :target-num nil)))))
-     (loop for bind-set in new-bindings
-           do `(bind ,bind-set))))
+   (multiple-value-bind (bind-scores bind-values)
+       (evaluate-neural-primitive
+        (get-data ontology 'server-address)
+        `(:primitive count
+          :slots (:source-attn ,(id source-attn)
+                  :target-num nil)))
+     (loop for scores in bind-scores
+           for values in bind-values
+           do (bind (target-num
+                     (getf scores 'target-num)
+                     (getf values 'target-num))))))
 
   ;; second case; given source and target, check consistency
   ((source-attn target-num =>)
