@@ -77,11 +77,11 @@
                                                   (search "ARGM" (role-type (car unit-with-role))))
                                               units-with-role)
         for v-lemma = (v-lemma core-units-with-role)
-        for footprint = v-lemma ;; (make-id "footprint")
+        for footprint = 'frame-evoking-element
         for pp-units-with-role = (remove-if-not #'(lambda (unit-w-role)
                                                     (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type)))
                                                 units-with-role)
-        for contributing-unit = (make-propbank-contributing-unit core-units-with-role gold-frame footprint :include-frame-name t)
+        for contributing-unit = (make-propbank-contributing-unit units-with-role gold-frame footprint :include-frame-name t)
         for cxn-units-with-role = (loop for unit in core-units-with-role
                                         collect
                                         (make-propbank-conditional-unit-with-role unit footprint :include-v-lemma t :include-fe-lemma nil))
@@ -147,7 +147,7 @@
                                                   (search "ARGM" (role-type (car unit-with-role))))
                                               (units-with-role ts-unit-structure gold-frame))
         for v-lemma = (v-lemma core-units-with-role)
-        for footprint = v-lemma ;; (make-id "footprint")
+        for footprint = 'frame-evoking-element
         for pp-units-with-role = (remove-if-not #'(lambda (unit-w-role)
                                                     (find 'pp (unit-feature-value (cdr unit-w-role) 'phrase-type)))
                                                 core-units-with-role)
@@ -382,7 +382,7 @@
       (meaning ,meaning)
       (footprints (,footprint)))))
 
-(defun make-propbank-conditional-unit-with-role (unit-with-role footprint &key (include-v-lemma t) (include-fe-lemma nil))
+(defun make-propbank-conditional-unit-with-role (unit-with-role footprint &key (include-v-lemma t) (include-fe-lemma nil) (include-v-dependency-label nil))
   "Makes a conditional unit for a propbank cxn based on a unit in the
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
@@ -400,6 +400,8 @@ initial transient structure that plays a role in the frame."
         (parent ,parent)
         ,phrase-type-or-lex-class
         ,@(when v-unit? `((footprints (NOT ,footprint))))
+        ,@(when (and v-unit? include-v-dependency-label)
+            `((dependency-label ,(cadr (find 'dependency-label (unit-body unit) :key #'feature-name)))))
         ,@(when (and v-unit? include-v-lemma leaf?)
             `((lemma ,(cadr (find 'lemma (unit-body unit) :key #'feature-name)))))
         ,@(when (and (not v-unit?) include-fe-lemma leaf?)
@@ -458,26 +460,27 @@ the paths in the syntactic tree between units that function as slot
 fillers (arg0, arg1) and the frame-evoking element unit."
   (remove-duplicates
    (loop with fee-unit = (cdr (find-if #'(lambda(unit-with-role) (string= (role-type (car unit-with-role)) "V"))
-                                                               units-with-role))
+                                       units-with-role))
          for unit-with-role in (remove fee-unit units-with-role :test #'equal) ;;discard the frame-evoking element (FEE) unit
          for path = (find-path-in-syntactic-tree (cdr unit-with-role) fee-unit unit-structure) ;;find path between a unit in the transient structure and the FEE unit
 
          append (loop for unit-name in path
                       for unit = (find unit-name unit-structure :key #'unit-name)
                       for parent = (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
-                                      (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
+                                     (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
                       for form-constraints-for-children-with-role-and-same-type = (make-form-constraints-for-children-with-role-and-same-type unit cxn-units-with-role)
 
                       unless (find (variablify unit-name) cxn-units-with-role :key #'unit-name) ;;check that the unit is not a frame-element
                       collect `(,(variablify unit-name)
                                 --
-                                (parent ,parent)
-                                ,(when form-constraints-for-children-with-role-and-same-type
-                                   `(word-order ,form-constraints-for-children-with-role-and-same-type))
-                                ,(if (find '(node-type leaf) (unit-body unit) :test #'equal)
-                                   `(lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name)))
-                                   `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name)))))))
-                                                    :key #'unit-name))
+                                ,@(when parent
+                                    `((parent ,parent)))
+                                ,@(when form-constraints-for-children-with-role-and-same-type
+                                   `((word-order ,form-constraints-for-children-with-role-and-same-type)))
+                                ,@(if (find '(node-type leaf) (unit-body unit) :test #'equal)
+                                   `((lex-class ,(cadr (find 'lex-class (unit-body unit) :key #'feature-name))))
+                                   `((phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))))))
+   :key #'unit-name))
 
 
 (defun make-form-constraints-for-children-with-role-and-same-type (unit cxn-units-with-role)

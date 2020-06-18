@@ -80,12 +80,12 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                                :name "learned-grammar-multi-core-argm-lemma-and-arg-pp"
+                                :name "learned-grammar-training-set"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                           :name "learned-grammar-multi-argument-allsentences"
+                           :name "learned-grammar"
                            :type "fcg")))
 
 ;;;;;;;;;;;;;;
@@ -95,7 +95,7 @@
 (defparameter *training-configuration*
   '((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
-    (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
+    (:parse-goal-tests :no-valid-children) ;:no-valid-children
     (:max-nr-of-nodes . 100)
     (:node-expansion-mode . :multiple-cxns)
     (:priority-mode . :nr-of-applied-cxns)
@@ -103,13 +103,14 @@
     (:hash-mode . :hash-lemma)
     (:parse-order
      multi-argument-core-roles
-     argm-with-lemma
      argm-pp
+     argm-with-lemma
+     
      )
     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
     (:equivalent-cxn-key . identity)
     (:learning-modes
-
+    ; :multi-argument-all-roles
      :multi-argument-core-roles
      :argm-with-lemma
      :argm-pp
@@ -119,35 +120,63 @@
 
 
 (with-disabled-monitor-notifications
-  (learn-propbank-grammar *opinion-sentences*
-                          :cxn-inventory '*propbank-learned-cxn-inventory*
-                          :fcg-configuration *training-configuration*
-                          :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")))
+  (learn-propbank-grammar ;(train-split *propbank-annotations*)
+   *opinion-sentences*
+   :cxn-inventory '*propbank-learned-cxn-inventory*
+   :fcg-configuration *training-configuration*
+   ;:selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+   ))
 
+(with-disabled-monitor-notifications
+  (learn-propbank-grammar (train-split *propbank-annotations*)
+   :cxn-inventory '*propbank-learned-cxn-inventory*
+   :fcg-configuration *training-configuration*
+   ))
+
+(setf *A* (sort (constructions-list *propbank-learned-cxn-inventory*) #'> :key #'(lambda (cxn) (attr-val cxn :frequency))))
 
 ;;;;;;;;;;;;;;;;
 ;; Evaluation ;;
 ;;;;;;;;;;;;;;;;
 
 (set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
-(set-configuration *propbank-learned-cxn-inventory* :parse-order '(multi-argument-core-only argm-pp-with-lemma argm-with-lemma))
+(set-configuration *propbank-learned-cxn-inventory* :parse-order '(multi-argument-all-roles multi-argument-core-only argm-pp-with-lemma argm-with-lemma))
 
 (evaluate-propbank-sentences
- (subseq *opinion-sentences-dev* 0 10)
+ ;(subseq
+  (spacy-benepar-compatible-sentences *opinion-sentences-dev* '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
+  ;6 7)
  *propbank-learned-cxn-inventory*
  :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t)
 
-(evaluate-propbank-sentences-per-roleset
- (subseq *opinion-sentences-dev* 0 1)
+(add-element (make-html *propbank-learned-cxn-inventory*))
+
+(defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
+  (remove-if-not #'(lambda (sentence)
+                     (loop for roleset in (or rolesets (all-rolesets sentence)à)
+                           always (spacy-benepar-compatible-annotation sentence roleset)))
+                 list-of-sentences))
+
+
+(defparameter *spacy-benepar-compatible-sentences* (remove-if-not #'(lambda (sentence)
+                                                                      (loop for roleset in (all-rolesets  sentence)
+                        always (spacy-benepar-compatible-annotation sentence roleset)))
+                 (dev-split *propbank-annotations*)))
+
+(time (evaluate-propbank-sentences-per-roleset
+ (subseq (shuffle *spacy-benepar-compatible-sentences*)  0 500)
  *propbank-learned-cxn-inventory*
- :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
- :silent nil)
+ ;:selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01") 
+ :silent nil))
 
 (deactivate-all-monitors)
 (activate-monitor trace-fcg)
 
 (add-element (make-html *propbank-learned-cxn-inventory*))
+
+
+(delete-cxn *saved-cxn* *propbank-learned-cxn-inventory* )
 
 ;;;;;;;;;;;;;
 ;; Testing ;;
@@ -165,7 +194,7 @@
                         :selected-rolesets '("expect.01")
                         :silent t
                         :tokenize? nil)
-(activate-monitor trace-fcg)
+(activate-monitor trace-fcg) 
 (with-activated-monitor trace-fcg
   (add-element (make-html (second (multiple-value-list (comprehend *selected-sentence* :cxn-inventory *propbank-learned-cxn-inventory*)
                                                        )))))
@@ -177,18 +206,23 @@
 
 (add-element (make-html *propbank-learned-cxn-inventory*))
 
+(add-element (make-html (find-cxn "BECOME.01-ARG1:PRP+V:BECOME+ARG2:NP+ARGM-ADV:PP(CC-FROM)+ARGM-ADV:PP(CC-FROM)+ARGM-TMP:NOW+3-CXN-1"
+          *propbank-learned-cxn-inventory* :hash-key 'become :test #'string=)))
+          
 (evaluate-propbank-sentences
  (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t))
 
 (activate-monitor trace-fcg)
 (comprehend-and-extract-frames "I would like to order a still water ." :cxn-inventory *propbank-learned-cxn-inventory*)
 
+
+
 ;; Testing new sentences with learned grammar 
 ;; Guardian FISH article
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
-(set-configuration *propbank-learned-cxn-inventory* :parse-order '(:multi-argument-core-roles))
+(set-configuration *propbank-learned-cxn-inventory* :parse-order '(:multi-argument-core-roles :argm-pp :argm-with-lemma ))
 
 (comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar*)
 
