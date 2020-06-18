@@ -1,7 +1,7 @@
 
 (in-package :hybrid-primitives)
 
-(export '(load-image))
+(export '(load-image request-attn))
 
 (defun do-irl-request (server-address endpoint data)
   (multiple-value-bind (response code headers
@@ -89,10 +89,12 @@
                     :method :get)
     (declare (ignorable headers uri stream must-close reason-phrase))
     (when (= code 200)
-      (let ((filepath (babel-pathname :directory '(".tmp") :type "png"
+      (let ((filepath (babel-pathname :directory '(".tmp" "attn") :type "png"
                                       :name (downcase (mkstr (id attention))))))
+        (ensure-directories-exist filepath)
         (with-open-file (stream filepath :direction :output
                                 :element-type 'unsigned-byte)
           (loop for byte across byte-array
                 do (write-byte byte stream)))
+        (setf (img-path attention) filepath)
         filepath))))

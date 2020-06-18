@@ -5,9 +5,7 @@
 ;; initialize the server by loading a scene (i.e. an image)
 (load-image "http://localhost:8888/"
             "CLEVR_val_000000.png")
-
-;; evaluate the get-context primitive
-(setf context-attn
+(setf context-attn-id
   (multiple-value-bind (bind-scores bind-values)
       (evaluate-neural-primitive
        "http://localhost:8888/"
@@ -16,10 +14,11 @@
     (loop for values in bind-values
           return (intern (getf values 'context)
                          :hybrid-primitives))))
-
-(setf path
-      (request-attn "http://localhost:8888/"
-                    (make-instance 'attention :id context-attn)))
+(setf context-attn
+      (make-instance 'attention
+                     :id context-attn-id))
+(request-attn "http://localhost:8888/" context-attn)
+(add-element (make-html context-attn))
 
 (defvar filter-bindings
   (evaluate-neural-primitive

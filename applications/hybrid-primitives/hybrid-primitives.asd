@@ -9,11 +9,9 @@
                :web-interface
                :irl
                :fcg
-               ;:cl-json
                :jonathan
                :drakma
-               :clevr-world
-               :parse-float)
+               :clevr-world)
   :serial t
   :components ((:file "package")
                (:file "server")

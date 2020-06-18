@@ -35,7 +35,25 @@
 (defun compare-answers (gold-answer prediction)
   (string= (upcase (answer->str gold-answer))
            (upcase (answer->str prediction))))
-  
+
+(defmethod irl::handle-evaluate-irl-program-finished-event :before ((monitor monitor)
+                                                                    (monitor-id (eql 'irl::trace-irl-in-web-browser))
+                                                                    (event-id (eql 'irl::evaluate-irl-program-finished))
+                                                                    ontology
+                                                                    solutions
+                                                                    evaluation-tree)
+  ;; when the monitor is active
+  ;; download all attention images
+  ;; also check if the slot is bound
+  ;; such that the same attention is not downloaded twice
+  (when (monitors::active monitor)
+    (loop for solution in solutions
+          do (loop for binding in solution
+                   when (and (eql (type-of (value binding)) 'attention)
+                             (null (img-path (value binding))))
+                   do (request-attn (get-data ontology 'hybrid-primitives::server-address)
+                                   (value binding))))))
+
 
 ;; comprehend the question with the grammar, using seq2seq heuristics
 ;; execute the IRL network with the neural modules

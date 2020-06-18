@@ -5,13 +5,9 @@
   (:use :common-lisp
         :utils
         :irl
+        :web-interface
         :clevr-world)
-  ;(:import-from :cl-json
-  ; :encode-json-alist-to-string
-  ; :decode-json-from-string)
   (:import-from :jonathan
    :to-json :parse)
   (:import-from :drakma
-   :http-request)
-  (:import-from :parse-float
-   :parse-float))
+   :http-request))
