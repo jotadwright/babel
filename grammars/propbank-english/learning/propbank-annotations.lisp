@@ -302,10 +302,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reading in propbank annotated corpora ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun get-corpus-name-variable (corpus-name)
-  (case corpus-name
-    (ewt *ewt-annotations*)
-    (ontonotes *ontonotes-annotations*)))
 
 (defun get-corpus-annotations-storage-file (corpus-name)
   (case corpus-name
@@ -316,26 +312,37 @@
   "Loads ProbBank annotations and stores the result. It is loaded from a pb-annotations.store file if it
    is available, from the raw pb-annoation files otherwise. :store-data nil avoids storing the data,
    ignore-stored-data t forces to load the data from the original files."
-  ;; Load the data into *propbank-annotations*
-  (let ((corpus-name-variable (get-corpus-name-variable corpus-name))
-        (corpus-annotations-storage-file (get-corpus-annotations-storage-file corpus-name)))
-    
+  (let ((corpus-annotations-storage-file (get-corpus-annotations-storage-file corpus-name)))
     (if (and (probe-file corpus-annotations-storage-file)
              (not ignore-stored-data))
       ;; Option 1: Load from storage file if file exists ignore-stored-data is nil.
-      (setf corpus-name-variable (cl-store:restore corpus-annotations-storage-file))
+      (case corpus-name
+        (ewt (setf *ewt-annotations* (cl-store:restore corpus-annotations-storage-file)))
+        (ontonotes (setf *ontonotes-annotations* (cl-store:restore corpus-annotations-storage-file))))
       ;; Option 2: Load from original propbank files.
-      (setf corpus-name-variable (load-propbank-annotations-from-files corpus-name)))
+      (case corpus-name
+        (ewt (setf *ewt-annotations* (load-propbank-annotations-from-files corpus-name)))
+        (ontonotes (setf *ontonotes-annotations* (load-propbank-annotations-from-files corpus-name)))))
     ;; Store the data into an *fn-data-storage-file*
     (if (and store-data (or ignore-stored-data
                             (not (probe-file corpus-annotations-storage-file))))
-      (cl-store:store corpus-name-variable corpus-annotations-storage-file))
+      (case corpus-name
+        (ewt (cl-store:store *ewt-annotations* corpus-annotations-storage-file))
+        (ontonotes (cl-store:store *ontonotes-annotations* corpus-annotations-storage-file))))
 
     (format nil "Loaded ~a annotated sentences into ~a"
-            (+ (length (train-split corpus-name-variable))
-               (length (dev-split corpus-name-variable))
-               (length (test-split corpus-name-variable)))
-            corpus-name-variable)))
+            (+ (length (train-split (case corpus-name
+                                      (ewt *ewt-annotations*)
+                                      (ontonotes *ontonotes-annotations*))))
+               (length (dev-split (case corpus-name
+                                    (ewt *ewt-annotations*)
+                                    (ontonotes *ontonotes-annotations*))))
+               (length (test-split (case corpus-name
+                                     (ewt *ewt-annotations*)
+                                     (ontonotes *ontonotes-annotations*)))))
+            (case corpus-name
+              (ewt '*ewt-annotations*)
+              (ontonotes '*ontonotes-annotations*)))))
 
 
 (defun load-propbank-annotations-from-files (corpus-name)
