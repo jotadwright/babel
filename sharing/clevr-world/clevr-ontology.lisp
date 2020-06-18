@@ -71,6 +71,8 @@
   (bool boolean-category))
 (defmethod category-value ((attribute-category attribute-category))
   (attribute attribute-category))
+(defmethod category-value ((attention attention))
+  (id attention))
 
 ;; ################################
 ;; clevr ontology

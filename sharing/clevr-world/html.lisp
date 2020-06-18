@@ -267,3 +267,7 @@ div.clevr-scene-table {
      ,@(loop for q in (questions set)
              collect (make-html q :expand-initially t)))))
 
+(defmethod make-html-for-entity-details ((category category) &key)
+  `(((div :class "entity-details")
+     ,(format nil "~a" (category-value category)))))
+
