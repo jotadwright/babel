@@ -111,11 +111,13 @@
 ;; Extraction     ;;
 ;;;;;;;;;;;;;;;;;;;;
 
-(defun extract-frames (transient-structure)
+(defun extract-frames (transient-structure &key (include-frames-with-var-frame-name? nil))
   "Extracting a frameset from a transient-structure."
   (loop with unit-list = (left-pole-structure transient-structure)
         for unit in unit-list
-        when (find '(frame-evoking +) (unit-body unit) :test #'equalp)
+        when (and (find '(frame-evoking +) (unit-body unit) :test #'equalp)
+                  (or include-frames-with-var-frame-name?
+                      (null (variable-p (find-frame-name unit)))))
         collect (make-instance 'frame
                                :frame-name (find-frame-name unit)
                                :frame-evoking-element (find-frame-evoking-element unit)
