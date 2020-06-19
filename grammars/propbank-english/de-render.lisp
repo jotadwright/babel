@@ -9,7 +9,7 @@
 (defmethod de-render ((utterance conll-sentence) (mode (eql :de-render-constituents-dependents))
                       &key &allow-other-keys)
   "De-renders a conll-sentence."
-  (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis utterance)))
+  (initial-transient-structure utterance))
 
 
 (defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
@@ -99,14 +99,12 @@
         if (equalp node-id (node-parent node))
         collect (cdr (assoc (node-id node) unit-name-ids))))
   
-
 (defun find-dependents (node-id spacy-benepar-analysis unit-name-ids)
   "Returns unit names of dependents."
   (loop for node in spacy-benepar-analysis
         if (and (equalp node-id (node-dependency-head node))
                 (not (equalp node-id (node-id node))))
         collect (cdr (assoc (node-id node) unit-name-ids))))
-
 
 (defun node-type (spacy-benepar-analysis-node)
   "Returns the type of the node, i.e. 'phrase or 'leaf."

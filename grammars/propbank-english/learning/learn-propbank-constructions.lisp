@@ -557,7 +557,7 @@ start to end(v-unit)"
 
 (defmethod ts-unit-structure ((sentence conll-sentence) (cxn-inventory fcg-construction-set))
   "Returns the unit structure based on the syntactic analysis."
-  (left-pole-structure (de-render sentence (get-configuration cxn-inventory :de-render-mode))))
+  (left-pole-structure (initial-transient-structure sentence)))
 
 (defun units-with-role (ts-unit-structure gold-frame)
   "Returns (cons . units) for each unit in the unit-structure that is an elements of the frame."

@@ -247,10 +247,10 @@ nodes."
 ;; (length (all-sentences-annotated-with-roleset "believe.01" :split #'dev-split)) ;;call #'length for checking number
 
 
-(defun print-propbank-sentences-with-annotation (roleset &key (split #'train-split))
+(defun print-propbank-sentences-with-annotation (roleset &key (split #'train-split) (corpus *ontonotes-annotations*))
   "Print the annotation of a given roleset for every sentence of the
 split to the output buffer."
-  (loop for sentence in (funcall split *propbank-annotations*)
+  (loop for sentence in (funcall split corpus)
         for sentence-string = (sentence-string sentence)
         for selected-frame = (loop for frame in (propbank-frames sentence)
                                    when (string= (frame-name frame) roleset)
@@ -270,8 +270,10 @@ split to the output buffer."
 ;; Cleaning the grammar ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun clean-grammar (grammar &key (destructive t) (remove-cxns-with-freq-1 nil)
-                              (remove-v-prons nil))
+(defun clean-grammar (grammar &key
+                              (destructive t)
+                              (remove-cxns-with-freq-1 nil)
+                              (remove-faulty-cnxs nil))
   
   (let ((cxn-inventory (if destructive grammar (copy-object grammar))))
         (when remove-v-prons
@@ -281,6 +283,9 @@ split to the output buffer."
              cxn-inventory)
             (delete-cxn
              (find-cxn "BE.01-ARG1:NP+V:-PRON-+ARG2:RB+2-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
+             cxn-inventory)
+            (delete-cxn
+             (find-cxn "HAVE.01-V:OF+0-CXN" cxn-inventory :hash-key 'of :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
              cxn-inventory)))
   
         (when remove-cxns-with-freq-1
@@ -293,7 +298,7 @@ split to the output buffer."
 
 (defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
   (remove-if-not #'(lambda (sentence)
-                     (loop for roleset in (or rolesets (all-rolesets sentence)à)
+                     (loop for roleset in (or rolesets (all-rolesets sentence))
                            always (spacy-benepar-compatible-annotation sentence roleset)))
                  list-of-sentences))
 

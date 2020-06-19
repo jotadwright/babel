@@ -11,7 +11,7 @@
 ;;;;;;;;;;;;;;;;
 
 ;; Pointer to propbank annotated corpora
-(defparameter *ontonotes-annotations-directory* (merge-pathnames "English/propbank-release/data/ontonotes/" *babel-corpora*))
+(defparameter *ontonotes-annotations-directory* (merge-pathnames "English/propbank-release/data/" *babel-corpora*))
 (defparameter *ewt-annotations-directory* (merge-pathnames "English/propbank-release/data/google/ewt/" *babel-corpora*))
 
 ;; Global variables where propbank annotations will be loaded.
@@ -215,7 +215,12 @@
     :type list 
     :accessor syntactic-analysis
     :initform nil 
-    :documentation "The Spacy-Benepar syntactic analysis of the sentence."))
+    :documentation "The Spacy-Benepar syntactic analysis of the sentence.")
+  (initial-transient-structure 
+   :type coupled-feature-structure 
+    :accessor initial-transient-structure
+    :initform nil 
+    :documentation "The initial transient structure for the utterance."))
    (:documentation "Representation of a conll sentence."))
 
 (defmethod print-object ((s conll-sentence) (stream t))
@@ -232,6 +237,8 @@
   (setf (sentence-string sentence) (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
   ;; syntactic anlysis
   (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis (mapcar #'token-string (tokens sentence))))
+  ;; initial transient structure
+  (setf (initial-transient-structure sentence) (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis sentence)))
   ;; propbank frames
   (setf (propbank-frames sentence) (loop for role-number from 0 upto (- (length (propbank-roles (first (tokens sentence)))) 1)
         collect (loop with frame-name = nil
