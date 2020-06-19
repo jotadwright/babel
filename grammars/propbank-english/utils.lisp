@@ -235,8 +235,8 @@ nodes."
 ;; (all-rolesets-for-framenet-frame 'opinion)
 
 
-(defun all-sentences-annotated-with-roleset (roleset &key (split #'train-split)) ;;or #'dev-split
-  (loop for sentence in (funcall split *propbank-annotations*)
+(defun all-sentences-annotated-with-roleset (roleset &key (split #'train-split) (corpus *ontonotes-annotations*)) ;;or #'dev-split
+  (loop for sentence in (funcall split corpus)
         when (find roleset (propbank-frames sentence) :key #'frame-name :test #'equalp)
         collect sentence))
 
