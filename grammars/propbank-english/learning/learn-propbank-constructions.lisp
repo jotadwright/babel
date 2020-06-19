@@ -313,6 +313,86 @@
         finally
         return cxn-inventory))
 
+
+(defun make-subclause-word-unit (unit-with-role unit-structure)
+  (let* ((sbar-unit (cdr unit-with-role))
+         (subclause-word-in-ts (loop for unit in unit-structure
+                                     when (and (find (list 'lex-class 'in) (unit-body unit) :test #'equalp)
+                                               (equal (cadr (find 'parent (unit-body unit) :key #'feature-name)) (unit-name sbar-unit)))
+                                     return unit)))
+
+         (cond (subclause-word-in-ts
+                (list
+                 `(,(variablify (unit-name subclause-word-in-ts))
+                   --
+                   (parent ,(variablify (unit-name sbar-unit)))
+                   (lemma ,(cadr (find 'lemma (unit-body subclause-word-in-ts) :key #'feature-name))))))
+               (t 
+                  ;(break)
+                  nil))))
+
+(defmethod learn-cxn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-subclause)))
+  "Learns a construction capturing all core roles."
+  ;; Looping over all frame instances for roleset annotated in sentence
+  (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
+        with ts-unit-structure = (ts-unit-structure propbank-sentence cxn-inventory)
+        for gold-frame in gold-frames
+        for units-with-role = (units-with-role ts-unit-structure gold-frame)
+        for argm-subclauses = (remove-if-not #'(lambda (unit-with-role)
+                                                 (and (search "ARGM" (role-type (car unit-with-role)))
+                                                      (find 'sbar (unit-feature-value (cdr unit-with-role) 'phrase-type))))
+                                             units-with-role)
+        for v-unit = (assoc "V" units-with-role :key #'role-type :test #'equalp)
+        do
+        (loop for argm-unit in argm-subclauses
+              for footprint = (make-id "footprint")
+              for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil)
+              for cxn-subclause-units = (make-subclause-word-unit argm-unit ts-unit-structure)
+              for argm-lemma = (argm-lemma (first cxn-subclause-units))
+
+              for cxn-units-with-role = (loop for unit in (list v-unit argm-unit)
+                                              collect
+                                              (make-propbank-conditional-unit-with-role unit footprint :include-v-lemma nil :include-fe-lemma nil))
+              for cxn-units-without-role  = (make-propbank-conditional-units-without-role (list v-unit argm-unit)
+                                                                                          cxn-units-with-role ts-unit-structure)
+              for cxn-name = (make-cxn-name nil (list v-unit argm-unit) cxn-units-with-role cxn-units-without-role (list cxn-subclause-units))
+              for equivalent-cxn = (find-equivalent-cxn argm-lemma
+                                                  (lex-classes (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-subclause-units))
+                                                  (phrase-types (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-subclause-units))
+                                                  (lemmas (append cxn-units-with-role
+                                                                       cxn-units-without-role
+                                                                       cxn-subclause-units))
+                                                  cxn-inventory)
+              when equivalent-cxn 
+              do
+              (incf (attr-val equivalent-cxn :frequency))
+              else
+              do
+              ;; assertions
+             ; (assert (and cxn-units-with-role ;cxn-preposition-units
+              ;             v-lemma))
+              ;;;
+              (when (and cxn-units-with-role cxn-subclause-units argm-lemma)
+                ;;create a new construction and add it to the cxn-inventory
+                (eval `(def-fcg-cxn ,cxn-name
+                                    (,contributing-unit
+                                     <-
+                                     ,@cxn-units-with-role
+                                     ,@cxn-units-without-role
+                                     ,@cxn-subclause-units)
+                                    :disable-automatic-footprints t
+                                    :attributes (:lemma ,argm-lemma
+                                                 :score ,(length cxn-units-with-role)
+                                                 :label argm-subclause
+                                                 :frequency 1)
+                                    :cxn-inventory ,cxn-inventory))))
+        finally
+        return cxn-inventory))
+
 (defun make-cxn-name (roleset ts-units-with-role cxn-units-with-role cxn-units-without-role preposition-units)
   (loop with pp-unit-number = 0  
         for (role . unit) in ts-units-with-role

@@ -12,13 +12,11 @@
 (load-pb-data :store-data nil :ignore-stored-data nil)
 ;(length *pb-data*)
 
-;; Loading the Propbank annotations (takes a minute)
+;; Loading the Propbank annotations (takes a couple of minutes)
 (load-propbank-annotations 'ewt :store-data nil :ignore-stored-data nil)
 (load-propbank-annotations 'ontonotes :store-data t :ignore-stored-data t)
-
-;(length (train-split *ewt-annotations*))
-;(length (train-split *ontonotes-annotations*))
-
+; *ewt-annotations*
+; *ontonotes-annotations*
 
 ;; Activating spacy-api locally
 (setf nlp-tools::*penelope-host* "http://localhost:5000")
@@ -59,10 +57,10 @@
 ;;;;;;;;;;;
 
 (defparameter *opinion-sentences* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split :corpus *ontonotes-annotations*)))
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split :corpus *ewt-annotations*))))
 
 (defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split :corpus *ontonotes-annotations*))))
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split :corpus *ewt-annotations*))))
 
 (defparameter *believe-sentences* (shuffle (loop for roleset in '("BELIEVE.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
@@ -106,24 +104,26 @@ ts-unit-structure
     (:parse-order
      multi-argument-core-roles
      argm-pp
+     argm-subclause
      argm-with-lemma
      
      )
     (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
     (:equivalent-cxn-key . identity)
     (:learning-modes
-    ; :multi-argument-all-roles
-     :multi-argument-core-roles
-     ;argm-with-lemma
+     ;:multi-argument-all-roles
+     ;:multi-argument-core-roles
+     ;:argm-with-lemma
      ;:argm-pp
-   
+     :argm-subclause
      )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
 
 (with-disabled-monitor-notifications
-  (learn-propbank-grammar (append (train-split *ontonotes-annotations*)
-                                  (train-split *ewt-annotations*))
+  (learn-propbank-grammar ;(append (train-split *ontonotes-annotations*)
+                                  (train-split *ewt-annotations*)
+                          ;        )
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
@@ -136,12 +136,11 @@ ts-unit-structure
 (set-configuration *propbank-learned-cxn-inventory* :parse-order '(multi-argument-all-roles multi-argument-core-only argm-pp-with-lemma argm-with-lemma))
 
 (evaluate-propbank-sentences
- ;(subseq
-  (spacy-benepar-compatible-sentences *opinion-sentences-dev* '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
-  ;6 7)
+ (subseq
+  (spacy-benepar-compatible-sentences *opinion-sentences-dev* nil)
+   0 10)
  *propbank-learned-cxn-inventory*
- :selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
- :silent t)
+ :silent nil)
 
 (add-element (make-html *propbank-learned-cxn-inventory*))
 
@@ -151,7 +150,7 @@ ts-unit-structure
 node-phrase-types
 (comprhene)
 
-(clean-grammar *propbank-learned-cxn-inventory* :remove-v-prons t)
+(clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t :remove-cxns-with-freq-1 nil)
 
 (setf *restored-grammar* *propbank-learned-cxn-inventory*)
 
