@@ -13,8 +13,12 @@
 ;(length *pb-data*)
 
 ;; Loading the Propbank annotations (takes a minute)
-(load-propbank-annotations :store-data nil :ignore-stored-data nil)
-;(length (train-split *propbank-annotations*))
+(load-propbank-annotations 'ewt :store-data nil :ignore-stored-data nil)
+(load-propbank-annotations 'ontonotes :store-data t :ignore-stored-data t)
+
+;(length (train-split *ewt-annotations*))
+;(length (train-split *ontonotes-annotations*))
+
 
 ;; Activating spacy-api locally
 (setf nlp-tools::*penelope-host* "http://localhost:5000")
@@ -36,9 +40,7 @@
                        (:cxn-supplier-mode . :hashed-scored-labeled)
                        (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
                        (:equivalent-cxn-key . identity)
-                       (:learning-mode :multi-argument-with-lemma :multi-argument-without-lemma
-                       ; :single-argument-with-lemma
-                        ))
+                       (:learning-mode :multi-argument-with-lemma :multi-argument-without-lemma))
   :visualization-configurations ((:show-constructional-dependencies . nil))
   :hierarchy-features (constituents dependents)
   :feature-types ((constituents set)
@@ -57,10 +59,10 @@
 ;;;;;;;;;;;
 
 (defparameter *opinion-sentences* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split :corpus *ontonotes-annotations*)))
 
 (defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split :corpus *ontonotes-annotations*))))
 
 (defparameter *believe-sentences* (shuffle (loop for roleset in '("BELIEVE.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
@@ -72,7 +74,7 @@
 
 (defparameter *difficult-sentence* (nth 6063 (train-split *propbank-annotations*))) ;;13 frames!
 
-
+ts-unit-structure
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Storing and restoring grammars ;;
@@ -80,7 +82,7 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                                :name "learned-grammar-training-set"
+                                :name "learned-grammar-ontonotes-ewt"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
@@ -112,28 +114,19 @@
     (:learning-modes
     ; :multi-argument-all-roles
      :multi-argument-core-roles
-     :argm-with-lemma
-     :argm-pp
+     ;argm-with-lemma
+     ;:argm-pp
    
      )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
 
 (with-disabled-monitor-notifications
-  (learn-propbank-grammar ;(train-split *propbank-annotations*)
-   *opinion-sentences*
+  (learn-propbank-grammar (append (train-split *ontonotes-annotations*)
+                                  (train-split *ewt-annotations*))
    :cxn-inventory '*propbank-learned-cxn-inventory*
-   :fcg-configuration *training-configuration*
-   ;:selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-   ))
+   :fcg-configuration *training-configuration*))
 
-(with-disabled-monitor-notifications
-  (learn-propbank-grammar (train-split *propbank-annotations*)
-   :cxn-inventory '*propbank-learned-cxn-inventory*
-   :fcg-configuration *training-configuration*
-   ))
-
-(setf *A* (sort (constructions-list *propbank-learned-cxn-inventory*) #'> :key #'(lambda (cxn) (attr-val cxn :frequency))))
 
 ;;;;;;;;;;;;;;;;
 ;; Evaluation ;;
@@ -152,6 +145,21 @@
 
 (add-element (make-html *propbank-learned-cxn-inventory*))
 
+
+(activate-monitor trace-fcg)
+(eq(make-symbol "X")
+node-phrase-types
+(comprhene)
+
+(clean-grammar *propbank-learned-cxn-inventory* :remove-v-prons t)
+
+(setf *restored-grammar* *propbank-learned-cxn-inventory*)
+
+<cxn: HAVE.02-V:-PRON-+0-CXN-1>
+<cxn: BE.01-ARG1:NP+V:-PRON-+ARG2:RB+2-CXN-1>
+
+(symbol-name 'HAVE.02-V\:-PRON-+0-CXN-1)
+
 (defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
   (remove-if-not #'(lambda (sentence)
                      (loop for roleset in (or rolesets (all-rolesets sentence)à)
@@ -164,11 +172,11 @@
                         always (spacy-benepar-compatible-annotation sentence roleset)))
                  (dev-split *propbank-annotations*)))
 
-(time (evaluate-propbank-sentences-per-roleset
- (subseq (shuffle *spacy-benepar-compatible-sentences*)  0 500)
+(time
+ (evaluate-propbank-sentences
+ (spacy-benepar-compatible-sentences *opinion-sentences-dev* nil)
  *propbank-learned-cxn-inventory*
- ;:selected-rolesets  '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01") 
- :silent nil))
+ :silent t))
 
 (deactivate-all-monitors)
 (activate-monitor trace-fcg)
@@ -213,8 +221,10 @@
  (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t))
 
 (activate-monitor trace-fcg)
-(comprehend-and-extract-frames "I would like to order a still water ." :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "He brought the man a book ." :cxn-inventory *propbank-learned-cxn-inventory*)
 
+
+(comprehend-and-extract-frames "" :cxn-inventory *propbank-learned-cxn-inventory*)
 
 
 ;; Testing new sentences with learned grammar 
@@ -229,13 +239,12 @@
 ;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
 (comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *restored-grammar*)
 
-(comprehend-and-extract-frames "He goes to the store" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "This brings us to another problem that comes up when dealing with natural language . " :cxn-inventory *restored-grammar*)
 
 (comprehend-and-extract-frames "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date." :cxn-inventory *restored-grammar*)
 
 ;;attribute.01 wordt niet gevonden > 'ARG1:NP - has been attributed - ARG2:PP nooit gezien in training'
 (comprehend-and-extract-frames "The fall in oxygen levels has been attributed to global warming and the authors warn that if it continues unchecked, the amount of oxygen lost could reach up to 7% by 2100." :cxn-inventory *restored-grammar*)
-(add-element (make-html (find-cxn "ATTRIBUTE.01-ARG1:NP+V:ATTRIBUTE+ARG2:PP+2-CXN-6" *restored-grammar* :hash-key 'PROPBANK-ENGLISH::ATTRIBUTE :test #'string=)))
 
 ;;adapt-cxn niet geleerd:
 (comprehend-and-extract-frames "Very few marine organisms are able to adapt to low levels of oxygen." :cxn-inventory *restored-grammar*)
