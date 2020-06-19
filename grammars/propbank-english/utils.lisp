@@ -276,7 +276,7 @@ split to the output buffer."
                               (remove-faulty-cnxs nil))
   
   (let ((cxn-inventory (if destructive grammar (copy-object grammar))))
-        (when remove-v-prons
+        (when remove-faulty-cnxs
           (with-disabled-monitor-notifications
             (delete-cxn
              (find-cxn "HAVE.02-V:-PRON-+0-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
