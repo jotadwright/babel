@@ -14,9 +14,10 @@
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
 (load-propbank-annotations 'ewt :store-data nil :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes :store-data t :ignore-stored-data t)
+(load-propbank-annotations 'ontonotes :store-data nil :ignore-stored-data nil)
 ; *ewt-annotations*
 ; *ontonotes-annotations*
+
 
 ;; Activating spacy-api locally
 (setf nlp-tools::*penelope-host* "http://localhost:5000")
@@ -36,8 +37,9 @@
                        (:queue-mode . :greedy-best-first)
                        (:hash-mode . :hash-lemma)
                        (:cxn-supplier-mode . :hashed-scored-labeled)
-                       (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
-                       (:equivalent-cxn-key . identity)
+                       ;(:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+                       ;(:equivalent-cxn-key . identity)
+                       (:replace-when-equivalent . nil)
                        (:learning-mode :multi-argument-with-lemma :multi-argument-without-lemma))
   :visualization-configurations ((:show-constructional-dependencies . nil))
   :hierarchy-features (constituents dependents)
@@ -108,14 +110,15 @@ ts-unit-structure
      argm-with-lemma
      
      )
-    (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
-    (:equivalent-cxn-key . identity)
+    ;(:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+    ;(:equivalent-cxn-key . identity)
+    (:replace-when-equivalent . nil)
     (:learning-modes
      ;:multi-argument-all-roles
-     ;:multi-argument-core-roles
-     ;:argm-with-lemma
-     ;:argm-pp
-     :argm-subclause
+     :multi-argument-core-roles
+     :argm-with-lemma
+     :argm-pp
+     ;:argm-subclause
      )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
