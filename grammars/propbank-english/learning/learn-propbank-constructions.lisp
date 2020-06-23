@@ -20,6 +20,7 @@
                                                 (dependents sequence)
                                                 (span sequence)
                                                 (phrase-type set)
+                                                (lex-class set)
                                                 (args set-of-predicates)
                                                 (word-order set-of-predicates)
                                                 (meaning set-of-predicates)
@@ -269,7 +270,7 @@
   ;; Looping over all frame instances for roleset annotated in sentence
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
         with ts-unit-structure = (ts-unit-structure propbank-sentence cxn-inventory)
-        for gold-frame in gold-frames
+        for gold-frame in gold-frames 
         for units-with-role = (units-with-role ts-unit-structure gold-frame)
         for argm-pps = (remove-if-not #'(lambda (unit-with-role)
                                           (and (search "ARGM" (role-type (car unit-with-role)))
@@ -478,7 +479,7 @@
                         collect `(frame-element ,(intern (upcase (role-type r))) ,v-unit-name
                                                 ,(variablify (unit-name (cdr (assoc r units-with-role))))))))
     `(,v-unit-name
-      (args ,@args)
+      (args ,args)
       (frame-evoking +)
       (meaning ,meaning)
       (footprints (,footprint)))))
@@ -499,7 +500,11 @@ initial transient structure that plays a role in the frame."
       `(,unit-name
         --
         (parent ,parent)
-        ,phrase-type-or-lex-class
+        ,(if v-unit?
+           (if (find '(node-type leaf) (unit-body unit) :test #'equal)
+             `(lex-class (,(first (feature-value (find 'lex-class (unit-body unit) :key #'feature-name)))))
+             `(phrase-type ,(cadr (find 'phrase-type (unit-body unit) :key #'feature-name))))
+           phrase-type-or-lex-class)
         ,@(when v-unit? `((footprints (NOT ,footprint))))
         ,@(when (and v-unit? include-v-dependency-label)
             `((dependency-label ,(cadr (find 'dependency-label (unit-body unit) :key #'feature-name)))))
@@ -658,7 +663,7 @@ start to end(v-unit)"
 
 (defmethod ts-unit-structure ((sentence conll-sentence) (cxn-inventory fcg-construction-set))
   "Returns the unit structure based on the syntactic analysis."
-  (left-pole-structure (initial-transient-structure sentence)))
+  (left-pole-structure (initial-transient-structure sentence))) 
 
 (defun units-with-role (ts-unit-structure gold-frame)
   "Returns (cons . units) for each unit in the unit-structure that is an elements of the frame."
