@@ -14,7 +14,7 @@
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
 (load-propbank-annotations 'ewt :store-data nil :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes :store-data nil :ignore-stored-data nil)
+(load-propbank-annotations 'ontonotes :store-data t :ignore-stored-data t)
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
@@ -47,11 +47,13 @@
                   (dependents set)
                   (span sequence)
                   (phrase-type set)
+                  (lex-class set)
                   (word-order set-of-predicates)
                   (meaning set-of-predicates)
                   (footprints set))
   :cxn-inventory *propbank-learned-cxn-inventory*
   :hashed t)
+
 
 
 ;;;;;;;;;;;
@@ -91,7 +93,7 @@ ts-unit-structure
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                           :name "learned-grammar"
+                           :name "learned-grammar-ontonotes"
                            :type "fcg")))
 
 ;;;;;;;;;;;;;;
@@ -110,7 +112,7 @@ ts-unit-structure
     (:parse-order
      multi-argument-core-roles
      argm-subclause
-     ;argm-pp
+     argm-pp
      argm-with-lemma
      
      )
@@ -152,6 +154,11 @@ ts-unit-structure
 
 (test)
 
+(with-disabled-monitor-notifications
+  (learn-propbank-grammar (train-split *ontonotes-annotations*)
+                          :cxn-inventory '*propbank-learned-cxn-inventory*
+                          :fcg-configuration *training-configuration*))
+
 ;;;;;;;;;;;;;;;;
 ;; Evaluation ;;
 ;;;;;;;;;;;;;;;;
@@ -178,8 +185,6 @@ node-phrase-types
 
 (setf *restored-grammar* *propbank-learned-cxn-inventory*)
 
-<cxn: HAVE.02-V:-PRON-+0-CXN-1>
-<cxn: BE.01-ARG1:NP+V:-PRON-+ARG2:RB+2-CXN-1>
 
 (symbol-name 'HAVE.02-V\:-PRON-+0-CXN-1)
 
@@ -193,7 +198,8 @@ node-phrase-types
 (defparameter *spacy-benepar-compatible-sentences* (remove-if-not #'(lambda (sentence)
                                                                       (loop for roleset in (all-rolesets  sentence)
                         always (spacy-benepar-compatible-annotation sentence roleset)))
-                 (dev-split *propbank-annotations*)))
+                 (dev-split *ontonotes-annotations*)))
+
 
 (time
  (evaluate-propbank-sentences
@@ -254,6 +260,36 @@ node-phrase-types
 
 
 (comprehend-and-extract-frames "" :cxn-inventory *propbank-learned-cxn-inventory*)
+
+
+
+(defparameter *spacy-benepar-compatible-sentences* (remove-if-not #'(lambda (sentence)
+                                                                      (loop for roleset in (all-rolesets  sentence)
+                        always (spacy-benepar-compatible-annotation sentence roleset)))
+                 (dev-split *ontonotes-annotations*)))
+
+
+;;23/06/2020: GRAMMAR DEBUGGING (tests met lex-class als set gestaakt omdat connl-sentences eerst opnieuw geannoteerd moeten worden met initial ts die kloppen!)
+;;-------------------------------
+
+;;for such clues = argm-prp (wel gezien in combinatie met WATCH:VBP en WATCH:VBN en zelfde aantal extra units)
+(setf *selected-sentence*
+      (find "Inventories are closely watched for such clues , for instance ." *spacy-benepar-compatible-sentences* :key #'sentence-string :test #'string=))
+;;ARG1:NNS nooit gezien
+(comprehend-and-extract-frames "Inventories are closely watched for such clues , for instance ." :cxn-inventory *restored-grammar*)
+
+;;manueel deze toepassen lukt wel (probleem met zwarte nodes!!):
+(add-element (make-html (find-cxn "ALL-FRAMES-V:VBN+ARGM-MNR:CLOSELY+1-CXN-2" *restored-grammar* :hash-key 'closely :test #'string=)))
+
+
+;;testing
+(learn-propbank-grammar (list *selected-sentence*)
+                        :cxn-inventory '*propbank-learned-cxn-inventory*
+                        :selected-rolesets '("watch.01")
+                        :fcg-configuration *training-configuration*)
+
+(comprehend-and-extract-frames "Inventories are closely watched for such clues , for instance ." :cxn-inventory *propbank-learned-cxn-inventory*)
+
 
 
 ;; Testing new sentences with learned grammar 
