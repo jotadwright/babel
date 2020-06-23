@@ -31,7 +31,7 @@
                        (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
                        (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
                        (:max-nr-of-nodes . 100)
-                       (:parse-order multi-argument-with-lemma multi-argument-without-lemma single-argument-with-lemma single-argument-without-lemma)
+                       (:parse-order multi-argument-core-roles argm-pp argm-subclause argm-lemma)
                        (:node-expansion-mode . :multiple-cxns)
                        (:priority-mode . :nr-of-applied-cxns)
                        (:queue-mode . :greedy-best-first)
@@ -59,10 +59,14 @@
 ;;;;;;;;;;;
 
 (defparameter *opinion-sentences* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split :corpus *ewt-annotations*))))
+                                                 append (all-sentences-annotated-with-roleset roleset
+                                                                                              :split #'train-split
+                                                                                              :corpus *ontonotes-annotations*))))
 
 (defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split :corpus *ewt-annotations*))))
+                                                 append (all-sentences-annotated-with-roleset roleset
+                                                                                              :split #'dev-split
+                                                                                              :corpus *ontonotes-annotations*))))
 
 (defparameter *believe-sentences* (shuffle (loop for roleset in '("BELIEVE.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
@@ -105,8 +109,8 @@ ts-unit-structure
     (:hash-mode . :hash-lemma)
     (:parse-order
      multi-argument-core-roles
-     argm-pp
      argm-subclause
+     ;argm-pp
      argm-with-lemma
      
      )
@@ -118,18 +122,35 @@ ts-unit-structure
      :multi-argument-core-roles
      :argm-with-lemma
      :argm-pp
-     ;:argm-subclause
+     :argm-subclause
      )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
 
 (with-disabled-monitor-notifications
-  (learn-propbank-grammar ;(append (train-split *ontonotes-annotations*)
-                                  (train-split *ewt-annotations*)
-                          ;        )
-   :cxn-inventory '*propbank-learned-cxn-inventory*
-   :fcg-configuration *training-configuration*))
+  (learn-propbank-grammar *opinion-sentences*
+                          :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                          :cxn-inventory '*propbank-learned-cxn-inventory*
+                          :fcg-configuration *training-configuration*))
 
+(evaluate-propbank-sentences
+         (spacy-benepar-compatible-sentences *opinion-sentences* '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
+ *propbank-learned-cxn-inventory*
+ :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ :silent t)
+
+(defun test ()
+(loop for sentence in (spacy-benepar-compatible-sentences *opinion-sentences* '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
+      for f1-score = (cdr (assoc :f1-score
+                                (evaluate-propbank-sentence sentence *propbank-learned-cxn-inventory*
+                                                            :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                                                            :silent t)))
+      unless (= f1-score 1.0)
+      do (evaluate-propbank-sentence sentence *propbank-learned-cxn-inventory*
+                                                            :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                                                            :silent nil)))
+
+(test)
 
 ;;;;;;;;;;;;;;;;
 ;; Evaluation ;;
@@ -180,6 +201,8 @@ node-phrase-types
  *propbank-learned-cxn-inventory*
  :silent t))
 
+(comprehend-and-extract-frames "I believed the man because you are right ." :cxn-inventory *propbank-learned-cxn-inventory*)
+
 (deactivate-all-monitors)
 (activate-monitor trace-fcg)
 
@@ -194,9 +217,13 @@ node-phrase-types
 
 
 (setf *selected-sentence*
-      (find "`` We want people to think of Lake View as an historical park and educational experience ... ." *opinion-sentences* :key #'sentence-string :test #'string=))
+      (find "When traders become confident that the stock market has stabilized , oil prices are expected to rise as supply and demand fundamentals once again become the major consideration ." *opinion-sentences* :key #'sentence-string :test #'string=))
 
-(learn-cxn-from-propbank-annotation *selected-sentence* "think.01" *propbank-learned-cxn-inventory* :multi-argument-core-roles)
+(learn-cxn-from-propbank-annotation *selected-sentence* "expect.01" *propbank-learned-cxn-inventory* :argm-subclause)
+(evaluate-propbank-sentence *selected-sentence* *propbank-learned-cxn-inventory* :silent nil :selected-rolesets '("expect.01"))
+
+(add-element (make-html-fcg-light (initial-transient-structure *selected-sentence*) :construction-inventory *propbank-learned-cxn-inventory*
+                                  :feature-types (feature-types *propbank-learned-cxn-inventory* )))
 
 (learn-propbank-grammar (list *selected-sentence*)
                         :cxn-inventory '*propbank-learned-cxn-inventory*

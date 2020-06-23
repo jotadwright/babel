@@ -20,6 +20,7 @@
                                                 (dependents sequence)
                                                 (span sequence)
                                                 (phrase-type set)
+                                                (args set-of-predicates)
                                                 (word-order set-of-predicates)
                                                 (meaning set-of-predicates)
                                                 (footprints set))
@@ -328,7 +329,7 @@
 (defun make-subclause-word-unit (unit-with-role unit-structure)
   (let* ((sbar-unit (cdr unit-with-role))
          (subclause-word-in-ts (loop for unit in unit-structure
-                                     when (and (find (list 'lex-class 'in) (unit-body unit) :test #'equalp)
+                                     when (and (find (list 'node-type 'leaf) (unit-body unit) :test #'equalp)
                                                (equal (cadr (find 'parent (unit-body unit) :key #'feature-name)) (unit-name sbar-unit)))
                                      return unit)))
 
