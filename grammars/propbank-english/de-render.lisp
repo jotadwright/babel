@@ -63,7 +63,11 @@
                                 (head ,(cdr (assoc (node-dependency-head node) unit-name-ids)))
                                 (dependents ,(find-dependents node-id spacy-benepar-analysis unit-name-ids))
                                 (lemma ,(node-lemma node))
-                                (lex-class ,(node-lex-class node))
+                                (lex-class ,(if (string= "V" (subseq (format nil "~a" (node-lex-class node)) 0 1)) ;;we are dealing with a verb
+                                              `(V ,(node-lex-class node))
+                                              `(,(node-lex-class node))))
+                                ,@(when (member (node-lex-class node) '(nnp nns nn) :test #'equalp)
+                                    `((phrase-type (np))))
                                 (dependency-label ,(node-dependency-label node))
                                 (named-entity-type ,(node-named-entity-type node)))))
          
