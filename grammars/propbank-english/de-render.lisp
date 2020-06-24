@@ -63,10 +63,15 @@
                                 (head ,(cdr (assoc (node-dependency-head node) unit-name-ids)))
                                 (dependents ,(find-dependents node-id spacy-benepar-analysis unit-name-ids))
                                 (lemma ,(node-lemma node))
-                                (lex-class ,(if (string= "V" (subseq (format nil "~a" (node-lex-class node)) 0 1)) ;;we are dealing with a verb
+                                (lex-class ,(if (equalp "V" (subseq (format nil "~a" (node-lex-class node)) 0 1)) ;;we are dealing with a verb
                                               `(V ,(node-lex-class node))
                                               `(,(node-lex-class node))))
-                                ,@(when (member (node-lex-class node) '(nnp nns nn) :test #'equalp)
+                                ,@(when (and (member (node-lex-class node) '(nnp nns nn prp) :test #'equalp)
+                                             ;;
+                                             (not (and ;; has parent
+                                                       (find parent-id spacy-benepar-analysis :test #'equalp :key #'node-id)
+                                                       ;; parent is np
+                                                       (member 'np (node-phrase-types (find parent-id spacy-benepar-analysis :test #'equalp :key #'node-id)) :test #'equalp))))
                                     `((phrase-type (np))))
                                 (dependency-label ,(node-dependency-label node))
                                 (named-entity-type ,(node-named-entity-type node)))))

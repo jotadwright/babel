@@ -27,7 +27,7 @@
 
 ;;Create an empty cxn inventory
 (def-fcg-constructions propbank-learned-english
-  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents-without-tokenisation) ;;:de-render-constituents-dependents-without-tokenisation
+  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents)
                        (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
                        (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
                        (:max-nr-of-nodes . 100)
@@ -190,7 +190,7 @@ node-phrase-types
 
 (defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
   (remove-if-not #'(lambda (sentence)
-                     (loop for roleset in (or rolesets (all-rolesets sentence)à)
+                     (loop for roleset in (or rolesets (all-rolesets sentence))
                            always (spacy-benepar-compatible-annotation sentence roleset)))
                  list-of-sentences))
 
@@ -207,7 +207,7 @@ node-phrase-types
  *propbank-learned-cxn-inventory*
  :silent t))
 
-(comprehend-and-extract-frames "I believed the man because you are right ." :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "I could have  two brothers ." :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (deactivate-all-monitors)
 (activate-monitor trace-fcg)
