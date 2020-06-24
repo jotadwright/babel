@@ -12,7 +12,7 @@
                          (source-set-1 clevr-object-set)
                          (source-set-2 clevr-object-set))
   ;; first case; given both source sets, compute the target set
-  (((source-set-1 source-set-2 => target-set)
+  ((source-set-1 source-set-2 => target-set)
    (let ((intersected (intersection (objects source-set-1)
                                     (objects source-set-2)
                                     :key #'id)))
@@ -50,5 +50,5 @@
                                     :key #'id)))
      (equal-entity target-set
                    (make-instance 'clevr-object-set
-                                  :objects intersected)))))
+                                  :objects intersected))))
   :primitive-inventory *clevr-primitives*)

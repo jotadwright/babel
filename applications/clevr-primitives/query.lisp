@@ -27,7 +27,7 @@
                      (source-object clevr-object)
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
-  (((source-object attribute => target-category)
+  ((source-object attribute => target-category)
    (bind (target-category 1.0 (query-object-attribute source-object attribute ontology))))
 
   ;; second case; given source-object and target-category, compute the attribute
@@ -52,7 +52,7 @@
   ;; fourth case; if given source-object, attribute and target-category, check
   ;; for consistency
   ((source-object attribute target-category =>)
-   (equal-entity target-category (query-object-attribute source-object attribute ontology))))
+   (equal-entity target-category (query-object-attribute source-object attribute ontology)))
   :primitive-inventory *clevr-primitives*)
 
 

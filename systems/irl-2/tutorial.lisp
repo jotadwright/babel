@@ -17,6 +17,8 @@
 
 (in-package :irl-2)
 
+(activate-monitor trace-irl-in-web-browser)
+
 ;;                 IRL Tutorial
 ;;
 ;; This file is intended as a stand-alone tutorial
@@ -652,8 +654,6 @@
                  (create-chunk-from-primitive 'filter-by-size))
    :ontology *ontology* :primitive-inventory *irl-primitives*
    :configurations '((:max-search-depth . 4))))
-
-(activate-monitor trace-irl-in-web-browser)
 
 ;; Find first solution
 (get-next-solutions *my-composer*)

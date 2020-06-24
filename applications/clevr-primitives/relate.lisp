@@ -28,7 +28,7 @@
                       (source-object clevr-object)
                       (spatial-relation spatial-relation-category))
   ;; first case; given source-object and spatial relation, compute the target set
-  (((source-object spatial-relation => target-set)
+  ((source-object spatial-relation => target-set)
    (let ((related-set (apply-spatial-relation
                        source-object
                        spatial-relation
@@ -62,5 +62,5 @@
   ;; check for consistency
   ((source-object target-set spatial-relation =>)
    (let ((context (get-data ontology 'clevr-context)))
-     (equal-entity target-set (apply-spatial-relation source-object spatial-relation context)))))
+     (equal-entity target-set (apply-spatial-relation source-object spatial-relation context))))
   :primitive-inventory *clevr-primitives*)

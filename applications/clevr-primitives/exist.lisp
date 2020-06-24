@@ -11,7 +11,7 @@
 (defprimitive exist ((target-bool boolean-category)
                      (source-set clevr-object-set))
   ;; first case; give source-set, compute target-bool
-  (((source-set => target-bool)
+  ((source-set => target-bool)
    (let ((boolean-category
           (find-entity-by-id
            ontology
@@ -26,5 +26,5 @@
            ontology
            (if (length> (objects source-set) 0)
              'yes 'no))))
-     (equal-entity target-bool boolean-category))))
+     (equal-entity target-bool boolean-category)))
   :primitive-inventory *clevr-primitives*)

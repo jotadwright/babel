@@ -54,7 +54,7 @@
                       (source-set clevr-object-set)
                       (category attribute))
   ;; first case: if given source-set and category, compute target-set
-  (((source-set category => target-set)
+  ((source-set category => target-set)
    (let ((computed-set (filter-by-category source-set category)))
      (if computed-set
        (bind (target-set 1.0 computed-set))
@@ -92,6 +92,6 @@
 
   ;; fourth case: if given source-set, target-set and category, check for consistency
   ((source-set target-set category =>)
-   (equal-entity target-set (filter-by-category source-set category))))
+   (equal-entity target-set (filter-by-category source-set category)))
   :primitive-inventory *clevr-primitives*)
 
