@@ -173,7 +173,7 @@
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,argm-lemma
                                                  :score ,(length cxn-units-with-role)
-                                                 :label argm
+                                                 :label argm-with-lemma
                                                  :frequency 1)
                                     :cxn-inventory ,cxn-inventory))))
         finally
@@ -232,7 +232,7 @@
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,v-lemma
                                                  :score ,(length cxn-units-with-role)
-                                                 :label argm
+                                                 :label argm-pp
                                                  :frequency 1)
                                     :cxn-inventory ,cxn-inventory))))
         finally
@@ -309,7 +309,7 @@
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,argm-lemma
                                                  :score ,(length cxn-units-with-role)
-                                                 :label argm
+                                                 :label argm-subclause
                                                  :frequency 1)
                                     :cxn-inventory ,cxn-inventory))))
         finally

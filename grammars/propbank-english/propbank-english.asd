@@ -13,16 +13,18 @@
                :web-interface
                :cl-propbank
                :xmls
-               :cl-store)
+               :cl-store
+               :snooze
+               :cl-json)
   :serial t
   :components ((:file "package")
-               (:file "grammar")
-               (:file "visualisation")
-               
+               (:file "propbank-annotations")
+               (:module utils
+                :serial t
+                :components ((:file "visualisation")
+                             (:file "utils")
+                             (:file "de-render")))
                (:module learning
                 :serial t
-                :components ((:file "propbank-annotations")
-                             (:file "evaluation")
-                             (:file "learn-propbank-constructions")))
-               (:file "de-render")
-               (:file "utils")))
+                :components ((:file "evaluation")
+                             (:file "learn-propbank-constructions")))))

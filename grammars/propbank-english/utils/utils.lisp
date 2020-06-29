@@ -14,9 +14,11 @@
   (multiple-value-bind (solution cipn)
       (comprehend utterance :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)
     (declare (ignore solution))
-    (unless silent
-      (add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
-      (add-element (make-html (extract-frames (car-resulting-cfs (cipn-car cipn))) :expand-initially t)))))
+    (let ((frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))
+      (unless silent
+        (add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
+        (add-element (make-html frames  :expand-initially t)))
+      frames)))
 
 
 ;; Comprehend Methods ;;
