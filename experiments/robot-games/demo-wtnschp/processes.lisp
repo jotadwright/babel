@@ -600,7 +600,7 @@
     (if color-categories
       (let ((topic-cat/dist (categorise observed-topic color-categories))
             (others-cat/dist (mapcar (lambda (obj) (categorise obj color-categories)) scene-w/o-topic)))
-        (if (hearer-discriminating-p topic-cat/dist others-cat/dist)
+        (if (speaker-discriminating-p topic-cat/dist others-cat/dist)
           (progn
             (notify hearer-conceptualise-finished (first topic-cat/dist))
             (first topic-cat/dist))
