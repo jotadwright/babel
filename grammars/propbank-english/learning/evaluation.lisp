@@ -8,7 +8,8 @@
 
 
 (defun evaluate-propbank-sentences (list-of-propbank-sentences cxn-inventory &key
-                                                               (selected-rolesets nil) (silent nil) (print-to-standard-output t))
+                                                               (selected-rolesets nil) (silent nil) (print-to-standard-output t)
+                                                               (include-word-sense nil))
   "Returns a.o. precision, recall, F1 score for evaluation of list-of-propbank-sentences."
   ;; Precision = (#correct-predictions / #predictions)
   ;; Recall = (#correct-predictions / #gold-standard-predictions)
@@ -20,7 +21,8 @@
                                  for sentence-number from 1
                                  for sentence-evaluation-result = (evaluate-propbank-sentence sentence cxn-inventory
                                                                                               :selected-rolesets selected-rolesets
-                                                                                              :silent silent)
+                                                                                              :silent silent
+                                                                                              :include-word-sense include-word-sense)
                                  
                                  do
                                  (when print-to-standard-output
@@ -135,7 +137,10 @@
                                                                   :silent silent
                                                                   :syntactic-analysis syntactic-analysis
                                                                   :selected-rolesets selected-rolesets)))))
-         
+         (selected-rolesets (if include-word-sense
+                              selected-rolesets
+                              (loop for roleset in selected-rolesets
+                                    collect (truncate-frame-name roleset))))
          (extracted-frame-set  (extract-frames (car-resulting-cfs (cipn-car final-node))))
          (extracted-frames (remove-if-not #'frame-with-name (frames extracted-frame-set)))
          ;; Number of gold-standard predictions
