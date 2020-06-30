@@ -42,6 +42,7 @@
   (first (population *experiment*)))
 (go-to-posture *experiment-robot* :crouch)
 (take-picture *experiment-robot*)
+(observe-world *experiment-robot* :open t)
 (look-direction *experiment-robot* :down 0.8)
 
 ;; Print the lexicon (printer needs to be connected)
