@@ -1,4 +1,3 @@
-#!python2.7
 #!/usr/bin/env python
 
 from __future__ import print_function
@@ -60,7 +59,7 @@ def analyze_image():
         return json.dumps({'errors': errors}), 400
     else:
         vision = NaoVision(nao_config)
-        pathname, data = vision.analyse(request_data['filename'])
+        pathname, data = vision.analyze(request_data['filename'])
         return json.dumps({'pathname': pathname,
                            'data': data}), 200
 
@@ -83,7 +82,6 @@ def get_posture():
     actions = NaoActions(nao_config)
     current_posture = actions.get_current_posture()
     return json.dumps({'posture': current_posture}), 200
-
 
 
 @nao_server.route("/posture/set", methods=["POST"])
@@ -206,6 +204,12 @@ def yes_no_headtouch():
     return json.dumps({'result': result}), 200
 
 
+@nao_server.route("/shutdown", methods=["GET"])
+def shutdown_nao_server():
+    shutdown_fn = request.environ.get('werkzeug.server.shutdown')
+    shutdown_fn()
+    return json.dumps({'result': 'Server shutting down'}), 200
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -238,4 +242,3 @@ if __name__ == '__main__':
     if cmd.robot_port is not None:
         nao_config.ROBOT_PORT = cmd.robot_port
     nao_server.run(host=cmd.server_host, port=cmd.server_port)
-

@@ -1,22 +1,18 @@
 #!python2.7
 #!/usr/bin/env python
 
-import naoqi
 from naoqi import ALProxy
-import os
-import sys
 import time
 import random
 import math
 import numpy as np
 import skimage.io
 import skimage.color
-import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import patches,  lines
-from matplotlib.patches import Polygon
-from pycocotools import mask
+from pycocotools import mask as pycocomask
 import colorsys
+import cv2 as cv
+import matplotlib.patches as patches
 
 
 class NaoVision(object):
@@ -25,35 +21,35 @@ class NaoVision(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
-        self.photoCaptureProxy = ALProxy("ALPhotoCapture", cfg.ROBOT_IP, cfg.ROBOT_PORT)
+        self.photoCaptureProxy = ALProxy("ALPhotoCapture", cfg.ROBOT_IP,
+                                         cfg.ROBOT_PORT)
         # Set camera parameters
         self.photoCaptureProxy.setResolution(cfg.CAMERA_RESOLUTION)
         self.photoCaptureProxy.setPictureFormat(cfg.PICTURE_FORMAT)
         # Get the Mask R-CNN model
         self.model = cfg.MODEL
 
-
     def capture(self):
         '''Capture an image and store it in the image dir.
         Return the complete path to the image'''
         img_name = str(int(time.time()))
         img_directory = "/home/nao/recordings/cameras/"
-        img_paths = self.photoCaptureProxy.takePicture(img_path, img_name)
-        #img_path = img_directory + img_name + '.' + self.cfg.PICTURE_FORMAT
+        img_paths = self.photoCaptureProxy.takePicture(img_directory, img_name)
+        # img_path = img_directory + img_name + '.' + self.cfg.PICTURE_FORMAT
         return img_paths[0]
-
 
     def analyze(self, img_path):
         '''Analyze the given image. Create a new image with the found
         bounding boxes and use the masks to do feature extraction,
         returning the features'''
+        plt.switch_backend('Agg')
         image = skimage.io.imread(img_path)
         results = self.model.detect([image], verbose=1)[0]
         bboxes = results['rois']
+        print('Found %d objects' % len(bboxes))
         bbox_img_path = self._add_bbox_to_image(image, bboxes, img_path)
         data = self._extract_image_features(image, results)
         return bbox_img_path, data
-
 
     def capture_and_analyze(self):
         '''Capture an image and immediately analyze it.
@@ -61,32 +57,33 @@ class NaoVision(object):
         bboxes and the feature extracted data.'''
         pass
 
-
     def _add_bbox_to_image(self, image, bboxes, orig_path):
         '''Add the bboxes to the image and export this'''
         N = bboxes.shape[0]
-        colors = random_colors(N)
         height, width = image.shape[:2]
-        fig, ax = plt.subplots(1, figsize=(16,16))
+        fig = plt.figure(frameon=False)
+        ax = fig.add_subplot(1, 1, 1)
         ax.set_ylim(height + 10, -10)
         ax.set_xlim(-10, width + 10)
         ax.axis('off')
         masked_image = image.astype(np.uint32).copy()
+        ax.imshow(masked_image.astype(np.uint8))
         for i in range(N):
             y1, x1, y2, x2 = bboxes[i]
             p = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2,
-                                    alpha=0.7, linestyle="dashed",
-                                    edgecolor='w', facecolor='none')
+                                  alpha=0.7, linestyle="dashed",
+                                  edgecolor='w', facecolor='none')
             ax.add_patch(p)
             object_id = 'obj-' + str(i)
             ax.text(x1, y1-5, object_id, color='w',
-                fontsize='x-large', family='monospace',
-                backgroundcolor="none")
+                    fontsize='x-large', family='monospace',
+                    backgroundcolor="none")
         img_name_and_type = orig_path.split('/')[-1]
         img_name = img_name_and_type.split('.')[0]
-        img_type = img_name_and_type.split('.')[1]
+        # img_type = img_name_and_type.split('.')[1]
         bbox_img_path = self.cfg.IMAGE_DIR + img_name + '_bbox.' + self.cfg.PICTURE_FORMAT
-        plt.imsave(bbox_img_path, masked_image.astype(np.uint8))
+        plt.savefig(bbox_img_path)
+        plt.close()
         return bbox_img_path
 
     def _extract_image_features(self, image, results):
@@ -97,16 +94,16 @@ class NaoVision(object):
             object = {}
             # Get data from results
             bbox = results['rois'][i]
-            mask = results['masks'][:,:,i]
+            mask = results['masks'][:, :, i]
             mask = np.array(mask.astype(np.uint8), order='F')
             class_id = results['class_ids'][i]
             score = results['scores'][i]
-            RLE_mask = pycocotools.mask.encode(mask)
+            RLE_mask = pycocomask.encode(mask)
             # colors
             lab = self._extract_lab_from_mask(image, mask)
             hsv = self._extract_hsv_from_mask(image, mask)
             rgb = self._extract_rgb_from_mask(image, mask)
-            object['lab'] = lab 
+            object['lab'] = lab
             object['hsv'] = hsv
             object['rgb'] = rgb
             # position
@@ -115,11 +112,11 @@ class NaoVision(object):
             object['xpos'] = x_mid
             object['ypos'] = y_mid
             # width, height, area, etc
-            bbox_width = float(bbox[3] - bbox[1]) #bbox[2]
-            bbox_height = float(bbox[2] - bbox[0]) #bbox[3]
+            bbox_width = float(bbox[3] - bbox[1])  # bbox[2]
+            bbox_height = float(bbox[2] - bbox[0])  # bbox[3]
             bbox_wh_ratio = float(bbox_width/bbox_height)
             bbox_area = float(bbox_width * bbox_height)
-            area = float(pycocotools.mask.area(RLE_mask))
+            area = float(pycocomask.area(RLE_mask))
             bbox_area_ratio = float(area/bbox_area)
             circle_area_ratio = self._enclosing_circle_ratio(image, mask, area)
             object['bbox_width'] = bbox_width
@@ -133,7 +130,9 @@ class NaoVision(object):
             corners = self._detect_and_count_corners(image, mask)
             object['corners'] = corners
             # whites and blacks
-            p_whites, p_blacks = self._white_and_black_percentage(image, mask, area)
+            p_whites, p_blacks = self._white_and_black_percentage(image,
+                                                                  mask,
+                                                                  area)
             object['p_whites'] = p_whites
             object['p_blacks'] = p_blacks
             # add the object to data
@@ -194,9 +193,11 @@ class NaoVision(object):
     def _detect_and_count_corners(self, image, mask):
         '''After applying the mask to the image,
         find contours and use them to count corners'''
-        contours, _ = cv.findContours(mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv.findContours(mask, cv.RETR_TREE,
+                                      cv.CHAIN_APPROX_SIMPLE)
         contour = max(contours, key=cv.contourArea)
-        approx = cv.approxPolyDP(contour, 0.01 * cv.arcLength(contour, True), True)
+        approx = cv.approxPolyDP(contour, 0.01 * cv.arcLength(contour, True),
+                                 True)
         corners = len(approx)
         return corners
 
@@ -205,9 +206,10 @@ class NaoVision(object):
         find contours and use them to get the
         minimum enclosing circle. Determine the ratio
         between the masks area and the circle area.'''
-        contours, _ = cv.findContours(mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv.findContours(mask, cv.RETR_TREE,
+                                      cv.CHAIN_APPROX_SIMPLE)
         contour = max(contours, key=cv.contourArea)
-        (x,y), r = cv.minEnclosingCircle(contour)
+        (x, y), r = cv.minEnclosingCircle(contour)
         circle_area = float(r*r*math.pi)
         ratio = float(area/circle_area)
         return ratio

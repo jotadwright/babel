@@ -21,14 +21,14 @@
   "Check if an IP address is already occupied"
   (find nao-ip (nao-servers) :key #'first :test #'string=))
 
-(defun push-nao-server (nao-ip server-port container-name)
+(defun push-nao-server (nao-ip server-port server-host)
   "Pushes a new nao-container to the list of running containers"
-  (push (list nao-ip server-port container-name) *nao-servers*))
+  (push (list nao-ip server-port server-host) *nao-servers*))
 
-(defun pop-nao-server (nao-ip server-port container-name)
+(defun pop-nao-server (nao-ip server-port server-host)
   "Pops a nao-container from the list of running containers"
   (setf *nao-servers*
-        (remove (list nao-ip server-port container-name)
+        (remove (list nao-ip server-port server-host)
                 *nao-servers* :test #'equalp)))
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -90,6 +90,7 @@
 (defgeneric stop-nao-server (nao &key)
   (:documentation "Stop the connection to the nao"))
 
+#|
 (defun docker-container-exists-p (container-name)
   (not (string= (first (exec-and-return "docker" "container" "inspect" container-name)) "[]")))
 
@@ -140,6 +141,81 @@
           do (run-prog "docker" :args `("stop" ,(third entry))))
     (setf *nao-servers* nil))
   *nao-servers*)
+|#
+
+
+#|
+;; cannot start Python from Lisp
+(defmethod start-nao-server ((nao nao) &key (test-connection t))
+  ;; flask server v3 no longer requires Docker
+  ;; check/create folder for nao images
+  (ensure-directories-exist (babel-pathname :directory '(".tmp" "nao-img")))
+  ;; start the nao server
+  (cond ((ip-occupied? (ip nao))
+         (error (format nil "The IP address ~a is already in use" (ip nao))))
+        ((port-occupied? (server-port nao))
+         (error (format nil "The port number ~a is already in use" (server-port nao))))
+        (t
+         ;; start the Python 2 script
+         (run-prog "/usr/local/bin/python" :args `(,(babel-pathname :directory '("sharing" "nao-interface" "flask-server-v3")
+                                                                    :name "flask_server" :type "py")
+                                                   "--robot-ip" ,(ip nao)
+                                                   "--server-port" ,(server-port nao))
+                   :wait nil)
+         ;; Push to the running containers
+         (push-nao-server (ip nao) (server-port nao) (server-host nao))
+         ;; Give some time to start the server
+         ;; Loading the Mask RCNN model takes some time
+         (sleep 10)
+         ;; Test the connection
+         (when test-connection
+           (test-server-connection nao)))))
+|#
+
+(defmethod start-nao-server ((nao nao) &key (test-connection t))
+  ;; check/create folder for nao images
+  (ensure-directories-exist (babel-pathname :directory '(".tmp" "nao-img")))
+  (cond ((ip-occupied? (ip nao))
+         (error (format nil "The IP address ~a is already in use" (ip nao))))
+        ((port-occupied? (server-port nao))
+         (error (format nil "The port number ~a is already in use" (server-port nao))))
+        (t
+         ;; Push to the running containers
+         (push-nao-server (ip nao) (server-port nao) (server-host nao))
+         ;; Test the connection
+         (when test-connection
+           (test-server-connection nao)))))
+
+(defmethod stop-nao-server ((nao nao) &key)
+  (let ((uri (format nil "http://~a:~a~a"
+                     (server-host nao)
+                     (server-port nao)
+                     "/shutdown")))
+    (multiple-value-bind (response code headers
+                                   uri stream must-close
+                                   reason-phrase)
+        (http-request uri :method :get)
+      (declare (ignorable response headers uri stream must-close reason-phrase))
+      (if (= code 200)
+        (progn (pop-nao-server (ip nao) (server-port nao) (server-host nao))
+          *nao-servers*)
+        (error "Something went wrong during server shutdown (~a:~a)"
+               (server-host nao) (server-port nao))))))
+
+(defun stop-all-nao-server ()
+  (when *nao-servers*
+    (loop for server in *nao-servers*
+          for uri = (format nil "http://~a:~a~a"
+                            (third server)
+                            (second server)
+                            "/shutdown")
+          do (http-request uri :method :get))
+    (setf *nao-servers* nil))
+  *nao-servers*)
+                           
+
+
+
 
 ;; Sending and receiving data from/to the nao
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
