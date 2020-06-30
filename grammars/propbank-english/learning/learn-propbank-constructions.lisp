@@ -361,8 +361,12 @@
 
 (defun truncate-frame-name (frame-name)
   "Remove reference to word sense from frame name"
-  (when frame-name
-    (first (split-string frame-name "."))))
+  (cond ((stringp frame-name)
+         (first (split-string frame-name ".")))
+        ((symbolp frame-name)
+         (intern (first (split-string (symbol-name frame-name) ".")))
+
+        )))
 
 ;(truncate-frame-name "believe.01")
 

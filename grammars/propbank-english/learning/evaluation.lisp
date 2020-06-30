@@ -127,7 +127,7 @@
 ;; Evaluate an individual sentence ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun evaluate-propbank-sentence (propbank-sentence cxn-inventory &key (selected-rolesets nil) (silent nil) (syntactic-analysis nil) (cipn nil))
+(defun evaluate-propbank-sentence (propbank-sentence cxn-inventory &key (selected-rolesets nil) (silent nil) (syntactic-analysis nil) (cipn nil) (include-word-sense nil))
   "Evaluates a conll sentence in terms of number-of-predictions, number-of-correct-predictions and number-of-gold-standard-predictions."
   (let* ((final-node (or cipn
                          (second (multiple-value-list (comprehend propbank-sentence
@@ -135,13 +135,17 @@
                                                                   :silent silent
                                                                   :syntactic-analysis syntactic-analysis
                                                                   :selected-rolesets selected-rolesets)))))
+         
          (extracted-frame-set  (extract-frames (car-resulting-cfs (cipn-car final-node))))
          (extracted-frames (remove-if-not #'frame-with-name (frames extracted-frame-set)))
          ;; Number of gold-standard predictions
          (number-of-gold-standard-predictions (loop with number-of-gold-standard-predictions = 0
                                                     for frame in (propbank-frames propbank-sentence)
+                                                    for frame-name = (if include-word-sense
+                                                                       (frame-name frame)
+                                                                       (truncate-frame-name (frame-name frame)))
                                                     if (or (null selected-rolesets)
-                                                           (find (frame-name frame) selected-rolesets :test #'equalp))
+                                                           (find frame-name selected-rolesets :test #'equalp))
                                                     do (loop for role in (frame-roles frame)
                                                              do
                                                              (setf number-of-gold-standard-predictions (+ number-of-gold-standard-predictions (length (indices role)))))
@@ -150,8 +154,11 @@
          ;; Number of predictions made by the grammar
          (number-of-predictions (loop with number-of-predictions = 0
                                       for frame in extracted-frames
+                                      for frame-name = (if include-word-sense
+                                                         (frame-name frame)
+                                                         (truncate-frame-name (frame-name frame)))
                                       if (or (null selected-rolesets)
-                                             (find (symbol-name (frame-name frame)) selected-rolesets :test #'equalp))
+                                             (find (symbol-name frame-name) selected-rolesets :test #'equalp))
                                       do
                                       ;; for frame-elements
                                       (loop for role in (frame-elements frame)
@@ -165,20 +172,24 @@
          ;; Number of correct predictions made
          (number-of-correct-predictions (loop with number-of-correct-predictions = 0
                                               for predicted-frame in extracted-frames
+                                              for frame-name = (if include-word-sense
+                                                                 (frame-name predicted-frame)
+                                                                 (truncate-frame-name (frame-name predicted-frame)))
                                               ;; check whether we're interested in the frame
                                               if (or (null selected-rolesets)
-                                                     (find (symbol-name (frame-name predicted-frame)) selected-rolesets :test #'equalp))
+                                                     (find (symbol-name frame-name) selected-rolesets :test #'equalp))
                                               do
                                               ;; For frame elements
                                               (loop for predicted-frame-element in (frame-elements predicted-frame)
                                                     for predicted-indices = (indices predicted-frame-element)
                                                     do (loop for index in predicted-indices
-                                                             when (correctly-predicted-index-p index predicted-frame-element predicted-frame (propbank-frames propbank-sentence))
+                                                             when (correctly-predicted-index-p index predicted-frame-element predicted-frame (propbank-frames propbank-sentence) include-word-sense)
                                                              do (setf number-of-correct-predictions (+ number-of-correct-predictions 1))))
                                               ;; For frame-evoking element
                                               (when (correctly-predicted-fee-index-p (index (frame-evoking-element predicted-frame))
                                                                                      predicted-frame
-                                                                                     (propbank-frames propbank-sentence))
+                                                                                     (propbank-frames propbank-sentence)
+                                                                                     include-word-sense)
                                                 (setf number-of-correct-predictions (+ number-of-correct-predictions 1)))
                                               finally
                                               return number-of-correct-predictions)))
@@ -197,12 +208,17 @@
       (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))
 
 
-(defun correctly-predicted-index-p (index predicted-frame-element predicted-frame gold-frames)
+(defun correctly-predicted-index-p (index predicted-frame-element predicted-frame gold-frames include-word-sense)
   "Returns t if the index form the predicted-frame occurs in the same role of the same frame in the gold-standard annotation."
-  (let ((predicted-frame-name (frame-name predicted-frame))
+  (let ((predicted-frame-name (if include-word-sense
+                                (frame-name predicted-frame)
+                                (truncate-frame-name (frame-name predicted-frame))))
         (predicted-role (fe-role predicted-frame-element)))
     (loop for gold-frame in gold-frames
-          if (when (and (equalp (frame-name gold-frame) (symbol-name predicted-frame-name))
+          for gold-frame-name = (if include-word-sense
+                                  (frame-name gold-frame)
+                                  (truncate-frame-name (frame-name gold-frame)))
+          if (when (and (equalp gold-frame-name (symbol-name predicted-frame-name))
                         (eql (index (frame-evoking-element predicted-frame)) (first (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp)))))
                (loop for gold-role in (find-all (symbol-name predicted-role) (frame-roles gold-frame) :key #'role-type :test #'equalp)
                      if (find index (indices gold-role))
@@ -210,11 +226,16 @@
           do
           (return t))))
 
-(defun correctly-predicted-fee-index-p (index predicted-frame gold-frames)
+(defun correctly-predicted-fee-index-p (index predicted-frame gold-frames include-word-sense)
   "Returns t if the index form the frame-evoking-element occurs in the same role of the same frame in the gold-standard annotation."
-  (let ((predicted-frame-name (frame-name predicted-frame)))
+  (let ((predicted-frame-name (if include-word-sense
+                                (frame-name predicted-frame)
+                                (truncate-frame-name (frame-name predicted-frame)))))
     (loop for gold-frame in gold-frames
-          if (and (equalp (frame-name gold-frame) (symbol-name predicted-frame-name))
+          for gold-frame-name = (if include-word-sense
+                                  (frame-name gold-frame)
+                                  (truncate-frame-name (frame-name gold-frame)))
+          if (and (equalp gold-frame-name (symbol-name predicted-frame-name))
                   (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp)
                   (find index (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp))))
           do
