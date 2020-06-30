@@ -17,15 +17,12 @@
 
 (defmethod observe-world ((nao nao) &key (open t))
   (let* ((img-filename (take-picture nao :open nil))
-         (analysis (nao-send-http nao :endpoint "/vision/analyse"
+         (response (nao-send-http nao :endpoint "/vision/analyse"
                                   :data `((filename . ,(namestring img-filename)))))
-         (analysis-img (rest (assoc :filename analysis)))
-         (analysis-data (rest (assoc :data analysis))))
+         (pathname (rest (assoc :pathname response)))
+         (data (rest (assoc :data response))))
     (when open
-      (let* ((local-pathname (babel-pathname :directory '(".tmp" "nao-img")
-                                             :name analysis-img
-                                             :type "jpg"))
-             (arg (format nil "open ~a" local-pathname)))
+      (let ((arg (format nil "open ~a" pathname)))
         (run-prog "/bin/sh" :args (list "-c" arg))))
-    (values analysis-data analysis-img)))
+    (values data pathname)))
 

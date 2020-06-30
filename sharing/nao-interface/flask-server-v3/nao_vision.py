@@ -62,12 +62,13 @@ class NaoVision(object):
         N = bboxes.shape[0]
         height, width = image.shape[:2]
         fig = plt.figure(frameon=False)
-        ax = fig.add_subplot(1, 1, 1)
-        ax.set_ylim(height + 10, -10)
-        ax.set_xlim(-10, width + 10)
-        ax.axis('off')
-        masked_image = image.astype(np.uint32).copy()
-        ax.imshow(masked_image.astype(np.uint8))
+        fig.set_size_inches(9, 7)
+        ax = plt.Axes(fig, [0., 0., 1., 1.])
+        #ax.set_ylim(height + 10, -10)
+        #ax.set_xlim(-10, width + 10)
+        ax.set_axis_off()
+        fig.add_axes(ax)
+        ax.imshow(image, aspect='auto')
         for i in range(N):
             y1, x1, y2, x2 = bboxes[i]
             p = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2,
@@ -80,9 +81,8 @@ class NaoVision(object):
                     backgroundcolor="none")
         img_name_and_type = orig_path.split('/')[-1]
         img_name = img_name_and_type.split('.')[0]
-        # img_type = img_name_and_type.split('.')[1]
         bbox_img_path = self.cfg.IMAGE_DIR + img_name + '_bbox.' + self.cfg.PICTURE_FORMAT
-        plt.savefig(bbox_img_path)
+        plt.savefig(bbox_img_path, bbox_inches='tight', pad_inches=0)
         plt.close()
         return bbox_img_path
 
