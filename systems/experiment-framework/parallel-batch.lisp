@@ -164,7 +164,8 @@
                          " :asdf-system :" asdf-system 
                          " :package \"" package 
                          "\" :experiment-class \"" experiment-class 
-                         "\" :number-of-interactions " number-of-interactions 
+                         "\" :number-of-interactions " number-of-interactions
+                         " :series-number " counter
                          " :monitors " (format nil "'(~{\"~a\"~^ ~})" monitors) 
                          " :configurations " (format nil "~s" (format nil "~s" configurations))
                          " :number-of-data-points " (format nil "\"~a\"" number-of-data-points)
@@ -261,7 +262,7 @@
 
 ;; this is the function that is run by the inferior/client lisp
 (defun parallel-batch-run-client-process (&key asdf-system package experiment-class 
-					  number-of-interactions
+					  number-of-interactions series-number
                                           monitors configurations file-name
 					  number-of-data-points random-number
                                           configuration-output-directory)
@@ -286,7 +287,8 @@
   (let ((experiment 
          (make-instance 
           (read-from-string experiment-class)
-          :entries (read-from-string configurations))))
+          :entries (read-from-string configurations)
+          :series-number series-number)))
     
     ;; Some configurations are also set by the experiment, so
     ;; they have to be set again after the experiment was created.
