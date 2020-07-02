@@ -14,7 +14,7 @@
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
 (load-propbank-annotations 'ewt :store-data nil :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes :store-data t :ignore-stored-data t)
+(load-propbank-annotations 'ontonotes)
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
@@ -88,7 +88,7 @@ ts-unit-structure
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                                :name "learned-grammar-ontonotes-ewt"
+                                :name "opinion-grammar-ontonotes"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
@@ -114,7 +114,6 @@ ts-unit-structure
      argm-subclause
      argm-pp
      argm-with-lemma
-     
      )
     ;(:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
     ;(:equivalent-cxn-key . identity)
@@ -136,7 +135,7 @@ ts-unit-structure
                           :fcg-configuration *training-configuration*))
 
 (evaluate-propbank-sentences
-         (spacy-benepar-compatible-sentences *opinion-sentences* '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
+         (spacy-benepar-compatible-sentences *opinion-sentences-dev* '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
  *propbank-learned-cxn-inventory*
  :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
  :silent t)
@@ -256,7 +255,7 @@ node-phrase-types
  (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t))
 
 (activate-monitor trace-fcg)
-(comprehend-and-extract-frames "He brought the man a book ." :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "He believed the man ." :cxn-inventory *propbank-learned-cxn-inventory*)
 
 
 (comprehend-and-extract-frames "" :cxn-inventory *propbank-learned-cxn-inventory*)
