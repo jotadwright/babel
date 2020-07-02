@@ -1,0 +1,9 @@
+(in-package :cl-user)
+
+(defpackage :fcg-search-evaluation
+  (:documentation "Evaluating the search in FCG")
+  (:use :common-lisp :utils :monitors
+   :experiment-framework :plot-raw-data
+   :fcg :clevr-world :clevr-grammar)
+  (:import-from :trivial-timeout :with-timeout
+                :timeout-error))
