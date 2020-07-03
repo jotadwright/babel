@@ -14,7 +14,8 @@
                :clevr-world
                :clevr-primitives
                :cl-json
-               :seq2seq-heuristics)
+               ;:seq2seq-heuristics
+               )
   :serial t
   :components ((:file "package")
                (:file "fcg-utils")

@@ -11,7 +11,7 @@
                 :get-target-var)
   (:import-from :cl-json
                 :decode-json-from-source)
-  (:shadowing-import-from :fcg :size)
+  (:shadowing-import-from :fcg :size :attributes)
   (:export :*CLEVR*
            :AN-EQUAL-NUMBER-CXN :ARE-OTHER-CXN :ARE-THERE-ANY-X-CXN
            :ARE-THERE-ANY-X-OF-CXN :ARE-THERE-ANY-X-THAT-ARE-CXN
