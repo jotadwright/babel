@@ -47,9 +47,10 @@
                      (determine-interacting-agents-mode . :default)
                      (who-aligns? . :learner)
                      (learning-strategy . :lateral-inhibition)
-                     (alignment-strategy . :lateral-inhibition)))
+                     (alignment-strategy . :lateral-inhibition)
+                     (learner-speaks-after-interaction . 500)))
                    )
-                 :number-of-interactions 200
+                 :number-of-interactions 1000
                  :number-of-series 1
                  :monitors '("export-communicative-success"
                              "export-lexicon-size"

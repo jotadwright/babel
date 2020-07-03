@@ -67,10 +67,20 @@
         (list (make-instance 'holophrase-tutor
                              :role 'tutor
                              :experiment experiment
-                             :grammar (copy-object *CLEVR*)
+                             :grammar (let ((clevr-copy (copy-object *CLEVR*)))
+                                        (set-configurations
+                                         clevr-copy
+                                         '((:cxn-supplier-mode . :hashed-simple-queue)
+                                           (:priority-mode . :priming))
+                                         :replace t)
+                                        (set-configurations
+                                         (processing-cxn-inventory clevr-copy)
+                                         '((:cxn-supplier-mode . :hashed-simple-queue)
+                                           (:priority-mode . :priming))
+                                         :replace t)
+                                        clevr-copy)
                              :ontology (copy-object *clevr-ontology*)
-                             :primitives (make-primitive-inventory
-                                          (get-configuration experiment :available-primitives)))
+                             :primitives *clevr-primitives*)
               (make-instance 'holophrase-learner
                              :role 'learner
                              :experiment experiment

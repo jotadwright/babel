@@ -14,7 +14,9 @@
         (communicated-successfully agent) t
         (ground-truth-answer agent)
         (answer->category (ontology agent)
-                          (answer clevr-question))))
+                          (answer clevr-question)))
+  ;; set the current context in the ontology
+  (set-data (ontology agent) 'clevr-context context))
 
 (defmethod initialize-agent ((agent holophrase-learner)
                              context clevr-question)
