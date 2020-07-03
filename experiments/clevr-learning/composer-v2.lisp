@@ -82,7 +82,9 @@
    :initial-chunk (make-instance 'chunk :id 'initial
                                  :target-var '(?answer . t)
                                  :open-vars '((?answer . t)))
-   :chunks (mapcar #'create-chunk-from-primitive (primitives (primitives agent)))
+   :chunks (mapcar #'(lambda (p) (create-chunk-from-primitive
+                                  p :primitive-inventory (primitives agent)))                       
+                   (primitives-list (primitives agent)))
    :ontology (ontology agent) :primitive-inventory (primitives agent)
    :configurations '((:max-search-depth . 10)
                      (:check-node-modes :check-duplicate
@@ -118,7 +120,7 @@
 
 (defmethod compose-new-program (agent target-category (strategy (eql :lateral-inhibition)))
   "The :lateral-inhibition strategy will compose a new program that is different
-   from the other programs that already exist for this question. Than, lateral
+   from the other programs that already exist for this question. Then, lateral
    inhibition should make sure that only the best one remains"
   (let* ((composer (make-default-composer agent target-category))
          (consider-chunk-ids
@@ -138,7 +140,8 @@
                       (get-chunk agent id))
                   consider-chunk-ids)))
     (if consider-chunks
-      (progn (format t "~%Composing a new program. Checking against ~a older programs" (length consider-chunks))
+      (progn (format t "~%Composing a new program. Checking against ~a older programs"
+                     (length consider-chunks))
         (compose-until composer
                        (lambda (s)
                          (different-meaning s consider-chunks))))

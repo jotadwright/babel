@@ -18,9 +18,10 @@
                when (listp field-data)
                append field-data)))
     (cond
-     ((numberp answer) answer)
      ((stringp answer)
-      (find (internal-symb (upcase (mkstr answer))) all-categories :key #'id))
+      (let ((found (find (internal-symb (upcase (mkstr answer)))
+                         all-categories :key #'id)))
+        (if found found (parse-integer answer))))
      ((eql t answer)
       (find 'yes all-categories :key #'id))
      ((null answer)
@@ -60,17 +61,18 @@
                        (get-type-of-var target-var program
                                         :primitive-inventory (primitives agent))))
    :open-vars (let* ((program (irl-program (chunk solution)))
-                     (all-vars (find-all-anywhere-if #'variable-p
-                                                     (append (bind-statements solution)
-                                                             program)))
-                     (open-vars (set-difference
-                                 (mapcar #'car
-                                         (get-open-vars
-                                          program))
-                                 all-vars)))
+                     (all-vars
+                      (find-all-anywhere-if #'variable-p
+                                            (append (bind-statements solution)
+                                                    program)))
+                     (open-vars
+                      (set-difference
+                       (get-open-vars program)
+                       all-vars)))
                 (mapcar #'(lambda (var)
-                            (get-type-of-var var program
-                                             :primitive-inventory (primitives agent)))))
+                            (cons var (get-type-of-var var program
+                                                       :primitive-inventory (primitives agent))))
+                        open-vars))
    :score initial-score))
 
 (defun find-equivalent-chunk (agent chunk)

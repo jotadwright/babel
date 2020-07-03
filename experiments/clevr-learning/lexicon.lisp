@@ -32,7 +32,9 @@
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix))
 
-(defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
+(defmethod make-cxn-name ((string string)
+                          (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
   (make-const
@@ -52,10 +54,11 @@
 
 (defun form-constraints-with-variables (utterance mode)
   "Extract form constraints as if they would appear in a construction."
-  (let ((form-constraints-with-constants (remove 'sequence
-                                            (extract-forms (left-pole-structure
-                                                            (de-render utterance mode)))
-                                            :key #'first)))
+  (let ((form-constraints-with-constants
+         (remove 'sequence
+                 (extract-forms (left-pole-structure
+                                 (de-render utterance mode)))
+                 :key #'first)))
     (mapcar #'(lambda (form-constraint)
                 (cons (first form-constraint)
                       (if (equal 'string (first form-constraint))
@@ -105,14 +108,18 @@
 
 (defun get-form-competitors (agent cxn)
   "Get cxns with the same meaning as cxn"
-  (remove cxn (find-all (attr-val cxn :meaning) (constructions (grammar agent))
-                        :key #'(lambda (cxn) (attr-val cxn :meaning)))))
+  (remove cxn
+          (find-all (attr-val cxn :meaning)
+                    (constructions (grammar agent))
+                    :key #'(lambda (cxn) (attr-val cxn :meaning)))))
 
 (defun get-meaning-competitors (agent cxn)
   "Get cxns with the same form as cxn"
-  (remove cxn (find-all (attr-val cxn :form) (constructions (grammar agent))
-                        :key #'(lambda (cxn) (attr-val cxn :form))
-                        :test #'string=)))
+  (remove cxn
+          (find-all (attr-val cxn :form)
+                    (constructions (grammar agent))
+                    :key #'(lambda (cxn) (attr-val cxn :form))
+                    :test #'string=)))
 
 (define-event cxn-rewarded (cxn construction))
 (define-event cxn-punished (cxn construction))

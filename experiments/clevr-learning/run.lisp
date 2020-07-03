@@ -19,60 +19,48 @@
 ;(deactivate-monitor print-a-dot-for-each-interaction)
 
 ;; Run a single/a series of interaction(s)
-(defparameter *zero-hop-configuration*
+(defparameter *val-set-configuration*
   (make-configuration
    :entries
-   `((data-sets . ("num_objects_4"))
+   '((data-sets . ("val"))
      (available-primitives . (count! exist query get-context unique filter))
      (determine-interacting-agents-mode . :default)
      (who-aligns? . :learner)
      (learning-strategy . :lateral-inhibition)
      (alignment-strategy . :lateral-inhibition))))
 
-(defparameter *single-or-configuration*
-  (make-configuration
-   :entries
-   `((context-size . 4)
-     (available-primitives . (count! filter get-context relate union! unique))
-     (determine-interacting-agents-mode . :tutor-learner)
-     (learning-strategy . :keep-samples)
-     (alignment-strategy . :no-alignment)
-     (questions-file . ,(merge-pathnames
-                         (make-pathname :directory '(:relative "CLEVR" "CLEVR-learning-data" "base-single-or-questions")
-                                        :name "CLEVR_questions_num_objects_X_per_line_enhanced" :type "json")
-                         cl-user:*babel-corpora*)))))
-
 (defparameter *experiment*
-  (make-instance 'holophrase-experiment :configuration *zero-hop-configuration*))
+  (make-instance 'holophrase-experiment
+                 :configuration *val-set-configuration*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
 (deactivate-all-monitors)
 
 ;; Run batches for different configurations
 (run-experiments `(
                    (test
-                    ((data-sets . ("num_objects_4"))
+                    ((data-sets . ("val"))
                      (available-primitives . (count! exist query get-context unique filter))
-                     (determine-interacting-agents-mode . :none)
+                     (determine-interacting-agents-mode . :default)
                      (who-aligns? . :learner)
                      (learning-strategy . :lateral-inhibition)
                      (alignment-strategy . :lateral-inhibition)))
                    )
-                 :number-of-interactions 50000
+                 :number-of-interactions 200
                  :number-of-series 1
                  :monitors '("export-communicative-success"
                              "export-lexicon-size"
                              "export-ontology-size"
-                             "export-meanings-per-form"
-                             "export-forms-per-meaning"
-                             "export-program-correctness"
+                             ;"export-meanings-per-form"
+                             ;"export-forms-per-meaning"
+                             ;"export-program-correctness"
                              "export-avg-cxn-score"
-                             "expand-percentage-of-unique-questions-learned"
-                             "export-lexicon-change"
-                             "export-ontology-change"
+                             ;"expand-percentage-of-unique-questions-learned"
+                             ;"export-lexicon-change"
+                             ;"export-ontology-change"
                              ))
 
 ;;; single strategy
