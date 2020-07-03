@@ -9,14 +9,17 @@
   :license "Babel Research License"
   :depends-on (:utils
                :monitors
-               :irl-2
+               :irl
                :fcg
                :clevr-world
-               :cl-json)
+               :clevr-primitives
+               :cl-json
+               :seq2seq-heuristics)
   :serial t
   :components ((:file "package")
                (:file "fcg-utils")
                (:file "lex-and-morph")
+               (:file "rpn-meaning")
                (:file "grammar")
                (:file "nominal")
                (:file "query")
@@ -28,4 +31,5 @@
                (:file "single-or")
                (:file "compare-integer")
                (:file "same-relate")
-               (:file "comparison")))
+               (:file "comparison")
+               (:file "preprocess-utterance")))

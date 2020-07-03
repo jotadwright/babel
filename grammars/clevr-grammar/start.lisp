@@ -2,12 +2,236 @@
 (in-package :clevr-grammar)
 (activate-monitor trace-fcg)
 
+
+;; Seq2seq configurations:
+(set-configurations *fcg-constructions*
+                    '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
+                      (:priority-mode . :seq2seq-heuristic-additive)
+                      (:seq2seq-endpoint . "http://localhost:8888/next-cxn")))
+
+;; depth first configurations:
+(set-configurations *fcg-constructions*
+                    '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                      (:priority-mode . :nr-of-applied-cxns)))
+
+(comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+(comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
+(comprehend "How many blue metal things are left of the green ball and behind the red thing?")
+(comprehend "Do the large metal cube left of the red thing and the small cylinder have the same color?")
+
+(comprehend-and-formulate "What size is the blue metal thing left of the green ball behind the red thing?")
+(comprehend-and-formulate "How many blue metal things are left of the green ball and behind the red thing?")
+(comprehend-and-formulate "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+(comprehend-and-formulate "Do the large metal cube left of the red thing and the small cylinder have the same color?")
+
+;; zero hop
+(formulate-all
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+   (count! target set-2)
+   (bind shape-category shape-1 thing)
+   (bind color-category color-1 blue)))
+
+;; one hop
+(formulate-all
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+   (unique obj-1 set-2)
+   (relate set-3 obj-1 rel-1)
+   (filter set-4 set-3 shape-2)
+   (filter set-5 set-4 mat-1)
+   (filter set-6 set-5 color-2)
+   (filter set-7 set-6 size-1)
+   (count! target set-7)
+   
+   (bind shape-category shape-1 sphere)
+   (bind color-category color-1 green)
+   (bind spatial-relation-category rel-1 left)
+   (bind shape-category shape-2 thing)
+   (bind material-category mat-1 metal)
+   (bind color-category color-2 blue)
+   (bind size-category size-1 large)))
+
+;; two hop (works but takes a long time!)
+(formulate
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+   (unique obj-1 set-2)
+   (relate set-3 obj-1 rel-1)
+   (filter set-4 set-3 shape-2)
+   (filter set-5 set-4 color-2)
+   (unique obj-2 set-5)
+   (relate set-6 obj-2 rel-2)
+   (filter set-7 set-6 shape-3)
+   (filter set-8 set-7 mat-1)
+   (filter set-9 set-8 color-3)
+   (filter set-10 set-9 size-1)
+   (count! target set-10)
+
+   (bind shape-category shape-1 thing)
+   (bind color-category color-1 red)
+   (bind spatial-relation-category rel-1 behind)
+   (bind shape-category shape-2 sphere)
+   (bind color-category color-2 green)
+   (bind spatial-relation-category rel-2 left)
+   (bind shape-category shape-3 thing)
+   (bind material-category mat-1 metal)
+   (bind color-category color-3 blue)
+   (bind size-category size-1 large)))
+
+;; and questions
+(formulate
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+   (unique obj-1 set-2)
+   (relate behind-set obj-1 rel-1)
+
+   (filter set-3 context shape-2)
+   (filter set-4 set-3 color-2)
+   (unique obj-2 set-4)
+   (relate left-set obj-2 rel-2)
+
+   (intersect iset left-set behind-set)
+   (filter set-6 iset shape-3)
+   (filter set-7 set-6 mat-1)
+   (filter set-8 set-7 color-3)
+   (count! target set-8)
+
+   (bind shape-category shape-1 thing)
+   (bind color-category color-1 red)
+   (bind spatial-relation-category rel-1 behind)
+   (bind shape-category shape-2 sphere)
+   (bind color-category color-2 green)
+   (bind spatial-relation-category rel-2 left)
+   (bind shape-category shape-3 thing)
+   (bind material-category mat-1 metal)
+   (bind color-category color-3 blue)))
+
+;; or questions
+(formulate
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+
+   (filter set-3 context shape-2)
+   (filter set-4 set-3 color-2)
+   (filter set-5 set-4 size-1)
+
+   (union! u-set set-5 set-2)
+   (filter count-set u-set shape-3)
+   (count! target count-set)
+
+   (bind shape-category shape-1 sphere)
+   (bind color-category color-1 green)
+   (bind shape-category shape-2 thing)
+   (bind color-category color-2 blue)
+   (bind size-category size-1 large)
+   (bind shape-category shape-3 thing)))
+
+;; compare integer
+(formulate
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+   (count! count-1 set-2)
+
+   (filter set-3 context shape-2)
+   (filter set-4 set-3 color-2)
+   (count! count-2 set-4)
+
+   (equal-integer target count-1 count-2)
+
+   (bind shape-category shape-1 sphere)
+   (bind color-category color-1 green)
+   (bind shape-category shape-2 thing)
+   (bind color-category color-2 blue)))
+
+;; same relate
+(formulate
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+   (unique obj-2 set-2)
+   (same set-3 obj-2 attr-1)
+   (filter set-4 set-3 shape-2)
+   (filter set-5 set-4 color-2)
+   (exist target set-5)
+
+   (bind shape-category shape-1 sphere)
+   (bind color-category color-1 blue)
+   (bind attribute-category attr-1 shape)
+   (bind shape-category shape-2 cube)
+   (bind color-category color-2 red)))
+
+;; comparison (takes long)
+(formulate
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 mat-1)
+   (filter set-3 set-2 color-1)
+   (unique obj-1 set-3)
+   (query a-1 obj-1 attr-1)
+
+   (filter set-4 context shape-2)
+   (filter set-5 set-4 color-2)
+   (unique obj-2 set-5)
+   (query a-2 obj-2 attr-1)
+
+   (equal? target a-1 a-2 attr-1)
+
+   (bind shape-category shape-1 cube)
+   (bind material-category mat-1 metal)
+   (bind color-category color-1 blue)
+   (bind attribute-category attr-1 color)
+   (bind shape-category shape-2 thing)
+   (bind color-category color-2 red)))
+
+(comprehend-and-formulate "Do the blue thing and the red thing have the same shape?")
+(comprehend-and-formulate "Is the shape of the blue thing the same as the red thing?")
+(comprehend-and-formulate "Is the blue thing the same shape as the red thing?")
+(comprehend-and-formulate "Does the blue thing have the same shape as the red thing?")
+(comprehend-and-formulate "There is a blue thing; does it have the same shape as the red thing?")
+(comprehend-and-formulate "There is a blue thing; is it the same shape as the red thing?")
+(comprehend-and-formulate "There is a blue thing; is its shape the same as the red thing?")
+
+(formulate
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+   (count! target set-2)
+   (bind shape-category shape-1 thing)
+   (bind color-category color-1 blue)))
+
+(formulate
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
+   (unique obj-1 set-2)
+   (relate set-3 obj-1 rel-1)
+   (filter set-4 set-3 shape-2)
+   (filter set-5 set-4 mat-1)
+   (filter set-6 set-5 color-2)
+   (filter set-7 set-6 size-1)
+   (count! target set-7)
+   (bind shape-category shape-1 sphere)
+   (bind color-category color-1 green)
+   (bind spatial-relation-category rel-1 left)
+   (bind shape-category shape-2 thing)
+   (bind material-category mat-1 metal)
+   (bind color-category color-2 blue)
+   (bind size-category size-1 large)))
+
+
 ;; ------------------------ ;;
 ;; zero hop question family ;;
 ;; ------------------------ ;;
 
 ;; question type 1; count
-(fcg:comprehend-all '("how many" "blue" "things" "are" "there"))
+(fcg:comprehend '("how many" "blue" "things" "are" "there"))
 (fcg:comprehend-all '("what number of" "blue" "things" "are" "there"))
 
 (fcg:formulate-all
@@ -1065,7 +1289,7 @@
    (bind shape-category shape-3 thing)
    (bind color-category color-3 blue)))
 
-(fcg:comprehend-all '("are there" "more" "blue" "things" "left of" "the" "green" "ball" "than" "red" "cubes" "behind" "the" "purple" "cube"))
+(fcg:comprehend '("are there" "more" "blue" "things" "left of" "the" "green" "ball" "than" "red" "cubes" "behind" "the" "purple" "cube"))
 (fcg:comprehend-all '("is the number of" "blue" "things" "left of" "the" "green" "ball" "greater than" "the number of" "red" "cubes" "behind" "the" "purple" "cube"))
 
 (fcg:formulate
