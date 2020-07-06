@@ -178,7 +178,7 @@ def stop_speech_recognition():
         return json.dumps({'errors': errors}), 400
     else:
         asr = NaoSpeech(nao_config)
-        recognised = asr.stop_speech_recognition(equest_data['subscriber'])
+        recognised = asr.stop_speech_recognition(request_data['subscriber'])
         return json.dumps({'recognised': recognised}), 200
 
 
