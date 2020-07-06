@@ -27,7 +27,8 @@
      (determine-interacting-agents-mode . :default)
      (who-aligns? . :learner)
      (learning-strategy . :lateral-inhibition)
-     (alignment-strategy . :lateral-inhibition))))
+     (alignment-strategy . :lateral-inhibition)
+     (learner-speaks-after-interaction . 500))))
 
 (defparameter *experiment*
   (make-instance 'holophrase-experiment
