@@ -1,7 +1,6 @@
 (ql:quickload :clevr-evaluation)
 (in-package :clevr-evaluation)
 
-
 ;; loop over all questions and meanings using the seq2seq data file
 ;;   loop over all scenes using clevr-world
 ;;     execute the meaning in the scene
@@ -49,7 +48,7 @@
                                while line
                                for fields = (split line #\,)
                                for question = (second fields)
-                               for (meaning cipn) = (multiple-value-list (comprehend question :cxn-inventory *clevr*))
+                               for (meaning cipn) = (multiple-value-list (comprehend question))
                                do (update bar)
                                when (eql (first (statuses cipn)) 'fcg::succeeded)
                                do (let ((out-line (answer-question-in-scene question meaning scene)))

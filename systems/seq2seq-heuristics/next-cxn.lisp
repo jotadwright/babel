@@ -21,10 +21,11 @@
                                                       (:applied--cxns . ,applied-cxns)
                                                       (:number--cutoff . ,number-cutoff)
                                                       (:probability--cutoff . ,probability-cutoff))))
-         (response-string (drakma:http-request endpoint
-                                               :method :post
-                                               :content-type "application/json"
-                                               :content json))
+         (response-string #-ccl (drakma:http-request endpoint
+                                                     :method :post
+                                                     :content-type "application/json"
+                                                     :content json)
+                          #+ccl (dex:post endpoint :content json :headers '((Content-Type . "application/json"))))
          (response-object (handler-case (cl-json:decode-json-from-string response-string)
                             (error (c) (warn (format nil "Error decoding json in seq2seq-next-cxn."))))))
     (when response-object
