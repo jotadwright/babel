@@ -30,7 +30,8 @@
           (babel-pathname :directory '(".tmp")
                           :name "CLEVR_val_enhanced"
                           :type "csv")
-          :direction :output))
+          :direction :output
+          :if-exists :supersede))
         (world
          (make-instance 'clevr-world
                         :data-sets '("val"))))
@@ -39,7 +40,7 @@
                      (let ((in-stream
                             (open
                              (parse-namestring
-                              "/Users/jensnevens/Projects/seq2seq/data/CLEVR_val_v2.csv")
+                              "/home/jnevens/seq2seq/data/CLEVR_val_v2.csv")
                              :direction :input))
                            (counter 0))
                        (read-line in-stream nil nil)
