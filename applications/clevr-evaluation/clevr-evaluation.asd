@@ -31,9 +31,4 @@
                (:file "evaluation")
                (:file "evaluation-parallel")
                (:file "rpn-corpus")
-               (:file "web-monitors")
-               (:module fcg-search-experiment
-                :serial t
-                :components ((:file "utils")
-                             (:file "experiment")
-                             (:file "monitors")))))
+               (:file "web-monitors")))
