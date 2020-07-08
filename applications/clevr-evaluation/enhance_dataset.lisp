@@ -67,12 +67,14 @@
         else collect arg))
 
 (defun main (args)
-  (let ((arg-plist (args->plist args)))
-    (enhance-data (parse-namestring (getf arg-plist 'inputfile))
-                  (parse-namestring (getf arg-plist 'outputfile))
-                  (parse-integer (getf arg-plist 'seq2seq-port)))))
+  (print args))
+  ;(let ((arg-plist (args->plist args)))
+  ;  (enhance-data (parse-namestring (getf arg-plist 'inputfile))
+  ;                (parse-namestring (getf arg-plist 'outputfile))
+  ;                (parse-integer (getf arg-plist 'seq2seq-port)))))
                   
 
-(main ccl:*unprocessed-command-line-arguments*)
+(main #+ccl ccl:*unprocessed-command-line-arguments*
+      #+sbcl (rest sb-ext:*posix-argv*))
 
                                        
