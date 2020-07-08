@@ -78,24 +78,23 @@
         (add-element '((hr)))))))
 
 (define-event-handler (trace-interaction-in-web-interface observe-scene-finished)
-  (let ((source-path (babel-pathname :directory '(".tmp" "nao-img")
-                                     :name img-path
-                                     :type "jpg"))
-        (dest-path (pathname "~/Sites/")))
-    (copy-file source-path dest-path)
-    (if (null cl-user::*localhost-user-dir*)
-      (warn "Set your *localhost-user-dir* in init-babel")
-      (progn
-        (add-element `((table)
-                       ((tr)
-                        ((th :align "center") "Observed scene:"))
-                       ((tr)
-                        ((td :align "center") ((img :src ,(string-append cl-user::*localhost-user-dir* (format nil "~a.jpg" img-path)) :width "90%"))))))
-        (add-element `((table)
-                 ((tr)
-                  ((th :align "center") "Processed scene:"))
-                 ((tr)
-                  ((td :align "center") ,(make-html scene :expand-initially t)))))))))
+  (copy-file img-path (pathname "~/Sites/"))
+  (if (null cl-user::*localhost-user-dir*)
+    (warn "Set your *localhost-user-dir* in init-babel")
+    (progn
+      (add-element `((table)
+                     ((tr)
+                      ((th :align "center") "Observed scene:"))
+                     ((tr)
+                      ((td :align "center") ((img :src ,(string-append cl-user::*localhost-user-dir*
+                                                                       (format nil "~a.jpg"
+                                                                               (pathname-name img-path)))
+                                                  :width "110%"))))))
+      (add-element `((table)
+                     ((tr)
+                      ((th :align "center") "Processed scene:"))
+                     ((tr)
+                      ((td :align "center") ,(make-html scene :expand-initially t))))))))
 
 (define-event-handler (trace-interaction-in-web-interface choose-topic-finished)
   (add-element `((h3) "The topic is " ((i) ,(format nil "~a" topic-id)))))

@@ -22,7 +22,7 @@
   "Generate a sensory object from a json object (returned by decode-json)"
   (make-instance 'sensory-object
                  :id (or id (make-id 'sensory-object))
-                 :rgbcolor (rest (assoc :color json))
+                 :rgbcolor (rest (assoc :rgb json))
                  :xpos (rest (assoc :xpos json))
                  :ypos (rest (assoc :ypos json))))
 
@@ -70,7 +70,7 @@
   "Create an object set from json data (returned by decode-json)"
   (let ((entities
          (loop for json-obj in json
-               for object = (json->sensory-object (rest (first json-obj)) :id (caar json-obj))
+               for object = (json->sensory-object (rest json-obj) :id (first json-obj))
                collect object)))
     (make-object-set entities)))
 
