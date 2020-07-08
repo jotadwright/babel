@@ -1,12 +1,5 @@
 (ql:quickload :clevr-evaluation)
 (in-package :clevr-evaluation)
-
-;; loop over all questions and meanings using the seq2seq data file
-;;   loop over all scenes using clevr-world
-;;     execute the meaning in the scene
-;;     if it leads to an answer, store it
-
-
 (deactivate-all-monitors)
 
 (defun answer-question-in-scene (question meaning scene)
@@ -23,45 +16,63 @@
                            (mkstr (downcase answer)))))
         line))))
   
-(defun main ()
-  (let ((out-stream
-         (open
-          (babel-pathname :directory '(".tmp")
-                          :name "CLEVR_val_enhanced"
-                          :type "csv")
-          :direction :output
-          :if-exists :supersede))
+(defun enhance-data (inputfile outputfile seq2seq-server-port)
+  ;; set the seq2seq endpoint
+  (set-configuration *fcg-constructions* :seq2seq-endpoint
+                     (format nil "http://localhost:~a/next-cxn"
+                             seq2seq-server-port)
+                     :replace t)
+  ;; open streams
+  (let ((in-stream
+         (open inputfile
+               :direction :input))
+        (out-stream
+         (open outputfile
+               :direction :output
+               :if-exists :supersede))
         (world
          (make-instance 'clevr-world
                         :data-sets '("val"))))
-    (do-for-scenes world
-                   (lambda (scene)
-                     (let ((in-stream
-                            (open
-                             (parse-namestring
-                              "/home/jnevens/seq2seq/data/CLEVR_val_v2.csv")
-                             :direction :input))
-                           (counter 0))
-                       (read-line in-stream nil nil)
-                       (with-progress-bar (bar 150000 ("Evaluating scene ~a~%" (name scene)))
-                         (loop for line = (read-line in-stream nil nil)
-                               while line
-                               for fields = (split line #\,)
-                               for question = (second fields)
-                               for (meaning cipn) = (multiple-value-list (comprehend question))
-                               do (update bar)
-                               when (eql (first (statuses cipn)) 'fcg::succeeded)
-                               do (let ((out-line (answer-question-in-scene question meaning scene)))
-                                    (when out-line
-                                      (incf counter)
-                                      (write-line out-line out-stream)
-                                      (force-output out-stream)))))
-                       (format t "Stored ~a question-answer pairs for scene ~a~%"
-                               counter (name scene))
-                       (close in-stream))))
-    (force-output out-stream)
-    (close out-stream)))
+    ;; skip the header line
+    (read-line in-stream nil nil)
+    ;; loop over each line
+    (loop for line = (read-line in-stream nil nil)
+          while line
+          for fields = (split line #\,)
+          for question = (second fields)
+          ;; comprehend it to get the meaning
+          for (meaning cipn) = (multiple-value-list (comprehend question))
+          when (eql (first (statuses cipn))
+                    'fcg::succeeded)
+          ;; execute the meaning in every scene
+          do (with-progress-bar (bar (length (scenes world))
+                                     ("Processing question \"~a\"" question))
+               (let ((counter 0))
+                 (do-for-scenes
+                  world (lambda (scene)
+                          (let ((out-line (answer-question-in-scene question meaning scene)))
+                            (update bar)
+                            ;; when an answer is computed, store it
+                            (when out-line
+                              (incf counter)
+                              (write-line out-line out-stream)
+                              (force-output out-stream)))
+                          t))
+                 (format t "Stored ~a lines~%" counter))))))
 
-;(main)
+(defun args->plist (args)
+  (loop for arg in args
+        for i from 0
+        if (evenp i) collect (internal-symb (upcase arg))
+        else collect arg))
+
+(defun main (args)
+  (let ((arg-plist (args->plist args)))
+    (enhance-data (parse-namestring (getf arg-plist 'inputfile))
+                  (parse-namestring (getf arg-plist 'outputfile))
+                  (parse-integer (getf arg-plist 'seq2seq-port)))))
+                  
+
+(main ccl:*unprocessed-command-line-arguments*)
 
                                        
