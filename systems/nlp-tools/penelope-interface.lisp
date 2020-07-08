@@ -60,8 +60,9 @@
                                         :method :post
                                         :content-type "application/json"
                                         :content json)))
-    (when response (cl-json:decode-json-from-string response))))
-
+    (when response (handler-case (cl-json:decode-json-from-string response)
+                     (error (e)
+                       (format t "Error in response from spacy API service [nlp-tools penelope-interface]: ~S.~&" e))))))
 #-lispworks
 (defun send-request (route json &key (host *penelope-host*))
   "Send curl request and returns the answer."
@@ -69,7 +70,9 @@
          (response (dex:post url
                              :headers '((Content-Type . "application/json"))
                              :content json)))
-    (when response (cl-json:decode-json-from-string response))))
+    (when response (handler-case (cl-json:decode-json-from-string response)
+                     (error (e)
+                       (format t "Error in response from spacy API service [nlp-tools penelope-interface]: ~S.~&" e))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;
