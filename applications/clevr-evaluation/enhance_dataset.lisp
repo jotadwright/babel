@@ -6,15 +6,11 @@
   (set-data *clevr-ontology* 'clevr-context scene)
   (let ((solutions
          (evaluate-irl-program meaning *clevr-ontology*)))
-    (when (and solutions (= (length solutions) 1))
+    (if (and solutions (= (length solutions) 1))
       (let* ((answer (answer->str
-                      (get-target-value meaning (first solutions))))
-             (line (format nil "~a,~a,~a,~a"
-                           question
-                           (mkstr (downcase meaning))
-                           (name scene)
-                           (mkstr (downcase answer)))))
-        line))))
+                      (get-target-value meaning (first solutions)))))
+        (values (name scene) (mkstr (downcase answer))))
+      (values nil nil))))
   
 (defun enhance-data (inputfile outputfile seq2seq-server-port)
   ;; set the seq2seq endpoint
@@ -35,6 +31,8 @@
                         :data-sets '("val"))))
     ;; skip the header line
     (read-line in-stream nil nil)
+    ;; write the opening bracket to the output file
+    (write-string "[" out-stream)
     ;; loop over each line
     (loop for line = (read-line in-stream nil nil)
           while line
@@ -47,18 +45,33 @@
           ;; execute the meaning in every scene
           do (with-progress-bar (bar (length (scenes world))
                                      ("Processing question \"~a\"" question))
-               (let ((counter 0))
+               (let ((counter 0)
+                     (scenes nil)
+                     (answers nil))
                  (do-for-scenes
                   world (lambda (scene)
-                          (let ((out-line (answer-question-in-scene question meaning scene)))
+                          (multiple-value-bind (scene-name answer)
+                              (answer-question-in-scene question meaning scene)
                             (update bar)
                             ;; when an answer is computed, store it
-                            (when out-line
+                            (when answer
                               (incf counter)
-                              (write-line out-line out-stream)
-                              (force-output out-stream)))
+                              (push scene-name scenes)
+                              (push answer answers)))
                           t))
-                 (format t "Stored ~a lines~%" counter))))))
+                 (format t "Storing ~a lines~%" counter)
+                 (write-line
+                  (encode-json-alist-to-string
+                   `((question . ,question)
+                     (meaning . ,(downcase (mkstr meaning)))
+                     (answers ,@(loop for (scene-name . answer) in (pairlis scenes answers)
+                                      collect `((scene . ,scene-name)
+                                                (answer . ,answer))))))
+                  out-stream))
+               (force-output out-stream)
+               (sleep 10)))
+    (write-string "]" out-stream)
+    (force-output out-stream)))
 
 (defun args->plist (args)
   (loop for arg in args
