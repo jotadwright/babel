@@ -229,12 +229,14 @@ Useful for re-using the &REST arg after removing some options."
   (first (exec-and-return "whoami")))
 
 (defun read-random-line (file)
-  "Returns a random line from a file using perl
-   and avoids reading the entire file into memory!"
-  (first (exec-and-return "perl"
-                          "-e"
-                          "'srand; rand($.) < 1 && ($line = $_) while <>; print $line;'"
-                          (namestring file))))
+  "Returns a random line from a file using perl.
+   This method is especially useful for very large files
+   as it avoids reading the entire file into memory!"
+  (first
+   (exec-and-return "perl"
+                    "-e"
+                    "'srand; rand($.) < 1 && ($line = $_) while <>; print $line;'"
+                    (namestring file))))
 
 
 
