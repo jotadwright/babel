@@ -41,10 +41,14 @@
   "Remove the chunk from the ontology"
   (notify chunk-removed chunk)
   (notify ontology-changed)
-  (set-data ontology 'programs
-            (remove chunk (get-data ontology 'programs))))
+  (delete chunk (get-data ontology 'programs)))
 
-(defun chunk-in-use-p (agent chunk)
+(defun remove-unreachable-chunks (agent)
+  (loop for chunk in (get-data (ontology agent) 'programs)
+        unless (chunk-reachable-p agent chunk)
+        do (remove-chunk (ontology agent) chunk)))
+
+(defun chunk-reachable-p (agent chunk)
   "Check if the chunk is in use in some cxn"
   (find (id chunk) (constructions (grammar agent))
         :key #'(lambda (cxn) (attr-val cxn :meaning))))

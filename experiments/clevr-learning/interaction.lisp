@@ -4,36 +4,33 @@
 ;; + Initialize Agent +
 ;; ####################
 
-(defgeneric initialize-agent (agent context clevr-question)
+(defgeneric initialize-agent (agent scene question answer)
   (:documentation "Prepare the agent for the next interaction"))
 
 (defmethod initialize-agent ((agent holophrase-tutor)
-                             context clevr-question)
-  (setf (clevr-question agent) clevr-question
-        (utterance agent) (question clevr-question)
+                             scene question answer)
+  (setf (clevr-question agent) nil
+        (utterance agent) question
         (communicated-successfully agent) t
-        (ground-truth-answer agent)
-        (answer->category (ontology agent)
-                          (answer clevr-question)))
+        (ground-truth-answer agent) (answer->category (ontology agent) answer))
   ;; set the current context in the ontology
-  (set-data (ontology agent) 'clevr-context context))
+  (set-data (ontology agent) 'clevr-context scene))
 
 (defmethod initialize-agent ((agent holophrase-learner)
-                             context clevr-question)
-  (setf (clevr-question agent) clevr-question
-        (utterance agent) (question clevr-question)
+                             scene question answer)
+  (setf (clevr-question agent) nil
+        (utterance agent) question
         (communicated-successfully agent) t
         (applied-cxn agent) nil
         (applied-chunk agent) nil
         (applicable-chunks agent) nil
         (computed-answer agent) nil)
   ;; set the current context in the ontology
-  (set-data (ontology agent) 'clevr-context context)
+  (set-data (ontology agent) 'clevr-context scene)
   ;; set the ground-truth answer when speaker
   (when (speakerp agent)
     (setf (ground-truth-answer agent)
-          (answer->category (ontology agent)
-                            (answer clevr-question)))))
+          (answer->category (ontology agent) answer))))
           
 
 ;; ###############
@@ -51,10 +48,12 @@
     ("equal_integer" . equal-integer))
   "Maps the CLEVR primitive names to the IRL primitive names")
 
-(defun all-primitives-available-p (experiment clevr-question)
+(defun all-primitives-available-p (experiment meaning)
   (let* ((available-primitives (get-configuration experiment :available-primitives))
-         (necessary-primitives (mapcar #'function-name
-                                       (nodes (program clevr-question))))
+         (necessary-primitives (remove 'bind (remove-duplicates (mapcar #'first meaning)))))
+    (loop for p in necessary-primitives
+          always (find p available-primitives))))
+#|
          (processed-primitives
           (loop for primitive in necessary-primitives
                 if (eql primitive 'equal_integer)
@@ -69,14 +68,31 @@
                                       :test #'string=))))))
     (loop for primitive in found-primitives
           always (find primitive available-primitives))))
+|#
     
 
 (define-event context-determined (image-path pathname))
-(define-event question-determined (clevr-question clevr-question))
+(define-event question-determined (question string) (answer string))
 
 (defmethod interact :before ((experiment holophrase-experiment) interaction &key)
   "Choose the context and question (utterance) for the current interaction.
    Always check if all primitives are available. If not, retry."
+  ;; examples: third, sixth, eighth, ninth 
+  (loop for line = (ninth (data experiment)) ;(random-elt (data experiment))
+        until (all-primitives-available-p
+               experiment (read-from-string
+                           (rest (assoc :meaning line))))
+        finally (let* ((question (rest (assoc :question line)))
+                       (answers (rest (assoc :answers line)))
+                       (scene-name/answer (random-elt answers))
+                       (scene (find-scene-by-name (rest (assoc :scene scene-name/answer))
+                                                  (world experiment)))
+                       (answer (rest (assoc :answer scene-name/answer))))
+                  (notify context-determined (image scene))
+                  (notify question-determined question answer)
+                  (loop for agent in (interacting-agents experiment)
+                        do (initialize-agent agent scene question answer)))))
+#|
   (loop for (context question-set) = (multiple-value-list
                                       (random-scene (world experiment)))
         for clevr-question = (random-elt (questions question-set))
@@ -85,6 +101,7 @@
                   (notify question-determined clevr-question)
                   (loop for agent in (interacting-agents experiment)
                         do (initialize-agent agent context clevr-question)))))
+|#
 
 (defmethod interact ((experiment holophrase-experiment) interaction &key)
   "Interaction script depends on who is the speaker
@@ -129,9 +146,9 @@
         do (align-agent agent (get-configuration experiment :alignment-strategy)))
   ;; store sample when strategy is active
   (when (eql (get-configuration experiment :learning-strategy) :keep-samples)
-    (let ((learner (find 'learner (interacting-agents experiment) :key #'role)))
-      (when (hearerp learner)
-        (store-sample learner)))))
+    (let ((learner (find 'learner (interacting-agents experiment) :key #'role))
+          (tutor (find 'tutor (interacting-agents experiment) :key #'role)))
+      (store-sample learner (ground-truth-answer tutor)))))
 
 
 

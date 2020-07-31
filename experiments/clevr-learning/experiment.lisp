@@ -7,6 +7,9 @@
 (define-configuration-default-value :dot-interval 100)
 (define-configuration-default-value :clevr-data-path *clevr-data-path*)
 (define-configuration-default-value :data-sets '("val"))
+(define-configuration-default-value :answer-file
+                                    (babel-pathname :directory '("experiments" "clevr-learning")
+                                                    :name "CLEVR_val_mini" :type "txt"))
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
 ;; Available alignment strategies:
@@ -37,15 +40,17 @@
 ;; ##############
 
 (defclass holophrase-experiment (experiment)
-  ()
+  ((data :accessor data :type list :initarg :data :initform nil
+         :documentation "The contents of the :answer-file"))
   (:documentation "QA Game"))
 
-(defun make-primitive-inventory (available-primitives)
+(defun make-learner-primitive-inventory (available-primitives)
   ; copy primitives from *clevr-primitives*
   ; and only keep those occurring in
   ; the available primitives configuration
   (let ((inventory (def-irl-primitives holophrase-primitives
-                     :primitive-inventory *holophrase-primitives*)))
+                     :primitive-inventory *holophrase-primitives*
+                     :irl-configurations ((:max-nr-of-nodes . 10000)))))
     (loop for p in available-primitives
           do (add-primitive
               (find-primitive p *clevr-primitives*)
@@ -61,7 +66,14 @@
   (setf (world experiment)
         (make-instance 'clevr-world
                        :data-sets (get-configuration experiment :data-sets)
-                       :load-questions t))
+                       :load-questions nil))
+  ;; load the answer file in memory
+  (setf (data experiment)
+        (with-open-file (in (get-configuration experiment :answer-file)
+                            :direction :input)
+          (loop for line = (read-line in nil nil)
+                while line
+                collect (decode-json-from-string line))))
   ;; create the agents
   (setf (population experiment)
         (list (make-instance 'holophrase-tutor
@@ -86,7 +98,7 @@
                              :experiment experiment
                              :grammar (make-agent-cxn-set)
                              :ontology (copy-object *clevr-ontology*)
-                             :primitives (make-primitive-inventory
+                             :primitives (make-learner-primitive-inventory
                                           (get-configuration experiment :available-primitives)))))
   ;; print dots
   (activate-monitor print-a-dot-for-each-interaction))

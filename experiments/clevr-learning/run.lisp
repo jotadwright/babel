@@ -23,16 +23,31 @@
   (make-configuration
    :entries
    '((data-sets . ("val"))
-     (available-primitives . (count! exist query get-context unique filter))
+     (available-primitives . (count! equal-integer less-than greater-than
+                                     equal? exist filter get-context
+                                     query relate same unique))
      (determine-interacting-agents-mode . :default)
      (who-aligns? . :learner)
      (learning-strategy . :lateral-inhibition)
      (alignment-strategy . :lateral-inhibition)
      (learner-speaks-after-interaction . 500))))
 
+(defparameter *val-set-configuration-store-samples*
+  (make-configuration
+   :entries
+   '((data-sets . ("val"))
+     (available-primitives . (count! equal-integer less-than greater-than
+                                     equal? exist filter get-context
+                                     query relate same unique))
+     (determine-interacting-agents-mode . :default)
+     (who-aligns? . :learner)
+     (learning-strategy . :keep-samples)
+     (alignment-strategy . :no-alignment)
+     (learner-speaks-after-interaction . 500))))
+
 (defparameter *experiment*
   (make-instance 'holophrase-experiment
-                 :configuration *val-set-configuration*))
+                 :configuration *val-set-configuration-store-samples*))
 
 (run-interaction *experiment*)
 

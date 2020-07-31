@@ -49,7 +49,10 @@
           :initform nil :type list)
    (samples :documentation "The seen samples, used in learning strategy :keep-samples"
             :accessor samples :initarg :samples
-            :initform nil :type list))
+            :initform nil :type list)
+   (composer :documentation "The learner's chunk composer"
+             :accessor composer :initarg :composer
+             :initform nil :type (or null chunk-composer)))
   (:documentation "The learner agent"))
    
 
@@ -303,23 +306,23 @@
            (chunk
             (solution->chunk agent solution
                              :initial-score (get-configuration agent :initial-chunk-score)))
-           (equivalent-chunk (find-equivalent-chunk agent chunk))
            (interaction-nr
             (interaction-number
              (current-interaction
               (experiment agent)))))
       (notify composition-solution-found solution)
-      ;; add the chunk (or re-use an existing one)
-      (unless equivalent-chunk
-        (add-chunk (ontology agent) chunk))
+      ;; add the chunk
+      (add-chunk (ontology agent) chunk)
       ;; remove the previous cxn for this utterance
+      ;; if it existed
       (when (and cxn-w-utterance (not (eql learning-strategy :lateral-inhibition)))
         (remove-holophrase-cxn agent cxn-w-utterance))
       ;; create and add a new holophrase cxn
       (add-holophrase-cxn (grammar agent) (utterance agent)
-                          (if equivalent-chunk equivalent-chunk chunk)
-                          interaction-nr
-                          :initial-score (get-configuration agent :initial-cxn-score)))))
+                          chunk interaction-nr
+                          :initial-score (get-configuration agent :initial-cxn-score))
+      ;; remove unreachable chunks
+      (remove-unreachable-chunks agent))))
 
 ;; #####################
 ;; + Determine success +

@@ -13,4 +13,5 @@
                 :get-target-value
                 :answer->str
                 :program->program-tree)
+  (:import-from :cl-json :decode-json-from-string)
   (:shadowing-import-from :fcg :size :attributes))

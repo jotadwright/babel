@@ -60,11 +60,36 @@
 
 (defmethod expand-chunk ((chunk chunk)
                          (composer chunk-composer)
-                         (mode (eql :clevr-link-open-variables)))
-  (check-duplicate-variables
-   (expand-chunk
-    (add-context-var-to-open-vars chunk)
-    composer :link-open-variables)))
+                         (mode (eql :clevr-expand-chunk)))
+  (let ((new-chunks
+         (expand-chunk chunk composer :combine-program)))
+    (if new-chunks new-chunks
+      (check-duplicate-variables
+       (expand-chunk
+        (add-context-var-to-open-vars chunk)
+        composer :link-open-variables)))))
+
+;; + node rating mode +
+(defmethod rate-node ((node chunk-composer-node)
+                      (composer chunk-composer)
+                      (mode (eql :clevr-node-rating)))
+  "Prefer short programs with few open vars and few
+   duplicate primitives, except for filter."
+  (let ((chunk (chunk node)))
+    (/ (+ (node-depth node)            ;; the less depth the better
+          (length (open-vars chunk))   ;; less open vars are better
+          (length (irl-program chunk)) ;; less primitives are better
+          ;; less duplicate primitives are better
+          ;; (bind statements and filter primitives
+          ;;  are not considered)
+          (let ((predictes (remove 'filter
+                                   (all-predicates
+                                    (irl-program chunk))
+                                   :key #'car)))
+            (* 5 (- (length predictes)
+                    (length (remove-duplicates predictes))))))
+       ;; the higher the score the better
+       (score chunk))))
 
 
 
@@ -89,8 +114,8 @@
    :configurations '((:max-search-depth . 10)
                      (:check-node-modes :check-duplicate
                       :clevr-primitive-occurrence-count)
-                     (:expand-chunk-modes :clevr-link-open-variables
-                      :combine-program))))
+                     (:expand-chunk-modes :clevr-expand-chunk)
+                     (:node-rating-mode . :clevr-node-rating))))
 
 ;; + compose-until +
 (defun compose-until (composer fn)

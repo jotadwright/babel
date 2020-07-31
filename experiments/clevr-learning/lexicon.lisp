@@ -100,9 +100,10 @@
   "Remove the given cxn and possibly also remove
    the chunk associated with it (if it is no longer
    used by other cxns)"
-  (setf (constructions (grammar agent))
-        (remove cxn (constructions (grammar agent))))
-  (push-data (blackboard (grammar agent)) 'trash cxn)
+  (delete-cxn cxn (grammar agent))
+  ;(setf (constructions (grammar agent))
+  ;      (remove cxn (constructions (grammar agent))))
+  ;(push-data (blackboard (grammar agent)) 'trash cxn)
   (notify lexicon-changed)
   (notify question-cxn-removed cxn))
 
