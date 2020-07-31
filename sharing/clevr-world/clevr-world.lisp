@@ -393,7 +393,8 @@
 (export '(clevr-world scenes question-sets data-sets current-scene
           current-question-set random-scene all-scenes all-questions
           all-scenes-and-questions do-for-scenes
-          do-for-scenes-and-questions))
+          do-for-scenes-and-questions
+          find-scene-by-name))
 
 (defclass clevr-world (entity)
   ((scenes        :type list :initarg :scenes        :accessor scenes)
@@ -482,6 +483,19 @@
         (setf (current-question-set world)
               (load-object 'question-set question-set-path)))
       (warn "No question sets loaded."))))
+
+(defmethod find-scene-by-name (name (world clevr-world))
+  (let ((filename (find name (scenes world) :key #'namestring :test #'search)))
+    (when filename
+      (setf (current-scene world)
+            (load-object 'scene filename))
+      (when (question-sets world)
+        (let* ((scene-index (position (source-path (current-scene world)) (scenes world)))
+               (question-set-path (nth scene-index (question-sets world))))
+          (setf (current-question-set world)
+                (load-object 'question-set question-set-path))))
+      (values (current-scene world)
+              (current-question-set world)))))
 
 (defmethod random-scene ((world clevr-world))
   "Choose a random scene and load it into memory.
