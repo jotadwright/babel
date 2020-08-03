@@ -7,8 +7,10 @@
 ;(deactivate-monitor trace-fcg)
 
 ;; TRACE IRL
-(activate-monitor trace-irl-in-web-browser)
-;(deactivate-monitor trace-irl-in-web-browser)
+(activate-monitor trace-irl)
+(activate-monitor trace-irl-verbose)
+;(deactivate-monitor trace-irl)
+;(deactivate-monitor trace-irl-verbose)
 
 ;; TRACE INTERACTIONS
 (activate-monitor trace-clevr-interaction)
@@ -19,7 +21,7 @@
 ;(deactivate-monitor print-a-dot-for-each-interaction)
 
 ;; Run a single/a series of interaction(s)
-(defparameter *val-set-configuration*
+(defparameter *val-set-configuration-li*
   (make-configuration
    :entries
    '((data-sets . ("val"))
@@ -52,6 +54,10 @@
 (run-interaction *experiment*)
 
 (run-series *experiment* 10)
+
+(let ((learner (find 'learner (population *experiment*) :key #'role)))
+  (loop for chunk in (get-data (ontology learner) 'programs)
+        do (add-element (make-html chunk))))
 
 (deactivate-all-monitors)
 

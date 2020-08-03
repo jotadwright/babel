@@ -29,8 +29,81 @@
          (irl-program (irl-program chunk))
          (unique-primitives (remove-duplicates (mapcar #'first irl-program)))
          (primitive-counts (loop for primitive in unique-primitives
-                                 collect (cons primitive (count primitive irl-program :key #'first)))))
+                                 collect (cons primitive
+                                               (count primitive irl-program
+                                                      :key #'first)))))
     (counts-allowed-p primitive-counts)))
+
+; + Check chunk evaluation result +
+(defun traverse-irl-program (irl-program &key first-predicate-fn next-predicate-fn do-fn)
+  "General utility function that traverses a meaning network.
+   first-predicate-fn is used to compute the first meaning predicate from the network.
+   next-predicate-fn takes a predicate and the network and computes the next predicate(s)
+   do-fn is called on every predicate"
+  (let ((stack (list (funcall first-predicate-fn irl-program)))
+        visited)
+    (loop while stack
+          for current-predicate = (pop stack)
+          for next-predicates = (funcall next-predicate-fn current-predicate irl-program)
+          do (mapcar #'(lambda (p) (push p stack)) next-predicates)
+          do (unless (find current-predicate visited :test #'equal)
+               (funcall do-fn current-predicate)
+               (push current-predicate visited)))))
+
+(defun collect-filter-groups (irl-program)
+  "Collect groups of filter operations using traverse-meaning-network."
+  (let (filter-groups prev-was-filter)
+    (traverse-irl-program
+     irl-program
+     ;; use get-context predicates as start of the search
+     :first-predicate-fn #'(lambda (program)
+                             (find 'clevr-primitives::get-context
+                                   program :key #'first))
+     ;; traverse the network by following in/out variables
+     :next-predicate-fn #'(lambda (predicate program)
+                            (find-all (second predicate)
+                                      program :key #'third))
+     ;; collect filter predicates in groups
+     :do-fn #'(lambda (predidate)
+                (cond ((and prev-was-filter
+                            (eql (first predidate)
+                                 'clevr-primitives::filter))
+                       (push predidate (first filter-groups)))
+                      ((eql (first predidate) 'clevr-primitives::filter)
+                       (push (list predidate) filter-groups)
+                       (setf prev-was-filter t))
+                      (prev-was-filter
+                       (setf prev-was-filter nil)))))
+    ;; only return groups of more than 1 filter predicate
+    (remove-if #'(lambda (l) (= l 1)) filter-groups :key #'length)))
+
+(defun all-different-bind-types (chunk-evaluation-result filter-group)
+  ;; collect all bind-statements that belong with the filter-group
+  ;; check if the types are all different
+  (let ((bind-types
+         (loop for filter in filter-group
+               collect (second
+                        (find (last-elt filter)
+                              (bind-statements chunk-evaluation-result)
+                              :key #'third)))))
+    (= (length bind-types)
+       (length (remove-duplicates bind-types)))))
+
+(defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
+                                          (composer chunk-composer)
+                                          (mode (eql :clevr-coherent-filter-groups)))
+  ;; find filter groups
+  (if (> (count 'clevr-primitives::filter
+                (irl-program (chunk result))
+                :key #'first) 1)
+    (let ((filter-groups (collect-filter-groups (irl-program (chunk result)))))
+      (if filter-groups
+        (loop for group in filter-groups
+              ;; check if the bindings make sense
+              ;; if not, refuse the node
+              always (all-different-bind-types result group))
+        t))
+    t))
 
 ; + Expand-chunk functions +
 (defun add-context-var-to-open-vars (chunk)
@@ -96,7 +169,6 @@
 
 
 
-
 (in-package :clevr-learning)
 
 
@@ -115,7 +187,8 @@
                      (:check-node-modes :check-duplicate
                       :clevr-primitive-occurrence-count)
                      (:expand-chunk-modes :clevr-expand-chunk)
-                     (:node-rating-mode . :clevr-node-rating))))
+                     (:node-rating-mode . :clevr-node-rating)
+                     (:check-chunk-evaluation-result-mode . :clevr-coherent-filter-groups))))
 
 ;; + compose-until +
 (defun compose-until (composer fn)

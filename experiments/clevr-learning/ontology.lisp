@@ -50,8 +50,11 @@
 
 (defun chunk-reachable-p (agent chunk)
   "Check if the chunk is in use in some cxn"
-  (find (id chunk) (constructions (grammar agent))
-        :key #'(lambda (cxn) (attr-val cxn :meaning))))
+  (or (find (id chunk) (constructions (grammar agent))
+            :key #'(lambda (cxn) (attr-val cxn :meaning)))
+      (when (eql (get-configuration agent :alignment-strategy) :lateral-inhibition)
+        (find (id chunk) (get-data (blackboard (grammar agent)) 'trash)
+              :key #'(lambda (cxn) (attr-val cxn :meaning))))))
 
 (defun solution->chunk (agent solution &key (initial-score 0.5))
   "Store the irl-program AND the bind statements in a chunk"

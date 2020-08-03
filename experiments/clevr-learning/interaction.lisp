@@ -53,22 +53,6 @@
          (necessary-primitives (remove 'bind (remove-duplicates (mapcar #'first meaning)))))
     (loop for p in necessary-primitives
           always (find p available-primitives))))
-#|
-         (processed-primitives
-          (loop for primitive in necessary-primitives
-                if (eql primitive 'equal_integer)
-                collect (downcase (mkstr primitive))
-                else
-                collect (downcase (first (split (mkstr primitive) #\_)))))
-         (found-primitives
-          (remove-duplicates 
-           (loop for primitive in processed-primitives
-                 collect (rest (assoc primitive
-                                      *primitive-mapping*
-                                      :test #'string=))))))
-    (loop for primitive in found-primitives
-          always (find primitive available-primitives))))
-|#
     
 
 (define-event context-determined (image-path pathname))
@@ -77,8 +61,8 @@
 (defmethod interact :before ((experiment holophrase-experiment) interaction &key)
   "Choose the context and question (utterance) for the current interaction.
    Always check if all primitives are available. If not, retry."
-  ;; examples: third, sixth, eighth, ninth 
-  (loop for line = (ninth (data experiment)) ;(random-elt (data experiment))
+  ;; examples: third, sixth, eighth, ninth, first
+  (loop for line = (first (data experiment)) ;(random-elt (data experiment))
         until (all-primitives-available-p
                experiment (read-from-string
                            (rest (assoc :meaning line))))
@@ -92,16 +76,6 @@
                   (notify question-determined question answer)
                   (loop for agent in (interacting-agents experiment)
                         do (initialize-agent agent scene question answer)))))
-#|
-  (loop for (context question-set) = (multiple-value-list
-                                      (random-scene (world experiment)))
-        for clevr-question = (random-elt (questions question-set))
-        until (all-primitives-available-p experiment clevr-question)
-        finally (progn (notify context-determined (image context))
-                  (notify question-determined clevr-question)
-                  (loop for agent in (interacting-agents experiment)
-                        do (initialize-agent agent context clevr-question)))))
-|#
 
 (defmethod interact ((experiment holophrase-experiment) interaction &key)
   "Interaction script depends on who is the speaker
