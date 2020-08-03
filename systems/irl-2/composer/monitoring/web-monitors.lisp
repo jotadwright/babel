@@ -27,8 +27,7 @@
 ;; chunk-composer
 ;; ----------------------------------------------------------------------------
 
-(define-event-handler ((trace-irl-in-web-browser
-                        trace-irl-in-web-browser-verbose)
+(define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-next-solutions-started)
   (add-element '((hr)))
   (add-element '((h2) "Computing next composer solution"))
@@ -37,8 +36,7 @@
   (add-element (make-html (ontology composer))))
 
 
-(define-event-handler ((trace-irl-in-web-browser
-                        trace-irl-in-web-browser-verbose)
+(define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-all-solutions-started)
   (add-element '((hr)))
   (add-element '((h2) "Computing all composer solutions"))
@@ -46,8 +44,7 @@
   (add-element '((h3) "in the following ontology:"))
   (add-element (make-html (ontology composer))))
 
-(define-event-handler ((trace-irl-in-web-browser
-                        trace-irl-in-web-browser-verbose)
+(define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-solutions-until-started)
   (add-element '((hr)))
   (add-element '((h2) "Computing all composer solutions until stop criterion"))
@@ -55,39 +52,53 @@
   (add-element '((h3) "in the following ontology:"))
   (add-element (make-html (ontology composer))))
 
-#|
-(define-event-handler (trace-irl-in-web-browser-verbose chunk-composer-next-node)
-  (add-element '((hr)))
-  (add-element 
-   `((table :class "two-col")
-     ((tbody)
-      ((tr) 
-       ((td) "current node")
-       ((td) ,(make-html node :draw-as-tree nil)))))))
-
-(define-event-handler (trace-irl-in-web-browser-verbose
+(define-event-handler (trace-irl-verbose
                        chunk-composer-node-handled)
   (add-element 
    `((table :class "two-col")
      ((tbody)
       ((tr)
-       ((td) "node handled")
+       ((td) ,(format nil "This node was handled (~a):" handler))
        ((td) ,(make-html node :draw-as-tree nil)))))))
 
-(define-event-handler (trace-irl-in-web-browser-verbose chunk-composer-new-nodes)
+(define-event-handler (trace-irl-verbose
+                       chunk-composer-new-nodes)
   (let ((expand/collapse-all-id (make-id 'successors)))
     (add-element 
      `((table :class "two-col")
        ((tbody) 
         ((tr)
-         ((td) ,(make-expand/collapse-all-link expand/collapse-all-id "new-nodes"))
-         ((td) ,@(loop for successor in successors
-                    collect (make-html successor :draw-as-tree nil
-                             :expand/collapse-all-id expand/collapse-all-id)))))))))
-|#
+         ((td) ,(make-expand/collapse-all-link expand/collapse-all-id "All new nodes:"))
+         ((td) ,@(loop for node in nodes
+                    collect (make-html node :draw-as-tree nil
+                                       :expand/collapse-all-id expand/collapse-all-id)))))))))
 
-(define-event-handler ((trace-irl-in-web-browser 
-                        trace-irl-in-web-browser-verbose)
+(define-event-handler (trace-irl-verbose
+                       chunk-composer-next-node)
+  (add-element '((hr)))
+  (add-element 
+   `((table :class "two-col")
+     ((tbody)
+      ((tr) 
+       ((td) "Current node:")
+       ((td) ,(make-html node :draw-as-tree nil)))))))
+
+(define-event-handler (trace-irl-verbose
+                       chunk-composer-node-changed-status)
+  (add-element
+   `((table :class "two-col")
+     ((tbody)
+      ((tr)
+       ((td) "Node:")
+       ((td) ,(make-html node :draw-as-tree nil)))
+      ((tr)
+       ((td) "Previous status:")
+       ((td) ,(second (statuses node))))
+      ((tr)
+       ((td) "Current status:")
+       ((td) ,(first (statuses node))))))))
+
+(define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-finished)
   (add-element '((hr)))
   (add-element '((h2) "Result"))

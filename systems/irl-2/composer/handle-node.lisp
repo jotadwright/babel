@@ -113,9 +113,9 @@
           ;; to the new chunk
           else
           do (progn
+               (add-to-hash child composer)
                (setf (node-rating child)
                      (run-node-rating-fn child composer))
-               (add-to-hash child composer)
                (setf (score (chunk child))
                      (run-chunk-scoring-fn child composer))))
     (values nil children)))

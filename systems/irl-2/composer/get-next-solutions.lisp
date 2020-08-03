@@ -11,7 +11,8 @@
 (define-event chunk-composer-get-solutions-until-started
   (composer chunk-composer))
 (define-event chunk-composer-node-handled
-  (node chunk-composer-node))
+  (node chunk-composer-node)
+  (handler symbol))
 (define-event chunk-composer-new-nodes
   (nodes list))
 (define-event chunk-composer-next-node
@@ -43,7 +44,7 @@
      ;; handle the node
      do (progn
           (unless silent
-            (notify chunk-composer-node-handled node))
+            (notify chunk-composer-node-handled node handler))
           (enqueue-node node composer))
      ;; handle new nodes
      when new-nodes
