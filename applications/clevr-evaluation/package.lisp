@@ -24,7 +24,7 @@
                 :evaluate-irl-program
                 :irl-program->svg
                 :get-target-var
-                :trace-irl-in-web-browser)
+                :trace-irl)
   (:import-from :cl-json
                 :decode-json-from-source
                 :decode-json-from-string
