@@ -37,15 +37,30 @@
                  :node-depth (node-depth node)))
 
 
-(defmethod order-by-priority (list-of-nodes (processor irl-program-processor)
-                              (mode (eql :random)))
-  (shuffle list-of-nodes))
 
+(defgeneric enqueue-ippn-nodes (list-of-nodes processor mode)
+  (:documentation "Enqueue the new child nodes based on the search mode"))
 
-(defmethod enqueue-ippn-nodes (list-of-nodes (processor irl-program-processor)
+(defmethod enqueue-ippn-nodes ((list-of-nodes list)
+                               (processor irl-program-processor)
                                (mode (eql :depth-first)))
-  (setf (queue processor)
-        (append list-of-nodes (queue processor))))
+  "Depth first. The nodes with the largest depth will be in front of
+   the queue. There is no particular order for nodes with identical
+   depth, so they are shuffled first."
+  (loop for node in (shuffle list-of-nodes)
+        do (setf (queue processor)
+                 (sorted-insert (queue processor) node
+                                :key #'node-depth :test #'>))))
+
+(defmethod enqueue-ippn-nodes ((list-of-nodes list)
+                               (processor irl-program-processor)
+                               (mode (eql :breadth-first)))
+  "Breadth first. Nodes are ordered based on node-number. Smallest node-number
+   comes first."
+  (loop for node in (shuffle list-of-nodes)
+        do (setf (queue processor)
+                 (sorted-insert (queue processor) node
+                                :key #'node-number :test #'<))))
 
 
 (defun expand-node (node processor primitive-inventory &optional result)
@@ -57,16 +72,14 @@
       ;; add them to the search tree
       (loop for child in child-nodes
             do (add-node processor child :parent node))
-      ;; add them to the queue, taking into account queue-mode and priority-mode...
-      (let ((prioritized-child-nodes
-             (order-by-priority child-nodes processor
-                                (get-configuration primitive-inventory :priority-mode))))
-        (enqueue-ippn-nodes prioritized-child-nodes processor
-                           (get-configuration primitive-inventory :queue-mode))))))
+      ;; add them to the queue, taking into account the search mode
+      (enqueue-ippn-nodes child-nodes processor
+                          (get-configuration primitive-inventory :search-mode)))))
 
 
 (defun evaluate-irl-program (irl-program ontology
-                             &key silent n
+                             &key silent ;; enable the web monitors or not
+                             n ;; return all (n=nil) or a limited number of solutions (n=integer)
                              (primitive-inventory *irl-primitives*))
   ;; check if a valid option was given for n
   (unless (or (null n) (numberp n))
@@ -104,7 +117,8 @@
     (when (get-configuration primitive-inventory :check-irl-program-before-evaluation)
       (check-irl-program irl-program ontology primitive-inventory))
     (let* ((processor
-            (make-irl-program-processor irl-program ontology primitive-inventory))
+            (make-irl-program-processor irl-program ontology
+                                        primitive-inventory))
            (all-variables
             (remove-duplicates (all-variables irl-program)))
            (bind-statements (all-bind-statements irl-program))
@@ -137,8 +151,8 @@
 
       ;; pick the first node from the queue and evaluate it
       ;; - if result = inconsistent; change the status to inconsistent and add the node to the tree
-      ;; - if result = nil, change the status to evaluate-w/o-result and add the node to the tree
-      ;; - if results, change the status to evaluated, expand it (once for each result, adding nodes to the qeue)
+      ;; - if result = nil, change the status to evaluated-w/o-result and add the node to the tree
+      ;; - if results, change the status to evaluated, expand it (once for each result, adding nodes to the queue)
       ;;   and add node(s) to the tree (one for each result)
 
       (when (queue processor)
@@ -151,8 +165,6 @@
                                                                    (bindings current-node)
                                                                    ontology
                                                                    primitive-inventory))
-         ;; print the processor
-         ;;do (add-element (make-html processor))
          ;; check the evaluation-results
          do (cond ((eq evaluation-results 'inconsistent)
                    ;; if inconsistent, change the status and stop
@@ -177,7 +189,8 @@
                            do (cond ((not (run-node-tests new-node primitive-inventory))
                                      (setf expand-node-p nil))
                                     ((run-goal-tests new-node primitive-inventory)
-                                     (when (or (null n) (< (length (solutions processor)) n))
+                                     (when (or (null n)
+                                               (< (length (solutions processor)) n))
                                        (setf (status new-node) 'solution)
                                        (push (bindings new-node) (solutions processor))
                                        (push new-node solution-nodes)

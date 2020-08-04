@@ -36,11 +36,14 @@
   (set-configuration primitive-inventory :node-tests '(:check-duplicate
                                                        :restrict-nr-of-nodes
                                                        :restrict-search-depth))
-  (set-configuration primitive-inventory :check-irl-program-before-evaluation t)
-  (set-configuration primitive-inventory :queue-mode :depth-first) ; where the children are added to the queue (front, back, ...)
-  (set-configuration primitive-inventory :priority-mode :random) ; how the children are ordered before thrown into the queue
+  (set-configuration primitive-inventory :check-irl-program-before-evaluation t) ;; this could be a configurable function
+  ; the search mode controls how the queue is sorted (e.g. > or <)
+  ; and what value of each node is used to sort it on (e.g. node-number or depth)
+  (set-configuration primitive-inventory :search-mode :depth-first)
   (set-configuration primitive-inventory :max-search-depth 25)
-  (set-configuration primitive-inventory :max-nr-of-nodes 1000))
+  (set-configuration primitive-inventory :max-nr-of-nodes 1000)
+  ;; configuration on how to evaluate bind statements?
+  )
   
 
 

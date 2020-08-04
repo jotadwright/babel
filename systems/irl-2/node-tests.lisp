@@ -33,8 +33,7 @@
                           (equal-entity node-value other-value))))))
 
 (defun find-duplicate (node other-node)
-  (unless (or (eq node other-node)
-              (eq (status other-node) 'initial))
+  (unless (eq node other-node)
     (or (duplicate-node-p node other-node)
         (loop for child in (children other-node)
               thereis (find-duplicate node child)))))

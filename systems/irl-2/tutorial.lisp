@@ -17,7 +17,7 @@
 
 (in-package :irl-2)
 
-(activate-monitor trace-irl-in-web-browser)
+(activate-monitor trace-irl)
 
 ;;                 IRL Tutorial
 ;;
@@ -150,15 +150,15 @@
 ;;     only the circles from the input-set
 
 (defprimitive filter-circles ((target-set object-set) (source-set object-set))
-  (((source-set => target-set)
-    (let ((set-of-circles
-           (make-instance 'object-set
-                          :objects (loop for object in (objects source-set)
-                                         if (eq (shape object) 'circle)
-                                         collect object))))
-      (bind (target-set 1.0 set-of-circles))))))
+  ((source-set => target-set)
+   (let ((set-of-circles
+          (make-instance 'object-set
+                         :objects (loop for object in (objects source-set)
+                                        if (eq (shape object) 'circle)
+                                        collect object))))
+     (bind (target-set 1.0 set-of-circles)))))
 
-(activate-monitor trace-irl-in-web-browser)
+(activate-monitor trace-irl)
 
 (clear-page)
 (evaluate-irl-program
@@ -211,10 +211,10 @@
                                (source-set object-set)
                                (shape-category shape-category))
   ;; if given source-set and shape, compute filtered-set
-  (((source-set shape-category => filtered-set)
-    (let ((computed-set (filter-by-shape source-set shape-category)))
-      (when computed-set
-        (bind (filtered-set 1.0 computed-set)))))))
+  ((source-set shape-category => filtered-set)
+   (let ((computed-set (filter-by-shape source-set shape-category)))
+     (when computed-set
+       (bind (filtered-set 1.0 computed-set))))))
 
 
 ;; 1 source-set shape => filtered-set (rectangle)
@@ -248,7 +248,7 @@
 (defprimitive filter-by-shape ((filtered-set object-set) (source-set object-set)
                                (shape-category shape-category))
   ;; previous case: if given source-set and shape, compute filtered-set
-  (((source-set shape-category => filtered-set)
+  ((source-set shape-category => filtered-set)
     (let ((computed-set (filter-by-shape source-set shape-category)))
       (when computed-set
         (bind (filtered-set 1.0 computed-set)))))
@@ -261,7 +261,7 @@
                                        (filter-by-shape source-set shape)))
                     *shapes*)))
       (when computed-category
-        (bind (shape-category 1.0 computed-category)))))))
+        (bind (shape-category 1.0 computed-category))))))
 
 ;; 1 source-set filtered-set => shape (works now)
 (evaluate-irl-program 
@@ -286,7 +286,7 @@
 (defprimitive filter-by-shape ((filtered-set object-set) (source-set object-set)
                                (shape-category shape-category))
   ;; first case: if given source-set and shape, compute filtered-set
-  (((source-set shape-category => filtered-set)
+  ((source-set shape-category => filtered-set)
     (let ((computed-set (filter-by-shape source-set shape-category)))
       (when computed-set
         (bind (filtered-set 1.0 computed-set)))))
@@ -307,7 +307,7 @@
           for computed-set = (filter-by-shape source-set shape)
           if computed-set
           do (bind (shape-category 1.0 shape)
-                   (filtered-set 1.0 computed-set))))))
+                   (filtered-set 1.0 computed-set)))))
   
 ;; 1 source-set => filtered-set shape (works now)
 (evaluate-irl-program 
@@ -333,7 +333,7 @@
 (defprimitive filter-by-shape ((filtered-set object-set) (source-set object-set)
                                (shape-category shape-category))
   ;; first case: if given source-set and shape, compute filtered-set
-  (((source-set shape-category => filtered-set)
+  ((source-set shape-category => filtered-set)
     (let ((computed-set (filter-by-shape source-set shape-category)))
       (when computed-set
         (bind (filtered-set 1.0 computed-set)))))
@@ -358,7 +358,7 @@
    
    ;; final case: if given source-set, filtered-set and shape, check for consitency
    ((source-set filtered-set shape-category =>)
-    (equal-entity filtered-set (filter-by-shape source-set shape-category)))))
+    (equal-entity filtered-set (filter-by-shape source-set shape-category))))
 
 ;; 1 filtered-set source-set shape => (works now)
 (evaluate-irl-program 
@@ -390,10 +390,10 @@
 ;; 2. In the primitive definition, ontology is a keyword that always refers
 ;; to the ontology that is passed in (evaluate-irl-program ...) 
 (defprimitive get-context ((context object-set))
-  (((context =>)
+  ((context =>)
     (equal-entity (get-data ontology 'context) context))
    ((=> context)
-    (bind (context 1.0 (get-data ontology 'context))))))
+    (bind (context 1.0 (get-data ontology 'context)))))
 
 (evaluate-irl-program '((get-context ?context)) *ontology*)
 
@@ -401,7 +401,7 @@
 (defprimitive filter-by-shape ((filtered-set object-set) (source-set object-set)
                                (shape-category shape-category))
   ;; case 1
-  (((source-set shape-category => filtered-set)
+  ((source-set shape-category => filtered-set)
     (let ((computed-set (filter-by-shape source-set shape-category)))
       (when computed-set (bind (filtered-set 1.0 computed-set)))))
   
@@ -423,7 +423,7 @@
 
    ;; case 4
    ((source-set filtered-set shape-category =>)
-    (equal-entity filtered-set (filter-by-shape source-set shape-category)))))
+    (equal-entity filtered-set (filter-by-shape source-set shape-category))))
 
 ;; Test: source-set shape => filtered-set
 (evaluate-irl-program 
