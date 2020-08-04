@@ -6,20 +6,20 @@
     (loop for (primitive . count) in primitive-counts
           when allowed
           do (case primitive
-               (count! (when (> count 2) (setf allowed nil)))
-               (equal-integer (when (> count 1) (setf allowed nil)))
-               (less-than (when (> count 1) (setf allowed nil)))
-               (greater-than (when (> count 1) (setf allowed nil)))
-               (equal? (when (> count 1) (setf allowed nil)))
-               (exist (when (> count 1) (setf allowed nil)))
-               (filter ())
-               (get-context (when (> count 1) (setf allowed nil)))
-               (intersect (when (> count 1) (setf allowed nil)))
-               (query (when (> count 2) (setf allowed nil)))
-               (relate (when (> count 3) (setf allowed nil)))
-               (same (when (> count 1) (setf allowed nil)))
-               (union! (when (> count 1) (setf allowed nil)))
-               (unique (when (> count 4) (setf allowed nil)))))
+               (clevr-world:count! (when (> count 2) (setf allowed nil)))
+               (clevr-world:equal-integer (when (> count 1) (setf allowed nil)))
+               (clevr-world:less-than (when (> count 1) (setf allowed nil)))
+               (clevr-world:greater-than (when (> count 1) (setf allowed nil)))
+               (clevr-world:equal? (when (> count 1) (setf allowed nil)))
+               (clevr-world:exist (when (> count 1) (setf allowed nil)))
+               (clevr-world:filter ())
+               (clevr-world:get-context (when (> count 1) (setf allowed nil)))
+               (clevr-world:intersect (when (> count 1) (setf allowed nil)))
+               (clevr-world:query (when (> count 2) (setf allowed nil)))
+               (clevr-world:relate (when (> count 3) (setf allowed nil)))
+               (clevr-world:same (when (> count 1) (setf allowed nil)))
+               (clevr-world:union! (when (> count 1) (setf allowed nil)))
+               (clevr-world:unique (when (> count 4) (setf allowed nil)))))
     allowed))
 
 (defmethod check-node ((node chunk-composer-node)
@@ -57,7 +57,7 @@
      irl-program
      ;; use get-context predicates as start of the search
      :first-predicate-fn #'(lambda (program)
-                             (find 'clevr-primitives::get-context
+                             (find (internal-symb 'get-context)
                                    program :key #'first))
      ;; traverse the network by following in/out variables
      :next-predicate-fn #'(lambda (predicate program)
@@ -67,9 +67,9 @@
      :do-fn #'(lambda (predidate)
                 (cond ((and prev-was-filter
                             (eql (first predidate)
-                                 'clevr-primitives::filter))
+                                 (internal-symb 'filter)))
                        (push predidate (first filter-groups)))
-                      ((eql (first predidate) 'clevr-primitives::filter)
+                      ((eql (first predidate) (internal-symb 'filter))
                        (push (list predidate) filter-groups)
                        (setf prev-was-filter t))
                       (prev-was-filter
@@ -93,7 +93,7 @@
                                           (composer chunk-composer)
                                           (mode (eql :clevr-coherent-filter-groups)))
   ;; find filter groups
-  (if (> (count 'clevr-primitives::filter
+  (if (> (count (internal-symb 'filter)
                 (irl-program (chunk result))
                 :key #'first) 1)
     (let ((filter-groups (collect-filter-groups (irl-program (chunk result)))))
@@ -111,13 +111,15 @@
    even though the get-context primitive is allowed to occur once.
    The variable needs to be shared. To enforce this, it is added to the
    open variables of the chunk."
-  (let ((get-context-predicate (find 'get-context (irl-program chunk) :key #'first)))
+  (let ((get-context-predicate (find (internal-symb 'get-context)
+                                     (irl-program chunk)
+                                     :key #'first)))
     (when get-context-predicate
       (let* ((context-var (last-elt get-context-predicate))
              (all-variables (find-all-anywhere-if #'variable-p (irl-program chunk)))
              (context-var-count (count context-var all-variables)))
         (when (< context-var-count 3)
-          (push (cons context-var 'clevr-object-set) (open-vars chunk))))))
+          (push (cons context-var (internal-symb 'clevr-object-set)) (open-vars chunk))))))
   chunk)
 
 (defun check-duplicate-variables (expand-chunk-solutions)
@@ -134,13 +136,14 @@
 (defmethod expand-chunk ((chunk chunk)
                          (composer chunk-composer)
                          (mode (eql :clevr-expand-chunk)))
-  (let ((new-chunks
-         (expand-chunk chunk composer :combine-program)))
-    (if new-chunks new-chunks
-      (check-duplicate-variables
-       (expand-chunk
-        (add-context-var-to-open-vars chunk)
-        composer :link-open-variables)))))
+  (if (or (find (internal-symb 'union!) (irl-program chunk) :key #'first)
+          (find (internal-symb 'intersect) (irl-program chunk) :key #'first))
+    (append (expand-chunk chunk composer :combine-program)
+            (check-duplicate-variables
+             (expand-chunk
+              (add-context-var-to-open-vars chunk)
+              composer :link-open-variables)))
+    (expand-chunk chunk composer :combine-program)))
 
 ;; + node rating mode +
 (defmethod rate-node ((node chunk-composer-node)
@@ -177,8 +180,8 @@
   (make-chunk-composer
    :topic target-category
    :initial-chunk (make-instance 'chunk :id 'initial
-                                 :target-var '(?answer . t)
-                                 :open-vars '((?answer . t)))
+                                 :target-var `(?answer . ,(type-of target-category))
+                                 :open-vars `((?answer . ,(type-of target-category))))
    :chunks (mapcar #'(lambda (p) (create-chunk-from-primitive
                                   p :primitive-inventory (primitives agent)))                       
                    (primitives-list (primitives agent)))

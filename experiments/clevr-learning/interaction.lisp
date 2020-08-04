@@ -62,7 +62,7 @@
   "Choose the context and question (utterance) for the current interaction.
    Always check if all primitives are available. If not, retry."
   ;; examples: third, sixth, eighth, ninth, first
-  (loop for line = (first (data experiment)) ;(random-elt (data experiment))
+  (loop for line = (third (data experiment)) ;(random-elt (data experiment))
         until (all-primitives-available-p
                experiment (read-from-string
                            (rest (assoc :meaning line))))
