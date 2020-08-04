@@ -112,10 +112,12 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 
 
 (defun composer-solutions->html (solutions)
-  (loop for chunk-evaluation-result in solutions
-        do (add-element
-            `((div :class "cer-float")
-              ,(make-html chunk-evaluation-result)))))
+  (add-element
+   (html-hide-rest-of-long-list
+    solutions 3
+    #'(lambda (result)
+        `((div :class "cer-float")
+          ,(make-html result))))))
 
 ;; #########################################################
 ;; chunk-composer-node - make-html
