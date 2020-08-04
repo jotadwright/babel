@@ -105,8 +105,8 @@
                                                  :connected-structure
                                                  :no-meaning-in-root)
                          ;; For heuristic search:
-                         (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-                         (:priority-mode . :seq2seq-heuristic-additive)
+                         (:cxn-supplier-mode . :hashed-simple-queue)
+                         (:priority-mode . :priming)
                          (:seq2seq-endpoint . "https://ehai.ai.vub.ac.be/seq2seq-heuristics/next-cxn")
                          (:seq2seq-model-comprehension . "clevr_comprehension_model")
                          (:seq2seq-model-formulation . "clevr_formulation_model_2")
