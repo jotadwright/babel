@@ -2,23 +2,15 @@
 (ql:quickload :clevr-learning)
 (in-package :clevr-learning)
 
-;; TRACE FCG
-(activate-monitor trace-fcg)
-;(deactivate-monitor trace-fcg)
+(progn
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl)
+  (activate-monitor trace-clevr-interaction)
+  (activate-monitor print-a-dot-for-each-interaction))
 
-;; TRACE IRL
-(activate-monitor trace-irl)
-(activate-monitor trace-irl-verbose)
-;(deactivate-monitor trace-irl)
-;(deactivate-monitor trace-irl-verbose)
+(deactivate-monitor trace-irl-verbose)
 
-;; TRACE INTERACTIONS
-(activate-monitor trace-clevr-interaction)
-;(deactivate-monitor trace-clevr-interaction)
-
-;; FOR PRINTING DOTS
-(activate-monitor print-a-dot-for-each-interaction)
-;(deactivate-monitor print-a-dot-for-each-interaction)
+(deactivate-all-monitors)
 
 ;; Run a single/a series of interaction(s)
 (defparameter *val-set-configuration-li*
@@ -53,13 +45,11 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 100)
 
 (let ((learner (find 'learner (population *experiment*) :key #'role)))
   (loop for chunk in (get-data (ontology learner) 'programs)
         do (add-element (make-html chunk))))
-
-(deactivate-all-monitors)
 
 ;; Run batches for different configurations
 (run-experiments `(

@@ -50,7 +50,7 @@
   ; the available primitives configuration
   (let ((inventory (def-irl-primitives holophrase-primitives
                      :primitive-inventory *holophrase-primitives*
-                     :irl-configurations ((:max-nr-of-nodes . 10000)))))
+                     :irl-configurations ((:node-tests :check-duplicate :restrict-search-depth)))))
     (loop for p in available-primitives
           do (add-primitive
               (find-primitive p *clevr-primitives*)
