@@ -212,8 +212,8 @@
             collect solution into valid-solutions
             collect node into valid-nodes
             finally
-            do (setf (solutions processor) valid-solutions
-                     solution-nodes valid-nodes))
+            (setf (solutions processor) valid-solutions
+                  solution-nodes valid-nodes))
 
       ;; notify the end of processing
       (unless silent

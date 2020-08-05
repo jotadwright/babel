@@ -270,7 +270,7 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
              nodes-to-show nodes-to-hide)
          (if solutions
            (loop for child in (children node)
-                 if (on-path-to-solution-p child solutions)
+                 if (on-path-to-target-p child solutions)
                  do (push child nodes-to-show)
                  else do (push child nodes-to-hide))
            (setf nodes-to-show (children node)))

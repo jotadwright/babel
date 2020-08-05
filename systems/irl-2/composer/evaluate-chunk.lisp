@@ -84,7 +84,7 @@
                                                          :bindings evaluation-result)
             collect chunk-evaluation-result into chunk-evaluation-results
             finally
-            return chunk-evaluation-results))))
+            (return chunk-evaluation-results)))))
 
 ;; #########################################
 ;; score solution

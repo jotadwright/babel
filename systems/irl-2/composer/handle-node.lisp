@@ -96,8 +96,6 @@
                                        :chunk new-chunk
                                        :node-number (incf (node-counter composer))
                                        :node-depth (1+ (node-depth node)))))))
-    (when children
-      (push 'expanded (statuses node)))
     (when (and (null children)
                (<= (get-configuration composer :max-search-depth)
                    (node-depth node)))
@@ -118,6 +116,10 @@
                      (run-node-rating-fn child composer))
                (setf (score (chunk child))
                      (run-chunk-scoring-fn child composer))))
-    (values nil children)))
+    (let ((valid-children
+           (remove-if #'null children :key #'next-handler)))
+      (when valid-children
+        (push 'expanded (statuses node)))
+      (values nil valid-children))))
           
     
