@@ -23,7 +23,10 @@
                :documentation "The list of primitives")
    (ontology :type blackboard :initform (make-blackboard)
              :initarg :ontology :accessor ontology
-             :documentation "The ontology used during processing"))
+             :documentation "The ontology used during processing")
+   (blackboard :type blackboard :initform (make-blackboard)
+               :initarg :blackboard :accessor blackboard
+               :documentation "A blackboard to store data"))
   (:documentation "The IPP handles the evaluation of an irl program"))
 
 

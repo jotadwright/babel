@@ -145,7 +145,8 @@
         (notify evaluate-irl-program-started irl-program
                 primitive-inventory ontology))
       
-      ;; push the initial node on the search tree and on the queue
+      ;; push the initial node on the search tree, on the queue
+      ;; and in the hash table
       (add-node processor initial-node)
       (push initial-node (queue processor))
 

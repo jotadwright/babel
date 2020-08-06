@@ -27,6 +27,17 @@
        ;; the higher the score the better
        (score chunk))))
 
+(defmethod rate-node ((node chunk-composer-node)
+                      (composer chunk-composer)
+                      (mode (eql :depth-first)))
+  (- (node-depth node)))
+
+(defmethod rate-node ((node chunk-composer-node)
+                      (composer chunk-composer)
+                      (mode (eql :breadth-first)))
+  (node-number node))
+  
+
 ;; #########################################
 ;; run chunk scoring fn
 ;; -----------------------------------------

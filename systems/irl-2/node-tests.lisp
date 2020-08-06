@@ -44,6 +44,7 @@
         (loop for child in (children other-node)
               thereis (find-duplicate node child)))))
 
+
 (defmethod node-test ((node irl-program-processor-node)
                       (mode (eql :check-duplicate)))
   "Walk over the entire tree and check if there is a duplicate node.
