@@ -27,6 +27,12 @@
         (computed-answer agent) nil)
   ;; set the current context in the ontology
   (set-data (ontology agent) 'clevr-context scene)
+  ;; set the composer-chunks in the ontology
+  (unless (find-data (ontology agent) 'composer-chunks)
+    (set-data (ontology agent) 'composer-chunks
+              (mapcar #'(lambda (p) (create-chunk-from-primitive
+                                     p :primitive-inventory (primitives agent)))                       
+                      (primitives-list (primitives agent)))))
   ;; set the ground-truth answer when speaker
   (when (speakerp agent)
     (setf (ground-truth-answer agent)
@@ -60,9 +66,8 @@
 
 (defmethod interact :before ((experiment holophrase-experiment) interaction &key)
   "Choose the context and question (utterance) for the current interaction.
-   Always check if all primitives are available. If not, retry."
-  ;; examples: third, sixth, eighth, ninth, first, second, fourth, fifth, tenth 
-  (loop for line = (random-elt (subseq (data experiment) 0 10))
+   Always check if all primitives are available. If not, retry." 
+  (loop for line = (third (data experiment))
         until (all-primitives-available-p
                experiment (read-from-string
                            (rest (assoc :meaning line))))

@@ -110,17 +110,19 @@
   "The get-context var is allowed to occur 3 times in the irl-program,
    even though the get-context primitive is allowed to occur once.
    The variable needs to be shared. To enforce this, it is added to the
-   open variables of the chunk."
+   open variables of the chunk, unless it is already shared."
   (let ((get-context-predicate (find (internal-symb 'get-context)
                                      (irl-program chunk)
                                      :key #'first)))
     (when get-context-predicate
-      (let* ((context-var (last-elt get-context-predicate))
-             (all-variables (find-all-anywhere-if #'variable-p (irl-program chunk)))
-             (context-var-count (count context-var all-variables)))
-        (when (< context-var-count 3)
-          (push (cons context-var (internal-symb 'clevr-object-set)) (open-vars chunk))))))
-  chunk)
+      (let ((context-var (last-elt get-context-predicate)))
+        (unless (find context-var (open-vars chunk) :key #'car)
+          (let* ((all-variables (find-all-anywhere-if #'variable-p (irl-program chunk)))
+                 (context-var-count (count context-var all-variables)))
+            (when (< context-var-count 3)
+              (push (cons context-var (internal-symb 'clevr-object-set))
+                    (open-vars chunk)))))))
+    chunk))
 
 (defun check-duplicate-variables (expand-chunk-solutions)
   "Since the chunk was expanded using 'link-open-variables',
@@ -132,6 +134,7 @@
                    for variables = (cdr expr)
                    always (length= variables (remove-duplicates variables)))
         collect (cons new-chunk other-chunk)))
+                   
 
 (defmethod expand-chunk ((chunk chunk)
                          (composer chunk-composer)
@@ -173,8 +176,15 @@
 
 
 
-
-
+;; TESTS
+;; Run with standard breadth first search
+;; using only :combine-program as node expander
+;; 1. see if this yields any solutions
+;; Next, add the chunk prior to the solution node to
+;; the chunks of the composer and check if the next solution
+;; can be found faster.
+;; Alternatively, add ALL chunks on the path to the solution node
+;; to the composer chunks.
 
 (in-package :clevr-learning)
 
@@ -186,15 +196,13 @@
    :initial-chunk (make-instance 'chunk :id 'initial
                                  :target-var `(?answer . ,(type-of target-category))
                                  :open-vars `((?answer . ,(type-of target-category))))
-   :chunks (mapcar #'(lambda (p) (create-chunk-from-primitive
-                                  p :primitive-inventory (primitives agent)))                       
-                   (primitives-list (primitives agent)))
+   :chunks (get-data (ontology agent) 'composer-chunks)
    :ontology (ontology agent) :primitive-inventory (primitives agent)
    :configurations '((:max-search-depth . 25)
                      (:check-node-modes :check-duplicate
                       :clevr-primitive-occurrence-count)
-                     (:expand-chunk-modes :clevr-expand-chunk)
-                     (:node-rating-mode . :clevr-node-rating)
+                     (:expand-chunk-modes :combine-program) ;:clevr-expand-chunk)
+                     (:node-rating-mode . :breadth-first) ; :clevr-node-rating)
                      (:check-chunk-evaluation-result-mode . :clevr-coherent-filter-groups))))
 
 ;; + compose-until +

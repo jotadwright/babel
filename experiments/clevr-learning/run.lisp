@@ -30,9 +30,9 @@
   (make-configuration
    :entries
    '((data-sets . ("val"))
-     (available-primitives . (count! equal-integer less-than greater-than
-                                     equal? exist filter get-context
-                                     query relate same unique))
+     ;(available-primitives . (count! equal-integer less-than greater-than
+     ;                                equal? exist filter get-context
+     ;                                query relate same unique))
      (determine-interacting-agents-mode . :default)
      (who-aligns? . :learner)
      (learning-strategy . :keep-samples)
@@ -45,7 +45,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 5)
 
 (let ((learner (find 'learner (population *experiment*) :key #'role)))
   (loop for chunk in (get-data (ontology learner) 'programs)

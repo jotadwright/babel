@@ -27,6 +27,27 @@
      ((null answer)
       (find 'no all-categories :key #'id)))))
 
+(define-event composer-chunk-added (chunk chunk))
+
+(defun add-composer-chunk (ontology chunk)
+  ;; add the chunk to the ontology's composer-chunks
+  ;; unless when an identical chunk is already there
+  ;; only check chunks with more than 1 predicate
+  (let ((add-chunk-p
+         (and (> (length (irl-program chunk)) 1)
+              (loop for other-chunk in (get-data ontology 'composer-chunks)
+                    always (or (= (length (irl-program other-chunk)) 1)
+                               (not (equivalent-irl-programs? (irl-program chunk)
+                                                              (irl-program other-chunk))))))))
+    (when add-chunk-p
+      (let ((new-chunk-id (make-id
+                           (format nil "~{~a~^+~}"
+                                   (mapcar #'first
+                                           (irl-program chunk))))))
+        (setf (id chunk) new-chunk-id)
+        (push-data ontology 'composer-chunks chunk)
+        (notify composer-chunk-added chunk)))))
+
 (define-event chunk-added (chunk chunk))
 (define-event chunk-removed (chunk chunk))
 (define-event ontology-changed)
