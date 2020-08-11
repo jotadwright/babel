@@ -303,9 +303,9 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 ;; ---------------------------------------------------------
 
 (defun make-collapsed-html-for-composition-process (composer element-id)
-  (let ((solution-nodes
-         (find-all 'solution (nodes composer)
-                   :key #'statuses :test #'member)))
+  (let ((solutions
+         (when (solutions composer)
+           (mapcar #'node (solutions composer)))))
     `((table :class "two-col")
       ((tbody)
        ((tr)
@@ -316,12 +316,12 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
         ((td)
          ((div :style "margin-top:-7px")
           ,(make-html (top composer) :expand-initially nil
-                      :solutions solution-nodes))))))))
+                      :solutions solutions))))))))
 
 (defun make-expanded-html-for-composition-process (composer element-id)
-  (let ((solution-nodes
-         (find-all 'solution (nodes composer)
-                   :key #'statuses :test #'member)))
+  (let ((solutions
+         (when (solutions composer)
+           (mapcar #'node (solutions composer)))))
     `((table :class "two-col")
       ((tbody)
        ((tr)
@@ -332,7 +332,7 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
         ((td)
          ((div :style "margin-top:-7px")
           ,(make-html (top composer) :expand-initially t
-                      :solutions solution-nodes))))))))
+                      :solutions solutions))))))))
   
 (defmethod make-html-for-composition-process ((composer chunk-composer))
   (let ((element-id (make-id 'composition-process)))
