@@ -224,8 +224,10 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
            `(((tr :style "border-bottom:1px solid")
               ((td :class "ccn-details") "chunk evaluation results")
               ((td :class "ccn-details")
-               ,@(loop for cer in (chunk-evaluation-results node)
-                       collect (make-html cer))))))
+               ,(html-hide-rest-of-long-list
+                 (chunk-evaluation-results node) 3
+                 #'(lambda (cer)
+                     (make-html cer)))))))
        ))))
 
 (defun collapsed-hidden-composition-subtree-html (element-id)

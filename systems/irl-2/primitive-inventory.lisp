@@ -33,9 +33,7 @@
   "Initializing the primitive inventory. Here, we set the configurations to default values"
   (set-configuration primitive-inventory :goal-tests '(:no-primitives-remaining
                                                        :all-variables-bound))
-  (set-configuration primitive-inventory :node-tests '(:check-duplicate
-                                                       :restrict-nr-of-nodes
-                                                       :restrict-search-depth))
+  (set-configuration primitive-inventory :node-tests '(:no-duplicate-solutions))
   (set-configuration primitive-inventory :check-irl-program-before-evaluation t) ;; this could be a configurable function
   ; the search mode controls how the queue is sorted (e.g. > or <)
   ; and what value of each node is used to sort it on (e.g. node-number or depth)

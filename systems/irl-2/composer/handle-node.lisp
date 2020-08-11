@@ -51,22 +51,19 @@
           (loop for chunk in chunks-for-evaluation
                 append (loop for result in (evaluate-chunk chunk composer)
                              do (setf (node result) node)
-                             collect result)))
-         ;; filter out good solutions
-         (solutions
-          (loop for result in chunk-evaluation-results
-                if (and (run-check-chunk-evaluation-result-fn result composer)
-                        (or (null (topic composer))
-                            (equal-entity (topic composer)
-                                          (target-entity result))))
-                collect result
-                else do (push-data node 'bad-evaluation-results result))))
-    ;; add the good results to the node
-    (loop for cer in solutions
-          do (push cer (cers node)))
+                             collect result))))
+    ;; filter out good solutions and push them to
+    ;; the results of the node
+    (loop for result in chunk-evaluation-results
+          if (and (or (null (topic composer))
+                      (equal-entity (topic composer)
+                                    (target-entity result)))
+                  (run-check-chunk-evaluation-result-fns result composer))
+          do (push result (cers node))
+          else do (push-data node 'bad-evaluation-results result))
     ;; change the status accordingly
     (cond
-     (solutions
+     ((cers node)
       (setf (next-handler node) nil)
       (push 'solution (statuses node))
       (notify chunk-composer-node-changed-status node))
@@ -76,7 +73,7 @@
      (t (push 'no-evaluation-results (statuses node))
         (notify chunk-composer-node-changed-status node)))
     ;; return the solutions
-    (values solutions nil)))
+    (values (cers node) nil)))
           
           
 

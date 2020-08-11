@@ -54,6 +54,23 @@
       (progn (setf (status node) 'duplicate) nil)
       t)))
 
+(defmethod node-test ((node irl-program-processor-node)
+                      (mode (eql :no-duplicate-solutions)))
+  (if (primitives-remaining node) t
+    (let ((duplicatep
+           ;; this assumes the bindings are always ordered in the same way
+           (when (solutions (processor node))
+             (loop for solution in (solutions (processor node))
+                   thereis (loop for value in (mapcar #'value solution)
+                                 for node-value in (mapcar #'value (bindings node))
+                                 always (or (and (null value) (null node-value))
+                                            (and value node-value
+                                                 (equal-entity value node-value))))))))
+      (when duplicatep
+        (setf (status node) 'duplicate))
+      (not duplicatep))))
+    
+
 ;; ---------------------------------------------------------
 ;; search depth limit
 

@@ -96,10 +96,11 @@
   ;; and returns a new chunk or nil when the wrapping
   ;; failed.
   (set-configuration composer :chunk-wrapper-mode :identity)
-  ;; A function that is called after chunk
+  ;; A list of functions that are called after chunk
   ;; evaluation. Returns t when the result is a good
-  ;; result
-  (set-configuration composer :check-chunk-evaluation-result-mode :identity)
+  ;; one
+  (set-configuration composer :check-chunk-evaluation-result-modes
+                     '(:identity))
   ;; A function that is called after chunk evaluation
   ;; to compute a score for a result (higher == better).
   (set-configuration composer :chunk-evaluation-result-scoring-mode

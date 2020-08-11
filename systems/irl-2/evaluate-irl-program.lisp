@@ -187,6 +187,7 @@
                      (loop for result in evaluation-results
                            for expand-node-p = t
                            for new-node = (make-node-from-result current-node result)
+                           do (add-node processor new-node :parent (parent current-node))
                            do (cond ((not (run-node-tests new-node primitive-inventory))
                                      (setf expand-node-p nil))
                                     ((run-goal-tests new-node primitive-inventory)
@@ -197,7 +198,6 @@
                                        (push new-node solution-nodes)
                                        (setf expand-node-p nil)
                                        (setf solution-found-p t))))
-                           do (add-node processor new-node :parent (parent current-node))
                            do (when expand-node-p
                                 (expand-node new-node processor primitive-inventory result)))
                      (cut-node processor current-node)

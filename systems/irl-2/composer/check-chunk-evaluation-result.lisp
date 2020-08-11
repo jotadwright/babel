@@ -4,9 +4,9 @@
 ;; run check chunk evaluation result fn
 ;; -----------------------------------------
 
-(defun run-check-chunk-evaluation-result-fn (result composer)
-  (let ((mode (get-configuration composer :check-chunk-evaluation-result-mode)))
-    (check-chunk-evaluation-result result composer mode)))
+(defun run-check-chunk-evaluation-result-fns (result composer)
+  (loop for mode in (get-configuration composer :check-chunk-evaluation-result-modes)
+        always (check-chunk-evaluation-result result composer mode)))
 
 (defgeneric check-chunk-evaluation-result (result composer mode)
   (:documentation "A function that is called after chunk
