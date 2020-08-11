@@ -45,10 +45,13 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 20)
+(run-series *experiment* 100)
 
 (let ((learner (find 'learner (population *experiment*) :key #'role)))
-  (loop for chunk in (get-data (ontology learner) 'programs)
+  (loop for cxn in (constructions (grammar learner))
+        for chunk-id = (attr-val cxn :meaning)
+        for chunk = (find chunk-id (get-data (ontology learner) 'programs) :key #'id)
+        do (add-element (make-html cxn))
         do (add-element (make-html chunk))))
 
 ;; Run batches for different configurations

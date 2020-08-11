@@ -153,23 +153,30 @@
     (expand-chunk chunk composer :combine-program)))
 
 ;; + node rating mode +
+;; maybe add a preference for chain-type programs
+;; over tree-type programs?
 (defmethod rate-node ((node chunk-composer-node)
                       (composer chunk-composer)
                       (mode (eql :clevr-node-rating)))
   "Prefer short programs with few open vars and few
-   duplicate primitives, except for filter."
+   duplicate primitives."
   (let ((chunk (chunk node)))
     (/ (+ (node-depth node)            ;; the less depth the better
           (length (open-vars chunk))   ;; less open vars are better
           (length (irl-program chunk)) ;; less primitives are better
           ;; less duplicate primitives are better
           ;; (bind statements are not considered)
-          (let ((predictes (remove 'filter
+          (let ((predictes (remove 'clevr-world:filter
                                    (all-predicates
                                     (irl-program chunk))
                                    :key #'car)))
             (* 5 (- (length predictes)
-                    (length (remove-duplicates predictes))))))
+                    (length (remove-duplicates predictes)))))
+          ;; chain-type programs are preferred over tree-type programs
+          ;; (i.e. get-context occurs once instead of twice)
+          (count 'clevr-world:get-context
+                 (irl-program chunk)
+                 :key #'car))
        ;; the higher the score the better
        (score chunk))))
 
@@ -244,6 +251,7 @@
                      (:check-node-modes :check-duplicate
                       :clevr-primitive-occurrence-count)
                      (:expand-chunk-modes :combine-program)
+                     (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes
                       :clevr-coherent-filter-groups))))
 
@@ -317,7 +325,7 @@
         (irl-program (append (irl-program (chunk solution)) (bind-statements solution)))
         (world (world (experiment agent)))
         (success t))
-    (notify check-samples-started list-of-samples solution-index)
+    ;(notify check-samples-started list-of-samples solution-index)
     (setf success
           (loop for sample in list-of-samples
                 for context

@@ -4,7 +4,7 @@
 ;; + Configurations +
 ;; ##################
 
-(define-configuration-default-value :dot-interval 100)
+(define-configuration-default-value :dot-interval 10)
 (define-configuration-default-value :clevr-data-path *clevr-data-path*)
 (define-configuration-default-value :data-sets '("val"))
 (define-configuration-default-value :answer-file
