@@ -4,8 +4,8 @@
  
 
 (export '(tree-node parent children tree nodes top empty? traverse
-	  leaf? top? leafs find-node add-node replace-node has-parent?  parents
-	  depth cut-node insert-node all-children id))
+	  leaf? top? leafs find-node add-node replace-node has-parent? parents
+          siblings depth cut-node insert-node all-children id))
 
 (defclass tree-node ()
   ((id :accessor id
@@ -209,6 +209,12 @@ parent nodes to the top of the tree)."))
     (if parent
       (cons (funcall key parent) (parents parent :key key))
       nil)))
+
+(defgeneric siblings (node)
+  (:documentation "Returns the siblings of node"))
+
+(defmethod siblings ((node tree-node))
+  (remove node (children (parent node))))
 
 (defgeneric all-children (node &key key)
   (:documentation "Traverses the branch of the given node downwards and
