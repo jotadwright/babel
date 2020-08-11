@@ -45,7 +45,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 5)
+(run-series *experiment* 10)
 
 (let ((learner (find 'learner (population *experiment*) :key #'role)))
   (loop for chunk in (get-data (ontology learner) 'programs)

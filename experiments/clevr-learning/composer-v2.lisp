@@ -74,8 +74,7 @@
                        (setf prev-was-filter t))
                       (prev-was-filter
                        (setf prev-was-filter nil)))))
-    ;; only return groups of more than 1 filter predicate
-    (remove-if #'(lambda (l) (= l 1)) filter-groups :key #'length)))
+    filter-groups))
 
 (defun all-different-bind-types (chunk-evaluation-result filter-group)
   ;; collect all bind-statements that belong with the filter-group
@@ -88,6 +87,7 @@
                               :key #'third)))))
     (= (length bind-types)
        (length (remove-duplicates bind-types)))))
+    
 
 (defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
                                           (composer chunk-composer)
@@ -163,8 +163,7 @@
           (length (open-vars chunk))   ;; less open vars are better
           (length (irl-program chunk)) ;; less primitives are better
           ;; less duplicate primitives are better
-          ;; (bind statements and filter primitives
-          ;;  are not considered)
+          ;; (bind statements are not considered)
           (let ((predictes (remove 'filter
                                    (all-predicates
                                     (irl-program chunk))
@@ -174,17 +173,59 @@
        ;; the higher the score the better
        (score chunk))))
 
+;; possible node test
+;; if I am a filter operation
+;; and I have parents that are also filter operations (keep track how many)
+;; go to my siblings
+;; for each sibling; get the same nr of parents
+;; check if the bindings are permutations
+(defun get-filter-bindings (filter-nodes)
+  (loop for node in filter-nodes
+        for var = (last-elt (primitive-under-evaluation node))
+        for value = (value (find var (bindings node) :key #'var))
+        collect value))
+
+(defun all-siblings (node)
+  (let ((all-nodes (nodes (processor node))))
+    (remove node
+            (find-all (node-depth node)
+                      all-nodes
+                      :key #'node-depth
+                      :test #'=))))
+
+(defmethod node-test ((node irl-program-processor-node)
+                      (mode (eql :no-filter-permutations)))
+  (if (eql (first (primitive-under-evaluation node)) 'clevr-world:filter)
+    (let* ((filter-parents
+            ;; only consider filter predicates that were
+            ;; executed DIRECTLY before the current one
+            ;; There can be no union, intersect, ... in between!
+            (loop for parent in (parents node)
+                  if (eql (first (primitive-under-evaluation parent)) 'clevr-world:filter)
+                  collect parent into filter-parents
+                  else return filter-parents))
+           (num-parents (length filter-parents)))
+      (if (> num-parents 0)
+        (let* ((filter-bindings
+                (get-filter-bindings (cons node filter-parents)))
+               (siblings (all-siblings node))
+               (bad-node-p
+                (loop for sibling in siblings
+                      for sibling-filter-parents
+                      = (loop for sibling-parent in (parents sibling)
+                              if (eql (first (primitive-under-evaluation sibling-parent)) 'clevr-world:filter)
+                              collect sibling-parent into sibling-filter-parents
+                              else return sibling-filter-parents)
+                      for sibling-bindings = (get-filter-bindings (cons sibling sibling-filter-parents))
+                      thereis (permutation-of? filter-bindings sibling-bindings :test #'equal-entity))))
+          (if bad-node-p
+            (progn (setf (status node) 'inconsistent) nil)
+            t))
+        t))
+    t))
 
 
-;; TESTS
-;; Run with standard breadth first search
-;; using only :combine-program as node expander
-;; 1. see if this yields any solutions
-;; Next, add the chunk prior to the solution node to
-;; the chunks of the composer and check if the next solution
-;; can be found faster.
-;; Alternatively, add ALL chunks on the path to the solution node
-;; to the composer chunks.
+
 
 (in-package :clevr-learning)
 
@@ -197,13 +238,14 @@
                                  :target-var `(?answer . ,(type-of target-category))
                                  :open-vars `((?answer . ,(type-of target-category))))
    :chunks (get-data (ontology agent) 'composer-chunks)
-   :ontology (ontology agent) :primitive-inventory (primitives agent)
+   :ontology (ontology agent)
+   :primitive-inventory (primitives agent)
    :configurations '((:max-search-depth . 25)
                      (:check-node-modes :check-duplicate
                       :clevr-primitive-occurrence-count)
-                     (:expand-chunk-modes :combine-program) ;:clevr-expand-chunk)
-                     (:node-rating-mode . :breadth-first) ; :clevr-node-rating)
-                     (:check-chunk-evaluation-result-mode . :clevr-coherent-filter-groups))))
+                     (:expand-chunk-modes :combine-program)
+                     (:check-chunk-evaluation-result-modes
+                      :clevr-coherent-filter-groups))))
 
 ;; + compose-until +
 (defun compose-until (composer fn)
