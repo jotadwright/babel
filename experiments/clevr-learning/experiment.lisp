@@ -9,7 +9,7 @@
 (define-configuration-default-value :data-sets '("val"))
 (define-configuration-default-value :answer-file
                                     (babel-pathname :directory '("experiments" "clevr-learning")
-                                                    :name "CLEVR_val_mini" :type "txt"))
+                                                    :name "CLEVR_val_100" :type "txt"))
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
 ;; Available alignment strategies:
@@ -51,9 +51,8 @@
   (let ((inventory (def-irl-primitives holophrase-primitives
                      :primitive-inventory *holophrase-primitives*
                      :irl-configurations ((:node-tests :no-duplicate-solutions
-                                           :no-filter-permutations
                                            :restrict-nr-of-nodes)
-                                          (:max-nr-of-nodes . 10000)))))
+                                          (:max-nr-of-nodes . 7500)))))
     (loop for p in available-primitives
           do (add-primitive
               (find-primitive p *clevr-primitives*)

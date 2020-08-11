@@ -13,7 +13,7 @@
                (clevr-world:equal? (when (> count 1) (setf allowed nil)))
                (clevr-world:exist (when (> count 1) (setf allowed nil)))
                (clevr-world:filter ())
-               (clevr-world:get-context (when (> count 1) (setf allowed nil)))
+               (clevr-world:get-context (when (> count 2) (setf allowed nil)))
                (clevr-world:intersect (when (> count 1) (setf allowed nil)))
                (clevr-world:query (when (> count 2) (setf allowed nil)))
                (clevr-world:relate (when (> count 3) (setf allowed nil)))
@@ -305,14 +305,9 @@
   
 
 ;; + Sample Strategy +
-(define-event check-sample-started
+(define-event check-samples-started
   (list-of-samples list)
-  (solution-index number)
-  (sample-index number))
-
-(define-event check-sample-finished
-  (success t))
-              
+  (solution-index number))              
 
 (defun check-all-samples (solution solution-index list-of-samples agent)
   "A sample is a triple of (context-id utterance answer). The irl-program
@@ -322,24 +317,20 @@
         (irl-program (append (irl-program (chunk solution)) (bind-statements solution)))
         (world (world (experiment agent)))
         (success t))
+    (notify check-samples-started list-of-samples solution-index)
     (setf success
           (loop for sample in list-of-samples
-                for sample-index from 1
                 for context
                 = (let* ((path (nth (first sample) (scenes world)))
                          (scene (load-clevr-scene path)))
                     (set-data (ontology agent) 'clevr-context scene)
                     scene)
                 for solutions
-                = (progn (notify check-sample-started list-of-samples
-                                 solution-index sample-index)
-                    (evaluate-irl-program irl-program (ontology agent)
-                                          :silent t
-                                          :primitive-inventory (primitives agent)))
+                = (evaluate-irl-program irl-program (ontology agent)
+                                        :silent t :primitive-inventory (primitives agent))
                 for solution = (when (length= solutions 1) (first solutions))
                 for found-answer = (when solution (get-target-value irl-program solution))
                 for correct = (equal-entity found-answer (third sample))
-                do (notify check-sample-finished correct)
                 always correct))
     (set-data (ontology agent) 'clevr-context original-context)
     success))
