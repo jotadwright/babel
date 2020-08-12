@@ -165,7 +165,7 @@
           (length (open-vars chunk))   ;; less open vars are better
           (length (irl-program chunk)) ;; less primitives are better
           ;; less duplicate primitives are better
-          ;; (bind statements are not considered)
+          ;; (bind statements and filters are not considered)
           (let ((predictes (remove 'clevr-world:filter
                                    (all-predicates
                                     (irl-program chunk))
@@ -202,7 +202,8 @@
 
 (defmethod node-test ((node irl-program-processor-node)
                       (mode (eql :no-filter-permutations)))
-  (if (eql (first (primitive-under-evaluation node)) 'clevr-world:filter)
+  (if (eql (first (primitive-under-evaluation node))
+           'clevr-world:filter)
     (let* ((filter-parents
             ;; only consider filter predicates that were
             ;; executed DIRECTLY before the current one
@@ -231,7 +232,10 @@
         t))
     t))
 
-
+;; TO DO
+;; Add the option to add configurations to the IRL primitive inventory
+;; that only apply during the composition process. The original configurations
+;; should be restored afterwards.
 
 
 (in-package :clevr-learning)
@@ -253,7 +257,11 @@
                      (:expand-chunk-modes :combine-program)
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes
-                      :clevr-coherent-filter-groups))))
+                      :clevr-coherent-filter-groups))
+   :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions
+                                          :no-filter-permutations
+                                          :restrict-nr-of-nodes)
+                                         (:max-nr-of-nodes . 7500))))
 
 ;; + compose-until +
 (defun compose-until (composer fn)
@@ -325,7 +333,7 @@
         (irl-program (append (irl-program (chunk solution)) (bind-statements solution)))
         (world (world (experiment agent)))
         (success t))
-    ;(notify check-samples-started list-of-samples solution-index)
+    (notify check-samples-started list-of-samples solution-index)
     (setf success
           (loop for sample in list-of-samples
                 for context

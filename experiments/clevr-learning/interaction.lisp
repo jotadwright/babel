@@ -67,7 +67,7 @@
 (defmethod interact :before ((experiment holophrase-experiment) interaction &key)
   "Choose the context and question (utterance) for the current interaction.
    Always check if all primitives are available. If not, retry." 
-  (loop for line = (random-elt (subseq (data experiment) 0 5))
+  (loop for line = (third (data experiment)) ;(random-elt (subseq (data experiment) 0 5))
         until (all-primitives-available-p
                experiment (read-from-string
                            (rest (assoc :meaning line))))
