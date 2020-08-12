@@ -8,6 +8,12 @@
   ((primitive-inventory :type primitive-inventory :initarg :primitive-inventory
                         :initform *irl-primitives* :accessor primitive-inventory
                         :documentation "A primitive inventory")
+   (primitive-inventory-configurations
+    :type (or null configuration) :initarg :primitive-inventory-configurations
+    :initform (make-config) :accessor primitive-inventory-configurations
+    :documentation "A set of configurations for the primitive inventory
+                    that are local to the composer, i.e. they will only
+                    be used when evaluating composer nodes")
    (ontology :type blackboard :initarg :ontology
              :initform (make-blackboard) :accessor ontology
              :documentation "The ontology")
@@ -111,7 +117,8 @@
 
 (defun make-chunk-composer (&key topic meaning initial-chunk chunks
                                  configurations ontology
-                                 (primitive-inventory *irl-primitives*))
+                                 (primitive-inventory *irl-primitives*)
+                                 primitive-inventory-configurations)
   ;; check the input
   (when (and (null topic) (null meaning))
     (error "Must provide either :topic or :meaning"))
@@ -126,12 +133,17 @@
                              :target-var `(?topic . ,(type-of topic))
                              :open-vars `((?topic . ,(type-of topic))))
               (make-instance 'chunk))))
+         (pi-configurations
+          (if primitive-inventory-configurations
+            (make-configuration :entries primitive-inventory-configurations)
+            (make-config)))
          (composer
           (make-instance 'chunk-composer :topic topic :meaning meaning
                          :primitive-inventory primitive-inventory
-                         :ontology ontology
+                         :ontology (if ontology ontology (make-blackboard))
                          :chunks (if chunks chunks
-                                   (get-data ontology 'chunks))))
+                                   (get-data ontology 'chunks))
+                         :primitive-inventory-configurations pi-configurations))
          (initial-node
           (make-instance 'chunk-composer-node :chunk initial-chunk
                          :composer composer)))

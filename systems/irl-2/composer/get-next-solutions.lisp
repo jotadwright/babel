@@ -35,45 +35,61 @@
   (unless silent
     (notify chunk-composer-get-next-solutions-started composer))
   (when (queue composer)
-    (loop
-     for node = (pop (queue composer))
-     for handler = (next-handler node)
-     for (solutions new-nodes)
-     = (multiple-value-list
-        (handle-node node handler composer))
-     ;; handle the node
-     do (progn
-          (unless silent
-            (notify chunk-composer-node-handled node handler))
-          (enqueue-node node composer))
-     ;; handle new nodes
-     when new-nodes
-     do (loop for new-node in new-nodes
-              do (add-node composer new-node :parent node)
-              do (enqueue-node new-node composer)
-              finally
-              (unless silent
-                (notify chunk-composer-new-nodes new-nodes)))
-     ;; handle solutions
-     when solutions
-     do (progn
-          (loop for solution in solutions
-                do (setf (score solution)
-                         (score-solution solution composer)))
-          (setf (solutions composer)
-                (sort (append solutions (solutions composer))
-                      #'> :key #'score)))
-     ;; continue loop
-     when (and (queue composer)
-               (not silent))
-     do (notify chunk-composer-next-node (first (queue composer)))
-     while (queue composer)
-     until solutions
-     finally
-     (progn
-       (unless silent
-         (notify chunk-composer-finished solutions composer))
-       (return solutions)))))
+    ;; keep a copy of the primitive inventory configurations
+    ;; and apply the local configurations, if present
+    (let ((stored-primitive-inventory-configurations
+           (copy-object
+            (configuration
+             (primitive-inventory composer)))))
+      (when (primitive-inventory-configurations composer)
+        (loop for (key . value) in (entries (primitive-inventory-configurations composer))
+              do (set-configuration (primitive-inventory composer)
+                                    key value :replace t)))
+      (loop
+       for node = (pop (queue composer))
+       for handler = (next-handler node)
+       for (solutions new-nodes)
+       = (multiple-value-list
+          (handle-node node handler composer))
+       ;; handle the node
+       do (progn
+            (unless silent
+              (notify chunk-composer-node-handled node handler))
+            (enqueue-node node composer))
+       ;; handle new nodes
+       when new-nodes
+       do (loop for new-node in new-nodes
+                do (add-node composer new-node :parent node)
+                do (enqueue-node new-node composer)
+                finally
+                (unless silent
+                  (notify chunk-composer-new-nodes new-nodes)))
+       ;; handle solutions
+       when solutions
+       do (progn
+            (loop for solution in solutions
+                  do (setf (score solution)
+                           (score-solution solution composer)))
+            (setf (solutions composer)
+                  (sort (append solutions (solutions composer))
+                        #'> :key #'score)))
+       ;; continue loop
+       when (and (queue composer)
+                 (not silent))
+       do (notify chunk-composer-next-node (first (queue composer)))
+       while (queue composer)
+       until solutions
+       finally
+       (progn
+         ;; notify
+         (unless silent
+           (notify chunk-composer-finished solutions composer))
+         ;; restore the primitive inventory configurations
+         (loop for (key . value) in (entries stored-primitive-inventory-configurations)
+               do (set-configuration (primitive-inventory composer)
+                                     key value :replace t))
+         ;; return the solutions
+         (return solutions))))))
 
 
 (defun get-all-solutions (composer &key silent)
