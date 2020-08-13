@@ -33,11 +33,10 @@
      ;(available-primitives . (count! equal-integer less-than greater-than
      ;                                equal? exist filter get-context
      ;                                query relate same unique))
-     (determine-interacting-agents-mode . :default)
+     (determine-interacting-agents-mode . :tutor-learner)
      (who-aligns? . :learner)
      (learning-strategy . :keep-samples)
-     (alignment-strategy . :no-alignment)
-     (learner-speaks-after-interaction . 500))))
+     (alignment-strategy . :no-alignment))))
 
 (defparameter *experiment*
   (make-instance 'holophrase-experiment
@@ -45,7 +44,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 50)
 
 (let ((learner (find 'learner (population *experiment*) :key #'role)))
   (loop for cxn in (constructions (grammar learner))

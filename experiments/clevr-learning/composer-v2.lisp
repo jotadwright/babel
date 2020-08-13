@@ -61,8 +61,10 @@
                                    program :key #'first))
      ;; traverse the network by following in/out variables
      :next-predicate-fn #'(lambda (predicate program)
-                            (find-all (second predicate)
-                                      program :key #'third))
+                            (or (find-all (second predicate)
+                                          program :key #'third)
+                                (find-all (second predicate)
+                                          program :key #'fourth)))
      ;; collect filter predicates in groups
      :do-fn #'(lambda (predidate)
                 (cond ((and prev-was-filter
@@ -207,7 +209,7 @@
     (let* ((filter-parents
             ;; only consider filter predicates that were
             ;; executed DIRECTLY before the current one
-            ;; There can be no union, intersect, ... in between!
+            ;; There can be no other predicates in between!
             (loop for parent in (parents node)
                   if (eql (first (primitive-under-evaluation parent)) 'clevr-world:filter)
                   collect parent into filter-parents
@@ -231,11 +233,6 @@
             t))
         t))
     t))
-
-;; TO DO
-;; Add the option to add configurations to the IRL primitive inventory
-;; that only apply during the composition process. The original configurations
-;; should be restored afterwards.
 
 
 (in-package :clevr-learning)
@@ -268,8 +265,15 @@
   "Generate composer solutions until the
    function 'fn' returns t on the solution"
   (loop with solution = nil
-        while (not solution)
-        for solutions = (get-next-solutions composer)
+        with timeout = nil
+        while (or (not solution) timeout)
+        for solutions
+        = (handler-case
+              (with-timeout (600)
+                (get-next-solutions composer))
+            (timeout-error (error)
+              (setf timeout t)
+              (return-from compose-until 'timeout)))
         do (setf solution
                  (loop for s in solutions
                        for i from 1

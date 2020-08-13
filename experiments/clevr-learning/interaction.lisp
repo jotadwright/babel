@@ -66,13 +66,22 @@
 
 (defmethod interact :before ((experiment holophrase-experiment) interaction &key)
   "Choose the context and question (utterance) for the current interaction.
-   Always check if all primitives are available. If not, retry." 
-  (loop for line = (third (data experiment)) ;(random-elt (subseq (data experiment) 0 5))
+   Always check if all primitives are available. If not, retry."
+  (let ((learner (find 'learner (population experiment) :key #'role)))
+    (if (assoc *current-utterance-index* *attempts-per-utterance*)
+      (incf (rest (assoc *current-utterance-index* *attempts-per-utterance*)))
+      (push (cons *current-utterance-index* 1) *attempts-per-utterance*))
+    (when (or (> (rest (assoc *current-utterance-index* *attempts-per-utterance*)) *max-attempts-per-utterance*)
+              (find-data learner 'timeout))
+      (incf *current-utterance-index*)
+      (set-data learner 'timeout nil)))
+  (loop for line = (nth *current-utterance-index* (data experiment))
         until (all-primitives-available-p
                experiment (read-from-string
                            (rest (assoc :meaning line))))
         finally (let* ((question (rest (assoc :question line)))
                        (answers (rest (assoc :answers line)))
+                       (meaning (read-from-string (rest (assoc :meaning line))))
                        (scene-name/answer (random-elt answers))
                        (scene (find-scene-by-name (rest (assoc :scene scene-name/answer))
                                                   (world experiment)))
@@ -80,6 +89,7 @@
                   (notify context-determined (image scene))
                   (notify question-determined question answer)
                   (loop for agent in (interacting-agents experiment)
+                        do (set-data agent 'ground-truth-meaning meaning) ;; store in the blackboard for now
                         do (initialize-agent agent scene question answer)))))
 
 (defmethod interact ((experiment holophrase-experiment) interaction &key)
@@ -97,10 +107,22 @@
                                    (hearer holophrase-learner))
   (if (and (parse-question hearer)
            (interpret hearer))
-    (unless (determine-success speaker hearer)
-      (adopt hearer (ground-truth-answer speaker))
-      (setf (communicated-successfully speaker) nil
-            (communicated-successfully hearer) nil))
+    (if (determine-success speaker hearer)
+      ;; when the game was a success, check if the ground truth program was reached
+      ;; if it was, store the utterance and the program
+      (when (check-ground-truth-program hearer)
+        (with-open-file (stream *successful-utterances-file*
+                                :direction :output
+                                :if-exists :append
+                                :if-does-not-exist :create)
+          (write-line (format nil "~a,~a"
+                              (utterance hearer)
+                              (downcase (mkstr (irl-program (applied-chunk hearer)))))
+                      stream))
+        (incf *current-utterance-index*))
+      (progn (adopt hearer (ground-truth-answer speaker))
+        (setf (communicated-successfully speaker) nil
+              (communicated-successfully hearer) nil)))
     (progn (adopt hearer (ground-truth-answer speaker))
       (setf (communicated-successfully speaker) nil
             (communicated-successfully hearer) nil))))

@@ -9,7 +9,7 @@
 (define-configuration-default-value :data-sets '("val"))
 (define-configuration-default-value :answer-file
                                     (babel-pathname :directory '("experiments" "clevr-learning")
-                                                    :name "CLEVR_val_100" :type "txt"))
+                                                    :name "CLEVR_val_100_sorted" :type "txt"))
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
 ;; Available alignment strategies:
@@ -104,6 +104,9 @@
                              :ontology (copy-object *clevr-ontology*)
                              :primitives (make-learner-primitive-inventory
                                           (get-configuration experiment :available-primitives)))))
+  ;; set the utterance index
+  (setf *current-utterance-index* 0)
+  (setf *attempts-per-utterance* nil)
   ;; print dots
   (activate-monitor print-a-dot-for-each-interaction))
 

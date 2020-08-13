@@ -302,31 +302,33 @@
                   :test #'string=))
            (solution
             (compose-new-program agent ground-truth-answer
-                                 learning-strategy))
-           (chunk
-            (solution->chunk agent solution
-                             :initial-score (get-configuration agent :initial-chunk-score)))
-           (parent-chunk
-            (chunk (parent (irl-2::node solution))))
-           (interaction-nr
-            (interaction-number
-             (current-interaction
-              (experiment agent)))))
-      (notify composition-solution-found solution)
-      ;; add the chunk
-      (add-chunk (ontology agent) chunk)
-      ;; remove the previous cxn for this utterance
-      ;; if it existed
-      (when (and cxn-w-utterance (not (eql learning-strategy :lateral-inhibition)))
-        (remove-holophrase-cxn agent cxn-w-utterance))
-      ;; create and add a new holophrase cxn
-      (add-holophrase-cxn (grammar agent) (utterance agent)
-                          chunk interaction-nr
-                          :initial-score (get-configuration agent :initial-cxn-score))
-      ;; remove unreachable chunks
-      (remove-unreachable-chunks agent)
-      ;; add the parent-chunk to the composer-chunks
-      (add-composer-chunk (ontology agent) parent-chunk))))
+                                 learning-strategy)))
+      (if (not (eql solution 'timeout))
+        (let* ((chunk
+                (solution->chunk agent solution
+                                 :initial-score (get-configuration agent :initial-chunk-score)))
+               (parent-chunk
+                (chunk (parent (irl-2::node solution))))
+               (interaction-nr
+                (interaction-number
+                 (current-interaction
+                  (experiment agent)))))
+          (notify composition-solution-found solution)
+          ;; add the chunk
+          (add-chunk (ontology agent) chunk)
+          ;; remove the previous cxn for this utterance
+          ;; if it existed
+          (when (and cxn-w-utterance (not (eql learning-strategy :lateral-inhibition)))
+            (remove-holophrase-cxn agent cxn-w-utterance))
+          ;; create and add a new holophrase cxn
+          (add-holophrase-cxn (grammar agent) (utterance agent)
+                              chunk interaction-nr
+                              :initial-score (get-configuration agent :initial-cxn-score))
+          ;; remove unreachable chunks
+          (remove-unreachable-chunks agent)
+          ;; add the parent-chunk to the composer-chunks
+          (add-composer-chunk (ontology agent) parent-chunk))
+        (set-data agent 'timeout t)))))
 
 ;; #####################
 ;; + Determine success +
