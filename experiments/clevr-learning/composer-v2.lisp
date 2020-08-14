@@ -69,6 +69,14 @@
                                       (open-vars (chunk node))
                                       :key #'car)))))
 
+(defmethod check-node ((node chunk-composer-node)
+                       (composer chunk-composer)
+                       (mode (eql :clevr-filter-group-length)))
+  (let* ((irl-program (irl-program (chunk node)))
+         (filter-groups (collect-filter-groups irl-program)))
+    (loop for group in filter-groups
+          never (length> group 4))))
+
 
 ; + Check chunk evaluation result +
 (defun traverse-irl-program (irl-program &key first-predicate-fn next-predicate-fn do-fn)
@@ -287,7 +295,8 @@
    :configurations '((:max-search-depth . 25)
                      (:check-node-modes :check-duplicate
                       :clevr-primitive-occurrence-count
-                      :clevr-open-vars :clevr-context-links)
+                      :clevr-open-vars :clevr-context-links
+                      :clevr-filter-group-length)
                      (:expand-chunk-modes :combine-program)
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes

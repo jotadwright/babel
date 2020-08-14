@@ -307,8 +307,6 @@
         (let* ((chunk
                 (solution->chunk agent solution
                                  :initial-score (get-configuration agent :initial-chunk-score)))
-               (parent-chunk
-                (chunk (parent (irl-2::node solution))))
                (interaction-nr
                 (interaction-number
                  (current-interaction
@@ -326,8 +324,9 @@
                               :initial-score (get-configuration agent :initial-cxn-score))
           ;; remove unreachable chunks
           (remove-unreachable-chunks agent)
-          ;; add the parent-chunk to the composer-chunks
-          (add-composer-chunk (ontology agent) parent-chunk))
+          ;; add a larger chunk to the composer-chunks
+          (add-composer-chunk (ontology agent)
+                              (chunk (irl-2::node solution))))
         (set-data agent :timeout t)))))
 
 ;; #####################

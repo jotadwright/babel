@@ -33,20 +33,32 @@
   ;; add the chunk to the ontology's composer-chunks
   ;; unless when an identical chunk is already there
   ;; only check chunks with more than 1 predicate
-  (let ((add-chunk-p
-         (and (> (length (irl-program chunk)) 1)
-              (loop for other-chunk in (get-data ontology 'composer-chunks)
-                    always (or (= (length (irl-program other-chunk)) 1)
-                               (not (equivalent-irl-programs? (irl-program chunk)
-                                                              (irl-program other-chunk))))))))
+  (let* ((chunk-id
+          (make-id
+           (format nil "~{~a~^+~}"
+                   (reverse
+                    (remove 'get-context
+                            (mapcar #'car
+                                    (irl-program chunk)))))))
+         (context-vars
+          (mapcar #'second (find-all 'get-context (irl-program chunk) :key #'car)))
+         (composer-chunk
+          (make-instance 'chunk :id chunk-id
+                         :irl-program (remove 'get-context (irl-program chunk) :key #'car)
+                         :target-var (irl-2::target-var chunk)
+                         :open-vars (append (irl-2::open-vars chunk)
+                                            (loop for cv in context-vars
+                                                  collect (cons cv 'clevr-object-set)))
+                         :score (irl-2::score chunk)))
+         (add-chunk-p
+          (and (> (length (irl-program composer-chunk)) 1)
+               (loop for other-chunk in (get-data ontology 'composer-chunks)
+                     always (or (= (length (irl-program other-chunk)) 1)
+                                (not (equivalent-irl-programs? (irl-program composer-chunk)
+                                                               (irl-program other-chunk))))))))
     (when add-chunk-p
-      (let ((new-chunk-id (make-id
-                           (format nil "~{~a~^+~}"
-                                   (mapcar #'first
-                                           (irl-program chunk))))))
-        (setf (id chunk) new-chunk-id)
-        (push-data ontology 'composer-chunks chunk)
-        (notify composer-chunk-added chunk)))))
+      (push-data ontology 'composer-chunks composer-chunk)
+      (notify composer-chunk-added composer-chunk))))
 
 (define-event chunk-added (chunk chunk))
 (define-event chunk-removed (chunk chunk))
