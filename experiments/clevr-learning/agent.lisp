@@ -303,7 +303,7 @@
            (solution
             (compose-new-program agent ground-truth-answer
                                  learning-strategy)))
-      (if (not (eql solution 'timeout))
+      (if (not (eql solution 'timeout-passed))
         (let* ((chunk
                 (solution->chunk agent solution
                                  :initial-score (get-configuration agent :initial-chunk-score)))
@@ -328,7 +328,7 @@
           (remove-unreachable-chunks agent)
           ;; add the parent-chunk to the composer-chunks
           (add-composer-chunk (ontology agent) parent-chunk))
-        (set-data agent 'timeout t)))))
+        (set-data agent :timeout t)))))
 
 ;; #####################
 ;; + Determine success +

@@ -8,8 +8,8 @@
 (define-configuration-default-value :clevr-data-path *clevr-data-path*)
 (define-configuration-default-value :data-sets '("val"))
 (define-configuration-default-value :answer-file
-                                    (babel-pathname :directory '("experiments" "clevr-learning")
-                                                    :name "CLEVR_val_100_sorted" :type "txt"))
+   (babel-pathname :directory '("experiments" "clevr-learning")
+                   :name "CLEVR_val_100_sorted" :type "txt"))
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
 ;; Available alignment strategies:
@@ -29,19 +29,28 @@
 ;; :sample-window is used for both samples and trash
 (define-configuration-default-value :sample-window nil)
 (define-configuration-default-value :available-primitives
-                                    '(count! equal-integer less-than greater-than
-                                      equal? exist filter get-context intersect
-                                      query relate same union! unique))
+   '(count! equal-integer less-than greater-than
+     equal? exist filter get-context intersect
+     query relate same union! unique))
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :learner-speaks-after-interaction 100)
+
+;; How often can the agent try to find the ground truth program for an utterance?
+(define-configuration-default-value :max-attempts-per-utterance 50)
+;; When the ground truth utterance is found, write to this file
+(define-configuration-default-value :output-file
+   (babel-pathname :directory '("experiments" "clevr-learning")
+                   :name "successful-utterances" :type "txt"))
+;; Timeout for the composer to find a solution
+(define-configuration-default-value :composer-timeout 600)
 
 ;; ##############
 ;; + Experiment +
 ;; ##############
 
 (defclass holophrase-experiment (experiment)
-  ((data :accessor data :type list :initarg :data :initform nil
-         :documentation "The contents of the :answer-file"))
+  ((questions :accessor questions :type list :initarg :questions :initform nil
+              :documentation "The contents of the questions and answers file"))
   (:documentation "QA Game"))
 
 (defun make-learner-primitive-inventory (available-primitives)
@@ -49,12 +58,7 @@
   ; and only keep those occurring in
   ; the available primitives configuration
   (let ((inventory (def-irl-primitives holophrase-primitives
-                     :primitive-inventory *holophrase-primitives*
-                     ;:irl-configurations ((:node-tests :no-duplicate-solutions
-                     ;                      :no-filter-permutations
-                     ;                      :restrict-nr-of-nodes)
-                     ;                     (:max-nr-of-nodes . 7500))
-                     )))
+                     :primitive-inventory *holophrase-primitives*)))
     (loop for p in available-primitives
           do (add-primitive
               (find-primitive p *clevr-primitives*)
@@ -72,7 +76,7 @@
                        :data-sets (get-configuration experiment :data-sets)
                        :load-questions nil))
   ;; load the answer file in memory
-  (setf (data experiment)
+  (setf (questions experiment)
         (with-open-file (in (get-configuration experiment :answer-file)
                             :direction :input)
           (loop for line = (read-line in nil nil)
@@ -104,9 +108,15 @@
                              :ontology (copy-object *clevr-ontology*)
                              :primitives (make-learner-primitive-inventory
                                           (get-configuration experiment :available-primitives)))))
-  ;; set the utterance index
-  (setf *current-utterance-index* 0)
-  (setf *attempts-per-utterance* nil)
+  ;; reset the utterance index and attempts per utterance
+  (set-data experiment :current-utterance-index 0)
+  (set-data experiment :attempts-per-utterance nil)
+  ;; clear the output file
+  (with-open-file (stream (get-configuration experiment :output-file)
+                          :direction :output
+                          :if-exists :supersede
+                          :if-does-not-exist :create)
+    (declare (ignorable stream)))
   ;; print dots
   (activate-monitor print-a-dot-for-each-interaction))
 

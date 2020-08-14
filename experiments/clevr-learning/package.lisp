@@ -18,10 +18,3 @@
   (:shadowing-import-from :fcg :size :attributes))
 
 (in-package :clevr-learning)
-
-(defparameter *current-utterance-index* 0)
-(defparameter *attempts-per-utterance* nil)
-(defparameter *max-attempts-per-utterance* 50)
-(defparameter *successful-utterances-file*
-  (babel-pathname :directory '("experiments" "clevr-learning")
-                  :name "successful-utterances" :type "txt"))

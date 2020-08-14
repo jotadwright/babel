@@ -34,6 +34,42 @@
                                                       :key #'first)))))
     (counts-allowed-p primitive-counts)))
 
+(defmethod check-node ((node chunk-composer-node)
+                       (composer chunk-composer)
+                       (mode (eql :clevr-context-links)))
+  ;; inputs from count!, exist, intersect, union!
+  ;; and unique cannot be the output of get-context
+  (let* ((irl-program (irl-program (chunk node)))
+         (context-predicates (find-all 'clevr-world:get-context
+                                       irl-program :key #'car)))
+    (if context-predicates
+      (loop for context-predicate in context-predicates
+            for context-var = (second context-predicate)
+            always (loop for p in '(clevr-world:count! clevr-world:exist
+                                    clevr-world:intersect clevr-world:union!
+                                    clevr-world:unique)
+                        for preds = (find-all p irl-program :key #'car)
+                        never (loop for pred in preds
+                                    thereis (or (eql (third pred) context-var)
+                                                (eql (fourth pred) context-var)))))
+      t)))
+
+
+(defmethod check-node ((node chunk-composer-node)
+                       (composer chunk-composer)
+                       (mode (eql :clevr-open-vars)))
+  ;; the last element from filter, query, equal?,
+  ;; relate and same must always be an open variable
+  (let ((irl-program (irl-program (chunk node))))
+    (loop for p in '(clevr-world:filter clevr-world:query clevr-world:equal?
+                     clevr-world:relate clevr-world:same)
+          for preds = (find-all p irl-program :key #'car)
+          always (loop for pred in preds
+                       always (member (last-elt pred)
+                                      (open-vars (chunk node))
+                                      :key #'car)))))
+
+
 ; + Check chunk evaluation result +
 (defun traverse-irl-program (irl-program &key first-predicate-fn next-predicate-fn do-fn)
   "General utility function that traverses a meaning network.
@@ -250,7 +286,8 @@
    :primitive-inventory (primitives agent)
    :configurations '((:max-search-depth . 25)
                      (:check-node-modes :check-duplicate
-                      :clevr-primitive-occurrence-count)
+                      :clevr-primitive-occurrence-count
+                      :clevr-open-vars :clevr-context-links)
                      (:expand-chunk-modes :combine-program)
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes
@@ -261,19 +298,19 @@
                                          (:max-nr-of-nodes . 7500))))
 
 ;; + compose-until +
-(defun compose-until (composer fn)
+(defun compose-until (composer fn &optional timeout)
   "Generate composer solutions until the
    function 'fn' returns t on the solution"
   (loop with solution = nil
-        with timeout = nil
-        while (or (not solution) timeout)
+        with timeout-passed-p = nil
+        while (or (not solution) timeout-passed-p)
         for solutions
         = (handler-case
-              (with-timeout (600)
+              (with-timeout (timeout)
                 (get-next-solutions composer))
             (timeout-error (error)
-              (setf timeout t)
-              (return-from compose-until 'timeout)))
+              (setf timeout-passed-p t)
+              (return-from compose-until 'timeout-passed)))
         do (setf solution
                  (loop for s in solutions
                        for i from 1
@@ -365,7 +402,8 @@
     (if consider-samples
       (compose-until composer
                      (lambda (s idx)
-                       (check-all-samples s idx consider-samples agent)))
+                       (check-all-samples s idx consider-samples agent))
+                     (get-configuration agent :composer-timeout))
       (random-elt (get-next-solutions composer)))))
 
 
