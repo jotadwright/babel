@@ -293,18 +293,17 @@
    :ontology (ontology agent)
    :primitive-inventory (primitives agent)
    :configurations '((:max-search-depth . 25)
-                     (:check-node-modes :check-duplicate
-                      :clevr-primitive-occurrence-count
-                      :clevr-open-vars :clevr-context-links
+                     (:check-node-modes :check-duplicate 
+                      :clevr-primitive-occurrence-count  
+                      :clevr-open-vars
+                      :clevr-context-links
                       :clevr-filter-group-length)
                      (:expand-chunk-modes :combine-program)
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes
                       :clevr-coherent-filter-groups))
    :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions
-                                          :no-filter-permutations
-                                          :restrict-nr-of-nodes)
-                                         (:max-nr-of-nodes . 7500))))
+                                          :no-filter-permutations))))
 
 ;; + compose-until +
 (defun compose-until (composer fn &optional timeout)

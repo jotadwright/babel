@@ -42,7 +42,7 @@
    (babel-pathname :directory '("experiments" "clevr-learning")
                    :name "successful-utterances" :type "txt"))
 ;; Timeout for the composer to find a solution
-(define-configuration-default-value :composer-timeout 600)
+(define-configuration-default-value :composer-timeout 900)
 
 ;; ##############
 ;; + Experiment +
