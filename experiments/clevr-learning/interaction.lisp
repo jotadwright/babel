@@ -43,6 +43,10 @@
 ;; + Interaction +
 ;; ###############
 
+(define-event context-determined (image-path pathname))
+(define-event question-determined (question string) (answer string))
+
+
 (defparameter *primitive-mapping*
   '(("scene" . get-context) ("filter" . filter)
     ("query" . query) ("count" . count!)
@@ -56,47 +60,54 @@
 
 (defun all-primitives-available-p (experiment meaning)
   (let* ((available-primitives (get-configuration experiment :available-primitives))
-         (necessary-primitives (remove 'bind (remove-duplicates (mapcar #'first meaning)))))
-    (loop for p in necessary-primitives
-          always (find p available-primitives))))
-    
+         (necessary-primitives (remove 'bind (remove-duplicates (mapcar #'first meaning))))
+         (all-available-p
+          (loop for p in necessary-primitives
+                always (find p available-primitives))))
+    (unless all-available-p
+      (set-data experiment :current-utterance-index
+                (1+ (get-data experiment :current-utterance-index))))
+    all-available-p))
 
-(define-event context-determined (image-path pathname))
-(define-event question-determined (question string) (answer string))
+(defun attempts-remaining-p (experiment)
+  (let* ((current-utterance-index (get-data experiment :current-utterance-index))
+         (attempts-per-utterance (get-data experiment :attempts-per-utterance))
+         (max-attempts (get-configuration experiment :max-attempts-per-utterance))
+         (pair (assoc current-utterance-index attempts-per-utterance)))
+    (if (and pair (> (rest pair) max-attempts))
+      (progn (set-data experiment :current-utterance-index
+                       (1+ current-utterance-index))
+        nil)
+      t)))
 
-(defmethod interact :before ((experiment holophrase-experiment) interaction &key)
-  "Choose the context and question (utterance) for the current interaction.
-   Always check if all primitives are available. If not, retry."
-  ;; some bookkeeping w.r.t. timeouts and max attempts
-  (let ((learner (find 'learner (population experiment) :key #'role))
-        (current-utterance-index (get-data experiment :current-utterance-index))
+(defun timeout-reached-p (experiment)
+  (let ((learner (find 'learner (population experiment) :key #'role)))
+    (if (find-data learner :timeout)
+      (progn (set-data experiment :current-utterance-index
+                       (1+ (get-data experiment :current-utterance-index)))
+        (set-data learner :timeout nil)
+        t)
+      nil)))
+
+(defun increment-utterance-attempt (experiment)
+  (let ((current-utterance-index (get-data experiment :current-utterance-index))
         (attempts-per-utterance (get-data experiment :attempts-per-utterance)))
     (if (assoc current-utterance-index attempts-per-utterance)
       (incf (rest (assoc current-utterance-index attempts-per-utterance)))
       (set-data experiment :attempts-per-utterance
-                (cons (cons current-utterance-index 1) attempts-per-utterance)))
-    (when (or (> (rest (assoc current-utterance-index
-                              (get-data experiment :attempts-per-utterance)))
-                 (get-configuration experiment :max-attempts-per-utterance))
-              (find-data learner :timeout))
-      (with-open-file (stream (get-configuration experiment :output-file)
-                                :direction :output
-                                :if-exists :append
-                                :if-does-not-exist :create)
-          (write-line (format nil "~a,~a"
-                              (utterance learner)
-                              (if (find-data learner :timeout)
-                                "timeout" "max-attempts"))
-                      stream))
-      (set-data experiment :current-utterance-index
-                (1+ current-utterance-index))
-      (set-data learner :timeout nil)))
-  ;; actually loading the scene, question and answer
+                (cons (cons current-utterance-index 1) attempts-per-utterance)))))
+
+(defmethod interact :before ((experiment holophrase-experiment) interaction &key)
+  "Choose the context and question (utterance) for the current interaction.
+   Always check if all primitives are available. If not, retry."
   (loop for line = (nth (get-data experiment :current-utterance-index)
                         (questions experiment))
-        until (all-primitives-available-p
-               experiment (read-from-string
-                           (rest (assoc :meaning line))))
+        for continuep = (and (all-primitives-available-p
+                              experiment (read-from-string
+                                          (rest (assoc :meaning line))))
+                             (attempts-remaining-p experiment)
+                             (not (timeout-reached-p experiment)))
+        until continuep
         finally (let* ((question (rest (assoc :question line)))
                        (answers (rest (assoc :answers line)))
                        (meaning (read-from-string (rest (assoc :meaning line))))
@@ -106,6 +117,7 @@
                        (answer (rest (assoc :answer scene-name/answer))))
                   (notify context-determined (image scene))
                   (notify question-determined question answer)
+                  (increment-utterance-attempt experiment)
                   (loop for agent in (interacting-agents experiment)
                         do (set-data agent :ground-truth-meaning meaning)
                         do (initialize-agent agent scene question answer)))))

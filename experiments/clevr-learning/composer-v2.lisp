@@ -303,7 +303,9 @@
                      (:check-chunk-evaluation-result-modes
                       :clevr-coherent-filter-groups))
    :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions
-                                          :no-filter-permutations))))
+                                          :no-filter-permutations
+                                          :restrict-nr-of-nodes)
+                                         (:max-nr-of-nodes . 7500))))
 
 ;; + compose-until +
 (defun compose-until (composer fn &optional timeout)
