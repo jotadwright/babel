@@ -88,7 +88,8 @@
                     (target-set 1.0 computed-set))
            else
            do (bind (category 1.0 cat)
-                    (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
+                    (target-set 1.0 (make-instance 'clevr-object-set
+                                                   :id (make-id 'empty-set)))))))
 
   ;; fourth case: if given source-set, target-set and category, check for consistency
   ((source-set target-set category =>)
