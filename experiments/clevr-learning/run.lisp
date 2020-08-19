@@ -30,7 +30,7 @@
   (make-configuration
    :entries
    '((data-sets . ("val"))
-     (available-primitives . (count! exist filter get-context query relate same unique))
+     (available-primitives . (count! exist filter get-context query unique relate same))
      (determine-interacting-agents-mode . :tutor-learner)
      (who-aligns? . :learner)
      (learning-strategy . :keep-samples)
@@ -42,7 +42,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 10)
+(run-series *experiment* 100)
 
 (let ((learner (find 'learner (population *experiment*) :key #'role)))
   (loop for cxn in (constructions (grammar learner))

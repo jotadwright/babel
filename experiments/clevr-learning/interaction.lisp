@@ -111,6 +111,7 @@
         finally (let* ((question (rest (assoc :question line)))
                        (answers (rest (assoc :answers line)))
                        (meaning (read-from-string (rest (assoc :meaning line))))
+                       (bind-statements (find-all 'bind meaning :key #'car))
                        (scene-name/answer (random-elt answers))
                        (scene (find-scene-by-name (rest (assoc :scene scene-name/answer))
                                                   (world experiment)))
@@ -120,6 +121,7 @@
                   (increment-utterance-attempt experiment)
                   (loop for agent in (interacting-agents experiment)
                         do (set-data agent :ground-truth-meaning meaning)
+                        do (set-data agent :bind-statements bind-statements)
                         do (initialize-agent agent scene question answer)))))
 
 (defmethod interact ((experiment holophrase-experiment) interaction &key)

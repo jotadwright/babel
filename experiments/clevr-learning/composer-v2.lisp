@@ -127,10 +127,11 @@
   ;; check if the types are all different
   (let ((bind-types
          (loop for filter in filter-group
-               collect (second
-                        (find (last-elt filter)
-                              (bind-statements chunk-evaluation-result)
-                              :key #'third)))))
+               collect (type-of
+                        (value
+                         (find (last-elt filter)
+                               (bindings chunk-evaluation-result)
+                               :key #'var))))))
     (= (length bind-types)
        (length (remove-duplicates bind-types)))))
     
@@ -286,6 +287,7 @@
 (defun make-default-composer (agent target-category)
   (make-chunk-composer
    :topic target-category
+   :meaning (get-data agent :bind-statements)
    :initial-chunk (make-instance 'chunk :id 'initial
                                  :target-var `(?answer . ,(type-of target-category))
                                  :open-vars `((?answer . ,(type-of target-category))))
@@ -295,14 +297,14 @@
    :configurations '((:max-search-depth . 25)
                      (:check-node-modes :check-duplicate 
                       :clevr-primitive-occurrence-count  
-                      :clevr-open-vars
+                      ;:clevr-open-vars
                       :clevr-context-links
                       :clevr-filter-group-length)
                      (:expand-chunk-modes :combine-program)
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes
                       :clevr-coherent-filter-groups))
-   :primitive-inventory-configurations '((:node-tests :no-duplicate-and-permutation-solutions
+   :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions
                                           :restrict-nr-of-nodes)
                                          (:max-nr-of-nodes . 10000))))
 
