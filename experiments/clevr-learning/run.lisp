@@ -42,7 +42,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 50)
+(run-series *experiment* 10)
 
 (let ((learner (find 'learner (population *experiment*) :key #'role)))
   (loop for cxn in (constructions (grammar learner))

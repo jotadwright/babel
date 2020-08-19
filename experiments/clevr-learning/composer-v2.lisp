@@ -226,57 +226,57 @@
        ;; the higher the score the better
        (score chunk))))
 
-;; possible node test
-;; if I am a filter operation
-;; and I have parents that are also filter operations (keep track how many)
-;; go to my siblings
-;; for each sibling; get the same nr of parents
-;; check if the bindings are permutations
-(defun get-filter-bindings (filter-nodes)
-  (loop for node in filter-nodes
-        for var = (last-elt (primitive-under-evaluation node))
-        for value = (value (find var (bindings node) :key #'var))
-        collect value))
+;; IRL program evaluation node tests
+;; This test checks whether there are
+;; no duplicate solutions AND
+;; no solutions that are permutations
+;; of each other, in particular concerning
+;; the filter primitives
 
-(defun all-siblings (node)
-  (let ((all-nodes (nodes (processor node))))
-    (remove node
-            (find-all (node-depth node)
-                      all-nodes
-                      :key #'node-depth
-                      :test #'=))))
+(defun duplicate-solution-p (solution node)
+  (let ((duplicatep
+         (loop for value in (mapcar #'value solution)
+               for node-value in (mapcar #'value (bindings node))
+               always (or (and (null value) (null node-value))
+                          (and value node-value
+                               (equal-entity value node-value))))))
+    (when duplicatep
+      (setf (status node) 'duplicate))
+    duplicatep))
+
+(defun permutation-solution-p (solution node)
+  (let* ((irl-program (irl-program (processor node)))
+         (filter-groups
+          (remove-if #'(lambda (l) (= l 1))
+                     (collect-filter-groups irl-program)
+                     :key #'length))
+         (permutationp
+          (when filter-groups
+            (loop for group in filter-groups
+                  for vars = (mapcar #'last-elt group)
+                  for solution-values
+                  = (loop for v in vars
+                          collect (value (find v solution :key #'var)))
+                  for group-values
+                  = (loop for v in vars
+                          collect (value (find v (bindings node) :key #'var)))
+                  always (permutation-of? solution-values group-values
+                                          :test #'equal-entity)))))
+    (when permutationp
+      (setf (status node) 'duplicate))
+    permutationp))
+
 
 (defmethod node-test ((node irl-program-processor-node)
-                      (mode (eql :no-filter-permutations)))
-  (if (eql (first (primitive-under-evaluation node))
-           'clevr-world:filter)
-    (let* ((filter-parents
-            ;; only consider filter predicates that were
-            ;; executed DIRECTLY before the current one
-            ;; There can be no other predicates in between!
-            (loop for parent in (parents node)
-                  if (eql (first (primitive-under-evaluation parent)) 'clevr-world:filter)
-                  collect parent into filter-parents
-                  else return filter-parents))
-           (num-parents (length filter-parents)))
-      (if (> num-parents 0)
-        (let* ((filter-bindings
-                (get-filter-bindings (cons node filter-parents)))
-               (siblings (all-siblings node))
-               (bad-node-p
-                (loop for sibling in siblings
-                      for sibling-filter-parents
-                      = (loop for sibling-parent in (parents sibling)
-                              if (eql (first (primitive-under-evaluation sibling-parent)) 'clevr-world:filter)
-                              collect sibling-parent into sibling-filter-parents
-                              else return sibling-filter-parents)
-                      for sibling-bindings = (get-filter-bindings (cons sibling sibling-filter-parents))
-                      thereis (permutation-of? filter-bindings sibling-bindings :test #'equal-entity))))
-          (if bad-node-p
-            (progn (setf (status node) 'inconsistent) nil)
-            t))
-        t))
-    t))
+                      (mode (eql :no-duplicate-and-permutation-solutions)))
+  ;; if there are primitives remaining, don't run the node test
+  (if (primitives-remaining node) t
+    ;; a node is a good one if there is not a single other solution
+    ;; that is a duplicate or a permutation of the current node
+    (loop for solution in (solutions (processor node))
+          never (or (duplicate-solution-p solution node)
+                    (permutation-solution-p solution node)))))
+                        
 
 
 (in-package :clevr-learning)
@@ -302,10 +302,9 @@
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes
                       :clevr-coherent-filter-groups))
-   :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions
-                                          :no-filter-permutations
+   :primitive-inventory-configurations '((:node-tests :no-duplicate-and-permutation-solutions
                                           :restrict-nr-of-nodes)
-                                         (:max-nr-of-nodes . 7500))))
+                                         (:max-nr-of-nodes . 10000))))
 
 ;; + compose-until +
 (defun compose-until (composer fn &optional timeout)
