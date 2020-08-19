@@ -493,7 +493,7 @@
 (defprimitive filter-by-size ((filtered-set object-set) (source-set object-set)
                               (size-category size-category))
   ;; case 1
-  (((source-set size-category => filtered-set)
+  ((source-set size-category => filtered-set)
     (let ((computed-set (filter-by-size source-set size-category (get-data ontology 'sizes))))
       (when computed-set (bind (filtered-set 1.0 computed-set)))))
    
@@ -516,7 +516,7 @@
    
    ;; case 4
    ((source-set filtered-set size-category =>)
-    (equal-entity filtered-set (filter-by-size source-set size-category (get-data ontology 'sizes))))))
+    (equal-entity filtered-set (filter-by-size source-set size-category (get-data ontology 'sizes)))))
 
 ;; source-set size => filtered-set
 (evaluate-irl-program 
@@ -532,13 +532,13 @@
 ;; ####################################################################
 
 (defprimitive unique-entity ((unique-entity object) (source-set object-set))
-  (((unique-entity source-set =>)
-    (and (= 1 (length (objects source-set)))
-         (eq (id (first (objects source-set))) (id unique-entity))))
+  ((unique-entity source-set =>)
+   (and (= 1 (length (objects source-set)))
+        (eq (id (first (objects source-set))) (id unique-entity))))
   
-   ((source-set => unique-entity)
-    (when (= 1 (length (objects source-set)))
-      (bind (unique-entity 1.0 (first (objects source-set))))))))
+  ((source-set => unique-entity)
+   (when (= 1 (length (objects source-set)))
+     (bind (unique-entity 1.0 (first (objects source-set)))))))
 
 ;; We can discriminate the big circle
 (evaluate-irl-program

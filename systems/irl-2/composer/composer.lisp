@@ -150,8 +150,8 @@
     (loop for configuration in configurations
           do (set-configuration composer (first configuration)
                                 (rest configuration)))
-    (cond (topic (setf (next-handler initial-node) 'expand))
-          (meaning (setf (next-handler initial-node) 'match)))
+    (cond (meaning (setf (next-handler initial-node) 'match))
+          (topic (setf (next-handler initial-node) 'expand)))
     ;; start the queue
     (add-node composer initial-node)
     (push initial-node (queue composer))
