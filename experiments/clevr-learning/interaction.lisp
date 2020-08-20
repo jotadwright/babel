@@ -47,16 +47,10 @@
 (define-event question-determined (question string) (answer string))
 
 
-(defparameter *primitive-mapping*
-  '(("scene" . get-context) ("filter" . filter)
-    ("query" . query) ("count" . count!)
-    ("relate" . relate) ("same" . same)
-    ("union" . union!) ("intersect" . intersect)
-    ("unique" . unique) ("exist" . exist)
-    ("equal" . equal?) ("less" . less-than)
-    ("greater" . greater-than)
-    ("equal_integer" . equal-integer))
-  "Maps the CLEVR primitive names to the IRL primitive names")
+(defun read-clevr-data-file (filename)
+  (with-open-file (stream filename :direction :input)
+    (decode-json-from-string
+     (read-line stream))))
 
 (defun all-primitives-available-p (experiment meaning)
   (let* ((available-primitives (get-configuration experiment :available-primitives))
@@ -100,8 +94,9 @@
 (defmethod interact :before ((experiment holophrase-experiment) interaction &key)
   "Choose the context and question (utterance) for the current interaction.
    Always check if all primitives are available. If not, retry."
-  (loop for line = (nth (get-data experiment :current-utterance-index)
-                        (questions experiment))
+  (loop for filename = (nth (get-data experiment :current-utterance-index)
+                            (questions experiment))
+        for line = (read-clevr-data-file filename)
         for continuep = (and (all-primitives-available-p
                               experiment (read-from-string
                                           (rest (assoc :meaning line))))

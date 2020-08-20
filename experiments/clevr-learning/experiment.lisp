@@ -7,9 +7,9 @@
 (define-configuration-default-value :dot-interval 10)
 (define-configuration-default-value :clevr-data-path *clevr-data-path*)
 (define-configuration-default-value :data-sets '("val"))
-(define-configuration-default-value :answer-file
-   (babel-pathname :directory '("experiments" "clevr-learning")
-                   :name "CLEVR_val_100_sorted" :type "txt"))
+(define-configuration-default-value :data-dir
+   (babel-pathname :directory '("experiments" "clevr-learning"
+                                "clevr-learning-data" "stage-1")))
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
 ;; Available alignment strategies:
@@ -75,13 +75,14 @@
         (make-instance 'clevr-world
                        :data-sets (get-configuration experiment :data-sets)
                        :load-questions nil))
-  ;; load the answer file in memory
+  ;; load and sort the clevr-learning data filenames
   (setf (questions experiment)
-        (with-open-file (in (get-configuration experiment :answer-file)
-                            :direction :input)
-          (loop for line = (read-line in nil nil)
-                while line
-                collect (decode-json-from-string line))))
+        (sort (directory (get-configuration experiment :data-dir))
+              #'< :key #'(lambda (fn)
+                           (parse-integer
+                            (subseq (namestring fn)
+                                    (- (length (namestring fn)) 7)
+                                    (- (length (namestring fn)) 4))))))
   ;; create the agents
   (setf (population experiment)
         (list (make-instance 'holophrase-tutor
