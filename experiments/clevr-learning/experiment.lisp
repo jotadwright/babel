@@ -77,12 +77,7 @@
                        :load-questions nil))
   ;; load and sort the clevr-learning data filenames
   (setf (questions experiment)
-        (sort (directory (get-configuration experiment :data-dir))
-              #'< :key #'(lambda (fn)
-                           (parse-integer
-                            (subseq (namestring fn)
-                                    (- (length (namestring fn)) 7)
-                                    (- (length (namestring fn)) 4))))))
+        (shuffle (directory (get-configuration experiment :data-dir))))
   ;; create the agents
   (setf (population experiment)
         (list (make-instance 'holophrase-tutor
