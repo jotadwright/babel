@@ -287,19 +287,22 @@
 (defun make-default-composer (agent target-category)
   (make-chunk-composer
    :topic target-category
-   ;:meaning (get-data agent :bind-statements)
+   :meaning (when (get-configuration agent :provide-bind-statements)
+              (get-data agent :bind-statements))
    :initial-chunk (make-instance 'chunk :id 'initial
                                  :target-var `(?answer . ,(type-of target-category))
                                  :open-vars `((?answer . ,(type-of target-category))))
    :chunks (get-data (ontology agent) 'composer-chunks)
    :ontology (ontology agent)
    :primitive-inventory (primitives agent)
-   :configurations '((:max-search-depth . 25)
-                     (:check-node-modes :check-duplicate 
-                      :clevr-primitive-occurrence-count  
-                      :clevr-open-vars
-                      :clevr-context-links
-                      :clevr-filter-group-length)
+   :configurations `((:max-search-depth . 25)
+                     (:check-node-modes
+                      ,@(append '(:check-duplicate 
+                                 :clevr-primitive-occurrence-count                              
+                                 :clevr-context-links
+                                 :clevr-filter-group-length)
+                                (unless (get-configuration agent :provide-bind-statements)
+                                  '(:clevr-open-vars))))
                      (:expand-chunk-modes :combine-program)
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes

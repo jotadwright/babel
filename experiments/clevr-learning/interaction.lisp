@@ -53,7 +53,9 @@
      (read-line stream))))
 
 (defun all-primitives-available-p (experiment meaning)
-  (let* ((available-primitives (get-configuration experiment :available-primitives))
+  (let* ((available-primitives (rest
+                                (assoc (get-configuration experiment :learning-stage)
+                                       *learning-stage-primitives*)))
          (necessary-primitives (remove 'bind (remove-duplicates (mapcar #'first meaning))))
          (all-available-p
           (loop for p in necessary-primitives

@@ -7,34 +7,18 @@
 (define-configuration-default-value :dot-interval 10)
 (define-configuration-default-value :clevr-data-path *clevr-data-path*)
 (define-configuration-default-value :data-sets '("val"))
-(define-configuration-default-value :data-dir
-   (babel-pathname :directory '("experiments" "clevr-learning"
-                                "clevr-learning-data" "stage-1")))
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
-;; Available alignment strategies:
-;; :no-alignment
-;; :lateral-inhibition
 (define-configuration-default-value :alignment-strategy :lateral-inhibition) 
 (define-configuration-default-value :who-aligns? :learner)
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.1)
 (define-configuration-default-value :chunk-incf-score 0.1)
 (define-configuration-default-value :chunk-decf-score 0.1)
-;; Available learning strategies:
-;; :keep-samples (history of scenes)
-;; :keep-trash (history of failed programs)
-;; :lateral-inhibition
 (define-configuration-default-value :learning-strategy :keep-samples)
-;; :sample-window is used for both samples and trash
 (define-configuration-default-value :sample-window nil)
-(define-configuration-default-value :available-primitives
-   '(count! equal-integer less-than greater-than
-     equal? exist filter get-context intersect
-     query relate same union! unique))
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :learner-speaks-after-interaction 100)
-
 ;; How often can the agent try to find the ground truth program for an utterance?
 (define-configuration-default-value :max-attempts-per-utterance 50)
 ;; When the ground truth utterance is found, write to this file
@@ -43,6 +27,15 @@
                    :name "successful-utterances" :type "txt"))
 ;; Timeout for the composer to find a solution
 (define-configuration-default-value :composer-timeout 900)
+;; Learning stage controls where the data will be loaded
+;; and which primitives are available
+(define-configuration-default-value :learning-stage 1)  ; 1, 2 or 3
+(define-configuration-default-value :data-dir
+   (merge-pathnames (make-pathname :directory '(:relative "clevr-learning-data"))
+                    cl-user:*babel-corpora*))
+;; Control whether or not to provide the bind statements
+;; to the composer
+(define-configuration-default-value :provide-bind-statements nil)
 
 ;; ##############
 ;; + Experiment +
@@ -53,12 +46,23 @@
               :documentation "The contents of the questions and answers file"))
   (:documentation "QA Game"))
 
-(defun make-learner-primitive-inventory (available-primitives)
+(defparameter *learning-stage-primitives*
+  '((1 count! exist filter get-context query unique)
+    (2 count! exist filter get-context query unique
+       relate same)
+    (3 count! exist filter get-context query unique
+       relate same equal? intersect union!
+       equal-integer less-than greater-than)))
+       
+
+(defun make-learner-primitive-inventory (learning-stage)
   ; copy primitives from *clevr-primitives*
   ; and only keep those occurring in
   ; the available primitives configuration
   (let ((inventory (def-irl-primitives holophrase-primitives
-                     :primitive-inventory *holophrase-primitives*)))
+                     :primitive-inventory *holophrase-primitives*))
+        (available-primitives
+         (rest (assoc learning-stage *learning-stage-primitives*))))
     (loop for p in available-primitives
           do (add-primitive
               (find-primitive p *clevr-primitives*)
@@ -75,13 +79,18 @@
         (make-instance 'clevr-world
                        :data-sets (get-configuration experiment :data-sets)
                        :load-questions nil))
-  ;; load and sort the clevr-learning data filenames
-  (setf (questions experiment)
-        (shuffle
-         (directory
+  ;; load the question files, depending on the learning stage
+  (let* ((learning-stage (get-configuration experiment :learning-stage))
+         (data-dir
           (merge-pathnames
-           (make-pathname :name :wild :type "txt")
-           (get-configuration experiment :data-dir)))))
+           (make-pathname :directory `(:relative ,(format nil "stage-~a" learning-stage)))
+           (get-configuration experiment :data-dir))))                                       
+    (setf (questions experiment)
+          (shuffle
+           (directory
+            (merge-pathnames
+             (make-pathname :name :wild :type "txt")
+             data-dir)))))
   ;; create the agents
   (setf (population experiment)
         (list (make-instance 'holophrase-tutor
@@ -107,7 +116,7 @@
                              :grammar (make-agent-cxn-set)
                              :ontology (copy-object *clevr-ontology*)
                              :primitives (make-learner-primitive-inventory
-                                          (get-configuration experiment :available-primitives)))))
+                                          (get-configuration experiment :learning-stage)))))
   ;; reset the utterance index and attempts per utterance
   (set-data experiment :current-utterance-index 0)
   (set-data experiment :attempts-per-utterance nil)

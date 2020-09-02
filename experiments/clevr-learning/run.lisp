@@ -30,11 +30,12 @@
   (make-configuration
    :entries
    '((data-sets . ("val"))
-     ;(available-primitives . (count! exist filter get-context query unique relate same))
      (determine-interacting-agents-mode . :tutor-learner)
      (who-aligns? . :learner)
      (learning-strategy . :keep-samples)
-     (alignment-strategy . :no-alignment))))
+     (alignment-strategy . :no-alignment)
+     (learning-stage . 2)
+     (provide-bind-statements . t))))
 
 (defparameter *experiment*
   (make-instance 'holophrase-experiment
@@ -42,7 +43,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 50)
+(run-series *experiment* 10)
 
 (let ((learner (find 'learner (population *experiment*) :key #'role)))
   (loop for cxn in (constructions (grammar learner))

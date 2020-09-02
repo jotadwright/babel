@@ -30,8 +30,7 @@
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :monitors monitors
-    :shared-configuration `((:available-primitives . ,available-primitives)
-                            (:determine-interacting-agents-mode . ,determine-interacting-agents-mode)
+    :shared-configuration `((:determine-interacting-agents-mode . ,determine-interacting-agents-mode)
                             (:learning-strategy . ,learning-strategy)
                             (:alignment-strategy . ,alignment-strategy))
     :configurations strategies
