@@ -50,4 +50,5 @@
                                     :key #'id)))
      (equal-entity target-set
                    (make-instance 'clevr-object-set
-                                  :objects intersected)))))
+                                  :objects intersected))))
+  :primitive-inventory *clevr-primitives*)

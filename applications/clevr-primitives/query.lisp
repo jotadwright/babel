@@ -52,6 +52,7 @@
   ;; fourth case; if given source-object, attribute and target-category, check
   ;; for consistency
   ((source-object attribute target-category =>)
-   (equal-entity target-category (query-object-attribute source-object attribute ontology))))
+   (equal-entity target-category (query-object-attribute source-object attribute ontology)))
+  :primitive-inventory *clevr-primitives*)
 
 

@@ -62,4 +62,5 @@
                          :key #'id)))
      (equal-entity target-set
                    (make-instance 'clevr-object-set
-                                  :objects unioned)))))
+                                  :objects unioned))))
+  :primitive-inventory *clevr-primitives*)

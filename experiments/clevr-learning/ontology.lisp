@@ -12,18 +12,53 @@
 (defun answer->category (ontology answer)
   "Find the category in the ontology that corresponds
    to the answer in string form."
-  (let ((all-categories (loop for field in (fields ontology)
-                              for field-data = (get-data ontology field)
-                              when (listp field-data)
-                              append field-data)))
+  (let ((all-categories
+         (loop for field in (fields ontology)
+               for field-data = (get-data ontology field)
+               when (listp field-data)
+               append field-data)))
     (cond
-     ((numberp answer) answer)
      ((stringp answer)
-      (find (internal-symb (upcase (mkstr answer))) all-categories :key #'id))
+      (let ((found (find (internal-symb (upcase (mkstr answer)))
+                         all-categories :key #'id)))
+        (if found found (parse-integer answer))))
      ((eql t answer)
       (find 'yes all-categories :key #'id))
      ((null answer)
       (find 'no all-categories :key #'id)))))
+
+(define-event composer-chunk-added (chunk chunk))
+
+(defun add-composer-chunk (ontology chunk)
+  ;; add the chunk to the ontology's composer-chunks
+  ;; unless when an identical chunk is already there
+  ;; only check chunks with more than 1 predicate
+  (let* ((chunk-id
+          (make-id
+           (format nil "~{~a~^+~}"
+                   (reverse
+                    (remove 'get-context
+                            (mapcar #'car
+                                    (irl-program chunk)))))))
+         (context-vars
+          (mapcar #'second (find-all 'get-context (irl-program chunk) :key #'car)))
+         (composer-chunk
+          (make-instance 'chunk :id chunk-id
+                         :irl-program (remove 'get-context (irl-program chunk) :key #'car)
+                         :target-var (irl-2::target-var chunk)
+                         :open-vars (append (irl-2::open-vars chunk)
+                                            (loop for cv in context-vars
+                                                  collect (cons cv 'clevr-object-set)))
+                         :score (irl-2::score chunk)))
+         (add-chunk-p
+          (and (> (length (irl-program composer-chunk)) 1)
+               (loop for other-chunk in (get-data ontology 'composer-chunks)
+                     always (or (= (length (irl-program other-chunk)) 1)
+                                (not (equivalent-irl-programs? (irl-program composer-chunk)
+                                                               (irl-program other-chunk))))))))
+    (when add-chunk-p
+      (push-data ontology 'composer-chunks composer-chunk)
+      (notify composer-chunk-added composer-chunk))))
 
 (define-event chunk-added (chunk chunk))
 (define-event chunk-removed (chunk chunk))
@@ -39,25 +74,46 @@
   "Remove the chunk from the ontology"
   (notify chunk-removed chunk)
   (notify ontology-changed)
-  (set-data ontology 'programs
-            (remove chunk (get-data ontology 'programs))))
+  (delete chunk (get-data ontology 'programs)))
 
-(defun chunk-in-use-p (agent chunk)
+(defun remove-unreachable-chunks (agent)
+  (loop for chunk in (get-data (ontology agent) 'programs)
+        unless (chunk-reachable-p agent chunk)
+        do (remove-chunk (ontology agent) chunk)))
+
+(defun chunk-reachable-p (agent chunk)
   "Check if the chunk is in use in some cxn"
-  (find (id chunk) (constructions (grammar agent))
-        :key #'(lambda (cxn) (attr-val cxn :meaning))))
+  (or (find (id chunk) (constructions (grammar agent))
+            :key #'(lambda (cxn) (attr-val cxn :meaning)))
+      (when (eql (get-configuration agent :alignment-strategy) :lateral-inhibition)
+        (find (id chunk) (get-data (blackboard (grammar agent)) 'trash)
+              :key #'(lambda (cxn) (attr-val cxn :meaning))))))
 
-(defun solution->chunk (solution &key (initial-score 0.5))
+(defun solution->chunk (agent solution &key (initial-score 0.5))
   "Store the irl-program AND the bind statements in a chunk"
-  (make-instance 'chunk
-                 :irl-program (append (bind-statements solution)
-                                      (irl-program (chunk solution)))
-                 :target-var (target-var (chunk solution))
-                 :open-vars (let ((all-vars (find-all-anywhere-if #'variable-p
-                                                                  (append (bind-statements solution)
-                                                                          (irl-program (chunk solution))))))
-                              (set-difference (mapcar #'car (open-vars (chunk solution))) all-vars))
-                 :score initial-score))
+  (make-instance
+   'chunk
+   :irl-program (append (bind-statements solution)
+                        (irl-program (chunk solution)))
+   :target-var (let* ((program (irl-program (chunk solution)))
+                      (target-var (get-target-var program)))
+                 (cons target-var
+                       (get-type-of-var target-var program
+                                        :primitive-inventory (primitives agent))))
+   :open-vars (let* ((program (irl-program (chunk solution)))
+                     (all-vars
+                      (find-all-anywhere-if #'variable-p
+                                            (append (bind-statements solution)
+                                                    program)))
+                     (open-vars
+                      (set-difference
+                       (get-open-vars program)
+                       all-vars)))
+                (mapcar #'(lambda (var)
+                            (cons var (get-type-of-var var program
+                                                       :primitive-inventory (primitives agent))))
+                        open-vars))
+   :score initial-score))
 
 (defun find-equivalent-chunk (agent chunk)
   "Find a chunk in the ontology of the agent that has

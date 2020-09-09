@@ -60,8 +60,12 @@
    (let ((context (get-data ontology 'clevr-context)))
      (loop for attr in (get-data ontology 'attributes)
            for set = (same-set-by-object-attribute context source-object attr)
-           when set
+           if set
            do (bind (target-set 1.0 set)
+                    (attribute 1.0 attr))
+           else
+           do (bind (target-set 1.0 (make-instance 'clevr-object-set
+                                                   :id (make-id 'empty-set)))
                     (attribute 1.0 attr)))))
 
   ;; fourth case; given source-object, attribute and target set,
@@ -70,4 +74,5 @@
    (equal-entity target-set (same-set-by-object-attribute
                              (get-data ontology 'clevr-context)
                              source-object
-                             attribute))))
+                             attribute)))
+  :primitive-inventory *clevr-primitives*)

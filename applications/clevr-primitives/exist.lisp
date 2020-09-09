@@ -26,4 +26,5 @@
            ontology
            (if (length> (objects source-set) 0)
              'yes 'no))))
-     (equal-entity target-bool boolean-category))))
+     (equal-entity target-bool boolean-category)))
+  :primitive-inventory *clevr-primitives*)

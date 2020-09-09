@@ -19,12 +19,12 @@
                 :s-dot->image
                 :define-css
                 :clear-page)
-  (:import-from :irl
+  (:import-from :irl-2
                 :bind :var
                 :evaluate-irl-program
                 :irl-program->svg
                 :get-target-var
-                :trace-irl-in-web-browser)
+                :trace-irl)
   (:import-from :cl-json
                 :decode-json-from-source
                 :decode-json-from-string
@@ -33,5 +33,5 @@
   (:import-from :trivial-timeout
                 :with-timeout
                 :timeout-error)
-  (:shadowing-import-from :fcg :size))
+  (:shadowing-import-from :fcg :size :attributes))
   

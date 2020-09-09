@@ -58,4 +58,5 @@
   ((source-1 source-2 attribute target-bool =>)
    (let* ((equal-p (equal-attribute-p source-1 source-2 attribute))
           (bool-category (find-entity-by-id ontology (if equal-p 'yes 'no))))
-     (equal-entity target-bool bool-category))))
+     (equal-entity target-bool bool-category)))
+  :primitive-inventory *clevr-primitives*)

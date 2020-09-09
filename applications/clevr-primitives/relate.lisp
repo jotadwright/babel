@@ -62,4 +62,5 @@
   ;; check for consistency
   ((source-object target-set spatial-relation =>)
    (let ((context (get-data ontology 'clevr-context)))
-     (equal-entity target-set (apply-spatial-relation source-object spatial-relation context)))))
+     (equal-entity target-set (apply-spatial-relation source-object spatial-relation context))))
+  :primitive-inventory *clevr-primitives*)

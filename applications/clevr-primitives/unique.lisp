@@ -19,5 +19,6 @@
   ;; check for consistency
   ((source-set target-object =>)
    (and (length= (objects source-set) 1)
-        (equal-entity target-object (first (objects source-set))))))
+        (equal-entity target-object (first (objects source-set)))))
+  :primitive-inventory *clevr-primitives*)
 

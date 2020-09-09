@@ -18,5 +18,6 @@
   
   ;; second case; given source and target, check consistency
   ((source-set target-num =>)
-   (= target-num (length (objects source-set)))))
+   (= target-num (length (objects source-set))))
+  :primitive-inventory *clevr-primitives*)
 

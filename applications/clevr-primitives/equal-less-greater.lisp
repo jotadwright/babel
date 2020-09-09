@@ -20,14 +20,15 @@
            (if (= source-num-1 source-num-2)
              'yes 'no))))
      (bind (target-bool 1.0 boolean-category))))
-
+  
   ((source-num-1 source-num-2 target-bool =>)
    (let ((boolean-category
           (find-entity-by-id
            ontology
            (if (= source-num-1 source-num-2)
              'yes 'no))))
-     (equal-entity target-bool boolean-category))))
+     (equal-entity target-bool boolean-category)))
+  :primitive-inventory *clevr-primitives*)
 
 ;; ---------------------
 ;; LESS-THAN primtive ;;
@@ -52,7 +53,8 @@
            ontology
            (if (< source-num-1 source-num-2)
              'yes 'no))))
-     (equal-entity target-bool boolean-category))))
+     (equal-entity target-bool boolean-category)))
+  :primitive-inventory *clevr-primitives*)
 
 ;; ------------------------
 ;; GREATER-THAN primtive ;;
@@ -77,4 +79,5 @@
            ontology
            (if (> source-num-1 source-num-2)
              'yes 'no))))
-     (equal-entity target-bool boolean-category))))
+     (equal-entity target-bool boolean-category)))
+  :primitive-inventory *clevr-primitives*)
