@@ -2,7 +2,7 @@
 (ql:quickload :clevr-evaluation)
 (in-package :clevr-evaluation)
 
-(activate-monitor trace-irl-in-web-browser)
+(activate-monitor trace-irl)
 
 ;; Data needed for demo
 (defparameter *clevr-world* (make-instance 'clevr-world :data-sets '("val")))
