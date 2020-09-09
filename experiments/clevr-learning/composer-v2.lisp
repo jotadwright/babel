@@ -1,4 +1,4 @@
-(in-package :irl-2)
+(in-package :irl)
 
 ;; + Check-chunk functions +
 (defun counts-allowed-p (primitive-counts)

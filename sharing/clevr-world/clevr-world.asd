@@ -7,8 +7,7 @@
   :license "Babel Research License"
   :depends-on (:utils
                :web-interface
-               ;:irl
-               :irl-2
+               :irl
                :fcg
                :cl-json)
   :serial t

@@ -9,47 +9,39 @@
   :components 
   ((:file "package")
    (:file "entity")
+   (:file "slot-spec")
+   (:file "evaluation-spec")
    (:file "primitive")
+   (:file "primitive-inventory")
    (:file "binding")
+   (:file "check-irl-program")
+   (:file "irl-program-processor")
+   (:file "node-tests")
+   (:file "goal-tests")
    (:file "evaluate-primitive")
-   (:file "irl-programs")
-   (:module chunk-composer
-            :serial t
-            :components 
-            ((:file "chunk")
-             (:file "match-chunk")
-             (:file "evaluate-chunk")
-             (:file "composer")
-             (:file "single-topic-composer")
-             (:file "multi-topic-composer")
-             (:file "learning")))
+   (:file "evaluate-irl-program")
+   (:file "irl-utils")
+   (:file "chunk")
    (:module monitoring
-            :serial t
-            :components 
-            (#+:hunchentoot-available-on-this-platform (:file "draw-irl-program")
-             #+:hunchentoot-available-on-this-platform (:file "html")
-             #+:hunchentoot-available-on-this-platform (:file "web-monitors")))
-   (:module tests
-            :serial t
-            :components 
-            ((:file "apple-counting-example")
-             (:file "test-evaluate-primitive")
-             (:file "test-evaluate-irl-program")
-             (:file "test-equivalent-irl-programs")
-             (:file "test-irl-program-connected")
-             (:file "test-expand-chunk")
-             (:file "test-match-chunk")
-             (:file "test-binding-helpers")))))
-
-
-
-
-;;;;; This cleans the irl directory after it was compiled. Because asdf
-;;;;; doesn't recompile files in module b when module a changed, this
-;;;;; can help during development
-
-;; (defmethod perform :after ((op load-op) (c (eql (asdf:find-system :irl))))
-;;   (let ((*verbose-out* nil))
-;;     (run-shell-command (format nil "cd ~a && ../../clean.sh" 
-;;                                (component-pathname (asdf:find-system :irl))))))
+    :serial t
+    :components ((:file "draw-irl-program")
+                 (:file "html")
+                 (:file "web-monitors")))
+   (:module composer
+    :serial t
+    :components ((:file "substitute-variables")
+                 (:file "composer")
+                 (:file "match-chunk")
+                 (:file "evaluate-chunk")
+                 (:file "check-chunk-evaluation-result")
+                 (:file "check-node")
+                 (:file "chunk-wrapper")
+                 (:file "expand-chunk")
+                 (:file "rating-and-scoring")
+                 (:file "handle-node")
+                 (:file "get-next-solutions")
+                 (:module monitoring
+                  :serial t
+                  :components ((:file "html")
+                               (:file "web-monitors")))))))
 

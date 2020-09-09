@@ -1,5 +1,5 @@
 
-(in-package :irl-2)
+(in-package :irl)
 
 ;; ############################################################################
 ;; evaluation-spec definition:

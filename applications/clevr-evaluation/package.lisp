@@ -19,7 +19,7 @@
                 :s-dot->image
                 :define-css
                 :clear-page)
-  (:import-from :irl-2
+  (:import-from :irl
                 :bind :var
                 :evaluate-irl-program
                 :irl-program->svg

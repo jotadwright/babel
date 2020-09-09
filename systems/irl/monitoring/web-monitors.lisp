@@ -6,13 +6,13 @@
 ;; trace-irl-in-web-browser and trace-irl-in-web-browser-verbose
 ;; ----------------------------------------------------------------------------
 
-(export '(trace-irl-in-web-browser trace-irl-in-web-browser-verbose))
+(export '(trace-irl trace-irl-verbose))
 
-(define-monitor trace-irl-in-web-browser
+(define-monitor trace-irl
     :documentation "Traces calls to the calls to high level functions
                     of irl in the web browser")
 
-(define-monitor trace-irl-in-web-browser-verbose
+(define-monitor trace-irl-verbose
     :documentation "As trace-irl-in-web-browser, but with
                     intermediate steps of the composer search
                     process")
@@ -21,30 +21,29 @@
 ;; evaluate-irl-program
 ;; ----------------------------------------------------------------------------
 
-(define-event-handler ((trace-irl-in-web-browser
-                        trace-irl-in-web-browser-verbose)
+(define-event-handler ((trace-irl trace-irl-verbose)
                        evaluate-irl-program-started)
   (add-element '((hr)))
   (add-element '((h2) "Evaluating irl program"))
   (add-element `((table :class "two-col")
                  ((tbody)
-                  ,(make-tr-for-irl-program "irl program" irl-program)))))
+                  ,(make-tr-for-irl-program "irl program" irl-program))))
+  (add-element '((hr)))
+  (add-element `((h3) "Applying" ((br))
+                 ,(make-html primitive-inventory) ((br))
+                 "on the ontology" ((br))
+                 ,(make-html ontology)))
+  (add-element '((hr))))
 
-(define-event-handler ((trace-irl-in-web-browser 
-                        trace-irl-in-web-browser-verbose)
+(define-event-handler ((trace-irl trace-irl-verbose)
                        evaluate-irl-program-finished)
-  (let ((tree-id (make-id 'tree))
-        (ordered-solutions (collect-solutions evaluation-tree)))
-    (add-element 
-     `((table :class "two-col")
-       ((tbody)
-        ((tr)
-         ((td) ,(make-expand/collapse-all-link tree-id "evaluation"))
-         ((td) 
-          ((div :style "margin-top:-7px")
-           ,(make-html evaluation-tree :expand/collapse-all-id tree-id)))))))
-    (draw-solutions ordered-solutions)))
+  (add-element
+   (make-html-for-irl-evaluation-process processor))
+  (add-element '((h3) "Solutions:"))
+  (let ((sorted-solutions (collect-solutions solution-nodes)))
+    (solutions->html sorted-solutions)))
 
+#|
 ;; ============================================================================
 ;; match-chunk
 ;; ----------------------------------------------------------------------------
@@ -158,4 +157,4 @@
        ((td) ,@(loop for node in queued-nodes
                   collect (make-html node :draw-as-tree nil))))
       ,(make-tr-for-tree "new tree" (top-node composer))))))
-                      
+|#              

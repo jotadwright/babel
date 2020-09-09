@@ -2,7 +2,7 @@
 
 (defpackage :clevr-primitives
   (:documentation "The IRL primitives for CLEVR")
-  (:use :common-lisp :utils :irl-2 :clevr-world)
+  (:use :common-lisp :utils :irl :clevr-world)
   (:shadowing-import-from :clevr-world :size))
 
 (in-package :clevr-primitives)

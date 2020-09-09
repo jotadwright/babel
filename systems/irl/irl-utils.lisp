@@ -1,4 +1,4 @@
-(in-package :irl-2)
+(in-package :irl)
 
 (export '(all-variables all-bind-statements all-predicates
           get-unconnected-vars get-target-var

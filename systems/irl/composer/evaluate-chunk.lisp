@@ -1,4 +1,4 @@
-(in-package :irl-2)
+(in-package :irl)
 
 (export '(chunk-evaluation-result
           bind-statements))

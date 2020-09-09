@@ -13,9 +13,9 @@
 ;; limitations under the License.
 ;;=========================================================================
 
-(ql:quickload :irl-2)
+(ql:quickload :irl)
 
-(in-package :irl-2)
+(in-package :irl)
 
 (activate-monitor trace-irl)
 
