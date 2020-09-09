@@ -30,5 +30,6 @@
            `(:primitve count
              :slots (:source-attn ,(id source-attn)
                      :target-num  ,target-num)))))
-     consistentp)))
+     consistentp))
+  :primitive-inventory *hybrid-primitives*)
 

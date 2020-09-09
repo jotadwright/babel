@@ -6,6 +6,8 @@
 
 (export '(primitive-p slot-count defprimitive => *irl-primitives*))
 
+(defparameter *irl-primitives* nil)
+
 (defclass primitive ()
   ((id :documentation "The identifier"
        :type symbol :initarg :id :reader id

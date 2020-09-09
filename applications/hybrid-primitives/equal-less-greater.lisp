@@ -23,7 +23,8 @@
            ontology
            (if (= source-num-1 source-num-2)
              'yes 'no))))
-     (equal-entity target-bool boolean-category))))
+     (equal-entity target-bool boolean-category)))
+  :primitive-inventory *hybrid-primitives*)
 
 ;; ---------------------
 ;; LESS-THAN primtive ;;
@@ -46,7 +47,8 @@
            ontology
            (if (< source-num-1 source-num-2)
              'yes 'no))))
-     (equal-entity target-bool boolean-category))))
+     (equal-entity target-bool boolean-category)))
+  :primitive-inventory *hybrid-primitives*)
 
 ;; ------------------------
 ;; GREATER-THAN primtive ;;
@@ -69,4 +71,5 @@
            ontology
            (if (> source-num-1 source-num-2)
              'yes 'no))))
-     (equal-entity target-bool boolean-category))))
+     (equal-entity target-bool boolean-category)))
+  :primitive-inventory *hybrid-primitives*)

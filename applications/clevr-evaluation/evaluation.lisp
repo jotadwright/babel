@@ -31,7 +31,7 @@
 (defun evaluate-question (scene q &key (comprehension-timeout 60))
   (declare (ignorable comprehension-timeout))
   (multiple-value-bind (irl-program cipn)
-      (comprehend (preprocess-sentence (question q)) :cxn-inventory *clevr* :silent t)
+      (comprehend (question q) :cxn-inventory *clevr*)
     (let ((solutions (evaluate-irl-program irl-program *clevr-ontology*
                                            :primitive-inventory *clevr-primitives*)))
       (values 1 1 1))))

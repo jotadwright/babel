@@ -6,7 +6,7 @@
 ;; FCG MONITORS
 (activate-monitor trace-fcg)
 ;; IRL MONITORS
-(activate-monitor trace-irl-in-web-browser)
+(activate-monitor trace-irl)
 ;; CLEVR MONITOR
 (activate-monitor clevr-web-monitor)
 

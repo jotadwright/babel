@@ -45,11 +45,10 @@
 
 (defmethod irl::handle-evaluate-irl-program-finished-event
            :before ((monitor monitor)
-                    (monitor-id (eql 'irl::trace-irl-in-web-browser))
+                    (monitor-id (eql 'irl::trace-irl))
                     (event-id (eql 'irl::evaluate-irl-program-finished))
-                    ontology
-                    solutions
-                    evaluation-tree)
+                    solutions solution-nodes
+                    processor primitive-inventory)
   ;; when the monitor is active
   ;; download all attention images
   ;; also check if the slot is bound
@@ -59,8 +58,8 @@
           do (loop for binding in solution
                    when (and (eql (type-of (value binding)) 'attention)
                              (null (img-path (value binding))))
-                   do (request-attn (get-data ontology 'hybrid-primitives::server-address)
-                                   (value binding))))))
+                   do (request-attn (get-data (ontology processor) 'hybrid-primitives::server-address)
+                                    (value binding))))))
 
 
 ;; comprehend the question with the grammar, optionally  using seq2seq heuristics
@@ -79,7 +78,8 @@
       (with-slots (question answer) random-question
         (let* ((meaning (comprehend question :cxn-inventory *CLEVR*))
                (target-var (get-target-var meaning))
-               (solutions (evaluate-irl-program meaning *clevr-ontology*))
+               (solutions (evaluate-irl-program meaning *clevr-ontology*
+                                                :primitive-inventory *hybrid-primitives*))
                (computed-answer (when solutions
                                   (value (find target-var
                                                (first solutions)
@@ -88,7 +88,7 @@
 
 ;; here goes!
 (activate-monitor trace-fcg)
-(activate-monitor trace-irl-in-web-browser)
+(activate-monitor trace-irl)
 (main)
 
 ;; Try to execute an IRL program in a different direction
@@ -97,7 +97,9 @@
    (filter ?set-1 ?context ?thing-1)
    (unique ?obj-1 ?set-1)
    (query ?attribute ?obj-1 ?thing-2))
- *clevr-ontology*)
+ *clevr-ontology*
+ :primitive-inventory
+ *hybrid-primitives*)
 
                     
 

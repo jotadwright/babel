@@ -4,7 +4,7 @@
   (:use :common-lisp
         :utils
         #+:hunchentoot-available-on-this-platform :web-interface
-        :irl-2)
+        :irl)
   (:shadowing-import-from :fcg :size)
   (:import-from :cl-json
                 :decode-json-from-string

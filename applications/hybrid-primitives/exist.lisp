@@ -33,4 +33,5 @@
            `(:primitive exist
              :slots (:target-bool ,(bool target-bool)
                      :source-attn ,(id source-attn))))))
-     consistentp)))
+     consistentp))
+  :primitive-inventory *hybrid-primitives*)

@@ -76,5 +76,6 @@
              :slots (:source-attn ,(id source-attn)
                      :category ,(category-value category)
                      :target-attn ,(id target-attn))))))
-     consistentp)))
+     consistentp))
+  :primitive-inventory *hybrid-primitives*)
 

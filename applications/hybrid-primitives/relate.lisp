@@ -77,4 +77,5 @@
              :slots (:source-attn ,(id source-attn)
                      :spatial-relation ,(spatial-relation spatial-relation)
                      :target-attn ,(id target-attn))))))
-     consistentp)))
+     consistentp))
+  :primitive-inventory *hybrid-primitives*)

@@ -2,6 +2,9 @@
 
 (export '(evaluate-irl-program))
 
+(setf *irl-primitives*
+      (def-irl-primitives init-primitives))
+
 (define-event evaluate-irl-program-started
   (irl-program list) (primitive-inventory primitive-inventory)
   (ontology blackboard))

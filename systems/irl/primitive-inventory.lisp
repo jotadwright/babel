@@ -198,6 +198,4 @@
              *irl-primitives*))
          (,creator-fn-name))
        ,primitive-inventory)))
-           
-                                
   

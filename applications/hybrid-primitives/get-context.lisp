@@ -29,5 +29,6 @@
                      (getf scores 'context)
                      (make-instance 'attention
                                     :id (intern (getf values 'context)
-                                                :hybrid-primitives))))))))
+                                                :hybrid-primitives)))))))
+  :primitive-inventory *hybrid-primitives*)
 

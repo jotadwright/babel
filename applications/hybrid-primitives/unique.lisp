@@ -33,5 +33,6 @@
            `(:primitive unique
              :slots (:source-attn ,(id source-attn)
                      :target-attn ,(id target-attn))))))
-     consistentp)))
+     consistentp))
+  :primitive-inventory *hybrid-primitives*)
 
