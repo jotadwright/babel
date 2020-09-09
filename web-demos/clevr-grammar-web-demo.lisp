@@ -13,7 +13,7 @@
   (clear-page)
   (deactivate-all-monitors) ; just to be sure that there is no other stuff 
   (activate-monitor trace-fcg)
-  (activate-monitor trace-irl-in-web-browser)
+  (activate-monitor trace-irl)
   (activate-monitor clevr-web-monitor)
   (add-element '((hr)))
   (add-element
