@@ -14,11 +14,6 @@
                       (:seq2seq-endpoint . "http://localhost:9999/next-cxn")
                       (:seq2seq-model-formulation . "clevr_formulation_model_3")))
 
-;; CLEVR grammar default configurations:
-(set-configurations *CLEVR*
-                   '((:cxn-supplier-mode . :hashed-simple-queue)
-                     (:priority-mode . :priming)))
-
 ;; Set the address of the neural modules server
 ;; and store it in the ontology so all primitives
 ;; can access it
@@ -66,7 +61,7 @@
 ;; comprehend the question with the grammar, optionally  using seq2seq heuristics
 ;; execute the IRL network with the neural modules
 ;; compare the prediction with the gold answer
-(defun main ()
+(defun run-random-example ()
   (multiple-value-bind (scene question-set)
       (get-scene-by-index *CLEVR-val* 0)
     (let* ((image-pathname (image scene))
@@ -84,7 +79,7 @@
                                   (value (find target-var
                                                (first solutions)
                                                :key #'var)))))
-          (compare-answers answer computed-answer))))))
+          (values answer (answer->str computed-answer)))))))
 
 ;; here goes!
 (activate-monitor trace-fcg)
@@ -92,12 +87,61 @@
 (main)
 
 ;; Try to execute an IRL program in a different direction
-(evaluate-irl-program
- '((get-context ?context)
-   (filter ?set-1 ?context ?thing-1)
-   (unique ?obj-1 ?set-1)
-   (query ?attribute ?obj-1 ?thing-2))
- *clevr-ontology*)
+
+
+;; HEADER
+;#########
+
+;; Larger font for text in <p> tags
+(define-css 'main "p {font-size: 11pt}")
+
+(defun header ()
+  (clear-page)
+  (deactivate-all-monitors)
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl-in-web-browser)
+  (add-element '((hr)))
+  (add-element
+   '((h1) "Hybrid Semantic Representation"))
+  (add-element '((p) "This web demonstration showcases the integration of the Hybrid Semantic Representation in the Incremental Recruitment Language (IRL). The symbolic and subsymbolic modules of the Hybrid Semantic Representation have been made available through a web service. These are integrated into IRL by implementing the various primitive operations as web requests to this service. Through this integration, we unlock the full potention of the Hybrid Semantic Representation, in particular the ability to execute the semantic network in all directions. This will be demonstrated later on.")))
+
+;(header)
+
+(defun section-1 ()
+  (add-element '((h2 :id "section-1") "I. Basic Example"))
+  (add-element '((p) "First, we show the use of the Hybrid Semantic Representation in its most basic form. This process involves 2 steps: comprehending a question from the CLEVR dataset using the CLEVR grammar and executing the resulting meaning network with IRL using the symbolic and subsymbolic modules."))
+  (multiple-value-bind (answer computed-answer)
+      (run-random-example)
+    (add-element `((h3) ,(format nil "The ground truth answer is \"~a\""
+                                 (downcase answer))))
+    (add-element `((h3) ,(format nil "The computed answer is \"~a\""
+                                 (downcase computed-answer))))
+    (add-element `((h3) ,(if (compare-answers answer computed-answer)
+                          "Correct!" "Incorrect!")))))
+
+;(section-1)
+
+(defun section-2 ()
+  (add-element '((h2 :id "section-2") "II. Multidirectionality"))
+  (add-element '((p) "IRL offers the possibility for the primitive operations to be implemented in different directions. This is also extended to the Hybrid Semantic Representation. This way, the symbolic and subsymbolic modules can be used for multi-agent experiments using IRL's composer or flexible interpretation mechanisms."))
+  (evaluate-irl-program
+   '((get-context ?context)
+     (filter ?set-1 ?context ?thing-1)
+     (unique ?obj-1 ?set-1)
+     (query ?attribute ?obj-1 ?thing-2))
+   *clevr-ontology*)
+  (add-element '((p) "This IRL program returns 24 possible solutions by varying the categories used for the 'filter' primtive and the attribute on which the 'query' primitive operates.")))
+
+;(section-2)
+
+(defun full-demo ()
+  (header)
+  (section-1)
+  (section-2)
+  (add-element '((h3) ((i) "The End"))))
+
+;(full-demo)
+  
 
                     
 

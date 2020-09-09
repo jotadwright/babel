@@ -5,6 +5,7 @@
   (:use :common-lisp
         :utils
         :monitors
+        :web-interface
         :irl
         :clevr-world
         :clevr-grammar
