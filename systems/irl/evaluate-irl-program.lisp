@@ -80,6 +80,16 @@
                           (get-configuration primitive-inventory :search-mode)))))
 
 
+(defun should-evaluate-p (node)
+  (or (null (solutions (processor node)))
+      (loop for n in (cons node (reverse (parents node)))
+            for this-primitive = (primitive-under-evaluation n)
+            for siblings = (when (parent n)
+                             (remove n (children (parent n))))
+            for sibling-primitives = (mapcar #'primitive-under-evaluation siblings)
+            thereis (find this-primitive sibling-primitives :test #'equal))))
+               
+
 (defun evaluate-irl-program (irl-program ontology
                              &key silent ;; enable the web monitors or not
                              n ;; return all (n=nil) or a limited number of solutions (n=integer)
@@ -164,7 +174,8 @@
          ;; pop the next node and evaluate it
          for current-node = (pop (queue processor))
          for current-primitive = (primitive-under-evaluation current-node)
-         for evaluation-results = (when current-primitive
+         for evaluation-results = (when (and current-primitive
+                                             (should-evaluate-p current-node))
                                     (evaluate-primitive-in-program current-primitive
                                                                    (bindings current-node)
                                                                    ontology

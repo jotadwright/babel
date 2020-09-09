@@ -101,6 +101,16 @@
  :primitive-inventory
  *hybrid-primitives*)
 
+(evaluate-irl-program
+ '((get-context ?context)
+   (filter ?set-1 ?context ?thing-1)
+   (filter ?set-3 ?context ?thing-3)
+   (union! ?uset ?set-1 ?set-3)
+   (count! ?target ?uset))
+ *clevr-ontology*
+ :primitive-inventory
+ *hybrid-primitives*)
+
                     
 
          
