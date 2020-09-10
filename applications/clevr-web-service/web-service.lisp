@@ -39,8 +39,7 @@
       (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr, 'json' or 'rpn'."
                       irl-encoding))
     (multiple-value-bind (irl-program cipn)
-        (handler-case (fcg:comprehend (preprocess-sentence utterance)
-                                      :cxn-inventory *CLEVR*
+        (handler-case (fcg:comprehend utterance :cxn-inventory *CLEVR*
                                       :silent t)
           (error (e)
             (http-condition 500 "Error in language processing module!" e)))
@@ -163,8 +162,7 @@
         (http-condition 400 "Could not find scene ~a" scene))
       (multiple-value-bind (irl-program cipn)
           (handler-case
-              (fcg:comprehend (preprocess-sentence utterance)
-                              :cnx-inventory *CLEVR*
+              (fcg:comprehend utterance :cnx-inventory *CLEVR*
                               :silent t)
             (error (e)
               (http-condition 500 "Error in language processing module!")))
@@ -180,7 +178,8 @@
             (set-data *clevr-ontology* 'clevr-context context)
             (multiple-value-bind (solutions evaluator)
                 (handler-case
-                    (evaluate-irl-program irl-program *clevr-ontology*)
+                    (evaluate-irl-program irl-program *clevr-ontology*
+                                          :primitive-inventory *clevr-primitives*)
                   (error (e)
                     (http-condition 500 "Error in execution module!")))
               (setf answers

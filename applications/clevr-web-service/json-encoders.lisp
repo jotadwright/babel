@@ -97,7 +97,7 @@
                                  (downcase (mkstr (second rpn-predicate))))))
                     (:output . ,(when output-value (make-sexpr output-value :substitutions id-subs)))
                     (:status . ,(if node
-                                  (downcase (mkstr (irl:status node)))
+                                  (downcase (mkstr (irl::status node)))
                                   "not-executed"))))))
 
 (defun encode-irl-program-as-rpn (irl-program)
