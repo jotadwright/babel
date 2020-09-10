@@ -77,7 +77,7 @@
         for s-bar-units-with-role = (remove-if-not #'(lambda (unit-w-role)
                                                     (find 'sbar (unit-feature-value (cdr unit-w-role) 'syn-class)))
                                                 core-units-with-role)
-        for contributing-unit = (make-propbank-contributing-unit core-units-with-role gold-frame footprint :include-frame-name t :include-word-sense nil)
+        for contributing-unit = (make-propbank-contributing-unit core-units-with-role gold-frame footprint :include-frame-name t)
         for cxn-units-with-role = (loop for unit in core-units-with-role
                                         collect
                                         (make-propbank-conditional-unit-with-role unit footprint :include-v-lemma t :include-fe-lemma nil))
@@ -144,7 +144,7 @@
         (loop for argm-unit in argm-units-w-lemma
               for argm-lemma = (argm-lemma argm-unit)
               for footprint = (make-id "footprint")
-              for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil :include-word-sense nil)
+              for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil)
               for cxn-units-with-role = (loop for unit in (list v-unit argm-unit)
                                               collect
                                               (make-propbank-conditional-unit-with-role unit footprint :include-v-lemma nil :include-fe-lemma t))
@@ -196,7 +196,7 @@
         do
         (loop for argm-unit in argm-pps
               for footprint = (make-id "footprint")
-              for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name t :include-word-sense nil)
+              for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name t)
               for cxn-preposition-units = (make-preposition-unit argm-unit ts-unit-structure)
               for cxn-units-with-role = (loop for unit in (list v-unit argm-unit)
                                               collect
@@ -271,7 +271,7 @@
         do
         (loop for argm-unit in argm-subclauses
               for footprint = (make-id "footprint")
-              for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil :include-word-sense nil)
+              for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil)
               for cxn-subclause-units = (make-subclause-word-unit argm-unit ts-unit-structure)
               for argm-lemma = (argm-lemma (first cxn-subclause-units))
 
@@ -371,15 +371,13 @@
 ;(truncate-frame-name "believe.01")
 
   
-(defun make-propbank-contributing-unit (units-with-role gold-frame footprint &key (include-frame-name t) (include-word-sense nil))
+(defun make-propbank-contributing-unit (units-with-role gold-frame footprint &key (include-frame-name t))
   "Make a contributing unit based on a gold-frame and units-with-role."
   (let* ((v-unit (cdr (assoc "V" units-with-role :key #'role-type :test #'equalp)))
          (v-unit-name (variablify (unit-name v-unit)))
          (meaning (loop for r in (frame-roles gold-frame)
                         for frame-name = (if include-frame-name
-                                           (if include-word-sense
-                                             (intern (upcase (frame-name gold-frame)))
-                                             (intern (upcase (truncate-frame-name (frame-name gold-frame)))))
+                                           (intern (upcase (frame-name gold-frame)))
                                            '?frame)
                         if (string= (role-type r) "V")
                         collect `(frame ,frame-name ,v-unit-name)
