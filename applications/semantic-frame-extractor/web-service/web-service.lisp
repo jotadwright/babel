@@ -209,7 +209,7 @@
 
 (snooze:defroute semantic-frame-extractor (:options :text/* (op (eql 'causation-tracker))))
 
-;; curl -H "Content-Type: application/json" -d '{"texts" : ["Satellite measurements have problems because of calibration changes when they are replaced every few years."]}' http://localhost:9004/semantic-frame-extractor/texts-extract-causes-effects-indices
+;; curl -H "Content-Type: application/json" -d '{"texts" : ["Satellite measurements have problems because of calibration changes when they are replaced every few years."]}' http://localhost:9007/semantic-frame-extractor/texts-extract-causes-effects-indices
 
 ;;(activate-monitor trace-fcg)
 
@@ -222,7 +222,11 @@
 ;; {"frameSets":[[[{"id":"causationFrame15","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame30","frameEvokingElement":"cause","cause":"they","effect":"damage to their own clothes","actor":null,"affected":null}],[{"id":"causationFrame16","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]],[[{"id":"causationFrame17","utterance":"This causes that","frameVar":"?frame30","frameEvokingElement":"cause","cause":"this","effect":"that","actor":null,"affected":null}]]]}
 
 
-;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people.", "frames" : ["Causation"]}' http://localhost:9004/semantic-frame-extractor/extract-frames
+;; curl -H "Content-Type: application/json" -d '{"utterance" : "Over two-thirds agreed that if they had caused damage to their own clothes at work, the company should not be liable for repairs caused by people."}' http://localhost:9007/propbank-frame-extractor/extract-frames
+
+
+
+
 ;; {"frameSet":[{"id":"causationFrame4","utterance":"if they had caused damage to their own clothes at work","frameVar":"?frame8","frameEvokingElement":"cause","cause":"the company","effect":"damage to their own clothes","actor":null,"affected":null},]}
 
 
