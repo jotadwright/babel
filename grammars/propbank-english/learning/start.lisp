@@ -14,7 +14,7 @@
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
 (load-propbank-annotations 'ewt :store-data nil :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes)
+(load-propbank-annotations 'ontonotes :store-data nil)
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
@@ -63,39 +63,51 @@
 (defparameter *opinion-sentences* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                                  append (all-sentences-annotated-with-roleset roleset
                                                                                               :split #'train-split
-                                                                                              :corpus *ontonotes-annotations*))))
+                                                                                              :corpus *ontonotes-annotations*)
+                                                 append (all-sentences-annotated-with-roleset roleset
+                                                                                              :split #'dev-split
+                                                                                              :corpus *ontonotes-annotations*)
+                                                 append (all-sentences-annotated-with-roleset roleset
+                                                                                              :split #'train-split
+                                                                                              :corpus *ewt-annotations*)
+                                                 append (all-sentences-annotated-with-roleset roleset
+                                                                                              :split #'dev-split
+                                                                                              :corpus *ewt-annotations*))))
+
 
 (defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                                  append (all-sentences-annotated-with-roleset roleset
                                                                                               :split #'dev-split
                                                                                               :corpus *ontonotes-annotations*))))
 
+(defparameter *opinion-sentences-test* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                                                 append (all-sentences-annotated-with-roleset roleset
+                                                                                              :split #'test-split
+                                                                                              :corpus *ontonotes-annotations*))))
+(length *opinion-sentences-dev*)
 (defparameter *believe-sentences* (shuffle (loop for roleset in '("BELIEVE.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
 
 (defparameter *believe-sentences-dev* (shuffle (loop for roleset in '("BELIEVE.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
-(defparameter *believe-sentence* (third (all-sentences-annotated-with-roleset "believe.01")))
 
-(defparameter *difficult-sentence* (nth 6063 (train-split *propbank-annotations*))) ;;13 frames!
-
-ts-unit-structure
+(defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences (subseq (shuffle (test-split *ontonotes-annotations*)) 0 700) nil) 0 500))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Storing and restoring grammars ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cl-store:store *propbank-learned-cxn-inventory*
-                (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                                :name "opinion-grammar-ontonotes"
+                (babel-pathname :directory '("grammars" "propbank-english" "grammars")
+                                :name "full-grammar-ontonotes"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
-  (restore (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                           :name "learned-grammar-ontonotes"
+  (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
+                           :name "full-grammar-ontonotes"
                            :type "fcg")))
-
+(size *restored-grammar*)
 ;;;;;;;;;;;;;;
 ;; Training ;;
 ;;;;;;;;;;;;;;
@@ -119,7 +131,6 @@ ts-unit-structure
     ;(:equivalent-cxn-key . identity)
     (:replace-when-equivalent . nil)
     (:learning-modes
-     ;:multi-argument-all-roles
      :multi-argument-core-roles
      :argm-with-lemma
      :argm-pp
@@ -129,27 +140,28 @@ ts-unit-structure
 
 
 (with-disabled-monitor-notifications
-  (learn-propbank-grammar *opinion-sentences*
-                          :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+  (learn-propbank-grammar (train-split *ontonotes-annotations*)
+                          :selected-rolesets nil
                           :cxn-inventory '*propbank-learned-cxn-inventory*
                           :fcg-configuration *training-configuration*))
 
-(evaluate-propbank-sentences
-         (spacy-benepar-compatible-sentences *opinion-sentences-dev* '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
- *propbank-learned-cxn-inventory*
- :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
- :silent t)
+(clean-grammar *propbank-learned-cxn-inventory* :remove-cxns-with-freq-1 t)
 
+(evaluate-propbank-sentences-per-roleset *test-sentences-all-frames*
+                             *propbank-learned-cxn-inventory*
+                             :selected-rolesets nil
+                             :silent t)
+(activate-monitor trace-fcg)
 (defun test ()
-(loop for sentence in (spacy-benepar-compatible-sentences *opinion-sentences* '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01"))
-      for f1-score = (cdr (assoc :f1-score
-                                (evaluate-propbank-sentence sentence *propbank-learned-cxn-inventory*
-                                                            :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                            :silent t)))
-      unless (= f1-score 1.0)
-      do (evaluate-propbank-sentence sentence *propbank-learned-cxn-inventory*
-                                                            :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                            :silent nil)))
+  (loop for sentence in *test-sentences-all-frames*
+        for f1-score = (cdr (assoc :f1-score
+                                   (evaluate-propbank-sentence sentence *propbank-learned-cxn-inventory*
+                                                               :selected-rolesets '("GO.01" "GO.02")
+                                                               :silent t)))
+        unless (or (null f1-score) (= f1-score 1.0))
+        do (evaluate-propbank-sentence sentence *propbank-learned-cxn-inventory*
+                                                               :selected-rolesets '("GO.01" "GO.02")
+                                                               :silent nil)))
 
 (test)
 
@@ -163,22 +175,20 @@ ts-unit-structure
 ;;;;;;;;;;;;;;;;
 
 (set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
-(set-configuration *propbank-learned-cxn-inventory* :parse-order '(multi-argument-all-roles multi-argument-core-only argm-pp-with-lemma argm-with-lemma))
+(set-configuration *propbank-learned-cxn-inventory* :parse-order '(multi-argument-core-roles
+                                                                   argm-subclause
+                                                                   argm-pp ))
 
-(evaluate-propbank-sentences
- (subseq
-  (spacy-benepar-compatible-sentences *opinion-sentences-dev* nil)
-   0 10)
+(evaluate-propbank-sentences-per-roleset
+ 
+  (spacy-benepar-compatible-sentences *opinion-sentences-test* nil)
+
  *propbank-learned-cxn-inventory*
- :silent nil)
+ :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+ :silent t)
 
 (add-element (make-html *propbank-learned-cxn-inventory*))
 
-
-(activate-monitor trace-fcg)
-(eq(make-symbol "X")
-node-phrase-types
-(comprhene)
 
 (clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t :remove-cxns-with-freq-1 nil)
 
@@ -287,10 +297,15 @@ node-phrase-types
                         :selected-rolesets '("watch.01")
                         :fcg-configuration *training-configuration*)
 
-(comprehend-and-extract-frames "Inventories are closely watched for such clues , for instance ." :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Anne sent her mother a dozen roses" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Tsar Nicholas II gave his wife a Fabergé egg." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "It is a Fabergé egg that Tsar Nicholas II gave his wife." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "He called his mother while doing the dishes" :cxn-inventory *restored-grammar*)
 
 
-
+(comprehend-and-extract-frames "He usually takes the bus home." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "She had dinner in Paris." :cxn-inventory *restored-grammar*)
 ;; Testing new sentences with learned grammar 
 ;; Guardian FISH article
 ;;;;;;;;;;;;;;;;;;;;;;;;;
