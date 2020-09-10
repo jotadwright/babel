@@ -349,7 +349,7 @@
                          ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))
                           (format nil "~{~a~}" (feature-value (find 'phrase-type (cddr cxn-unit) :key #'feature-name))))))
         into roles
-        finally return (make-id (upcase (format nil "~a-~{~a~^+~}+~a-cxn" (or (truncate-frame-name roleset) "ALL-FRAMES") roles (length cxn-units-without-role))))))
+        finally return (make-id (upcase (format nil "~a-~{~a~^+~}+~a-cxn" (or roleset "ALL-FRAMES") roles (length cxn-units-without-role))))))
 
   
 (defun find-unit-by-span (transient-structure span)
