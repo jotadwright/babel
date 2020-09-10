@@ -351,3 +351,24 @@ split to the output buffer."
                                (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'lemma (comprehension-lock unit) :key #'first)))
                                                    (conditional-part cxn-2))))))))
+
+
+;;;;;;;;
+
+(defun nr-of-cxns-per-type (grammar)
+  (let ((groups (group-by (constructions-list grammar) #'(lambda (cxn)
+                                                           (attr-val cxn :label)))))
+    (loop for group in groups
+          collect (cons (first group) (length group)))))
+
+
+(defun nr-of-cxns-per-type-with-frequency (grammar)
+  (let ((groups (group-by (constructions-list grammar)
+                          #'identity
+                          :test #'(lambda (cxn1 cxn2)
+                                    (equal (attr-val cxn1 :label)
+                                           (attr-val cxn2 :label))))))
+    (loop for group in groups
+          collect (cons (attr-val (first group) :label) (sum (mapcar #'(lambda (cxn)
+                                                                         (attr-val cxn :frequency)) group))))))
+
