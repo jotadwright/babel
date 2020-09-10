@@ -13,7 +13,7 @@
 ;;;; Activate web monitors
 (progn
   (activate-monitor trace-fcg)
-  (activate-monitor trace-irl-in-web-browser)
+  (activate-monitor trace-irl)
   (activate-monitor trace-interaction-in-web-interface))
 
 ;;;; Open your browser at localhost:8000
@@ -35,7 +35,7 @@
 (run-interaction *experiment*)
 
 ;;;; Run a series of experiments
-(run-series *experiment* 20)
+(run-series *experiment* 100)
 
 ;;;; Destroy the experiment (disconnects robots)
 (destroy *experiment*)

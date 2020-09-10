@@ -99,8 +99,18 @@
 ;; + Conceptualisation +
 ;; ---------------------
 
-(defclass my-composer (single-topic-composer) ())
+(defun make-default-composer (agent topic)
+  (make-chunk-composer
+   :topic topic
+   :initial-chunk (make-instance 'chunk :id 'initial
+                                 :target-var '(?topic . sensory-object)
+                                 :open-vars '((?topic . sensory-object)))
+   :chunks (create-chunks-from-primitives (get-data (ontology agent) 'primitives))
+   :ontology (ontology agent)
+   :configurations '((:max-search-depth . 4))))
 
+#|
+(defclass my-composer (single-topic-composer) ())
 (defun make-default-composer (agent topic)
   (make-instance 'my-composer
                  :topic topic
@@ -110,6 +120,7 @@
                  :chunks (create-chunks-from-primitives (get-data (ontology agent) 'primitives))
                  :max-search-depth 4
                  :ontology (ontology agent)))
+|#
 
 (define-event conceptualisation-started)
 (define-event conceptualisation-failed)

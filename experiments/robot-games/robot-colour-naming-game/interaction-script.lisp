@@ -18,7 +18,7 @@
                  (= 0 (mod (interaction-number interaction)
                            (get-configuration experiment :trace-every-nth-interaction)))))
       (activate-monitor trace-fcg)
-      (activate-monitor trace-irl-in-web-browser)
+      (activate-monitor trace-irl)
       (activate-monitor trace-interaction-in-web-interface))
   (call-next-method)
   (when (and (get-configuration experiment :trace-every-nth-interaction)
@@ -26,7 +26,7 @@
                  (= 0 (mod (interaction-number interaction)
                            (get-configuration experiment :trace-every-nth-interaction)))))
       (deactivate-monitor trace-fcg)
-      (deactivate-monitor trace-irl-in-web-browser)
+      (deactivate-monitor trace-irl)
       (deactivate-monitor trace-interaction-in-web-interface)
       ))
   

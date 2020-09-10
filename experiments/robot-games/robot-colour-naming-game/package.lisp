@@ -14,4 +14,5 @@
         :robot-interface
         :scene-generator)
   (:documentation "Grounded Colour Naming Game with robots")
-  (:nicknames :gcng))
+  (:nicknames :gcng)
+  (:shadowing-import-from :fcg :size))

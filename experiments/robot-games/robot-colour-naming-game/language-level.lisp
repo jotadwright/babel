@@ -15,8 +15,8 @@
     (multiple-value-bind (cxn-set cxn)
         (eval `(def-fcg-cxn ,cxn-name
                             ((,unit-name
-                              (referent ,(car (target-var chunk)))
-                              (args (,(car (target-var chunk)))))
+                              (referent ,(get-target-var (irl-program chunk)))
+                              (args (,(get-target-var (irl-program chunk)))))
                              <-
                              (,unit-name
                               (HASH meaning ,meaning)
@@ -43,8 +43,8 @@
     (multiple-value-bind (cxn-set cxn)
         (eval `(def-fcg-cxn ,cxn-name
                             ((,unit-name
-                              (referent ,(car (target-var chunk)))
-                              (args (,(car (target-var chunk)))))
+                              (referent ,(get-target-var (irl-program chunk)))
+                              (args (,(get-target-var (irl-program chunk)))))
                              <-
                              (,unit-name
                               (HASH meaning ,irl-program)
