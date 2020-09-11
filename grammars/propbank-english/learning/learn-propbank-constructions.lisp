@@ -122,7 +122,7 @@
                               :disable-automatic-footprints t
                               :attributes (:lemma ,v-lemma
                                            :score ,(length cxn-units-with-role)
-                                           :label multi-argument-core-roles
+                                           :label core-roles
                                            :frequency 1
                                            :roleset ,roleset-symbol)
                               :cxn-inventory ,cxn-inventory)))
@@ -178,7 +178,7 @@
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,argm-lemma
                                                  :score ,(length cxn-units-with-role)
-                                                 :label argm-with-lemma
+                                                 :label argm-all-frames
                                                  :frequency 1
                                                  :roleset ,roleset-symbol)
                                     :cxn-inventory ,cxn-inventory))))
@@ -240,7 +240,7 @@
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,v-lemma
                                                  :score ,(length cxn-units-with-role)
-                                                 :label argm-pp
+                                                 :label argm-with-frame
                                                  :frequency 1
                                                  :roleset ,roleset-symbol)
                                     :cxn-inventory ,cxn-inventory))))
@@ -320,7 +320,7 @@
                                     :disable-automatic-footprints t
                                     :attributes (:lemma ,argm-lemma
                                                  :score ,(length cxn-units-with-role)
-                                                 :label argm-subclause
+                                                 :label argm-all-frames
                                                  :frequency 1
                                                  :roleset ,roleset-symbol)
                                     :cxn-inventory ,cxn-inventory))))
