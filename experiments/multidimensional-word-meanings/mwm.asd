@@ -12,7 +12,6 @@
                :plot-raw-data
                :experiment-framework
                :meta-layer-learning
-               :irl
                :fcg
                :clevr-world
                :cl-mop

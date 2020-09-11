@@ -5,7 +5,7 @@
 ;; primitive inventory definition:
 ;; ----------------------------------------------------------------------------
 
-(export '(primitives-list size add-primitive delete-primitive
+(export '(primitives-list primitive-inventory-size add-primitive delete-primitive
           find-primitive set-configuration get-configuration
           def-irl-primitives))
           
@@ -64,6 +64,12 @@
   (:documentation "Return the size of the primitive inventory"))
 
 (defmethod primitive-inventory-size ((primitive-inventory primitive-inventory) &key)
+  (length (primitives primitive-inventory)))
+
+(defgeneric number-of-primitives (primitive-inventory &key &allow-other-keys)
+  (:documentation "Returns the size of the primitive inventory"))
+
+(defmethod number-of-primitives ((primitive-inventory primitive-inventory) &key)
   (length (primitives primitive-inventory)))
 
 

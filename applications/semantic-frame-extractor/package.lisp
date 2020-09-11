@@ -7,7 +7,7 @@
         :utils
 	:test-framework
 	:fcg
-        :irl :pie
+        :pie
         :nlp-tools
         #+:hunchentoot-available-on-this-platform :web-interface
         :monitors

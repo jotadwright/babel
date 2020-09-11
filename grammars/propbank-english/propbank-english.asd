@@ -9,7 +9,6 @@
                :monitors
                :fcg
                :nlp-tools
-               :irl
                :web-interface
                :cl-propbank
                :xmls

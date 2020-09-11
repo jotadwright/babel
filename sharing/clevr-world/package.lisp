@@ -5,7 +5,6 @@
         :utils
         #+:hunchentoot-available-on-this-platform :web-interface
         :irl)
-  (:shadowing-import-from :fcg :size)
   (:import-from :cl-json
                 :decode-json-from-string
                 :decode-json-from-source)

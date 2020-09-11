@@ -10,8 +10,7 @@
   (:import-from :jonathan
    :to-json :parse)
   (:import-from :drakma
-   :http-request)
-  (:shadowing-import-from :fcg :size))
+   :http-request))
 
 (in-package :hybrid-primitives)
 

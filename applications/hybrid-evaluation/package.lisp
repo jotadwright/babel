@@ -13,5 +13,4 @@
   (:import-from :fcg
    :comprehend :trace-fcg)
   (:import-from :jonathan
-   :to-json :parse)
-  (:shadowing-import-from :fcg :size))
+   :to-json :parse))

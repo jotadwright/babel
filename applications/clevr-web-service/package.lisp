@@ -36,5 +36,4 @@
                 :program->rpn
                 :linked-bind-statement
                 :bind-statement-value
-                :input-vars)
-  (:shadowing-import-from :clevr-world :scenes))
+                :input-vars))
