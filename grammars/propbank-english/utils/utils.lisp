@@ -308,11 +308,16 @@ split to the output buffer."
 ;; Comparing Propbank Constructions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun roleset (cxn)
+  "Retrieves the roleset of a cxn from the start of its name."
+  (intern (subseq (mkstr (name cxn)) 0 (search "-" (mkstr (name cxn))))))
 
 (defun fcg::equivalent-propbank-construction  (cxn-1 cxn-2)
   "Returns true if cxn-1 and cxn-2 are considered equivalent."
+ 
   (cond ((eq 'fcg::processing-construction (type-of cxn-1))
          (and (= (length (right-pole-structure cxn-1)) (length (right-pole-structure cxn-2)))
+              (eql (roleset cxn-1) (roleset cxn-2))
               (equalp (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'lex-class (unit-body unit) :key #'first)))
                                                    (right-pole-structure cxn-1)))
@@ -331,26 +336,27 @@ split to the output buffer."
                                (remove nil (mapcar #'(lambda (unit)
                                                        (second (find 'lemma (unit-body unit) :key #'first)))
                                                    (right-pole-structure cxn-2))))))
-  ((eq (type-of cxn-1) 'fcg-construction)
-   (and (= (length (conditional-part cxn-1)) (length (conditional-part cxn-2)))
+        ((eq (type-of cxn-1) 'fcg-construction)
+         (and (= (length (conditional-part cxn-1)) (length (conditional-part cxn-2)))
+              (eql (roleset cxn-1) (roleset cxn-2))
               (equalp (remove nil (mapcar #'(lambda (unit)
-                                                       (second (find 'lex-class (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-1)))
-                               (remove nil (mapcar #'(lambda (unit)
-                                                       (second (find 'lex-class (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-2))))
+                                              (second (find 'lex-class (comprehension-lock unit) :key #'first)))
+                                          (conditional-part cxn-1)))
+                      (remove nil (mapcar #'(lambda (unit)
+                                              (second (find 'lex-class (comprehension-lock unit) :key #'first)))
+                                          (conditional-part cxn-2))))
               (equalp (remove nil (mapcar #'(lambda (unit)
-                                                       (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-1)))
-                               (remove nil (mapcar #'(lambda (unit)
-                                                       (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-2))))
+                                              (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
+                                          (conditional-part cxn-1)))
+                      (remove nil (mapcar #'(lambda (unit)
+                                              (second (find 'phrase-type (comprehension-lock unit) :key #'first)))
+                                          (conditional-part cxn-2))))
               (equalp (remove nil (mapcar #'(lambda (unit)
-                                                       (second (find 'lemma (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-1)))
-                               (remove nil (mapcar #'(lambda (unit)
-                                                       (second (find 'lemma (comprehension-lock unit) :key #'first)))
-                                                   (conditional-part cxn-2))))))))
+                                              (second (find 'lemma (comprehension-lock unit) :key #'first)))
+                                          (conditional-part cxn-1)))
+                      (remove nil (mapcar #'(lambda (unit)
+                                              (second (find 'lemma (comprehension-lock unit) :key #'first)))
+                                          (conditional-part cxn-2))))))))
 
 
 ;;;;;;;;

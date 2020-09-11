@@ -14,7 +14,7 @@
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
 (load-propbank-annotations 'ewt :store-data nil :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes :store-data nil)
+(load-propbank-annotations 'ontonotes :store-data nil )
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
@@ -80,11 +80,14 @@
                                                                                               :split #'dev-split
                                                                                               :corpus *ontonotes-annotations*))))
 
-(defparameter *opinion-sentences-test* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset
-                                                                                              :split #'test-split
-                                                                                              :corpus *ontonotes-annotations*))))
-(length *opinion-sentences-dev*)
+(defparameter *opinion-sentences-test* (shuffle
+                                        (spacy-benepar-compatible-sentences
+                                         (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+                                               append (all-sentences-annotated-with-roleset roleset
+                                                                                            :split #'test-split
+                                                                                            :corpus *ontonotes-annotations*))
+                                         nil)))
+(length *opinion-sentences-test*)
 (defparameter *believe-sentences* (shuffle (loop for roleset in '("BELIEVE.01")
                                                  append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
 
@@ -105,7 +108,7 @@
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                           :name "full-grammar-ontonotes"
+                           :name "full-grammar-ontonotes-train-cleaned"
                            :type "fcg")))
 (size *restored-grammar*)
 ;;;;;;;;;;;;;;
@@ -127,8 +130,8 @@
      argm-pp
      argm-with-lemma
      )
-    ;(:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
-    ;(:equivalent-cxn-key . identity)
+   ; (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
+   ; (:equivalent-cxn-key . identity)
     (:replace-when-equivalent . nil)
     (:learning-modes
      :multi-argument-core-roles
@@ -145,12 +148,12 @@
                           :cxn-inventory '*propbank-learned-cxn-inventory*
                           :fcg-configuration *training-configuration*))
 
-(clean-grammar *propbank-learned-cxn-inventory* :remove-cxns-with-freq-1 t)
+(clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
 
-(evaluate-propbank-sentences-per-roleset *test-sentences-all-frames*
-                             *propbank-learned-cxn-inventory*
-                             :selected-rolesets nil
-                             :silent t)
+(evaluate-propbank-sentences-per-roleset (test-split *ontonotes-annotations*)
+                                         *propbank-learned-cxn-inventory*
+                                         :selected-rolesets nil
+                                         :silent t)
 (activate-monitor trace-fcg)
 (defun test ()
   (loop for sentence in *test-sentences-all-frames*

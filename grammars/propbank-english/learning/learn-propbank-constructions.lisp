@@ -66,6 +66,7 @@
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
         with ts-unit-structure = (ts-unit-structure propbank-sentence cxn-inventory)
         for gold-frame in gold-frames
+        for roleset-symbol = (intern (upcase roleset))
         for core-units-with-role = (remove-if #'(lambda (unit-with-role)
                                                   (search "ARGM" (role-type (car unit-with-role))))
                                               (units-with-role ts-unit-structure gold-frame))
@@ -99,6 +100,7 @@
                                                                        cxn-units-without-role
                                                                        cxn-preposition-units-flat
                                                                        cxn-s-bar-units-flat))
+                                                  roleset-symbol
                                                   cxn-inventory)
         when equivalent-cxn 
         do
@@ -121,7 +123,8 @@
                               :attributes (:lemma ,v-lemma
                                            :score ,(length cxn-units-with-role)
                                            :label multi-argument-core-roles
-                                           :frequency 1)
+                                           :frequency 1
+                                           :roleset ,roleset-symbol)
                               :cxn-inventory ,cxn-inventory)))
         finally
         return cxn-inventory))
@@ -142,6 +145,7 @@
         for v-unit = (assoc "V" units-with-role :key #'role-type :test #'equalp)
         do
         (loop for argm-unit in argm-units-w-lemma
+              for roleset-symbol = (intern (upcase roleset))
               for argm-lemma = (argm-lemma argm-unit)
               for footprint = (make-id "footprint")
               for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil)
@@ -154,6 +158,7 @@
               for equivalent-cxn = (find-equivalent-cxn argm-lemma
                                                   (syn-classes (append cxn-units-with-role cxn-units-without-role))
                                                   (lemmas (append cxn-units-with-role cxn-units-without-role))
+                                                  roleset-symbol
                                                   cxn-inventory)
               when equivalent-cxn 
               do
@@ -174,7 +179,8 @@
                                     :attributes (:lemma ,argm-lemma
                                                  :score ,(length cxn-units-with-role)
                                                  :label argm-with-lemma
-                                                 :frequency 1)
+                                                 :frequency 1
+                                                 :roleset-symbol ,roleset-symbol)
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
@@ -196,6 +202,7 @@
         do
         (loop for argm-unit in argm-pps
               for footprint = (make-id "footprint")
+              for roleset-symbol = (intern (upcase roleset))
               for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name t)
               for cxn-preposition-units = (make-preposition-unit argm-unit ts-unit-structure)
               for cxn-units-with-role = (loop for unit in (list v-unit argm-unit)
@@ -211,6 +218,7 @@
                                                   (lemmas (append cxn-units-with-role
                                                                        cxn-units-without-role
                                                                        cxn-preposition-units))
+                                                  roleset-symbol
                                                   cxn-inventory)
               when equivalent-cxn 
               do
@@ -233,7 +241,8 @@
                                     :attributes (:lemma ,v-lemma
                                                  :score ,(length cxn-units-with-role)
                                                  :label argm-pp
-                                                 :frequency 1)
+                                                 :frequency 1
+                                                 :roleset ,roleset-symbol)
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
@@ -271,6 +280,7 @@
         do
         (loop for argm-unit in argm-subclauses
               for footprint = (make-id "footprint")
+              for roleset-symbol = (intern (upcase roleset))
               for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil)
               for cxn-subclause-units = (make-subclause-word-unit argm-unit ts-unit-structure)
               for argm-lemma = (argm-lemma (first cxn-subclause-units))
@@ -288,6 +298,7 @@
                                                   (lemmas (append cxn-units-with-role
                                                                        cxn-units-without-role
                                                                        cxn-subclause-units))
+                                                  roleset-symbol
                                                   cxn-inventory)
               when equivalent-cxn 
               do
@@ -310,7 +321,8 @@
                                     :attributes (:lemma ,argm-lemma
                                                  :score ,(length cxn-units-with-role)
                                                  :label argm-subclause
-                                                 :frequency 1)
+                                                 :frequency 1
+                                                 :roleset ,roleset-symbol)
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
@@ -586,12 +598,13 @@ start to end(v-unit)"
   (feature-value (find 'lemma (unit-body (cdr unit-with-role)) :key #'feature-name)))
 
 
-(defun find-equivalent-cxn (hash-key syn-classes lemmas cxn-inventory)
+(defun find-equivalent-cxn (hash-key syn-classes lemmas roleset cxn-inventory )
   "Returns true if an equivalent-cxn is already present in the cxn-inventory."
   (loop with required-cxn-length = (length syn-classes)
         for cxn in (gethash hash-key (constructions-hash-table cxn-inventory))
         when (and (= required-cxn-length
                      (length (conditional-part cxn)))
+                  (eql (attr-val cxn :roleset) roleset)
                   (equalp syn-classes
                           (mapcar #'(lambda (unit)
                                       (second (find 'syn-class (comprehension-lock unit) :key #'first)))
