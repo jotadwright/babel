@@ -180,7 +180,7 @@
                                                  :score ,(length cxn-units-with-role)
                                                  :label argm-with-lemma
                                                  :frequency 1
-                                                 :roleset-symbol ,roleset-symbol)
+                                                 :roleset ,roleset-symbol)
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
