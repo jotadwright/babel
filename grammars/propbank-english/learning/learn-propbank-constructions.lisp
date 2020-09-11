@@ -145,7 +145,7 @@
         for v-unit = (assoc "V" units-with-role :key #'role-type :test #'equalp)
         do
         (loop for argm-unit in argm-units-w-lemma
-              for roleset-symbol = (intern (upcase roleset))
+              for roleset-symbol = 'all-frames
               for argm-lemma = (argm-lemma argm-unit)
               for footprint = (make-id "footprint")
               for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil)
@@ -280,7 +280,7 @@
         do
         (loop for argm-unit in argm-subclauses
               for footprint = (make-id "footprint")
-              for roleset-symbol = (intern (upcase roleset))
+              for roleset-symbol = 'all-frames
               for contributing-unit = (make-propbank-contributing-unit (list v-unit argm-unit) gold-frame footprint :include-frame-name nil)
               for cxn-subclause-units = (make-subclause-word-unit argm-unit ts-unit-structure)
               for argm-lemma = (argm-lemma (first cxn-subclause-units))
