@@ -7,6 +7,7 @@
   :license "To be determined."
   :depends-on (:utils
                :monitors
+               :irl
                :fcg
                :nlp-tools
                :web-interface
