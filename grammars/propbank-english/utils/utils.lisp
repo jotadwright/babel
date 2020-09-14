@@ -24,22 +24,32 @@
 ;; Comprehend Methods ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod comprehend ((utterance conll-sentence) &key (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) &allow-other-keys)
+(defmethod comprehend ((utterance conll-sentence) &key (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) (timeout 60) &allow-other-keys)
   (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory)))
     (set-data initial-cfs :annotation (propbank-frames utterance))
     (unless silent (notify parse-started (listify (sentence-string utterance)) initial-cfs))
-    (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets silent)))
+    (multiple-value-bind (meaning cip-node cip)
+        (handler-case (trivial-timeout:with-timeout (timeout)
+                                                    (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets (sentence-string utterance) silent))
+          (trivial-timeout:timeout-error (error)
+            (values 'time-out 'time-out 'time-out)))
+      (values meaning cip-node cip))))
 
 
-(defmethod comprehend ((utterance string) &key (syntactic-analysis nil) (cxn-inventory *fcg-constructions*)  (silent nil) (selected-rolesets nil))
+(defmethod comprehend ((utterance string) &key (syntactic-analysis nil) (cxn-inventory *fcg-constructions*)  (silent nil) (selected-rolesets nil) (timeout 60))
   (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis)))
     (unless silent (notify parse-started (listify utterance) initial-cfs))
-    (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets silent)))
+    (multiple-value-bind (meaning cip-node cip)
+        (handler-case (trivial-timeout:with-timeout (timeout)
+                                                    (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets utterance silent))
+          (trivial-timeout:timeout-error (error)
+            (values 'time-out 'time-out 'time-out)))
+      (values meaning cip-node cip))))
 
-
-(defun comprehend-with-rolesets (initial-cfs cxn-inventory selected-rolesets silent)
+(defun comprehend-with-rolesets (initial-cfs cxn-inventory selected-rolesets utterance silent)
   (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     (set-data initial-cfs :selected-rolesets selected-rolesets)
+    (set-data initial-cfs :utterance utterance)
     ;; Construction application
     (multiple-value-bind (solution cip)
         (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent))
@@ -220,6 +230,29 @@ nodes."
     
         (when (= (cdr (assoc :f1-score result)) 1.0)
           t))))
+
+
+(defmethod cip-goal-test ((node cip-node) (mode (eql :no-double-role-assignment)))
+  "Node test that checks if there is a frame in the resulting meaning
+in which there are duplicate role assignments (i.e. unit name of
+frame-element filler occurs in more than one slot). "
+  (let ((extracted-frames (group-by (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node))))
+                                    #'third :test #'equalp)))
+    (loop with double-role-assignments = nil
+          for (frame-var . frame) in extracted-frames
+          for frame-elements = (loop for predicate in frame
+                                     when (equalp (first predicate) 'frame-element)
+                                     collect predicate)
+          
+          when (or (> (length frame-elements) (length (remove-duplicates frame-elements :key #'fourth :test #'equalp)))
+                    (loop for fe in frame-elements
+                          for other-fes = (remove fe frame-elements :key #'fourth :test #'equalp)
+                          thereis (subconstituent-p (fourth fe) (mapcar #'fourth other-fes) (left-pole-structure (car-resulting-cfs (cipn-car node))))))
+          do (push frame-var double-role-assignments)
+          finally
+          return
+          (unless double-role-assignments
+            t))))
 
 
 ;; Browsing PropBank data ;;
