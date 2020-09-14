@@ -7,9 +7,35 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defun evaluate-propbank-corpus (list-of-propbank-sentences cxn-inventory &key (output-file nil) (timeout 60))
+  "Evaluate a corpus of sentences"
+  (let ((output-file (or output-file
+                         (babel-pathname :directory '(".tmp")
+                                         :name (format nil "~a~a" (multiple-value-bind (sec min hour day month year)
+                                                               (decode-universal-time (get-universal-time))
+                                                             (format nil "~d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-"
+                                                                     year month day hour min sec)) "evaluation")
+                                         :type "store"))))
+    (loop for sentence in list-of-propbank-sentences
+          for sentence-number from 1
+          do (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence))
+          collect (let* ((cipn (second (multiple-value-list (comprehend sentence :cxn-inventory cxn-inventory :silent t :timeout timeout))))
+                         (utterance (sentence-string sentence))
+                         (annotation (propbank-frames sentence)))
+                    (if (eql cipn 'time-out)
+                      (progn (format t " --> timed out .~%")
+                        (list utterance annotation 'time-out))
+                      (let ((solution (remove-if-not #'frame-with-name (frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))))
+                        (format t " --> done .~%")
+                        (list utterance annotation solution))))
+          into evaluation
+          finally (cl-store:store evaluation output-file))))
+    
+   
+       
 (defun evaluate-propbank-sentences (list-of-propbank-sentences cxn-inventory &key
                                                                (selected-rolesets nil) (silent nil) (print-to-standard-output t)
-                                                               (include-word-sense nil))
+                                                               (include-word-sense t))
   "Returns a.o. precision, recall, F1 score for evaluation of list-of-propbank-sentences."
   ;; Precision = (#correct-predictions / #predictions)
   ;; Recall = (#correct-predictions / #gold-standard-predictions)
@@ -129,7 +155,7 @@
 ;; Evaluate an individual sentence ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun evaluate-propbank-sentence (propbank-sentence cxn-inventory &key (selected-rolesets nil) (silent nil) (syntactic-analysis nil) (cipn nil) (include-word-sense nil))
+(defun evaluate-propbank-sentence (propbank-sentence cxn-inventory &key (selected-rolesets nil) (silent nil) (syntactic-analysis nil) (cipn nil) (include-word-sense t))
   "Evaluates a conll sentence in terms of number-of-predictions, number-of-correct-predictions and number-of-gold-standard-predictions."
   (let* ((final-node (or cipn
                          (second (multiple-value-list (comprehend propbank-sentence

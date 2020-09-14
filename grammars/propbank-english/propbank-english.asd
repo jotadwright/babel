@@ -15,7 +15,8 @@
                :xmls
                :cl-store
                :snooze
-               :cl-json)
+               :cl-json
+               :trivial-timeout)
   :serial t
   :components ((:file "package")
                (:file "propbank-annotations")
