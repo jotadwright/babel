@@ -95,7 +95,39 @@
                                                  append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
 
-(defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences (subseq (shuffle (test-split *ontonotes-annotations*)) 0 700) nil) 0 500))
+(defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences (subseq (shuffle (test-split *ontonotes-annotations*)) 0 700) nil) 0 100))
+
+(evaluate-propbank-corpus *test-sentences-all-frames* *core-roles-cleaned-frequency-grammar* :timeout 60)
+
+(defparameter *core-roles-cleaned-frequency-grammar* (clean-grammar *restored-grammar* :destructive nil
+                                                                    :remove-cxns-with-freq-1 t :remove-faulty-cnxs t))
+(size *core-roles-cleaned-frequency-grammar*)
+(size *restored-grammar*)
+
+(defparameter *evaluation-result* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-09-14-15-18-51-evaluation"
+                                                           :type "store")))
+
+(defparameter *evaluation-result-cleaned* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-09-14-16-16-39-evaluation"
+                                                           :type "store")))
+
+
+(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences t :include-word-sense nil)
+(evaluate-predictions *evaluation-result-cleaned* :core-roles-only t :include-timed-out-sentences t :include-word-sense nil)
+
+
+(defparameter *test* (first *evaluation-result*))
+
+(evaluate-predictions (list (nth 15 *evaluation-result-cleaned*)) :core-roles-only t :include-word-sense nil)
+(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense nil)
+
+
+(activate-monitor trace-fcg)
+
+(comprehend-and-extract-frames (nth 15 *test-sentences-all-frames*) :cxn-inventory *core-roles-cleaned-frequency-grammar*)
+(comprehend-and-extract-frames "Let's go to the beach" :cxn-inventory *propbank-learned-cxn-inventory*)
+(length *test-sentences-all-frames*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Storing and restoring grammars ;;
@@ -103,12 +135,12 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "full-grammar-ontonotes"
+                                :name "core-roles-ontonotes-train-cleaned"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                           :name "full-grammar-ontonotes-train-cleaned"
+                           :name "core-roles-ontonotes-train-cleaned"
                            :type "fcg")))
 (size *restored-grammar*)
 ;;;;;;;;;;;;;;
@@ -125,22 +157,22 @@
     (:queue-mode . :greedy-best-first)
     (:hash-mode . :hash-lemma)
     (:parse-order
-     multi-argument-core-roles
-     argm-subclause
-     argm-pp
-     argm-with-lemma
+     core-roles
+    ; argm-with-frame
+    ; argm-all-frames
      )
-   ; (:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
-   ; (:equivalent-cxn-key . identity)
     (:replace-when-equivalent . nil)
     (:learning-modes
      :multi-argument-core-roles
-     :argm-with-lemma
-     :argm-pp
-     :argm-subclause
+     ;:argm-with-lemma
+     ;:argm-pp
+     ;:argm-subclause
      )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
+(set-configuration *propbank-learned-cxn-inventory* :parse-order '(core-roles argm-with-frame argm-all-frames))
+;(set-configuration *propbank-learned-cxn-inventory* :node-tests '(:check-double-role-assignment :restrict-nr-of-nodes))
+;(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '( :no-valid-children ))
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar (train-split *ontonotes-annotations*)
@@ -150,7 +182,7 @@
 
 (clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
 
-(evaluate-propbank-sentences-per-roleset (test-split *ontonotes-annotations*)
+(evaluate-propbank-sentences-per-roleset *test-sentences-all-frames*
                                          *propbank-learned-cxn-inventory*
                                          :selected-rolesets nil
                                          :silent t)
@@ -270,6 +302,12 @@
 (activate-monitor trace-fcg)
 (comprehend-and-extract-frames "He believed the man ." :cxn-inventory *propbank-learned-cxn-inventory*)
 
+(comprehend-and-extract-frames "Luc could not believe his eyes" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Luc could not believe that it is true" :cxn-inventory *propbank-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames "Luc would come to Venice" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Carlo thinks that Luc would not come to Venice" :cxn-inventory *propbank-learned-cxn-inventory*)
+
 
 (comprehend-and-extract-frames "" :cxn-inventory *propbank-learned-cxn-inventory*)
 
@@ -299,15 +337,15 @@
                         :cxn-inventory '*propbank-learned-cxn-inventory*
                         :selected-rolesets '("watch.01")
                         :fcg-configuration *training-configuration*)
+(activate-monitor trace-fcg)
+(comprehend-and-extract-frames "Anne sent her mother a dozen roses" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Tsar Nicholas II gave his wife a Fabergé egg." :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "It is a Fabergé egg that Tsar Nicholas II gave his wife." :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "He called his mother while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 
-(comprehend-and-extract-frames "Anne sent her mother a dozen roses" :cxn-inventory *restored-grammar*)
-(comprehend-and-extract-frames "Tsar Nicholas II gave his wife a Fabergé egg." :cxn-inventory *restored-grammar*)
-(comprehend-and-extract-frames "It is a Fabergé egg that Tsar Nicholas II gave his wife." :cxn-inventory *restored-grammar*)
-(comprehend-and-extract-frames "He called his mother while doing the dishes" :cxn-inventory *restored-grammar*)
 
-
-(comprehend-and-extract-frames "He usually takes the bus home." :cxn-inventory *restored-grammar*)
-(comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "He usually takes the bus to school" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "She had dinner in Paris." :cxn-inventory *restored-grammar*)
 ;; Testing new sentences with learned grammar 
 ;; Guardian FISH article
@@ -316,10 +354,10 @@
 (set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
 (set-configuration *propbank-learned-cxn-inventory* :parse-order '(:multi-argument-core-roles :argm-pp :argm-with-lemma ))
 
-(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-learned-cxn-inventory*)
 
 ;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
-(comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (comprehend-and-extract-frames "This brings us to another problem that comes up when dealing with natural language . " :cxn-inventory *restored-grammar*)
 
@@ -376,7 +414,7 @@
 
 
 
-(comprehend-and-extract-frames "The report explains that the ocean's oxygen supply is threatened by global warming in two ways." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "The report explains that the ocean's oxygen supply is threatened by global warming in two ways." :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (comprehend-and-extract-frames "Warmer water is less able to contain oxygen than cold, so as the oceans warm, oxygen is reduced." :cxn-inventory *restored-grammar*)
 
