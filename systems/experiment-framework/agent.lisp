@@ -61,6 +61,19 @@
   (eql (discourse-role agent) 'hearer))
 
 ;; ----------------------------------------------------------------------------
+;; get-configuration
+
+(defmethod get-configuration ((agent agent) key &key &allow-other-keys)
+  "get-configuration for a agent tries the experiment if no configuration
+   is found in the agent"
+  (multiple-value-bind (entry found)
+      (call-next-method)
+    (if found
+      (values entry found)
+      (get-configuration (experiment agent) key))))
+
+
+;; ----------------------------------------------------------------------------
 ;; print-object
 
 (defmethod print-object ((agent agent) stream)

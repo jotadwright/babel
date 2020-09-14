@@ -35,7 +35,7 @@
      (learning-strategy . :keep-samples)
      (alignment-strategy . :no-alignment)
      (learning-stage . 1)
-     (provide-bind-statements . nil))))
+     (provide-bind-statements . t))))
 
 (defparameter *experiment*
   (make-instance 'holophrase-experiment
