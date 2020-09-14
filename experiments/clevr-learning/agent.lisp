@@ -326,7 +326,7 @@
           (remove-unreachable-chunks agent)
           ;; add a larger chunk to the composer-chunks
           (add-composer-chunk (ontology agent)
-                              (chunk (irl-2::node solution))))
+                              (chunk (irl::node solution))))
         (set-data agent :timeout t)))))
 
 ;; #####################

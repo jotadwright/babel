@@ -45,11 +45,11 @@
          (composer-chunk
           (make-instance 'chunk :id chunk-id
                          :irl-program (remove 'get-context (irl-program chunk) :key #'car)
-                         :target-var (irl-2::target-var chunk)
-                         :open-vars (append (irl-2::open-vars chunk)
+                         :target-var (irl::target-var chunk)
+                         :open-vars (append (irl::open-vars chunk)
                                             (loop for cv in context-vars
                                                   collect (cons cv 'clevr-object-set)))
-                         :score (irl-2::score chunk)))
+                         :score (irl::score chunk)))
          (add-chunk-p
           (and (> (length (irl-program composer-chunk)) 1)
                (loop for other-chunk in (get-data ontology 'composer-chunks)
