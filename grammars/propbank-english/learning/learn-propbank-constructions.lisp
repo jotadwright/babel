@@ -91,6 +91,37 @@
         for cxn-name = (make-cxn-name roleset core-units-with-role cxn-units-with-role cxn-units-without-role cxn-preposition-units cxn-s-bar-units)
         for cxn-preposition-units-flat = (loop for unit in cxn-preposition-units append unit)
         for cxn-s-bar-units-flat = (loop for unit in cxn-s-bar-units append unit)
+        for schema = (loop with pp-unit-number = 1
+                           with s-bar-unit-number = 1
+                           for (role . unit) in core-units-with-role
+                           for cxn-unit in cxn-units-with-role
+                           collect (cons (intern (role-type role))
+                                         (cond
+                                          ;; unit is a pp
+                                          ((find 'pp (unit-feature-value (unit-body unit) 'syn-class))
+                                           (incf pp-unit-number)
+                                           (if (= 1 (length (nth1 pp-unit-number cxn-preposition-units)))
+                                            (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class )
+                                                     (second (find 'lemma
+                                                                   (nthcdr 2 (first (nth1 pp-unit-number cxn-preposition-units)))
+                                                                   :key #'feature-name))))
+                                            (intern (format nil "~{~a~}(cc-~a)" (unit-feature-value unit 'syn-class )
+                                                     (second (find 'lemma
+                                                                   (nthcdr 2 (third (nth1 pp-unit-number cxn-preposition-units)))
+                                                                   :key #'feature-name))))))
+                                          ;; unit is an s-bar
+                                          ((find 'sbar (unit-feature-value (unit-body unit) 'syn-class))
+                                           (incf s-bar-unit-number)
+                                           (if (= 1 (length (nth1 s-bar-unit-number cxn-s-bar-units)))
+                                             (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
+                                                     (second (find 'lemma
+                                                                   (nthcdr 2 (first (nth1 s-bar-unit-number cxn-s-bar-units)))
+                                                                   :key #'feature-name))))))
+                                          ;; unit contains a lemma
+                                          ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
+                                          ;; unit contains a phrase-type
+                                          ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))))))
+                           
         for equivalent-cxn = (find-equivalent-cxn v-lemma
                                                   (syn-classes (append cxn-units-with-role
                                                                        cxn-units-without-role
@@ -124,7 +155,8 @@
                                            :score ,(length cxn-units-with-role)
                                            :label core-roles
                                            :frequency 1
-                                           :roleset ,roleset-symbol)
+                                           :roleset ,roleset-symbol
+                                           :schema ,schema)
                               :cxn-inventory ,cxn-inventory)))
         finally
         return cxn-inventory))
@@ -359,7 +391,7 @@
                          ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
                          ;; unit contains a phrase-type
                          ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))
-                          (format nil "~{~a~}" (feature-value (find 'phrase-type (cddr cxn-unit) :key #'feature-name))))))
+                          (format nil "~{~a~}" (feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))))))
         into roles
         finally return (make-id (upcase (format nil "~a-~{~a~^+~}+~a-cxn" (or roleset "ALL-FRAMES") roles (length cxn-units-without-role))))))
 
