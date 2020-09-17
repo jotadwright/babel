@@ -9,7 +9,7 @@
 ;; Loading the package and setup ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (asdf:operate 'asdf:load-op :planning)
+;; (ql:quickload :planning)
 
 (in-package :planning)
 (progn
