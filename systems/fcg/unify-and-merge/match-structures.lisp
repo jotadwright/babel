@@ -517,35 +517,7 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 	      (return-from handle-J-unit nil)))))
     #+dbg
     (format t "~%source=~A" source)
-    ;; Next change the hierarchical structure.
-    #|
-    (when (third (unit-name J-unit))
-      (let ((parent-name (or (lookup (third (unit-name J-unit)) bindings) (third (unit-name J-unit)))))
-;; 	(unless (find parent-name source :key #'unit-name)
-;; 	  (when (variable-p parent-name)
-;; 	    (let ((new-unit-name (make-const (second (unit-name J-unit)))))
-;; 	      (setq bindings (extend-bindings parent-name
-;; 					      new-unit-name
-;; 					      bindings)
-;; 		    parent-name new-unit-name)))
-;; 	  (push (make-unit :name parent-name) source))
-	(setq source 
-	      (make-child (unit-name new-unit) 
-			  parent-name
-			  source
-                          (second (unit-name J-unit)))))
-      (unless source
-	(notify warn-hierarchy-in-structure-broken J-unit pattern bindings)
-        (return-from handle-J-unit nil)))
-    #+dbg
-    (format t "~%2 source=~A" source)
-    (dolist (unit-name (fourth (unit-name J-unit)))
-      (setq source 
-	    (make-child (or (lookup unit-name bindings) unit-name)
-			(unit-name new-unit)
-			source
-                        unit-name)))
-    |#
+    
     ;; Finally add all features to the new unit.
     #+dbg
     (format t "~%3 source=~A" source)
