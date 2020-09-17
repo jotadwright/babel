@@ -100,7 +100,11 @@
 
 (defun xml-lexical-units (xml-frame)
   "Returns the lexical units that the frame evokes."
-  (make-list-of-lexical-units xml-frame))
+  (loop for lu in (xmls:xmlrep-find-child-tags "lexUnit" xml-frame)
+        for lu-name = (framenet-string->symbol (xmls:xmlrep-attrib-value "name" lu))
+        collect lu))
 
 ;; (xml-lexical-units (read-frame-from-xml 'opinion))
+
+
 

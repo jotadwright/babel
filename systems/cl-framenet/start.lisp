@@ -18,13 +18,15 @@
                                                :name (string-downcase (symbol-name frame)
                                                                       :start 1)
                                                :type "xml")
-                                               *framenet-data-directory*))
+                                               *framenet-data-directory*)
+                               :direction :input)
     (xmls:parse inputstream)))
 
 
-; (read-frame-from-xml 'manipulation)
+; (read-frame-from-xml 'opinion)
 
 
 ;; (setf *A* (xml-frame-object (read-frame-from-xml 'transitive_action)))
 ;; (setf *A* (xml-frame-elements (read-frame-from-xml 'manipulation)))
 ;; (setf *A* (xml-frame-relations (read-frame-from-xml 'manipulation)))
+
