@@ -182,7 +182,7 @@
                  :documentation "Slot for adding the translated construction.")))
 
 (defmethod copy-object ((construction processing-construction))
-  (let ((copy (make-instance 'construction
+  (let ((copy (make-instance 'processing-construction
 			     :name (name construction)
 			     :domain (domain construction)
 			     :match-source (match-source construction)
@@ -612,6 +612,7 @@ construction on the fly."
                       #-:lispworks nil))
        (set-data fcg-cxn :cxn-pathname pathname)
        (add-cxn fcg-cxn ,cxn-inventory
+                :replace-when-equivalent (or (get-configuration ,cxn-inventory :replace-when-equivalent) t)
                 :equivalent-test (or (get-configuration ,cxn-inventory :equivalent-cxn-fn) #'eql)
                 :equivalent-key (or (get-configuration ,cxn-inventory :equivalent-cxn-key) #'name)))))
 
