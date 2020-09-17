@@ -156,7 +156,8 @@
                                            :label core-roles
                                            :frequency 1
                                            :roleset ,roleset-symbol
-                                           :schema ,schema)
+                                           :schema ,schema
+                                           :utterance ,(sentence-string propbank-sentence))
                               :cxn-inventory ,cxn-inventory)))
         finally
         return cxn-inventory))
@@ -212,7 +213,8 @@
                                                  :score ,(length cxn-units-with-role)
                                                  :label argm-all-frames
                                                  :frequency 1
-                                                 :roleset ,roleset-symbol)
+                                                 :roleset ,roleset-symbol
+                                                 :utterance ,(sentence-string propbank-sentence))
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
@@ -274,7 +276,8 @@
                                                  :score ,(length cxn-units-with-role)
                                                  :label argm-with-frame
                                                  :frequency 1
-                                                 :roleset ,roleset-symbol)
+                                                 :roleset ,roleset-symbol
+                                                 :utterance ,(sentence-string propbank-sentence))
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
@@ -354,7 +357,8 @@
                                                  :score ,(length cxn-units-with-role)
                                                  :label argm-all-frames
                                                  :frequency 1
-                                                 :roleset ,roleset-symbol)
+                                                 :roleset ,roleset-symbol
+                                                 :utterance ,(sentence-string propbank-sentence))
                                     :cxn-inventory ,cxn-inventory))))
         finally
         return cxn-inventory))
