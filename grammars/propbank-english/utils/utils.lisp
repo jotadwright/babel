@@ -411,3 +411,50 @@ split to the output buffer."
           collect (cons (attr-val (first group) :label) (sum (mapcar #'(lambda (cxn)
                                                                          (attr-val cxn :frequency)) group))))))
 
+
+(defun schemata (grammar)
+  (mapcar #'schema (constructions-list grammar)))
+
+(defun schema (cxn)
+  (cons (name cxn) (attr-val cxn :schema)))
+
+(defun same-schema (cxn grammar &key (same-schema-function #'same-roles-and-realization))
+  (loop with cxn-schema = (schema cxn)
+        for other-cxn in (constructions-list grammar)
+        for other-cxn-schema = (schema other-cxn)
+        
+        if (and (not (equal cxn other-cxn))
+                (funcall same-schema-function (cdr cxn-schema) (cdr other-cxn-schema)))
+        collect other-cxn))
+
+(defun same-roles (cxn-schema-1 cxn-schema-2)
+  ;; same semantic roles
+  (equal (mapcar #'car cxn-schema-1)
+         (mapcar #'car cxn-schema-2)))
+
+(defun same-roles-and-realization (cxn-schema-1 cxn-schema-2)
+  ;; same semantic roles
+  (and (equal (mapcar #'car cxn-schema-1)
+              (mapcar #'car cxn-schema-2))
+       (equal (mapcar #'cdr (remove 'V cxn-schema-1 :key #'car))
+              (mapcar #'cdr (remove 'V cxn-schema-2 :key #'car)))))
+        
+(defun find-cxns-with-schema (schema grammar &key (same-schema-function #'same-roles-and-realization))
+  (loop for cxn in (constructions-list grammar)
+        for cxn-schema = (schema cxn)
+        if (funcall same-schema-function schema (cdr cxn-schema))
+        collect cxn))
+
+(defun print-cxns-with-schema (schema grammar &key (same-schema-function #'same-roles-and-realization))
+  (let ((cxns (find-cxns-with-schema schema grammar :same-schema-function same-schema-function)))
+    (format t "~%~%~a constructions found with schema ~a.~%~%" (length cxns) schema)
+    (loop for cxn in (sort cxns #'> :key #'(lambda (cxn) (attr-val cxn :frequency)))
+          unless (< (attr-val cxn :frequency) 2)
+          do (format t "~a:~a~%~%" (name cxn) (attr-val cxn :utterance)))))
+                                      
+                                      
+
+;; (print-cxns-with-schema `((arg0 np) (V . nil) (arg1 np) (arg2  ,(intern "PP(to)"))) *propbank-learned-cxn-inventory*)
+;; (print-cxns-with-schema '((arg1 np) (V . nil)) *propbank-learned-cxn-inventory*)
+
+
