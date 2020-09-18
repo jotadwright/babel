@@ -6,4 +6,5 @@
    :experiment-framework :plot-raw-data
    :fcg :clevr-world :clevr-grammar)
   (:import-from :trivial-timeout :with-timeout
-                :timeout-error))
+                :timeout-error)
+  (:shadowing-import-from :fcg :size :attributes))
