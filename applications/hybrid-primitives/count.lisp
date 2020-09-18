@@ -27,7 +27,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
-           `(:primitve count
+           `(:primitive count
              :slots (:source-attn ,(id source-attn)
                      :target-num  ,target-num)))))
      consistentp))
