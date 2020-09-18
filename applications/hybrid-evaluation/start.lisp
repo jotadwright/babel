@@ -111,6 +111,21 @@
  :primitive-inventory
  *hybrid-primitives*)
 
+(evaluate-irl-program
+ '((get-context ?context)
+   (filter ?set-1 ?context ?shape)
+   (filter ?set-2 ?set-1 ?size)
+   (unique ?obj-1 ?set-2)
+   (query ?color ?obj-1 ?attribute)
+   (bind shape-category ?shape cylinder)
+   (bind size-category ?size small)
+   (bind color-category ?color green)
+   (bind attribute-category ?attribute color))
+ *clevr-ontology*
+ :primitive-inventory
+ *hybrid-primitives*)
+ 
+
                     
 
          

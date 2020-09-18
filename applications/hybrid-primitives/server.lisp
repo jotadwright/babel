@@ -45,7 +45,7 @@
         (process-bindings (getf response :bindings)))
        ;; if consistent, return it
        ((getf response :consistent)
-        (getf response :consistent)))))))
+        (string= (getf response :consistent) "TRUE")))))))
 
 
 (defun process-bindings (bindings)
