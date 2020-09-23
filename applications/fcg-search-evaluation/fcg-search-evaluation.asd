@@ -13,10 +13,10 @@
                :clevr-world
                :clevr-grammar
                :trivial-timeout
-               :seq2seq-heuristics)
+               :seq2seq-heuristics
+               :usocket)
   :serial t
   :components ((:file "package")
                (:file "utils")
                (:file "experiment")
-               (:file "monitors")
-               ))
+               (:file "monitors")))
