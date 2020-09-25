@@ -63,10 +63,10 @@
   (let* ((distribution (seq2seq-distribution-for-node node))
          (hash-compatible-cxns (all-cxns-except-incompatible-hashed-cxns node))
          (comptatible-cxns (loop for cxn-and-prob in distribution
-                                 if (find (intern (mkstr (car cxn-and-prob)))
-                                          hash-compatible-cxns
-                                          :test #'equal :key #'name)
-                                 collect it)))
+                              if (find (intern (mkstr (car cxn-and-prob)) :clevr-grammar)
+                                       hash-compatible-cxns
+                                       :test #'equal :key #'name)
+                              collect it)))
     (set-data node :seq2seq-prediction distribution)
     (make-instance
      'cxn-supplier-with-seq2seq-heuristics

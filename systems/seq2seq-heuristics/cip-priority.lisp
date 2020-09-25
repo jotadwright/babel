@@ -13,7 +13,10 @@
     (let* (;; look for distribution information in data of parent-node
            (distribution (get-data (first (all-parents node)) :seq2seq-prediction))
            (applied-cxn (first (applied-constructions node)))
-           (cxn-probability (cdr (assoc (name applied-cxn) distribution :key #'internal-symb :test #'equal))))
+           (cxn-probability (cdr
+                             (assoc (name applied-cxn) distribution
+                                    :key #'(lambda (n) (intern (mkstr n) :clevr-grammar)) ;;#'internal-symb
+                                    :test #'equal))))
       (+ cxn-probability (priority (first (all-parents node)))))
     0))
 
