@@ -176,6 +176,14 @@
   (let ((filter-predicates nil)
         (bind-predicates nil)
         (last-var (second last-predicate)))
+    (unless (find "shape" filters :test #'search)
+      (let ((bind-var (make-var))
+            (out-var (make-var)))
+        (push `(filter ,out-var ,last-var ,bind-var)
+              filter-predicates)
+        (push `(bind shape-category ,bind-var thing)
+              bind-predicates)
+        (setf last-var out-var)))
     (loop for filter-fn in filters
           for type-value = (second (split filter-fn #\_))
           for bracket-idx = (position "[" type-value :test #'string=)
@@ -192,12 +200,6 @@
           do (push `(bind ,category ,bind-var ,attribute)
                    bind-predicates)
           do (setf last-var out-var))
-    (unless (find "shape" filters :test #'search)
-      (let ((bind-var (make-var)))
-        (push `(filter ,(make-var) ,last-var ,bind-var)
-              filter-predicates)
-        (push `(bind shape-category ,bind-var thing)
-              bind-predicates)))
     (append filter-predicates bind-predicates)))
 
 (defun rpn-fn->irl (rpn-fn last-predicate other-predicate)
@@ -288,41 +290,44 @@
          (irl-program nil)
          (context-variable nil)
          (filter-stack nil)
-         (keep-fn nil))
+         (keep-fn nil)
+         (use-context-var-next nil))
     (loop for rpn-fn in rpn-items
-          do (cond
-              ((string= rpn-fn "get-context")
-               (if context-variable
-                 (progn
-                   (setf keep-fn (first irl-program))
-                   (push
-                    `(get-context ,context-variable)
-                    irl-program))
-                 (let ((v (make-var)))
-                   (setf context-variable v)
-                   (push
-                    `(get-context ,context-variable)
-                    irl-program))))
-              ((search "filter" rpn-fn)
-               (push rpn-fn filter-stack))
-              (t
+          if (search "filter" rpn-fn)
+          do (push rpn-fn filter-stack)
+          else
+          do (progn
                (when filter-stack
+                 (if use-context-var-next
+                   (progn (setf use-context-var-next nil)
+                     (setf irl-program
+                           (append 
+                            (rpn-filters->irl filter-stack
+                                              `(get-context ,context-variable))
+                            irl-program)))
+                   (setf irl-program
+                         (append
+                          (rpn-filters->irl filter-stack
+                                            (first irl-program))
+                          irl-program)))
+                 (setf filter-stack nil))
+               (if (string= rpn-fn "get-context")
+                 (if context-variable
+                   (progn
+                     (setf keep-fn (first irl-program))
+                     (setf use-context-var-next t))
+                   (let ((v (make-var)))
+                     (setf context-variable v)
+                     (push
+                      `(get-context ,context-variable)
+                      irl-program)))
                  (setf irl-program
                        (append 
-                        (rpn-filters->irl filter-stack
-                                          (first irl-program))
-                        irl-program))
-                 (setf filter-stack nil))
-               (setf irl-program
-                     (append 
-                      (rpn-fn->irl rpn-fn
-                                   (first irl-program)
-                                   keep-fn)
-                      irl-program)))))
+                        (rpn-fn->irl rpn-fn
+                                     (first irl-program)
+                                     keep-fn)
+                        irl-program)))))
     (unless use-variables-p
       (setf irl-program
             (fcg::instantiate-variables irl-program)))
-    (remove-duplicates irl-program :test #'equal)))
-
-;(pprint (rpn->irl "get-context filter_color[cyan] filter_material[rubber] filter_shape[cube] unique relate_front filter_size[small] filter_color[cyan] filter_material[rubber] filter_shape[cube] exist" :use-variables-p t)        
-    
+    (remove-duplicates irl-program :test #'equal))) 
