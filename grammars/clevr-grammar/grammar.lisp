@@ -110,7 +110,7 @@
                          ;(:seq2seq-endpoint . "https://ehai.ai.vub.ac.be/seq2seq-heuristics/next-cxn")
                          (:seq2seq-endpoint . "http://localhost:8888/next-cxn")
                          (:seq2seq-model-comprehension . "clevr_comprehension_model")
-                         (:seq2seq-model-formulation . "clevr_formulation_model_3")
+                         (:seq2seq-model-formulation . "clevr_formulation_model_4")
                          (:seq2seq-rpn-fn . clevr-meaning->rpn)
                          
                          ;; For guiding search:
