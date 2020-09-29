@@ -321,12 +321,20 @@
                      (push
                       `(get-context ,context-variable)
                       irl-program)))
-                 (setf irl-program
-                       (append 
-                        (rpn-fn->irl rpn-fn
-                                     (first irl-program)
-                                     keep-fn)
-                        irl-program)))))
+                 (if use-context-var-next
+                   (progn (setf use-context-var-next nil)
+                     (setf irl-program
+                          (append 
+                            (rpn-fn->irl rpn-fn
+                                         (first irl-program)
+                                         `(get-context ,context-variable))
+                           irl-program)))
+                   (setf irl-program
+                         (append 
+                          (rpn-fn->irl rpn-fn
+                                       (first irl-program)
+                                       keep-fn)
+                         irl-program))))))
     (unless use-variables-p
       (setf irl-program
             (fcg::instantiate-variables irl-program)))
