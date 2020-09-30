@@ -19,6 +19,10 @@
     (prediction-accuracy (parse-namestring (getf arg-plist 'inputfile))
                          (parse-namestring (getf arg-plist 'outputfile))
                          (internal-symb (upcase (getf arg-plist 'direction)))
-                         (eval (internal-symb (upcase (getf arg-plist 'grammar)))))))
+                         (eval (internal-symb (upcase (getf arg-plist 'grammar))))
+                         :skip-lines (when (getf arg-plist 'skip-lines)
+                                       (parse-integer (getf arg-plist 'skip-lines)))
+                         :max-lines (when (getf arg-plist 'max-lines)
+                                      (parse-integer (getf arg-plist 'max-lines))))))
 
 (main ccl:*unprocessed-command-line-arguments*)
