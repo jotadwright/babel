@@ -533,10 +533,11 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
          collect (make-html child :expand/collapse-all-id expand/collapse-all-id))))
                                                   
 (defun on-path-to-target-p (node targets)
-  (loop for target in targets
-        when (or (eql node target)
-                 (member node (parents target)))
-        return t))
+  (when targets
+    (loop for target in targets
+          when (or (eql node target)
+                   (member node (parents target)))
+          return t)))
 
 (defmethod make-html ((node irl-program-processor-node)
                       &key targets (expand-initially nil)
@@ -590,7 +591,8 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
     ;; when drawing the search tree, only show the path to the solution
     ;; or the deepest inconsistent node when there is no solution
     (make-html (top processor) :targets (or solution-nodes
-                                            (list deepest-inconsistent-node))
+                                            (when deepest-inconsistent-node
+                                              (list deepest-inconsistent-node)))
                :expand/collapse-all-id expand/collapse-all-id
                :expand-initially expand-initially)))
 
