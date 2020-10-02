@@ -12,7 +12,7 @@
                     '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
                       (:priority-mode . :seq2seq-heuristic-additive)
                       (:seq2seq-endpoint . "http://localhost:9999/next-cxn")
-                      (:seq2seq-model-formulation . "clevr_formulation_model_3")))
+                      (:seq2seq-model-formulation . "clevr_formulation_model_4")))
 
 ;; CLEVR grammar default configurations:
 (set-configurations *CLEVR*
@@ -67,7 +67,8 @@
 ;; compare the prediction with the gold answer
 (defun main ()
   (multiple-value-bind (scene question-set)
-      (get-scene-by-index *CLEVR-val* 0)
+      (random-scene *CLEVR-val*)
+      ;(get-scene-by-index *CLEVR-val* 0)
     (let* ((image-pathname (image scene))
            (image-name (format nil "~a.~a"
                                (pathname-name image-pathname)
@@ -104,9 +105,10 @@
 (evaluate-irl-program
  '((get-context ?context)
    (filter ?set-1 ?context ?thing-1)
-   (filter ?set-3 ?context ?thing-3)
-   (union! ?uset ?set-1 ?set-3)
-   (count! ?target ?uset))
+   (unique ?obj-1 ?set-1)
+   (query ?target ?obj-1 ?attribute)
+   (bind attribute-category ?attribute color)
+   (bind color-category ?target red))
  *clevr-ontology*
  :primitive-inventory
  *hybrid-primitives*)
