@@ -62,7 +62,8 @@
 ;; compare the prediction with the gold answer
 (defun run-random-example ()
   (multiple-value-bind (scene question-set)
-      (get-scene-by-index *CLEVR-val* 0)
+      (random-scene *CLEVR-val*)
+      ;(get-scene-by-index *CLEVR-val* 0)
     (let* ((image-pathname (image scene))
            (image-name (format nil "~a.~a"
                                (pathname-name image-pathname)
@@ -124,6 +125,7 @@
 (defun section-2 ()
   (add-element '((h2 :id "section-2") "II. Multidirectionality"))
   (add-element '((p) "IRL offers the possibility for the primitive operations to be implemented in different directions. This is also extended to the Hybrid Semantic Representation. This way, the symbolic and subsymbolic modules can be used for multi-agent experiments using IRL's composer or flexible interpretation mechanisms."))
+  (add-element '((p) "In this example, we provide a meaning network without any bind statements. Thus, IRL will find all valid programs where it is possible to find a unique object after a single filter operation (on a chosen attribute) and query some chosen attribute of that object."))
   (evaluate-irl-program
    '((get-context ?context)
      (filter ?set-1 ?context ?thing-1)
@@ -133,6 +135,7 @@
    :primitive-inventory
    *hybrid-primitives*)
   (add-element '((p) "This IRL program returns 24 possible solutions by varying the categories used for the 'filter' primtive and the attribute on which the 'query' primitive operates.")))
+  
 
 ;(section-2)
 
