@@ -85,6 +85,13 @@
                                   (value (find target-var
                                                (first solutions)
                                                :key #'var)))))
+          (sleep 1)
+          (add-element `((h3) ,(format nil "The ground truth answer is \"~a\""
+                                       (downcase answer))))
+          (add-element `((h3) ,(format nil "The computed answer is \"~a\""
+                                       (downcase computed-answer))))
+          (add-element `((h3) ,(if (compare-answers answer computed-answer)
+                                 "Correct!" "Incorrect!")))
           (compare-answers answer computed-answer))))))
 
 ;; here goes!
