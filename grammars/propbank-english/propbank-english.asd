@@ -25,7 +25,8 @@
                 :serial t
                 :components ((:file "visualisation")
                              (:file "utils")
-                             (:file "de-render")))
+                             (:file "de-render")
+                             (:file "cxn-supplier")))
                (:module learning
                 :serial t
                 :components ((:file "evaluation")
