@@ -25,6 +25,7 @@
 ;; Activating trace-fcg
 (activate-monitor trace-fcg)
 
+
 ;;Create an empty cxn inventory
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents)
@@ -170,10 +171,12 @@
      ;:argm-pp
      ;:argm-subclause
      )
-    (:cxn-supplier-mode . :hashed-scored-labeled)))
+    (:cxn-supplier-mode . :propbank-english)))
 
 ;(set-configuration *propbank-learned-cxn-inventory* :node-tests '(:check-double-role-assignment :restrict-nr-of-nodes))
 ;(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '( :no-valid-children ))
+;;(set-configuration *propbank-learned-cxn-inventory* :cxn-supplier-mode :propbank-english)
+
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
