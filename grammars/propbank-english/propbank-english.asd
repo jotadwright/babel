@@ -9,6 +9,7 @@
                :monitors
                :irl
                :fcg
+               :category-hierarchies
                :nlp-tools
                :web-interface
                :cl-propbank
