@@ -14,7 +14,8 @@
   "Learns a Propbank Grammar."
   (let ((cxn-inventory (eval `(def-fcg-constructions-with-type-hierarchy propbank-learned-english
                                 :fcg-configurations ,fcg-configuration
-                                :visualization-configurations ((:show-constructional-dependencies . nil))
+                                :visualization-configurations ((:show-constructional-dependencies . nil)
+                                                               (:show-categorial-network . nil))
                                 :hierarchy-features (constituents dependents)
                                 :feature-types ((constituents sequence)
                                                 (dependents sequence)
@@ -86,10 +87,12 @@
         (eval
          `(def-fcg-cxn ,cxn-name
                        ((?lex-unit
+                         (footprints (lex))
                          (lex-category ,lex-category))
                         <-
                         (?lex-unit
                          --
+                         (footprints (NOT lex))
                          (lemma ,lemma)
                          (syn-class ,syn-class)))
                        :attributes (:lemma ,lemma
@@ -174,8 +177,6 @@
     
     (if equivalent-cxn
       (progn
-        (add-link (attr-val equivalent-cxn :gram-category)
-                  lex-category (get-type-hierarchy cxn-inventory))
         (add-link lex-category
                   (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory))
         (incf (attr-val equivalent-cxn :frequency))
@@ -183,7 +184,6 @@
       (when (and cxn-units-with-role (v-lemma core-units-with-role))
         ;;create a new construction and add it to the cxn-inventory
         (add-category gram-category (get-type-hierarchy cxn-inventory))
-        (add-link gram-category lex-category (get-type-hierarchy cxn-inventory))
         (add-link lex-category gram-category (get-type-hierarchy cxn-inventory))
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit
@@ -192,9 +192,10 @@
                                   ,@cxn-units-without-role
                                   ,@cxn-preposition-units-flat
                                   ,@cxn-s-bar-units-flat)
-                                 :attributes (:lemma nil
+                            :disable-automatic-footprints t
+                            :attributes (:lemma nil
                                               :score ,(length cxn-units-with-role)
-                                              :label core-roles
+                                              :label argument-structure-cxn
                                               :frequency 1
                                               :gram-category ,gram-category
                                               :utterance ,(sentence-string propbank-sentence)
@@ -212,23 +213,24 @@
     (if equivalent-cxn
       ;; if cxn already exists: increment frequency
       (progn
-        (add-link lex-category (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory))
         (add-link gram-category (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory))
         (add-link (attr-val equivalent-cxn :sense-category) lex-category (get-type-hierarchy cxn-inventory))
-        (add-link (attr-val equivalent-cxn :sense-category) gram-category (get-type-hierarchy cxn-inventory))
         (incf (attr-val equivalent-cxn :frequency))
         (attr-val equivalent-cxn :sense-category))
       ;; Else make new cxn
       (when lemma
         (eval
          `(def-fcg-cxn ,cxn-name
-                       (<-
+                       ((?lex-unit
+                         (footprints (ws)))<-
                         (?lex-unit
                          --
                          (lemma ,lemma)
                          (gram-category ,sense-category)
                          (lex-category ,sense-category)
-                         (frame ,(frame-name gold-frame))))
+                         (frame ,(frame-name gold-frame))
+                         (footprints (NOT ws))))
+                       :disable-automatic-footprints t
                        :attributes (:lemma ,lemma
                                     :sense-category ,sense-category
                                     :score 1
@@ -237,10 +239,8 @@
                                     :utterance ,(sentence-string propbank-sentence))
                        :cxn-inventory ,cxn-inventory))
         (add-category sense-category (get-type-hierarchy cxn-inventory))
-        (add-link lex-category sense-category (get-type-hierarchy cxn-inventory))
         (add-link gram-category sense-category (get-type-hierarchy cxn-inventory))
         (add-link sense-category lex-category (get-type-hierarchy cxn-inventory))
-        (add-link sense-category gram-category (get-type-hierarchy cxn-inventory))
         sense-category))))
 
 
@@ -360,6 +360,7 @@
                                                 ,(variablify (unit-name (cdr (assoc r units-with-role))))))))
     `(,v-unit-name
       (frame-evoking +)
+      (footprints (fee))
       (gram-category ,gram-category)
       (frame ?roleset)
       (meaning ,meaning))))
@@ -378,6 +379,7 @@ initial transient structure that plays a role in the frame."
         --
         (parent ,parent)
         ,syn-class
+        (footprints (NOT fee))
         (lex-category ,category))
       `(,unit-name
         --

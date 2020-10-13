@@ -13,8 +13,8 @@
 ;(length *pb-data*)
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
-(load-propbank-annotations 'ewt :store-data nil :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes :store-data nil )
+(load-propbank-annotations 'ewt)
+(load-propbank-annotations 'ontonotes)
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
@@ -29,7 +29,7 @@
 (def-fcg-constructions propbank-learned-english
   :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents)
                        (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
-                       (:parse-goal-tests :gold-standard-meaning) ;:no-valid-children
+                       (:parse-goal-tests :no-valid-children) ;:no-valid-children
                        (:max-nr-of-nodes . 100)
                        (:parse-order multi-argument-core-roles argm-pp argm-subclause argm-lemma)
                        (:node-expansion-mode . :multiple-cxns)
@@ -150,35 +150,59 @@
 (defparameter *training-configuration*
   '((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
-    (:parse-goal-tests :no-valid-children) ;:no-valid-children
+    (:parse-goal-tests :no-valid-children)
     (:max-nr-of-nodes . 100)
     (:node-expansion-mode . :multiple-cxns)
     (:priority-mode . :nr-of-applied-cxns)
     (:queue-mode . :greedy-best-first)
     (:hash-mode . :hash-lemma)
     (:parse-order
-     core-roles
-    ; argm-with-frame
+     
+     lexical-cxn
+     argument-structure-cxn
+     word-sense-cxn
     ; argm-all-frames
      )
     (:replace-when-equivalent . nil)
     (:learning-modes
-     :multi-argument-core-roles
+     :core-roles
      ;:argm-with-lemma
      ;:argm-pp
      ;:argm-subclause
      )
     (:cxn-supplier-mode . :hashed-scored-labeled)))
 
-(set-configuration *propbank-learned-cxn-inventory* :parse-order '(core-roles argm-with-frame argm-all-frames))
 ;(set-configuration *propbank-learned-cxn-inventory* :node-tests '(:check-double-role-assignment :restrict-nr-of-nodes))
 ;(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '( :no-valid-children ))
 
 (with-disabled-monitor-notifications
-  (learn-propbank-grammar (train-split *ontonotes-annotations*)
-                          :selected-rolesets nil
-                          :cxn-inventory '*propbank-learned-cxn-inventory*
-                          :fcg-configuration *training-configuration*))
+  (learn-propbank-grammar
+   (dev-split *ontonotes-annotations*)
+   :selected-rolesets nil
+   :cxn-inventory '*propbank-learned-cxn-inventory*
+   :fcg-configuration *training-configuration*))
+
+;; (activate-monitor trace-fcg)
+;; (comprehend-and-extract-frames (first (dev-split *ontonotes-annotations*)) :cxn-inventory *propbank-learned-cxn-inventory*)
+
+graph-utils::neighbors
+
+
+
+fcg::unify-atom
+
+(deactivate-all-monitors)
+
+(with-disabled-monitors 
+  (comprehend-and-extract-frames "Mary sent her mother roses." :cxn-inventory *propbank-learned-cxn-inventory*))
+
+
+fcg::unify-atom
+
+(add-element (make-html (get-type-hierarchy *propbank-learned-cxn-inventory*)))
+
+(loop for cxn in (subseq  (constructions-list *propbank-learned-cxn-inventory*) 1 10)
+      do (add-element (make-html cxn)))
 
 (clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
 
