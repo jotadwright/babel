@@ -228,7 +228,7 @@
                          (lemma ,lemma)
                          (gram-category ,sense-category)
                          (lex-category ,sense-category)
-                         (frame ,(frame-name gold-frame))
+                         (frame ,(intern (upcase (frame-name gold-frame))))
                          (footprints (NOT ws))))
                        :disable-automatic-footprints t
                        :attributes (:lemma ,lemma
