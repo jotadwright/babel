@@ -62,7 +62,7 @@
          (let* ((lex-categories-node (lex-categories node))
                 (neighbours (remove-duplicates (loop for lex-category in lex-categories-node
                                                      append (graph-utils::neighbors (type-hierarchies::graph (get-type-hierarchy (construction-inventory node))) lex-category
-                                                                                    :return-ids? t))))
+                                                                                    :return-ids? nil))))
                 (constructions (loop for cxn in (gethash nil (constructions-hash-table (construction-inventory node)))
                                      for cxn-category = (attr-val cxn :gram-category)
                                      when (member cxn-category neighbours)
