@@ -129,7 +129,7 @@
                      (dolist (p all-linked) (when p (push p stack))))))))
     rpn))
 
-(defun program->program-tree (irl-program)
+(defun program->tree (irl-program)
   (let* ((target-predicate (get-target-predicate irl-program))
          (stack (list (cons target-predicate nil)))
          (program-tree (make-instance 'clevr-program)))
@@ -180,33 +180,25 @@
       (loop for node in nodes
             collect `((:type . ,(mkstr (function-name node)))
                       (:value--inputs . ,(mapcar #'mkstr (args node))))))))
+|#
 
-(defmethod encode-for-json ((node clevr-program-node))
+(defmethod encode-for-json ((node clevr-function))
   `((:id . ,(id node))
-    (:function . ,(downcase (replace-char (mkstr (clevr-function node)) #\- #\_)))
-    (:value--inputs . ,(if (null (value-inputs node)) "[]" (value-inputs node)))
-    (:inputs . ,(if (null (inputs node)) "[]" (inputs node)))))
+    (:function . ,(downcase (replace-char (mkstr (function-name node)) #\- #\_)))
+    (:value--inputs . ,(if (null (args node)) "[]" (args node)))
+    (:inputs . ,(if (null (children node)) "[]" (children node)))))
 
-(defun program-tree->json-file (program-tree &key path)
+(defun tree->json (program-tree)
   "Create a json file from the program tree"
-  (let ((out-path (or (and path (pathnamep path) (string= (pathname-type path) "json"))
-                      (make-file-name-with-time
-                       (babel-pathname :directory '(".tmp") :name "" :type "json"))))
-        (node-count 0)
+  (let ((node-count 0)
         (num-nodes (length (nodes program-tree))))
     (traverse program-tree (lambda (node)
                              (setf (id node) (- num-nodes node-count 1))
                              (incf node-count)))
     (traverse program-tree (lambda (node)
                              (let ((inputs (mapcar #'id (children node))))
-                               (setf (inputs node)
+                               (setf (children node)
                                      (sort inputs #'<)))))
     (let ((nodes (sort (nodes program-tree) #'< :key #'id)))
-      (with-open-file (stream out-path :direction :output)
-        (write-string
-         (encode-json-to-string
-          (loop for node in nodes
-                collect (encode-for-json node)))
-         stream)))
-    out-path))
-|#
+      (loop for node in nodes
+            collect (encode-for-json node)))))
