@@ -221,8 +221,7 @@
 (export '(clevr-function function-name args))
 
 (defclass clevr-function (entity tree-node)
-  ((id :type (or symbol number) :initarg :id :accessor id)
-   (function-name :type symbol :initarg :function-name :accessor function-name)
+  ((function-name :type symbol :initarg :function-name :accessor function-name)
    (args          :type list   :initarg :args          :accessor args          :initform nil))
   (:documentation "A function in a CLEVR program"))
 
