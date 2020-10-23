@@ -116,4 +116,5 @@
     (process-inputfile (getf arg-plist 'inputfile)
                        (getf arg-plist 'outputdir))))
 
-;(main ccl:*unprocessed-command-line-arguments*)
+(main #+ccl ccl:*unprocessed-command-line-arguments*
+      #+sbcl (rest sb-ext:*posix-argv*))
