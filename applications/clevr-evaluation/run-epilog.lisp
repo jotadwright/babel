@@ -8,32 +8,30 @@
 ;; into a single output file
 ;; ######################################
 
-(defun merge-batch-files (&key inputdir outputfile)
-  ;; check some stuff
+(defun merge-batch-files (inputdir outputfile &key (type :wild))
+  ;; check that the inputdir exists
   (unless (probe-file inputdir)
     (error "Could not find the directory ~a" inputdir))
   ;; print some stuff
   (format t "~%~%************************Running epilog************************")
   (format t "~%Reading input from ~a" (namestring inputdir))
   (format t "~%Writing output to ~a" (namestring outputfile))
-  ;; merge the batches
+  ;; create the path to outputfile
   (ensure-directories-exist outputfile)
-  (with-open-file (out outputfile :direction :output
-                       :if-exists :supersede
-                       :if-does-not-exist :create)
-    (let ((num-files (length
-                      (directory
-                       (make-pathname :directory (pathname-directory inputdir)
-                                      :name :wild :type "csv")))))
-      (loop for i from 0 below num-files
-         for infile = (make-pathname :directory (pathname-directory inputdir)
-                                     :name (format nil "output-batch-~a" i)
-                                     :type "csv")
-           do (format t "Reading from ~a~%" (namestring infile))
-         do (with-open-file (in infile :direction :input)
-              (loop for line = (read-line in nil nil)
-                 while line
-                   do (write-line line out)))))))
+  ;; open the pipe to outputfile
+  (with-open-file (out-stream outputfile :direction :output
+                              :if-exists :supersede
+                              :if-does-not-exist :create)
+    ;; get all files (of type) from inputdir
+    (let ((files (directory
+                  (make-pathname :directory (pathname-directory inputdir)
+                                 :name :wild :type type))))
+      (loop for file in files
+            do (format t "Reading from ~a~%" (namestring file))
+            do (with-open-file (in-stream file :direction :input)
+                 (loop for line = (read-line in-stream nil nil)
+                       while line
+                       do (write-line line out-stream)))))))
         
 
 (defun args->plist (args)
@@ -45,11 +43,14 @@
 
 (defun main (args)
   (let ((arg-plist (args->plist args)))
-    (loop for indicator in '(inputdir outputfile)
+    ;; parse the command line arguments
+    (loop for indicator in '(inputdir outputfile type)
           unless (getf arg-plist indicator)
           do (error "Missing command line argument: ~a" indicator))
-    (merge-batch-files :inputdir (parse-namestring (getf arg-plist 'inputdir))
-                       :outputfile (parse-namestring (getf arg-plist 'outputfile)))
+    ;; merge the batch files
+    (merge-batch-files (parse-namestring (getf arg-plist 'inputdir))
+                       (parse-namestring (getf arg-plist 'outputfile))
+                       :type (getf arg-plist 'type))
     (format t "~%Done!")))
 
 (main ccl:*unprocessed-command-line-arguments*)
