@@ -69,6 +69,7 @@
         (loop repeat lines-already-processed
               do (read-line in-stream nil nil))))
     (unless outputfile-exists-p
+      (ensure-directories-exist outputfile)
       (write-line out-stream-header out-stream)
       (force-output out-stream))
     (loop for line = (remove #\Return (read-line in-stream nil nil))
