@@ -30,5 +30,5 @@
                (:file "preprocess-sentence")
                (:file "evaluation")
                (:file "evaluation-parallel")
-               (:file "rpn-corpus")
+               ;(:file "rpn-corpus")
                (:file "web-monitors")))
