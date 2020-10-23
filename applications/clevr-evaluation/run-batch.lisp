@@ -36,7 +36,6 @@
     (multiple-value-bind (irl-program cipn)
         (comprehend-until-solution utterance id)
       (declare (ignorable cipn))
-      (format t "[~a] comprehension done~%" id)
       (values (downcase (mkstr irl-program))
               (clevr-meaning->rpn irl-program)
               (list-of-strings->string
@@ -52,11 +51,12 @@
   ;; (i.e. continuing the work)
   ;; Also, the outputfile contains all columns from the inputfile
   ;; but adds additional information.
-  (let* ((outputfile (make-pathname :directory (pathname-directory outputdir)
-                                    :name (pathname-name inputfile)
-                                    :type (pathname-type inputfile)))
+  (let* ((lines-to-process (- (number-of-lines inputfile) 1))
          (in-stream (open inputfile :direction :input))
          (in-stream-header (remove #\Return (read-line in-stream)))
+         (outputfile (make-pathname :directory (pathname-directory outputdir)
+                                    :name (pathname-name inputfile)
+                                    :type (pathname-type inputfile)))
          (outputfile-exists-p (probe-file outputfile))
          (out-stream (open outputfile :direction :output
                            :if-exists :append
@@ -66,20 +66,23 @@
                          "rpn" "comprehension_cxns")))
     (when outputfile-exists-p
       (let ((lines-already-processed (- (number-of-lines outputfile) 1)))
+        (decf lines-to-process lines-already-processed)
         (loop repeat lines-already-processed
               do (read-line in-stream nil nil))))
     (unless outputfile-exists-p
       (ensure-directories-exist outputfile)
       (write-line out-stream-header out-stream)
       (force-output out-stream))
-    (loop for line = (remove #\Return (read-line in-stream nil nil))
-          while line
-          do (multiple-value-bind (irl-program rpn comprehension-cxns)
-                 (get-meaning-and-comprehension-cxns line)
-               (let ((out-line
-                      (make-csv-line line irl-program rpn comprehension-cxns)))
-                 (write-line out-line out-stream)
-                 (force-output out-stream))))))
+    (with-progress-bar (bar lines-to-process ("Processing ~a" (pathname-name inputfile)))
+      (loop for line = (remove #\Return (read-line in-stream nil nil))
+            while line
+            do (multiple-value-bind (irl-program rpn comprehension-cxns)
+                   (get-meaning-and-comprehension-cxns line)
+                 (let ((out-line
+                        (make-csv-line line irl-program rpn comprehension-cxns)))
+                   (write-line out-line out-stream)
+                   (force-output out-stream)
+                   (update bar)))))))
 
 #|
 (set-configurations *CLEVR*
