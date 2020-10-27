@@ -92,7 +92,11 @@
                         (make-csv-line line irl-program rpn comprehension-cxns)))
                    (write-line out-line out-stream)
                    (force-output out-stream)
-                   (update bar)))))))
+                   (update bar)))))
+    ;; close the pipes
+    (close in-stream)
+    (force-output out-stream)
+    (close out-stream)))
 
 #|
 (set-configurations *CLEVR*
