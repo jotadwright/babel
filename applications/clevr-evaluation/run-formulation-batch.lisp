@@ -14,8 +14,6 @@
   "Check if all goal tests of all cipns succeed"
   (and cipns (apply #'always (mapcar #'succeededp cipns))))
 
-(activate-monitor trace-fcg)
-
 (defun formulate-until-solution (irl-program id num-solutions num-attempts timeout)
   "Try to formulate the irl-program until
    num-solutions are found"
@@ -32,15 +30,9 @@
                                 :silent nil :n num-solutions))
              (trivial-timeout:timeout-error (error)
                (values nil nil))))
-        if (all-succeededp nodes)
-        do (progn
-             (format t "[~a] formulation succeeded~%" id)
-             (setf cipns nodes
-                   utterances forms))
-        else
-        do (format t "[~a] formulation attempt ~a failed~%"
-                   id attempt)
-        end
+        when (all-succeededp nodes)
+        do (setf cipns nodes
+                 utterances forms)
         finally (return (values utterances cipns))))
 
 (defun get-utterance-and-formulation-cxns (id irl-program num-solutions num-attempts timeout)
