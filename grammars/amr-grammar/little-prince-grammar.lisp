@@ -51,6 +51,51 @@ It was then that the fox appeared .
                  --
                  (HASH form ((string ?fox-unit "fox"))))))
 
+  (def-fcg-cxn prince-cxn
+               ((?prince-unit
+                 (referent ?p)
+                 (lex-class (noun))
+                 (sem-class physical-entity)
+                 )
+                <-
+                (?prince-unit
+                 (HASH meaning ((prince ?p)))
+                 --
+                 (HASH form ((string ?prince-unit "prince"))))))
+
+  (def-fcg-cxn little-cxn
+               ((?little-unit
+                 (referent ?l)
+                 (lex-class (adjective))
+                 (sem-class property))
+                <-
+                (?little-unit
+                 (HASH meaning ((little ?l)))
+                 --
+                 (HASH form ((string ?little-unit "little"))))))
+  
+  (def-fcg-cxn noun-adjective-nominal-cxn
+               ((?nominal-unit
+                 (subunits (?noun-unit ?adjective-unit))
+                 (referent ?n)
+                 (syn-function nominal)
+                 (sem-class ?sem-class)
+                 (boundaries (leftmost-unit ?adjective-unit)
+                             (rightmost-unit ?noun-unit)))
+                <-
+                (?adjective-unit
+                 --
+                 (referent ?a)
+                 (lex-class (adjective)))
+                (?noun-unit
+                 --
+                 (referent ?n)
+                 (lex-class (noun)))
+                (?nominal-unit
+                 (HASH meaning ((:mod ?n ?a)))
+                 --
+                 (HASH form ((meets ?adjective-unit ?noun-unit))))))
+  
   (def-fcg-cxn noun-nominal-cxn
                ((?nominal-unit
                  (subunits (?noun-unit))
@@ -116,13 +161,13 @@ It was then that the fox appeared .
 
     (def-fcg-cxn say-lex-cxn
                ((?say-unit
-                 (referent ?a)
+                 (referent ?s)
                  (lex-class (verb))
                  (sem-class activity)
                  (sem-frame statement))
                 <-
                 (?say-unit
-                 (HASH meaning ((say-01 ?a)))
+                 (HASH meaning ((say-01 ?s)))
                  --
                  (lemma say)
                  (agreement (person ?p)
@@ -138,6 +183,31 @@ It was then that the fox appeared .
              (tense past)
              --
              (HASH form ((string ?said-unit "said"))))))
+
+  (def-fcg-cxn respond-lex-cxn
+               ((?respond-unit
+                 (referent ?r)
+                 (lex-class (verb))
+                 (sem-class activity)
+                 (sem-frame statement))
+                <-
+                (?respond-unit
+                 (HASH meaning ((respond-01 ?r)))
+                 --
+                 (lemma respond)
+                 (agreement (person ?p)
+                            (number ?n))
+                 (tense ?t))))
+
+  (def-fcg-cxn respond-responded-morph
+           (<-
+            (?responded-unit
+             (lemma respond)
+             (agreement (person ?p)
+                        (number ?n))
+             (tense past)
+             --
+             (HASH form ((string ?responded-unit "responded"))))))
   
 
   (def-fcg-cxn intransitive-ergative-cxn
@@ -239,13 +309,13 @@ It was then that the fox appeared .
                  (sem-frame statement)
                  (lex-class (verb))
                  (referent ?s2)
-                 (HASH form ((meets ?quote-2 ?statement-verb-unit))))
+                 )
                 (?arg0-unit
                  --
                  (referent ?arg0)
                  (boundaries (leftmost-unit ?leftmost-arg0-unit)
                              (rightmost-unit ?righmost-arg0-unit))
-                 (HASH form ((meets ?statement-verb-unit ?leftmost-arg0-unit))))))
+                 )))
 
   
 
@@ -259,7 +329,7 @@ It was then that the fox appeared .
 (comprehend " ' Good morning , ' said the fox")
 
 
-" Good morning , " the little prince responded politely , although when he turned around he saw nothing .
+(comprehend " ' Good morning , ' the little prince responded politely , although when he turned around he saw nothing ")
 
 
 (r / respond-01
