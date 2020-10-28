@@ -189,7 +189,7 @@ It was then that the fox appeared .
                  (referent ?r)
                  (lex-class (verb))
                  (sem-class activity)
-                 (sem-frame statement))
+                 (sem-frame response))
                 <-
                 (?respond-unit
                  (HASH meaning ((respond-01 ?r)))
@@ -263,6 +263,7 @@ It was then that the fox appeared .
                  (referent ?m)
                  (sem-class greeting)
                  (lex-class fixed-expression)
+                 (phrase-type clause)
                  (subunits (?good-unit ?morning-unit))
                  (boundaries (leftmost-unit ?good-unit)
                              (rightmost-unit ?morning-unit)))
@@ -281,7 +282,30 @@ It was then that the fox appeared .
                  --
                  (HASH form ((meets ?good-unit ?morning-unit))))))
 
-  (def-fcg-cxn topicalised-statement-cxn
+  (def-fcg-cxn direct-speech-cxn
+               ((?direct-speech-unit
+                 (referent ?s)
+                 (phrase-type direct-speech)
+                 (subunits (?statement-unit))
+                 (boundaries (leftmost-unit ?quote-1)
+                             (rightmost-unit ?quote-2)))
+                <-
+                (?statement-unit
+                 --
+                 (referent ?s)
+                 (phrase-type clause)
+                 (boundaries (leftmost-unit ?leftmost-statement-unit)
+                             (rightmost-unit ?rightmost-statement-unit)))
+                (?direct-speech-unit
+                 --
+                 (HASH form ((string ?quote-1 "'")
+                             (string ?comma ",") ;;with comma!
+                             (string ?quote-2 "'")
+                             (meets ?comma ?quote-2)
+                             (meets ?quote-1 ?leftmost-statement-unit)
+                             (meets ?rightmost-statement-unit ?comma))))))
+  
+  (def-fcg-cxn topicalised-statement-frame-cxn
                ((?clause-unit
                  (subunits (?statement-unit ?statement-verb-unit ?arg0-unit))
                  (syn-valence (subject ?arg0-unit))
@@ -294,33 +318,67 @@ It was then that the fox appeared .
                 (?statement-unit
                  --
                  (referent ?s)
-                 (boundaries (leftmost-unit ?leftmost-statement-unit)
-                             (rightmost-unit ?rightmost-statement-unit))
-                 (HASH form ((string ?quote-1 "'")
-                             (string ?comma ",")
-                             (string ?quote-2 "'")
-                             (meets ?comma ?quote-2)
-                             (meets ?quote-1 ?leftmost-statement-unit)
-                             (meets ?rightmost-statement-unit ?comma))))
+                 (phrase-type direct-speech))
                 (?statement-verb-unit
                  (HASH meaning ((:arg0 ?s2 ?arg0)
                                 (:arg1 ?s2 ?s)))
                  --
                  (sem-frame statement)
                  (lex-class (verb))
-                 (referent ?s2)
-                 )
+                 (referent ?s2))
                 (?arg0-unit
                  --
                  (referent ?arg0)
+                 (phrase-type noun-phrase)
                  (boundaries (leftmost-unit ?leftmost-arg0-unit)
+                             (rightmost-unit ?righmost-arg0-unit)))))
+
+  (def-fcg-cxn topicalised-response-frame-cxn
+               ((?clause-unit
+                 (subunits (?statement-unit ?statement-verb-unit ?arg0-unit))
+                 (syn-valence (subject ?arg0-unit))
+                 (boundaries (leftmost-unit ?quote-1)
                              (rightmost-unit ?righmost-arg0-unit))
-                 )))
+                 (phrase-type clause)
+                 (referent ?s2))
+                 
+                <-
+                (?statement-unit
+                 --
+                 (referent ?s)
+                 (phrase-type direct-speech))
+                (?statement-verb-unit
+                 (HASH meaning ((:arg0 ?s2 ?arg0)
+                                (:arg2 ?s2 ?s)))
+                 --
+                 (sem-frame response)
+                 (lex-class (verb))
+                 (referent ?s2))
+                (?arg0-unit
+                 --
+                 (referent ?arg0)
+                 (phrase-type noun-phrase)
+                 (boundaries (leftmost-unit ?leftmost-arg0-unit)
+                             (rightmost-unit ?righmost-arg0-unit)))))
 
-  
-
-  
-)
+  (def-fcg-cxn politely-adverb
+               ((?politely-unit
+                 (referent ?p))
+                (?event-unit
+                 (subunits (?politely-unit)))
+                <-
+                (?politely-unit
+                 (HASH meaning ((polite-01 ?p)))
+                 --
+                 (HASH form ((string ?politely-unit "politely"))))
+                (?event-unit
+                 (referent ?e)
+                 (lex-class (verb))
+                 (HASH meaning ((:manner ?e ?p)))
+                 --
+                 (HASH form ((meets ?event-unit ?politely-unit))))))
+                 
+  )
 
 (activate-monitor trace-fcg)
 
