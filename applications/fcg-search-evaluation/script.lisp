@@ -87,12 +87,12 @@
 ;;;; Comprehension
 ;;;; ----------------------------------------
 
-(defun comprehend-with-timings (utterance time-out)
+(defun comprehend-with-timings (grammar utterance time-out)
   (let ((start-time (get-internal-real-time)))
     (multiple-value-bind (meaning cipn)
         (handler-case
             (trivial-timeout:with-timeout (time-out)
-              (comprehend utterance :cxn-inventory *CLEVR*))
+              (comprehend utterance :cxn-inventory grammar))
           (trivial-timeout:timeout-error (error)
             (values nil nil)))
       (let* ((end-time (get-internal-real-time))
@@ -102,20 +102,20 @@
           (values meaning cipn time-out)
           (values meaning cipn run-time))))))
 
-(defun comprehend-line (id utterance out-stream timeout)
+(defun comprehend-line (grammar id utterance out-stream timeout)
   (multiple-value-bind (meaning cipn run-time)
-      (comprehend-with-timings utterance timeout)
+      (comprehend-with-timings grammar utterance timeout)
     (run-monitors id utterance meaning cipn run-time out-stream)))
 
 ;;;; Formulation
 ;;;; ----------------------------------------
 
-(defun formulate-with-timings (meaning time-out)
+(defun formulate-with-timings (grammar meaning time-out)
   (let ((start-time (get-internal-real-time)))
     (multiple-value-bind (utterance cipn)
         (handler-case
             (trivial-timeout:with-timeout (time-out)
-              (handler-case (formulate meaning :cxn-inventory *CLEVR*)
+              (handler-case (formulate meaning :cxn-inventory grammar)
                 (usocket:timeout-error (error)
                   (values nil nil))
                 (error (e)
@@ -129,9 +129,9 @@
           (values utterance cipn time-out)
           (values utterance cipn run-time))))))
 
-(defun formulate-line (id irl-program out-stream timeout)
+(defun formulate-line (grammar id irl-program out-stream timeout)
   (multiple-value-bind (utterance cipn run-time)
-      (formulate-with-timings irl-program timeout)
+      (formulate-with-timings grammar irl-program timeout)
     (run-monitors id irl-program utterance cipn run-time out-stream)))
 
 ;;;; Main loop
@@ -155,7 +155,7 @@
     (force-output out-stream)
     out-stream))
 
-(defun process-inputfile (inputfile outputdir timeout direction)
+(defun process-inputfile (grammar inputfile outputdir timeout direction)
   (let ((lines-to-process (- (number-of-lines inputfile) 1))
         (in-stream (open inputfile :direction :input))
         (out-stream (make-out-stream inputfile outputdir)))
@@ -172,8 +172,8 @@
                       (utterance (second fields))
                       (irl-program (read-from-string (third fields))))
                  (case direction
-                   (:comprehension (comprehend-line id utterance out-stream timeout))
-                   (:formulation (formulate-line id irl-program out-stream timeout))))
+                   (:comprehension (comprehend-line grammar id utterance out-stream timeout))
+                   (:formulation (formulate-line grammar id irl-program out-stream timeout))))
             do (update bar)))
     ;; close the pipes
     (close in-stream)
@@ -184,7 +184,7 @@
 ;;;; Configurations
 ;;;; ----------------------------------------
 
-(defun activate-strategy (strategy max-nr-of-nodes seq2seq-server-port)
+(defun activate-strategy (grammar strategy max-nr-of-nodes seq2seq-server-port)
   (let ((configurations
          (case strategy
            (:depth-first
@@ -207,9 +207,24 @@
                 (:priority-mode . :seq2seq-heuristic-additive)
                 (:seq2seq-endpoint . ,endpoint)
                 (:max-nr-of-nodes . ,max-nr-of-nodes)))))))
-    (set-configurations *clevr* configurations :replace t)
-    (set-configurations (processing-cxn-inventory *clevr*)
+    (set-configurations grammar configurations :replace t)
+    (set-configurations (processing-cxn-inventory grammar)
                         configurations :replace t)))
+
+;;;; Import/Export of priming data
+;;;; ----------------------------------------
+
+(defmethod import-priming-data (grammar path (direction (eql :comprehension)))
+  (fcg-import-comprehension-priming-data path grammar))
+
+(defmethod import-priming-data (grammar path (direction (eql :formulation)))
+  (fcg-import-formulation-priming-data path grammar))
+
+(defmethod export-priming-data (grammar path (direction (eql :comprehension)))
+  (fcg-export-comprehension-priming-data grammar :path path)) 
+
+(defmethod export-priming-data (grammar path (direction (eql :formulation)))
+  (fcg-export-formulation-priming-data grammar :path path))
 
 ;;;; Testing
 ;;;; ----------------------------------------
@@ -235,43 +250,75 @@
         if (evenp i) collect (internal-symb (upcase arg))
         else collect arg))
 
+(defun process-args (args)
+  (setf (getf args 'grammar)
+        (copy-object (eval (getf args 'grammar))))
+  (setf (getf args 'strategy)
+        (make-kw (upcase (getf args 'strategy))))
+  (unless (member (getf args 'strategy) '(:depth-first :priming :seq2seq))
+    (error "Unknown strategy: ~a. Expected :depth-first, :priming or :seq2seq"
+           (getf args 'strategy)))
+  (when (eql (getf args 'strategy) :seq2seq)
+    (if (getf args 'seq2seq-server-port)
+      (setf (getf args 'seq2seq-server-port)
+            (parse-integer (getf args 'seq2seq-server-port)))
+      (error "Must specify a seq2seq-server-port when using the seq2seq strategy!")))      
+  (setf (getf args 'direction)
+        (make-kw (upcase (getf args 'direction))))
+  (setf (getf args 'timeout)
+        (parse-integer (getf args 'timeout)))
+  (setf (getf args 'max-nr-of-nodes)
+        (parse-integer (getf args 'max-nr-of-nodes))))
+  
+
 (defun main (args)
   (let ((arg-plist (args->plist args)))
     ;; check the command line args
-    (loop for indicator in '(inputfile outputdir strategy timeout
-                             direction max-nr-of-nodes)
+    (loop for indicator in '(grammar inputfile outputdir
+                             strategy timeout direction
+                             max-nr-of-nodes)
           unless (getf arg-plist indicator)
           do (error "Missing command line argument: ~a" indicator))
-    ;; transform the command line args
-    (setf (getf arg-plist 'strategy)
-          (make-kw (upcase (getf arg-plist 'strategy))))
-    (setf (getf arg-plist 'direction)
-          (make-kw (upcase (getf arg-plist 'direction))))
-    (setf (getf arg-plist 'timeout)
-          (parse-integer (getf arg-plist 'timeout)))
-    (setf (getf arg-plist 'max-nr-of-nodes)
-          (parse-integer (getf arg-plist 'max-nr-of-nodes)))
-    (when (getf arg-plist 'seq2seq-server-port)
-      (setf (getf arg-plist 'seq2seq-server-port)
-            (parse-integer (getf arg-plist 'seq2seq-server-port))))
-    ;; check the strategy
-    (unless (member (getf arg-plist 'strategy) '(:depth-first :priming :seq2seq))
-      (error "Unknown strategy: ~a. Expected :depth-first, :priming or :seq2seq"
-             (getf arg-plist 'strategy)))
-    ;; check the seq2seq server port
-    (when (eql (getf arg-plist 'strategy) :seq2seq)
-      (unless (getf arg-plist 'seq2seq-server-port)
-        (error "Must specify a seq2seq-server-port when using the seq2seq strategy!")))
+    ;; process the command line args
+    (process-args arg-plist)
     ;; set the configurations for the CLEVR grammar
-    ;; depending on the strategy and max-nr-of-nodes
-    (activate-strategy (getf arg-plist 'strategy)
+    ;; depending on the strategy
+    (activate-strategy (getf arg-plist 'grammar)
+                       (getf arg-plist 'strategy)
                        (getf arg-plist 'max-nr-of-nodes)
                        (getf arg-plist 'seq2seq-server-port))
+    ;; check if there is priming data to be imported
+    (when (getf arg-plist 'import-priming-data-path)
+      (import-priming-data (getf arg-plist 'grammar)
+                           (getf arg-plist 'import-priming-data-path)
+                           (getf arg-plist 'direction)))
     ;; process the inputfile
-    (process-inputfile (getf arg-plist 'inputfile)
+    (process-inputfile (getf arg-plist 'grammar)
+                       (getf arg-plist 'inputfile)
                        (getf arg-plist 'outputdir)
                        (getf arg-plist 'timeout)
-                       (getf arg-plist 'direction))))
+                       (getf arg-plist 'direction))
+    ;; check if there is priming data to be exported
+    (when (getf arg-plist 'export-priming-data-path)
+      (export-priming-data (getf arg-plist 'grammar)
+                           (getf arg-plist 'export-priming-data-path)
+                           (getf arg-plist 'direction)))))
+
+#|
+How to call this script:
+
+ccl -l script.lisp -b
+    -- grammar *clevr*
+       inputfile batch-0.csv
+       outputdir raw-data/comprehension-depth-first/  ;; outputfile has same name as inputfile
+       strategy depth-first
+       timeout 60
+       direction comprehension
+       max-nr-of-nodes 50000
+       [seq2seq-server-port 8000]  ;; only useful in seq2seq strategy
+       [import-priming-data-path raw-data/comprehension-priming-data.lsp]  ;; only useful in priming strategy
+       [export-priming-data-path raw-data/comprehension-priming-data.lsp]  ;; only useful in priming strategy
+|#
 
 #-lispworks
 (main #+ccl ccl:*unprocessed-command-line-arguments*
