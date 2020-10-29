@@ -193,13 +193,13 @@
                                   ,@cxn-preposition-units-flat
                                   ,@cxn-s-bar-units-flat)
                             :disable-automatic-footprints t
-                            :attributes (:lemma nil
-                                              :score ,(length cxn-units-with-role)
-                                              :label argument-structure-cxn
-                                              :frequency 1
-                                              :gram-category ,gram-category
-                                              :utterance ,(sentence-string propbank-sentence)
-                                              :schema ,schema)
+                            :attributes (:schema ,schema
+                                         :lemma nil
+                                         :score ,(length cxn-units-with-role)
+                                         :label argument-structure-cxn
+                                         :frequency 1
+                                         :gram-category ,gram-category
+                                         :utterance ,(sentence-string propbank-sentence))
                                  :cxn-inventory ,cxn-inventory))
         gram-category))))
 

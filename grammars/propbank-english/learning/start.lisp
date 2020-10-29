@@ -8,10 +8,6 @@
 ;;(ql:quickload :propbank-english)
 (in-package :propbank-english)
 
-;; Loading the Propbank frames (takes a few seconds)
-(load-pb-data :store-data nil :ignore-stored-data nil)
-;(length *pb-data*)
-
 ;; Loading the Propbank annotations (takes a couple of minutes)
 (load-propbank-annotations 'ewt)
 (load-propbank-annotations 'ontonotes)
@@ -25,37 +21,7 @@
 ;; Activating trace-fcg
 (activate-monitor trace-fcg)
 
-
-;;Create an empty cxn inventory
-(def-fcg-constructions propbank-learned-english
-  :fcg-configurations ((:de-render-mode .  :de-render-constituents-dependents)
-                       (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
-                       (:parse-goal-tests :no-valid-children) ;:no-valid-children
-                       (:max-nr-of-nodes . 100)
-                       (:parse-order multi-argument-core-roles argm-pp argm-subclause argm-lemma)
-                       (:node-expansion-mode . :multiple-cxns)
-                       (:priority-mode . :nr-of-applied-cxns)
-                       (:queue-mode . :greedy-best-first)
-                       (:hash-mode . :hash-lemma)
-                       (:cxn-supplier-mode . :hashed-scored-labeled)
-                       ;(:equivalent-cxn-fn . fcg::equivalent-propbank-construction)
-                       ;(:equivalent-cxn-key . identity)
-                       (:replace-when-equivalent . nil)
-                       (:learning-mode :multi-argument-with-lemma :multi-argument-without-lemma))
-  :visualization-configurations ((:show-constructional-dependencies . nil))
-  :hierarchy-features (constituents dependents)
-  :feature-types ((constituents set)
-                  (dependents set)
-                  (span sequence)
-                  (phrase-type set)
-                  (lex-class set)
-                  (word-order set-of-predicates)
-                  (meaning set-of-predicates)
-                  (footprints set))
-  :cxn-inventory *propbank-learned-cxn-inventory*
-  :hashed t)
-
-
+find-equivalent-cxn
 
 ;;;;;;;;;;;
 ;; Data  ;;
@@ -96,25 +62,19 @@
                                                  append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
 
-(defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences (subseq (shuffle (test-split *ontonotes-annotations*)) 0 700) nil) 0 100))
+(defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences (subseq (shuffle (test-split *ontonotes-annotations*)) 0 ) nil) 0 ))
 
-(evaluate-propbank-corpus *test-sentences-all-frames* *core-roles-cleaned-frequency-grammar* :timeout 60)
+(length *test-sentences-all-frames*)
 
-(defparameter *core-roles-cleaned-frequency-grammar* (clean-grammar *restored-grammar* :destructive nil
-                                                                    :remove-cxns-with-freq-1 t :remove-faulty-cnxs t))
-(size *core-roles-cleaned-frequency-grammar*)
-(size *restored-grammar*)
+(evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
 
 (defparameter *evaluation-result* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-09-14-15-18-51-evaluation"
-                                                           :type "store")))
-
-(defparameter *evaluation-result-cleaned* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-09-14-16-16-39-evaluation"
+                                                           :name "evaluation_core_test"
                                                            :type "store")))
 
 
-(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences t :include-word-sense nil)
+
+(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 (evaluate-predictions *evaluation-result-cleaned* :core-roles-only t :include-timed-out-sentences t :include-word-sense nil)
 
 
@@ -158,18 +118,12 @@
     (:queue-mode . :greedy-best-first)
     (:hash-mode . :hash-lemma)
     (:parse-order
-     
      lexical-cxn
      argument-structure-cxn
-     word-sense-cxn
-    ; argm-all-frames
-     )
+     word-sense-cxn)
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
-     ;:argm-with-lemma
-     ;:argm-pp
-     ;:argm-subclause
      )
     (:cxn-supplier-mode . :propbank-english)))
 
@@ -180,22 +134,28 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (dev-split *ontonotes-annotations*)
+   (train-split *ontonotes-annotations*)
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
 ;; (activate-monitor trace-fcg)
-;; (comprehend-and-extract-frames (first (dev-split *ontonotes-annotations*)) :cxn-inventory *propbank-learned-cxn-inventory*)
+
+;; (comprehend-and-extract-frames (first (dev-split *ontonotes-annotations*)) :cxn-inventory *cleaned-grammar*)
+
+
+(defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 5))
 
 graph-utils::neighbors
 
+clean-grammar
 
 
 fcg::unify-atom
 
 (deactivate-all-monitors)
 
+(activate-monitor trace-fcg)
 (with-disabled-monitors 
   (comprehend-and-extract-frames "Mary sent her mother roses." :cxn-inventory *propbank-learned-cxn-inventory*))
 
