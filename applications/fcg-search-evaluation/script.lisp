@@ -9,6 +9,11 @@
   "Create a comma separated string of args"
   (format nil "~{~a~^,~}" args))
 
+(defun directoryp (pathspec)
+  "Check if the given pathspec is a directory"
+  (and (null (pathname-name pathspec))
+       (null (pathname-type pathspec))))
+
 ;;;; Monitors
 ;;;; ----------------------------------------
 
@@ -138,6 +143,8 @@
 ;;;; ----------------------------------------
 
 (defun make-out-stream (inputfile outputdir)
+  (unless (directoryp outputdir)
+    (setf outputdir (mkstr outputdir "/")))
   (let* ((outputfile
           (make-pathname :directory (pathname-directory outputdir)
                          :name (pathname-name inputfile)
@@ -252,7 +259,7 @@
 
 (defun process-args (args)
   (setf (getf args 'grammar)
-        (copy-object (eval (getf args 'grammar))))
+        (copy-object (eval (internal-symb (upcase (getf args 'grammar))))))
   (setf (getf args 'strategy)
         (make-kw (upcase (getf args 'strategy))))
   (unless (member (getf args 'strategy) '(:depth-first :priming :seq2seq))
@@ -268,7 +275,8 @@
   (setf (getf args 'timeout)
         (parse-integer (getf args 'timeout)))
   (setf (getf args 'max-nr-of-nodes)
-        (parse-integer (getf args 'max-nr-of-nodes))))
+        (parse-integer (getf args 'max-nr-of-nodes)))
+  args)
   
 
 (defun main (args)
@@ -280,7 +288,8 @@
           unless (getf arg-plist indicator)
           do (error "Missing command line argument: ~a" indicator))
     ;; process the command line args
-    (process-args arg-plist)
+    (setf arg-plist (process-args arg-plist))
+    (print arg-plist)
     ;; set the configurations for the CLEVR grammar
     ;; depending on the strategy
     (activate-strategy (getf arg-plist 'grammar)
