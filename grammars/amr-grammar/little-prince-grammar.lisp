@@ -1,25 +1,45 @@
 ;;(ql:quickload :fcg)
 ;;(ql:quickload :amr)
-
+;;(ql:quickload :irl)
 (in-package :fcg)
 
 (defun equivalent-amr-predicate-networks (fcg-amr-network amr-predicates)
-  (irl:equivalent-irl-programs? fcg-amr-network
-                                (mapcar #'(lambda (predicate)
-                                            (cons (first predicate)
-                                                  (mapcar #'(lambda (symbol)
-                                                              (cond ((stringp symbol)
-                                                                     symbol)
-                                                                    ((numberp symbol)
-                                                                     symbol)
-                                                                    ((or (equal symbol '-)
-                                                                         (equal symbol '+))
-                                                                     symbol)
-                                                                    (t
-                                                                     (utils::variablify symbol))
-                                                                ))
-                                                          (rest predicate))))
-                                        amr-predicates)))
+  (irl::equivalent-irl-programs? fcg-amr-network
+                               (mapcar #'(lambda (predicate)
+                                           (cons (first predicate)
+                                                 (mapcar #'(lambda (symbol)
+                                                             (cond ((stringp symbol)
+                                                                    symbol)
+                                                                   ((numberp symbol)
+                                                                    symbol)
+                                                                   ((or (equal symbol '-)
+                                                                        (equal symbol '+))
+                                                                    symbol)
+                                                                   (t
+                                                                    (utils::variablify symbol))
+                                                                   ))
+                                                         (rest predicate))))
+                                       amr-predicates)))
+
+#|(defun equivalent-amr-predicate-networks (fcg-amr-network amr-predicates)
+  (equivalent-meaning? fcg-amr-network
+                       (mapcar #'(lambda (predicate)
+                                   (cons (first predicate)
+                                         (mapcar #'(lambda (symbol)
+                                                     (cond ((stringp symbol)
+                                                            symbol)
+                                                           ((numberp symbol)
+                                                            symbol)
+                                                           ((or (equal symbol '-)
+                                                                (equal symbol '+))
+                                                            symbol)
+                                                           (t
+                                                            (utils::variablify symbol))
+                                                           ))
+                                                 (rest predicate))))
+                               amr-predicates)
+                       :unify-with-instantiated-variables))
+|#
 
 (def-fcg-constructions little-prince-grammar
   ;; These are the feature-types that we declare. All other features are treated as feature-value pairs.
@@ -30,7 +50,7 @@
                   (footprints set))
   ;; We specify the goal tests here.
   :fcg-configurations ((:production-goal-tests  :no-applicable-cxns)
-                       (:parse-goal-tests :no-strings-in-root :no-applicable-cxns)
+                       (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
                        (:max-search-depth . 1000))
 
   (def-fcg-cxn fox-cxn
@@ -696,6 +716,8 @@
  (amr::penman->predicates '(a / appear-01
                               :ARG1 (f / fox)
                               :time (t / then))))
+
+
 
 ;# ::id lpp_1943.1044
 (equivalent-amr-predicate-networks

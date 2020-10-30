@@ -26,7 +26,6 @@
   :serial t
   :components 
   ((:file "package")
-   (:file "utils")
    (:module unify-and-merge
     :serial t
     :components ((:file "matcher")
@@ -51,6 +50,10 @@
                  (:file "render")
                  (:file "render-search")
                  (:file "de-render")))
+   (:module utils 
+    :serial t
+    :components ((:file "equivalent-predicate-networks")
+                 (:file "utils")))
    (:file "legacy-functions-fcg-2")
    (:module construction-inventory-processor
     :serial t
