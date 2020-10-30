@@ -25,9 +25,11 @@
                               :if-exists :supersede
                               :if-does-not-exist :create)
     ;; get all files (of type) from inputdir
-    (let ((files (directory
-                  (make-pathname :directory (pathname-directory inputdir)
-                                 :name :wild :type type))))
+    ;; and sort them by name
+    (let ((files (sort (directory
+                        (make-pathname :directory (pathname-directory inputdir)
+                                       :name :wild :type type))
+                       #'string< :key #'namestring)))
       (loop for file in files
             for lines-read = 0
             do (format t "Reading from ~a~%" (namestring file))
