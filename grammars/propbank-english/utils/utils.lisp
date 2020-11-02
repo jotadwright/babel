@@ -305,6 +305,19 @@ split to the output buffer."
 ;; Cleaning the grammar ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+(defun remove-cxns-under-frequency (grammar cutoff-frequency &key (destructive nil))
+  (let ((cxn-inventory (if destructive
+                         grammar
+                         (copy-object grammar))))
+    (loop for cxn in (constructions-list cxn-inventory)
+          when (< (attr-val cxn :frequency) cutoff-frequency)
+            do (with-disabled-monitor-notifications (delete-cxn cxn cxn-inventory))
+            finally return cxn-inventory)))
+
+
+
+
 (defun clean-grammar (grammar &key
                               (destructive t)
                               (remove-cxns-with-freq-1 nil)
