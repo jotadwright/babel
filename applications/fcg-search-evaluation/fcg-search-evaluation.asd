@@ -7,8 +7,6 @@
   :license "Babel Research License"
   :depends-on (:utils
                :monitors
-               :experiment-framework
-               :plot-raw-data
                :fcg
                :clevr-world
                :clevr-grammar
@@ -16,7 +14,4 @@
                :seq2seq-heuristics
                :usocket)
   :serial t
-  :components ((:file "package")
-               (:file "utils")
-               (:file "experiment")
-               (:file "monitors")))
+  :components ((:file "package")))

@@ -3,6 +3,5 @@
 (defpackage :fcg-search-evaluation
   (:documentation "Evaluating the search in FCG")
   (:use :common-lisp :utils :monitors
-   :experiment-framework :plot-raw-data
    :fcg :clevr-world :clevr-grammar)
   (:shadowing-import-from :fcg :size :attributes))
