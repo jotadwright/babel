@@ -276,6 +276,12 @@
         (parse-integer (getf args 'timeout)))
   (setf (getf args 'max-nr-of-nodes)
         (parse-integer (getf args 'max-nr-of-nodes)))
+  (when (getf args 'import-priming-data-path)
+    (setf (getf args 'import-priming-data-path)
+          (parse-namestring (getf args 'import-priming-data-path))))
+  (when (getf args 'export-priming-data-path)
+    (setf (getf args 'export-priming-data-path)
+          (parse-namestring (getf args 'export-priming-data-path))))
   args)
   
 
