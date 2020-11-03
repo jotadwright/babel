@@ -43,7 +43,7 @@
 (defun get-avg-branching-factor (cipn)
   (let* ((nr-of-nodes (node-counter (cip cipn)))
          (nr-of-non-root-nodes (- nr-of-nodes 1))
-         (nr-of-leaf-nodes (length (leafs (cip cipn))))
+         (nr-of-leaf-nodes (length (cip-leafs (cip cipn))))
          (nr-of-non-leaf-nodes (- nr-of-nodes nr-of-leaf-nodes)))
     (float (/ nr-of-non-root-nodes nr-of-non-leaf-nodes))))
 
