@@ -32,7 +32,7 @@
                        #'string< :key #'namestring)))
       (loop for file in files
             for lines-read = 0
-            do (format t "Reading from ~a~%" (namestring file))
+            do (format t "~%Reading from ~a" (namestring file))
             do (with-open-file (in-stream file :direction :input)
                  (when skip-header
                    (read-line in-stream nil nil))
@@ -40,7 +40,7 @@
                        while line
                        do (write-line line out-stream)
                        do (incf lines-read)))
-            do (format t "Read ~a lines~%" lines-read)))))
+            do (format t "~%Read ~a lines" lines-read)))))
         
 
 (defun args->plist (args)
