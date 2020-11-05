@@ -456,7 +456,9 @@ fillers (arg0, arg1) and the frame-evoking element unit."
                                     `((parent ,parent)))
                                 ,@(when form-constraints-for-children-with-role-and-same-type
                                    `((word-order ,form-constraints-for-children-with-role-and-same-type)))
-                                ,(find 'syn-class (unit-body unit) :key #'feature-name))))
+                                ,(find 'syn-class (unit-body unit) :key #'feature-name)
+                                ,@(when (find 'passive (unit-body unit) :key #'feature-name)
+                                    `(,(find 'passive (unit-body unit) :key #'feature-name))))))
    :key #'unit-name))
 
 
