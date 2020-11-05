@@ -58,7 +58,7 @@
                                              '(NP))
                                             (t
                                              `(,(node-lex-class node))))
-                      
+                   
                       collect `(,unit-name
                                 (node-type ,node-type)
                                 (string ,node-string)
@@ -66,14 +66,19 @@
                                 (parent ,(cdr (assoc parent-id unit-name-ids)))
                                 (syn-class ,syn-class)
                                 ,@(when (equal node-type 'phrase)
-                                   `((constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
-                                     (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))))
+                                    `((constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
+                                      (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))))
+                                ,@(when (and (equal node-type 'phrase)
+                                             (find 'vp syn-class))
+                                    (loop for constituent in (find-constituent-units node-id spacy-benepar-analysis)
+                                          for dependency-label = (assoc ':DEPENDENCY--LABEL constituent)
+                                          when (and dependency-label
+                                                    (string= (cdr dependency-label) "auxpass"))
+                                          return '((passive +))
+                                          finally (return '((passive -)))))
                                 ,@(when (equal node-type 'leaf)
-                                    `((dependents ,(find-dependents node-id spacy-benepar-analysis unit-name-ids))
-                                      (head ,(cdr (assoc (node-dependency-head node) unit-name-ids)))
-                                      (dependency-label ,(node-dependency-label node))
-                                      (named-entity-type ,(node-named-entity-type node))
-                                      (lemma ,(node-lemma node)))))))
+                                    `((lemma ,(node-lemma node))
+                                      (dependency-label ,(node-dependency-label node)))))))
          
          ;; Make transient structure
          (transient-structure (make-instance 'coupled-feature-structure 
@@ -106,6 +111,12 @@
   (loop for node in spacy-benepar-analysis
         if (equalp node-id (node-parent node))
         collect (cdr (assoc (node-id node) unit-name-ids))))
+
+(defun find-constituent-units (node-id spacy-benepar-analysis )
+  "Returns list of constituents."
+  (loop for node in spacy-benepar-analysis
+        if (equalp node-id (node-parent node))
+        collect node))
   
 (defun find-dependents (node-id spacy-benepar-analysis unit-name-ids)
   "Returns unit names of dependents."
