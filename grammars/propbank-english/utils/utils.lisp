@@ -327,10 +327,10 @@ split to the output buffer."
         (when remove-faulty-cnxs
           (with-disabled-monitor-notifications
             (delete-cxn
-             (find-cxn "HAVE.02-V:-PRON-+0-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
+             (find-cxn "HAVE.02-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
              cxn-inventory)
             (delete-cxn
-             (find-cxn "BE.01-ARG1:NP+V:-PRON-+ARG2:RB+2-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
+             (find-cxn "BE.01-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
              cxn-inventory)
             (delete-cxn
              (find-cxn "HAVE.01-V:OF+0-CXN" cxn-inventory :hash-key 'of :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
