@@ -14,6 +14,47 @@
   (and (null (pathname-name pathspec))
        (null (pathname-type pathspec))))
 
+;;;; Merge priming data
+;;;; ----------------------------------------
+
+(defun merge-priming-tables-aux (target source)
+  (loop for key being the hash-keys of source using (hash-value value)
+        if (gethash key target)
+        do (setf (gethash key target)
+                 (+ (gethash key target) value))
+        else
+        do (setf (gethash key target) value)))
+
+(defun merge-priming-tables (target source)
+  (loop for key being the hash-keys of source using (hash-value value)
+        if (gethash key target)
+        do (merge-priming-tables-aux (gethash key target) value)
+        else
+        do (setf (gethash key target) value)))
+
+(defun merge-priming-data-tables (input-files output-file)
+  (let ((merged-tables
+         (loop with result = nil
+               for file in input-files
+               for table = (cl-store:restore file)
+               if result
+               do (merge-priming-tables result table)
+               else
+               do (setf result table)
+               finally
+               (return result))))
+    (cl-store:store merged-tables output-file)
+    t))
+
+#|
+(merge-priming-data-tables
+ (directory
+  (babel-pathname :directory '("applications" "fcg-search-evaluation" "results" "formulation" "priming-gather-data")
+                  :name :wild :type "lsp"))
+ (babel-pathname :directory '("applications" "fcg-search-evaluation" "results" "formulation")
+                 :name "priming-data" :type "lsp"))
+|#
+
 ;;;; Monitors
 ;;;; ----------------------------------------
 
