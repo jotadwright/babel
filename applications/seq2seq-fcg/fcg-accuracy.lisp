@@ -139,10 +139,21 @@
     (format t "Done!~%")))
 
 #|
-(prediction-accuracy
- (parse-namestring "/Users/jensnevens/Projects/seq2seq/output/comprehension_predictions_batch_0/000184890.csv")
- (babel-pathname :directory '(".tmp") :name "comprehension_models_batch_0_solution_rate" :type "csv")
- :comprehension *clevr*)
+(defparameter *all-files*
+  (directory
+   (make-pathname :directory '(:absolute "Users"
+                               "jensnevens" "Projects"
+                               "seq2seq" "output"
+                               "comprehension_batch_0")
+                  :name :wild :type "csv")))
+
+(defparameter *output-file*
+  (babel-pathname :directory '(".tmp")
+                  :name "comprehension_models_batch_0_solution_rate"
+                  :type "csv"))
+
+(loop for file in *all-files*
+      do (prediction-accuracy file *output-file* :comprehension *clevr*))
 |#
 
 ;;;; Command line interface
