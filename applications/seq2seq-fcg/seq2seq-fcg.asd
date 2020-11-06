@@ -7,12 +7,9 @@
   :license "Babel Research License"
   :depends-on (:trivial-timeout
                :utils
-               :corpus-processing
                :monitors
                :fcg
                :clevr-grammar
                :clevr-dialog-grammar)
   :serial t
-  :components ((:file "package")
-               (:file "apply-predictions")
-               (:file "enhance-data")))
+  :components ((:file "package")))
