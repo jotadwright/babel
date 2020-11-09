@@ -279,13 +279,15 @@
 
 #|
 
-(activate-strategy :depth-first 20000 nil)
+;; (defun activate-strategy (grammar strategy max-nr-of-nodes seq2seq-server-port)
+(activate-strategy *clevr* :seq2seq 50000 8888)
 
-(process-inputfile
+;; (defun process-inputfile (grammar inputfile outputdir timeout direction)
+(process-inputfile *clevr*
  (babel-pathname :directory '("applications" "fcg-search-evaluation")
-                 :name "batch-0-comprehension" :type "csv")
+                 :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
- 60 :formulation)
+ 60 :comprehension)
 
 |#
 
