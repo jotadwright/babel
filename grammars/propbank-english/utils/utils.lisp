@@ -344,6 +344,31 @@ split to the output buffer."
         cxn-inventory))
 
 
+
+
+(defun clean-type-hierarchy (type-hierarchy &key
+                                            (remove-edges-with-freq-smaller-than 3.0))
+  (let* ((graph (type-hierarchies::graph type-hierarchy))
+         (node-ids (graph-utils::node-ids graph)))
+
+    (format t "Edge count before cleaning: ~a ~%" (type-hierarchies::edge-count graph))
+
+    (loop for node-id in node-ids
+          do (loop for neighbor in (graph-utils::neighbors graph node-id  :return-ids? t)
+                   when (< (graph-utils:edge-weight graph node-id neighbor)
+                           remove-edges-with-freq-smaller-than)
+                   do (graph-utils:delete-edge graph node-id neighbor)))
+    (format t "Edge count after cleaning: ~a ~%" (type-hierarchies::edge-count graph))))
+          
+    
+
+(clean-type-hierarchy (get-type-hierarchy *restored-grammar*))
+
+(setf *th* (type-hierarchies::graph (get-type-hierarchy *restored-grammar*)))
+(graph-utils::node-ids *th*)
+
+      
+
 (defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
   (remove-if-not #'(lambda (sentence)
                      (loop for roleset in (or rolesets (all-rolesets sentence))
