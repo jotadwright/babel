@@ -88,6 +88,14 @@
          (nr-of-non-leaf-nodes (- nr-of-nodes nr-of-leaf-nodes)))
     (float (/ nr-of-non-root-nodes nr-of-non-leaf-nodes))))
 
+(defun get-nr-of-nodes (cipn)
+  (node-counter (cip cipn)))
+
+(defun get-search-space-size (cipn)
+  (float
+   (/ (node-counter (cip cipn))
+      (length (all-parents cipn)))))
+
 (defun no-search-p (cipn)
   ;; when nodes that are NOT on the path to the solution
   ;; NEVER have any children, there was no search
@@ -118,6 +126,14 @@
                         ;; avg branching factor
                         (if (and cipn (succeededp cipn))
                           (get-avg-branching-factor cipn)
+                          "None")
+                        ;; nr of nodes
+                        (if (and cipn (succeededp cipn))
+                          (get-nr-of-nodes cipn)
+                          "None")
+                        ;; search space size
+                        (if (and cipn (succeededp cipn))
+                          (get-search-space-size cipn)
                           "None")
                         ;; processing time
                         (if (and cipn (succeededp cipn))
@@ -197,6 +213,7 @@
          (header
           (make-csv-line "id" "input_length" "output_length"
                          "success" "avg_branching_factor"
+                         "nr_of_nodes" "search_space_size"
                          "run_time" "no_search")))
     (ensure-directories-exist outputfile)
     (write-line header out-stream)
@@ -237,12 +254,14 @@
          (case strategy
            (:depth-first
             `((:queue-mode . :greedy-best-first)
-              (:cxn-supplier-mode . :hashed-simple-queue)
+              (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+              (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :nr-of-applied-cxns)
               (:max-nr-of-nodes . ,max-nr-of-nodes)))
            (:priming
             `((:queue-mode . :greedy-best-first)
-              (:cxn-supplier-mode . :hashed-simple-queue)
+              (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+              (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :priming)
               (:max-nr-of-nodes . ,max-nr-of-nodes)))
            (:seq2seq
@@ -252,6 +271,7 @@
                                           seq2seq-server-port)))
               `((:queue-mode . :greedy-best-first)
                 (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
+                (:hash-mode . :hash-string-meaning-lex-id)
                 (:priority-mode . :seq2seq-heuristic-additive)
                 (:seq2seq-endpoint . ,endpoint)
                 (:max-nr-of-nodes . ,max-nr-of-nodes)))))))
