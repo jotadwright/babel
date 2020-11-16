@@ -19,9 +19,9 @@
    num-solutions are found"
   (loop with cipns = nil
         with utterances = nil
-        until (or (all-succeededp cipns)
-                  (>= attempt num-attempts))
         for attempt from 1
+        until (or (all-succeededp cipns)
+                  (> attempt num-attempts))
         for (forms nodes)
         = (multiple-value-list
            (handler-case
@@ -126,9 +126,9 @@
 
 (process-inputfile
  (babel-pathname :directory '("applications" "clevr-evaluation")
-                 :name "batch-0-comprehension" :type "csv")
+                 :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
- 1 5 10)
+ 1 1 10)
 |#
 
 (defun args->plist (args)
@@ -142,16 +142,31 @@
   (let ((arg-plist (args->plist args)))
     ;; check the command line args
     (loop for indicator in '(inputfile outputdir max-nr-of-nodes
-                                       num-solutions num-attempts
-                                       timeout)
+                             num-solutions num-attempts
+                             timeout enable-cxn-sets)
           unless (getf arg-plist indicator)
           do (error "Missing command line argument: ~a" indicator))
     ;; set the configurations for the CLEVR grammar
     (set-configurations *CLEVR*
-                        `((:max-nr-of-nodes . ,(parse-integer (getf arg-plist 'max-nr-of-nodes)))
-                          (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                        '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
                           (:priority-mode . :nr-of-applied-cxns))
                         :replace t)
+    ;; if max-nr-of-nodes is set to NIL, remove the :restrict-nr-of-nodes node-test
+    (if (string= (getf arg-plist 'max-nr-of-nodes) "nil")
+      (set-configurations *CLEVR*
+                          '((:node-tests :check-duplicate)
+                            (:max-nr-of-nodes . 1000000))
+                          :replace t)
+      (set-configuration *CLEVR* :max-nr-of-nodes
+                         (parse-integer (getf arg-plist 'max-nr-of-nodes))
+                         :replace t))
+    ;; if enable-cxns-sets is set to t, enable them
+    (when (string= (getf arg-plist 'enable-cxn-sets) "t")
+      (set-configurations *CLEVR*
+                          '((:production-order lex nom cxn morph)
+                            (:parse-order morph lex nom cxn)
+                            (:cxn-sets-with-sequential-application morph lex))
+                          :replace t))
     ;; process the inputfile
     (process-inputfile (getf arg-plist 'inputfile)
                        (getf arg-plist 'outputdir)
