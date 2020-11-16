@@ -48,8 +48,11 @@
 ;; Learning constructions from an annotated frame instance. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defgeneric learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Core roles.           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :core-roles)))
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
@@ -66,9 +69,7 @@
          (gram-category (when lex-category
                           (add-grammatical-cxn gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category))))
     (when gram-category
-      (add-word-sense-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence lex-category gram-category))
-    
-    ))
+      (add-word-sense-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence lex-category gram-category))))
 
 (defun add-lexical-cxn (gold-frame v-unit cxn-inventory propbank-sentence)
   "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
@@ -101,6 +102,7 @@
                                     :label lexical-cxn
                                     :frequency 1
                                     :utterance ,(sentence-string propbank-sentence))
+                       :disable-automatic-footprints t
                        :cxn-inventory ,cxn-inventory))
         (add-category lex-category (get-type-hierarchy cxn-inventory))
         lex-category))))
@@ -120,13 +122,14 @@
                                                                                    (role-type r)
                                                                                    (feature-value (find 'syn-class (unit-body u)
                                                                                                         :key #'feature-name)))))))
+         (footprint (make-const 'fee))
 
          (cxn-units-with-role (loop for unit in core-units-with-role
                                     collect
-                                    (make-propbank-conditional-unit-with-role unit gram-category)))
+                                    (make-propbank-conditional-unit-with-role unit gram-category footprint)))
          
         
-         (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category))
+         (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category footprint))
 
          (cxn-units-without-role (make-propbank-conditional-units-without-role core-units-with-role
                                                                                  cxn-units-with-role ts-unit-structure))
@@ -175,14 +178,15 @@
                                               cxn-inventory)))
                          
     
-    (if equivalent-cxn
-      
+    (if equivalent-cxn   
       ;;Grammatical construction already exists
       (progn
         ;;1) Increase its frequency
         (incf (attr-val equivalent-cxn :frequency))
         ;;2) Check if there was already a link in the type hierarchy between the lex-category and the gram-category:
-        (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) )
+        (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                      lex-category
+                                      (attr-val equivalent-cxn :gram-category))
           ;;a) If yes, increase edge weight
           (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) :delta 1.0)
           ;;b) Otherwise, add new connection (weight 1.0)
@@ -224,16 +228,29 @@
       ;; if cxn already exists: increment frequency
       (progn
         (incf (attr-val equivalent-cxn :frequency))
-        (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) gram-category (attr-val equivalent-cxn :sense-category) )
+        ;; edge between gram-category and sense-category
+        (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                      gram-category
+                                      (attr-val equivalent-cxn :sense-category))
           ;;connection between gram and sense category exists: increase edge weight
-          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) gram-category (attr-val equivalent-cxn :sense-category) :delta 1.0)
+          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                         gram-category
+                                         (attr-val equivalent-cxn :sense-category)
+                                         :delta 1.0)
           ;;add new link
           (add-link gram-category
-                      (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
-        ;;same for link between sense and lex category
-        (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) (attr-val equivalent-cxn :sense-category) lex-category)
-          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) gram-category (attr-val equivalent-cxn :sense-category) :delta 1.0)
-          (add-link (attr-val equivalent-cxn :sense-category) lex-category (get-type-hierarchy cxn-inventory) :weight 1.0))
+                    (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
+        
+        ;; edge between lex-category and sense-category
+        (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                      lex-category
+                                      (attr-val equivalent-cxn :sense-category))
+          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                         lex-category
+                                         (attr-val equivalent-cxn :sense-category)
+                                         :delta 1.0)
+          (add-link lex-category
+                    (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
 
         (attr-val equivalent-cxn :sense-category))
       ;; Else make new cxn
@@ -259,34 +276,60 @@
                        :cxn-inventory ,cxn-inventory))
         (add-category sense-category (get-type-hierarchy cxn-inventory))
         (add-link gram-category sense-category (get-type-hierarchy cxn-inventory) :weight 1.0)
-        (add-link sense-category lex-category (get-type-hierarchy cxn-inventory) :weight 1.0)
+        (add-link lex-category sense-category (get-type-hierarchy cxn-inventory) :weight 1.0)
         sense-category))))
 
 
 
 
-(defun syn-classes (cxn-units)
-  (mapcar #'(lambda (unit)
-              (second (find 'syn-class (cddr unit) :key #'first)))
-          cxn-units))
 
-(defun lemmas (cxn-units)
-  (mapcar #'(lambda (unit)
-              (second (find 'lemma (cddr unit) :key #'first)))
-          cxn-units))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ARGM PPs              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 
+(defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-pp)))
+  (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
+        for gold-frame in gold-frames
+        do
+        (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
+       
+(defmethod learn-constructions-for-gold-frame-instance (propbank-sentence gold-frame cxn-inventory (mode (eql :argm-pp)))
+  (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
+         (units-with-role (units-with-role ts-unit-structure gold-frame))
+         (argm-pps (remove-if-not #'(lambda (unit-with-role)
+                                      (and (search "ARGM" (role-type (car unit-with-role)))
+                                           (find 'pp (unit-feature-value (cdr unit-with-role) 'syn-class))))
+                                  units-with-role)))
+    (when argm-pps
+      (let* ((lex-category (add-lexical-cxn gold-frame (v-unit units-with-role) cxn-inventory propbank-sentence)) ;;nodig?
+             (gram-category (when lex-category
+                              (add-grammatical-cxn gold-frame (append argm-pps (list (v-unit-with-role units-with-role)))
+                                                   cxn-inventory propbank-sentence lex-category))))
+        (when gram-category
+          (add-word-sense-cxn gold-frame (v-unit units-with-role) cxn-inventory propbank-sentence lex-category gram-category))))))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ARGM S-BARs           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ARGM single word      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 
 
 
 
-
-
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helper functions to create new constructions  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 
@@ -364,7 +407,7 @@
 ;(truncate-frame-name 'believe.01)
 
   
-(defun make-propbank-contributing-unit (units-with-role gold-frame gram-category)
+(defun make-propbank-contributing-unit (units-with-role gold-frame gram-category footprint)
   "Make a contributing unit based on a gold-frame and units-with-role."
   (let* ((v-unit (cdr (assoc "V" units-with-role :key #'role-type :test #'equalp)))
          (v-unit-name (variablify (unit-name v-unit)))
@@ -379,12 +422,12 @@
                                                 ,(variablify (unit-name (cdr (assoc r units-with-role))))))))
     `(,v-unit-name
       (frame-evoking +)
-      (footprints (fee))
+      (footprints (,footprint))
       (gram-category ,gram-category)
       (frame ?roleset)
       (meaning ,meaning))))
 
-(defun make-propbank-conditional-unit-with-role (unit-with-role category)
+(defun make-propbank-conditional-unit-with-role (unit-with-role category footprint)
   "Makes a conditional unit for a propbank cxn based on a unit in the
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
@@ -398,7 +441,7 @@ initial transient structure that plays a role in the frame."
         --
         (parent ,parent)
         ,syn-class
-        (footprints (NOT fee))
+        (footprints (NOT ,footprint))
         (lex-category ,category))
       `(,unit-name
         --
@@ -572,16 +615,32 @@ start to end(v-unit)"
         return (feature-value (find 'lemma (unit-body unit) :key #'feature-name))))
 
 (defun v-unit (units-with-role)
-  "Returns the lemma of the V."
+  "Returns unit of the V."
   (loop for (role . unit) in units-with-role
         when (string= "V" (role-type role))
         return unit))
+
+(defun v-unit-with-role (units-with-role)
+  "Returns the unit with role of the V."
+  (loop for (role . unit) in units-with-role
+        when (string= "V" (role-type role))
+        return (cons role unit)))
 
 (defun v-syn-class (units-with-role)
   "Returns the syn-class of the V."
   (loop for (role . unit) in units-with-role
         when (string= "V" (role-type role))
         return (feature-value (find 'syn-class (unit-body unit) :key #'feature-name))))
+
+(defun syn-classes (cxn-units)
+  (mapcar #'(lambda (unit)
+              (second (find 'syn-class (cddr unit) :key #'first)))
+          cxn-units))
+
+(defun lemmas (cxn-units)
+  (mapcar #'(lambda (unit)
+              (second (find 'lemma (cddr unit) :key #'first)))
+          cxn-units))
 
 
 (defun argm-lemma (unit-with-role)

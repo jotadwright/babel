@@ -21,7 +21,6 @@
 ;; Activating trace-fcg
 (activate-monitor trace-fcg)
 
-find-equivalent-cxn
 
 ;;;;;;;;;;;
 ;; Data  ;;
@@ -66,13 +65,25 @@ find-equivalent-cxn
 
 (length *test-sentences-all-frames*)
 
-(evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
-
-(defparameter *evaluation-result* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "evaluation_core_test"
-                                                           :type "store")))
 
 
+
+
+
+;;Problems
+;;--------------
+;;Possessive 's linked to be.02 (existential be)
+(graph-utils:edge-weight (graph-utils::graph (get-type-hierarchy *cleaned-grammar*))
+                         (graph-utils:lookup-node (graph-utils::graph (get-type-hierarchy *cleaned-grammar*)) 6653)
+                         (graph-utils:lookup-node (graph-utils::graph (get-type-hierarchy *cleaned-grammar*)) 3673))
+
+(graph-utils:lookup-node (graph-utils::graph (get-type-hierarchy *cleaned-grammar*)) 3673) ;;'type-hierarchies::BE\(POS\)-35)
+(graph-utils:lookup-node (graph-utils::graph (get-type-hierarchy *cleaned-grammar*)) 6653)
+
+(node-p '#:BE.02-2249 (get-type-hierarchy *cleaned-grammar*))
+(node-p 3673 (get-type-hierarchy *cleaned-grammar*))
+ 
+(gethash be\(pos\)-35 (graph-utils::nodes (graph-utils::graph (get-type-hierarchy *cleaned-grammar*))))
 
 (evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 (evaluate-predictions *evaluation-result-cleaned* :core-roles-only t :include-timed-out-sentences t :include-word-sense nil)
@@ -87,14 +98,14 @@ find-equivalent-cxn
 (activate-monitor trace-fcg)
 
 (comprehend-and-extract-frames (nth 15 *test-sentences-all-frames*) :cxn-inventory *core-roles-cleaned-frequency-grammar*)
-(comprehend-and-extract-frames "Let's go to the beach" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "The water boils" :cxn-inventory *propbank-learned-cxn-inventory*)
 (length *test-sentences-all-frames*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Storing and restoring grammars ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cl-store:store *propbank-learned-cxn-inventory*
+(cl-store:store *cleaned-grammar*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
                                 :name "core-roles-ontonotes-train-cleaned"
                                 :type "fcg"))
@@ -104,6 +115,13 @@ find-equivalent-cxn
                            :name "core-roles-ontonotes-train-cleaned"
                            :type "fcg")))
 (size *restored-grammar*)
+
+;(setf *th* (get-type-hierarchy *restored-grammar*))
+
+;(clean-type-hierarchy *th*)
+
+      
+
 ;;;;;;;;;;;;;;
 ;; Training ;;
 ;;;;;;;;;;;;;;
@@ -124,6 +142,7 @@ find-equivalent-cxn
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
+     :argm-pp
      )
     (:cxn-supplier-mode . :propbank-english)))
 
@@ -131,122 +150,34 @@ find-equivalent-cxn
 ;(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '( :no-valid-children ))
 ;;(set-configuration *propbank-learned-cxn-inventory* :cxn-supplier-mode :propbank-english)
 
-
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (train-split *ontonotes-annotations*)
+   (subseq (train-split *ontonotes-annotations*) 0 10)
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
-;; (activate-monitor trace-fcg)
-
-;; (comprehend-and-extract-frames (first (dev-split *ontonotes-annotations*)) :cxn-inventory *cleaned-grammar*)
-
-
-(defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 5))
-
-graph-utils::neighbors
-
-clean-grammar
-
-
-fcg::unify-atom
-
-(deactivate-all-monitors)
-
-(activate-monitor trace-fcg)
-(with-disabled-monitors 
-  (comprehend-and-extract-frames "Mary sent her mother roses." :cxn-inventory *propbank-learned-cxn-inventory*))
-
-
-fcg::unify-atom
-
-(add-element (make-html (get-type-hierarchy *propbank-learned-cxn-inventory*)))
-
-(loop for cxn in (subseq  (constructions-list *propbank-learned-cxn-inventory*) 1 10)
-      do (add-element (make-html cxn)))
-
-(clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
-
-(evaluate-propbank-sentences-per-roleset *test-sentences-all-frames*
-                                         *propbank-learned-cxn-inventory*
-                                         :selected-rolesets nil
-                                         :silent t)
-(activate-monitor trace-fcg)
-(defun test ()
-  (loop for sentence in *test-sentences-all-frames*
-        for f1-score = (cdr (assoc :f1-score
-                                   (evaluate-propbank-sentence sentence *propbank-learned-cxn-inventory*
-                                                               :selected-rolesets '("GO.01" "GO.02")
-                                                               :silent t)))
-        unless (or (null f1-score) (= f1-score 1.0))
-        do (evaluate-propbank-sentence sentence *propbank-learned-cxn-inventory*
-                                                               :selected-rolesets '("GO.01" "GO.02")
-                                                               :silent nil)))
-
-(test)
-
-(with-disabled-monitor-notifications
-  (learn-propbank-grammar (train-split *ontonotes-annotations*)
-                          :cxn-inventory '*propbank-learned-cxn-inventory*
-                          :fcg-configuration *training-configuration*))
-
-;;;;;;;;;;;;;;;;
-;; Evaluation ;;
-;;;;;;;;;;;;;;;;
-
-(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
-(set-configuration *propbank-learned-cxn-inventory* :parse-order '(multi-argument-core-roles
-                                                                   argm-subclause
-                                                                   argm-pp ))
-
-(evaluate-propbank-sentences-per-roleset
- 
-  (spacy-benepar-compatible-sentences *opinion-sentences-test* nil)
-
- *propbank-learned-cxn-inventory*
- :selected-rolesets '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
- :silent t)
-
 (add-element (make-html *propbank-learned-cxn-inventory*))
 
+(loop for sentence in (subseq (train-split *ontonotes-annotations*) 9 10)
+      do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
 
-(clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t :remove-cxns-with-freq-1 nil)
+(set-configuration (visualization-configuration *propbank-learned-cxn-inventory*) :hide-features nil)
 
-(setf *restored-grammar* *propbank-learned-cxn-inventory*)
+(defparameter *cleaned-grammar* (remove-cxns-under-frequency *cleaned-grammar* 5))
 
+(clean-grammar *cleaned-grammar* :remove-faulty-cnxs t)
 
-(symbol-name 'HAVE.02-V\:-PRON-+0-CXN-1)
-
-(defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
-  (remove-if-not #'(lambda (sentence)
-                     (loop for roleset in (or rolesets (all-rolesets sentence))
-                           always (spacy-benepar-compatible-annotation sentence roleset)))
-                 list-of-sentences))
+(clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*))
 
 
-(defparameter *spacy-benepar-compatible-sentences* (remove-if-not #'(lambda (sentence)
-                                                                      (loop for roleset in (all-rolesets  sentence)
-                        always (spacy-benepar-compatible-annotation sentence roleset)))
-                 (dev-split *ontonotes-annotations*)))
+(evaluate-propbank-corpus *test-sentences-all-frames* *cleaned-grammar* :timeout 60)
 
+(defparameter *evaluation-result* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-16-14-36-35-evaluation"
+                                                           :type "store")))
 
-(time
- (evaluate-propbank-sentences
- (spacy-benepar-compatible-sentences *opinion-sentences-dev* nil)
- *propbank-learned-cxn-inventory*
- :silent t))
-
-(comprehend-and-extract-frames "I could have  two brothers ." :cxn-inventory *propbank-learned-cxn-inventory*)
-
-(deactivate-all-monitors)
-(activate-monitor trace-fcg)
-
-(add-element (make-html *propbank-learned-cxn-inventory*))
-
-
-(delete-cxn *saved-cxn* *propbank-learned-cxn-inventory* )
+(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 
 ;;;;;;;;;;;;;
 ;; Testing ;;
@@ -289,8 +220,8 @@ fcg::unify-atom
 (activate-monitor trace-fcg)
 (comprehend-and-extract-frames "He believed the man ." :cxn-inventory *propbank-learned-cxn-inventory*)
 
-(comprehend-and-extract-frames "Luc could not believe his eyes" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "Luc could not believe that it is true" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Luc could not believe his eyes" :cxn-inventory *cleaned-grammar*)
+(comprehend-and-extract-frames "Luc could not believe that it is true" :cxn-inventory *cleaned-grammar*)
 
 (comprehend-and-extract-frames "Luc would come to Venice" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "Carlo thinks that Luc would not come to Venice" :cxn-inventory *propbank-learned-cxn-inventory*)
@@ -333,7 +264,9 @@ fcg::unify-atom
 
 (comprehend-and-extract-frames "He usually takes the bus to school" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "She had dinner in Paris." :cxn-inventory *restored-grammar*)
+(comprehend "She had dinner in Paris." :cxn-inventory *cleaned-grammar*)
+
+(original-cxn-set (processing-cxn-inventory *cleaned-grammar*))
 ;; Testing new sentences with learned grammar 
 ;; Guardian FISH article
 ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -341,7 +274,7 @@ fcg::unify-atom
 (set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
 (set-configuration *propbank-learned-cxn-inventory* :parse-order '(:multi-argument-core-roles :argm-pp :argm-with-lemma ))
 
-(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *cleaned-grammar*)
 
 ;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
 (comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *propbank-learned-cxn-inventory*)
@@ -351,7 +284,9 @@ fcg::unify-atom
 (comprehend-and-extract-frames "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date." :cxn-inventory *restored-grammar*)
 
 ;;attribute.01 wordt niet gevonden > 'ARG1:NP - has been attributed - ARG2:PP nooit gezien in training'
-(comprehend-and-extract-frames "The fall in oxygen levels has been attributed to global warming and the authors warn that if it continues unchecked, the amount of oxygen lost could reach up to 7% by 2100." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "The fall in oxygen levels has been attributed to global warming and the authors warn that if it continues unchecked, the amount of oxygen lost could reach up to 7% by 2100." :cxn-inventory *cleaned-grammar*)
+(length (constructions-list *cleaned-grammar*))
+(size *cleaned-grammar*)
 
 ;;adapt-cxn niet geleerd:
 (comprehend-and-extract-frames "Very few marine organisms are able to adapt to low levels of oxygen." :cxn-inventory *restored-grammar*)
@@ -406,3 +341,25 @@ fcg::unify-atom
 (comprehend-and-extract-frames "Warmer water is less able to contain oxygen than cold, so as the oceans warm, oxygen is reduced." :cxn-inventory *restored-grammar*)
 
 (comprehend-and-extract-frames  "Warmer water is also less dense, so the oxygen-rich surface layer cannot easily sink and circulate. " :cxn-inventory *restored-grammar*)
+
+
+
+(setf *x* (def-fcg-constructions-with-type-hierarchy grammar))
+
+(add-categories '(a b c d e) (get-type-hierarchy *x*))
+
+(add-link 'a 'b (get-type-hierarchy *x*) :weight 10.0)
+(add-link 'c 'b (get-type-hierarchy *x*) :weight 5.0)
+(add-link 'b 'c (get-type-hierarchy *x*) :weight 1.0)
+
+(graph-utils::incf-edge-weight (graph-utils::graph (get-type-hierarchy *x*))  'b 'c :delta 1)
+
+(graph-utils::)
+
+(graph-utils:list-edges (graph-utils::graph (get-type-hierarchy *x*)))
+
+(graph-utils:edge-weight (graph-utils::graph (get-type-hierarchy *x*)) 'c 'b)
+
+(clean-type-hierarchy (get-type-hierarchy *x*))
+
+(clean-type-hierarchy (get-type-hierarchy *propbank-learned-cxn-inventory*))

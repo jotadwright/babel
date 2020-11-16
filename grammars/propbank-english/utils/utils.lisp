@@ -316,8 +316,6 @@ split to the output buffer."
             finally return cxn-inventory)))
 
 
-
-
 (defun clean-grammar (grammar &key
                               (destructive t)
                               (remove-cxns-with-freq-1 nil)
@@ -363,11 +361,7 @@ that have a weight smaller than a given frequency."
     (format t "Edge count after cleaning: ~a ~%" (type-hierarchies::edge-count graph))
     type-hierarchy))
    
-;(setf *th* (get-type-hierarchy *restored-grammar*))
 
-;(clean-type-hierarchy *th*)
-
-      
 
 (defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
   (remove-if-not #'(lambda (sentence)
