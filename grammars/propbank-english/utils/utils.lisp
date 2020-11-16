@@ -347,25 +347,25 @@ split to the output buffer."
 
 
 (defun clean-type-hierarchy (type-hierarchy &key
-                                            (remove-edges-with-freq-smaller-than 3.0))
+                                            (remove-edges-with-freq-smaller-than 2.0))
+  "Cleans the type hierarchy of a learned grammar by removing edges
+that have a weight smaller than a given frequency."
   (let* ((graph (type-hierarchies::graph type-hierarchy))
-         (node-ids (graph-utils::node-ids graph)))
+         (edges (graph-utils:list-edges graph)))
 
     (format t "Edge count before cleaning: ~a ~%" (type-hierarchies::edge-count graph))
 
-    (loop for node-id in node-ids
-          do (loop for neighbor in (graph-utils::neighbors graph node-id  :return-ids? t)
-                   when (< (graph-utils:edge-weight graph node-id neighbor)
-                           remove-edges-with-freq-smaller-than)
-                   do (graph-utils:delete-edge graph node-id neighbor)))
-    (format t "Edge count after cleaning: ~a ~%" (type-hierarchies::edge-count graph))))
-          
+    (loop for (n1 n2) in edges
+          when (< (graph-utils:edge-weight graph n1 n2)
+                  remove-edges-with-freq-smaller-than)
+          do (graph-utils:delete-edge graph n1 n2))
     
+    (format t "Edge count after cleaning: ~a ~%" (type-hierarchies::edge-count graph))
+    type-hierarchy))
+   
+;(setf *th* (get-type-hierarchy *restored-grammar*))
 
-(clean-type-hierarchy (get-type-hierarchy *restored-grammar*))
-
-(setf *th* (type-hierarchies::graph (get-type-hierarchy *restored-grammar*)))
-(graph-utils::node-ids *th*)
+;(clean-type-hierarchy *th*)
 
       
 

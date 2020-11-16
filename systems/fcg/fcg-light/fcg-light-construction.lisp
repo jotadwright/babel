@@ -380,7 +380,8 @@ value has become NIL."
     (setf (configuration destination) (copy-object (configuration source)))
     (setf (visualization-configuration destination) (copy-object (visualization-configuration source)))
     (setf (blackboard destination)  (copy-object (blackboard source)))
-    (setf (processing-cxn-inventory destination) (copy-object (processing-cxn-inventory source))))
+    (setf (processing-cxn-inventory destination) (copy-object (processing-cxn-inventory source)))
+    (setf (original-cxn-set (processing-cxn-inventory destination)) destination))
 
 (defun copy-fcg-construction-set-without-cxns (fcg-construction-set)
   "Make a copy of an FCG construction set, without copying the
