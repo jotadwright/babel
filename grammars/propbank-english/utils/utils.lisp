@@ -77,7 +77,9 @@
                  &key &allow-other-keys)
   "Checks all units for a lemma feature."
   (loop for unit in (fcg-get-transient-unit-structure node)
-        for lemma = (unit-feature-value unit 'lemma)
+        for lemma = (if (equalp (unit-feature-value unit 'node-type) 'leaf)
+                      (unit-feature-value unit 'lemma)
+                      (intern (upcase (unit-feature-value unit 'string))))
         when lemma
         collect it))
 
@@ -97,7 +99,8 @@ frame-element filler occurs in more than one slot). "
                                      when (equalp (first predicate) 'frame-element)
                                      collect predicate)
           
-          when (or (> (length frame-elements) (length (remove-duplicates frame-elements :key #'fourth :test #'equalp)))
+          when (or (> (length frame-elements)
+                      (length (remove-duplicates frame-elements :key #'fourth :test #'equalp)))
                     (loop for fe in frame-elements
                           for other-fes = (remove fe frame-elements :key #'fourth :test #'equalp)
                           thereis (subconstituent-p (fourth fe) (mapcar #'fourth other-fes) (left-pole-structure (car-resulting-cfs (cipn-car node))))))

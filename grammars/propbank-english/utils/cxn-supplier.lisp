@@ -48,7 +48,8 @@
   "returns all constructions that of label 'label'"
   (cond ((or (equal label 'lexical-cxn)
              (equal label 'word-sense-cxn)
-             (equal label 'pp-cxn))
+             (equal label 'pp-cxn)
+             (equal label 'sbar-cxn))
          (let ((constructions (loop for cxn in (loop for hash in (hash node (get-configuration node :hash-mode))
                                                      append (gethash hash (constructions-hash-table (construction-inventory node))))
                                     for cxn-label = (attr-val cxn :label)
