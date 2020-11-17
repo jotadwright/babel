@@ -447,14 +447,21 @@
 
 
 
-(defmethod spacy-benepar-compatible-annotation ((sentence conll-sentence) role-set)
-  "Returns T if all annotated roles correspond to a constituent in de spacy-benepar tree."
+(defmethod spacy-benepar-compatible-annotation ((sentence conll-sentence) role-set &key (selected-role-types 'all))
+  "Returns T if all selected role types (all, core-only, argm-only) correspond to a constituent in de spacy-benepar tree."
   (let ((syntactic-analysis (syntactic-analysis sentence))
-        (all-roles (loop for frame in (propbank-frames sentence)
-                         if (equalp (frame-name frame) role-set)
-                         append (frame-roles frame))))
+        (selected-roles (loop for frame in (propbank-frames sentence)
+                         if (equalp (frame-name frame) (frame-name role-set))
+                         append (loop for frame-role in (frame-roles frame)
+                                      if (case selected-role-types
+                                                (all t)
+                                                (core-only (unless (search "ARGM" (role-type frame-role))
+                                                             t))
+                                                (argm-only (when (search "ARGM" (role-type frame-role))
+                                                             t)))
+                                      collect frame-role))))
     
-    (loop for role in all-roles
+    (loop for role in selected-roles
           for first-index-for-role = (first (indices role))
           for last-index-for-role = (last-elt (indices role))
           always (loop for node in syntactic-analysis
@@ -462,4 +469,3 @@
                        for node-end = (cdr (assoc :end node))
                        thereis (and (= first-index-for-role node-start)
                                     (= last-index-for-role (- node-end 1)))))))
-

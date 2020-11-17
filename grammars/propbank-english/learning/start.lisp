@@ -138,6 +138,7 @@
     (:parse-order
      lexical-cxn
      argument-structure-cxn
+     pp-cxn
      word-sense-cxn)
     (:replace-when-equivalent . nil)
     (:learning-modes
@@ -152,14 +153,16 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (subseq (train-split *ontonotes-annotations*) 0 10)
+   (subseq (train-split *ontonotes-annotations*) 0 20)
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
+(gethash 'propbank-english::on (constructions-hash-table *propbank-learned-cxn-inventory*))
+
 (add-element (make-html *propbank-learned-cxn-inventory*))
 
-(loop for sentence in (subseq (train-split *ontonotes-annotations*) 9 10)
+(loop for sentence in (subseq (train-split *ontonotes-annotations*) 19 20)
       do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
 
 (set-configuration (visualization-configuration *propbank-learned-cxn-inventory*) :hide-features nil)
