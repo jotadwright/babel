@@ -105,7 +105,7 @@
 ;; Storing and restoring grammars ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cl-store:store *cleaned-grammar*
+(cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
                                 :name "core-roles-ontonotes-train-cleaned"
                                 :type "fcg"))
@@ -153,7 +153,7 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (subseq (train-split *ontonotes-annotations*) 0 20)
+   (train-split *ontonotes-annotations*)
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
@@ -162,14 +162,14 @@
 
 (add-element (make-html *propbank-learned-cxn-inventory*))
 
-(loop for sentence in (subseq (train-split *ontonotes-annotations*) 19 20)
+(loop for sentence in (subseq (train-split *ontonotes-annotations*) 1006 1007)
       do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
 
 (set-configuration (visualization-configuration *propbank-learned-cxn-inventory*) :hide-features nil)
 
-(defparameter *cleaned-grammar* (remove-cxns-under-frequency *cleaned-grammar* 5))
+(defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 5))
 
-(clean-grammar *cleaned-grammar* :remove-faulty-cnxs t)
+(clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
 
 (clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*))
 

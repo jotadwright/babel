@@ -88,7 +88,8 @@
          ;; there are remaining constructions. just return the next one
          (pop (remaining-constructions cxn-supplier)))
         ((loop for child in (children node)
-               thereis (cxn-applied child))
+               thereis (and (cxn-applied child)
+                            (not (find 'double-role-assignment (statuses child)))))
          ;; when the node already has children where cxn application succeeded,
          ;;  then we don't move to the next label
          nil)

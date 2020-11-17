@@ -137,7 +137,7 @@ nodes."
                             (not (find 'double-role-assignment (statuses child))))))
        (fully-expanded? node)))
 
-
+#|
 (defmethod cip-goal-test ((cipn cip-node) (mode (eql :gold-standard-meaning)))
   "Returns true if no more valid children or gold standard meaning reached."
   (or (and (or (not (children cipn))
@@ -254,7 +254,7 @@ frame-element filler occurs in more than one slot). "
           (unless double-role-assignments
             t))))
 
-
+|#
 ;; Browsing PropBank data ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -322,24 +322,18 @@ split to the output buffer."
                               (remove-faulty-cnxs nil))
   
   (let ((cxn-inventory (if destructive grammar (copy-object grammar))))
-        (when remove-faulty-cnxs
-          (with-disabled-monitor-notifications
-            (delete-cxn
-             (find-cxn "HAVE.02-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
-             cxn-inventory)
-            (delete-cxn
-             (find-cxn "BE.01-CXN" cxn-inventory :hash-key '-pron- :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
-             cxn-inventory)
-            (delete-cxn
-             (find-cxn "HAVE.01-V:OF+0-CXN" cxn-inventory :hash-key 'of :key #'(lambda (cxn) (symbol-name (name cxn))) :test #'search)
-             cxn-inventory)))
+    
+    (when remove-faulty-cnxs
+      (with-disabled-monitor-notifications
+        (remhash '-pron- (constructions-hash-table cxn-inventory))
+        (remhash '-pron- (constructions-hash-table (processing-cxn-inventory cxn-inventory)))))
   
-        (when remove-cxns-with-freq-1
-          (loop for cxn in (constructions-list cxn-inventory)
-                when (= 1 (attr-val cxn :frequency))
-                do (with-disabled-monitor-notifications (delete-cxn cxn cxn-inventory))
-                finally return cxn-inventory))
-        cxn-inventory))
+    (when remove-cxns-with-freq-1
+      (loop for cxn in (constructions-list cxn-inventory)
+            when (= 1 (attr-val cxn :frequency))
+            do (with-disabled-monitor-notifications (delete-cxn cxn cxn-inventory))
+            finally return cxn-inventory))
+    cxn-inventory))
 
 
 
