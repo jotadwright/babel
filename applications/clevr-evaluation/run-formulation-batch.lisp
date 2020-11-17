@@ -21,7 +21,8 @@
         with utterances = nil
         for attempt from 1
         until (or (all-succeededp cipns)
-                  (> attempt num-attempts))
+                  (and (numberp num-attempts)
+                       (> attempt num-attempts)))
         for (forms nodes)
         = (multiple-value-list
            (handler-case
@@ -30,9 +31,12 @@
                                 :silent nil :n num-solutions))
              (trivial-timeout:timeout-error (error)
                (values nil nil))))
-        when (all-succeededp nodes)
-        do (setf cipns nodes
-                 utterances forms)
+        if (all-succeededp nodes)
+        do (progn (format t "~%[~a] - succeeded" id)
+             (setf cipns nodes
+                   utterances forms))
+        else
+        do (format t "~%[~a] - attempt ~a" id attempt)
         finally (return (values utterances cipns))))
 
 (defun get-utterance-and-formulation-cxns (id irl-program num-solutions num-attempts timeout)
@@ -93,25 +97,26 @@
     ;; loop over the lines, formulate them
     ;; for num-solutions times and
     ;; write to output
-    (with-progress-bar (bar lines-to-process ("Processing ~a" (pathname-name inputfile)))
-      (loop for line = (remove #\Return (read-line in-stream nil nil))
-            while line
-            do (let* ((fields (split line #\,))
-                      (id (first fields))
-                      (irl-program (read-from-string (third fields)))
-                      (rpn (fourth fields)))
-                 (multiple-value-bind (utterances formulation-cxns)
-                     (get-utterance-and-formulation-cxns id irl-program num-solutions num-attempts timeout)
-                   (loop for utterance in utterances
-                         for cxns in formulation-cxns
-                         for out-line = (if (string= utterance "None")
-                                          (make-csv-line id utterance "None" "None" cxns)
-                                          (make-csv-line id utterance
-                                                         (downcase (mkstr irl-program))
-                                                         rpn cxns))
-                         do (write-line out-line out-stream))
-                   (force-output out-stream)
-                   (update bar)))))
+    ;(with-progress-bar (bar lines-to-process ("Processing ~a" (pathname-name inputfile)))
+    (loop for line = (remove #\Return (read-line in-stream nil nil))
+          while line
+          do (let* ((fields (split line #\,))
+                    (id (first fields))
+                    (irl-program (read-from-string (third fields)))
+                    (rpn (fourth fields)))
+               (multiple-value-bind (utterances formulation-cxns)
+                   (get-utterance-and-formulation-cxns id irl-program num-solutions num-attempts timeout)
+                 (loop for utterance in utterances
+                       for cxns in formulation-cxns
+                       for out-line = (if (string= utterance "None")
+                                        (make-csv-line id utterance "None" "None" cxns)
+                                        (make-csv-line id utterance
+                                                       (downcase (mkstr irl-program))
+                                                       rpn cxns))
+                       do (write-line out-line out-stream))
+                 (force-output out-stream)
+                 ;(update bar)
+                 )))
     ;; close the pipes
     (close in-stream)
     (force-output out-stream)
@@ -171,9 +176,11 @@
     (process-inputfile (getf arg-plist 'inputfile)
                        (getf arg-plist 'outputdir)
                        (parse-integer (getf arg-plist 'num-solutions))
-                       (parse-integer (getf arg-plist 'num-attempts))
+                       (if (string= (getf arg-plist 'num-attempts) "nil") nil
+                         (parse-integer (getf arg-plist 'num-attempts)))
                        (parse-integer (getf arg-plist 'timeout)))))
 
 #-lispworks 
 (main #+ccl ccl:*unprocessed-command-line-arguments*
-      #+sbcl (rest sb-ext:*posix-argv*))
+      #+sbcl (rest sb-ext:*posix-argv*)
+      #+lispworks (rest system:*line-arguments-list*))
