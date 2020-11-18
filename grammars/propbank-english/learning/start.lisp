@@ -155,18 +155,22 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-  (subseq (train-split *ontonotes-annotations*) 0 100)
+  (train-split *ontonotes-annotations*)
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
+(loop for sentence in (subseq (train-split *ontonotes-annotations*) 30 50)
+      do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
 
 ;;use.01 sense cxn past niet toe door afwezigheid gram-category!
 (loop for sentence in (subseq (train-split *ontonotes-annotations*) 26 27)
       do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
 
+(comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Old Li Jingtang still tells visitors old war stories" :cxn-inventory *restored-grammar*)
 (set-configuration (visualization-configuration *propbank-learned-cxn-inventory*) :hide-features nil)
-
+(comprehend-and-extract-frames "Only Nixon could go to China, he told a group of Americans" :cxn-inventory *restored-grammar*)
 (defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 5))
 
 (clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)

@@ -486,4 +486,17 @@ that have a weight smaller than a given frequency."
 ;; (print-cxns-with-schema `((arg0 np) (V . nil) (arg1 np) (arg2  ,(intern "PP(to)"))) *propbank-learned-cxn-inventory*)
 ;; (print-cxns-with-schema '((arg1 np) (V . nil)) *propbank-learned-cxn-inventory*)
 
+(in-package :fcg)
 
+(defmethod make-html-construction-title ((construction fcg-construction))
+  `((span) 
+    ,(format nil "~(~a~)" (name construction)) ))
+   #| ,@(when (attributes construction)
+        `(" "
+          ((span :style "white-space:nowrap")
+           ,(format nil "(~{~(~a~)~^ ~})" 
+                    (loop for x in (attributes construction)
+                          when (cdr x)
+                          if (floatp (cdr x))
+                          collect (format nil "~,2f" (cdr x))
+                          else collect (mkstr (cdr x))))))))) |#
