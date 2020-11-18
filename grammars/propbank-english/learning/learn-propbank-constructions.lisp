@@ -72,6 +72,13 @@
       (add-word-sense-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence lex-category gram-category))))
 
 
+(defun find-lexical-cxn (v-unit cxn-inventory)
+  "Finds a lexical construction based on a v-unit."
+  (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
+         (syn-class (feature-value (find 'syn-class (unit-body v-unit) :key #'feature-name)))
+         (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class)))))
+    (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
+
 (defun add-lexical-cxn (gold-frame v-unit cxn-inventory propbank-sentence)
   "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
   (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
@@ -101,8 +108,8 @@
                                     :lex-category ,lex-category
                                     :score 1
                                     :label lexical-cxn
-                                    :frequency 1
-                                    :utterance ,(sentence-string propbank-sentence))
+                                    :frequency 1)
+                       :description ,(sentence-string propbank-sentence)
                        :disable-automatic-footprints t
                        :cxn-inventory ,cxn-inventory))
         (add-category lex-category (get-type-hierarchy cxn-inventory))
@@ -213,9 +220,9 @@
                                          :score ,(length cxn-units-with-role)
                                          :label argument-structure-cxn
                                          :frequency 1
-                                         :gram-category ,gram-category
-                                         :utterance ,(sentence-string propbank-sentence))
-                                 :cxn-inventory ,cxn-inventory))
+                                         :gram-category ,gram-category)
+                            :description ,(sentence-string propbank-sentence)
+                            :cxn-inventory ,cxn-inventory))
         gram-category))))
 
 
@@ -272,13 +279,35 @@
                                     :sense-category ,sense-category
                                     :score 1
                                     :label word-sense-cxn
-                                    :frequency 1
-                                    :utterance ,(sentence-string propbank-sentence))
+                                    :frequency 1)
+                       :description ,(sentence-string propbank-sentence)
                        :cxn-inventory ,cxn-inventory))
         (add-category sense-category (get-type-hierarchy cxn-inventory))
         (add-link gram-category sense-category (get-type-hierarchy cxn-inventory) :weight 1.0)
         (add-link lex-category sense-category (get-type-hierarchy cxn-inventory) :weight 1.0)
         sense-category))))
+
+
+(defun find-word-sense-cxn (gold-frame v-unit cxn-inventory)
+  "Find a word sense construction."
+  (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
+         (cxn-name (intern (upcase (format nil "~a-cxn" (frame-name gold-frame))))))
+    (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
+
+(defun update-type-hierarchy (lex-category gram-category sense-category type-hierarchy)
+
+  (if (graph-utils:edge-exists? (type-hierarchies::graph type-hierarchy) gram-category sense-category)
+    ;;connection between gram and sense category exists: increase edge weight
+    (graph-utils::incf-edge-weight (type-hierarchies::graph type-hierarchy) gram-category sense-category :delta 1.0)
+    ;;add new link
+    (add-link gram-category sense-category type-hierarchy :weight 1.0))
+
+
+  (if (graph-utils:edge-exists? (type-hierarchies::graph type-hierarchy) lex-category sense-category)
+    ;;connection between gram and sense category exists: increase edge weight
+    (graph-utils::incf-edge-weight (type-hierarchies::graph type-hierarchy) lex-category sense-category :delta 1.0)
+    ;;add new link
+    (add-link lex-category sense-category type-hierarchy :weight 1.0)))
 
 
 
@@ -305,14 +334,18 @@
                                            (find 'pp (unit-feature-value (cdr unit-with-role) 'syn-class))))
                                   units-with-role))
          (v-unit (v-unit units-with-role))
-         (lex-category (add-lexical-cxn gold-frame v-unit cxn-inventory propbank-sentence))
+         (lex-cxn (find-lexical-cxn v-unit cxn-inventory))
+         (lex-category (when lex-cxn (attr-val lex-cxn :lex-category)))
          (gram-categories
           (when lex-category
             (loop for argm-pp in argm-pps
                   collect (add-pp-cxn gold-frame argm-pp (v-unit-with-role units-with-role) cxn-inventory propbank-sentence lex-category ts-unit-structure)))))
     
     (loop for gram-category in gram-categories
-          do (add-word-sense-cxn gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)))) ;;only one cxn, multiple links in th
+          for word-sense-cxn = (find-word-sense-cxn gold-frame v-unit cxn-inventory)
+          if word-sense-cxn
+          do (update-type-hierarchy lex-category gram-category (attr-val word-sense-cxn :sense-category) (get-type-hierarchy cxn-inventory))
+          else do (add-word-sense-cxn gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category))))
 
 
 (defmethod add-pp-cxn (gold-frame pp-unit v-unit cxn-inventory propbank-sentence lex-category ts-unit-structure)
@@ -405,9 +438,9 @@
                                          :score ,(length cxn-units-with-role)
                                          :label argm-cxn
                                          :frequency 1
-                                         :gram-category ,gram-category
-                                         :utterance ,(sentence-string propbank-sentence))
-                                 :cxn-inventory ,cxn-inventory))
+                                         :gram-category ,gram-category)
+                            :description ,(sentence-string propbank-sentence)
+                            :cxn-inventory ,cxn-inventory))
         gram-category))))
 
 
@@ -431,7 +464,8 @@
                                            (find 'sbar (unit-feature-value (cdr unit-with-role) 'syn-class))))
                                   units-with-role))
          (v-unit (v-unit units-with-role))
-         (lex-category (add-lexical-cxn gold-frame v-unit cxn-inventory propbank-sentence))
+         (lex-cxn (find-lexical-cxn v-unit cxn-inventory))
+         (lex-category (when lex-cxn (attr-val lex-cxn :lex-category)))
          (gram-categories
           (when lex-category
             (loop for argm-sbar in argm-sbars
@@ -527,9 +561,9 @@
                                          :score ,(length cxn-units-with-role)
                                          :label argm-cxn
                                          :frequency 1
-                                         :gram-category ,gram-category
-                                         :utterance ,(sentence-string propbank-sentence))
-                                 :cxn-inventory ,cxn-inventory))
+                                         :gram-category ,gram-category)
+                            :description ,(sentence-string propbank-sentence)
+                            :cxn-inventory ,cxn-inventory))
         gram-category))))
 
 
@@ -601,9 +635,9 @@
                                          :lemma ,argm-lemma
                                          :score ,(length cxn-units-with-role)
                                          :label argm-cxn
-                                         :frequency 1
-                                         :utterance ,(sentence-string propbank-sentence))
-                                 :cxn-inventory ,cxn-inventory))))))
+                                         :frequency 1)
+                            :description ,(sentence-string propbank-sentence)
+                            :cxn-inventory ,cxn-inventory))))))
         
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
