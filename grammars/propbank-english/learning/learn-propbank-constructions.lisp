@@ -317,7 +317,7 @@
 
 (defmethod add-pp-cxn (gold-frame pp-unit v-unit cxn-inventory propbank-sentence lex-category ts-unit-structure)
   "Learns a construction capturing V + ARGM-pp."
-  (let* ((units-with-role (append (list pp-unit) (list v-unit)))
+  (let* ((units-with-role (append (list v-unit) (list pp-unit)))
          (gram-category (make-const (format nil "~{~a~^-~}" (loop for (r . u) in units-with-role
                                                                    collect (format nil "~a~a"
                                                                                    (role-type r)
@@ -403,7 +403,7 @@
                             :attributes (:schema ,schema
                                          :lemma ,preposition-lemma
                                          :score ,(length cxn-units-with-role)
-                                         :label pp-cxn
+                                         :label argm-cxn
                                          :frequency 1
                                          :gram-category ,gram-category
                                          :utterance ,(sentence-string propbank-sentence))
@@ -443,7 +443,7 @@
 
 (defmethod add-sbar-cxn (gold-frame sbar-unit v-unit cxn-inventory propbank-sentence lex-category ts-unit-structure)
   "Learns a construction capturing V + ARGM-sbar."
-  (let* ((units-with-role (append (list sbar-unit) (list v-unit)))
+  (let* ((units-with-role (append  (list v-unit) (list sbar-unit)))
          (gram-category (make-const (format nil "~{~a~^-~}" (loop for (r . u) in units-with-role
                                                                    collect (format nil "~a~a"
                                                                                    (role-type r)
@@ -525,7 +525,7 @@
                                                    (intern (upcase sbar-lemma))
                                                    sbar-lemma)
                                          :score ,(length cxn-units-with-role)
-                                         :label sbar-cxn
+                                         :label argm-cxn
                                          :frequency 1
                                          :gram-category ,gram-category
                                          :utterance ,(sentence-string propbank-sentence))
@@ -538,7 +538,109 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-leaf)))
+  (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
+        for gold-frame in gold-frames
+        if (spacy-benepar-compatible-annotation propbank-sentence gold-frame :selected-role-types 'argm-only)
+        do
+        (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
+       
+(defmethod learn-constructions-for-gold-frame-instance (propbank-sentence gold-frame cxn-inventory (mode (eql :argm-leaf)))
+  (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
+         (units-with-role (units-with-role ts-unit-structure gold-frame))
+         (argm-leafs (remove-if-not #'(lambda (unit-with-role)
+                                      (and (search "ARGM" (role-type (car unit-with-role)))
+                                           (equalp (unit-feature-value (cdr unit-with-role) 'node-type) 'leaf)))
+                                  units-with-role))
+         (v-unit (v-unit units-with-role))
+         (lex-category (add-lexical-cxn gold-frame v-unit cxn-inventory propbank-sentence))
+         (gram-categories
+          (when lex-category
+            (loop for argm-leaf in argm-leafs
+                  collect (add-argm-leaf-cxn gold-frame argm-leaf (v-unit-with-role units-with-role)
+                                             cxn-inventory propbank-sentence lex-category ts-unit-structure)))))
+    
+    (loop for gram-category in gram-categories
+          do (add-word-sense-cxn gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)))) ;;only one cxn, multiple links in th
 
+
+
+(defmethod add-argm-leaf-cxn (gold-frame argm-unit v-unit cxn-inventory propbank-sentence lex-category ts-unit-structure)
+  "Learns a construction capturing V + ARGM-argm."
+  (let* ((units-with-role (append (list v-unit) (list argm-unit)))
+         (argm-lemma (unit-feature-value (cdr argm-unit) 'lemma))
+         (gram-category (make-const (format nil "~{~a~^-~}"
+                                            (loop for (r . u) in units-with-role ;;to do: include LEMMA!!!
+                                                  collect (format nil "~a~a"
+                                                                  (role-type r)
+                                                                  (if (search "ARGM" (role-type r))
+                                                                    (list (feature-value (find 'lemma (unit-body u)
+                                                                                         :key #'feature-name)))
+                                                                    (feature-value (find 'syn-class (unit-body u)
+                                                                                         :key #'feature-name))))))))
+         (footprint (make-const 'argm))
+         (cxn-units-with-role (list
+                               (make-propbank-conditional-unit-with-role v-unit gram-category footprint)
+                               (make-propbank-conditional-unit-with-role argm-unit gram-category footprint :lemma argm-lemma)))
+         (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame gram-category footprint :include-gram-category? nil))
+
+         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role
+                                                                                 cxn-units-with-role ts-unit-structure))
+        ; (cxn-argm-units (list (make-subclause-word-unit argm-unit ts-unit-structure)))
+         ;(cxn-argm-units-flat  (loop for unit in cxn-argm-units append unit))
+         (cxn-name  (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role nil nil))
+         
+         (schema (loop for (role . nil) in units-with-role
+                       for cxn-unit in cxn-units-with-role
+                       collect (cons (intern (role-type role))
+                                     (cond
+                                      ;; unit contains a lemma
+                                      ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
+                                      ;; unit contains a phrase-type
+                                      ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name)))))))
+         
+         (equivalent-cxn (find-equivalent-cxn schema
+                                              (syn-classes (append cxn-units-with-role
+                                                                   cxn-units-without-role))
+                                              cxn-inventory
+                                              :hash-key argm-lemma)))
+
+    (if equivalent-cxn   
+      ;;Grammatical construction already exists
+      (progn
+        ;;1) Increase its frequency
+        (incf (attr-val equivalent-cxn :frequency))
+        ;;2) Check if there was already a link in the type hierarchy between the lex-category and the gram-category:
+        (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                      lex-category
+                                      (attr-val equivalent-cxn :gram-category))
+          ;;a) If yes, increase edge weight
+          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) :delta 1.0)
+          ;;b) Otherwise, add new connection (weight 1.0)
+          (add-link lex-category
+                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
+        ;;3) Return gram-category
+        (attr-val equivalent-cxn :gram-category))
+      
+      ;;Create a new grammatical category for the observed pattern + add category and link to the type hierarchy
+      (when (and cxn-units-with-role (v-lemma units-with-role))
+        (add-category gram-category (get-type-hierarchy cxn-inventory))
+        (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0)
+        (eval `(def-fcg-cxn ,cxn-name
+                            (,contributing-unit
+                             <-
+                             ,@cxn-units-with-role
+                             ,@cxn-units-without-role)
+                            :disable-automatic-footprints t
+                            :attributes (:schema ,schema
+                                         :lemma ,argm-lemma
+                                         :score ,(length cxn-units-with-role)
+                                         :label argm-cxn
+                                         :frequency 1
+                                         :gram-category ,gram-category
+                                         :utterance ,(sentence-string propbank-sentence))
+                                 :cxn-inventory ,cxn-inventory))
+        gram-category))))
 
 
 
@@ -614,6 +716,9 @@
         into roles
         finally return (make-id (upcase (format nil "~{~a~^+~}+~a-cxn" roles (length cxn-units-without-role))))))
 
+
+
+
   
 (defun find-unit-by-span (transient-structure span)
   "Return a unit with span span"
@@ -653,7 +758,7 @@
       (meaning ,meaning))))
 
 
-(defun make-propbank-conditional-unit-with-role (unit-with-role category footprint)
+(defun make-propbank-conditional-unit-with-role (unit-with-role category footprint &key (lemma nil))
   "Makes a conditional unit for a propbank cxn based on a unit in the
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
@@ -672,7 +777,9 @@ initial transient structure that plays a role in the frame."
       `(,unit-name
         --
         (parent ,parent)
-        ,syn-class))))
+        ,syn-class
+        ,@(when lemma
+            `((lemma ,lemma)))))))
 
 
 
