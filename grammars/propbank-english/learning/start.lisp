@@ -61,7 +61,8 @@
                                                  append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
 
 
-(defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences (subseq (shuffle (test-split *ontonotes-annotations*)) 0 ) nil) 0 ))
+(defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
+                                                   (subseq (shuffle (test-split *ontonotes-annotations*)) 0 200) nil) 0 100))
 
 (length *test-sentences-all-frames*)
 
@@ -143,8 +144,8 @@
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
-    ; :argm-pp
-    ; :argm-sbar
+     :argm-pp
+     :argm-sbar
      :argm-leaf
      )
     (:cxn-supplier-mode . :propbank-english)))
@@ -155,12 +156,12 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-  (subseq (train-split *ontonotes-annotations*) 0 2)
+   (train-split *ontonotes-annotations*)
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
-(loop for sentence in (subseq (train-split *ontonotes-annotations*) 200 210)
+(loop for sentence in (subseq (train-split *ontonotes-annotations*) 0 10)
       do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
 
 ;;use.01 sense cxn past niet toe door afwezigheid gram-category!
@@ -175,13 +176,13 @@
 
 (clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
 
-(clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*))
+(clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*) :remove-edges-with-freq-smaller-than 2)
 
 
-(evaluate-propbank-corpus *test-sentences-all-frames* *cleaned-grammar* :timeout 60)
+(evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
 
 (defparameter *evaluation-result* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-16-14-36-35-evaluation"
+                                                           :name "2020-11-18-12-02-55-evaluation"
                                                            :type "store")))
 
 (evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
@@ -268,7 +269,7 @@
 (comprehend-and-extract-frames "It is a Fabergé egg that Tsar Nicholas II gave his wife." :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He called his mother while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 
-
+(comprehend-and-extract-frames "Elise will not let the Pokemon escape" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He usually takes the bus to school" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend "She had dinner in Paris." :cxn-inventory *cleaned-grammar*)

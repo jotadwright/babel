@@ -57,7 +57,7 @@
   
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
         for gold-frame in gold-frames
-        if (spacy-benepar-compatible-annotation propbank-sentence gold-frame :selected-role-types 'core-only)
+        if (spacy-benepar-compatible-annotation propbank-sentence roleset :selected-role-types 'core-only)
         do (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
        
 (defmethod learn-constructions-for-gold-frame-instance (propbank-sentence gold-frame cxn-inventory (mode (eql :core-roles)))
@@ -293,7 +293,7 @@
 (defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-pp)))
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
         for gold-frame in gold-frames
-        if (spacy-benepar-compatible-annotation propbank-sentence gold-frame :selected-role-types 'argm-only)
+        if (spacy-benepar-compatible-annotation propbank-sentence roleset :selected-role-types 'argm-only)
         do
         (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
        
@@ -419,7 +419,7 @@
 (defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-sbar)))
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
         for gold-frame in gold-frames
-        if (spacy-benepar-compatible-annotation propbank-sentence gold-frame :selected-role-types 'argm-only)
+        if (spacy-benepar-compatible-annotation propbank-sentence roleset :selected-role-types 'argm-only)
         do
         (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
        
@@ -541,7 +541,7 @@
 (defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-leaf)))
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
         for gold-frame in gold-frames
-        if (spacy-benepar-compatible-annotation propbank-sentence gold-frame :selected-role-types 'argm-only)
+        if (spacy-benepar-compatible-annotation propbank-sentence roleset :selected-role-types 'argm-only)
         do
         (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
        
@@ -588,10 +588,7 @@
 
     (if equivalent-cxn   
       ;;argm-leaf construction already exists
-      (progn
-        ;; Increase its frequency
-        (incf (attr-val equivalent-cxn :frequency))
-        nil)
+      (incf (attr-val equivalent-cxn :frequency))
       ;;Create a argm-leaf cxn
       (when (and cxn-units-with-role (v-lemma units-with-role))
         (eval `(def-fcg-cxn ,cxn-name
@@ -606,10 +603,8 @@
                                          :label argm-cxn
                                          :frequency 1
                                          :utterance ,(sentence-string propbank-sentence))
-                                 :cxn-inventory ,cxn-inventory))
-        nil)))) ;;nil because no gram-category is returned!
-
-
+                                 :cxn-inventory ,cxn-inventory))))))
+        
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper functions to create new constructions  ;;

@@ -451,15 +451,15 @@
   "Returns T if all selected role types (all, core-only, argm-only) correspond to a constituent in de spacy-benepar tree."
   (let ((syntactic-analysis (syntactic-analysis sentence))
         (selected-roles (loop for frame in (propbank-frames sentence)
-                         if (equalp (frame-name frame) (frame-name role-set))
-                         append (loop for frame-role in (frame-roles frame)
-                                      if (case selected-role-types
+                              if (equalp (frame-name frame) role-set)
+                              append (loop for frame-role in (frame-roles frame)
+                                           if (case selected-role-types
                                                 (all t)
                                                 (core-only (unless (search "ARGM" (role-type frame-role))
                                                              t))
                                                 (argm-only (when (search "ARGM" (role-type frame-role))
                                                              t)))
-                                      collect frame-role))))
+                                           collect frame-role))))
     
     (loop for role in selected-roles
           for first-index-for-role = (first (indices role))
