@@ -46,20 +46,20 @@
 
 (defun constructions-for-label-propbank (node label)
   "returns all constructions that of label 'label'"
-  (cond ((or (equal label 'lexical-cxn)
-             (equal label 'word-sense-cxn)
-             (equal label 'argm-cxn))
+  (cond ;; For lexical constructions
+        ((or (equal label 'lexical-cxn)
+             (equal label 'argm-leaf-cxn))
          (let ((constructions (loop for cxn in (loop for hash in (hash node (get-configuration node :hash-mode))
                                                      append (gethash hash (constructions-hash-table (construction-inventory node))))
-                                    for cxn-label = (attr-val cxn :label)
-                                    when (or (and (symbolp cxn-label) (equalp (symbol-name label) (symbol-name cxn-label)))
-                                             (and (listp cxn-label) (member label cxn-label)))
+                                    when (equal (attr-val cxn :label) label)
                                     collect cxn)))
            (when (get-configuration node :shuffle-cxns-before-application)
              (shuffle constructions))
            (sort constructions #'(lambda (cxn-1 cxn-2) (>= (attr-val cxn-1 :frequency) (attr-val cxn-2 :frequency))))))
-        
-        ((equal label 'argument-structure-cxn)
+
+        ;; For constructions bound to lex-categories
+        ((or (equal label 'argument-structure-cxn)
+             (equal label 'argm-phrase-cxn))
          (let* ((lex-categories-node (lex-categories node))
                 (neighbours (remove-duplicates (loop for lex-category in lex-categories-node
                                                      append (graph-utils::neighbors (type-hierarchies::graph (get-type-hierarchy (construction-inventory node))) lex-category
@@ -74,12 +74,54 @@
                                    (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
                                          ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
                                           nil)
-                                         ((>= (attr-val cxn-1 :frequency) (attr-val cxn-2 :frequency))))))))))
+                                         ((>= (find-highest-edge-weight lex-categories-node cxn-1 node)
+                                              (find-highest-edge-weight lex-categories-node cxn-2 node)))
+                                         (t
+                                          nil))))))
+        ;; Word sense constructions
+        ((equal label 'word-sense-cxn)
+         (let* ((gram-categories-node (gram-categories node))
+                (neighbours (remove-duplicates (loop for gram-category in gram-categories-node
+                                                     append (graph-utils::neighbors (type-hierarchies::graph (get-type-hierarchy (construction-inventory node)))
+                                                                                    gram-category
+                                                                                    :return-ids? nil))))
+                (constructions (loop for cxn in (loop for hash in (hash node (get-configuration node :hash-mode))
+                                                      append (gethash hash (constructions-hash-table (construction-inventory node))))
+                                     for cxn-category = (attr-val cxn :sense-category)
+                                     when (member cxn-category neighbours)
+                                     collect cxn)))
+           (when (get-configuration node :shuffle-cxns-before-application)
+             (shuffle constructions))
+           (sort constructions #'(lambda (cxn-1 cxn-2)
+                                   (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
+                                         ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
+                                          nil)
+                                         ((>= (find-highest-edge-weight gram-categories-node cxn-1 node)
+                                              (find-highest-edge-weight gram-categories-node cxn-2 node)))
+                                         (t
+                                          nil))))))))
+
+
+(defun find-highest-edge-weight (category-list cxn node)
+  (loop with graph = (graph-utils::graph (get-type-hierarchy (construction-inventory node)))
+        with gram-category = (or (attr-val cxn :gram-category)
+                                 (attr-val cxn :sense-category))
+        for cat in category-list
+        if (graph-utils:edge-exists? graph cat gram-category)
+        maximize (graph-utils:edge-weight graph cat gram-category)))
+
+
 
 (defun lex-categories (node)
   (loop for unit in (fcg-get-transient-unit-structure node)
         for lex-category = (unit-feature-value unit 'lex-category)
         when lex-category
+        collect it))
+
+(defun gram-categories (node)
+  (loop for unit in (fcg-get-transient-unit-structure node)
+        for gram-category = (unit-feature-value unit 'gram-category)
+        when gram-category
         collect it))
 
 

@@ -106,7 +106,7 @@
 ;; Storing and restoring grammars ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cl-store:store *propbank-learned-cxn-inventory*
+(cl-store:store *cleaned-grammar*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
                                 :name "core-roles-ontonotes-train-cleaned"
                                 :type "fcg"))
@@ -139,7 +139,8 @@
     (:parse-order
      lexical-cxn
      argument-structure-cxn
-     argm-cxn
+     argm-phrase-cxn
+     argm-leaf-cxn
      word-sense-cxn)
     (:replace-when-equivalent . nil)
     (:learning-modes
@@ -161,12 +162,15 @@
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
-(loop for sentence in (subseq (train-split *ontonotes-annotations*) 0 10)
+(loop for sentence in (subseq (train-split *ontonotes-annotations*) 879 900)
       do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
 
 ;;use.01 sense cxn past niet toe door afwezigheid gram-category!
-(loop for sentence in (subseq (train-split *ontonotes-annotations*) 26 27)
-      do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
+(loop for sentence in (subseq *test-sentences-all-frames* 0 10)
+      do (comprehend-and-extract-frames sentence :cxn-inventory *cleaned-grammar*))
+
+(comprehend-and-extract-frames "' Good morning , ' the little prince responded politely , although when he turned around he saw nothing ." :cxn-inventory *cleaned-grammar*)
+
 
 (comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "Old Li Jingtang still tells visitors old war stories" :cxn-inventory *restored-grammar*)
@@ -180,12 +184,39 @@
 
 
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
+(evaluate-propbank-corpus *test-sentences-all-frames* *cleaned-grammar* :timeout 60)
 
-(defparameter *evaluation-result* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-18-12-02-55-evaluation"
+
+(defparameter *evaluation-result-w-cleaning-to30* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-18-22-28-43-evaluation"
                                                            :type "store")))
 
-(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
+(defparameter *evaluation-result-w-cleaning-to60* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-19-08-46-10-evaluation"
+                                                           :type "store")))
+
+(defparameter *evaluation-result-w-cleaning-to60-freq5* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-19-09-26-30-evaluation"
+                                                           :type "store")))
+
+
+
+(defparameter *evaluation-result-no-cleaning-to30* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-19-07-12-49-evaluation"
+                                                           :type "store")))
+
+(defparameter *evaluation-result-no-cleaning-to60* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-19-07-36-25-evaluation"
+                                                           :type "store")))
+
+
+(evaluate-predictions *evaluation-result-w-cleaning-to30* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
+(evaluate-predictions *evaluation-result-w-cleaning-to60* :core-roles-only t :include-timed-out-sentences t :include-word-sense t)
+(evaluate-predictions *evaluation-result-w-cleaning-to60-freq5* :core-roles-only t :include-timed-out-sentences t :include-word-sense t)
+
+(evaluate-predictions *evaluation-result-no-cleaning-to30* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
+(evaluate-predictions *evaluation-result-no-cleaning-to60* :core-roles-only nil :include-timed-out-sentences nil :include-word-sense t)
+
 
 ;;;;;;;;;;;;;
 ;; Testing ;;
@@ -287,7 +318,7 @@
 ;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
 (comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *propbank-learned-cxn-inventory*)
 
-(comprehend-and-extract-frames "This brings us to another problem that comes up when dealing with natural language . " :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "This brings us to another problem that comes up when dealing with natural language . " :cxn-inventory *cleaned-grammar*)
 
 (comprehend-and-extract-frames "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date." :cxn-inventory *restored-grammar*)
 

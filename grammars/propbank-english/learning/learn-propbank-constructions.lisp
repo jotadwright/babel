@@ -436,7 +436,7 @@
                             :attributes (:schema ,schema
                                          :lemma ,preposition-lemma
                                          :score ,(length cxn-units-with-role)
-                                         :label argm-cxn
+                                         :label argm-phrase-cxn
                                          :frequency 1
                                          :gram-category ,gram-category)
                             :description ,(sentence-string propbank-sentence)
@@ -559,7 +559,7 @@
                                                    (intern (upcase sbar-lemma))
                                                    sbar-lemma)
                                          :score ,(length cxn-units-with-role)
-                                         :label argm-cxn
+                                         :label argm-phrase-cxn
                                          :frequency 1
                                          :gram-category ,gram-category)
                             :description ,(sentence-string propbank-sentence)
@@ -634,7 +634,7 @@
                             :attributes (:schema ,schema
                                          :lemma ,argm-lemma
                                          :score ,(length cxn-units-with-role)
-                                         :label argm-cxn
+                                         :label argm-leaf-cxn
                                          :frequency 1)
                             :description ,(sentence-string propbank-sentence)
                             :cxn-inventory ,cxn-inventory))))))
