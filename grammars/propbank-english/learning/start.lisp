@@ -162,7 +162,7 @@
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
-(loop for sentence in (subseq (train-split *ontonotes-annotations*) 879 900)
+(loop for sentence in (subseq (train-split *ontonotes-annotations*) 1 2)
       do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
 
 ;;use.01 sense cxn past niet toe door afwezigheid gram-category!
@@ -171,16 +171,16 @@
 
 (comprehend-and-extract-frames "' Good morning , ' the little prince responded politely , although when he turned around he saw nothing ." :cxn-inventory *cleaned-grammar*)
 
-
-(comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "Old Li Jingtang still tells visitors old war stories" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "I live in Brussels" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *cleaned-grammar*)
+(comprehend-and-extract-frames "Old Li Jingtang still tells visitors old war stories" :cxn-inventory *cleaned-grammar*)
 (set-configuration (visualization-configuration *propbank-learned-cxn-inventory*) :hide-features nil)
 (comprehend-and-extract-frames "Only Nixon could go to China, he told a group of Americans" :cxn-inventory *restored-grammar*)
 (defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 5))
 
 (clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
 
-(clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*) :remove-edges-with-freq-smaller-than 2)
+(clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*) :remove-edges-with-freq-smaller-than 5)
 
 
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
@@ -196,7 +196,7 @@
                                                            :type "store")))
 
 (defparameter *evaluation-result-w-cleaning-to60-freq5* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-19-09-26-30-evaluation"
+                                                           :name "2020-11-19-21-00-49-evaluation"
                                                            :type "store")))
 
 
@@ -212,7 +212,7 @@
 
 (evaluate-predictions *evaluation-result-w-cleaning-to30* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 (evaluate-predictions *evaluation-result-w-cleaning-to60* :core-roles-only t :include-timed-out-sentences t :include-word-sense t)
-(evaluate-predictions *evaluation-result-w-cleaning-to60-freq5* :core-roles-only t :include-timed-out-sentences t :include-word-sense t)
+(evaluate-predictions *evaluation-result-w-cleaning-to60-freq5* :core-roles-only nil :include-timed-out-sentences t :include-word-sense t)
 
 (evaluate-predictions *evaluation-result-no-cleaning-to30* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 (evaluate-predictions *evaluation-result-no-cleaning-to60* :core-roles-only nil :include-timed-out-sentences nil :include-word-sense t)
@@ -303,7 +303,7 @@
 (comprehend-and-extract-frames "Elise will not let the Pokemon escape" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He usually takes the bus to school" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend "She had dinner in Paris." :cxn-inventory *cleaned-grammar*)
+(comprehend-and-extract-frames "She had dinner in Paris." :cxn-inventory *cleaned-grammar*)
 
 (original-cxn-set (processing-cxn-inventory *cleaned-grammar*))
 ;; Testing new sentences with learned grammar 
