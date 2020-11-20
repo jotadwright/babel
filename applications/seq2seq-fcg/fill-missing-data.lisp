@@ -119,7 +119,7 @@
 (defun main (args)
   (let ((args (args->plist args)))
     (loop for indicator in '(inputfile outputdir grammar
-                             timeout server-port)
+                             timeout port)
           unless (getf args indicator)
           do (error "Missing command line argument: ~a" indicator))
     (let* ((grammar (copy-object (eval (internal-symb (upcase (getf args 'grammar))))))
