@@ -62,53 +62,22 @@
 
 
 (defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
-                                                   (subseq (shuffle (test-split *ontonotes-annotations*)) 0 200) nil) 0 100))
+                                                   (subseq (shuffle (test-split *ontonotes-annotations*)) 0 500) nil) 0 250))
 
 (length *test-sentences-all-frames*)
 
+(defparameter *train-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
+                                                   (subseq (shuffle (train-split *ontonotes-annotations*)) 0 500) nil) 0 100))
 
 
-
-
-
-;;Problems
-;;--------------
-;;Possessive 's linked to be.02 (existential be)
-(graph-utils:edge-weight (graph-utils::graph (get-type-hierarchy *cleaned-grammar*))
-                         (graph-utils:lookup-node (graph-utils::graph (get-type-hierarchy *cleaned-grammar*)) 6653)
-                         (graph-utils:lookup-node (graph-utils::graph (get-type-hierarchy *cleaned-grammar*)) 3673))
-
-(graph-utils:lookup-node (graph-utils::graph (get-type-hierarchy *cleaned-grammar*)) 3673) ;;'type-hierarchies::BE\(POS\)-35)
-(graph-utils:lookup-node (graph-utils::graph (get-type-hierarchy *cleaned-grammar*)) 6653)
-
-(node-p '#:BE.02-2249 (get-type-hierarchy *cleaned-grammar*))
-(node-p 3673 (get-type-hierarchy *cleaned-grammar*))
- 
-(gethash be\(pos\)-35 (graph-utils::nodes (graph-utils::graph (get-type-hierarchy *cleaned-grammar*))))
-
-(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
-(evaluate-predictions *evaluation-result-cleaned* :core-roles-only t :include-timed-out-sentences t :include-word-sense nil)
-
-
-(defparameter *test* (first *evaluation-result*))
-
-(evaluate-predictions (list (nth 15 *evaluation-result-cleaned*)) :core-roles-only t :include-word-sense nil)
-(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense nil)
-
-
-(activate-monitor trace-fcg)
-
-(comprehend-and-extract-frames (nth 15 *test-sentences-all-frames*) :cxn-inventory *core-roles-cleaned-frequency-grammar*)
-(comprehend-and-extract-frames "The water boils" :cxn-inventory *propbank-learned-cxn-inventory*)
-(length *test-sentences-all-frames*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Storing and restoring grammars ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cl-store:store *cleaned-grammar*
+(cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "core-roles-ontonotes-train-cleaned"
+                                :name "core-roles-ontonotes-train-cleaned-faulty-only"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
@@ -151,122 +120,81 @@
      )
     (:cxn-supplier-mode . :propbank-english)))
 
-;(set-configuration *propbank-learned-cxn-inventory* :node-tests '(:check-double-role-assignment :restrict-nr-of-nodes))
-;(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '( :no-valid-children ))
-;;(set-configuration *propbank-learned-cxn-inventory* :cxn-supplier-mode :propbank-english)
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (train-split *ontonotes-annotations*)
+   (shuffle (train-split *ontonotes-annotations*))
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
-(loop for sentence in (subseq (train-split *ontonotes-annotations*) 1 2)
-      do (comprehend-and-extract-frames sentence :cxn-inventory *propbank-learned-cxn-inventory*))
-
-;;use.01 sense cxn past niet toe door afwezigheid gram-category!
-(loop for sentence in (subseq *test-sentences-all-frames* 0 10)
-      do (comprehend-and-extract-frames sentence :cxn-inventory *cleaned-grammar*))
-
-(comprehend-and-extract-frames "' Good morning , ' the little prince responded politely , although when he turned around he saw nothing ." :cxn-inventory *cleaned-grammar*)
-
-(comprehend-and-extract-frames "I live in Brussels" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *cleaned-grammar*)
-(comprehend-and-extract-frames "Old Li Jingtang still tells visitors old war stories" :cxn-inventory *cleaned-grammar*)
-(set-configuration (visualization-configuration *propbank-learned-cxn-inventory*) :hide-features nil)
-(comprehend-and-extract-frames "Only Nixon could go to China, he told a group of Americans" :cxn-inventory *restored-grammar*)
-(defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 5))
+;;>> Cleaning
+;;--------------
 
 (clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
 
-(clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*) :remove-edges-with-freq-smaller-than 5)
+(defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 2))
+
+(clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*) :remove-edges-with-freq-smaller-than 2)
+
+;;>> Testing during development
+;;----------------------------
 
 
+(loop for sentence in (subseq (train-split *ontonotes-annotations*) 0 20)
+      do (comprehend-and-extract-frames sentence :cxn-inventory *cleaned-grammar*))
+
+
+(comprehend-and-extract-frames "I live in Brussels" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "He listened while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Old Li Jingtang still tells visitors old war stories" :cxn-inventory *cleaned-grammar*)
+(comprehend-and-extract-frames "Only Nixon could go to China, he told a group of Americans" :cxn-inventory *cleaned-grammar*)
+
+;;;;;;;;;;;;;;;;;
+;; Evaluation  ;;
+;;;;;;;;;;;;;;;;;
+
+
+(evaluate-propbank-corpus *train-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
-(evaluate-propbank-corpus *test-sentences-all-frames* *cleaned-grammar* :timeout 60)
+
+(evaluate-propbank-corpus *train-sentences-all-frames* *cleaned-grammar* :timeout 60)
 
 
-(defparameter *evaluation-result-w-cleaning-to30* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-18-22-28-43-evaluation"
+
+(defparameter *evaluation-result-no-cleaning* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-20-13-56-24-evaluation"
                                                            :type "store")))
 
-(defparameter *evaluation-result-w-cleaning-to60* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-19-08-46-10-evaluation"
+(defparameter *evaluation-result-with-cleaning<2* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-20-12-58-29-evaluation"
                                                            :type "store")))
 
-(defparameter *evaluation-result-w-cleaning-to60-freq5* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-19-21-00-49-evaluation"
+(defparameter *evaluation-result-with-cleaning<6* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-20-12-46-36-evaluation"
                                                            :type "store")))
 
-
-
-(defparameter *evaluation-result-no-cleaning-to30* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-19-07-12-49-evaluation"
-                                                           :type "store")))
-
-(defparameter *evaluation-result-no-cleaning-to60* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-19-07-36-25-evaluation"
+(defparameter *evaluation-result-with-cleaning<4* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-20-12-06-41-evaluation"
                                                            :type "store")))
 
 
-(evaluate-predictions *evaluation-result-w-cleaning-to30* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
-(evaluate-predictions *evaluation-result-w-cleaning-to60* :core-roles-only t :include-timed-out-sentences t :include-word-sense t)
-(evaluate-predictions *evaluation-result-w-cleaning-to60-freq5* :core-roles-only nil :include-timed-out-sentences t :include-word-sense t)
 
-(evaluate-predictions *evaluation-result-no-cleaning-to30* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
-(evaluate-predictions *evaluation-result-no-cleaning-to60* :core-roles-only nil :include-timed-out-sentences nil :include-word-sense t)
+(evaluate-predictions *evaluation-result-no-cleaning* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 
-
-;;;;;;;;;;;;;
-;; Testing ;;
-;;;;;;;;;;;;;
+(evaluate-predictions *evaluation-result-with-cleaning<2* :core-roles-only t :include-timed-out-sentences nil :include-word-sense nil)
+(evaluate-predictions *evaluation-result-with-cleaning<4* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
+(evaluate-predictions *evaluation-result-with-cleaning<6* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 
 
-(setf *selected-sentence*
-      (find "When traders become confident that the stock market has stabilized , oil prices are expected to rise as supply and demand fundamentals once again become the major consideration ." *opinion-sentences* :key #'sentence-string :test #'string=))
-
-(learn-cxn-from-propbank-annotation *selected-sentence* "expect.01" *propbank-learned-cxn-inventory* :argm-subclause)
-(evaluate-propbank-sentence *selected-sentence* *propbank-learned-cxn-inventory* :silent nil :selected-rolesets '("expect.01"))
-
-(add-element (make-html-fcg-light (initial-transient-structure *selected-sentence*) :construction-inventory *propbank-learned-cxn-inventory*
-                                  :feature-types (feature-types *propbank-learned-cxn-inventory* )))
-
-(learn-propbank-grammar (list *selected-sentence*)
-                        :cxn-inventory '*propbank-learned-cxn-inventory*
-                        :fcg-configuration *training-configuration*
-                        :selected-rolesets '("expect.01")
-                        :silent t
-                        :tokenize? nil)
-(activate-monitor trace-fcg) 
-(with-activated-monitor trace-fcg
-  (add-element (make-html (second (multiple-value-list (comprehend *selected-sentence* :cxn-inventory *propbank-learned-cxn-inventory*)
-                                                       )))))
-
-(add-element (make-html (first (multiple-value-list (comprehend *selected-sentence* :cxn-inventory *propbank-learned-cxn-inventory*)
-                                                       ))))
-
-(add-element (make-html (de-render (sentence-string *selected-sentence*) :de-render-constituents-dependents-without-tokenisation)))
-
-(add-element (make-html *propbank-learned-cxn-inventory*))
-
-(add-element (make-html (find-cxn "BECOME.01-ARG1:PRP+V:BECOME+ARG2:NP+ARGM-ADV:PP(CC-FROM)+ARGM-ADV:PP(CC-FROM)+ARGM-TMP:NOW+3-CXN-1"
-          *propbank-learned-cxn-inventory* :hash-key 'become :test #'string=)))
-          
-(evaluate-propbank-sentences
- (list *selected-sentence* *propbank-learned-cxn-inventory* :selected-rolesets  '("believe.01")  :silent t))
-
-(activate-monitor trace-fcg)
-(comprehend-and-extract-frames "He believed the man ." :cxn-inventory *propbank-learned-cxn-inventory*)
-
-(comprehend-and-extract-frames "Luc could not believe his eyes" :cxn-inventory *cleaned-grammar*)
-(comprehend-and-extract-frames "Luc could not believe that it is true" :cxn-inventory *cleaned-grammar*)
-
-(comprehend-and-extract-frames "Luc would come to Venice" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "Carlo thinks that Luc would not come to Venice" :cxn-inventory *propbank-learned-cxn-inventory*)
 
 
-(comprehend-and-extract-frames "" :cxn-inventory *propbank-learned-cxn-inventory*)
+
+
+
+;;;;;;;;;;;;;;;;;;;
+;; Demonstration ;;
+;;;;;;;;;;;;;;;;;;;
 
 
 
@@ -285,16 +213,8 @@
 ;;ARG1:NNS nooit gezien
 (comprehend-and-extract-frames "Inventories are closely watched for such clues , for instance ." :cxn-inventory *restored-grammar*)
 
-;;manueel deze toepassen lukt wel (probleem met zwarte nodes!!):
-(add-element (make-html (find-cxn "ALL-FRAMES-V:VBN+ARGM-MNR:CLOSELY+1-CXN-2" *restored-grammar* :hash-key 'closely :test #'string=)))
 
 
-;;testing
-(learn-propbank-grammar (list *selected-sentence*)
-                        :cxn-inventory '*propbank-learned-cxn-inventory*
-                        :selected-rolesets '("watch.01")
-                        :fcg-configuration *training-configuration*)
-(activate-monitor trace-fcg)
 (comprehend-and-extract-frames "Anne sent her mother a dozen roses" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "Tsar Nicholas II gave his wife a Fabergé egg." :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "It is a Fabergé egg that Tsar Nicholas II gave his wife." :cxn-inventory *propbank-learned-cxn-inventory*)
@@ -305,100 +225,88 @@
 (comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "She had dinner in Paris." :cxn-inventory *cleaned-grammar*)
 
-(original-cxn-set (processing-cxn-inventory *cleaned-grammar*))
-;; Testing new sentences with learned grammar 
+
+
+
 ;; Guardian FISH article
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(set-configuration *propbank-learned-cxn-inventory* :parse-goal-tests '(:no-valid-children))
-(set-configuration *propbank-learned-cxn-inventory* :parse-order '(:multi-argument-core-roles :argm-pp :argm-with-lemma ))
+(defparameter *demo-grammar* *propbank-learned-cxn-inventory*)
 
-(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *cleaned-grammar*)
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *demo-grammar*)
 
 ;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
-(comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "This brings us to another problem that comes up when dealing with natural language . " :cxn-inventory *cleaned-grammar*)
+(comprehend-and-extract-frames "This brings us to another problem that comes up when dealing with natural language . " :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "The study, carried out at Geomar Helmholtz Centre for Ocean Research in Germany, was the most comprehensive of the subject to date." :cxn-inventory *demo-grammar*)
 
 ;;attribute.01 wordt niet gevonden > 'ARG1:NP - has been attributed - ARG2:PP nooit gezien in training'
-(comprehend-and-extract-frames "The fall in oxygen levels has been attributed to global warming and the authors warn that if it continues unchecked, the amount of oxygen lost could reach up to 7% by 2100." :cxn-inventory *cleaned-grammar*)
-(length (constructions-list *cleaned-grammar*))
-(size *cleaned-grammar*)
+(comprehend-and-extract-frames "The fall in oxygen levels has been attributed to global warming and the authors warn that if it continues unchecked, the amount of oxygen lost could reach up to 7% by 2100." :cxn-inventory *demo-grammar*)
+
+
+(comprehend-and-extract-frames "The fall in oxygen levels has been attributed to global warming ." :cxn-inventory *demo-grammar*)
 
 ;;adapt-cxn niet geleerd:
-(comprehend-and-extract-frames "Very few marine organisms are able to adapt to low levels of oxygen." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Very few marine organisms are able to adapt to low levels of oxygen." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "The paper contains analysis of wide-ranging data from 1960 to 2010, documenting changes in oxygen distribution in the entire ocean for the first time ." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "The paper contains analysis of wide-ranging data from 1960 to 2010, documenting changes in oxygen distribution in the entire ocean for the first time ." :cxn-inventory *demo-grammar*)
 
 ;;verkeerde analyse (mss quotes anders zetten?)
-(comprehend-and-extract-frames "Since large fish in particular avoid or do not survive in areas with low oxygen content, these changes can have far-reaching biological consequences, said Dr Sunke Schmidtko, the report's lead author . " :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Since large fish in particular avoid or do not survive in areas with low oxygen content, these changes can have far-reaching biological consequences, said Dr Sunke Schmidtko, the report's lead author . " :cxn-inventory *demo-grammar*)
 
 ;;have? mss have uitschakelen voor toepassingen?
-(comprehend-and-extract-frames "Some areas have seen a greater drop than others ." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Some areas have seen a greater drop than others ." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "The Pacific - the planet's largest ocean - has suffered the greatest volume of oxygen loss, while the Arctic witnessed the sharpest decline by percentage ." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "The Pacific - the planet's largest ocean - has suffered the greatest volume of oxygen loss, while the Arctic witnessed the sharpest decline by percentage ." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames " ' While the slight decrease of oxygen in the atmosphere is currently considered non-critical, the oxygen losses in the ocean can have far-reaching consequences because of the uneven distribution, ' added another of the report's authors, Lothar Stramma ." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames " ' While the slight decrease of oxygen in the atmosphere is currently considered non-critical, the oxygen losses in the ocean can have far-reaching consequences because of the uneven distribution, ' added another of the report's authors, Lothar Stramma ." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "It is increasingly clear that the heaviest burden of climate change is falling on the planet's oceans, which absorb more than 30% of the carbon produced on land ." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "It is increasingly clear that the heaviest burden of climate change is falling on the planet's oceans, which absorb more than 30% of the carbon produced on land ." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "Rising sea levels are taking their toll on many of the world's poorest places ." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Rising sea levels are taking their toll on many of the world's poorest places ." :cxn-inventory *demo-grammar*)
 
 ;;DEVASTATE niet gevonden!(sparseness) ARG0:NP - have devastated - ARG1:NP
-(comprehend-and-extract-frames "Warming waters have devastated corals - including the Great Barrier Reef - in bleaching events." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Warming waters have devastated corals - including the Great Barrier Reef - in bleaching events." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "Acidic oceans, caused by a drop in PH levels as carbon is absorbed, threaten creatures' ability to build their calcium-based shells and other structures." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Acidic oceans, caused by a drop in PH levels as carbon is absorbed, threaten creatures' ability to build their calcium-based shells and other structures." :cxn-inventory *demo-grammar*)
 
 ;;CAUSED niet gevonden! Triggered ook niet!
-(comprehend-and-extract-frames "Warming waters have also caused reproductive problems in species such as cod, and triggered their migration to colder climates." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Warming waters have also caused reproductive problems in species such as cod, and triggered their migration to colder climates." :cxn-inventory *demo-grammar*)
 
 ;; goed
-(comprehend-and-extract-frames "Lower oxygen levels in larger parts of the ocean are expected to force animals to seek out ever shrinking patches of habitable water, with significant impacts on the ecosystem and food web." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Lower oxygen levels in larger parts of the ocean are expected to force animals to seek out ever shrinking patches of habitable water, with significant impacts on the ecosystem and food web." :cxn-inventory *demo-grammar*)
 
 
-(comprehend-and-extract-frames "Callum Roberts, the author of Ocean of Life and a marine conservation biologist at the University of York, is unsurprised by the latest findings." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Callum Roberts, the author of Ocean of Life and a marine conservation biologist at the University of York, is unsurprised by the latest findings." :cxn-inventory *demo-grammar*)
 
 ;goed maar veel be's en have's(!!) >> vreemde have cxn geleerd! enkel pronoun, geen v
-(comprehend-and-extract-frames "'What we're seeing is fallout from global warming,' he says." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "'What we're seeing is fallout from global warming,' he says." :cxn-inventory *demo-grammar*)
 
 
-(comprehend-and-extract-frames "'It's straightforward physics and chemistry playing out in front of our eyes, entirely in keeping with what we'd expect and yet another nail in coffin of climate change denial.'" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "'It's straightforward physics and chemistry playing out in front of our eyes, entirely in keeping with what we'd expect and yet another nail in coffin of climate change denial.'" :cxn-inventory *demo-grammar*)
 
 
-(comprehend-and-extract-frames "Scientists have long predicted ocean deoxygenation due to climate change, but confirmation on this global scale, and at deep sea level, is concerning them." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Scientists have long predicted ocean deoxygenation due to climate change, but confirmation on this global scale, and at deep sea level, is concerning them." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "Last year, Matthew Long, an oceanographer at the National Center for Atmospheric Research in Colorado, predicted that oxygen loss would become evident 'across large regions of the oceans' between 2030 and 2040." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Last year, Matthew Long, an oceanographer at the National Center for Atmospheric Research in Colorado, predicted that oxygen loss would become evident 'across large regions of the oceans' between 2030 and 2040." :cxn-inventory *demo-grammar*)
 
-(comprehend-and-extract-frames "Reacting to the German findings, Long said it was 'alarming to see this signal begin to emerge clearly in the observational data', while Roberts said, 'We now have a measurable change which is attributable to global warming.'" :cxn-inventory *restored-grammar*)
-
-
-
-(comprehend-and-extract-frames "The report explains that the ocean's oxygen supply is threatened by global warming in two ways." :cxn-inventory *propbank-learned-cxn-inventory*)
-
-(comprehend-and-extract-frames "Warmer water is less able to contain oxygen than cold, so as the oceans warm, oxygen is reduced." :cxn-inventory *restored-grammar*)
-
-(comprehend-and-extract-frames  "Warmer water is also less dense, so the oxygen-rich surface layer cannot easily sink and circulate. " :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Reacting to the German findings, Long said it was 'alarming to see this signal begin to emerge clearly in the observational data', while Roberts said, 'We now have a measurable change which is attributable to global warming.'" :cxn-inventory *demo-grammar*)
 
 
 
-(setf *x* (def-fcg-constructions-with-type-hierarchy grammar))
+(comprehend-and-extract-frames "The report explains that the ocean's oxygen supply is threatened by global warming in two ways." :cxn-inventory *demo-grammar*)
 
-(add-categories '(a b c d e) (get-type-hierarchy *x*))
+(comprehend-and-extract-frames "Warmer water is less able to contain oxygen than cold, so as the oceans warm, oxygen is reduced." :cxn-inventory *demo-grammar*)
 
-(add-link 'a 'b (get-type-hierarchy *x*) :weight 10.0)
-(add-link 'c 'b (get-type-hierarchy *x*) :weight 5.0)
-(add-link 'b 'c (get-type-hierarchy *x*) :weight 1.0)
+(comprehend-and-extract-frames  "Warmer water is also less dense, so the oxygen-rich surface layer cannot easily sink and circulate. " :cxn-inventory *demo-grammar*)
 
-(graph-utils::incf-edge-weight (graph-utils::graph (get-type-hierarchy *x*))  'b 'c :delta 1)
 
-(graph-utils::)
 
-(graph-utils:list-edges (graph-utils::graph (get-type-hierarchy *x*)))
 
-(graph-utils:edge-weight (graph-utils::graph (get-type-hierarchy *x*)) 'c 'b)
+;;Data Armin
 
-(clean-type-hierarchy (get-type-hierarchy *x*))
-
-(clean-type-hierarchy (get-type-hierarchy *propbank-learned-cxn-inventory*))
+(comprehend-and-extract-frames "scientists warn climate change affecting greenland ice sheet more than previously thought" :cxn-inventory *propbank-learned-cxn-inventory*)
+"young people are leading the way on climate change, and companies need to pay attention -"
+(comprehend-and-extract-frames "young people are leading the way on climate change, and companies need to pay attention -" :cxn-inventory *propbank-learned-cxn-inventory*)
