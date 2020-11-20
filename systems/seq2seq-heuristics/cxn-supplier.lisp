@@ -89,8 +89,11 @@
   (let* ((cxn-inventory (construction-inventory node))
          (utterance/meaning (if (eq (direction (cip node)) '<-)
                               (get-data (blackboard cxn-inventory) :input)
-                              (funcall (get-configuration cxn-inventory :seq2seq-rpn-fn)
-                                       (get-data (blackboard cxn-inventory) :input))))
+                              ;; if rpn is available, give it already in the blackboard
+                              (if (find-data (blackboard cxn-inventory) :rpn-input)
+                                (get-data (blackboard cxn-inventory) :rpn-input)
+                                (funcall (get-configuration cxn-inventory :seq2seq-rpn-fn)
+                                         (get-data (blackboard cxn-inventory) :input)))))
          (endpoint (get-configuration cxn-inventory :seq2seq-endpoint))
          (model (if (eq (direction (cip node)) '<-)
                   (get-configuration cxn-inventory :seq2seq-model-comprehension)
