@@ -67,8 +67,8 @@
 (length *test-sentences-all-frames*)
 
 (defparameter *train-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
-                                                   (subseq (shuffle (train-split *ontonotes-annotations*)) 0 500) nil) 0 100))
-
+                                                    (subseq (shuffle (train-split *ontonotes-annotations*)) 0 500) nil) 0 50))
+(length *train-sentences-all-frames*)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -123,7 +123,7 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (shuffle (train-split *ontonotes-annotations*))
+    *train-sentences-all-frames*
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
@@ -153,7 +153,15 @@
 ;;;;;;;;;;;;;;;;;
 ;; Evaluation  ;;
 ;;;;;;;;;;;;;;;;;
+(comprehend-and-evaluate (subseq *train-sentences-all-frames* 12 13)  *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil)
+                         :selected-rolesets '("TELL.01" ))
 
+;; ARGM-TMP:ADVP "two weeks ago" (argm-leaf met string?) "ten years ago" "three years ago" "most recently
+;; ARGM-TMP:NP "last month"
+
+;; pass away (lexical cxn die op twee woorden matcht)
+
+(comprehend-and-extract-frames "He asked to go" :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (evaluate-propbank-corpus *train-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
@@ -163,11 +171,11 @@
 
 
 (defparameter *evaluation-result-no-cleaning* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-20-13-56-24-evaluation"
+                                                           :name "2020-11-20-14-44-22-evaluation"
                                                            :type "store")))
 
 (defparameter *evaluation-result-with-cleaning<2* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-20-12-58-29-evaluation"
+                                                           :name "2020-11-20-14-21-16-evaluation"
                                                            :type "store")))
 
 (defparameter *evaluation-result-with-cleaning<6* (restore (babel-pathname :directory '(".tmp")
@@ -180,9 +188,9 @@
 
 
 
-(evaluate-predictions *evaluation-result-no-cleaning* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
+(evaluate-predictions *evaluation-result-no-cleaning* :core-roles-only nil :include-timed-out-sentences nil :include-word-sense t)
 
-(evaluate-predictions *evaluation-result-with-cleaning<2* :core-roles-only t :include-timed-out-sentences nil :include-word-sense nil)
+(evaluate-predictions *evaluation-result-with-cleaning<2* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 (evaluate-predictions *evaluation-result-with-cleaning<4* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 (evaluate-predictions *evaluation-result-with-cleaning<6* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
 

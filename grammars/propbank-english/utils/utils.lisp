@@ -9,16 +9,16 @@
 (defun comprehend-and-extract-frames (utterance &key (cxn-inventory *fcg-constructions*)
                                                 (silent nil)
                                                 (syntactic-analysis nil)
-                                                (selected-rolesets nil))
+                                                (selected-rolesets nil)
+                                                (timeout 60))
   "Comprehends an utterance and visualises the extracted frames."
   (multiple-value-bind (solution cipn)
-      (comprehend utterance :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets)
-    (declare (ignore solution))
+      (comprehend utterance :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets :timeout timeout)
     (let ((frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))
       (unless silent
         (add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
         (add-element (make-html frames  :expand-initially t)))
-      frames)))
+      (values solution cipn frames))))
 
 
 ;; Comprehend Methods ;;

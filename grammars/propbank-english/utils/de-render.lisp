@@ -47,6 +47,8 @@
                                             ((and (equal (node-dependency-label node) 'aux)
                                                   (not (equal (node-lex-class node) 'md)))
                                              '(AUX))
+                                            ((equal (node-dependency-label node) 'auxpass)
+                                             '(AUXPASS))
                                             ((equalp "V" (subseq (format nil "~a" (node-lex-class node)) 0 1))
                                              '(V))
                                             ((and (member (node-lex-class node) '(nnp nns nn nnps prp prp$) :test #'equalp)

@@ -6,8 +6,27 @@
 ;;                                                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun comprehend-and-evaluate (list-of-propbank-sentences cxn-inventory &key (timeout 60) (core-roles-only t)
+                                                           (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t)
+                                                           (silent nil))
+  (let ((output-file (babel-pathname :directory '(".tmp")
+                                     :name "results"
+                                     :type "store")))
 
-(defun evaluate-propbank-corpus (list-of-propbank-sentences cxn-inventory &key (output-file nil) (timeout 60))
+    (evaluate-propbank-corpus list-of-propbank-sentences cxn-inventory :output-file output-file :timeout timeout :silent silent)
+
+    (let ((predictions (restore (babel-pathname :directory '(".tmp")
+                                                :name "results"
+                                                :type "store"))))
+    
+      (evaluate-predictions predictions
+                            :core-roles-only core-roles-only
+                            :selected-rolesets selected-rolesets
+                            :include-word-sense include-word-sense 
+                            :include-timed-out-sentences include-timed-out-sentences))))
+ 
+
+(defun evaluate-propbank-corpus (list-of-propbank-sentences cxn-inventory &key (output-file nil) (timeout 60) (silent t))
   "Runs FCG comprehend on a corpus of sentences and stores the solutions to an external file."
   (let ((output-file (or output-file
                          (babel-pathname :directory '(".tmp")
@@ -19,7 +38,7 @@
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
           do (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence))
-          collect (let* ((cipn (second (multiple-value-list (comprehend sentence :cxn-inventory cxn-inventory :silent t :timeout timeout))))
+          collect (let* ((cipn (second (multiple-value-list (comprehend-and-extract-frames sentence :cxn-inventory cxn-inventory :silent silent :timeout timeout))))
                          (utterance (sentence-string sentence))
                          (annotation (propbank-frames sentence)))
                     (if (eql cipn 'time-out)
@@ -53,15 +72,17 @@
         unless (eql solution 'time-out)
         sum (loop for predicted-frame in solution
                   for frame-name = (if include-word-sense
-                                     (frame-name predicted-frame)
-                                     (truncate-frame-name (frame-name predicted-frame)))
+                                     (symbol-name (frame-name predicted-frame))
+                                     (truncate-frame-name (symbol-name (frame-name predicted-frame))))
                   when (and frame-name
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp))
-                            (find (symbol-name (truncate-frame-name (frame-name predicted-frame)))
-                                  annotation :key #'(lambda (frame)
-                                                      (truncate-frame-name (frame-name frame)))
-                                  :test #'equalp))
+                            (if selected-rolesets
+                              (find (truncate-frame-name frame-name) annotation
+                                    :key #'(lambda (frame)
+                                             (truncate-frame-name (frame-name frame)))
+                                    :test #'equalp)
+                              t))
                   sum (+ (loop for role in (frame-elements predicted-frame)
                                if core-roles-only
                                sum (if (core-role-p role)
@@ -73,8 +94,8 @@
         unless (eql solution 'time-out)
         sum (loop for predicted-frame in solution
                   for frame-name = (if include-word-sense
-                                     (frame-name predicted-frame)
-                                     (truncate-frame-name (frame-name predicted-frame)))
+                                     (symbol-name (frame-name predicted-frame))
+                                     (truncate-frame-name (symbol-name (frame-name predicted-frame))))
                   when (and frame-name
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp)))
