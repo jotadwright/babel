@@ -122,7 +122,7 @@
                              timeout server-port)
           unless (getf args indicator)
           do (error "Missing command line argument: ~a" indicator))
-    (let* ((grammar (eval (getf args 'grammar "*clevr*")))
+    (let* ((grammar (copy-object (eval (internal-symb (upcase (getf args 'grammar))))))
            (timeout (parse-integer (getf args 'timeout "60")))
            (port (parse-integer (getf args 'port "8888")))
            (inputfile (parse-namestring (getf args 'inputfile)))
