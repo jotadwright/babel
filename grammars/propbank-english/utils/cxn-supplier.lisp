@@ -54,7 +54,7 @@
                                     when (equal (attr-val cxn :label) label)
                                     collect cxn)))
            (when (get-configuration node :shuffle-cxns-before-application)
-             (shuffle constructions))
+             (setf constructions (shuffle constructions)))
            (sort constructions #'(lambda (cxn-1 cxn-2) (>= (attr-val cxn-1 :frequency) (attr-val cxn-2 :frequency))))))
 
         ;; For constructions bound to lex-categories
@@ -73,7 +73,7 @@
                                                (equal (attr-val cxn :label) label))
                                      collect cxn)))
            (when (get-configuration node :shuffle-cxns-before-application)
-             (shuffle constructions))
+             (setf constructions (shuffle constructions)))
            (sort constructions #'(lambda (cxn-1 cxn-2)
                                    (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
                                          ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
@@ -95,7 +95,7 @@
                                      when (member cxn-category neighbours)
                                      collect cxn)))
            (when (get-configuration node :shuffle-cxns-before-application)
-             (shuffle constructions))
+             (setf constructions (shuffle constructions)))
            (sort constructions #'(lambda (cxn-1 cxn-2)
                                    (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
                                          ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
