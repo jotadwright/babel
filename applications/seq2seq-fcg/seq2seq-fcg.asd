@@ -9,6 +9,7 @@
                :utils
                :monitors
                :fcg
+               :clevr-world
                :clevr-grammar
                :clevr-dialog-grammar)
   :serial t

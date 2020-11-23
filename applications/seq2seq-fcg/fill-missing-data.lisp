@@ -96,13 +96,13 @@
 
  (activate-monitor trace-fcg)
  
- (set-seq2seq-configurations *CLEVR* 8888)
+ (set-seq2seq-configurations *CLEVR* 8008)
  
  (fill-missing-data
   (babel-pathname :directory '("applications" "seq2seq-fcg")
                   :name "batch-0" :type "csv")
   (babel-pathname :directory '("applications" "seq2seq-fcg" "out"))
-  *clevr* 400)
+  *clevr* 60)
 
 |#
     
