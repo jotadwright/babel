@@ -67,7 +67,7 @@
 (length *test-sentences-all-frames*)
 
 (defparameter *train-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
-                                                    (subseq (shuffle (train-split *ontonotes-annotations*)) 0 500) nil) 0 50))
+                                                    (subseq (shuffle (train-split *ontonotes-annotations*)) 0 100) nil) 0 10))
 (length *train-sentences-all-frames*)
 
 
@@ -77,12 +77,12 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "core-roles-ontonotes-train-cleaned-faulty-only"
+                                :name "core-roles-ontonotes-train-clean-faulty"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                           :name "core-roles-ontonotes-train-cleaned"
+                           :name "core-roles-ontonotes-train-clean-faulty"
                            :type "fcg")))
 (size *restored-grammar*)
 
@@ -121,9 +121,10 @@
     (:cxn-supplier-mode . :propbank-english)))
 
 
+
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-    *train-sentences-all-frames*
+   *train-sentences-all-frames* 
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
@@ -137,29 +138,29 @@
 
 (clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*) :remove-edges-with-freq-smaller-than 2)
 
-;;>> Testing during development
-;;----------------------------
-
-
-(loop for sentence in (subseq (train-split *ontonotes-annotations*) 0 20)
-      do (comprehend-and-extract-frames sentence :cxn-inventory *cleaned-grammar*))
-
-
-(comprehend-and-extract-frames "I live in Brussels" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "He listened while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "Old Li Jingtang still tells visitors old war stories" :cxn-inventory *cleaned-grammar*)
-(comprehend-and-extract-frames "Only Nixon could go to China, he told a group of Americans" :cxn-inventory *cleaned-grammar*)
 
 ;;;;;;;;;;;;;;;;;
 ;; Evaluation  ;;
 ;;;;;;;;;;;;;;;;;
-(comprehend-and-evaluate (subseq *train-sentences-all-frames* 12 13)  *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil)
-                         :selected-rolesets '("TELL.01" ))
+(loop for i from 1
+      for sentence in *train-sentences-all-frames*
+      do (format t "~%~% Sentence: ~a ~%" i)
+      (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil))
 
-;; ARGM-TMP:ADVP "two weeks ago" (argm-leaf met string?) "ten years ago" "three years ago" "most recently
-;; ARGM-TMP:NP "last month"
 
-;; pass away (lexical cxn die op twee woorden matcht)
+(comprehend-and-evaluate (list (nth1 8 *train-sentences-all-frames*))
+                         *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil)
+
+;((:PRECISION . 0.65467626) (:RECALL . 0.47894737) (:F1-SCORE . 0.55319155) (:NR-OF-CORRECT-PREDICTIONS . 91) (:NR-OF-PREDICTIONS . 139) (:NR-OF-GOLD-STANDARD-PREDICTIONS . 190))
+(comprehend-and-evaluate (subseq *train-sentences-all-frames* 100003 100004)
+                         *restored-grammar* :core-roles-only nil :silent nil)
+
+
+(comprehend-and-extract-frames "Looking at the Japanese experience , the Asahi Shimbun has a daily circulation of about 10 million " :cxn-inventory *propbank-learned-cxn-inventory* )
+
+(shuffle '(1 2 3))
+
+(defparameter *th* (get-type-hierarchy *propbank-learned-cxn-inventory*))
 
 (comprehend-and-extract-frames "He asked to go" :cxn-inventory *propbank-learned-cxn-inventory*)
 

@@ -77,12 +77,12 @@
                   when (and frame-name
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp))
-                            (if selected-rolesets
+                           ; (if selected-rolesets
                               (find (truncate-frame-name frame-name) annotation
                                     :key #'(lambda (frame)
                                              (truncate-frame-name (frame-name frame)))
-                                    :test #'equalp)
-                              t))
+                                    :test #'equalp))
+                             ; t))
                   sum (+ (loop for role in (frame-elements predicted-frame)
                                if core-roles-only
                                sum (if (core-role-p role)

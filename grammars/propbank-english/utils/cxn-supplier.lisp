@@ -66,8 +66,10 @@
                                                                                     :return-ids? nil))))
                 (constructions (loop for cxn in (if (equal label 'argument-structure-cxn)
                                                   (gethash nil (constructions-hash-table (construction-inventory node)))
-                                                  (loop for hash in (hash node (get-configuration node :hash-mode)) ;;argm-phrase cxns are hashed
-                                                        append (gethash hash (constructions-hash-table (construction-inventory node)))))
+                                                  (append
+                                                   (gethash nil (constructions-hash-table (construction-inventory node)))
+                                                   (loop for hash in (hash node (get-configuration node :hash-mode)) ;;argm-phrase cxns are hashed
+                                                        append (gethash hash (constructions-hash-table (construction-inventory node))))))
                                      for cxn-category = (attr-val cxn :gram-category)
                                      when (and (member cxn-category neighbours)
                                                (equal (attr-val cxn :label) label))

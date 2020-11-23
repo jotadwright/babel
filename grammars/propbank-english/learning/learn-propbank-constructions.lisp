@@ -116,77 +116,39 @@
         lex-category))))
 
 
-(defmethod add-grammatical-cxn (gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category)
+(defun add-grammatical-cxn (gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category)
   "Learns a construction capturing all core roles."
   (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
          (pp-units-with-role (remove-if-not #'(lambda (unit-w-role)
                                                 (find 'pp (unit-feature-value (cdr unit-w-role) 'syn-class)))
                                             core-units-with-role))
-         (s-bar-units-with-role  (remove-if-not #'(lambda (unit-w-role)
-                                                    (find 'sbar (unit-feature-value (cdr unit-w-role) 'syn-class)))
-                                                core-units-with-role))
-         (gram-category (make-const (format nil "~{~a~^-~}" (loop for (r . u) in core-units-with-role
-                                                                   collect (format nil "~a~a"
-                                                                                   (role-type r)
-                                                                                   (feature-value (find 'syn-class (unit-body u)
-                                                                                                        :key #'feature-name)))))))
-         (footprint 'fee)
+         (s-bar-units-with-role (remove-if-not #'(lambda (unit-w-role)
+                                                   (or (find 'sbar (unit-feature-value (cdr unit-w-role) 'syn-class))
+                                                       (find 's (unit-feature-value (cdr unit-w-role) 'syn-class))))
+                                               core-units-with-role))
+         (gram-category (make-gram-category core-units-with-role))
          (cxn-units-with-role (loop for unit in core-units-with-role
-                                    collect
-                                    (make-propbank-conditional-unit-with-role unit gram-category footprint)))
-         (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category footprint))
-
+                                    collect (make-propbank-conditional-unit-with-role unit gram-category 'fee)))
+         (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category 'fee))
          (cxn-units-without-role (make-propbank-conditional-units-without-role core-units-with-role
-                                                                                 cxn-units-with-role ts-unit-structure))
+                                                                               cxn-units-with-role ts-unit-structure))
          (cxn-preposition-units (loop for pp-unit in pp-units-with-role
                                       collect (make-preposition-unit pp-unit ts-unit-structure)))
-         (cxn-s-bar-units  (loop for s-bar-unit in s-bar-units-with-role
+         (cxn-s-bar-units (loop for s-bar-unit in s-bar-units-with-role
                                  collect (make-subclause-word-unit s-bar-unit ts-unit-structure)))
          (cxn-name (make-cxn-name core-units-with-role cxn-units-with-role cxn-units-without-role cxn-preposition-units cxn-s-bar-units nil))
-         (cxn-preposition-units-flat  (loop for unit in cxn-preposition-units append unit))
-         (cxn-s-bar-units-flat (loop for unit in cxn-s-bar-units append unit))
-         (schema (loop with pp-unit-number = 0
-                       with s-bar-unit-number = 0
-                       for (role . unit) in core-units-with-role
-                       for cxn-unit in cxn-units-with-role
-                       collect (cons (intern (role-type role))
-                                     (cond
-                                      ;; unit is a pp
-                                      ((find 'pp (unit-feature-value (unit-body unit) 'syn-class))
-                                       (incf pp-unit-number)
-                                       (if (= 1 (length (nth1 pp-unit-number cxn-preposition-units)))
-                                         (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class )
-                                                         (second (find 'lemma
-                                                                       (nthcdr 2 (first (nth1 pp-unit-number cxn-preposition-units)))
-                                                                       :key #'feature-name))))
-                                         (intern (format nil "~{~a~}(cc-~a)" (unit-feature-value unit 'syn-class )
-                                                         (second (find 'lemma
-                                                                       (nthcdr 2 (third (nth1 pp-unit-number cxn-preposition-units)))
-                                                                       :key #'feature-name))))))
-                                      ;; unit is an s-bar
-                                      ((find 'sbar (unit-feature-value (unit-body unit) 'syn-class))
-                                       (incf s-bar-unit-number)
-                                       (if (= 1 (length (nth1 s-bar-unit-number cxn-s-bar-units)))
-                                         (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
-                                                         (or (second (find 'lemma
-                                                                       (nthcdr 2 (first (nth1 s-bar-unit-number cxn-s-bar-units)))
-                                                                       :key #'feature-name))
-                                                             (second (find 'string
-                                                                       (nthcdr 2 (first (nth1 s-bar-unit-number cxn-s-bar-units)))
-                                                                       :key #'feature-name)))))))
-                                      ;; Unit contains a lemma
-                                      ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
-                                      ;; unit contains a phrase-type
-                                      ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name)))))))
+         (cxn-preposition-units-flat (loop for unit in cxn-preposition-units append unit))
+       ;  (cxn-s-bar-units-flat (loop for unit in cxn-s-bar-units append unit))
+         (schema (make-cxn-schema core-units-with-role cxn-units-with-role :cxn-preposition-units cxn-preposition-units :cxn-s-bar-units cxn-s-bar-units))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role
                                                                    cxn-preposition-units-flat
-                                                                   cxn-s-bar-units-flat))
+                                                                   cxn-s-bar-units))
                                               cxn-inventory)))
-                         
     
-    (if equivalent-cxn   
+    (if equivalent-cxn
+      
       ;;Grammatical construction already exists
       (progn
         ;;1) Increase its frequency
@@ -202,7 +164,7 @@
                     (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
-      
+
       ;;Create a new grammatical category for the observed pattern + add category and link to the type hierarchy
       (when (and cxn-units-with-role (v-lemma core-units-with-role))
         (add-category gram-category (get-type-hierarchy cxn-inventory))
@@ -213,7 +175,7 @@
                                   ,@cxn-units-with-role
                                   ,@cxn-units-without-role
                                   ,@cxn-preposition-units-flat
-                                  ,@cxn-s-bar-units-flat)
+                                  ,@cxn-s-bar-units)
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma nil
@@ -232,7 +194,9 @@
          (cxn-name (intern (upcase (format nil "~a-cxn" (frame-name gold-frame)))))
          (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name))
          (sense-category (make-id (frame-name gold-frame))))
+    
     (if equivalent-cxn
+      
       ;; if cxn already exists: increment frequency
       (progn
         (incf (attr-val equivalent-cxn :frequency))
@@ -261,6 +225,7 @@
                     (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
 
         (attr-val equivalent-cxn :sense-category))
+      
       ;; Else make new cxn
       (when lemma
         (eval
@@ -338,8 +303,19 @@
          (lex-category (when lex-cxn (attr-val lex-cxn :lex-category)))
          (gram-categories
           (when lex-category
-            (loop for argm-pp in argm-pps
-                  collect (add-pp-cxn gold-frame argm-pp (v-unit-with-role units-with-role) cxn-inventory propbank-sentence lex-category ts-unit-structure)))))
+            (loop with v-unit-with-role = (v-unit-with-role units-with-role)
+                  for argm-pp in argm-pps
+                  for pp-unit-name = (unit-name (cdr argm-pp))
+                  append (loop with v-unit-found? = nil
+                                for (role . unit) in units-with-role
+                                for unit-name = (unit-name unit)
+                                if (string= (role-type role) "V")
+                                do (setf v-unit-found? t)
+                                else if (equal unit-name pp-unit-name)
+                                collect (let ((units-with-role (if v-unit-found? ;;v-unit precedes argm-pp-unit
+                                                                 (list v-unit-with-role argm-pp)
+                                                                 (list argm-pp v-unit-with-role))))
+                                          (add-pp-cxn gold-frame units-with-role cxn-inventory propbank-sentence lex-category ts-unit-structure)))))))
     
     (loop for gram-category in gram-categories
           for word-sense-cxn = (find-word-sense-cxn gold-frame v-unit cxn-inventory)
@@ -348,67 +324,37 @@
           else do (add-word-sense-cxn gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category))))
 
 
-(defmethod add-pp-cxn (gold-frame pp-unit v-unit cxn-inventory propbank-sentence lex-category ts-unit-structure)
+
+(defun add-pp-cxn (gold-frame units-with-role cxn-inventory propbank-sentence lex-category ts-unit-structure)
   "Learns a construction capturing V + ARGM-pp."
-  (let* ((units-with-role (append (list v-unit) (list pp-unit)))
-         (gram-category (make-const (format nil "~{~a~^-~}" (loop for (r . u) in units-with-role
-                                                                   collect (format nil "~a~a"
-                                                                                   (role-type r)
-                                                                                   (feature-value (find 'syn-class (unit-body u)
-                                                                                                        :key #'feature-name)))))))
+  (let* ((pp-unit (find "ARGM" units-with-role :key #'(lambda (unit-w-role)
+                                                         (role-type (car unit-w-role))) :test #'search))
+         (gram-category (make-gram-category units-with-role))
          (footprint (make-const 'pp))
          (cxn-units-with-role (loop for unit in units-with-role
-                                    collect
-                                    (make-propbank-conditional-unit-with-role unit gram-category footprint)))
-         
-        
+                                    collect (make-propbank-conditional-unit-with-role unit gram-category footprint)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame gram-category footprint :include-gram-category? nil))
-
-         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role
-                                                                                 cxn-units-with-role ts-unit-structure))
-         (cxn-preposition-units (list (make-preposition-unit pp-unit ts-unit-structure)))
+         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
+         (cxn-preposition-units (make-preposition-unit pp-unit ts-unit-structure)) ;;list with 1 or 3 units
          (preposition-lemma
-          (if (= 1 (length (first cxn-preposition-units)))
-            (or (second (find 'lemma (nthcdr 2 (first (first cxn-preposition-units)))
+          (if (= 1 (length cxn-preposition-units))
+            (or (second (find 'lemma (nthcdr 2 (first cxn-preposition-units))
                               :key #'feature-name))
-                (second (find 'string (nthcdr 2 (first (first cxn-preposition-units)))
+                (second (find 'string (nthcdr 2 (first cxn-preposition-units))
                               :key #'feature-name)))
-            (second (find 'lemma (nthcdr 2 (third (first cxn-preposition-units)))
+            (second (find 'lemma (nthcdr 2 (third cxn-preposition-units))
                                           :key #'feature-name))))
-         (cxn-name  (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role cxn-preposition-units nil preposition-lemma))
-         (cxn-preposition-units-flat  (loop for unit in cxn-preposition-units append unit))
-         
-         (schema (loop with pp-unit-number = 0
-                       for (role . unit) in units-with-role
-                       for cxn-unit in cxn-units-with-role
-                       collect (cons (intern (role-type role))
-                                     (cond
-                                      ;; unit is a pp
-                                      ((find 'pp (unit-feature-value (unit-body unit) 'syn-class))
-                                       (incf pp-unit-number)
-                                       (if (= 1 (length (nth1 pp-unit-number cxn-preposition-units)))
-                                         (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class )
-                                                         (second (find 'lemma
-                                                                       (nthcdr 2 (first (nth1 pp-unit-number cxn-preposition-units)))
-                                                                       :key #'feature-name))))
-                                         (intern (format nil "~{~a~}(cc-~a)" (unit-feature-value unit 'syn-class )
-                                                         (second (find 'lemma
-                                                                       (nthcdr 2 (third (nth1 pp-unit-number cxn-preposition-units)))
-                                                                       :key #'feature-name))))))
-                                      ;; unit contains a lemma
-                                      ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
-                                      ;; unit contains a phrase-type
-                                      ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name)))))))
-         
+         (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role (list cxn-preposition-units) nil preposition-lemma))
+         (schema (make-cxn-schema units-with-role cxn-units-with-role :cxn-preposition-units (list cxn-preposition-units)))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role
-                                                                   cxn-preposition-units-flat))
+                                                                   cxn-preposition-units))
                                               cxn-inventory
-                                              :hash-key preposition-lemma )))
-                         
+                                              :hash-key preposition-lemma)))
     
-    (if equivalent-cxn   
+    (if equivalent-cxn
+      
       ;;Grammatical construction already exists
       (progn
         ;;1) Increase its frequency
@@ -435,7 +381,7 @@
                                   <-
                                   ,@cxn-units-with-role
                                   ,@cxn-units-without-role
-                                  ,@cxn-preposition-units-flat)
+                                  ,@cxn-preposition-units)
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma ,preposition-lemma
@@ -473,68 +419,55 @@
          (lex-category (when lex-cxn (attr-val lex-cxn :lex-category)))
          (gram-categories
           (when lex-category
-            (loop for argm-sbar in argm-sbars
-                  collect (add-sbar-cxn gold-frame argm-sbar (v-unit-with-role units-with-role) cxn-inventory propbank-sentence lex-category ts-unit-structure)))))
-    
+            (loop with v-unit-with-role = (v-unit-with-role units-with-role)
+                  for argm-sbar in argm-sbars
+                  for sbar-unit-name = (unit-name (cdr argm-sbar))
+                  append (loop with v-unit-found? = nil
+                                for (role . unit) in units-with-role
+                                for unit-name = (unit-name unit)
+                                if (string= (role-type role) "V")
+                                do (setf v-unit-found? t)
+                                else if (equal unit-name sbar-unit-name)
+                                collect (let ((units-with-role (if v-unit-found? ;;v-unit precedes argm-pp-unit
+                                                                 (list v-unit-with-role argm-sbar)
+                                                                 (list argm-sbar v-unit-with-role))))
+                                          (add-sbar-cxn gold-frame units-with-role cxn-inventory propbank-sentence lex-category ts-unit-structure)))))))
+            
     (loop for gram-category in gram-categories
           do (add-word-sense-cxn gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)))) ;;only one cxn, multiple links in th
 
 
-(defmethod add-sbar-cxn (gold-frame sbar-unit v-unit cxn-inventory propbank-sentence lex-category ts-unit-structure)
+(defun add-sbar-cxn (gold-frame units-with-role cxn-inventory propbank-sentence lex-category ts-unit-structure)
   "Learns a construction capturing V + ARGM-sbar."
-  (let* ((units-with-role (append  (list v-unit) (list sbar-unit)))
-         (gram-category (make-const (format nil "~{~a~^-~}" (loop for (r . u) in units-with-role
-                                                                   collect (format nil "~a~a"
-                                                                                   (role-type r)
-                                                                                   (feature-value (find 'syn-class (unit-body u)
-                                                                                                        :key #'feature-name)))))))
+  (let* ((sbar-unit (find "ARGM" units-with-role :key #'(lambda (unit-w-role)
+                                                         (role-type (car unit-w-role))) :test #'search))
+         (gram-category (make-gram-category units-with-role))
          (footprint (make-const 'sbar))
+         (cxn-sbar-unit (make-subclause-word-unit sbar-unit ts-unit-structure)) ;;1 unit
          (cxn-units-with-role (loop for unit in units-with-role
-                                    collect
-                                    (make-propbank-conditional-unit-with-role unit gram-category footprint)))
+                                    collect (make-propbank-conditional-unit-with-role unit gram-category footprint)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame gram-category footprint :include-gram-category? nil))
-
-         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role
-                                                                                 cxn-units-with-role ts-unit-structure))
-         (cxn-sbar-units (make-subclause-word-unit sbar-unit ts-unit-structure))
-         (sbar-lemma (second (or (find 'lemma (nthcdr 2 (first cxn-sbar-units)) :key #'feature-name)
-                                 (find 'string (nthcdr 2 (first cxn-sbar-units)) :key #'feature-name))))
-         (cxn-name  (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role nil cxn-sbar-units sbar-lemma))
-         (schema (loop with sbar-unit-number = 0
-                       for (role . unit) in units-with-role
-                       for cxn-unit in cxn-units-with-role
-                       collect (cons (intern (role-type role))
-                                     (cond
-                                      ;; unit is a sbar
-                                      ((find 'sbar (unit-feature-value (unit-body unit) 'syn-class))
-                                       (incf sbar-unit-number)
-                                       (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
-                                                         (second (or (find 'lemma
-                                                                           (nthcdr 2 (nth1 sbar-unit-number cxn-sbar-units))
-                                                                           :key #'feature-name)
-                                                                     (find 'string
-                                                                           (nthcdr 2 (nth1 sbar-unit-number cxn-sbar-units))
-                                                                           :key #'feature-name))))))
-                                      ;; unit contains a lemma
-                                      ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
-                                      ;; unit contains a phrase-type
-                                      ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name)))))))
-         
+         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
+         (sbar-lemma (second (or (find 'lemma (nthcdr 2 cxn-sbar-unit) :key #'feature-name)
+                                 (find 'string (nthcdr 2 cxn-sbar-unit) :key #'feature-name))))
+         (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role nil (list cxn-sbar-unit) sbar-lemma))
+         (schema (make-cxn-schema units-with-role cxn-units-with-role :cxn-s-bar-units (list cxn-sbar-unit)))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role
-                                                                   cxn-sbar-units))
+                                                                   (list cxn-sbar-unit)))
                                               cxn-inventory
                                               :hash-key (if (stringp sbar-lemma)
                                                           (intern (upcase sbar-lemma))
                                                           sbar-lemma))))
-                         
     
-    (if equivalent-cxn   
+    (if equivalent-cxn
+      
       ;;Grammatical construction already exists
       (progn
         ;;1) Increase its frequency
         (incf (attr-val equivalent-cxn :frequency))
+        
         ;;2) Check if there was already a link in the type hierarchy between the lex-category and the gram-category:
         (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
                                       lex-category
@@ -544,12 +477,12 @@
           ;;b) Otherwise, add new connection (weight 1.0)
           (add-link lex-category
                     (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
+        
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
       
       ;;Create a new grammatical category for the observed pattern + add category and link to the type hierarchy
       (when (and cxn-units-with-role (v-lemma units-with-role))
-        (assert sbar-lemma)
         (add-category gram-category (get-type-hierarchy cxn-inventory))
         (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0)
         (eval `(def-fcg-cxn ,cxn-name
@@ -557,7 +490,7 @@
                              <-
                              ,@cxn-units-with-role
                              ,@cxn-units-without-role
-                             ,@cxn-sbar-units)
+                             ,cxn-sbar-unit)
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma ,(if (stringp sbar-lemma)
@@ -591,25 +524,35 @@
                                       (and (search "ARGM" (role-type (car unit-with-role)))
                                            (equalp (unit-feature-value (cdr unit-with-role) 'node-type) 'leaf)))
                                   units-with-role)))
- 
-    (loop for argm-leaf in argm-leafs
-          collect (add-argm-leaf-cxn gold-frame argm-leaf (v-unit-with-role units-with-role)
-                                     cxn-inventory propbank-sentence ts-unit-structure))))
 
- 
+    (loop with v-unit-with-role = (v-unit-with-role units-with-role)
+          for argm-leaf in argm-leafs
+          for argm-unit-name = (unit-name (cdr argm-leaf))
+          append (loop with v-unit-found? = nil
+                       for (role . unit) in units-with-role
+                       for unit-name = (unit-name unit)
+                       if (string= (role-type role) "V")
+                       do (setf v-unit-found? t)
+                       else if (equal unit-name argm-unit-name)
+                       collect (let ((units-with-role (if v-unit-found? ;;v-unit precedes argm-pp-unit
+                                                        (list v-unit-with-role argm-leaf)
+                                                        (list argm-leaf v-unit-with-role))))
+                                 (add-argm-leaf-cxn gold-frame units-with-role cxn-inventory propbank-sentence ts-unit-structure))))))
+   
 
-
-(defun add-argm-leaf-cxn (gold-frame argm-unit v-unit cxn-inventory propbank-sentence ts-unit-structure)
+(defun add-argm-leaf-cxn (gold-frame units-with-role cxn-inventory propbank-sentence ts-unit-structure)
   "Learns a construction capturing V + ARGM-argm."
-  (let* ((units-with-role (append (list v-unit) (list argm-unit)))
+  (let* ((argm-unit (find "ARGM" units-with-role :key #'(lambda (unit-w-role)
+                                                          (role-type (car unit-w-role))) :test #'search))
          (argm-lemma (unit-feature-value (cdr argm-unit) 'lemma))
          (footprint (make-const 'argm))
          (cxn-units-with-role
-          (list (make-propbank-conditional-unit-with-role v-unit nil footprint)
-                (make-propbank-conditional-unit-with-role argm-unit nil footprint :lemma argm-lemma)))
+          (loop for unit-w-role in units-with-role
+                if (equal (role-type (car unit-w-role)) "V")
+                collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint)
+                else collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint :lemma argm-lemma)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame nil footprint :include-gram-category? nil))
-         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role
-                                                                                 cxn-units-with-role ts-unit-structure))
+         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
          (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role nil nil argm-lemma))
          (schema (loop for (role . nil) in units-with-role
                        for cxn-unit in cxn-units-with-role
@@ -625,10 +568,12 @@
                                               cxn-inventory
                                               :hash-key argm-lemma)))
 
-    (if equivalent-cxn   
-      ;;argm-leaf construction already exists
+    (if equivalent-cxn
+      
+      ;;argm-leaf cxn already exists, update its frequency
       (incf (attr-val equivalent-cxn :frequency))
-      ;;Create a argm-leaf cxn
+      
+      ;;create a argm-leaf cxn
       (when (and cxn-units-with-role (v-lemma units-with-role))
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit
@@ -650,65 +595,32 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
 (defun make-subclause-word-unit (unit-with-role unit-structure)
   (let* ((sbar-unit (cdr unit-with-role))
-         (subclause-word-in-ts (loop for unit in unit-structure
-                                     when (and (find (list 'node-type 'leaf) (unit-body unit) :test #'equalp)
-                                               (equal (cadr (find 'parent (unit-body unit) :key #'feature-name)) (unit-name sbar-unit))
-                                               (intersection '(in aux) (unit-feature-value unit 'syn-class)))
-                                     return unit)))
+         (subclause-word-in-ts
+          (loop for unit in unit-structure
+                when (and (find (list 'node-type 'leaf) (unit-body unit) :test #'equalp)
+                          (equal (cadr (find 'parent (unit-body unit) :key #'feature-name)) (unit-name sbar-unit))
+                          (intersection '(in aux) (unit-feature-value unit 'syn-class)))
+                return unit)))
 
     (if subclause-word-in-ts
-      (list
        `(,(variablify (unit-name subclause-word-in-ts))
          --
          (parent ,(variablify (unit-name sbar-unit)))
-         (lemma ,(cadr (find 'lemma (unit-body subclause-word-in-ts) :key #'feature-name)))))
+         (syn-class ,(cadr (find 'syn-class (unit-body subclause-word-in-ts) :key #'feature-name)))
+         (lemma ,(cadr (find 'lemma (unit-body subclause-word-in-ts) :key #'feature-name))))
       (let ((phrasal-sbar-subunit-in-ts
              (loop for unit in unit-structure
                    when (and (find (list 'node-type 'phrase) (unit-body unit) :test #'equalp)
                              (equal (cadr (find 'parent (unit-body unit) :key #'feature-name)) (unit-name sbar-unit)))
                    return unit)))
-        (list
-         `(,(variablify (unit-name phrasal-sbar-subunit-in-ts))
-           --
-           (parent ,(variablify (unit-name sbar-unit)))
-           (string ,(cadr (find 'string (unit-body phrasal-sbar-subunit-in-ts) :key #'feature-name)))))))))
-
-#|(defun make-cxn-schema ()
-  (loop with pp-unit-number = 0
-                       with s-bar-unit-number = 0
-                       for (role . unit) in core-units-with-role
-                       for cxn-unit in cxn-units-with-role
-                       collect (cons (intern (role-type role))
-                                     (cond
-                                      ;; unit is a pp
-                                      ((find 'pp (unit-feature-value (unit-body unit) 'syn-class))
-                                       (incf pp-unit-number)
-                                       (if (= 1 (length (nth1 pp-unit-number cxn-preposition-units)))
-                                         (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class )
-                                                         (second (find 'lemma
-                                                                       (nthcdr 2 (first (nth1 pp-unit-number cxn-preposition-units)))
-                                                                       :key #'feature-name))))
-                                         (intern (format nil "~{~a~}(cc-~a)" (unit-feature-value unit 'syn-class )
-                                                         (second (find 'lemma
-                                                                       (nthcdr 2 (third (nth1 pp-unit-number cxn-preposition-units)))
-                                                                       :key #'feature-name))))))
-                                      ;; unit is an s-bar
-                                      ((find 'sbar (unit-feature-value (unit-body unit) 'syn-class))
-                                       (incf s-bar-unit-number)
-                                       (if (= 1 (length (nth1 s-bar-unit-number cxn-s-bar-units)))
-                                         (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
-                                                         (second (find 'lemma
-                                                                       (nthcdr 2 (first (nth1 s-bar-unit-number cxn-s-bar-units)))
-                                                                       :key #'feature-name))))))
-                                      ;; unit contains a lemma
-                                      ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
-                                      ;; unit contains a phrase-type
-                                      ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))))))) |#
-
-
+        (when phrasal-sbar-subunit-in-ts
+           `(,(variablify (unit-name phrasal-sbar-subunit-in-ts))
+             --
+             (parent ,(variablify (unit-name sbar-unit)))
+             (syn-class ,(cadr (find 'syn-class (unit-body phrasal-sbar-subunit-in-ts) :key #'feature-name)))
+             (string ,(cadr (find 'string (unit-body phrasal-sbar-subunit-in-ts) :key #'feature-name)))))))))
 
 
 (defun make-cxn-name (ts-units-with-role cxn-units-with-role cxn-units-without-role preposition-units s-bar-units lemma)
@@ -736,17 +648,14 @@
                          ;; unit is an s-bar
                          ((find 'sbar (unit-feature-value (unit-body unit) 'syn-class))
                           (incf s-bar-unit-number)
-                          (if (= 1 (length (nth1 s-bar-unit-number s-bar-units)))
-                            (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
+                          (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
                                     (or lemma
                                         (second (or (find 'lemma
-                                                          (nthcdr 2 (first (nth1 s-bar-unit-number s-bar-units)))
+                                                          (nthcdr 2 (nth1 s-bar-unit-number s-bar-units))
                                                           :key #'feature-name)
                                                     (find 'string
-                                                          (nthcdr 2 (first (nth1 s-bar-unit-number s-bar-units)))
-                                                          :key #'feature-name)))))
-                            (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class) lemma)))
-
+                                                          (nthcdr 2 (nth1 s-bar-unit-number s-bar-units))
+                                                          :key #'feature-name))))))
                          ;; unit contains a lemma
                          ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
                          ;; unit contains a phrase-type
@@ -755,10 +664,51 @@
         into roles
         finally return (make-id (upcase (format nil "~{~a~^+~}+~a-cxn" roles (length cxn-units-without-role))))))
 
+(defun make-gram-category (units-with-role)
+  (make-const
+   (format nil "~{~a~^-~}"
+           (loop for (r . u) in units-with-role
+                 collect (format nil "~a~a"
+                                 (role-type r)
+                                 (feature-value (find 'syn-class (unit-body u)
+                                                      :key #'feature-name)))))))
+
+(defmethod make-cxn-schema (core-units-with-role cxn-units-with-role &key cxn-preposition-units cxn-s-bar-units)
+  (loop with pp-unit-number = 0
+        with s-bar-unit-number = 0
+        for (role . unit) in core-units-with-role
+        for cxn-unit in cxn-units-with-role
+        collect (cons (intern (role-type role))
+                      (cond
+                       ;; unit is a pp
+                       ((find 'pp (unit-feature-value (unit-body unit) 'syn-class))
+                        (incf pp-unit-number)
+                        (if (= 1 (length (nth1 pp-unit-number cxn-preposition-units)))
+                          (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
+                                          (second (find 'lemma
+                                                        (nthcdr 2 (first (nth1 pp-unit-number cxn-preposition-units)))
+                                                        :key #'feature-name))))
+                          (intern (format nil "~{~a~}(cc-~a)" (unit-feature-value unit 'syn-class)
+                                          (second (find 'lemma
+                                                        (nthcdr 2 (third (nth1 pp-unit-number cxn-preposition-units)))
+                                                        :key #'feature-name))))))
+                       ;; unit is an s-bar
+                       ((or (find 'sbar (unit-feature-value (unit-body unit) 'syn-class))
+                            (find 's (unit-feature-value (unit-body unit) 'syn-class)))
+                        (incf s-bar-unit-number)
+                        (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
+                                        (or (second (find 'lemma
+                                                          (nthcdr 2 (nth1 s-bar-unit-number cxn-s-bar-units))
+                                                          :key #'feature-name))
+                                            (second (find 'string
+                                                          (nthcdr 2 (nth1 s-bar-unit-number cxn-s-bar-units))
+                                                          :key #'feature-name))))))
+                       ;; Unit contains a lemma
+                       ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
+                       ;; unit contains a phrase-type
+                       ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name)))))))
 
 
-
-  
 (defun find-unit-by-span (transient-structure span)
   "Return a unit with span span"
   (loop for unit in transient-structure
@@ -822,7 +772,8 @@ initial transient structure that plays a role in the frame."
         ,syn-class
         ,@(when dependency-label `(,dependency-label))
         ,@(when lemma
-            `((lemma ,lemma)))))))
+            `((lemma ,lemma)))
+        ))))
 
 
 
