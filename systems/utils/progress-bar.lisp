@@ -7,7 +7,7 @@
 ;; the loop has to be known beforehand. So it is not
 ;; applicable in all situations. At every loop, the
 ;; 'update' function has to be called on the progress
-;; bar. At the end, the elapsed time will be printed.
+;; bar.
 
 ;; The macro has the following arguments:
 ;;   bar: a local variable that will be used to call 'update'
@@ -17,24 +17,27 @@
 ;;                will be filled with these args
 ;;   :width: a keyword argument to control the width of the bar
 ;;           default = 100
-
-;; The macro can be used as follows:
-;; (with-progress-bar (my-bar 1000 ("Looping over ~a elements" 1000) :width 20)
-;;   (loop repeat 1000
-;;         do (update my-bar)))
+;;   :show-elapsed-time: a keyword argument to control whether
+;;                       or not the elapsed time should be
+;;                       displayed at every bar update + at the
+;;                       end of processing
 
 (export '(with-progress-bar update))
 
 (defmacro with-progress-bar ((bar steps (description &rest format-args)
-                                  &key (width 100) &allow-other-keys)
+                                  &key (width 100) (show-elapsed-time t)
+                                  &allow-other-keys)
                              &body body)
-  `(let ((,bar (make-bar ,width ,steps)))
+  `(let ((,bar (make-bar ,width ,steps ,show-elapsed-time)))
      (format t "~%")
      (format t ,description ,@format-args)
      (format t "~%")
      (draw ,bar)
      ,@body
-     (elapsed-time ,bar)))
+     (when ,show-elapsed-time
+       (multiple-value-bind (h m s) (elapsed-time ,bar)
+         (format t "~%Processing took ~a hours, ~a minutes and ~a seconds."
+                 h m s)))))
 
 
 
@@ -59,28 +62,35 @@
                    :documentation "How many loop steps trigger a bar step")
    (start-time :accessor start-time :initarg :start-time
                :initform (get-universal-time)
-               :documentation "Unix time at which the loop started")))
+               :documentation "Unix time at which the loop started")
+   (show-time-p :accessor show-time-p :initarg :show-time-p
+                :initform t :documentation "Show the elapsed time at every bar update?")))
 
-(defun make-bar (bar-width loop-steps)
+(defun make-bar (bar-width loop-steps show-time-p)
   (make-instance 'progress-bar
                  :bar-width bar-width
                  :loop-steps loop-steps
-                 :bar-loop-ratio (/ loop-steps bar-width)))
+                 :bar-loop-ratio (/ loop-steps bar-width)
+                 :show-time-p show-time-p))
 
 (defmethod draw ((bar progress-bar))
   (format t "[")
   (loop repeat (bar-progress bar) do (format t "#"))
-  (loop repeat (- (bar-width bar)
-                  (bar-progress bar))
+  (loop repeat (- (bar-width bar) (bar-progress bar))
         do (format t "."))
-  (format t "] ~a% (~a/~a) ~%"
+  (format t "] ~a% [~a/~a"
           (round
            (* (float
                (/ (loop-progress bar)
                   (loop-steps bar)))
               100))
           (loop-progress bar)
-          (loop-steps bar)))
+          (loop-steps bar))
+  (if (show-time-p bar)
+    (multiple-value-bind (h m s) (elapsed-time bar)
+      (format t " - ~ah ~am ~as]" h m s))
+    (format t "]"))
+  (format t "~%"))
 
 (defmethod update ((bar progress-bar))
   (incf (loop-progress bar))
@@ -93,10 +103,10 @@
     (draw bar)))
 
 (defmethod elapsed-time ((bar progress-bar))
-  (let ((finish-time (get-universal-time)))
+  (let ((now (get-universal-time)))
     (multiple-value-bind (h m s)
-        (seconds-to-hours-minutes-seconds (- finish-time (start-time bar)))
-      (format t "~%Processing took ~a hours, ~a minutes and ~a seconds." h m s))))           
+        (seconds-to-hours-minutes-seconds (- now (start-time bar)))
+      (values h m s))))        
                  
 
 
