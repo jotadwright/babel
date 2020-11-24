@@ -138,7 +138,6 @@
                                  collect (make-subclause-word-unit s-bar-unit ts-unit-structure)))
          (cxn-name (make-cxn-name core-units-with-role cxn-units-with-role cxn-units-without-role cxn-preposition-units cxn-s-bar-units nil))
          (cxn-preposition-units-flat (loop for unit in cxn-preposition-units append unit))
-       ;  (cxn-s-bar-units-flat (loop for unit in cxn-s-bar-units append unit))
          (schema (make-cxn-schema core-units-with-role cxn-units-with-role :cxn-preposition-units cxn-preposition-units :cxn-s-bar-units cxn-s-bar-units))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
@@ -231,7 +230,8 @@
         (eval
          `(def-fcg-cxn ,cxn-name
                        ((?lex-unit
-                         (footprints (ws)))<-
+                         (footprints (ws)))
+                        <-
                         (?lex-unit
                          --
                          (lemma ,lemma)
@@ -590,6 +590,98 @@
                             :cxn-inventory ,cxn-inventory))))))
         
 
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ARGM phrase with string          ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-phrase-with-string)))
+  (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
+        for gold-frame in gold-frames
+        if (spacy-benepar-compatible-annotation propbank-sentence roleset :selected-role-types 'argm-only)
+        do
+        (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
+       
+(defmethod learn-constructions-for-gold-frame-instance (propbank-sentence gold-frame cxn-inventory (mode (eql :argm-phrase-with-string)))
+  (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
+         (units-with-role (units-with-role ts-unit-structure gold-frame))
+         (argm-phrases (remove-if-not #'(lambda (unit-with-role)
+                                        (and (search "ARGM" (role-type (car unit-with-role)))
+                                             (not (or (find 'sbar (unit-feature-value (cdr unit-with-role) 'syn-class))
+                                                      (find 's (unit-feature-value (cdr unit-with-role) 'syn-class))
+                                                      (find 'pp (unit-feature-value (cdr unit-with-role) 'syn-class))))))
+                                  units-with-role)))
+
+
+    (loop with v-unit-with-role = (v-unit-with-role units-with-role)
+          for argm-phrase in argm-phrases
+          for argm-unit-name = (unit-name (cdr argm-phrase))
+          append (loop with v-unit-found? = nil
+                       for (role . unit) in units-with-role
+                       for unit-name = (unit-name unit)
+                       if (string= (role-type role) "V")
+                       do (setf v-unit-found? t)
+                       else if (equal unit-name argm-unit-name)
+                       collect (let ((units-with-role (if v-unit-found? ;;v-unit precedes argm-pp-unit
+                                                        (list v-unit-with-role argm-phrase)
+                                                        (list argm-phrase v-unit-with-role))))
+                                 (add-argm-phrase-with-string-cxn gold-frame units-with-role cxn-inventory propbank-sentence ts-unit-structure))))))
+
+    
+  
+(defun add-argm-phrase-with-string-cxn (gold-frame units-with-role cxn-inventory propbank-sentence ts-unit-structure)
+  "Learns a construction capturing V + ARGM that is a phrase (but not pp/sbar/s)."
+  (let* ((argm-unit (find "ARGM" units-with-role :key #'(lambda (unit-w-role)
+                                                          (role-type (car unit-w-role))) :test #'search))
+         (argm-string (unit-feature-value (cdr argm-unit) 'string))
+         (footprint (make-const 'argm))
+         (cxn-units-with-role
+          (loop for unit-w-role in units-with-role
+                if (equal (role-type (car unit-w-role)) "V")
+                collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint)
+                else collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint :string argm-string)))
+         (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame nil footprint :include-gram-category? nil))
+         (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
+         (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role nil nil nil))
+         (schema (loop for (role . nil) in units-with-role
+                       for cxn-unit in cxn-units-with-role
+                       collect (cons (intern (role-type role))
+                                     (cond
+                                      ;; unit contains a string
+                                      ((feature-value (find 'string (cddr cxn-unit) :key #'feature-name)))
+                                      ;; unit contains a phrase-type
+                                      ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name)))))))
+         (equivalent-cxn (find-equivalent-cxn schema
+                                              (syn-classes (append cxn-units-with-role
+                                                                   cxn-units-without-role))
+                                              cxn-inventory
+                                              :hash-key (intern (upcase argm-string)))))
+
+    (if equivalent-cxn
+      
+      ;;argm-leaf cxn already exists, update its frequency
+      (incf (attr-val equivalent-cxn :frequency))
+      
+      ;;create a argm-leaf cxn
+      (when (and cxn-units-with-role (v-lemma units-with-role))
+        (eval `(def-fcg-cxn ,cxn-name
+                            (,contributing-unit
+                             <-
+                             ,@cxn-units-with-role
+                             ,@cxn-units-without-role)
+                            :disable-automatic-footprints t
+                            :attributes (:schema ,schema
+                                         :lemma ,(intern (upcase argm-string))
+                                         :score ,(length cxn-units-with-role)
+                                         :label argm-leaf-cxn
+                                         :frequency 1)
+                            :description ,(sentence-string propbank-sentence)
+                            :cxn-inventory ,cxn-inventory))))))
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper functions to create new constructions  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -747,7 +839,7 @@
       (meaning ,meaning))))
 
 
-(defun make-propbank-conditional-unit-with-role (unit-with-role category footprint &key (lemma nil))
+(defun make-propbank-conditional-unit-with-role (unit-with-role category footprint &key (lemma nil) (string nil))
   "Makes a conditional unit for a propbank cxn based on a unit in the
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
@@ -773,6 +865,8 @@ initial transient structure that plays a role in the frame."
         ,@(when dependency-label `(,dependency-label))
         ,@(when lemma
             `((lemma ,lemma)))
+         ,@(when string
+            `((string ,string)))
         ))))
 
 
@@ -938,7 +1032,7 @@ start to end(v-unit)"
 
 (defmethod all-rolesets ((sentence conll-sentence))
   "Returns all propbank frames with which a sentence was annotated."
-  (mapcar #'frame-name (propbank-frames sentence)))
+  (remove-duplicates (mapcar #'frame-name (propbank-frames sentence)) :test #'equalp))
 
 
 (defmethod ts-unit-structure ((sentence conll-sentence) (cxn-inventory fcg-construction-set))

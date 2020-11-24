@@ -66,9 +66,8 @@
 
 (length *test-sentences-all-frames*)
 
-(defparameter *train-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
-                                                    (subseq (shuffle (train-split *ontonotes-annotations*)) 0 100) nil) 0 10))
-(length *train-sentences-all-frames*)
+(defparameter *train-sentences-all-frames* (subseq (shuffle (train-split *ontonotes-annotations*)) 0 1000))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -117,6 +116,7 @@
      :argm-pp
      :argm-sbar
      :argm-leaf
+     :argm-phrase-with-string
      )
     (:cxn-supplier-mode . :propbank-english)))
 
@@ -148,57 +148,23 @@
       (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil))
 
 
-(comprehend-and-evaluate (list (nth1 8 *train-sentences-all-frames*))
+;;On the other hand , as you reported just a moment ago , the Associated Press reporting that 65 of the 67 counties have reported
+(comprehend-and-evaluate (list (nth1 15 *train-sentences-all-frames*))
                          *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil)
 
-;((:PRECISION . 0.65467626) (:RECALL . 0.47894737) (:F1-SCORE . 0.55319155) (:NR-OF-CORRECT-PREDICTIONS . 91) (:NR-OF-PREDICTIONS . 139) (:NR-OF-GOLD-STANDARD-PREDICTIONS . 190))
-(comprehend-and-evaluate (subseq *train-sentences-all-frames* 100003 100004)
-                         *restored-grammar* :core-roles-only nil :silent nil)
 
-
-(comprehend-and-extract-frames "Looking at the Japanese experience , the Asahi Shimbun has a daily circulation of about 10 million " :cxn-inventory *propbank-learned-cxn-inventory* )
-
-(shuffle '(1 2 3))
-
-(defparameter *th* (get-type-hierarchy *propbank-learned-cxn-inventory*))
-
-(comprehend-and-extract-frames "He asked to go" :cxn-inventory *propbank-learned-cxn-inventory*)
-
-(evaluate-propbank-corpus *train-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
+(evaluate-propbank-corpus (subseq *train-sentences-all-frames* 400 500) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
 
 (evaluate-propbank-corpus *train-sentences-all-frames* *cleaned-grammar* :timeout 60)
 
 
 
-(defparameter *evaluation-result-no-cleaning* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-20-14-44-22-evaluation"
+(defparameter *evaluation-result* (restore (babel-pathname :directory '(".tmp")
+                                                           :name "2020-11-23-20-58-05-evaluation"
                                                            :type "store")))
 
-(defparameter *evaluation-result-with-cleaning<2* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-20-14-21-16-evaluation"
-                                                           :type "store")))
-
-(defparameter *evaluation-result-with-cleaning<6* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-20-12-46-36-evaluation"
-                                                           :type "store")))
-
-(defparameter *evaluation-result-with-cleaning<4* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-20-12-06-41-evaluation"
-                                                           :type "store")))
-
-
-
-(evaluate-predictions *evaluation-result-no-cleaning* :core-roles-only nil :include-timed-out-sentences nil :include-word-sense t)
-
-(evaluate-predictions *evaluation-result-with-cleaning<2* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
-(evaluate-predictions *evaluation-result-with-cleaning<4* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
-(evaluate-predictions *evaluation-result-with-cleaning<6* :core-roles-only t :include-timed-out-sentences nil :include-word-sense t)
-
-
-
-
-
+(evaluate-predictions *evaluation-result* :core-roles-only nil :include-timed-out-sentences nil :include-word-sense t)
 
 
 ;;;;;;;;;;;;;;;;;;;

@@ -54,7 +54,7 @@
   "Computes precision, recall and F1 score for a given list of predictions."
   (loop for (nil annotation solution) in predictions
         when (or include-timed-out-sentences
-               (not (eql solution 'time-out)))
+                 (not (eql solution 'time-out)))
         ;;gold standard predictions
         sum (loop for frame in annotation
                   for frame-name = (if include-word-sense
