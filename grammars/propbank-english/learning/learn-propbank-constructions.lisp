@@ -163,16 +163,23 @@
                                       lex-category
                                       (attr-val equivalent-cxn :gram-category))
           ;;a) If yes, increase edge weight
-          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) :delta 1.0)
+          (progn
+            (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category)
+                                           :delta 1.0)
+            (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category)
+                                           :delta 1.0 :edge-type 'lex-gram))
           ;;b) Otherwise, add new connection (weight 1.0)
+          (progn (add-link lex-category
+                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
           (add-link lex-category
-                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
+                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0)))
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
 
       ;;Create a new grammatical category for the observed pattern + add category and link to the type hierarchy
       (when (and cxn-units-with-role (v-lemma core-units-with-role))
         (add-category gram-category (get-type-hierarchy cxn-inventory))
+        (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
         (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0)
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit
@@ -213,24 +220,40 @@
                                       gram-category
                                       (attr-val equivalent-cxn :sense-category))
           ;;connection between gram and sense category exists: increase edge weight
-          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+          (progn
+            (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
                                          gram-category
                                          (attr-val equivalent-cxn :sense-category)
                                          :delta 1.0)
+            (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                         gram-category
+                                         (attr-val equivalent-cxn :sense-category)
+                                         :delta 1.0 :edge-type 'gram-sense))
           ;;add new link
+          (progn
           (add-link gram-category
-                    (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
+                    (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'gram-sense)
+          (add-link gram-category
+                    (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0)))
         
         ;; edge between lex-category and sense-category
         (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
                                       lex-category
                                       (attr-val equivalent-cxn :sense-category))
+          (progn
           (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
                                          lex-category
                                          (attr-val equivalent-cxn :sense-category)
                                          :delta 1.0)
+          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                         lex-category
+                                         (attr-val equivalent-cxn :sense-category)
+                                         :delta 1.0 :edge-type 'lex-sense))
+          (progn
           (add-link lex-category
-                    (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
+                    (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-sense)
+          (add-link lex-category
+                    (attr-val equivalent-cxn :sense-category) (get-type-hierarchy cxn-inventory) :weight 1.0)))
 
         (attr-val equivalent-cxn :sense-category))
       
@@ -261,7 +284,9 @@
                        :description ,(sentence-string propbank-sentence)
                        :cxn-inventory ,cxn-inventory))
         (add-category sense-category (get-type-hierarchy cxn-inventory))
+        (add-link gram-category sense-category (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'gram-sense)
         (add-link gram-category sense-category (get-type-hierarchy cxn-inventory) :weight 1.0)
+        (add-link lex-category sense-category (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-sense)
         (add-link lex-category sense-category (get-type-hierarchy cxn-inventory) :weight 1.0)
         sense-category))))
 
@@ -277,16 +302,24 @@
 
   (if (graph-utils:edge-exists? (type-hierarchies::graph type-hierarchy) gram-category sense-category)
     ;;connection between gram and sense category exists: increase edge weight
-    (graph-utils::incf-edge-weight (type-hierarchies::graph type-hierarchy) gram-category sense-category :delta 1.0)
+    (progn
+      (graph-utils::incf-edge-weight (type-hierarchies::graph type-hierarchy) gram-category sense-category :delta 1.0)
+      (graph-utils::incf-edge-weight (type-hierarchies::graph type-hierarchy) gram-category sense-category :delta 1.0 :edge-type 'gram-sense))
     ;;add new link
-    (add-link gram-category sense-category type-hierarchy :weight 1.0))
+    (progn
+      (add-link gram-category sense-category type-hierarchy :weight 1.0 :type 'gram-sense)
+      (add-link gram-category sense-category type-hierarchy :weight 1.0)))
 
 
   (if (graph-utils:edge-exists? (type-hierarchies::graph type-hierarchy) lex-category sense-category)
     ;;connection between gram and sense category exists: increase edge weight
-    (graph-utils::incf-edge-weight (type-hierarchies::graph type-hierarchy) lex-category sense-category :delta 1.0)
+    (progn
+      (graph-utils::incf-edge-weight (type-hierarchies::graph type-hierarchy) lex-category sense-category :delta 1.0)
+      (graph-utils::incf-edge-weight (type-hierarchies::graph type-hierarchy) lex-category sense-category :delta 1.0 :edge-type 'lex-sense))
     ;;add new link
-    (add-link lex-category sense-category type-hierarchy :weight 1.0)))
+    (progn
+    (add-link lex-category sense-category type-hierarchy :weight 1.0 :type 'lex-sense)
+    (add-link lex-category sense-category type-hierarchy :weight 1.0))))
 
 
 
@@ -378,10 +411,16 @@
                                       lex-category
                                       (attr-val equivalent-cxn :gram-category))
           ;;a) If yes, increase edge weight
+          (progn
           (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) :delta 1.0)
+          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) :delta 1.0
+                                         :edge-type 'lex-gram))
           ;;b) Otherwise, add new connection (weight 1.0)
+          (progn
           (add-link lex-category
-                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
+                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
+          (add-link lex-category
+                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0)))
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
       
@@ -389,6 +428,7 @@
       (when (and cxn-units-with-role (v-lemma units-with-role))
         (assert preposition-lemma)
         (add-category gram-category (get-type-hierarchy cxn-inventory))
+        (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
         (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0)
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit
@@ -487,10 +527,16 @@
                                       lex-category
                                       (attr-val equivalent-cxn :gram-category))
           ;;a) If yes, increase edge weight
-          (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) :delta 1.0)
+          (progn
+            (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) :delta 1.0)
+            (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category) :delta 1.0
+                                           :edge-type 'lex-gram))
           ;;b) Otherwise, add new connection (weight 1.0)
+          (progn
           (add-link lex-category
-                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0))
+                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
+          (add-link lex-category
+                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0)))
         
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
@@ -498,6 +544,7 @@
       ;;Create a new grammatical category for the observed pattern + add category and link to the type hierarchy
       (when (and cxn-units-with-role (v-lemma units-with-role))
         (add-category gram-category (get-type-hierarchy cxn-inventory))
+        (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
         (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0)
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit

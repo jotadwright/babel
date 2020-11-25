@@ -1,149 +1,64 @@
-;(ql:quickload :grammar-learning)
+(in-package :graph-utils)
 
-;(in-package :grammar-learning)
+(defmethod cosine ((node-1 symbol) (node-2 symbol) (graph graph))
+  "Returns the cosine between two sparse vectors."
+  (cosine (lookup-node graph node-1) (lookup-node graph node-2) graph))
 
-(in-package :propbank-english)
+(defmethod cosine ((node-1 integer) (node-2 integer) (graph graph))
+  "Returns the cosine between two sparse vectors."
+  (let ((denominator (* (norm node-1 graph) (norm node-2 graph))))
+    (if (= 0 denominator)
+      0
+      (/ (dot-product node-1 node-2 graph)
+         denominator))))
 
-(defun euclidean-distance (node-1 node-2 graph)
-  "Euclidean distance is equal to the number of neighbors that differ between two vertices"
-  (let* ((node-id-1 (graph-utils:lookup-node graph node-1))
-         (node-id-2 (graph-utils:lookup-node graph node-2))
-         (degree-node-1 (length (remove-duplicates (graph-utils::neighbors graph node-id-1))))
-         (degree-node-2 (length (remove-duplicates (graph-utils::neighbors graph node-id-2))))
-         (neighbours-node-1 (remove-duplicates (graph-utils::neighbors graph node-id-1)))
-         (neighbours-node-2 (remove-duplicates (graph-utils::neighbors graph node-id-2))))
-    (float (/ (length (set-difference neighbours-node-1 neighbours-node-2)) (+ degree-node-1 degree-node-2)))))
-
-(defun common-neighbours (node-1 node-2 graph)
-  (let ((neighbours-node-1 (graph-utils::neighbors graph node-1))
-        (neighbours-node-2 (graph-utils::neighbors graph node-2)))
-    (remove-duplicates (intersection neighbours-node-1 neighbours-node-2))))
-
-(defun graph-cosine-similarity (node-1 node-2 graph)
-  "(GCS i j) = (/ (number-common-neighbours i j) (sqrt (* (degree i) (degree j))))"
-  (let* ((node-id-1 (graph-utils:lookup-node graph node-1))
-        (node-id-2 (graph-utils:lookup-node graph node-2)))
-    (when (and node-id-1 node-id-2)
-      (let* ((neighbours-node-1 (remove-duplicates (graph-utils::neighbors graph node-id-1)))
-             (neighbours-node-2 (remove-duplicates (graph-utils::neighbors graph node-id-2)))
-             (common-neighbours (intersection neighbours-node-1 neighbours-node-2))
-             (degree-node-1 (length neighbours-node-1))
-             (degree-node-2 (length neighbours-node-2))
-             (denominator (sqrt (* degree-node-1 degree-node-2))))
-        (if (> denominator 0)
-          (/ (length common-neighbours) denominator) 0)))))
-
-(defun weighted-graph-cosine-similarity (node-1 node-2 graph)
-  (let* ((node-id-1 (graph-utils:lookup-node graph node-1))
-         (node-id-2 (graph-utils:lookup-node graph node-2)))
-    (when (and node-id-1 node-id-2)
-      (let ((denominator (sqrt (* (reduce '+ (loop for degree-1 in (remove-duplicates (graph-utils::neighbors graph node-id-1))
-                                                   collect (square (graph-utils:edge-weight graph  degree-1 node-id-1))))
-                                  (reduce '+ (loop for degree-2 in (remove-duplicates (graph-utils::neighbors graph node-id-2))
-                                                   collect (square (graph-utils:edge-weight graph  degree-2 node-id-2))))))))
-        (if (> denominator 0)
-          (/ (reduce '+ (loop for common-neighbour in (common-neighbours node-id-1 node-id-2 graph)
-                              collect (* (graph-utils:edge-weight graph node-id-1 common-neighbour)
-                                         (graph-utils:edge-weight graph node-id-2 common-neighbour))))
-             denominator)
-          0)))))
-
-(defun square (x)
-  (* x x))
-
-(defun similar-nodes-weighted-cosine (node graph)
-  "loop through all nodes in graph, sort by weighted cosine similarity"
-  (loop for other-node in (remove-duplicates (graph-utils::list-nodes graph))
-        for node-similarity = (weighted-graph-cosine-similarity other-node node graph)
-        when (> node-similarity 0)
-        collect (cons other-node node-similarity)
-        into similar-nodes
-        finally (return (sort similar-nodes #'> :key #'cdr))))
-
-(defun similar-nodes-cosine (node graph)
-  "loop through all nodes in graph, sort by cosine similarity"
-  (loop for other-node in (remove-duplicates (graph-utils::list-nodes graph))
-        for node-similarity = (graph-cosine-similarity other-node node graph)
-        when (> node-similarity 0)
-        collect (cons other-node node-similarity)
-        into similar-nodes
-        finally (return (sort similar-nodes #'> :key #'cdr))))
-
-(defun similar-nodes-euclidean (node graph)
-  "loop through all nodes in graph, sort by cosine similarity"
-  (loop for other-node in (remove-duplicates (graph-utils::list-nodes graph))
-        for node-similarity = (euclidean-distance other-node node graph)
-        when (> node-similarity 0)
-        collect (cons other-node node-similarity)
-        into similar-nodes
-        finally (return (sort similar-nodes #'< :key #'cdr))))
-
-(defun neighbour-categories (node graph)
-  "loop through neighbours, sort them by edge weight"
-  (loop with node-id = (graph-utils:lookup-node graph node)
-        for neighbour-id in (remove-duplicates (graph-utils::neighbors graph node))
-        for edge-weight = (graph-utils:edge-weight graph node-id neighbour-id)
-        collect (cons (graph-utils:lookup-node graph neighbour-id) edge-weight)
-        into neighbour-categories
-        finally (return (sort neighbour-categories #'> :key #'cdr))))
+;(cosine '4  '4 (graph propbank-english::*th*))
 
 
+(defmethod dot-product ((node-1 symbol) (node-2 symbol) (graph graph))
+  "Returns the dot product of two sparse vectors."
+  (dot-product (lookup-node graph node-1) (lookup-node graph node-2) graph))
 
-(make-array '(5 5))
+(defmethod dot-product ((node-1 integer) (node-2 integer) (graph graph))
+  (let* ((vector-node-1 (node-vector node-1 graph))
+         (vector-node-2 (node-vector node-2 graph))
+         (count-vector-node-1 (hash-table-count vector-node-1))
+         (count-vector-node-2 (hash-table-count vector-node-2))
+         (longest-vector (if (> count-vector-node-1 count-vector-node-2) vector-node-1 vector-node-2))
+         (shortest-vector (if (> count-vector-node-1 count-vector-node-2) vector-node-2 vector-node-1)))
+    
+    (loop for id being the hash-keys in shortest-vector using (hash-value v-1)
+          for v-2 = (gethash id longest-vector)
+          when v-2
+          sum (* v-1 v-2))))
 
-
-(graph-utils::saref (graph-utils::matrix (graph-utils::graph *th*)) (graph-utils::indices (graph-utils::graph *th*)))
-
-
-
-(incf (gethash 0 (graph-utils::matrix (graph-utils::matrix (graph-utils::graph *th*)))))
-
-(graph-utils::saref (graph-utils::matrix (graph-utils::graph *th*)) 0 2)
-
-
-(saref (matrix graph) n1 n2)
-
-(defun node-cosine-similarity (node-1 node-2 graph)
-  ""
-  (let* ((node-id-1 (graph-utils:lookup-node graph node-1))
-         (node-id-2 (graph-utils:lookup-node graph node-2))
-         (vector-1 )
-         (vector-2))
-    (cosine-similarity vector-1 vector-2)))
-
-
+;(dot-product 'propbank-english::abridge.01-3  'propbank-english::abridge.01-3 (graph propbank-english::*th*))
 
   
-  (let ((neighbors nil))
-    (map-sarray-col #'(lambda (row-id value)
-                        (when (> value 0)
-                          (push row-id neighbors)))
-                    (matrix graph) node)
-    (when (directed? graph)
-      (map-sarray-row #'(lambda (col-id value)
-                          (when (> value 0)
-                            (push col-id neighbors)))
-                      (matrix graph) node))
-    (if return-ids?
-	(nreverse neighbors)
-	(mapcar #'(lambda (id)
-                    (lookup-node graph id))
-                (nreverse neighbors)))))
+(defmethod norm ((node symbol) (graph graph))
+  "Returns the eucledean norm of a sparse vector."
+  (norm (lookup-node graph node) graph))
 
-graph-utils:map-nodes
+(defmethod norm ((node integer) (graph graph))
+  "Returns the eucledean norm of a sparse vector."
+  (sqrt (sum-square-sarray-row (matrix graph) node)))
 
+;; (dot-product 0 8 (graph propbank-english::*th*))
 
-;;given a node, return the most similar nodes in the graph
-(defparameter *th* (get-type-hierarchy *propbank-learned-cxn-inventory*))
+(defmethod node-vector ((node symbol) (graph graph) (edge-type t))
+  "Returns the sparse vector for a given node."
+  (node-vector (lookup-node graph node) graph edge-type))
 
+(defmethod node-vector ((node integer) (graph graph) (edge-type t))
+  "Returns the sparse vector for a given node."
+    (gethash node (matrix (gethash edge-type (matrix graph)))))
 
+(node-vector 'propbank-english::send.01-20 (graph *th*) nil)
 
-(pprint (similar-nodes-cosine 'SEND.01-898
-                      (graph-utils::graph *th*)))
+(defun closest-nodes (node graph)
+  (loop for other-node being the hash-keys in (nodes graph)
+        collect (cons other-node (cosine node other-node graph)) into nodes-with-sim
+        finally return (sort nodes-with-sim #'> :key #'cdr)))
 
-(node-p 'propbank-eng::SEND.01-446 *th*)
-fcg::unify-atom
-
-(loop for node in (graph-utils:list-nodes (graph-utils::graph *th*))
-      for i from 1
-      do (format t "~a~%" i))
+;; (defparameter *th* (type-hierarchies:get-type-hierarchy propbank-english::*propbank-learned-cxn-inventory*))
+;; (pprint (closest-nodes 'propbank-english::send.01-20 *th*))
