@@ -88,7 +88,7 @@
                                sum (if (core-role-p role)
                                      (length (indices role)) 0)
                                else sum (length (indices role)))
-                         1)) ;;FEE
+                         (length (indices (frame-evoking-element predicted-frame))))) ;;FEE
         into number-of-grammar-predictions
         ;;correct predictions
         unless (eql solution 'time-out)
@@ -114,7 +114,8 @@
                                            sum 1))
                          (if (correctly-predicted-fee-index-p (indices (frame-evoking-element predicted-frame)) ;;FEE
                                                               predicted-frame annotation include-word-sense)
-                           1 0)))
+                           (length (indices (frame-evoking-element predicted-frame)))
+                           0)))
         into number-of-correct-predictions
         finally (let ((evaluation-result `((:precision . ,(compute-precision number-of-correct-predictions number-of-grammar-predictions))
                                            (:recall . ,(compute-recall number-of-correct-predictions number-of-gold-standard-predictions))
