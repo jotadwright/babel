@@ -24,6 +24,7 @@
                (:file "sparse-arrays" :depends-on ("utilities"))
 	       (:file "graph-class" :depends-on ("sparse-arrays" "node"))
 	       (:file "typed-edge-graph-class" :depends-on ("graph-class"))
+               (:file "typed-edge-undirected-graph-class")
 	       (:file "graph-methods" :depends-on ("queue" "graph-class"))
 	       (:file "typed-edge-graph-methods"
                       :depends-on ("typed-edge-graph-class" "graph-methods"))
