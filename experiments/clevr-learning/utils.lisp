@@ -1,3 +1,5 @@
+;;;; utils.lisp
+
 (in-package :clevr-learning)
 
 (defun run-experiments (strategies
@@ -7,33 +9,23 @@
                          (monitors
                            (list "export-communicative-success"
                                  "export-lexicon-size"
-                                 "export-ontology-size"
                                  "export-meanings-per-form"
-                                 "export-forms-per-meaning"
                                  "export-lexicon-change"
-                                 "export-ontology-change"
-                                 "export-memory-size"
-                                 "export-memory-entry-per-form"
-                                 "export-program-correctness"
                                  "export-avg-cxn-score"
-                                 "export-incorrect-program-questions"
-                                 "export-form-competitors"))
-                         (available-primitives '(count! equal-integer less-than greater-than
-                                                 equal? exist filter get-context intersect
-                                                 query relate same union! unique))
+                                 "export-confidence-level"))
                          (determine-interacting-agents-mode :tutor-learner)
-                         (learning-strategy :keep-samples)
-                         (alignment-strategy :lateral-inhibition))
+                         (questions-per-challenge 1000)
+                         (alignment-strategy :lateral-inhibition+store-past-scenes))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
-    :experiment-class 'holophrase-experiment  ;; make sure this is the name of your experiment class
+    :experiment-class 'clevr-learning-experiment 
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
-    :monitors monitors
+    :named-configurations strategies
     :shared-configuration `((:determine-interacting-agents-mode . ,determine-interacting-agents-mode)
-                            (:learning-strategy . ,learning-strategy)
-                            (:alignment-strategy . ,alignment-strategy))
-    :configurations strategies
+                            (:alignment-strategy . ,alignment-strategy)
+                            (:questions-per-challenge . ,questions-per-challenge))
+    :monitors monitors
     :output-dir (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 

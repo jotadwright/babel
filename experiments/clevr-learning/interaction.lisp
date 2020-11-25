@@ -1,185 +1,81 @@
+;;;; interaction.lisp
+
 (in-package :clevr-learning)
 
-;; ####################
-;; + Initialize Agent +
-;; ####################
+;; --------------------
+;; + Initialize agent +
+;; --------------------
 
-(defgeneric initialize-agent (agent scene question answer)
-  (:documentation "Prepare the agent for the next interaction"))
-
-(defmethod initialize-agent ((agent holophrase-tutor)
-                             scene question answer)
-  (setf (clevr-question agent) nil
-        (utterance agent) question
-        (communicated-successfully agent) t
-        (ground-truth-answer agent) (answer->category (ontology agent) answer))
-  ;; set the current context in the ontology
+(defmethod initialize-agent ((agent clevr-learning-tutor)
+                             question scene answer)
+  (setf (utterance agent) question
+        (topic agent) answer
+        (communicated-successfully agent) t)
   (set-data (ontology agent) 'clevr-context scene))
 
-(defmethod initialize-agent ((agent holophrase-learner)
-                             scene question answer)
-  (setf (clevr-question agent) nil
-        (utterance agent) question
+(defmethod initialize-agent ((agent clevr-learning-learner)
+                             question scene answer)
+  (setf (utterance agent) question
+        (topic agent) answer
         (communicated-successfully agent) t
-        (applied-cxn agent) nil
-        (applied-chunk agent) nil
-        (applicable-chunks agent) nil
-        (computed-answer agent) nil)
-  ;; set the current context in the ontology
-  (set-data (ontology agent) 'clevr-context scene)
-  ;; set the composer-chunks in the ontology
-  (unless (find-data (ontology agent) 'composer-chunks)
-    (set-data (ontology agent) 'composer-chunks
-              (mapcar #'(lambda (p) (create-chunk-from-primitive
-                                     p :primitive-inventory (primitives agent)))                       
-                      (primitives-list (primitives agent)))))
-  ;; set the ground-truth answer when speaker
-  (when (speakerp agent)
-    (setf (ground-truth-answer agent)
-          (answer->category (ontology agent) answer))))
-          
+        (applied-cxns agent) nil
+        (applied-program agent) nil
+        (topic-found agent) nil)
+  (set-data (ontology agent) 'clevr-context scene))
 
-;; ###############
+;; ---------------
 ;; + Interaction +
-;; ###############
+;; ---------------
 
-(define-event context-determined (image-path pathname))
-(define-event question-determined (question string) (answer string))
+(define-event interaction-before-finished
+  (scene clevr-scene) (question string) (answer t))
 
+(defmethod interact :before ((experiment clevr-learning-experiment)
+                             interaction &key)
+  ;; Choose a random scene and a random question and initialize the agents
+  (let* ((random-file (random-elt (question-files experiment)))
+         (file-data (decode-json-from-source random-file))
+         (question (rest (assoc :question file-data)))
+         (random-scene-and-answer (random-elt (rest (assoc :answers file-data))))
+         (clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
+                                          (world experiment)))
+         (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
+                                           *clevr-ontology*)))
+    (loop for agent in (interacting-agents experiment)
+          do (initialize-agent agent question clevr-scene answer-entity))
+    (notify interaction-before-finished clevr-scene question answer-entity)))
 
-(defun read-clevr-data-file (filename)
-  (with-open-file (stream filename :direction :input)
-    (decode-json-from-string
-     (read-line stream))))
+(defmethod interact ((experiment clevr-learning-experiment)
+                     interaction &key)
+  ;; The tutor is ran implicitely when choosing a random scene and question
+  ;; Now we only need to run the learner's part.
+  (let ((successp (run-learner-hearer-task (learner experiment))))
+    (loop for agent in (population experiment)
+          do (setf (communicated-successfully agent) successp))))
 
-(defun all-primitives-available-p (experiment meaning)
-  (let* ((available-primitives (rest
-                                (assoc (get-configuration experiment :learning-stage)
-                                       *learning-stage-primitives*)))
-         (necessary-primitives (remove 'bind (remove-duplicates (mapcar #'first meaning))))
-         (all-available-p
-          (loop for p in necessary-primitives
-                always (find p available-primitives))))
-    (unless all-available-p
-      (set-data experiment :current-utterance-index
-                (1+ (get-data experiment :current-utterance-index))))
-    all-available-p))
+(define-event agent-confidence-level (level float))
 
-(defun attempts-remaining-p (experiment)
-  (let* ((current-utterance-index (get-data experiment :current-utterance-index))
-         (attempts-per-utterance (get-data experiment :attempts-per-utterance))
-         (max-attempts (get-configuration experiment :max-attempts-per-utterance))
-         (pair (assoc current-utterance-index attempts-per-utterance)))
-    (if (and pair (> (rest pair) max-attempts))
-      (progn (set-data experiment :current-utterance-index
-                       (1+ current-utterance-index))
-        nil)
-      t)))
-
-(defun timeout-reached-p (experiment)
-  (let ((learner (find 'learner (population experiment) :key #'role)))
-    (if (find-data learner :timeout)
-      (progn (set-data experiment :current-utterance-index
-                       (1+ (get-data experiment :current-utterance-index)))
-        (set-data learner :timeout nil)
-        t)
-      nil)))
-
-(defun increment-utterance-attempt (experiment)
-  (let ((current-utterance-index (get-data experiment :current-utterance-index))
-        (attempts-per-utterance (get-data experiment :attempts-per-utterance)))
-    (if (assoc current-utterance-index attempts-per-utterance)
-      (incf (rest (assoc current-utterance-index attempts-per-utterance)))
-      (set-data experiment :attempts-per-utterance
-                (cons (cons current-utterance-index 1) attempts-per-utterance)))))
-
-(defmethod interact :before ((experiment holophrase-experiment) interaction &key)
-  "Choose the context and question (utterance) for the current interaction.
-   Always check if all primitives are available. If not, retry."
-  (loop for filename = (nth (get-data experiment :current-utterance-index)
-                            (questions experiment))
-        for line = (read-clevr-data-file filename)
-        for continuep = (and (all-primitives-available-p
-                              experiment (read-from-string
-                                          (rest (assoc :meaning line))))
-                             (attempts-remaining-p experiment)
-                             (not (timeout-reached-p experiment)))
-        until continuep
-        finally (let* ((question (rest (assoc :question line)))
-                       (answers (rest (assoc :answers line)))
-                       (meaning (read-from-string (rest (assoc :meaning line))))
-                       (bind-statements (find-all 'bind meaning :key #'car))
-                       (scene-name/answer (random-elt answers))
-                       (scene (find-scene-by-name (rest (assoc :scene scene-name/answer))
-                                                  (world experiment)))
-                       (answer (rest (assoc :answer scene-name/answer))))
-                  (notify context-determined (image scene))
-                  (notify question-determined question answer)
-                  (increment-utterance-attempt experiment)
-                  (loop for agent in (interacting-agents experiment)
-                        do (set-data agent :ground-truth-meaning meaning)
-                        do (set-data agent :bind-statements bind-statements)
-                        do (initialize-agent agent scene question answer)))))
-
-(defmethod interact ((experiment holophrase-experiment) interaction &key)
-  "Interaction script depends on who is the speaker
-   and who is the listener"
-  (holophrase-interaction experiment interaction
-                          (speaker interaction)
-                          (hearer interaction)))
-      
-(defgeneric holophrase-interaction (experiment interaction speaker hearer)
-  (:documentation "Run the interaction, depending on speaker and hearer"))
-
-(defmethod holophrase-interaction ((experiment holophrase-experiment) interaction
-                                   (speaker holophrase-tutor)
-                                   (hearer holophrase-learner))
-  (if (and (parse-question hearer)
-           (interpret hearer))
-    (if (determine-success speaker hearer)
-      ;; when the game was a success, check if the ground truth program was reached
-      ;; if it was, store the utterance and the program
-      (when (check-ground-truth-program hearer)
-        (with-open-file (stream (get-configuration experiment :output-file)
-                                :direction :output
-                                :if-exists :append
-                                :if-does-not-exist :create)
-          (write-line (format nil "~a,~a"
-                              (utterance hearer)
-                              (downcase (mkstr (irl-program (applied-chunk hearer)))))
-                      stream))
-        (set-data experiment :current-utterance-index
-                  (1+ (get-data experiment :current-utterance-index))))
-      (progn (adopt hearer (ground-truth-answer speaker))
-        (setf (communicated-successfully speaker) nil
-              (communicated-successfully hearer) nil)))
-    (progn (adopt hearer (ground-truth-answer speaker))
-      (setf (communicated-successfully speaker) nil
-            (communicated-successfully hearer) nil))))
-
-(defmethod holophrase-interaction ((experiment holophrase-experiment) interaction
-                                   (speaker holophrase-learner)
-                                   (hearer holophrase-tutor))
-  (if (and (conceptualise speaker)
-           (produce-question speaker))
-    (progn (setf (utterance hearer) (utterance speaker))
-      (tutor-interprets hearer)
-      (unless (determine-success speaker hearer)
-        (setf (communicated-successfully speaker) nil
-              (communicated-successfully hearer) nil)))
-    (setf (communicated-successfully speaker) nil
-          (communicated-successfully hearer) nil)))
-
-(defmethod interact :after ((experiment holophrase-experiment) interaction &key)
-  "Consolidation after the interaction"
-  ;; consolidation on the hearer side based on success
-  (loop for agent in (interacting-agents experiment)
-        do (align-agent agent (get-configuration experiment :alignment-strategy)))
-  ;; store sample when strategy is active
-  (when (eql (get-configuration experiment :learning-strategy) :keep-samples)
-    (let ((learner (find 'learner (interacting-agents experiment) :key #'role))
-          (tutor (find 'tutor (interacting-agents experiment) :key #'role)))
-      (store-sample learner (ground-truth-answer tutor)))))
-
-
-
+(defmethod interact :after ((experiment clevr-learning-experiment)
+                            interaction &key)
+  ;; add the success to the confidence buffer
+  (let ((successp
+         (loop for agent in (population experiment)
+               always (communicated-successfully agent))))
+    (if (= (length (confidence-buffer experiment))
+           (get-configuration experiment :evaluation-window-size))
+      (setf (confidence-buffer experiment)
+            (cons (if successp 1 0)
+                  (butlast (confidence-buffer experiment))))
+      (push (if successp 1 0) (confidence-buffer experiment)))
+    (notify agent-confidence-level (average (confidence-buffer experiment)))
+    ;; check the confidence level and (maybe) transition to the next challenge
+    (when (and (> (average (confidence-buffer experiment))
+                  (get-configuration experiment :confidence-threshold))
+               (< (get-configuration experiment :current-challenge-level)
+                  (get-configuration experiment :max-challenge-level)))
+      (set-configuration experiment :current-challenge-level
+                         (1+ (get-configuration experiment :current-challenge-level))
+                         :replace t)
+      (load-questions-for-current-challenge-level experiment)
+      (set-primitives-for-current-challenge-level (learner experiment))
+      (update-composer-chunks-w-primitive-inventory (learner experiment)))))
