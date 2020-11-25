@@ -30,4 +30,5 @@
                (:module learning
                 :serial t
                 :components ((:file "evaluation")
-                             (:file "learn-propbank-constructions")))))
+                             (:file "learn-propbank-constructions")))
+               (:file "categorial-network-metrics")))

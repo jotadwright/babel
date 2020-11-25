@@ -1,27 +1,28 @@
 (in-package :graph-utils)
 
-(defmethod cosine ((node-1 symbol) (node-2 symbol) (graph graph))
+(defmethod cosine ((node-1 symbol) (node-2 symbol) (graph graph) &key edge-type)
   "Returns the cosine between two sparse vectors."
-  (cosine (lookup-node graph node-1) (lookup-node graph node-2) graph))
+  (cosine (lookup-node graph node-1) (lookup-node graph node-2) graph :edge-type edge-type))
 
-(defmethod cosine ((node-1 integer) (node-2 integer) (graph graph))
+(defmethod cosine ((node-1 integer) (node-2 integer) (graph graph) &key edge-type)
   "Returns the cosine between two sparse vectors."
-  (let ((denominator (* (norm node-1 graph) (norm node-2 graph))))
+  (let ((denominator (* (norm node-1 graph :edge-type edge-type)
+                        (norm node-2 graph :edge-type edge-type))))
     (if (= 0 denominator)
       0
-      (/ (dot-product node-1 node-2 graph)
+      (/ (dot-product node-1 node-2 graph :edge-type edge-type)
          denominator))))
 
 ;(cosine '4  '4 (graph propbank-english::*th*))
 
 
-(defmethod dot-product ((node-1 symbol) (node-2 symbol) (graph graph))
+(defmethod dot-product ((node-1 symbol) (node-2 symbol) (graph graph) &key edge-type)
   "Returns the dot product of two sparse vectors."
-  (dot-product (lookup-node graph node-1) (lookup-node graph node-2) graph))
+  (dot-product (lookup-node graph node-1) (lookup-node graph node-2) graph :edge-type edge-type))
 
-(defmethod dot-product ((node-1 integer) (node-2 integer) (graph graph))
-  (let* ((vector-node-1 (node-vector node-1 graph))
-         (vector-node-2 (node-vector node-2 graph))
+(defmethod dot-product ((node-1 integer) (node-2 integer) (graph graph) &key edge-type)
+  (let* ((vector-node-1 (node-vector node-1 graph :edge-type edge-type))
+         (vector-node-2 (node-vector node-2 graph :edge-type edge-type))
          (count-vector-node-1 (hash-table-count vector-node-1))
          (count-vector-node-2 (hash-table-count vector-node-2))
          (longest-vector (if (> count-vector-node-1 count-vector-node-2) vector-node-1 vector-node-2))
@@ -35,30 +36,32 @@
 ;(dot-product 'propbank-english::abridge.01-3  'propbank-english::abridge.01-3 (graph propbank-english::*th*))
 
   
-(defmethod norm ((node symbol) (graph graph))
+(defmethod norm ((node symbol) (graph graph) &key edge-type)
   "Returns the eucledean norm of a sparse vector."
-  (norm (lookup-node graph node) graph))
+  (norm (lookup-node graph node) graph :edge-type edge-type))
 
-(defmethod norm ((node integer) (graph graph))
+(defmethod norm ((node integer) (graph graph) &key edge-type)
   "Returns the eucledean norm of a sparse vector."
-  (sqrt (sum-square-sarray-row (matrix graph) node)))
+  (sqrt (sum-square-sarray-row (gethash edge-type (matrix graph)) node)))
 
 ;; (dot-product 0 8 (graph propbank-english::*th*))
 
-(defmethod node-vector ((node symbol) (graph graph) (edge-type t))
+(defmethod node-vector ((node symbol) (graph graph)  &key edge-type)
   "Returns the sparse vector for a given node."
-  (node-vector (lookup-node graph node) graph edge-type))
+  (node-vector (lookup-node graph node) graph :edge-type edge-type))
 
-(defmethod node-vector ((node integer) (graph graph) (edge-type t))
+(defmethod node-vector ((node integer) (graph graph)  &key edge-type)
   "Returns the sparse vector for a given node."
     (gethash node (matrix (gethash edge-type (matrix graph)))))
 
-(node-vector 'propbank-english::send.01-20 (graph *th*) nil)
+;; (node-vector 'propbank-english::send.01-20 (graph *th*) :edge-type nil)
 
-(defun closest-nodes (node graph)
+(defun closest-nodes (node graph &key edge-type)
   (loop for other-node being the hash-keys in (nodes graph)
-        collect (cons other-node (cosine node other-node graph)) into nodes-with-sim
+        for cosine = (cosine node other-node graph :edge-type edge-type)
+        if  (> cosine 0)
+        collect (cons other-node (cosine node other-node graph :edge-type edge-type)) into nodes-with-sim
         finally return (sort nodes-with-sim #'> :key #'cdr)))
 
 ;; (defparameter *th* (type-hierarchies:get-type-hierarchy propbank-english::*propbank-learned-cxn-inventory*))
-;; (pprint (closest-nodes 'propbank-english::send.01-20 *th*))
+;; (pprint (closest-nodes 'propbank-english::send.01-20 (graph *th*) :edge-type 'propbank-english::gram-sense))
