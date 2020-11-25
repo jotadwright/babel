@@ -24,7 +24,9 @@
          (response-string (drakma:http-request endpoint
                                                :method :post
                                                :content-type "application/json"
-                                               :content json))
+                                               :content json
+                                               #+sbcl :connection-timeout nil
+                                               ))
                           ;;#+ccl (dex:post endpoint :content json :headers '((Content-Type . "application/json"))))
          (response-object (handler-case (cl-json:decode-json-from-string response-string)
                             (error (c) (warn (format nil "Error decoding json in seq2seq-next-cxn."))))))
