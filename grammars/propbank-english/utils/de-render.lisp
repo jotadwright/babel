@@ -144,6 +144,8 @@ the right string and constituent features." ;;what about the vp above it?
             else collect unit-feature)))
 
 (defun create-phrasal-vp-unit (verb-unit particle-unit)
+  (let ((phrasal-lemma (intern (upcase (format nil "~a-~a" (unit-feature-value verb-unit 'lemma)
+                                               (unit-feature-value particle-unit 'lemma))))))
   `(,(make-const "PHRASAL-VP")
     (constituents (,(unit-name verb-unit) ,(unit-name particle-unit)))
     (node-type phrase)
@@ -152,7 +154,7 @@ the right string and constituent features." ;;what about the vp above it?
     (syn-class (vp))
     (word-order ((adjacent ,(unit-name verb-unit) ,(unit-name particle-unit))
                  (precedes ,(unit-name verb-unit) ,(unit-name particle-unit))))
-    (lemma ,(unit-feature-value verb-unit 'lemma))))
+    (lemma ,phrasal-lemma))))
 
                                              
 (defun merge-unit-strings (unit-1 unit-2)
