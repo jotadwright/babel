@@ -14,11 +14,13 @@
   "Comprehends an utterance and visualises the extracted frames."
   (multiple-value-bind (solution cipn)
       (comprehend utterance :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets :timeout timeout)
-    (let ((frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))
-      (unless silent
-        (add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
-        (add-element (make-html frames  :expand-initially t)))
-      (values solution cipn frames))))
+    (if (eql solution 'time-out)
+      (values 'time-out 'time-out 'time-out)
+      (let ((frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))
+        (unless silent
+          (add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
+          (add-element (make-html frames  :expand-initially t)))
+        (values solution cipn frames)))))
 
 
 ;; Comprehend Methods ;;

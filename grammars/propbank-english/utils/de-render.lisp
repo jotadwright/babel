@@ -35,11 +35,13 @@
                               collect (cons node-id (make-const (node-string node)))))
          ;; Make units
          (units (loop for node in spacy-benepar-analysis
-                      
                       ;; attributes
                       for node-type = (node-type node)
                       for node-string = (node-string node)
-                      for parent-id = (node-parent node)
+                      for parent-id = (if (and (equal (node-lex-class node) 'rp);;particle+more checks?
+                                               (adjacent-nodes? (node-dependency-head node) node spacy-benepar-analysis))
+                                        (node-dependency-head node)
+                                        (node-parent node))
                       for node-id = (node-id node)
                       for unit-name = (cdr (assoc node-id unit-name-ids))
                       for syn-class = (cond ((equal node-type 'phrase)
@@ -53,40 +55,115 @@
                                              '(V))
                                             ((and (member (node-lex-class node) '(nnp nns nn nnps prp prp$) :test #'equalp)
                                                   ;;
-                                                  (not (and ;; has parent
-                                                            (find parent-id spacy-benepar-analysis :test #'equalp :key #'node-id)
-                                                            ;; parent is np
-                                                            (member 'np (node-phrase-types (find parent-id spacy-benepar-analysis :test #'equalp :key #'node-id)) :test #'equalp))))
+                                                  (not (and (find parent-id spacy-benepar-analysis ;; has parent
+                                                                  :test #'equalp :key #'node-id)
+                                                            (member 'np ;; parent is np
+                                                                    (node-phrase-types 
+                                                                     (find parent-id spacy-benepar-analysis
+                                                                           :test #'equalp :key #'node-id)) :test #'equalp))))
                                              '(NP))
                                             (t
                                              `(,(node-lex-class node))))
-                   
-                      collect `(,unit-name
-                                (node-type ,node-type)
-                                (string ,node-string)
-                                (span (,(node-start node) ,(node-end node)))
-                                (parent ,(cdr (assoc parent-id unit-name-ids)))
-                                (syn-class ,syn-class)
-                                ,@(when (equal node-type 'phrase)
-                                    `((constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
-                                      (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))))
-                                ,@(when (and (equal node-type 'phrase)
-                                             (find 'vp syn-class))
-                                    (loop for constituent in (find-constituent-units node-id spacy-benepar-analysis)
-                                          for dependency-label = (assoc ':DEPENDENCY--LABEL constituent)
-                                          when (and dependency-label
-                                                    (string= (cdr dependency-label) "auxpass"))
-                                          return '((passive +))
-                                          finally (return '((passive -)))))
-                                ,@(when (equal node-type 'leaf)
-                                    `((lemma ,(node-lemma node))
-                                      (dependency-label ,(node-dependency-label node)))))))
-         
+
+                                
+                       collect `(,unit-name
+                                     (node-type ,node-type)
+                                     (string ,node-string)
+                                     (span (,(node-start node) ,(node-end node)))
+                                     (parent ,(cdr (assoc parent-id unit-name-ids)))
+                                     (syn-class ,syn-class)
+                                     ,@(when (equal node-type 'phrase)
+                                         `((constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
+                                           (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))))
+                                     ,@(when (and (equal node-type 'phrase)
+                                                  (find 'vp syn-class))
+                                         (loop for constituent in (find-constituent-units node-id spacy-benepar-analysis)
+                                               for dependency-label = (assoc ':DEPENDENCY--LABEL constituent)
+                                               when (and dependency-label
+                                                         (string= (cdr dependency-label) "auxpass"))
+                                               return '((passive +))
+                                               finally (return '((passive -)))))
+                                     ,@(when (equal node-type 'leaf)
+                                         `((lemma ,(node-lemma node))
+                                           (dependency-label ,(node-dependency-label node)))))))
+
          ;; Make transient structure
          (transient-structure (make-instance 'coupled-feature-structure 
-                                             :left-pole units
+                                             :left-pole (run-phrasal-verb-check units)
                                              :right-pole '((root)))))
     transient-structure))
+
+(defun adjacent-nodes? (node-1 node-2 spacy-benepar-analysis)
+ t
+  );;to do!
+
+(defun run-phrasal-verb-check (units)
+  "Checks if there are particle units in the unit structure, in which
+case the verb unit related to the particle must be adapted to include
+the right string and constituent features." ;;what about the vp above it?
+
+  (let* ((phrasal-verb-units
+          (loop for unit in units
+                for parent-unit = (find (unit-feature-value unit 'parent) units :key #'unit-name)
+                when (equal (unit-feature-value parent-unit 'node-type) 'leaf)
+                collect (cons parent-unit unit)))
+         (phrasal-vp-units
+          (loop for unit in units
+                for constituents = (unit-feature-value unit 'constituents)
+                when (intersection (mapcar #'second phrasal-verb-units);;all particle units
+                                   constituents)
+                collect unit)))
+
+    (loop for vp-unit in phrasal-vp-units
+          for (phrasal-verb-unit . particle-unit) in phrasal-verb-units
+          when (intersection (unit-feature-value vp-unit 'constituents)
+                             (list (unit-name phrasal-verb-unit) (unit-name particle-unit)))
+          do (let* ((additional-vp-unit (create-phrasal-vp-unit phrasal-verb-unit particle-unit))
+                    (new-phrasal-verb-unit (update-unit-feature-value phrasal-verb-unit 'parent (unit-name additional-vp-unit)))
+                    (new-particle-unit (update-unit-feature-value particle-unit 'parent (unit-name additional-vp-unit)))
+                    (other-constituents (set-difference (unit-feature-value vp-unit 'constituents)
+                                                        (list (unit-name phrasal-verb-unit) (unit-name particle-unit))))
+                    (new-vp-unit (update-unit-feature-value vp-unit 'constituents (append other-constituents (list (unit-name additional-vp-unit))))))
+               ;;delete 3 old units
+               (delete phrasal-verb-unit units :test #'equalp)
+               (delete particle-unit units :test #'equalp)
+               (delete vp-unit units :test #'equalp)
+               ;;add 4 new units
+               (pushend new-vp-unit units)
+               (pushend additional-vp-unit units)
+               (pushend new-phrasal-verb-unit units)
+               (pushend new-particle-unit units)))
+         
+    units))
+
+(defun update-unit-feature-value (unit feature-name new-feature-value)
+  `(,(unit-name unit) 
+    ,@(loop for unit-feature in (unit-body unit)
+            if (eql (first unit-feature) feature-name)
+            collect (list feature-name new-feature-value)
+            else collect unit-feature)))
+
+(defun create-phrasal-vp-unit (verb-unit particle-unit)
+  `(,(make-const "PHRASAL-VP")
+    (constituents (,(unit-name verb-unit) ,(unit-name particle-unit)))
+    (node-type phrase)
+    (span ,(merge-unit-spans verb-unit particle-unit))
+    (string ,(merge-unit-strings verb-unit particle-unit))
+    (syn-class (vp))
+    (word-order ((adjacent ,(unit-name verb-unit) ,(unit-name particle-unit))
+                 (precedes ,(unit-name verb-unit) ,(unit-name particle-unit))))
+    (lemma ,(unit-feature-value verb-unit 'lemma))))
+
+                                             
+(defun merge-unit-strings (unit-1 unit-2)
+  (let ((string-1 (unit-feature-value unit-1 'string))
+        (string-2 (unit-feature-value unit-2 'string)))
+    (format nil "~a ~a" string-1 string-2)))
+
+(defun merge-unit-spans (unit-1 unit-2)
+  (let ((span-1 (unit-feature-value unit-1 'span))
+        (span-2 (unit-feature-value unit-2 'span)))
+    (list (first span-1) (second span-2))))
 
 (defun find-adjacency-constraints (node-id spacy-benepar-analysis unit-name-ids)
   "Returns a set of adjacency constraints for a given node id."

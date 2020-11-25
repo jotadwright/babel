@@ -112,7 +112,7 @@
                                            when (correctly-predicted-index-p index predicted-frame-element predicted-frame
                                                                              annotation include-word-sense)
                                            sum 1))
-                         (if (correctly-predicted-fee-index-p (index (frame-evoking-element predicted-frame)) ;;FEE
+                         (if (correctly-predicted-fee-index-p (indices (frame-evoking-element predicted-frame)) ;;FEE
                                                               predicted-frame annotation include-word-sense)
                            1 0)))
         into number-of-correct-predictions
@@ -138,14 +138,15 @@
                                   (frame-name gold-frame)
                                   (truncate-frame-name (frame-name gold-frame)))
           if (when (and (equalp gold-frame-name (symbol-name predicted-frame-name))
-                        (eql (index (frame-evoking-element predicted-frame)) (first (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp)))))
+                        (equalp (indices (frame-evoking-element predicted-frame))
+                             (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp))))
                (loop for gold-role in (find-all (symbol-name predicted-role) (frame-roles gold-frame) :key #'role-type :test #'equalp)
                      if (find index (indices gold-role))
                      return t))
           do
           (return t))))
 
-(defun correctly-predicted-fee-index-p (index predicted-frame gold-frames include-word-sense)
+(defun correctly-predicted-fee-index-p (indices predicted-frame gold-frames include-word-sense)
   "Returns t if the index form the frame-evoking-element occurs in the same role of the same frame in the gold-standard annotation."
   (let ((predicted-frame-name (if include-word-sense
                                 (frame-name predicted-frame)
@@ -156,7 +157,7 @@
                                   (truncate-frame-name (frame-name gold-frame)))
           if (and (equalp gold-frame-name (symbol-name predicted-frame-name))
                   (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp)
-                  (find index (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp))))
+                  (equalp indices (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp))))
           do
           (return t))))
 

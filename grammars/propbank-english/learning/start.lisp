@@ -62,13 +62,16 @@
 
 
 (defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
-                                                   (subseq (shuffle (test-split *ontonotes-annotations*)) 0 500) nil) 0 250))
+                                                   (subseq (shuffle (test-split *ontonotes-annotations*)) 0 500) nil) 0 100))
 
 (length *test-sentences-all-frames*)
 
-(defparameter *train-sentences-all-frames* (subseq (shuffle (train-split *ontonotes-annotations*)) 0 1000))
+(defparameter *train-sentences-all-frames* (shuffle (train-split *ontonotes-annotations*)))
 
-
+(defparameter *phrasal-verb-sentence-1* (nth 368 *train-sentences-all-frames*))
+(defparameter *phrasal-verb-sentence-2* (nth 23 *train-sentences-all-frames*))
+(defparameter *phrasal-verb-sentence-3* (nth 1109 *train-sentences-all-frames*))
+(defparameter *phrasal-verb-sentence-4* (nth 56642 *train-sentences-all-frames*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Storing and restoring grammars ;;
@@ -89,7 +92,6 @@
 
 ;(clean-type-hierarchy *th*)
 
-      
 
 ;;;;;;;;;;;;;;
 ;; Training ;;
@@ -124,7 +126,7 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   *train-sentences-all-frames* 
+   (list *phrasal-verb-sentence-4*  )
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
@@ -136,7 +138,7 @@
 
 (defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 2))
 
-(clean-type-hierarchy (get-type-hierarchy *cleaned-grammar*) :remove-edges-with-freq-smaller-than 2)
+(clean-type-hierarchy (get-type-hierarchy *propbank-learned-cxn-inventory*) :remove-edges-with-freq-smaller-than 1000)
 
 
 ;;;;;;;;;;;;;;;;;
@@ -149,11 +151,13 @@
 
 
 ;;On the other hand , as you reported just a moment ago , the Associated Press reporting that 65 of the 67 counties have reported
-(comprehend-and-evaluate (list (nth1 15 *train-sentences-all-frames*))
+(comprehend-and-evaluate (list *phrasal-verb-sentence-4*)
                          *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil)
 
+(comprehend-and-extract-frames (sentence-string *phrasal-verb-sentence-4*)
+                               :cxn-inventory *propbank-learned-cxn-inventory* )
 
-(evaluate-propbank-corpus (subseq *train-sentences-all-frames* 400 500) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
+(evaluate-propbank-corpus (subseq (shuffle *train-sentences-all-frames*) 0 100) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
 
 (evaluate-propbank-corpus *train-sentences-all-frames* *cleaned-grammar* :timeout 60)

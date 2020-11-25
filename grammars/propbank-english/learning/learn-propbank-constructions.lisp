@@ -81,9 +81,10 @@
 
 (defun add-lexical-cxn (gold-frame v-unit cxn-inventory propbank-sentence)
   "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
-  (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
+  (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
+                    (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
          (syn-class (feature-value (find 'syn-class (unit-body v-unit) :key #'feature-name)))
-         (lex-category (make-id (format nil "~a~a" (truncate-frame-name (frame-name gold-frame)) syn-class)))
+         (lex-category (intern (symbol-name (make-id (format nil "~a~a" (truncate-frame-name (frame-name gold-frame)) syn-class)))))
          (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class))))
          (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
     (if equivalent-cxn
@@ -92,7 +93,7 @@
         (incf (attr-val equivalent-cxn :frequency))
         (attr-val equivalent-cxn :lex-category))
       ;; Else make new cxn
-      (when lemma
+      (progn (assert lemma)
         (eval
          `(def-fcg-cxn ,cxn-name
                        ((?lex-unit
@@ -102,9 +103,13 @@
                         (?lex-unit
                          --
                          (footprints (NOT lex))
-                         (lemma ,lemma)
+                         ,@(if (stringp lemma)
+                             `((string ,lemma))
+                             `((lemma ,lemma)))
                          (syn-class ,syn-class)))
-                       :attributes (:lemma ,lemma
+                       :attributes (:lemma ,(if (stringp lemma)
+                                              (intern (upcase lemma))
+                                              lemma)
                                     :lex-category ,lex-category
                                     :score 1
                                     :label lexical-cxn
@@ -123,8 +128,9 @@
                                                 (find 'pp (unit-feature-value (cdr unit-w-role) 'syn-class)))
                                             core-units-with-role))
          (s-bar-units-with-role (remove-if-not #'(lambda (unit-w-role)
-                                                   (or (find 'sbar (unit-feature-value (cdr unit-w-role) 'syn-class))
-                                                       (find 's (unit-feature-value (cdr unit-w-role) 'syn-class))))
+                                                   (and (or (find 'sbar (unit-feature-value (cdr unit-w-role) 'syn-class))
+                                                            (find 's (unit-feature-value (cdr unit-w-role) 'syn-class)))
+                                                        (not (find 'pp (unit-feature-value (cdr unit-w-role) 'syn-class)))))
                                                core-units-with-role))
          (gram-category (make-gram-category core-units-with-role))
          (cxn-units-with-role (loop for unit in core-units-with-role
@@ -189,10 +195,13 @@
 
 (defun add-word-sense-cxn (gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)
   "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
-  (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
+  (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
+                    (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
          (cxn-name (intern (upcase (format nil "~a-cxn" (frame-name gold-frame)))))
-         (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name))
-         (sense-category (make-id (frame-name gold-frame))))
+         (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key (if (stringp lemma)
+                                                                      (intern (upcase lemma))
+                                                                      lemma) :key #'name))
+         (sense-category (intern (symbol-name (make-id (frame-name gold-frame))))))
     
     (if equivalent-cxn
       
@@ -226,7 +235,7 @@
         (attr-val equivalent-cxn :sense-category))
       
       ;; Else make new cxn
-      (when lemma
+      (progn (assert lemma)
         (eval
          `(def-fcg-cxn ,cxn-name
                        ((?lex-unit
@@ -234,13 +243,17 @@
                         <-
                         (?lex-unit
                          --
-                         (lemma ,lemma)
+                         ,@(if (stringp lemma)
+                             `((string ,lemma))
+                             `((lemma ,lemma)))
                          (gram-category ,sense-category)
                          (lex-category ,sense-category)
                          (frame ,(intern (upcase (frame-name gold-frame))))
                          (footprints (NOT ws))))
                        :disable-automatic-footprints t
-                       :attributes (:lemma ,lemma
+                       :attributes (:lemma ,(if (stringp lemma)
+                                              (intern (upcase lemma))
+                                              lemma)
                                     :sense-category ,sense-category
                                     :score 1
                                     :label word-sense-cxn
@@ -255,7 +268,8 @@
 
 (defun find-word-sense-cxn (gold-frame v-unit cxn-inventory)
   "Find a word sense construction."
-  (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
+  (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
+                    (intern (upcase (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))))
          (cxn-name (intern (upcase (format nil "~a-cxn" (frame-name gold-frame))))))
     (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
 
@@ -754,16 +768,16 @@
                          ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))
                           (format nil "~{~a~}" (feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))))))
         into roles
-        finally return (make-id (upcase (format nil "~{~a~^+~}+~a-cxn" roles (length cxn-units-without-role))))))
+        finally return (intern (symbol-name (make-id (upcase (format nil "~{~a~^+~}+~a-cxn" roles (length cxn-units-without-role))))))))
 
 (defun make-gram-category (units-with-role)
-  (make-const
-   (format nil "~{~a~^-~}"
-           (loop for (r . u) in units-with-role
-                 collect (format nil "~a~a"
-                                 (role-type r)
-                                 (feature-value (find 'syn-class (unit-body u)
-                                                      :key #'feature-name)))))))
+  (intern (symbol-name (make-const
+                        (format nil "~{~a~^-~}"
+                                (loop for (r . u) in units-with-role
+                                      collect (format nil "~a~a"
+                                                      (role-type r)
+                                                      (feature-value (find 'syn-class (unit-body u)
+                                                                           :key #'feature-name)))))))))
 
 (defmethod make-cxn-schema (core-units-with-role cxn-units-with-role &key cxn-preposition-units cxn-s-bar-units)
   (loop with pp-unit-number = 0
@@ -1051,7 +1065,8 @@ start to end(v-unit)"
   "Returns the lemma of the V."
   (loop for (role . unit) in units-with-role
         when (string= "V" (role-type role))
-        return (feature-value (find 'lemma (unit-body unit) :key #'feature-name))))
+        return (or (feature-value (find 'lemma (unit-body unit) :key #'feature-name))
+                   (feature-value (find 'string (unit-body unit) :key #'feature-name)))))
 
 (defun v-unit (units-with-role)
   "Returns unit of the V."
