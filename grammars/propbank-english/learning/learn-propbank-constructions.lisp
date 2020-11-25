@@ -81,11 +81,10 @@
 
 (defun add-lexical-cxn (gold-frame v-unit cxn-inventory propbank-sentence)
   "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
-  (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
-                    (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
+  (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
          (syn-class (feature-value (find 'syn-class (unit-body v-unit) :key #'feature-name)))
          (lex-category (intern (symbol-name (make-id (format nil "~a~a" (truncate-frame-name (frame-name gold-frame)) syn-class)))))
-         (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class))))
+         (cxn-name (intern (symbol-name (make-id (format nil "~a~a-cxn" lemma syn-class)))))
          (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
     (if equivalent-cxn
       ;; if cxn already exists: increment frequency
@@ -103,13 +102,9 @@
                         (?lex-unit
                          --
                          (footprints (NOT lex))
-                         ,@(if (stringp lemma)
-                             `((string ,lemma))
-                             `((lemma ,lemma)))
+                         (lemma ,lemma)
                          (syn-class ,syn-class)))
-                       :attributes (:lemma ,(if (stringp lemma)
-                                              (intern (upcase lemma))
-                                              lemma)
+                       :attributes (:lemma ,lemma
                                     :lex-category ,lex-category
                                     :score 1
                                     :label lexical-cxn
