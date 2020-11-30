@@ -32,11 +32,11 @@
              (trivial-timeout:timeout-error (error)
                (values nil nil))))
         if (all-succeededp nodes)
-        do (progn (format t "~%[~a] - succeeded" id)
+        do (progn ;(format t "~%[~a] - succeeded" id)
              (setf cipns nodes
                    utterances forms))
-        else
-        do (format t "~%[~a] - attempt ~a" id attempt)
+        ;else
+        ;do (format t "~%[~a] - attempt ~a" id attempt)
         finally (return (values utterances cipns))))
 
 (defun get-utterance-and-formulation-cxns (id irl-program num-solutions num-attempts timeout)

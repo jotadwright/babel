@@ -118,6 +118,8 @@
 
 (defun main (args)
   (let ((args (args->plist args)))
+    (print "Received command line arguments:")
+    (print args)
     (loop for indicator in '(inputfile outputdir grammar
                              timeout port)
           unless (getf args indicator)
