@@ -1,0 +1,703 @@
+{
+  "nouns": [
+    {
+      "lex-id": "thing",
+      "singular": "thing",
+      "plural": "things"
+    },
+    {
+      "lex-id": "person",
+      "singular": "person",
+      "plural": "persons"
+    },
+    {
+      "lex-id": "bicycle",
+      "singular": "bicycle",
+      "plural": "bicycles"
+    },
+    {
+      "lex-id": "car",
+      "singular": "car",
+      "plural": "cars"
+    },
+    {
+      "lex-id": "motorcycle",
+      "singular": "motorcycle",
+      "plural": "motorcycles"
+    },
+    {
+      "lex-id": "airplane",
+      "singular": "airplane",
+      "plural": "airplanes"
+    },
+    {
+      "lex-id": "bus",
+      "singular": "bus",
+      "plural": "buses"
+    },
+    {
+      "lex-id": "train",
+      "singular": "train",
+      "plural": "trains"
+    },
+    {
+      "lex-id": "truck",
+      "singular": "truck",
+      "plural": "trucks"
+    },
+    {
+      "lex-id": "boat",
+      "singular": "boat",
+      "plural": "boats"
+    },
+    {
+      "lex-id": "traffic light",
+      "singular": "traffic light",
+      "plural": "traffic lights"
+    },
+    {
+      "lex-id": "fire hydrant",
+      "singular": "fire hydrant",
+      "plural": "fire hydrants"
+    },
+    {
+      "lex-id": "stop sign",
+      "singular": "stop sign",
+      "plural": "stop signs"
+    },
+    {
+      "lex-id": "parking meter",
+      "singular": "parking meter",
+      "plural": "parking meters"
+    },
+    {
+      "lex-id": "bench",
+      "singular": "bench",
+      "plural": "benches"
+    },
+    {
+      "lex-id": "bird",
+      "singular": "bird",
+      "plural": "birds"
+    },
+    {
+      "lex-id": "cat",
+      "singular": "cat",
+      "plural": "cats"
+    },
+    {
+      "lex-id": "dog",
+      "singular": "dog",
+      "plural": "dogs"
+    },
+    {
+      "lex-id": "horse",
+      "singular": "horse",
+      "plural": "horses"
+    },
+    {
+      "lex-id": "sheep",
+      "singular": "sheep",
+      "plural": "sheep"
+    },
+    {
+      "lex-id": "cow",
+      "singular": "cow",
+      "plural": "cows"
+    },
+    {
+      "lex-id": "elephant",
+      "singular": "elephant",
+      "plural": "elephants"
+    },
+    {
+      "lex-id": "bear",
+      "singular": "bear",
+      "plural": "bears"
+    },
+    {
+      "lex-id": "zebra",
+      "singular": "zebra",
+      "plural": "zebras"
+    },
+    {
+      "lex-id": "giraffe",
+      "singular": "giraffe",
+      "plural": "giraffes"
+    },
+    {
+      "lex-id": "backpack",
+      "singular": "backpack",
+      "plural": "backpacks"
+    },
+    {
+      "lex-id": "umbrella",
+      "singular": "umbrella",
+      "plural": "umbrellas"
+    },
+    {
+      "lex-id": "handbag",
+      "singular": "handbag",
+      "plural": "handbags"
+    },
+    {
+      "lex-id": "tie",
+      "singular": "tie",
+      "plural": "ties"
+    },
+    {
+      "lex-id": "suitcase",
+      "singular": "suitcase",
+      "plural": "suitcases"
+    },
+    {
+      "lex-id": "frisbee",
+      "singular": "frisbee",
+      "plural": "frisbees"
+    },
+    {
+      "lex-id": "skis",
+      "singular": "ski",
+      "plural": "skis"
+    },
+    {
+      "lex-id": "snowboard",
+      "singular": "snowboard",
+      "plural": "snowboards"
+    },
+    {
+      "lex-id": "sports ball",
+      "singular": "sports ball",
+      "plural": "sports balls"
+    },
+    {
+      "lex-id": "kite",
+      "singular": "kite",
+      "plural": "kites"
+    },
+    {
+      "lex-id": "baseball bat",
+      "singular": "baseball bat",
+      "plural": "baseball bats"
+    },
+    {
+      "lex-id": "baseball glove",
+      "singular": "baseball glove",
+      "plural": "baseball gloves"
+    },
+    {
+      "lex-id": "skateboard",
+      "singular": "skateboard",
+      "plural": "skateboards"
+    },
+    {
+      "lex-id": "surfboard",
+      "singular": "surfboard",
+      "plural": "surfboards"
+    },
+    {
+      "lex-id": "tennis racket",
+      "singular": "tennis racket",
+      "plural": "tennis rackets"
+    },
+    {
+      "lex-id": "bottle",
+      "singular": "bottle",
+      "plural": "bottles"
+    },
+    {
+      "lex-id": "wine glass",
+      "singular": "wine glass",
+      "plural": "wine glasses"
+    },
+    {
+      "lex-id": "cup",
+      "singular": "cup",
+      "plural": "cups"
+    },
+    {
+      "lex-id": "fork",
+      "singular": "fork",
+      "plural": "forks"
+    },
+    {
+      "lex-id": "knife",
+      "singular": "knife",
+      "plural": "knives"
+    },
+    {
+      "lex-id": "spoon",
+      "singular": "spoon",
+      "plural": "spoons"
+    },
+    {
+      "lex-id": "bowl",
+      "singular": "bowl",
+      "plural": "bowls"
+    },
+    {
+      "lex-id": "banana",
+      "singular": "banana",
+      "plural": "bananas"
+    },
+    {
+      "lex-id": "apple",
+      "singular": "apple",
+      "plural": "apples"
+    },
+    {
+      "lex-id": "sandwich",
+      "singular": "sandwich",
+      "plural": "sandwiches"
+    },
+    {
+      "lex-id": "orange",
+      "singular": "orange",
+      "plural": "oranges"
+    },
+    {
+      "lex-id": "broccoli",
+      "singular": "broccoli",
+      "plural": "broccoli"
+    },
+    {
+      "lex-id": "carrot",
+      "singular": "carrot",
+      "plural": "carrots"
+    },
+    {
+      "lex-id": "hot dog",
+      "singular": "hot dog",
+      "plural": "hot dogs"
+    },
+    {
+      "lex-id": "pizza",
+      "singular": "pizza",
+      "plural": "pizzas"
+    },
+    {
+      "lex-id": "donut",
+      "singular": "donut",
+      "plural": "donuts"
+    },
+    {
+      "lex-id": "cake",
+      "singular": "cake",
+      "plural": "cakes"
+    },
+    {
+      "lex-id": "chair",
+      "singular": "chair",
+      "plural": "chairs"
+    },
+    {
+      "lex-id": "couch",
+      "singular": "couch",
+      "plural": "couchs"
+    },
+    {
+      "lex-id": "potted plant",
+      "singular": "potted plant",
+      "plural": "potted plants"
+    },
+    {
+      "lex-id": "bed",
+      "singular": "bed",
+      "plural": "beds"
+    },
+    {
+      "lex-id": "dining table",
+      "singular": "dining table",
+      "plural": "dining tables"
+    },
+    {
+      "lex-id": "toilet",
+      "singular": "toilet",
+      "plural": "toilets"
+    },
+    {
+      "lex-id": "tv",
+      "singular": "tv",
+      "plural": "tvs"
+    },
+    {
+      "lex-id": "laptop",
+      "singular": "laptop",
+      "plural": "laptops"
+    },
+    {
+      "lex-id": "mouse",
+      "singular": "mouse",
+      "plural": "mice"
+    },
+    {
+      "lex-id": "remote",
+      "singular": "remote",
+      "plural": "remotes"
+    },
+    {
+      "lex-id": "keyboard",
+      "singular": "keyboard",
+      "plural": "keyboards"
+    },
+    {
+      "lex-id": "cell phone",
+      "singular": "cell phone",
+      "plural": "cell phones"
+    },
+    {
+      "lex-id": "microwave",
+      "singular": "microwave",
+      "plural": "microwaves"
+    },
+    {
+      "lex-id": "oven",
+      "singular": "oven",
+      "plural": "ovens"
+    },
+    {
+      "lex-id": "toaster",
+      "singular": "toaster",
+      "plural": "toasters"
+    },
+    {
+      "lex-id": "sink",
+      "singular": "sink",
+      "plural": "sinks"
+    },
+    {
+      "lex-id": "refrigerator",
+      "singular": "refrigerator",
+      "plural": "refrigerators"
+    },
+    {
+      "lex-id": "book",
+      "singular": "book",
+      "plural": "books"
+    },
+    {
+      "lex-id": "clock",
+      "singular": "clock",
+      "plural": "clocks"
+    },
+    {
+      "lex-id": "vase",
+      "singular": "vase",
+      "plural": "vases"
+    },
+    {
+      "lex-id": "scissors",
+      "singular": "scissors",
+      "plural": "scissors"
+    },
+    {
+      "lex-id": "teddy bear",
+      "singular": "teddy bear",
+      "plural": "teddy bears"
+    },
+    {
+      "lex-id": "hair drier",
+      "singular": "hair drier",
+      "plural": "hair driers"
+    },
+    {
+      "lex-id": "toothbrush",
+      "singular": "toothbrush",
+      "plural": "toothbrushes"
+    },
+    {
+      "lex-id": "banner",
+      "singular": "banner",
+      "plural": "banners"
+    },
+    {
+      "lex-id": "blanket",
+      "singular": "blanket",
+      "plural": "blankets"
+    },
+    {
+      "lex-id": "bridge",
+      "singular": "bridge",
+      "plural": "bridges"
+    },
+    {
+      "lex-id": "cardboard",
+      "singular": "cardboard",
+      "plural": "cardboards"
+    },
+    {
+      "lex-id": "counter",
+      "singular": "counter",
+      "plural": "counters"
+    },
+    {
+      "lex-id": "curtain",
+      "singular": "curtain",
+      "plural": "curtains"
+    },
+    {
+      "lex-id": "door-stuff",
+      "singular": "door",
+      "plural": "doors"
+    },
+    {
+      "lex-id": "floor-wood",
+      "singular": "wood floor",
+      "plural": "wood floors"
+    },
+    {
+      "lex-id": "flower",
+      "singular": "flower",
+      "plural": "flowers"
+    },
+    {
+      "lex-id": "fruit",
+      "singular": "fruit",
+      "plural": "fruits"
+    },
+    {
+      "lex-id": "gravel",
+      "singular": "gravel",
+      "plural": "gravels"
+    },
+    {
+      "lex-id": "house",
+      "singular": "house",
+      "plural": "houses"
+    },
+    {
+      "lex-id": "light",
+      "singular": "light",
+      "plural": "lights"
+    },
+    {
+      "lex-id": "mirror-stuff",
+      "singular": "mirror",
+      "plural": "mirrors"
+    },
+    {
+      "lex-id": "net",
+      "singular": "net",
+      "plural": "nets"
+    },
+    {
+      "lex-id": "pillow",
+      "singular": "pillow",
+      "plural": "pillows"
+    },
+    {
+      "lex-id": "platform",
+      "singular": "platform",
+      "plural": "platforms"
+    },
+    {
+      "lex-id": "playingfield",
+      "singular": "playingfield",
+      "plural": "playingfields"
+    },
+    {
+      "lex-id": "railroad",
+      "singular": "railroad",
+      "plural": "railroads"
+    },
+    {
+      "lex-id": "river",
+      "singular": "river",
+      "plural": "rivers"
+    },
+    {
+      "lex-id": "road",
+      "singular": "road",
+      "plural": "roads"
+    },
+    {
+      "lex-id": "roof",
+      "singular": "roof",
+      "plural": "roofs"
+    },
+    {
+      "lex-id": "sand",
+      "singular": "sand",
+      "plural": "sands"
+    },
+    {
+      "lex-id": "sea",
+      "singular": "sea",
+      "plural": "seas"
+    },
+    {
+      "lex-id": "shelf",
+      "singular": "shelf",
+      "plural": "shelves"
+    },
+    {
+      "lex-id": "snow",
+      "singular": "snow",
+      "plural": "snow"
+    },
+    {
+      "lex-id": "stairs",
+      "singular": "stair",
+      "plural": "stairs"
+    },
+    {
+      "lex-id": "tent",
+      "singular": "tent",
+      "plural": "tents"
+    },
+    {
+      "lex-id": "towel",
+      "singular": "towel",
+      "plural": "towels"
+    },
+    {
+      "lex-id": "wall-brick",
+      "singular": "brick wall",
+      "plural": "brick walls"
+    },
+    {
+      "lex-id": "wall-stone",
+      "singular": "stone wall",
+      "plural": "stone walls"
+    },
+    {
+      "lex-id": "wall-tile",
+      "singular": "tile wall",
+      "plural": "tile walls"
+    },
+    {
+      "lex-id": "wall-wood",
+      "singular": "wood wall",
+      "plural": "wood walls"
+    },
+    {
+      "lex-id": "water-other",
+      "singular": "water",
+      "plural": "water"
+    },
+    {
+      "lex-id": "window-blind",
+      "singular": "window-blind",
+      "plural": "window-blinds"
+    },
+    {
+      "lex-id": "window-other",
+      "singular": "window",
+      "plural": "windows"
+    },
+    {
+      "lex-id": "tree-merged",
+      "singular": "tree",
+      "plural": "trees"
+    },
+    {
+      "lex-id": "fence-merged",
+      "singular": "fence",
+      "plural": "fences"
+    },
+    {
+      "lex-id": "ceiling-merged",
+      "singular": "ceiling",
+      "plural": "ceilings"
+    },
+    {
+      "lex-id": "sky-other-merged",
+      "singular": "sky",
+      "plural": "skies"
+    },
+    {
+      "lex-id": "cabinet-merged",
+      "singular": "cabinet",
+      "plural": "cabinets"
+    },
+    {
+      "lex-id": "table-merged",
+      "singular": "table",
+      "plural": "tables"
+    },
+    {
+      "lex-id": "floor-other-merged",
+      "singular": "floor",
+      "plural": "floors"
+    },
+    {
+      "lex-id": "pavement-merged",
+      "singular": "pavement",
+      "plural": "pavements"
+    },
+    {
+      "lex-id": "mountain-merged",
+      "singular": "mountain",
+      "plural": "mountains"
+    },
+    {
+      "lex-id": "grass-merged",
+      "singular": "grass",
+      "plural": "grass"
+    },
+    {
+      "lex-id": "dirt-merged",
+      "singular": "dirt",
+      "plural": "dirt"
+    },
+    {
+      "lex-id": "paper-merged",
+      "singular": "paper",
+      "plural": "papers"
+    },
+    {
+      "lex-id": "food-other-merged",
+      "singular": "food",
+      "plural": "foods"
+    },
+    {
+      "lex-id": "building-other-merged",
+      "singular": "building",
+      "plural": "buildings"
+    },
+    {
+      "lex-id": "rock-merged",
+      "singular": "rock",
+      "plural": "rocks"
+    },
+    {
+      "lex-id": "wall-other-merged",
+      "singular": "wall",
+      "plural": "walls"
+    },
+    {
+      "lex-id": "rug-merged",
+      "singular": "rug",
+      "plural": "rugs"
+    }
+  ],
+  "relations": [
+    {
+      "lex-id": "left",
+      "forms": ["left of", "to the left of", "on the left side of"]
+    },
+    {
+      "lex-id": "right",
+      "forms": ["right of", "to the right of", "on the right side of"]
+    },
+    {
+      "lex-id": "front",
+      "forms": ["in front of"]
+    },
+    {
+      "lex-id": "behind",
+      "forms": ["behind"]
+    },
+    {
+      "lex-id": "above",
+      "forms": ["above"]
+    },
+    {
+      "lex-id": "below",
+      "forms": ["below"]
+    }
+  ],
+  "types": [
+    "category"
+  ]
+}
