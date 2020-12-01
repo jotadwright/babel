@@ -138,6 +138,8 @@
           for current-predicate = (car stack-elem)
           for parent-node = (cdr stack-elem)
           for in-vars = (input-vars current-predicate)
+          do (when (member (car current-predicate) '(greater-than less-than))
+               (setf in-vars (reverse in-vars)))
           do (let ((node (predicate->program-node
                           current-predicate
                           (linked-bind-statement current-predicate irl-program))))
@@ -204,14 +206,6 @@
                                       (children node))))
                   (setf (children node)
                         (sort inputs #'<)))))
-    ;(traverse program-tree (lambda (node)
-    ;                         (setf (id node) (- num-nodes node-count 1))
-    ;                         (incf node-count)))
-    ;(traverse program-tree (lambda (node)
-    ;                         (let ((inputs (mapcar #'id (children node))))
-    ;                           (setf (children node)
-    ;                                 (sort inputs #'<)))))
     (let ((nodes (mapcar #'car (sort numbered-nodes #'< :key #'cdr))))
-    ;(let ((nodes (sort (nodes program-tree) #'< :key #'id)))
       (loop for node in nodes
             collect (encode-for-json node)))))
