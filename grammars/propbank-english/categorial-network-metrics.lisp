@@ -1,5 +1,7 @@
 (in-package :graph-utils)
 
+(export '(closest-nodes cosine dot-product norm))
+
 (defmethod cosine ((node-1 symbol) (node-2 symbol) (graph graph) &key edge-type)
   "Returns the cosine between two sparse vectors."
   (cosine (lookup-node graph node-1) (lookup-node graph node-2) graph :edge-type edge-type))
@@ -60,8 +62,60 @@
   (loop for other-node being the hash-keys in (nodes graph)
         for cosine = (cosine node other-node graph :edge-type edge-type)
         if  (> cosine 0)
-        collect (cons other-node (cosine node other-node graph :edge-type edge-type)) into nodes-with-sim
+        collect (cons other-node cosine) into nodes-with-sim
         finally return (sort nodes-with-sim #'> :key #'cdr)))
+
+(defun closest-nodes-unweighted (node graph &key edge-type)
+  (loop for other-node being the hash-keys in (nodes graph)
+        for cosine = (unweighted-cosine node other-node graph :edge-type edge-type)
+        if  (> cosine 0)
+        collect (cons other-node cosine) into nodes-with-sim
+        finally return (sort nodes-with-sim #'> :key #'cdr)))
+
+(defun typical-cxns-for-lexical-category (lexical-category graph)
+    (loop with node-vector = (node-vector lexical-category graph :edge-type 'propbank-english::lex-gram)
+          for gram-cat being the hash-keys in node-vector using (hash-value freq)
+          collect (cons (lookup-node graph gram-cat)  freq) into cxns
+          finally return (sort cxns #'> :key #'cdr)))
+
+
 
 ;; (defparameter *th* (type-hierarchies:get-type-hierarchy propbank-english::*propbank-learned-cxn-inventory*))
 ;; (pprint (closest-nodes 'propbank-english::send.01-20 (graph *th*) :edge-type 'propbank-english::gram-sense))
+
+
+
+(defmethod unweighted-cosine ((node-1 symbol) (node-2 symbol) (graph graph) &key edge-type)
+  "Returns the cosine between two sparse vectors."
+  (unweighted-cosine (lookup-node graph node-1) (lookup-node graph node-2) graph :edge-type edge-type))
+
+(defmethod unweighted-cosine ((node-1 integer) (node-2 integer) (graph graph) &key edge-type)
+  "Returns the cosine between two sparse vectors."
+  (let ((vector-node-1 (node-vector node-1 graph :edge-type edge-type))
+        (vector-node-2 (node-vector node-2 graph :edge-type edge-type)))
+    (if (and (hash-table-p vector-node-1) (hash-table-p vector-node-2))
+      (let* ((nr-of-neighbours-node-1 (loop for neighbour being the hash-keys in vector-node-1
+                                            using (hash-value freq)
+                                            if (> freq 0)
+                                            count neighbour))
+             (nr-of-neighbours-node-2 (loop for neighbour being the hash-keys in vector-node-2
+                                            using (hash-value freq)
+                                            if (> freq 0)
+                                            count neighbour))
+             (longest-vector (if (> nr-of-neighbours-node-1 nr-of-neighbours-node-2) vector-node-1 vector-node-2))
+             (shortest-vector (if (> nr-of-neighbours-node-1 nr-of-neighbours-node-2) vector-node-2 vector-node-1))
+             (denominator (sqrt (* nr-of-neighbours-node-1
+                                   nr-of-neighbours-node-2)))
+             (nr-of-common-neighbours (loop for id being the hash-keys in shortest-vector using (hash-value v-1)
+                                            for v-2 = (gethash id longest-vector)
+                                            when (and v-2 (> v-2 0) (> v-1 0))
+                                            count id)))
+        (if (= 0 denominator)
+          0
+          (/ nr-of-common-neighbours
+             denominator)))
+      0)))
+
+;(unweighted-cosine '4  '5 (graph propbank-english::*th*))
+
+
