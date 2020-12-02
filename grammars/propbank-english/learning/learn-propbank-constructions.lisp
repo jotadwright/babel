@@ -164,10 +164,11 @@
             (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) lex-category (attr-val equivalent-cxn :gram-category)
                                            :delta 1.0 :edge-type 'lex-gram))
           ;;b) Otherwise, add new connection (weight 1.0)
-          (progn (add-link lex-category
+          (progn
+            (add-link lex-category
                     (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
-          (add-link lex-category
-                    (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0)))
+            (add-link lex-category
+                      (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0)))
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
 
