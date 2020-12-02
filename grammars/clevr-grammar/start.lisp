@@ -7,7 +7,8 @@
 (set-configurations *fcg-constructions*
                     '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
                       (:priority-mode . :seq2seq-heuristic-additive)
-                      (:seq2seq-endpoint . "http://localhost:8888/next-cxn")))
+                      (:seq2seq-endpoint . #-ccl "http://localhost:8888/next-cxn"
+                                           #+ccl "http://127.0.0.1:8888/next-cxn")))
 
 ;; depth first configurations:
 (set-configurations *fcg-constructions*
