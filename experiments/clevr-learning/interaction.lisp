@@ -69,6 +69,7 @@
       (push (if successp 1 0) (confidence-buffer experiment)))
     (notify agent-confidence-level (average (confidence-buffer experiment)))
     ;; check the confidence level and (maybe) transition to the next challenge
+    ;; clear the confidence buffer
     (when (and (> (average (confidence-buffer experiment))
                   (get-configuration experiment :confidence-threshold))
                (< (get-configuration experiment :current-challenge-level)
@@ -76,6 +77,7 @@
       (set-configuration experiment :current-challenge-level
                          (1+ (get-configuration experiment :current-challenge-level))
                          :replace t)
+      (setf (confidence-buffer experiment) nil)
       (load-questions-for-current-challenge-level experiment)
       (set-primitives-for-current-challenge-level (learner experiment))
       (update-composer-chunks-w-primitive-inventory (learner experiment)))))

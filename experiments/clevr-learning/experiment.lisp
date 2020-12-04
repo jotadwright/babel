@@ -39,6 +39,9 @@
 (define-configuration-default-value :evaluation-window-size 100)
 (define-configuration-default-value :confidence-threshold 0.95)
 
+;; Misc
+(define-configuration-default-value :dot-interval 100)
+
 ;; --------------
 ;; + Experiment +
 ;; --------------
@@ -63,7 +66,9 @@
   ;; set the population of the experiment
   (setf (population experiment)
         (list (make-clevr-learning-tutor experiment)
-              (make-clevr-learning-learner experiment))))
+              (make-clevr-learning-learner experiment)))
+  ;; activate dot printing monitor
+  (activate-monitor print-a-dot-for-each-interaction))
 
 (define-event challenge-level-questions-loaded (level number))
 

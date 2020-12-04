@@ -2,6 +2,17 @@
 
 (in-package :clevr-learning)
 
+;;;; Printing dots
+(define-monitor print-a-dot-for-each-interaction
+                :documentation "Prints a '.' for each interaction
+                 and prints the number after :dot-interval")
+
+(define-event-handler (print-a-dot-for-each-interaction interaction-finished)
+  (if (= (mod (interaction-number interaction)
+              (get-configuration experiment :dot-interval)) 0)
+    (format t ". (~a)~%" (interaction-number interaction))
+    (format t ".")))
+
 ;;;; Communicative success
 (define-monitor record-communicative-success
                 :class 'data-recorder
