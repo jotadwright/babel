@@ -18,7 +18,8 @@
 (defvar *user-functors* (make-hash-table :test 'eql))
 (defparameter *prolog-trace* nil)
 (defconstant +unbound+ :unbound)
-(defconstant +no-bindings+ '((t . t)))
+(unless (boundp '+no-bindings+)
+  (defconstant +no-bindings+ '((t . t))))
 (defconstant +fail+ nil)
 
 (defmacro with-gensyms (syms &body body)

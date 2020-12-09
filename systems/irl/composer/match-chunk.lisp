@@ -235,6 +235,21 @@
                                 :score (score chunk)))))
     (values chunks u-frames)))
 
+
+;; ############################################################################
+;; unify-irl-programs
+;; ----------------------------------------------------------------------------
+(export '(unify-irl-programs))
+
+(defun unify-irl-programs (irl-program-1 irl-program-2)
+  "checks whether irl-program-1 is a sub-program of irl-program-2 and
+   returns the bindings"
+  (let ((embedding (embedding irl-program-1 irl-program-2)))
+    (when embedding
+      (mapcar #'map-frame-bindings embedding))))
+
+
+
 ;; #######################################
 ;; equivalent-irl-programs?
 ;; ---------------------------------------

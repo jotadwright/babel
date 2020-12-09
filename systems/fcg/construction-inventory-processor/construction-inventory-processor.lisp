@@ -744,8 +744,9 @@ solution."
        (when (and (get-configuration cip :use-meta-layer)
                   (get-configuration cip :consolidate-repairs)
                   (repairs node))
-           (consolidate-repairs node))) ;; consolidate repairs!
-       
+         (consolidate-repairs node)) ;; consolidate repairs!
+       (when (get-configuration cip :update-th-links)
+         (update-th-links node)))
      (unless (or (fully-expanded? node) ;;there are other children in the making
                  goal-test-succeeded?) ;;and the node did NOT pass the goal test
        (cip-enqueue node cip queue-mode))) ;;requeue it so the next children can be explored
@@ -770,6 +771,41 @@ solution."
    (when notify (notify cip-finished solution cip))
    (return (values solution cip))))
 
+(defun lex-class (unit)
+  (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
+         (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
+    (when lex-class
+      (second lex-class))))
+
+(defun lex-class-cxn (lexical-cxn)
+  (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+(defun update-th-links (solution-node)
+  #+:type-hierarchies
+  (loop with type-hierarchy = (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory solution-node)))
+        for node in (append (reverse (all-parents solution-node)) (list solution-node))
+        for applied-cxn = (first (applied-constructions node))
+        for transient-structure = (left-pole-structure (car-resulting-cfs (cipn-car node)))
+        for bindings = (car-second-merge-bindings (cipn-car node))
+        when bindings
+        do (loop for unit in (remove-root-unit transient-structure)
+                 for unit-name = (unit-name unit)
+                 for cxn-unit-name = (car (rassoc  unit-name bindings))
+                 for cxn-unit = (find cxn-unit-name (left-pole-structure applied-cxn)
+                                      :key #'(lambda (unit) (unit-name unit :maybe-j-unit t)))
+                 when cxn-unit
+                 do (let ((lex-class-cxn (second (find 'lex-class (cdr (unit-feature-value cxn-unit 'syn-cat t)) :key #'first :test #'(lambda (el1 el2) (equalp (symbol-name el1) (symbol-name el2))))))
+                          (lex-class-ts (second (find 'lex-class (unit-feature-value unit 'syn-cat) :key #'first :test #'(lambda (el1 el2) (equalp (symbol-name el1) (symbol-name el2)))))))
+                      (when (and lex-class-cxn lex-class-ts)
+                        (cond
+                         ((eql lex-class-cxn lex-class-ts))
+                         ((type-hierarchies::undirected-path lex-class-cxn lex-class-ts type-hierarchy)
+                          (type-hierarchies:incf-link-weight lex-class-cxn lex-class-ts type-hierarchy 0.1)
+                          (type-hierarchies:incf-link-weight lex-class-ts lex-class-cxn type-hierarchy 0.1))
+                         (t
+                          (type-hierarchies:add-link lex-class-cxn lex-class-ts type-hierarchy :weight 0.1)
+                          (type-hierarchies:add-link lex-class-ts lex-class-cxn type-hierarchy :weight 0.1))))))))
 
 (defun inform-search-heuristics (solution-node processing-direction) ;;should become a method later
   "Extract useful information from the solution to inform future
@@ -1087,7 +1123,8 @@ added here. Preprocessing is only used in parsing currently."
           do (type-hierarchies:add-categories (list (car th-link) (cdr th-link))
                                               (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory node))))
           (type-hierarchies:add-link (car th-link) (cdr th-link) 
-                                     (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory node))))))
+                                     (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory node)))
+                                     :weight 0.0)))
   ;; also add all applied cxns
   (loop with fcg-cxn-set = (original-cxn-set (construction-inventory node))
         for cxn in (applied-constructions node)

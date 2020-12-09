@@ -11,7 +11,7 @@
            (meaning (extract-meanings (left-pole-structure resulting-cfs)))
            (gold-standard-meanings (get-data resulting-cfs :meanings)))
       (find meaning gold-standard-meanings :test #'(lambda (m1 m2)
-                                                     (fcg::equivalent-meaning? m1 m2 :unify-no-equalities))))))
+                                                     (irl:equivalent-irl-programs? m1 m2))))))
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :non-gold-standard-utterance)))
   "Checks whether the extracted meaning is equivalent with the gold standard meaning."
