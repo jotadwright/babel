@@ -91,10 +91,13 @@
 (defun get-nr-of-nodes (cipn)
   (node-counter (cip cipn)))
 
+(defun get-depth-of-solution (cipn)
+  (length (all-parents cipn)))
+
 (defun get-search-space-size (cipn)
   (float
-   (/ (node-counter (cip cipn))
-      (length (all-parents cipn)))))
+   (/ (get-nr-of-nodes cipn)
+      (get-depth-of-solution cipn))))
 
 (defun no-search-p (cipn)
   ;; when nodes that are NOT on the path to the solution
@@ -110,8 +113,6 @@
     no-search-p))
 
 (defun run-monitors (id input output cipn run-time out-stream)
-  ;; input_length, output_length, success
-  ;; avg_branching_factor, run_time, no_search
   (let ((line
          (make-csv-line id
                         ;; length of the input
@@ -134,6 +135,10 @@
                         ;; search space size
                         (if (and cipn (succeededp cipn))
                           (get-search-space-size cipn)
+                          "None")
+                        ;; depth of solution
+                        (if (and cipn (succeededp cipn))
+                          (get-depth-of-solution cipn)
                           "None")
                         ;; processing time
                         (if (and cipn (succeededp cipn))
@@ -164,9 +169,27 @@
           (values meaning cipn time-out)
           (values meaning cipn run-time))))))
 
+(defun comprehend-until-solution (grammar utterance)
+  (loop with cipn = nil
+        with meaning = nil
+        until (succeededp cipn)
+        for start-time = (get-internal-real-time)
+        for (irl-program node)
+        = (multiple-value-list
+           (comprehend utterance :cxn-inventory grammar :silent t))
+        when (succeededp node)
+        do (setf cipn node
+                 meaning irl-program)
+        finally (let* ((end-time (get-internal-real-time))
+                       (run-time (float (/ (- end-time start-time)
+                                           internal-time-units-per-second))))
+                  (return (values meaning cipn run-time)))))
+
 (defun comprehend-line (grammar id utterance out-stream timeout)
   (multiple-value-bind (meaning cipn run-time)
-      (comprehend-with-timings grammar utterance timeout)
+      (if (null timeout)
+        (comprehend-until-solution grammar utterance)
+        (comprehend-with-timings grammar utterance timeout))
     (run-monitors id utterance meaning cipn run-time out-stream)))
 
 ;;;; Formulation
@@ -214,7 +237,7 @@
           (make-csv-line "id" "input_length" "output_length"
                          "success" "avg_branching_factor"
                          "nr_of_nodes" "search_space_size"
-                         "run_time" "no_search")))
+                         "depth_of_solution" "run_time" "no_search")))
     (ensure-directories-exist outputfile)
     (write-line header out-stream)
     (force-output out-stream)
@@ -257,13 +280,15 @@
               (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
               (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :nr-of-applied-cxns)
-              (:max-nr-of-nodes . ,max-nr-of-nodes)))
+              ;(:max-nr-of-nodes . ,max-nr-of-nodes)
+              ))
            (:priming
             `((:queue-mode . :greedy-best-first)
               (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
               (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :priming)
-              (:max-nr-of-nodes . ,max-nr-of-nodes)))
+              ;(:max-nr-of-nodes . ,max-nr-of-nodes)
+              ))
            (:seq2seq
             (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
                                           seq2seq-server-port)
@@ -274,7 +299,14 @@
                 (:hash-mode . :hash-string-meaning-lex-id)
                 (:priority-mode . :seq2seq-heuristic-additive)
                 (:seq2seq-endpoint . ,endpoint)
-                (:max-nr-of-nodes . ,max-nr-of-nodes)))))))
+                ;(:max-nr-of-nodes . ,max-nr-of-nodes)
+                ))))))
+    (if (null max-nr-of-nodes)
+      (setf configurations
+            (append '((:node-tests :check-duplicate)
+                      (:max-nr-of-nodes . 1000000))
+                    configurations))
+      (push `(:max-nr-of-nodes . ,max-nr-of-nodes) configurations))
     (set-configurations grammar configurations :replace t)
     (set-configurations (processing-cxn-inventory grammar)
                         configurations :replace t)))
@@ -336,9 +368,11 @@
   (setf (getf args 'direction)
         (make-kw (upcase (getf args 'direction))))
   (setf (getf args 'timeout)
-        (parse-integer (getf args 'timeout)))
+        (if (string= (getf args 'timeout) "nil")
+          nil (parse-integer (getf args 'timeout))))
   (setf (getf args 'max-nr-of-nodes)
-        (parse-integer (getf args 'max-nr-of-nodes)))
+        (if (string= (getf args 'max-nr-of-nodes) "nil")
+          nil (parse-integer (getf args 'max-nr-of-nodes))))
   (when (getf args 'import-priming-data-path)
     (setf (getf args 'import-priming-data-path)
           (parse-namestring (getf args 'import-priming-data-path))))
