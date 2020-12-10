@@ -85,17 +85,16 @@ in de repair doe comprehend zonder metalayer :use-meta-layer nil :consolidate-re
 
       ;;there is a solution with connected links in the TH
       (if (and meaning-network (irl:equivalent-irl-programs? meaning-network gold-standard-meaning))
-        (progn (format t "~a~%" utterance)
-          (let* ((applied-cxns (applied-constructions cip-node))
-                 (lex-cxns (sort (filter-by-phrase-type 'lexical applied-cxns) #'(lambda (x y)
-                                                                                   (<
-                                                                                    (search (third (first (extract-form-predicates x))) utterance)
-                                                                                    (search (third (first (extract-form-predicates y))) utterance)))))
-                 (lex-classes-lex-cxns (map 'list #'lex-class-cxn lex-cxns))
-                 (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
-                 (lex-classes-item-based-units (get-all-unit-lex-classes item-based-cxn))
-                 (th-links (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy)))
-            (list applied-cxns th-links)))
+        (let* ((applied-cxns (applied-constructions cip-node))
+               (lex-cxns (sort (filter-by-phrase-type 'lexical applied-cxns) #'(lambda (x y)
+                                                                                 (<
+                                                                                  (search (third (first (extract-form-predicates x))) utterance)
+                                                                                  (search (third (first (extract-form-predicates y))) utterance)))))
+               (lex-classes-lex-cxns (map 'list #'lex-class-cxn lex-cxns))
+               (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
+               (lex-classes-item-based-units (get-all-unit-lex-classes item-based-cxn))
+               (th-links (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy)))
+          (list applied-cxns th-links))
         nil))))
 
 
@@ -115,28 +114,27 @@ in de repair doe comprehend zonder metalayer :use-meta-layer nil :consolidate-re
                               (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5)
                               (setf th-flat-list (append th-flat-list (list th-link))))
                      finally (set-type-hierarchy (construction-inventory node) temp-type-hierarchy)))
+           (last-node  (initial-node node))
            (applied-nodes (loop for cxn in cxns
-                            with last-node = (initial-node node)
-                            do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply cxn (if (initial-node-p last-node)
+                                do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply cxn (if (initial-node-p last-node)
                                                                                                          (car-source-cfs (cipn-car last-node))
                                                                                                          (car-resulting-cfs (cipn-car last-node)))
-                                                                                               (direction (cip node))
-                                                                                               :configuration (configuration (construction-inventory node))
-                                                                                               :cxn-inventory (construction-inventory node)))))
-                            collect last-node))
-           (final-node (last-elt applied-nodes)))
+                                                                                                   (direction (cip node))
+                                                                                                   :configuration (configuration (construction-inventory node))
+                                                                                                   :cxn-inventory (construction-inventory node)))))
+                                collect last-node)))
       ;; ignore
       ;; Reset type hierarchy
       (set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
-      (set-data (car-resulting-cfs (cipn-car final-node)) :fix-cxns cxns)
-      (set-data (car-resulting-cfs (cipn-car final-node)) :fix-th-links th-flat-list)
+      (set-data (car-resulting-cfs (cipn-car last-node)) :fix-cxns nil)
+      (set-data (car-resulting-cfs (cipn-car last-node)) :fix-th-links th-flat-list)
       ;; set cxn-supplier to second new node
-      (setf (cxn-supplier final-node) (cxn-supplier node))
+      (setf (cxn-supplier last-node) (cxn-supplier node))
       ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses final-node))
-      (push 'added-by-repair (statuses final-node))
+      (push (type-of repair) (statuses last-node))
+      (push 'added-by-repair (statuses last-node))
       ;; enqueue only second new node; never backtrack over the first applied lexical construction, we applied them as a block
-      (cip-enqueue final-node (cip node) (get-configuration node :queue-mode)))))
+      (cip-enqueue last-node (cip node) (get-configuration node :queue-mode)))))
 
 
