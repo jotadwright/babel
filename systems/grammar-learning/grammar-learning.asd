@@ -3,14 +3,21 @@
   :maintainer "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :license "to be decided on"
   :homepage "https://gitlab.ai.vub.ac.be/ehai/grammar-learning"
-  :depends-on ("utils" "fcg" "irl" "meta-layer-learning" "category-hierarchies")
+  :depends-on ("utils" "fcg" "irl" "meta-layer-learning" "category-hierarchies" "cl-change-case")
   :serial t
   :components ((:file "package")
                (:file "fcg-utils")
                (:file "utils")
                (:file "goal-tests")
                (:file "problems-diagnostics")
-               (:file "repair-add-lexical-cxn")
-               (:file "repair-add-item-based-cxn")
-               (:file "repair-add-holophrase-cxn"))
+               (:file "monitors")
+               (:file "repair-nothing->holophrase-cxn")
+               (:file "repair-holophrase->item-based+lexical+lexical--substitution")
+               (:file "repair-holophrase->item-based+lexical--addition")
+               (:file "repair-holophrase->item-based+lexical+holophrase--deletion")
+               (:file "repair-lexical->item-based-cxn")
+               (:file "repair-item-based->lexical"))
+               ;(:file "repair-item-based+lexical->item-based+lexical+lexical--substitution")
+               ;(:file "repair-item-based+lexical->item-based+lexical--addition")
+               ;(:file "repair-item-based+lexical->item-based+item-based+lexical--deletion"))
   :description "A Common Lisp package for learning construction grammars.")

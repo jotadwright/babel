@@ -1,6 +1,18 @@
 
 (in-package :grammar-learning)
 
+
+(defun initial-transient-structure (node)
+  (if (find 'fcg::initial (statuses node))
+    (car-source-cfs (cipn-car node))
+    (car-source-cfs (cipn-car (last-elt (all-parents node))))))
+
+(defun initial-node (node)
+  "returns the first node in the cip"
+  (if (all-parents node)
+    (last-elt (all-parents node))
+    node))
+
 (defun phrase-type (cxn)
   (loop for unit in (contributing-part cxn)
         for syn-cat = (cdr (find 'syn-cat (fcg::unit-structure unit) :key #'first))
@@ -8,13 +20,32 @@
         when phrase-type
         return phrase-type))
 
-;; (phrase-type *saved-cxn*)
+(defun transient-structure-form-constraints (transient-structure)
+  (remove-if-not #'(lambda (fc)
+                     (equal 'string (first fc)))
+                 (extract-forms (left-pole-structure transient-structure))))
+
+(defun initial-transient-structure (node)
+  (if (find 'fcg::initial (statuses node))
+    (car-source-cfs (cipn-car node))
+    (car-source-cfs (cipn-car (last-elt (all-parents node))))))
+
+(defun diff-subset-superset-form (subset-cxn superset-form)
+  (set-difference 
+   superset-form
+   (extract-form-predicates subset-cxn)
+   :test #'irl:unify-irl-programs))
 
 (defun lex-class (unit)
   (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
          (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
     (when lex-class
       (second lex-class))))
+
+(defun lex-class-cxn (lexical-cxn)
+  (let* ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+         
 
 (defun non-overlapping-meaning (meaning cxn &key (nom-cxn nil) (nom-observation nil))
   (when (and nom-cxn nom-observation) (error "only nom-cxn or nom-observeration can be true"))
@@ -31,6 +62,11 @@
       (cond (nof-cxn non-overlapping-form-cxn)
             (nof-observation non-overlapping-form-observation))))
 
+(defun non-overlapping-predicates-ignore-length (network-1 network-2)
+  (let ((unique-part-network-1 (set-difference network-1 network-2 :test #'irl:unify-irl-programs))
+        (unique-part-network-2 (set-difference network-2 network-1 :test #'irl:unify-irl-programs)))
+      (values unique-part-network-1 unique-part-network-2)))
+
 (defun non-overlapping-predicates (network-1 network-2)
   (let ((unique-part-network-1 (set-difference network-1 network-2 :test #'irl:unify-irl-programs))
         (unique-part-network-2 (set-difference network-2 network-1 :test #'irl:unify-irl-programs)))
@@ -40,6 +76,25 @@
                                              (set-difference network-2 unique-part-network-2)))
       (values unique-part-network-1 unique-part-network-2))))
 
+(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory)
+  "returns a cxn with the same meaning and form if it's in the cxn-inventory"
+  (loop for cxn in (constructions cxn-inventory)
+        when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
+                  (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
+        return cxn))
+
+
+(defun initial-node-p (node)
+  "return t if node is initial node"
+  (null (all-parents node)))
+
+(defun add-cxn-suffix (string)
+  (intern (string-append string "-cxn")))
+
+(defun make-lex-class (&optional cat-name)
+  (if cat-name
+    (intern (symbol-name (make-const cat-name)) :type-hierarchies)
+    (intern (symbol-name (make-const "CAT")) :type-hierarchies)))
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix))
 (defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
@@ -53,11 +108,60 @@
 
 (defmethod make-cxn-name ((form list) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
-  (make-cxn-name (format nil "~{~a~^-~}" (render form (get-configuration cxn-inventory :render-mode))) cxn-inventory))
+  (loop with string-constraints = (extract-form-predicate-by-type form 'string)
+        with placeholders = '("?X" "?Y" "?Z" "?U" "?V" "?W")
+        with placeholder-index = 0
+        with new-string-constraints = '()
+        for order-constraint in (set-difference form string-constraints)
+        for first-word-var = (second order-constraint)
+        for second-word-var = (third order-constraint)
+        do
+        (unless (or (find first-word-var string-constraints :key #'second)
+                    (find first-word-var new-string-constraints :key #'second))
+          (push `(string ,first-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
+          (incf placeholder-index))
+        (unless (or (find second-word-var string-constraints :key #'second)
+                    (find second-word-var new-string-constraints :key #'second))
+          (push `(string ,second-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
+          (incf placeholder-index))
+        finally (return (make-cxn-name (format nil "~{~a~^-~}" (render (append form new-string-constraints) (get-configuration cxn-inventory :render-mode))) cxn-inventory :add-cxn-suffix add-cxn-suffix))))
+
+(defun make-cxn-placeholder-name (form cxn-inventory)
+  (loop with string-constraints = (extract-form-predicate-by-type form 'string)
+        with placeholders = '("?X" "?Y" "?Z" "?U" "?V" "?W")
+        with placeholder-index = 0
+        with new-string-constraints = '()
+        for order-constraint in (set-difference form string-constraints)
+        for first-word-var = (second order-constraint)
+        for second-word-var = (third order-constraint)
+        do
+        (unless (or (find first-word-var string-constraints :key #'second)
+                    (find first-word-var new-string-constraints :key #'second))
+          (push `(string ,first-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
+          (incf placeholder-index))
+        (unless (or (find second-word-var string-constraints :key #'second)
+                    (find second-word-var new-string-constraints :key #'second))
+          (push `(string ,second-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
+          (incf placeholder-index))
+        finally (return (render (append form new-string-constraints) (get-configuration cxn-inventory :render-mode)))))
+
+(defun extract-placeholder-var-list (rendered-list)
+  (loop for item in rendered-list
+        when (string-equal (subseq item 0 1) "?")
+        collect item))
+
+;;(defmethod make-cxn-name ((form list) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
+;;  "Transform an utterance into a suitable construction name"
+;;  (make-cxn-name (format nil "~{~a~^-~}" (render form (get-configuration cxn-inventory :render-mode))) cxn-inventory))
 
 ;; (make-cxn-name '((string ?x "x") (string ?y "y") (precedes ?y ?x)) *fcg-constructions*)
 ;; (make-cxn-name '((precedes ?y ?x)) *fcg-constructions*)
 
+(defun extract-form-predicate-by-type (form-values symbol)
+  "extract meets, precedes or string predicates from a list of form predicates"
+  (loop for form-value in form-values
+        when (and (consp form-value) (eq (first form-value) symbol))
+        collect form-value))
 
 (defun form-constraints-with-variables (utterance mode)
   "Extract form constraints from utterance in the format they would appear in a construction."
@@ -195,8 +299,8 @@
 
 
 (defmethod irl::find-map-function ((v1 string) (v2 string) 
-                        &optional (frame (make-map-frame))
-                        &key (extension-test #'function-frame))
+                        &optional (frame (irl::make-map-frame))
+                        &key (extension-test #'irl::function-frame))
   "Adding case for strings, used when comparing predicate networks"
   (declare (ignore extension-test))
       (when (string= v1 v2) 
