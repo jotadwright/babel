@@ -168,7 +168,7 @@ based on existing construction with sufficient overlap."
            ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
            (orig-type-hierarchy (get-type-hierarchy (construction-inventory node)))
            (temp-type-hierarchy (copy-object (get-type-hierarchy (construction-inventory node))))
-           (th-flat-list (list))
+           (th-flat-list nil)
            (th (loop for th-list in th-links
                      do (loop for th-link in th-list
                               do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy)

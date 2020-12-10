@@ -13,6 +13,11 @@
     (last-elt (all-parents node))
     node))
 
+(defun get-all-unit-lex-classes (cxn)
+  (loop for unit in (subseq (contributing-part cxn) 1)
+        for lex-class = (lex-class-item-based unit)
+        collect lex-class))
+
 (defun phrase-type (cxn)
   (loop for unit in (contributing-part cxn)
         for syn-cat = (cdr (find 'syn-cat (fcg::unit-structure unit) :key #'first))
@@ -42,8 +47,12 @@
     (when lex-class
       (second lex-class))))
 
+(defun lex-class-item-based (unit)
+  (let ((syn-cat (find 'syn-cat (fcg::unit-structure unit) :key #'first)))
+         (second (find 'lex-class (rest syn-cat) :key #'first))))
+
 (defun lex-class-cxn (lexical-cxn)
-  (let* ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
+  (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
          
 
