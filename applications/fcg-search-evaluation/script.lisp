@@ -258,7 +258,8 @@
             do (let* ((fields (split line #\,))
                       (id (first fields))
                       (utterance (second fields))
-                      (irl-program (read-from-string (third fields))))
+                      (irl-program (when (third fields)
+                                     (read-from-string (third fields)))))
                  (case direction
                    (:comprehension (comprehend-line grammar id utterance out-stream timeout))
                    (:formulation (formulate-line grammar id irl-program out-stream timeout))))
