@@ -5,13 +5,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-#|
-in de repair doe comprehend zonder metalayer :use-meta-layer nil :consolidate-repairs nil :th-connected mode :path-exists
--> check welke cxns toegepast werden
--> maak th links
--> doe fcg apply in handle fix
- |#
-
 (defclass add-th-links (repair) 
   ((trigger :initform 'fcg::new-node)))
   
@@ -20,26 +13,24 @@ in de repair doe comprehend zonder metalayer :use-meta-layer nil :consolidate-re
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
-  (when (initial-node-p node)
-    (let ((cxns-and-th-links (create-th-links problem node)))
-      (when cxns-and-th-links
-        (make-instance 'fcg::cxn-fix
-                       :repair repair
-                       :problem problem
-                       :restart-data cxns-and-th-links)))))
+  (let ((cxns-and-th-links (create-th-links problem node)))
+    (when cxns-and-th-links
+      (make-instance 'fcg::cxn-fix
+                     :repair repair
+                     :problem problem
+                     :restart-data cxns-and-th-links))))
 
 (defmethod repair ((repair add-th-links)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
-  (when (initial-node-p node)
-    (let ((cxns-and-th-links (create-th-links problem node)))
-      (when cxns-and-th-links
-        (make-instance 'fcg::cxn-fix
-                       :repair repair
-                       :problem problem
-                       :restart-data cxns-and-th-links)))))
+  (let ((cxns-and-th-links (create-th-links problem node)))
+    (when cxns-and-th-links
+      (make-instance 'fcg::cxn-fix
+                     :repair repair
+                     :problem problem
+                     :restart-data cxns-and-th-links))))
 
 (defun disable-meta-layer-configuration (cxn-inventory)
   (set-configuration cxn-inventory :th-connected-mode :path-exists)
@@ -77,30 +68,28 @@ in de repair doe comprehend zonder metalayer :use-meta-layer nil :consolidate-re
          (cxn-inventory (construction-inventory node))
          (type-hierarchy (get-type-hierarchy cxn-inventory)))
     (disable-meta-layer-configuration cxn-inventory)
-    (let* ((comprehension-result (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning)))
-           (meaning-network (first comprehension-result))
-           (cip-node (second comprehension-result))
-           (cip (third comprehension-result)))
-      (enable-meta-layer-configuration cxn-inventory)
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning)))
+             (meaning-network (first comprehension-result))
+             (cip-node (second comprehension-result))
+             (cip (third comprehension-result)))
+        (enable-meta-layer-configuration cxn-inventory)
 
-      ;;there is a solution with connected links in the TH
-      (if (and meaning-network (irl:equivalent-irl-programs? meaning-network gold-standard-meaning))
-      ;(if (and meaning-network (cip-goal-test cip-node :non-gold-standard-meaning))
-        (let* ((applied-cxns (applied-constructions cip-node))
-               (lex-cxns (sort (filter-by-phrase-type 'lexical applied-cxns) #'(lambda (x y)
-                                                                                 (<
-                                                                                  (search (third (first (extract-form-predicates x))) utterance)
-                                                                                  (search (third (first (extract-form-predicates y))) utterance)))))
-               (lex-classes-lex-cxns (when lex-cxns
-                                       (map 'list #'lex-class-cxn lex-cxns)))
-               (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
-               (lex-classes-item-based-units (when item-based-cxn
-                                               (get-all-unit-lex-classes item-based-cxn)))
-               (th-links (when (and lex-classes-lex-cxns lex-classes-item-based-units)
-                           (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
-          (when th-links
-            (list applied-cxns th-links)))
-        nil))))
+        ;;there is a solution with connected links in the TH
+        (unless (member 'goal-test-failed (statuses cip-node) :test #'string=)
+          (let* ((applied-cxns (applied-constructions cip-node))
+                 (lex-cxns (sort (filter-by-phrase-type 'lexical applied-cxns) #'(lambda (x y)
+                                                                                   (<
+                                                                                    (search (third (first (extract-form-predicates x))) utterance)
+                                                                                    (search (third (first (extract-form-predicates y))) utterance)))))
+                 (lex-classes-lex-cxns (when lex-cxns
+                                         (map 'list #'lex-class-cxn lex-cxns)))
+                 (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
+                 (lex-classes-item-based-units (when item-based-cxn
+                                                 (get-all-unit-lex-classes item-based-cxn)))
+                 (th-links (when (and lex-classes-lex-cxns lex-classes-item-based-units (= (length lex-classes-lex-cxns) (length lex-classes-item-based-units)))
+                             (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
+            (list applied-cxns th-links)))))))
 
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-th-links) (problem problem) (node cip-node) &key &allow-other-keys)
