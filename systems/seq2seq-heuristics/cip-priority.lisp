@@ -7,6 +7,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defmethod cip-priority ((node cip-node) (mode (eql :seq2seq-heuristic)))
+  "Return the probability of the cxn."
+  (if (all-parents node)
+    (let* ((distribution (get-data (first (all-parents node)) :seq2seq-prediction))
+           (applied-cxn (first (applied-constructions node)))
+           (cxn-probability (rest
+                             (assoc (name applied-cxn) distribution
+                                    :key #'(lambda (n) (intern (mkstr n) :clevr-grammar))
+                                    :test #'equal))))
+      cxn-probability)
+    0))
+
+
 (defmethod cip-priority ((node cip-node) (mode (eql :seq2seq-heuristic-additive)))
   "Adds probability of cxn according to seq2seq-model to priority of parent."
   (if (all-parents node)

@@ -225,6 +225,7 @@
 (defun make-out-stream (inputfile outputdir)
   (unless (directoryp outputdir)
     (setf outputdir (mkstr outputdir "/")))
+  (ensure-directories-exist outputdir)
   (let* ((outputfile
           (make-pathname :directory (pathname-directory outputdir)
                          :name (pathname-name inputfile)
@@ -301,6 +302,34 @@
                 (:priority-mode . :seq2seq-heuristic-additive)
                 (:seq2seq-endpoint . ,endpoint)
                 ;(:max-nr-of-nodes . ,max-nr-of-nodes)
+                )))
+           (:beam2
+            (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
+                                          seq2seq-server-port)
+                            #-ccl (format nil "http://localhost:~a/next-cxn"
+                                          seq2seq-server-port)))
+              `((:queue-mode . :greedy-best-first)
+                (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
+                (:hash-mode . :hash-string-meaning-lex-id)
+                (:priority-mode . :seq2seq-heuristic)
+                (:seq2seq-endpoint . ,endpoint)
+                (:seq2seq-probability-cutoff . 0.05)
+                (:seq2seq-number-cutoff . 2)
+                ;(:max-nr-of-nodes . ,max-nr-of-nodes)
+                )))
+           (:beam3
+            (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
+                                          seq2seq-server-port)
+                            #-ccl (format nil "http://localhost:~a/next-cxn"
+                                          seq2seq-server-port)))
+              `((:queue-mode . :greedy-best-first)
+                (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
+                (:hash-mode . :hash-string-meaning-lex-id)
+                (:priority-mode . :seq2seq-heuristic)
+                (:seq2seq-endpoint . ,endpoint)
+                (:seq2seq-probability-cutoff . 0.05)
+                (:seq2seq-number-cutoff . 3)
+                ;(:max-nr-of-nodes . ,max-nr-of-nodes)
                 ))))))
     (if (null max-nr-of-nodes)
       (setf configurations
@@ -333,14 +362,13 @@
 #|
 
 ;; (defun activate-strategy (grammar strategy max-nr-of-nodes seq2seq-server-port)
-(activate-strategy *clevr* :seq2seq 50000 8888)
+(activate-strategy *clevr* :seq2seq 100000 8888)
 
 ;; (defun process-inputfile (grammar inputfile outputdir timeout direction)
 (process-inputfile *clevr*
- (babel-pathname :directory '("applications" "fcg-search-evaluation")
-                 :name "batch-0" :type "csv")
+ (parse-namestring "/Users/jensnevens/Desktop/seq2seq-failed.csv")
  (babel-pathname :directory '(".tmp"))
- 60 :comprehension)
+ 1000 :comprehension)
 
 |#
 
@@ -358,14 +386,18 @@
         (copy-object (eval (internal-symb (upcase (getf args 'grammar))))))
   (setf (getf args 'strategy)
         (make-kw (upcase (getf args 'strategy))))
-  (unless (member (getf args 'strategy) '(:depth-first :priming :seq2seq))
+  (unless (member (getf args 'strategy)
+                  '(:depth-first :priming :seq2seq
+                    :beam2 :beam3))
     (error "Unknown strategy: ~a. Expected :depth-first, :priming or :seq2seq"
            (getf args 'strategy)))
-  (when (eql (getf args 'strategy) :seq2seq)
+  (when (or (eql (getf args 'strategy) :seq2seq)
+            (eql (getf args 'strategy) :beam2)
+            (eql (getf args 'strategy) :beam3))
     (if (getf args 'seq2seq-server-port)
       (setf (getf args 'seq2seq-server-port)
             (parse-integer (getf args 'seq2seq-server-port)))
-      (error "Must specify a seq2seq-server-port when using the seq2seq strategy!")))      
+      (error "Must specify a seq2seq-server-port when using a seq2seq strategy!")))      
   (setf (getf args 'direction)
         (make-kw (upcase (getf args 'direction))))
   (setf (getf args 'timeout)
