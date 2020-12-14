@@ -10,6 +10,7 @@
                (:file "utils")
                (:file "goal-tests")
                (:file "problems-diagnostics")
+               (:file "repair-add-th-links")
                (:file "repair-nothing->holophrase-cxn")
                (:file "repair-holophrase->item-based+lexical+lexical--substitution")
                (:file "repair-holophrase->item-based+lexical--addition")
