@@ -225,6 +225,7 @@
 (defun make-out-stream (inputfile outputdir)
   (unless (directoryp outputdir)
     (setf outputdir (mkstr outputdir "/")))
+  (ensure-directories-exist outputdir)
   (let* ((outputfile
           (make-pathname :directory (pathname-directory outputdir)
                          :name (pathname-name inputfile)
