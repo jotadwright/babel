@@ -83,13 +83,18 @@
       (force-output out-stream))
     ;; loop over the lines, comprehend them and
     ;; write to output
-    (with-progress-bar (bar lines-to-process ("Processing ~a" (pathname-name inputfile)))
+    (with-progress-bar (bar lines-to-process
+                            ("Processing ~a" (pathname-name inputfile)))
       (loop for line = (remove #\Return (read-line in-stream nil nil))
             while line
-            do (multiple-value-bind (irl-program rpn comprehension-cxns depth-of-solution)
+            do (multiple-value-bind (irl-program rpn
+                                     comprehension-cxns
+                                     depth-of-solution)
                    (get-meaning-and-comprehension-cxns line)
                  (let ((out-line
-                        (make-csv-line line irl-program rpn comprehension-cxns depth-of-solution)))
+                        (make-csv-line line irl-program rpn
+                                       comprehension-cxns
+                                       depth-of-solution)))
                    (write-line out-line out-stream)
                    (force-output out-stream)
                    (update bar)))))
