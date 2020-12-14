@@ -76,12 +76,9 @@
         (enable-meta-layer-configuration cxn-inventory)
 
         ;;there is a solution with connected links in the TH
-        (unless (member 'goal-test-failed (statuses cip-node) :test #'string=)
+        (when (member 'succeeded (statuses cip-node) :test #'string=)
           (let* ((applied-cxns (applied-constructions cip-node))
-                 (lex-cxns (sort (filter-by-phrase-type 'lexical applied-cxns) #'(lambda (x y)
-                                                                                   (<
-                                                                                    (search (third (first (extract-form-predicates x))) utterance)
-                                                                                    (search (third (first (extract-form-predicates y))) utterance)))))
+                 (lex-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'lexical applied-cxns) utterance))
                  (lex-classes-lex-cxns (when lex-cxns
                                          (map 'list #'lex-class-cxn lex-cxns)))
                  (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
