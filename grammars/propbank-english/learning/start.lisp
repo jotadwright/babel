@@ -87,7 +87,7 @@
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                           :name "core-roles-ontonotes-train-clean-faulty"
+                           :name "all-roles-ewt"
                            :type "fcg")))
 (size *restored-grammar*)
 
@@ -102,7 +102,7 @@
 
 (defparameter *training-configuration*
   '((:de-render-mode .  :de-render-constituents-dependents)
-    (:node-tests :check-double-role-assignment :restrict-nr-of-nodes)
+    (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
     (:max-nr-of-nodes . 100)
     (:node-expansion-mode . :multiple-cxns)
@@ -129,7 +129,7 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   *train-sentences-all-frames*
+   *phrasal-sentences*
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
@@ -139,9 +139,10 @@
 
 (clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
 
+
 (defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 2))
 
-(clean-type-hierarchy (get-type-hierarchy *propbank-learned-cxn-inventory*) :remove-edges-with-freq-smaller-than 1000)
+(clean-type-hierarchy (get-type-hierarchy *restored-grammar*) :remove-edges-with-freq-smaller-than 2)
 
 
 ;;;;;;;;;;;;;;;;;
@@ -149,18 +150,20 @@
 ;;;;;;;;;;;;;;;;;
 
 (loop for i from 1
-      for sentence in (subseq *phrasal-sentences* 0 10)
+      for sentence in (subseq *train-sentences-all-frames* 0 10)
       do (format t "~%~% Sentence: ~a ~%" i)
-      (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil))
+      (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only t :silent t))
 
 
-;;On the other hand , as you reported just a moment ago , the Associated Press reporting that 65 of the 67 counties have reported
-(comprehend-and-evaluate (list (subseq *phrasal-sentences* 0 1))
-                         *propbank-learned-cxn-inventory-small* :core-roles-only nil :silent nil)
+(comprehend-and-evaluate (list (third *phrasal-sentences*))
+                         *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil)
 
+(set-configuration *restored-grammar* :node-tests '(:check-double-role-assignment))
 
-(comprehend-and-extract-frames (sentence-string (second *phrasal-sentences*))
-                               :cxn-inventory *propbank-learned-cxn-inventory-small* )
+(add-element (make-html (find-cxn 'bust-up\(VP\)-CXN *propbank-learned-cxn-inventory* :hash-key 'bust-up :key #'name :test #'equal)))
+
+(comprehend-and-evaluate (list (nth 16 *phrasal-sentences*))
+                         *restored-grammar* :silent nil)
 
 (add-element (make-html (find-cxn  'break-up\(vp\)-cxn  *propbank-learned-cxn-inventory-small* :hash-key 'break-up)))
 (evaluate-propbank-corpus (subseq (shuffle *train-sentences-all-frames*) 0 100) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
