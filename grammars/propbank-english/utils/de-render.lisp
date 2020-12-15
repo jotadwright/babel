@@ -129,7 +129,14 @@
                     (new-particle-unit (update-unit-feature-value particle-unit 'parent (unit-name additional-vp-unit)))
                     (other-constituents (set-difference (unit-feature-value vp-unit 'constituents)
                                                         (list (unit-name phrasal-verb-unit) (unit-name particle-unit))))
-                    (new-vp-unit (update-unit-feature-value vp-unit 'constituents (append other-constituents (list (unit-name additional-vp-unit))))))
+                    (new-vp-unit
+                     (if (equalp (unit-feature-value vp-unit 'span) (unit-feature-value additional-vp-unit 'span)) ;;double phrasal-vps
+                       (let* ((parent-unit (parent-unit vp-unit units))
+                              (other-parent-constituents (set-difference (unit-feature-value parent-unit 'constituents)
+                                                                         (list (unit-name vp-unit)))))
+                         (update-unit-feature-value (parent-unit vp-unit units) 'constituents
+                                                    (append other-parent-constituents (list (unit-name additional-vp-unit)))))
+                      (update-unit-feature-value vp-unit 'constituents (append other-constituents (list (unit-name additional-vp-unit)))))))
                ;;delete 3 old units
                (delete phrasal-verb-unit units :test #'equalp)
                (delete particle-unit units :test #'equalp)
