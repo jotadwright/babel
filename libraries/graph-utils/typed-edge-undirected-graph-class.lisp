@@ -2,6 +2,8 @@
 
 (declaim (optimize (speed 3) (space 2)))
 
+(export '(undirected-typed-graph))
+
 (defclass undirected-typed-graph (graph)
   ((matrix :accessor matrix :initarg :matrix
            :initform (make-hash-table :test 'eql))
