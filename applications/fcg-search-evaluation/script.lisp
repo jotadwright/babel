@@ -5,10 +5,6 @@
 ;;;; Utils
 ;;;; ----------------------------------------
 
-(defun make-csv-line (&rest args)
-  "Create a comma separated string of args"
-  (format nil "~{~a~^,~}" args))
-
 (defun directoryp (pathspec)
   "Check if the given pathspec is a directory"
   (and (null (pathname-name pathspec))
@@ -113,42 +109,39 @@
     no-search-p))
 
 (defun run-monitors (id input output cipn run-time out-stream)
-  (let ((line
-         (make-csv-line id
-                        ;; length of the input
-                        (get-input-length input)
-                        ;; length of the output, if success
-                        (if (and cipn (succeededp cipn))
-                          (get-output-length output)
-                          "None")
-                        ;; success
-                        (if (and cipn (succeededp cipn))
-                          "True" "False")
-                        ;; avg branching factor
-                        (if (and cipn (succeededp cipn))
-                          (get-avg-branching-factor cipn)
-                          "None")
-                        ;; nr of nodes
-                        (if (and cipn (succeededp cipn))
-                          (get-nr-of-nodes cipn)
-                          "None")
-                        ;; search space size
-                        (if (and cipn (succeededp cipn))
-                          (get-search-space-size cipn)
-                          "None")
-                        ;; depth of solution
-                        (if (and cipn (succeededp cipn))
-                          (get-depth-of-solution cipn)
-                          "None")
-                        ;; processing time
-                        (if (and cipn (succeededp cipn))
-                          run-time "None")
-                        ;; no search
-                        (if (and cipn (succeededp cipn))
-                          (if (no-search-p cipn)
-                            "True" "False")
-                          "None"))))
-    (write-line line out-stream)
+  (let ((input-length (get-input-length input)) ;; length of the input
+         (output-length
+          (if (and cipn (succeededp cipn))
+            (get-output-length output)
+            "None"))
+         (success
+          (if (and cipn (succeededp cipn))
+            "True" "False"))
+         (avg-branching-factor
+          (if (and cipn (succeededp cipn))
+            (get-avg-branching-factor cipn)
+            "None"))
+         (nr-of-nodes
+          (if (and cipn (succeededp cipn))
+            (get-nr-of-nodes cipn)
+            "None"))
+         (search-space-size
+          (if (and cipn (succeededp cipn))
+            (get-search-space-size cipn)
+            "None"))
+         (depth-of-solution
+          (if (and cipn (succeededp cipn))
+            (get-depth-of-solution cipn)
+            "None"))
+         (processing-time
+          (if (and cipn (succeededp cipn))
+            run-time "None")))
+    (write-csv-row
+     (list id input-length output-length
+           success avg-branching-factor
+           nr-of-nodes search-space-size
+           depth-of-solution processing-time)
+     :stream out-stream)
     (force-output out-stream)))
 
 ;;;; Comprehension
@@ -235,12 +228,14 @@
                 :if-exists :supersede
                 :if-does-not-exist :create))
          (header
-          (make-csv-line "id" "input_length" "output_length"
-                         "success" "avg_branching_factor"
-                         "nr_of_nodes" "search_space_size"
-                         "depth_of_solution" "run_time" "no_search")))
+          (list "id" "input_length" "output_length"
+                "success" "avg_branching_factor"
+                "nr_of_nodes" "search_space_size"
+                "depth_of_solution" "run_time"
+                ;"no_search"
+                )))
     (ensure-directories-exist outputfile)
-    (write-line header out-stream)
+    (write-csv-row header :stream out-stream)
     (force-output out-stream)
     out-stream))
 
@@ -249,22 +244,20 @@
         (in-stream (open inputfile :direction :input))
         (out-stream (make-out-stream inputfile outputdir)))
     ;; skip the header
-    (read-line in-stream nil nil)
+    (read-csv-row in-stream)
     ;; loop over the lines
     ;; process them
     ;; and write monitors
     (with-progress-bar (bar lines-to-process ("Processing ~a" (pathname-name inputfile)))
-      (loop for line = (remove #\Return (read-line in-stream nil nil))
-            while line
-            do (let* ((fields (split line #\,))
-                      (id (first fields))
-                      (utterance (second fields))
-                      (irl-program (when (third fields)
-                                     (read-from-string (third fields)))))
+      (loop for row = (read-csv-row in-stream)
+            while row
+            do (destructuring-bind (id utterance &optional irl-program &rest rest) row
+                 (declare (ignorable rest))
                  (case direction
                    (:comprehension (comprehend-line grammar id utterance out-stream timeout))
-                   (:formulation (formulate-line grammar id irl-program out-stream timeout))))
-            do (update bar)))
+                   (:formulation (formulate-line grammar id (read-from-string irl-program)
+                                                 out-stream timeout)))
+                 (update bar))))
     ;; close the pipes
     (close in-stream)
     (force-output out-stream)
@@ -362,13 +355,14 @@
 #|
 
 ;; (defun activate-strategy (grammar strategy max-nr-of-nodes seq2seq-server-port)
-(activate-strategy *clevr* :seq2seq 100000 8888)
+(activate-strategy *clevr* :depth-first 1000 8888)
 
 ;; (defun process-inputfile (grammar inputfile outputdir timeout direction)
 (process-inputfile *clevr*
- (parse-namestring "/Users/jensnevens/Desktop/seq2seq-failed.csv")
+ (babel-pathname :directory '("applications" "fcg-search-evaluation")
+                 :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
- 1000 :comprehension)
+ 60 :comprehension)
 
 |#
 
