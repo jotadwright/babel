@@ -38,7 +38,8 @@
                       ;; attributes
                       for node-type = (node-type node)
                       for node-string = (node-string node)
-                      for parent-id = (if (and (equal (node-lex-class node) 'rp);;particle+more checks?
+                      for parent-id = (if (and (or (equal (node-lex-class node) 'rp);;particle+more checks?
+                                                   (equal (node-lex-class node) 'rb)) ;;adverb??
                                                (adjacent-nodes? (node-dependency-head node) node spacy-benepar-analysis))
                                         (node-dependency-head node)
                                         (node-parent node))
@@ -93,14 +94,19 @@
                                              :right-pole '((root)))))
     transient-structure))
 
-(defun adjacent-nodes? (node-1 node-2 spacy-benepar-analysis)
- t
-  );;to do!
+(defun adjacent-nodes? (node-id-1 node-2 spacy-benepar-analysis)
+  (let* ((node-1 (find node-id-1 spacy-benepar-analysis :key #'node-id))
+         (end-index-node-1 (node-end node-1))
+         (start-index-node-2 (node-start node-2)))
+    (when (= start-index-node-2 end-index-node-1)
+      t)))
 
+(defun parent-unit (unit unit-structure)
+  (let ((parent-unit-name (unit-feature-value unit 'parent)))
+    (find parent-unit-name unit-structure :key #'unit-name)))
+  
 (defun run-phrasal-verb-check (units)
-  "Checks if there are particle units in the unit structure, in which
-case the verb unit related to the particle must be adapted to include
-the right string and constituent features." ;;what about the vp above it?
+  "Checks if there are particle units in the unit structure, ." ;;what about the vp above it?
 
   (let* ((phrasal-verb-units
           (loop for unit in units
@@ -144,7 +150,8 @@ the right string and constituent features." ;;what about the vp above it?
             else collect unit-feature)))
 
 (defun create-phrasal-vp-unit (verb-unit particle-unit)
-  (let ((phrasal-lemma (intern (upcase (format nil "~a-~a" (unit-feature-value verb-unit 'lemma)
+  (let ((phrasal-lemma (intern (upcase (format nil "~a-~a"
+                                               (unit-feature-value verb-unit 'lemma)
                                                (unit-feature-value particle-unit 'lemma))))))
   `(,(make-const "PHRASAL-VP")
     (constituents (,(unit-name verb-unit) ,(unit-name particle-unit)))
