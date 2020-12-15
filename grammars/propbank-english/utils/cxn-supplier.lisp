@@ -55,8 +55,13 @@
                                     collect cxn)))
            (when (get-configuration node :shuffle-cxns-before-application)
              (setf constructions (shuffle constructions)))
-           (sort constructions #'(lambda (cxn-1 cxn-2) (>= (attr-val cxn-1 :frequency) (attr-val cxn-2 :frequency))))))
-
+           (sort constructions #'(lambda (cxn-1 cxn-2)
+                                   (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
+                                         ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
+                                          nil)
+                                         ((>= (attr-val cxn-1 :frequency) (attr-val cxn-2 :frequency)))
+                                         (t
+                                          nil))))))
         ;; For constructions bound to lex-categories
         ((or (equal label 'argument-structure-cxn)
              (equal label 'argm-phrase-cxn))

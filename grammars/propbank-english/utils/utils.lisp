@@ -332,7 +332,13 @@ split to the output buffer."
     (when remove-faulty-cnxs
       (with-disabled-monitor-notifications
         (remhash '-pron- (constructions-hash-table cxn-inventory))
-        (remhash '-pron- (constructions-hash-table (processing-cxn-inventory cxn-inventory)))))
+        (remhash '-pron- (constructions-hash-table (processing-cxn-inventory cxn-inventory)))
+        (let ((faulty-of-cxn (find-cxn 'OF\(IN\)-CXN cxn-inventory :hash-key 'OF))
+              (faulty-by-cxn (find-cxn 'BY\(IN\)-CXN cxn-inventory :hash-key 'BY)))
+          (when faulty-of-cxn
+            (delete-cxn faulty-of-cxn cxn-inventory :hash-key 'OF :key #'name))
+          (when faulty-by-cxn
+            (delete-cxn faulty-by-cxn cxn-inventory :hash-key 'BY :key #'name)))))
   
     (when remove-cxns-with-freq-1
       (loop for cxn in (constructions-list cxn-inventory)
@@ -349,14 +355,14 @@ split to the output buffer."
   "Cleans the type hierarchy of a learned grammar by removing edges
 that have a weight smaller than a given frequency."
   (let* ((graph (type-hierarchies::graph type-hierarchy))
-         (edges (graph-utils:list-edges graph)))
+         (edges (graph-utils:list-edges graph :edge-type nil)))
 
     (format t "Edge count before cleaning: ~a ~%" (type-hierarchies::edge-count graph))
 
     (loop for (n1 n2) in edges
-          when (< (graph-utils:edge-weight graph n1 n2)
+          when (< (graph-utils:edge-weight graph n1 n2 nil)
                   remove-edges-with-freq-smaller-than)
-          do (graph-utils:delete-edge graph n1 n2))
+          do (graph-utils:delete-edge graph n1 n2 nil))
     
     (format t "Edge count after cleaning: ~a ~%" (type-hierarchies::edge-count graph))
     type-hierarchy))

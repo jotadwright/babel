@@ -92,29 +92,57 @@
         (incf (attr-val equivalent-cxn :frequency))
         (attr-val equivalent-cxn :lex-category))
       ;; Else make new cxn
-      (progn ;;(assert lemma)
-        (eval
-         `(def-fcg-cxn ,cxn-name
-                       ((?lex-unit
-                         (footprints (lex))
-                         (lex-category ,lex-category))
-                        <-
-                        (?lex-unit
-                         --
-                         (footprints (NOT lex))
-                         (lemma ,lemma)
-                         (syn-class ,syn-class)))
-                       :attributes (:lemma ,lemma
-                                    :lex-category ,lex-category
-                                    :score ,(if (equalp syn-class '(vp))
-                                             2 1)
-                                    :label lexical-cxn
-                                    :frequency 1)
-                       :description ,(sentence-string propbank-sentence)
-                       :disable-automatic-footprints t
-                       :cxn-inventory ,cxn-inventory))
-        (add-category lex-category (get-type-hierarchy cxn-inventory))
-        lex-category))))
+      (when lemma
+        (if (equalp syn-class '(vp))
+          (let ((lex-lemma (intern (subseq (symbol-name lemma) 0 (search "-" (symbol-name lemma))))))
+            (eval
+             `(def-fcg-cxn ,cxn-name
+                           ((?phrasal-unit
+                             (footprints (lex))
+                             (lex-category ,lex-category))
+                            (?lex-unit
+                             (footprints (lex)))
+                            <-
+                            (?phrasal-unit
+                             --
+                             (footprints (NOT lex))
+                             (lemma ,lemma)
+                             (syn-class ,syn-class))
+                            (?lex-unit
+                             --
+                             (footprints (NOT lex))
+                             (lemma ,lex-lemma)
+                             (parent ?phrasal-unit)))
+                          
+                           :attributes (:lemma ,lemma
+                                        :lex-category ,lex-category
+                                        :score 2
+                                        :label lexical-cxn
+                                        :frequency 1)
+                           :description ,(sentence-string propbank-sentence)
+                           :disable-automatic-footprints t
+                           :cxn-inventory ,cxn-inventory)))
+            (eval
+             `(def-fcg-cxn ,cxn-name
+                           ((?lex-unit
+                             (footprints (lex))
+                             (lex-category ,lex-category))
+                            <-
+                            (?lex-unit
+                             --
+                             (footprints (NOT lex))
+                             (lemma ,lemma)
+                             (syn-class ,syn-class)))
+                           :attributes (:lemma ,lemma
+                                        :lex-category ,lex-category
+                                        :score 1
+                                        :label lexical-cxn
+                                        :frequency 1)
+                           :description ,(sentence-string propbank-sentence)
+                           :disable-automatic-footprints t
+                           :cxn-inventory ,cxn-inventory)))
+          (add-category lex-category (get-type-hierarchy cxn-inventory))
+          lex-category))))
 
 
 (defun add-grammatical-cxn (gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category)
