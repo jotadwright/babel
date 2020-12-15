@@ -9,8 +9,8 @@
 (in-package :propbank-english)
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
-(load-propbank-annotations 'ewt)
-(load-propbank-annotations 'ontonotes)
+(load-propbank-annotations 'ewt :ignore-stored-data t)
+(load-propbank-annotations 'ontonotes :ignore-stored-data t)
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
@@ -66,12 +66,15 @@
 
 (length *test-sentences-all-frames*)
 
-(defparameter *train-sentences-all-frames* (shuffle (train-split *ontonotes-annotations*)))
+(defparameter *train-sentences-all-frames* (train-split *ewt-annotations*))
 
-(defparameter *phrasal-verb-sentence-1* (nth 368 *train-sentences-all-frames*))
-(defparameter *phrasal-verb-sentence-2* (nth 23 *train-sentences-all-frames*))
-(defparameter *phrasal-verb-sentence-3* (nth 1109 *train-sentences-all-frames*))
-(defparameter *phrasal-verb-sentence-4* (nth 56642 *train-sentences-all-frames*))
+
+(defparameter *phrasal-sentences* (loop for sentence in *train-sentences-all-frames*
+                                        for gold-frames = (propbank-frames sentence)
+                                        append (loop for frame in gold-frames
+                                                     when (search "_" (frame-name frame) )
+                                                     collect sentence)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Storing and restoring grammars ;;
@@ -79,7 +82,7 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "core-roles-ontonotes-train-clean-faulty"
+                                :name "all-roles-ewt"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
@@ -126,7 +129,7 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (list *phrasal-verb-sentence-4*  )
+   *train-sentences-all-frames*
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
@@ -144,19 +147,22 @@
 ;;;;;;;;;;;;;;;;;
 ;; Evaluation  ;;
 ;;;;;;;;;;;;;;;;;
+
 (loop for i from 1
-      for sentence in *train-sentences-all-frames*
+      for sentence in (subseq *phrasal-sentences* 0 10)
       do (format t "~%~% Sentence: ~a ~%" i)
       (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil))
 
 
 ;;On the other hand , as you reported just a moment ago , the Associated Press reporting that 65 of the 67 counties have reported
-(comprehend-and-evaluate (list *phrasal-verb-sentence-4*)
-                         *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil)
+(comprehend-and-evaluate (list (subseq *phrasal-sentences* 0 1))
+                         *propbank-learned-cxn-inventory-small* :core-roles-only nil :silent nil)
 
-(comprehend-and-extract-frames (sentence-string *phrasal-verb-sentence-4*)
-                               :cxn-inventory *propbank-learned-cxn-inventory* )
 
+(comprehend-and-extract-frames (sentence-string (second *phrasal-sentences*))
+                               :cxn-inventory *propbank-learned-cxn-inventory-small* )
+
+(add-element (make-html (find-cxn  'break-up\(vp\)-cxn  *propbank-learned-cxn-inventory-small* :hash-key 'break-up)))
 (evaluate-propbank-corpus (subseq (shuffle *train-sentences-all-frames*) 0 100) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
 

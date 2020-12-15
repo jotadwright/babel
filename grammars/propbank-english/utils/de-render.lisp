@@ -38,7 +38,8 @@
                       ;; attributes
                       for node-type = (node-type node)
                       for node-string = (node-string node)
-                      for parent-id = (if (and (or (equal (node-lex-class node) 'rp);;particle+more checks?
+                      for parent-id = (if (and (or (or (equal (node-lex-class node) 'rp);;particle
+                                                       (equal (node-dependency-label node) 'prt))
                                                    (equal (node-lex-class node) 'rb)) ;;adverb??
                                                (adjacent-nodes? (node-dependency-head node) node spacy-benepar-analysis))
                                         (node-dependency-head node)

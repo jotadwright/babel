@@ -92,7 +92,7 @@
         (incf (attr-val equivalent-cxn :frequency))
         (attr-val equivalent-cxn :lex-category))
       ;; Else make new cxn
-      (progn (assert lemma)
+      (progn ;;(assert lemma)
         (eval
          `(def-fcg-cxn ,cxn-name
                        ((?lex-unit
@@ -106,7 +106,8 @@
                          (syn-class ,syn-class)))
                        :attributes (:lemma ,lemma
                                     :lex-category ,lex-category
-                                    :score 1
+                                    :score ,(if (equalp syn-class '(vp))
+                                             2 1)
                                     :label lexical-cxn
                                     :frequency 1)
                        :description ,(sentence-string propbank-sentence)
@@ -1114,8 +1115,7 @@ start to end(v-unit)"
 (defun v-unit (units-with-role)
   "Returns unit of the V."
   (loop for (role . unit) in units-with-role
-        when (and (string= "V" (role-type role))
-                  (unit-feature unit 'lemma))
+        when (string= "V" (role-type role))
         return unit))
 
 (defun v-unit-with-role (units-with-role)

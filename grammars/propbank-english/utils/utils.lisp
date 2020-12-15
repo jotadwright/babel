@@ -81,7 +81,8 @@
   (loop for unit in (fcg-get-transient-unit-structure node)
         for lemma = (if (equalp (unit-feature-value unit 'node-type) 'leaf)
                       (unit-feature-value unit 'lemma)
-                      (intern (upcase (unit-feature-value unit 'string))))
+                      (or (unit-feature-value unit 'lemma) ;;for phrasals
+                          (intern (upcase (unit-feature-value unit 'string)))))
         when lemma
         collect it))
 
