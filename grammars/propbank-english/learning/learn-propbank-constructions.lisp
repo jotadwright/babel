@@ -1114,7 +1114,8 @@ start to end(v-unit)"
 (defun v-unit (units-with-role)
   "Returns unit of the V."
   (loop for (role . unit) in units-with-role
-        when (string= "V" (role-type role))
+        when (and (string= "V" (role-type role))
+                  (unit-feature unit 'lemma))
         return unit))
 
 (defun v-unit-with-role (units-with-role)
