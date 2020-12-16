@@ -78,6 +78,40 @@
     (setf (remaining-constructions cxn-supplier) nil)
     next-constructions))
 
+
+
+(defclass cxn-supplier-seq2seq-beam ()
+  ((remaining-constructions
+    :type list :initarg :remaining-constructions
+    :accessor remaining-constructions
+    :documentation "A list of constructions that are still to try.")))
+
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :hashed+seq2seq-beam)))
+  "Creating the construction supplier and querying the seq2seq model, removing incompatibel cxns."
+  (let* ((distribution (seq2seq-distribution-for-node node))
+         (hash-compatible-cxns (all-cxns-except-incompatible-hashed-cxns node))
+         (comptatible-cxns (loop for cxn-and-prob in distribution
+                                 for cxn = (find (intern (mkstr (car cxn-and-prob)) :clevr-grammar)
+                                                 hash-compatible-cxns
+                                                 :test #'equal :key #'name)
+                                 if cxn
+                                 collect (cons cxn (cdr cxn-and-prob))))
+         (cxn-inventory (construction-inventory node))
+         (beam-width (get-configuration cxn-inventory :beam-width))
+         (beam-cxns (mapcar #'car (the-x-highest comptatible-cxns beam-width :key #'cdr))))
+    (set-data node :seq2seq-prediction distribution)
+    (make-instance
+     'cxn-supplier-with-seq2seq-heuristics
+     :remaining-constructions beam-cxns)))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-seq2seq-beam)
+                     (node cip-node))
+  (let ((next-constructions (remaining-constructions cxn-supplier)))
+    (setf (remaining-constructions cxn-supplier) nil)
+    next-constructions))
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper functions ;;
 ;;;;;;;;;;;;;;;;;;;;;;

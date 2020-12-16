@@ -323,7 +323,21 @@
                 (:seq2seq-probability-cutoff . 0.05)
                 (:seq2seq-number-cutoff . 3)
                 ;(:max-nr-of-nodes . ,max-nr-of-nodes)
-                ))))))
+                )))
+           (:beam5
+            (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
+                                          seq2seq-server-port)
+                            #-ccl (format nil "http://localhost:~a/next-cxn"
+                                          seq2seq-server-port)))
+              `((:queue-mode . :greedy-best-first)
+                (:cxn-supplier-mode . :hashed+seq2seq-beam)
+                (:hash-mode . :hash-string-meaning-lex-id)
+                (:priority-mode . :seq2seq-heuristic-additive)
+                (:seq2seq-endpoint . ,endpoint)
+                (:beam-width . 5)
+                ;(:max-nr-of-nodes . ,max-nr-of-nodes)
+                )))
+           )))
     (if (null max-nr-of-nodes)
       (setf configurations
             (append '((:node-tests :check-duplicate)

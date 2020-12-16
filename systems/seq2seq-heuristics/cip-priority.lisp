@@ -19,7 +19,6 @@
       cxn-probability)
     0))
 
-
 (defmethod cip-priority ((node cip-node) (mode (eql :seq2seq-heuristic-additive)))
   "Adds probability of cxn according to seq2seq-model to priority of parent."
   (if (all-parents node)
@@ -28,11 +27,10 @@
            (applied-cxn (first (applied-constructions node)))
            (cxn-probability (cdr
                              (assoc (name applied-cxn) distribution
-                                    :key #'(lambda (n) (intern (mkstr n) :clevr-grammar)) ;;#'internal-symb
+                                    :key #'(lambda (n) (intern (mkstr n) :clevr-grammar))
                                     :test #'equal))))
       (+ cxn-probability (priority (first (all-parents node)))))
     0))
-
 
 (defmethod cip-priority ((node cip-node) (mode (eql :seq2seq-heuristic-log-sum)))
   "Adds the log of the probability of cxn according to seq2seq-model to priority of parent.
