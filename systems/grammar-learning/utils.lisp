@@ -1,17 +1,10 @@
 
 (in-package :grammar-learning)
 
-(defun count-substrings (substring string)
-  (loop
-    with sub-length = (length substring)
-    for i from 0 to (- (length string) sub-length)
-    when (string= string substring
-                  :start1 i :end1 (+ i sub-length))
-    collect i))
-
 (defun sort-cxns-by-form-string (cxns-to-sort utterance)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
   ;; warning, this function depends on space separation without further punctuation!
+  ;; todo: replace by looking up bindings?
   (if (< (length cxns-to-sort) 2)
     cxns-to-sort
     (let ((resulting-list (make-list (length utterance))))
@@ -31,11 +24,6 @@
                            (string= " " utterance :start2 (- i 1) :end2 i))) ;; prev char is space
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
-
-
-                 
-(count-substrings "bla" "bla blo bla")
-(sort-cxns-by-form-string (list "blo" "bla" "bla") "the bla blo ablaa")
 
 (defun initial-transient-structure (node)
   (if (find 'fcg::initial (statuses node))
