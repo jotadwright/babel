@@ -10,7 +10,9 @@
                       (:seq2seq-probability-cutoff . 0.05)
                       (:seq2seq-number-cutoff . 2)
                       (:seq2seq-endpoint . #-ccl "http://localhost:8888/next-cxn"
-                                           #+ccl "http://127.0.0.1:8888/next-cxn")))
+                       #+ccl "http://127.0.0.1:8888/next-cxn")
+                      (:seq2seq-model-formulation . "clevr_formulation_model_v2"))
+                    :replace t)
 
 ;; depth first configurations:
 (set-configurations *fcg-constructions*
@@ -28,7 +30,7 @@
 (comprehend-and-formulate "Do the large metal cube left of the red thing and the small cylinder have the same color?")
 
 ;; zero hop
-(formulate-all
+(formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -37,7 +39,7 @@
    (bind color-category color-1 blue)))
 
 ;; one hop
-(formulate-all
+(formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
