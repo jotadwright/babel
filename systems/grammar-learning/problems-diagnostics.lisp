@@ -50,3 +50,7 @@
             (set-data problem :utterances gold-standard-utterances)
             problem)))))
 
+
+;; Abstract repair class
+(defclass add-cxns-and-th-links (repair)
+  ())

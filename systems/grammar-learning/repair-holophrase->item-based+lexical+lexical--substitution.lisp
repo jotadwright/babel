@@ -85,6 +85,8 @@ based on existing construction with sufficient overlap."
                                                                                           (HASH meaning ,non-overlapping-meaning-cxn)
                                                                                           --
                                                                                           (HASH form ,non-overlapping-form-cxn)))
+                                                                                        :attributes (:cxn-type lexical
+                                                                                                            :repair holophrase->item-based+lexical+lexical--substitution)
                                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-lex-cxn-2 (or lex-cxn-2 (second (multiple-value-list (eval
                                                                           `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-observation cxn-inventory)
@@ -97,6 +99,8 @@ based on existing construction with sufficient overlap."
                                                                                           (HASH meaning ,non-overlapping-meaning-observation)
                                                                                           --
                                                                                           (HASH form ,non-overlapping-form-observation)))
+                                                                                        :attributes (:cxn-type lexical
+                                                                                                            :repair holophrase->item-based+lexical+lexical--substitution)
                                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))
                (item-based-cxn (second (multiple-value-list (eval
                                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
@@ -111,6 +115,8 @@ based on existing construction with sufficient overlap."
                                                                              (HASH meaning ,overlapping-meaning-cxn)
                                                                              --
                                                                              (HASH form ,overlapping-form-cxn)))
+                                                                           :attributes (:cxn-type item-based
+                                                                                                            :repair holophrase->item-based+lexical+lexical--substitution)
                                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
           (list new-lex-cxn-1 new-lex-cxn-2 item-based-cxn
                 th-link-1 th-link-2 (cons (cdr th-link-1) (car th-link-1))

@@ -9,11 +9,11 @@
     cxns-to-sort
     (let ((resulting-list (make-list (length utterance))))
       (loop for cxn-obj in cxns-to-sort
-            for cxn = (third (first (extract-form-predicates cxn-obj)))
+            for cxn-string = (third (first (extract-form-predicates cxn-obj)))
             do (loop
-                with sub-length = (length cxn)
+                with sub-length = (length cxn-string)
                 for i from 0 to (- (length utterance) sub-length)
-                when (string= utterance cxn
+                when (string= utterance cxn-string
                               :start1 i :end1 (+ i sub-length))
                 do (when (and
                           (or

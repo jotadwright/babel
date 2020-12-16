@@ -46,6 +46,8 @@
                                                                         (HASH meaning ,meaning)
                                                                         --
                                                                         (HASH form ,form-constraints)))
+                                                                      :attributes (:cxn-type holophrase
+                                                                                   :repair nothing->holophrase)
                                                                       :cxn-inventory ,(copy-object cxn-inventory)))))))
     holophrase-cxn))
 

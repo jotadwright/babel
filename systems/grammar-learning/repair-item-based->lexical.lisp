@@ -98,6 +98,8 @@
                                                                                                  (HASH meaning ,meaning-predicates-lex-cxn)
                                                                                                  --
                                                                                                  (HASH form ,form-predicates-lex-cxn)))
+                                                                                               :attributes (:cxn-type lexical
+                                                                                                            :repair item-based->lexical)
                                                                                                :cxn-inventory ,(copy-object cxn-inventory)))))))
                  ;; make a list of all cxns, sort them
                  (applied-lex-cxns (filter-by-phrase-type 'lexical (applied-constructions node)))

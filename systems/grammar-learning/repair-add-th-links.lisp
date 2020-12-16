@@ -13,12 +13,15 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
-  (let ((cxns-and-th-links (create-th-links problem node)))
-    (when cxns-and-th-links
-      (make-instance 'fcg::cxn-fix
-                     :repair repair
-                     :problem problem
-                     :restart-data cxns-and-th-links))))
+  (unless (find-data (blackboard (construction-inventory node)) :add-th-links-repair-failed)
+    (let ((cxns-and-th-links (create-th-links problem node)))
+      (if cxns-and-th-links
+        (make-instance 'fcg::cxn-fix
+                       :repair repair
+                       :problem problem
+                       :restart-data cxns-and-th-links)
+        (progn (set-data (blackboard (construction-inventory node)) :add-th-links-repair-failed t)
+          nil)))))
 
 (defmethod repair ((repair add-th-links)
                    (problem non-gold-standard-utterance)
