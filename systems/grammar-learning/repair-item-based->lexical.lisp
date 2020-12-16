@@ -113,11 +113,12 @@
                                       (= (length lex-classes-lex-cxns) (length lex-classes-item-based-units)))
                              (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
             ;; return
-            (list new-lex-cxn (append (list (get-processing-cxn item-based-cxn))
-                                      (list (get-processing-cxn new-lex-cxn))
-                                      (unless (= 1 (length string-predicates-in-root))
-                                        (map 'list #'get-processing-cxn matching-lex-cxns))
-                                      (map 'list #'get-processing-cxn applied-lex-cxns)) th-links)))))))
+            (when th-links
+              (list new-lex-cxn (append (list (get-processing-cxn item-based-cxn))
+                                        (list (get-processing-cxn new-lex-cxn))
+                                        (unless (= 1 (length string-predicates-in-root))
+                                          (map 'list #'get-processing-cxn matching-lex-cxns))
+                                        (map 'list #'get-processing-cxn applied-lex-cxns)) th-links))))))))
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-lexical-cxn) (problem problem) (node cip-node) &key &allow-other-keys)
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
