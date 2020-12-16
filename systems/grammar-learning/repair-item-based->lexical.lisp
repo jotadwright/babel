@@ -139,8 +139,7 @@
                      finally (set-type-hierarchy (construction-inventory node) temp-type-hierarchy)))
            (last-node  (initial-node node))
            (applied-nodes (loop for cxn in cxns
-                                do (wi:add-element (make-html cxn))
-                                (setf last-node (fcg::cip-add-child last-node (first (fcg-apply cxn (if (initial-node-p last-node)
+                                do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply cxn (if (initial-node-p last-node)
                                                                                                          (car-source-cfs (cipn-car last-node))
                                                                                                          (car-resulting-cfs (cipn-car last-node)))
                                                                                                    (direction (cip node))
