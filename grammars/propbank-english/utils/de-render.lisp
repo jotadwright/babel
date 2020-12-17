@@ -38,11 +38,14 @@
                       ;; attributes
                       for node-type = (node-type node)
                       for node-string = (node-string node)
-                      for parent-id = (if (and (or (or (equal (node-lex-class node) 'rp);;particle
-                                                       (equal (node-dependency-label node) 'prt))
-                                                   (equal (node-lex-class node) 'rb)) ;;adverb??
+                      for parent-id = (if (and (or (equal (node-lex-class node) 'rp);;node itself is a particle
+                                                   (equal (node-dependency-label node) 'prt))
+                                               (equalp "V" (subseq (format nil "~a"
+                                                                           (node-lex-class (get-node (node-dependency-head node)
+                                                                                                     spacy-benepar-analysis)))
+                                                                   0 1))
                                                (adjacent-nodes? (node-dependency-head node) node spacy-benepar-analysis))
-                                        (node-dependency-head node)
+                                        (node-dependency-head node) ;;we're dealing with a phrasal particle
                                         (node-parent node))
                       for node-id = (node-id node)
                       for unit-name = (cdr (assoc node-id unit-name-ids))
@@ -271,3 +274,6 @@
   (let ((ent-type (cdr (assoc :named--entity--type spacy-benepar-analysis-leaf-node))))
     (when (and ent-type (not (equalp ent-type "")))
       (intern (upcase ent-type)))))
+
+(defun get-node (node-id spacy-benepar-analysis)
+  (find node-id spacy-benepar-analysis :key #'node-id))

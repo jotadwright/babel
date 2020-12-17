@@ -449,7 +449,7 @@
 
 (defmethod spacy-benepar-compatible-annotation ((sentence conll-sentence) role-set &key (selected-role-types 'all))
   "Returns T if all selected role types (all, core-only, argm-only) correspond to a constituent in de spacy-benepar tree."
-  (let ((syntactic-analysis (left-pole-structure (initial-transient-structure sentence)))
+  (let ((syntactic-analysis (remove '(nil) (left-pole-structure (initial-transient-structure sentence)) :test #'equalp))
         (selected-roles (loop for frame in (propbank-frames sentence)
                               if (equalp (frame-name frame) role-set)
                               append (loop for frame-role in (frame-roles frame)

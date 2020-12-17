@@ -635,7 +635,7 @@
          (cxn-units-with-role
           (loop for unit-w-role in units-with-role
                 if (equal (role-type (car unit-w-role)) "V")
-                collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint)
+                collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint :frame-evoking t)
                 else collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint :lemma argm-lemma)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame nil footprint :include-gram-category? nil))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
@@ -925,7 +925,7 @@
       (meaning ,meaning))))
 
 
-(defun make-propbank-conditional-unit-with-role (unit-with-role category footprint &key (lemma nil) (string nil))
+(defun make-propbank-conditional-unit-with-role (unit-with-role category footprint &key (lemma nil) (string nil) (frame-evoking nil))
   "Makes a conditional unit for a propbank cxn based on a unit in the
 initial transient structure that plays a role in the frame."
   (let* ((unit (cdr unit-with-role))
@@ -942,6 +942,8 @@ initial transient structure that plays a role in the frame."
         (parent ,parent)
         ,syn-class
         (footprints (NOT ,footprint))
+        ,@(when frame-evoking
+            '((frame-evoking +)))
         ,@(when category
             `((lex-category ,category))))
       `(,unit-name

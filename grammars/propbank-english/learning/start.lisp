@@ -66,8 +66,10 @@
 
 (length *test-sentences-all-frames*)
 
-(defparameter *train-sentences-all-frames* (train-split *ewt-annotations*))
-
+(defparameter *train-sentences-ewt* (train-split *ewt-annotations*))
+(defparameter *train-sentences-ontonotes* (train-split *ontonotes-annotations*))
+(defparameter *train-sentences-all* (shuffle (append (train-split *ontonotes-annotations*)
+                                                     (train-split *ewt-annotations*))))
 
 (defparameter *phrasal-sentences* (loop for sentence in *train-sentences-all-frames*
                                         for gold-frames = (propbank-frames sentence)
@@ -129,7 +131,7 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   *phrasal-sentences*
+   *train-sentences-all*
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
@@ -154,15 +156,16 @@
       do (format t "~%~% Sentence: ~a ~%" i)
       (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only t :silent t))
 
+(setf *stack-overflow-behaviour* nil)
+(comprehend-and-extract-frames (sentence-string (second *phrasal-sentences*))
+                         :cxn-inventory *propbank-learned-cxn-inventory* )
 
-(comprehend-and-evaluate (list (third *phrasal-sentences*))
-                         *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil)
 
 (set-configuration *restored-grammar* :node-tests '(:check-double-role-assignment))
 
 (add-element (make-html (find-cxn 'bust-up\(VP\)-CXN *propbank-learned-cxn-inventory* :hash-key 'bust-up :key #'name :test #'equal)))
 
-(comprehend-and-evaluate (list (nth 16 *phrasal-sentences*))
+(comprehend-and-evaluate (list (sentence-string (first *phrasal-sentences*)))
                          *restored-grammar* :silent nil)
 
 (add-element (make-html (find-cxn  'break-up\(vp\)-cxn  *propbank-learned-cxn-inventory-small* :hash-key 'break-up)))
