@@ -95,19 +95,6 @@
    (/ (get-nr-of-nodes cipn)
       (get-depth-of-solution cipn))))
 
-(defun no-search-p (cipn)
-  ;; when nodes that are NOT on the path to the solution
-  ;; NEVER have any children, there was no search
-  (let ((path-to-solution (all-parents cipn))
-        (no-search-p t))
-    (traverse-depth-first
-     (cip cipn)
-     :do-fn #'(lambda (node)
-                (when (and (not (member node path-to-solution))
-                           (children node))
-                  (setf no-search-p nil))))
-    no-search-p))
-
 (defun run-monitors (id input output cipn run-time out-stream)
   (let ((input-length (get-input-length input)) ;; length of the input
          (output-length
@@ -231,9 +218,7 @@
           (list "id" "input_length" "output_length"
                 "success" "avg_branching_factor"
                 "nr_of_nodes" "search_space_size"
-                "depth_of_solution" "run_time"
-                ;"no_search"
-                )))
+                "depth_of_solution" "run_time")))
     (ensure-directories-exist outputfile)
     (write-csv-row header :stream out-stream)
     (force-output out-stream)
@@ -272,72 +257,30 @@
          (case strategy
            (:depth-first
             `((:queue-mode . :greedy-best-first)
-              (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+              (:cxn-supplier-mode . :ordered-by-label-hashed)
               (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :nr-of-applied-cxns)
-              ;(:max-nr-of-nodes . ,max-nr-of-nodes)
-              ))
+              (:parse-order hashed cxn)
+              (:production-order hashed cxn hashed)))
            (:priming
             `((:queue-mode . :greedy-best-first)
-              (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+              (:cxn-supplier-mode . :ordered-by-label-hashed)
               (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :priming)
-              ;(:max-nr-of-nodes . ,max-nr-of-nodes)
-              ))
+              (:parse-order hashed cxn)
+              (:production-order hashed cxn hashed)))
            (:seq2seq
             (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
                                           seq2seq-server-port)
                             #-ccl (format nil "http://localhost:~a/next-cxn"
                                           seq2seq-server-port)))
               `((:queue-mode . :greedy-best-first)
-                (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
+                (:cxn-supplier-mode . :ordered-by-label-hashed+seq2seq)
                 (:hash-mode . :hash-string-meaning-lex-id)
-                (:priority-mode . :seq2seq-heuristic-additive)
+                (:priority-mode . :seq2seq-additive-with-sets)
                 (:seq2seq-endpoint . ,endpoint)
-                ;(:max-nr-of-nodes . ,max-nr-of-nodes)
-                )))
-           (:beam2
-            (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
-                                          seq2seq-server-port)
-                            #-ccl (format nil "http://localhost:~a/next-cxn"
-                                          seq2seq-server-port)))
-              `((:queue-mode . :greedy-best-first)
-                (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-                (:hash-mode . :hash-string-meaning-lex-id)
-                (:priority-mode . :seq2seq-heuristic-additive)
-                (:seq2seq-endpoint . ,endpoint)
-                (:seq2seq-probability-cutoff . 0.05)
-                (:seq2seq-number-cutoff . 2)
-                ;(:max-nr-of-nodes . ,max-nr-of-nodes)
-                )))
-           (:beam3
-            (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
-                                          seq2seq-server-port)
-                            #-ccl (format nil "http://localhost:~a/next-cxn"
-                                          seq2seq-server-port)))
-              `((:queue-mode . :greedy-best-first)
-                (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-                (:hash-mode . :hash-string-meaning-lex-id)
-                (:priority-mode . :seq2seq-heuristic-additive)
-                (:seq2seq-endpoint . ,endpoint)
-                (:seq2seq-probability-cutoff . 0.05)
-                (:seq2seq-number-cutoff . 3)
-                ;(:max-nr-of-nodes . ,max-nr-of-nodes)
-                )))
-           (:beam7
-            (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
-                                          seq2seq-server-port)
-                            #-ccl (format nil "http://localhost:~a/next-cxn"
-                                          seq2seq-server-port)))
-              `((:queue-mode . :greedy-best-first)
-                (:cxn-supplier-mode . :hashed+seq2seq-beam)
-                (:hash-mode . :hash-string-meaning-lex-id)
-                (:priority-mode . :seq2seq-heuristic-additive)
-                (:seq2seq-endpoint . ,endpoint)
-                (:beam-width . 7)
-                ;(:max-nr-of-nodes . ,max-nr-of-nodes)
-                )))
-           )))
+                (:parse-order hashed cxn)
+                (:production-order hashed cxn hashed)))))))
     (if (null max-nr-of-nodes)
       (setf configurations
             (append '((:node-tests :check-duplicate)
