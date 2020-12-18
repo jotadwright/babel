@@ -98,7 +98,11 @@
                                  collect (cons cxn (cdr cxn-and-prob))))
          (cxn-inventory (construction-inventory node))
          (beam-width (get-configuration cxn-inventory :beam-width))
-         (beam-cxns (mapcar #'car (the-x-highest comptatible-cxns beam-width :key #'cdr))))
+         ;(beam-cxns (mapcar #'car (the-x-highest comptatible-cxns beam-width :key #'cdr))))
+         (beam (the-x-highest comptatible-cxns beam-width :key #'cdr))
+         (beam-cxns (mapcar #'car beam))
+         (beam-probs (mapcar #'cdr beam)))
+    ;(print beam-probs)
     (set-data node :seq2seq-prediction distribution)
     (make-instance
      'cxn-supplier-with-seq2seq-heuristics
