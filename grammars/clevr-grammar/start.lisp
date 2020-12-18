@@ -2,18 +2,6 @@
 (in-package :clevr-grammar)
 (activate-monitor trace-fcg)
 
-
-;; Seq2seq configurations:
-(set-configurations *fcg-constructions*
-                    '((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-                      (:priority-mode . :seq2seq-heuristic)
-                      (:seq2seq-probability-cutoff . 0.05)
-                      (:seq2seq-number-cutoff . 2)
-                      (:seq2seq-endpoint . #-ccl "http://localhost:8888/next-cxn"
-                       #+ccl "http://127.0.0.1:8888/next-cxn")
-                      (:seq2seq-model-formulation . "clevr_formulation_model_v2"))
-                    :replace t)
-
 ;; depth first configurations
 ;; using 2 cxn sets: hashed and non-hashed (cxn)
 ;; in parsing, apply all hashed cxns first and only
@@ -33,6 +21,16 @@
                       (:priority-mode . :priming)
                       (:parse-order hashed cxn)
                       (:production-order hashed cxn hashed)))
+
+;; Seq2seq configurations:
+(set-configurations *fcg-constructions*
+                    '((:cxn-supplier-mode . :ordered-by-label-hashed+seq2seq)
+                      (:priority-mode . :seq2seq-additive-with-sets)
+                      (:parse-order hashed cxn)
+                      (:production-order hashed cxn hashed)
+                      (:seq2seq-endpoint . #-ccl "http://localhost:8888/next-cxn"
+                                           #+ccl "http://127.0.0.1:8888/next-cxn"))
+                    :replace t)
 
 (comprehend "What color is the cube?")
 

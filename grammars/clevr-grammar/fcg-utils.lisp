@@ -50,19 +50,6 @@
    "A construction pool that applies constructions of
     different labels by a pre-specified order and supports hashing"))
 
-(defun all-constructions-of-label-hashed (node label)
-  "returns all constructions of label 'label'"
-  (loop for cxn in (constructions-for-application-hashed node)
-        for cxn-label = (attr-val cxn :label)
-        when (or (and (symbolp cxn-label)
-                      (string= (symbol-name label)
-                               (symbol-name cxn-label)))
-                 (and (listp cxn-label)
-                      (member (symbol-name label)
-                              (mapcar #'symbol-name cxn-label)
-                              :test #'string=)))
-        collect cxn))
-
 (defmethod create-cxn-supplier ((node cip-node) (mode (eql :ordered-by-label-hashed)))
   (let ((parent (car (all-parents node))))
     (if parent
