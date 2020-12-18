@@ -63,23 +63,22 @@
     ;; when the outputfile already exists, check how many
     ;; lines have already been processed and skip these
     ;; in the inputfile (they no longer need processing)
-    (when outputfile-exists-p
+    (if outputfile-exists-p
       (let ((lines-already-processed (- (number-of-lines outputfile) 1)))
         (decf lines-to-process lines-already-processed)
         (loop repeat lines-already-processed
               do (read-line in-stream nil nil))
         (setf out-stream
               (open outputfile :direction :output
-                    :if-exists :append))))
-    ;; if the outputfile does not exist, create it and
-    ;; write the header to it
-    (unless outputfile-exists-p
-      (ensure-directories-exist outputfile)
-      (setf out-stream
+                    :if-exists :append)))
+      ;; if the outputfile does not exist, create it and
+      ;; write the header to it
+      (progn (ensure-directories-exist outputfile)
+        (setf out-stream
             (open outputfile :direction :output
                   :if-does-not-exist :create))
-      (write-csv-row out-stream-header :stream out-stream)
-      (force-output out-stream))
+        (write-csv-row out-stream-header :stream out-stream)
+        (force-output out-stream)))
     ;; loop over the lines, comprehend them and
     ;; write to output
     (with-progress-bar (bar lines-to-process
