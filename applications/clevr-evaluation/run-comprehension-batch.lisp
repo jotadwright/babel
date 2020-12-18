@@ -2,16 +2,14 @@
 (ql:quickload :clevr-evaluation)
 (in-package :clevr-evaluation)
 
-(defun make-csv-line (&rest args)
-  "Create a comma separated string of args"
-  (format nil "~{~a~^,~}" args))
-
 (defun succeededp (cipn)
   "Check if the goal test succeeded"
   (and cipn (eql (first (statuses cipn)) 'fcg::succeeded)))
 
+
 (defun get-depth-of-solution (cipn)
   (length (all-parents cipn)))
+
 
 (defun comprehend-until-solution (utterance id)
   "Try to comprehend the utterance until a
@@ -30,23 +28,20 @@
         finally (return (values meaning cipn))))
 
 
-(defun get-meaning-and-comprehension-cxns (input-line)
+(defun get-meaning-and-comprehension-cxns (id utterance)
   "Run comprehension until a solution is found.
    Export the meaning network in IRL and RPN format
    and the applied constructions."
-  (let* ((fields (split input-line #\,))
-         (id (parse-integer (first fields)))
-         (utterance (second fields)))
-    (multiple-value-bind (irl-program cipn)
-        (comprehend-until-solution utterance id)
-      (declare (ignorable cipn))
-      (values (downcase (mkstr irl-program))
-              (clevr-meaning->rpn irl-program)
-              (list-of-strings->string
-               (reverse
-                (mapcar (compose #'downcase #'mkstr #'name)
-                        (applied-constructions cipn))))
-              (get-depth-of-solution cipn)))))
+  (multiple-value-bind (irl-program cipn)
+      (comprehend-until-solution utterance id)
+    (declare (ignorable cipn))
+    (values (downcase (mkstr irl-program))
+            (clevr-meaning->rpn irl-program)
+            (list-of-strings->string
+             (reverse
+              (mapcar (compose #'downcase #'mkstr #'name)
+                      (applied-constructions cipn))))
+            (get-depth-of-solution cipn))))
 
 
 (defun process-inputfile (inputfile outputdir)
@@ -56,7 +51,6 @@
   ;; the inputfile
   (let* ((lines-to-process (- (number-of-lines inputfile) 1))
          (in-stream (open inputfile :direction :input))
-         (in-stream-header (remove #\Return (read-line in-stream)))
          (outputfile (make-pathname :directory (pathname-directory outputdir)
                                     :name (pathname-name inputfile)
                                     :type (pathname-type inputfile)))
@@ -65,8 +59,9 @@
                            :if-exists :append
                            :if-does-not-exist :create))
          (out-stream-header
-          (make-csv-line in-stream-header "irl_program"
-                         "rpn" "comprehension_cxns" "depth_of_solution")))
+          (list "id" "utterance" "irl_program"
+                "rpn" "comprehension_cxns"
+                "depth_of_solution")))
     ;; when the outputfile already exists, check how many
     ;; lines have already been processed and skip these
     ;; in the inputfile (they no longer need processing)
@@ -79,35 +74,41 @@
     ;; write the header to it
     (unless outputfile-exists-p
       (ensure-directories-exist outputfile)
-      (write-line out-stream-header out-stream)
+      (write-csv-row out-stream-header :stream out-stream)
       (force-output out-stream))
     ;; loop over the lines, comprehend them and
     ;; write to output
     (with-progress-bar (bar lines-to-process
                             ("Processing ~a" (pathname-name inputfile)))
-      (loop for line = (remove #\Return (read-line in-stream nil nil))
-            while line
-            do (multiple-value-bind (irl-program rpn
-                                     comprehension-cxns
-                                     depth-of-solution)
-                   (get-meaning-and-comprehension-cxns line)
-                 (let ((out-line
-                        (make-csv-line line irl-program rpn
-                                       comprehension-cxns
-                                       depth-of-solution)))
-                   (write-line out-line out-stream)
-                   (force-output out-stream)
-                   (update bar)))))
+      (do-csv (row in-stream :skip-first-p (not outputfile-exists-p))
+        (destructuring-bind (id utterance) row
+          (multiple-value-bind (irl-program rpn
+                                comprehension-cxns
+                                depth-of-solution)
+              (get-meaning-and-comprehension-cxns id utterance)
+            (let ((out-row
+                   (list id utterance irl-program rpn
+                         comprehension-cxns
+                         depth-of-solution)))
+              (write-csv-row out-row :stream out-stream)
+              (force-output out-stream)
+              (update bar))))))
     ;; close the pipes
     (close in-stream)
     (force-output out-stream)
     (close out-stream)))
 
+
 #|
+ (activate-monitor trace-fcg)
+ 
 (set-configurations *CLEVR*
-                    '((:max-nr-of-nodes . 50000)
-                      (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                      (:priority-mode . :nr-of-applied-cxns))
+                    '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                      (:priority-mode . :nr-of-applied-cxns)
+                      (:parse-order hashed cxn)
+                      (:production-order hashed cxn hashed)
+                      (:max-nr-of-nodes . 5000)
+                      (:queue-mode . :greedy-best-first))
                     :replace t)
 
 (process-inputfile
@@ -116,46 +117,55 @@
  (babel-pathname :directory '(".tmp")))
 |#
 
-(defun args->plist (args)
+
+(defun parse-args (args)
   (loop for arg in args
         for i from 0
         if (evenp i) collect (internal-symb (upcase arg))
         else collect arg))
 
 
-(defun main (args)
-  (let ((arg-plist (args->plist args)))
+(defun main (command-line-args)
+  (let ((args (parse-args command-line-args)))
     ;; check the command line args
-    (loop for indicator in '(inputfile outputdir max-nr-of-nodes strategy)
-          unless (getf arg-plist indicator)
-          do (error "Missing command line argument: ~a" indicator))
-    (let* ((strategy (make-kw (getf arg-plist 'strategy)))
-           (max-nr-of-nodes (parse-integer (getf arg-plist 'max-nr-of-nodes)))
+    (loop for arg in '(inputfile outputdir max-nr-of-nodes strategy)
+          unless (getf args arg)
+          do (error "Missing command line argument: ~a" arg))
+    ;; print the command line args
+    (format t "~%Received args: ~a" args)
+    ;; set the strategy
+    (let* ((strategy (make-kw (getf args 'strategy)))
+           (max-nr-of-nodes (parse-integer (getf args 'max-nr-of-nodes)))
            (clevr-configurations
             (case strategy
               (:depth-first
                `((:queue-mode . :greedy-best-first)
-                 (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                 (:cxn-supplier-mode . :ordered-by-label-hashed)
                  (:hash-mode . :hash-string-meaning-lex-id)
                  (:priority-mode . :nr-of-applied-cxns)
-                 (:max-nr-of-nodes . ,max-nr-of-nodes)))
+                 (:max-nr-of-nodes . ,max-nr-of-nodes)
+                 (:parse-order hashed cxn)
+                 (:production-order hashed cxn hashed)))
               (:priming
                `((:queue-mode . :greedy-best-first)
-                 (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
+                 (:cxn-supplier-mode . :ordered-by-label-hashed)
                  (:hash-mode . :hash-string-meaning-lex-id)
                  (:priority-mode . :priming)
-                 (:max-nr-of-nodes . ,max-nr-of-nodes))))))
+                 (:max-nr-of-nodes . ,max-nr-of-nodes)
+                 (:parse-order hashed cxn)
+                 (:production-order hashed cxn hashed))))))
       ;; set the configurations for the CLEVR grammar
       (set-configurations *CLEVR* clevr-configurations :replace t)
       ;; import priming data when found
       (when (and (eql strategy :priming)
-                 (getf arg-plist 'import-priming-data-path))
+                 (getf args 'import-priming-data-path))
         (fcg-import-comprehension-priming-data
-         (parse-namestring (getf arg-plist 'import-priming-data-path))
+         (parse-namestring (getf args 'import-priming-data-path))
          *CLEVR*)))
     ;; process the inputfile
-    (process-inputfile (getf arg-plist 'inputfile)
-                       (getf arg-plist 'outputdir))))
+    (process-inputfile (getf args 'inputfile)
+                       (getf args 'outputdir))))
+
 
 #-lispworks
 (main #+ccl ccl:*unprocessed-command-line-arguments*

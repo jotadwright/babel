@@ -33,5 +33,7 @@
   (:import-from :trivial-timeout
                 :with-timeout
                 :timeout-error)
+  (:import-from :cl-csv
+                :do-csv :read-csv-row :write-csv-row)
   (:shadowing-import-from :fcg :size :attributes))
   
