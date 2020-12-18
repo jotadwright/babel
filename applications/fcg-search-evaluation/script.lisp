@@ -243,21 +243,21 @@
   (let ((lines-to-process (- (number-of-lines inputfile) 1))
         (in-stream (open inputfile :direction :input))
         (out-stream (make-out-stream inputfile outputdir)))
-    ;; skip the header
-    (read-csv-row in-stream)
     ;; loop over the lines
     ;; process them
     ;; and write monitors
-    (with-progress-bar (bar lines-to-process ("Processing ~a" (pathname-name inputfile)))
-      (loop for row = (read-csv-row in-stream)
-            while row
-            do (destructuring-bind (id utterance &optional irl-program &rest rest) row
-                 (declare (ignorable rest))
-                 (case direction
-                   (:comprehension (comprehend-line grammar id utterance out-stream timeout))
-                   (:formulation (formulate-line grammar id (read-from-string irl-program)
-                                                 out-stream timeout)))
-                 (update bar))))
+    (with-progress-bar (bar lines-to-process
+                            ("Processing ~a"
+                             (pathname-name inputfile))
+                            :width 50)
+      (do-csv (row in-stream :skip-first-p t)
+        (destructuring-bind (id utterance &optional irl-program &rest rest) row
+          (declare (ignorable rest))
+          (case direction
+            (:comprehension (comprehend-line grammar id utterance out-stream timeout))
+            (:formulation (formulate-line grammar id (read-from-string irl-program)
+                                          out-stream timeout)))
+          (update bar))))
     ;; close the pipes
     (close in-stream)
     (force-output out-stream)
@@ -324,7 +324,7 @@
                 (:seq2seq-number-cutoff . 3)
                 ;(:max-nr-of-nodes . ,max-nr-of-nodes)
                 )))
-           (:beam5
+           (:beam7
             (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
                                           seq2seq-server-port)
                             #-ccl (format nil "http://localhost:~a/next-cxn"
@@ -334,7 +334,7 @@
                 (:hash-mode . :hash-string-meaning-lex-id)
                 (:priority-mode . :seq2seq-heuristic-additive)
                 (:seq2seq-endpoint . ,endpoint)
-                (:beam-width . 5)
+                (:beam-width . 7)
                 ;(:max-nr-of-nodes . ,max-nr-of-nodes)
                 )))
            )))
@@ -369,14 +369,13 @@
 #|
 
 ;; (defun activate-strategy (grammar strategy max-nr-of-nodes seq2seq-server-port)
-(activate-strategy *clevr* :depth-first 1000 8888)
+(activate-strategy *clevr* :beam7 50000 8888)
 
 ;; (defun process-inputfile (grammar inputfile outputdir timeout direction)
 (process-inputfile *clevr*
- (babel-pathname :directory '("applications" "fcg-search-evaluation")
-                 :name "batch-0" :type "csv")
+ (parse-namestring "/Users/jensnevens/Desktop/seq2seq/beam5_failed.csv")
  (babel-pathname :directory '(".tmp"))
- 60 :comprehension)
+ 400 :comprehension)
 
 |#
 
