@@ -14,10 +14,27 @@
                       (:seq2seq-model-formulation . "clevr_formulation_model_v2"))
                     :replace t)
 
-;; depth first configurations:
+;; depth first configurations
+;; using 2 cxn sets: hashed and non-hashed (cxn)
+;; in parsing, apply all hashed cxns first and only
+;; afterwards try the non-hashed cxns
+;; in production, it is allowed to apply hashed cxns
+;; before and after the non-hashed cxns
 (set-configurations *fcg-constructions*
-                    '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                      (:priority-mode . :nr-of-applied-cxns)))
+                    '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                      (:priority-mode . :nr-of-applied-cxns)
+                      (:parse-order hashed cxn)
+                      (:production-order hashed cxn hashed)))
+
+;; priming configurations
+;; identical to depth first, but using the priming data
+(set-configurations *fcg-constructions*
+                    '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                      (:priority-mode . :priming)
+                      (:parse-order hashed cxn)
+                      (:production-order hashed cxn hashed)))
+
+(comprehend "What color is the cube?")
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
 (comprehend "What size is the blue metal thing left of the green ball behind the red thing?")

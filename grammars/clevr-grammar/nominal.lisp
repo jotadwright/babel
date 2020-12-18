@@ -40,7 +40,7 @@
                (syn-cat (lex-class noun)
                         (syn-function nominal)
                         (number ?number))))
-             :cxn-set nom
+             :cxn-set cxn
              :cxn-inventory *CLEVR*)
 
 ;; nominal cxn will capture an existing nominal and
@@ -94,7 +94,7 @@
                (leftmost-unit ?leftmost-nom-unit)
                (rightmost-unit ?rightmost-nom-unit)
                (HASH form ((meets ?adjective-unit ?leftmost-nom-unit)))))
-             :cxn-set nom
+             :cxn-set cxn
              :cxn-inventory *CLEVR*)
 
 ;; unique-determined <- "the" + nominal

@@ -104,10 +104,10 @@
                          (:production-goal-tests :no-applicable-cxns
                                                  :connected-structure
                                                  :no-meaning-in-root)
-                         ;; For heuristic search:
+                         
+                         ;; For heuristic search with seq2seq:
                          (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
                          (:priority-mode . :seq2seq-heuristic-additive)
-                         ;(:seq2seq-endpoint . "https://ehai.ai.vub.ac.be/seq2seq-heuristics/next-cxn")
                          (:seq2seq-endpoint . "http://localhost:8888/next-cxn")
                          (:seq2seq-model-comprehension . "clevr_comprehension_model")
                          (:seq2seq-model-formulation . "clevr_formulation_model")
