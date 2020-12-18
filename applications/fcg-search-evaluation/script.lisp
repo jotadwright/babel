@@ -256,14 +256,14 @@
   (let ((configurations
          (case strategy
            (:depth-first
-            `((:queue-mode . :greedy-best-first)
+            '((:queue-mode . :greedy-best-first)
               (:cxn-supplier-mode . :ordered-by-label-hashed)
               (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :nr-of-applied-cxns)
               (:parse-order hashed cxn)
               (:production-order hashed cxn hashed)))
            (:priming
-            `((:queue-mode . :greedy-best-first)
+            '((:queue-mode . :greedy-best-first)
               (:cxn-supplier-mode . :ordered-by-label-hashed)
               (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :priming)
@@ -311,12 +311,15 @@
 
 #|
 
+  (activate-monitor trace-fcg)
+
 ;; (defun activate-strategy (grammar strategy max-nr-of-nodes seq2seq-server-port)
-(activate-strategy *clevr* :beam7 50000 8888)
+(activate-strategy *clevr* :depth-first 50000 8888)
 
 ;; (defun process-inputfile (grammar inputfile outputdir timeout direction)
 (process-inputfile *clevr*
- (parse-namestring "/Users/jensnevens/Desktop/seq2seq/beam5_failed.csv")
+ (babel-pathname :directory '("applications" "fcg-search-evaluation")
+                 :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
  400 :comprehension)
 
