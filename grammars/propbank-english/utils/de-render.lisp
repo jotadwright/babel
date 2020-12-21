@@ -38,7 +38,9 @@
                       ;; attributes
                       for node-type = (node-type node)
                       for node-string = (node-string node)
-                      for parent-id = (if (and (equal (node-lex-class node) 'rp);;particle+more checks?
+                      for parent-id = (if (and (or (or (equal (node-lex-class node) 'rp);;particle
+                                                       (equal (node-dependency-label node) 'prt))
+                                                   (equal (node-lex-class node) 'rb)) ;;adverb??
                                                (adjacent-nodes? (node-dependency-head node) node spacy-benepar-analysis))
                                         (node-dependency-head node)
                                         (node-parent node))
@@ -93,14 +95,19 @@
                                              :right-pole '((root)))))
     transient-structure))
 
-(defun adjacent-nodes? (node-1 node-2 spacy-benepar-analysis)
- t
-  );;to do!
+(defun adjacent-nodes? (node-id-1 node-2 spacy-benepar-analysis)
+  (let* ((node-1 (find node-id-1 spacy-benepar-analysis :key #'node-id))
+         (end-index-node-1 (node-end node-1))
+         (start-index-node-2 (node-start node-2)))
+    (when (= start-index-node-2 end-index-node-1)
+      t)))
 
+(defun parent-unit (unit unit-structure)
+  (let ((parent-unit-name (unit-feature-value unit 'parent)))
+    (find parent-unit-name unit-structure :key #'unit-name)))
+  
 (defun run-phrasal-verb-check (units)
-  "Checks if there are particle units in the unit structure, in which
-case the verb unit related to the particle must be adapted to include
-the right string and constituent features." ;;what about the vp above it?
+  "Checks if there are particle units in the unit structure, ." ;;what about the vp above it?
 
   (let* ((phrasal-verb-units
           (loop for unit in units
@@ -123,7 +130,14 @@ the right string and constituent features." ;;what about the vp above it?
                     (new-particle-unit (update-unit-feature-value particle-unit 'parent (unit-name additional-vp-unit)))
                     (other-constituents (set-difference (unit-feature-value vp-unit 'constituents)
                                                         (list (unit-name phrasal-verb-unit) (unit-name particle-unit))))
-                    (new-vp-unit (update-unit-feature-value vp-unit 'constituents (append other-constituents (list (unit-name additional-vp-unit))))))
+                    (new-vp-unit
+                     (if (equalp (unit-feature-value vp-unit 'span) (unit-feature-value additional-vp-unit 'span)) ;;double phrasal-vps
+                       (let* ((parent-unit (parent-unit vp-unit units))
+                              (other-parent-constituents (set-difference (unit-feature-value parent-unit 'constituents)
+                                                                         (list (unit-name vp-unit)))))
+                         (update-unit-feature-value (parent-unit vp-unit units) 'constituents
+                                                    (append other-parent-constituents (list (unit-name additional-vp-unit)))))
+                      (update-unit-feature-value vp-unit 'constituents (append other-constituents (list (unit-name additional-vp-unit)))))))
                ;;delete 3 old units
                (delete phrasal-verb-unit units :test #'equalp)
                (delete particle-unit units :test #'equalp)
@@ -144,7 +158,8 @@ the right string and constituent features." ;;what about the vp above it?
             else collect unit-feature)))
 
 (defun create-phrasal-vp-unit (verb-unit particle-unit)
-  (let ((phrasal-lemma (intern (upcase (format nil "~a-~a" (unit-feature-value verb-unit 'lemma)
+  (let ((phrasal-lemma (intern (upcase (format nil "~a-~a"
+                                               (unit-feature-value verb-unit 'lemma)
                                                (unit-feature-value particle-unit 'lemma))))))
   `(,(make-const "PHRASAL-VP")
     (constituents (,(unit-name verb-unit) ,(unit-name particle-unit)))

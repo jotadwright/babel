@@ -170,11 +170,11 @@ outbound neighbors for a directed graph."
   (unless (= n1 n2)
     (let ((matrix (gethash edge-type (matrix graph))))
       (when (sparse-array? matrix)
-        (when (> (saref (matrix graph) n1 n2) 0)
+        (when (> (saref matrix n1 n2) 0) 
           (decf (gethash n1 (degree-table graph)))
           (decf (gethash n2 (degree-table graph)))
           (decf (edges graph))
-          (setf (saref (matrix graph) n1 n2) 0))))))
+          (setf (saref matrix n1 n2) 0))))))
 
 (defmethod delete-edge ((graph undirected-typed-graph) n1 n2 &optional edge-type)
   (let ((node1 (or (lookup-node graph n1) (add-node graph n1)))
