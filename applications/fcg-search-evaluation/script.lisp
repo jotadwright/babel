@@ -45,9 +45,9 @@
 #|
 (merge-priming-data-tables
  (directory
-  (babel-pathname :directory '("applications" "fcg-search-evaluation" "results" "formulation" "priming-gather-data")
+  (babel-pathname :directory '("applications" "fcg-search-evaluation" "results" "comprehension")
                   :name :wild :type "lsp"))
- (babel-pathname :directory '("applications" "fcg-search-evaluation" "results" "formulation")
+ (babel-pathname :directory '("applications" "fcg-search-evaluation" "results" "comprehension")
                  :name "priming-data" :type "lsp"))
 |#
 

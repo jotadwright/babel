@@ -119,7 +119,8 @@
                          (:max-nr-of-nodes . 10000)
                          (:hash-mode . :hash-string-meaning-lex-id))
     :visualization-configurations ((:show-constructional-dependencies . nil)
-                                   (:hide-features . (footprints superunits))
+                                   (:hide-features . nil)
+                                   ;(:hide-features . (footprints superunits))
                                    (:with-search-debug-data . t))
     :hierarchy-features (subunits)
     :hashed t

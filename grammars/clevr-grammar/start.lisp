@@ -940,7 +940,7 @@
 ;; single or question family ;;
 ;; ------------------------- ;;
 ;; question type 1; count, no relate
-(fcg:comprehend-all '("how many" "things" "are"          "large" "blue" "things" "or" "green" "balls"))
+(fcg:comprehend '("how many" "things" "are"          "large" "blue" "things" "or" "green" "balls"))
 (fcg:comprehend-all '("how many" "things" "are" "either" "large" "blue" "things" "or" "green" "balls"))
 (fcg:comprehend-all '("what number of" "things" "are"          "large" "blue" "things" "or" "green" "balls"))
 (fcg:comprehend-all '("what number of" "things" "are" "either" "large" "blue" "things" "or" "green" "balls"))
@@ -966,7 +966,7 @@
    (bind shape-category shape-3 thing)))
 
 ;; question type 2; count, relate left
-(fcg:comprehend-all '("how many" "things" "are"          "large" "blue" "things"            "left of" "the" "green" "ball" "or" "red" "things"))
+(fcg:comprehend '("how many" "things" "are"          "large" "blue" "things"            "left of" "the" "green" "ball" "or" "red" "things"))
 (fcg:comprehend-all '("how many" "things" "are" "either" "large" "blue" "things"            "left of" "the" "green" "ball" "or" "red" "things"))
 (fcg:comprehend-all '("how many" "things" "are"          "large" "blue" "things" "that are" "left of" "the" "green" "ball" "or" "red" "things"))
 (fcg:comprehend-all '("how many" "things" "are" "either" "large" "blue" "things" "that are" "left of" "the" "green" "ball" "or" "red" "things"))
@@ -1032,7 +1032,7 @@
    (bind shape-category shape-4 thing)))
 
 ;; question type 4; count, relate both
-(fcg:comprehend-all '("how many" "things" "are"          "large" "blue" "things"            "left of" "the" "green" "ball" "or" "red" "things"            "behind" "the" "purple" "cube"))
+(fcg:comprehend '("how many" "things" "are"          "large" "blue" "things"            "left of" "the" "green" "ball" "or" "red" "things"            "behind" "the" "purple" "cube"))
 (fcg:comprehend-all '("how many" "things" "are" "either" "large" "blue" "things"            "left of" "the" "green" "ball" "or" "red" "things"            "behind" "the" "purple" "cube"))
 (fcg:comprehend-all '("how many" "things" "are" "either" "large" "blue" "things"            "left of" "the" "green" "ball" "or" "red" "things" "that are" "behind" "the" "purple" "cube"))
 (fcg:comprehend-all '("how many" "things" "are" "either" "large" "blue" "things" "that are" "left of" "the" "green" "ball" "or" "red" "things"            "behind" "the" "purple" "cube"))
@@ -1095,7 +1095,7 @@
 ;; compare integer question family ;;
 ;; ------------------------------- ;;
 ;; question type 1, same number
-(fcg:comprehend-all '("are there" "an equal number of" "blue" "things" "and" "green" "balls"))
+(fcg:comprehend '("are" "there" "an equal number of" "blue" "things" "and" "green" "balls"))
 (fcg:comprehend-all '("are there" "the same number of" "blue" "things" "and" "green" "balls"))
 (fcg:comprehend-all '("is the number of" "blue" "things" "the same as" "the number of" "green" "balls"))
 
@@ -1116,7 +1116,7 @@
    (bind shape-category shape-2 thing)
    (bind color-category color-2 blue)))
 
-(fcg:comprehend-all '("are there" "an equal number of" "blue" "things" "left of" "the" "green" "ball" "and" "red" "cubes"))
+(fcg:comprehend '("are" "there" "an equal number of" "blue" "things" "left of" "the" "green" "ball" "and" "red" "cubes"))
 (fcg:comprehend-all '("are there" "the same number of" "blue" "things" "left of" "the" "green" "ball" "and" "red" "cubes"))
 (fcg:comprehend-all '("is the number of" "blue" "things" "left of" "the" "green" "ball" "the same as" "the number of" "red" "cubes"))
 
@@ -1144,7 +1144,7 @@
    (bind shape-category shape-3 thing)
    (bind color-category color-3 blue)))
 
-(fcg:comprehend-all '("are there" "an equal number of" "blue" "things" "left of" "the" "green" "ball" "and" "red" "cubes" "behind" "the" "purple" "cube"))
+(fcg:comprehend '("are" "there" "an equal number of" "blue" "things" "left of" "the" "green" "ball" "and" "red" "cubes" "behind" "the" "purple" "cube"))
 (fcg:comprehend-all '("are there" "the same number of" "blue" "things" "left of" "the" "green" "ball" "and" "red" "cubes" "behind" "the" "purple" "cube"))
 (fcg:comprehend '("is the number of" "blue" "things" "left of" "the" "green" "ball" "the same as" "the number of" "red" "cubes" "behind" "the" "purple" "cube"))
 
@@ -1347,7 +1347,7 @@
 ;; same relate question family ;;
 ;; --------------------------- ;;
 ;; question type 1, exist, same size, (+ filter)
-(fcg:comprehend-all '("are there any"         "things" "that have" "the same" "size" "as" "the" "blue" "ball"))
+(fcg:comprehend '("are there any"         "things" "that have" "the same" "size" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("are there any" "other" "things" "that have" "the same" "size" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("are there any"         "things" "that are" "the same" "size" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("are there any" "other" "things" "that are" "the same" "size" "as" "the" "blue" "ball"))
@@ -1382,7 +1382,7 @@
    (bind color-category color-2 red)))
 
 ;; EXCEPTIONS
-(fcg:comprehend-all '("are there any"         "things" "that are" "made of" "the same" "material" "as" "the" "blue" "ball"))
+(fcg:comprehend '("are there any"         "things" "that are" "made of" "the same" "material" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("are there any" "other" "things" "that are" "made of" "the same" "material" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("are there any"         "red" "cubes" "made of" "the same" "material" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("are there any" "other" "red" "cubes" "made of" "the same" "material" "as" "the" "blue" "ball"))
@@ -1421,7 +1421,7 @@
    (bind shape-category shape-2 cube)
    (bind color-category color-2 red)))
 
-(fcg:comprehend-all '("how many"         "red" "cubes" "have" "the same" "size" "as" "the" "blue" "ball"))
+(fcg:comprehend '("how many"         "red" "cubes" "have" "the same" "size" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("how many" "other" "red" "cubes" "have" "the same" "size" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("how many"          "red" "cubes" "are" "the same" "size" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("how many" "other" "red" "cubes" "are" "the same" "size" "as" "the" "blue" "ball"))
@@ -1431,7 +1431,7 @@
 (fcg:comprehend-all '("what number of" "other" "red" "cubes" "are" "the same" "size" "as" "the" "blue" "ball"))
 
 ;; EXCEPTIONS
-(fcg:comprehend-all '("how many"         "things" "are" "made of" "the same" "material" "as" "the" "blue" "ball"))
+(fcg:comprehend '("how many"         "things" "are" "made of" "the same" "material" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("how many" "other" "things" "are" "made of" "the same" "material" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("what number of"         "objects" "are" "made of" "the same" "material" "as" "the" "blue" "ball"))
 (fcg:comprehend-all '("what number of" "other" "objects" "are" "made of" "the same" "material" "as" "the" "blue" "ball"))
@@ -1487,7 +1487,7 @@
 ;; -------------------------- ;;
 
 ;; question type 1; equal size, no relate
-(fcg:comprehend-all '("do" "the" "blue" "metal" "cube" "and" "the" "red" "thing" "have" "the same" "size"))
+(fcg:comprehend '("do" "the" "blue" "metal" "cube" "and" "the" "red" "thing" "have" "the same" "size"))
 (fcg:comprehend-all '("is" "the" "size" "of" "the" "blue" "metal" "cube" "the same as" "the" "red" "thing"))
 (fcg:comprehend-all '("is" "the" "blue" "metal" "cube" "the same" "size" "as" "the" "red" "thing"))
 (fcg:comprehend-all '("does" "the" "blue" "metal" "cube" "have" "the same" "size" "as" "the" "red" "thing"))
@@ -1519,7 +1519,7 @@
    (bind color-category color-2 red)))
 
 ;; EXCEPTIONS
-(fcg:comprehend-all '("are" "the" "large" "blue" "cube" "and" "the" "red" "thing" "made of" "the same" "material"))
+(fcg:comprehend '("are" "the" "large" "blue" "cube" "and" "the" "red" "thing" "made of" "the same" "material"))
 (fcg:comprehend-all '("is" "the" "large" "blue" "cube" "made of" "the same" "material" "as" "the" "red" "thing"))
 
 ;; question type 2; equal color, no relate

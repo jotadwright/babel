@@ -86,7 +86,9 @@
                         (syn-function nominal)
                         (number ?number))
                (footprints (NOT nominal))
+               (superunits nil)
                --
+               (superunits nil)
                (footprints (NOT nominal))
                (syn-cat (syn-function nominal)
                         (lex-class np)
