@@ -27,6 +27,11 @@
 (defgeneric fetch-ingredient (?ingredient ?new-kitchen-state -kitchen-state -object-class -amount -unit)
   (:documentation "Fetches an ingredient, doses it and puts it on the countertop."))
 
+(defmethod fetch-ingredient ((?new-ingredient t) (?new-kitchen-state t)
+                             (kitchen-state t) (object-class t)
+                             (amount t) (unit t))
+  nil)
+
 (defmethod fetch-ingredient ((?new-ingredient var) (?new-kitchen-state var)
                              (kitchen-state kitchen) (object-class ingredient)
                              (amount number) (unit unit))
@@ -39,6 +44,7 @@
              (setf (amount (quantity ingredient)) (- (amount (quantity ingredient)) amount))
              (setf (amount (quantity new-ingredient)) amount)
              (setf (contents (countertop new-kitchen-state)) (append (list new-ingredient) (contents (countertop new-kitchen-state))))
-             `((,?new-ingredient . ,new-ingredient) (,?new-kitchen-state . ,new-kitchen-state))))))
+             (list (make-instance 'binding :binding-var ?new-ingredient :binding-value new-ingredient)
+                   (make-instance 'binding :binding-var ?new-kitchen-state :binding-value new-kitchen-state))))))
              
              

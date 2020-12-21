@@ -26,10 +26,11 @@
         with copy = (make-instance class)
         for slot in (harlequin-common-lisp:class-slots class)
         for slot-name = (harlequin-common-lisp:slot-definition-name slot)
-        do (setf (slot-value copy slot-name) (copy-ontology-object (slot-value object slot-name)))
+        if (slot-boundp object slot-name)
+        do  (setf (slot-value copy slot-name) (copy-ontology-object (slot-value object slot-name)))
         finally return copy))
 
-(defmethod copy-ontology-object ((object list))
+(Defmethod copy-ontology-object ((object list))
   (cond
    ((null object) nil)
    ((not (consp object)) (copy-ontology-object object))
