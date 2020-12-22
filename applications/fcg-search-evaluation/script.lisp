@@ -96,7 +96,7 @@
       (get-depth-of-solution cipn))))
 
 (defun run-monitors (id input output cipn run-time out-stream)
-  (let ((input-length (get-input-length input)) ;; length of the input
+  (let ((input-length (get-input-length input))
          (output-length
           (if (and cipn (succeededp cipn))
             (get-output-length output)
@@ -311,10 +311,10 @@
 
 #|
 
-  (activate-monitor trace-fcg)
+(activate-monitor trace-fcg)
 
 ;; (defun activate-strategy (grammar strategy max-nr-of-nodes seq2seq-server-port)
-(activate-strategy *clevr* :depth-first 50000 8888)
+(activate-strategy *clevr* :seq2seq 50000 8888)
 
 ;; (defun process-inputfile (grammar inputfile outputdir timeout direction)
 (process-inputfile *clevr*
