@@ -82,11 +82,11 @@
           (values nil nil)))
     (values utterance cipn)))
 
-(defun get-utterance-and-formulation-cxns (id irl-program timeout num-attempts)
+(defun get-utterance-and-formulation-cxns (id irl-program timeout)
   "Run formulation until a solution is found.
    Export the utterance and the applied constructions."
   (multiple-value-bind (utterance cipn)
-      (formulate-num-attempts-with-timeout irl-program id timeout num-attempts)
+      (formulate-with-timeout irl-program id timeout)
     (if (and (null utterance) (null cipn))
       (values "None" "None" "None")
       (values (list-of-strings->string utterance)
@@ -96,7 +96,7 @@
                         (applied-constructions cipn))))
               (get-depth-of-solution cipn)))))
 
-(defun process-inputfile (inputfile outputdir timeout num-attempts)
+(defun process-inputfile (inputfile outputdir timeout)
   "Process the inputfile"
   ;; open read/write pipes and create the header
   ;; of the outputfile based on the header of
@@ -143,8 +143,7 @@
           (multiple-value-bind (utterance
                                 formulation-cxns
                                 depth-of-solution)
-              (get-utterance-and-formulation-cxns id (read-from-string irl-program)
-                                                  timeout num-attempts)
+              (get-utterance-and-formulation-cxns id (read-from-string irl-program) timeout)
             (let ((out-row
                    (list id irl-program rpn
                          utterance formulation-cxns
@@ -168,14 +167,14 @@
                       (:priority-mode . :nr-of-applied-cxns)
                       (:max-nr-of-nodes . 10000)
                       (:parse-order hashed cxn)
-                      (:production-order hashed cxn hashed))
+                      (:production-order hashed-lex cxn hashed-morph))
                     :replace t)
 
 (process-inputfile
  (babel-pathname :directory '("applications" "clevr-evaluation")
                  :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
- 2 30)
+ 400 1)
 |#
 
 (defun parse-args (args)
@@ -205,7 +204,7 @@
                  (:priority-mode . :nr-of-applied-cxns)
                  (:max-nr-of-nodes . ,max-nr-of-nodes)
                  (:parse-order hashed cxn)
-                 (:production-order hashed cxn hashed)))
+                 (:production-order hashed-lex cxn hashed-morph)))
               (:priming
                `((:queue-mode . :greedy-best-first)
                  (:cxn-supplier-mode . :ordered-by-label-hashed)
@@ -213,7 +212,7 @@
                  (:priority-mode . :priming)
                  (:max-nr-of-nodes . ,max-nr-of-nodes)
                  (:parse-order hashed cxn)
-                 (:production-order hashed cxn hashed))))))
+                 (:production-order hashed-lex cxn hashed-morph))))))
       ;; set the configurations for the CLEVR grammar
       (set-configurations *CLEVR* clevr-configurations :replace t)
       ;; import priming data when found
