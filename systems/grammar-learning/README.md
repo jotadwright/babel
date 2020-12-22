@@ -2,6 +2,10 @@
 
 Package for learning construction grammars
 
+test-repairs.lisp : testcases for individual repairs
+
+clevr-learning.lisp: main file to learn the CLEVR grammar
+
 # notes about IRL
 
 IRL predicates, cfr prolog predicates: e.g.: sum(3,4,X), in prolog: unification, in irl, these primitives are implemented with individual methods, not necessarily unification (e.g. a machine learning lib to do visual filtering)
@@ -13,3 +17,6 @@ the first argument in these predicates it typically the output argument (convent
  IRL also has a composer, that creates IRL networks given a certain task that a speaker wants to conceptualise
 
  usually binds correspond to words and other predicates to phrases (the unique predicate could also be implemented as (bind selector-category ?something unique) in combination with the (bind-selector) predicate.
+
+# TODO
+

@@ -5,10 +5,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defclass repair-holophrase-single-deletion (repair) 
+(defclass holophrase->item-based+lexical+holophrase--deletion (repair) 
   ((trigger :initform 'fcg::new-node))) ;; it's always fcg::new-node, we created a new node in the search process
 
-(defmethod repair ((repair repair-holophrase-single-deletion)
+(defmethod repair ((repair holophrase->item-based+lexical+holophrase--deletion)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -21,7 +21,7 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-(defmethod repair ((repair repair-holophrase-single-deletion)
+(defmethod repair ((repair holophrase->item-based+lexical+holophrase--deletion)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -94,8 +94,7 @@
          (find-superset-holophrase-cxn initial-transient-structure cxn-inventory gold-standard-meaning utterance)
 
     (when superset-holophrase-cxn
-          (let* ((holophrase-cxn (create-holophrase-cxn problem node))
-                 (overlapping-form (set-difference (extract-form-predicates superset-holophrase-cxn) non-overlapping-form :test #'equal))
+          (let* ((overlapping-form (set-difference (extract-form-predicates superset-holophrase-cxn) non-overlapping-form :test #'equal))
                  (overlapping-meaning (set-difference (extract-meaning-predicates superset-holophrase-cxn) non-overlapping-meaning :test #'equal))
                  (existing-lex-cxn (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
                  (lex-cxn-name (make-cxn-name non-overlapping-form cxn-inventory))
@@ -111,7 +110,22 @@
                  (th-link-2 (cons lex-class-item-based-cxn lex-class-lex-cxn))
                  ;; args: 
                  (args-lex-cxn (third (first non-overlapping-meaning))) ;; third if bind
-                 ;; unit names
+                 (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
+                 (cxn-name (make-cxn-name utterance cxn-inventory))
+                 (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
+                 (holophrase-cxn (second (multiple-value-list  (eval
+                                                        `(def-fcg-cxn ,cxn-name
+                                                                      ((?holophrase-unit
+                                                                        (syn-cat (phrase-type holophrase)))
+                                                                       <-
+                                                                       (?holophrase-unit
+                                                                        (HASH meaning ,meaning)
+                                                                        --
+                                                                        (HASH form ,form-constraints)))
+                                                                      :attributes (:cxn-type holophrase
+                                                                                   :repair holophrase->item-based+lexical+holophrase--deletion)
+                                                                      :cxn-inventory ,(copy-object cxn-inventory))))))
+
                  
                  (lex-cxn (or existing-lex-cxn
                               (second (multiple-value-list (eval
@@ -125,6 +139,8 @@
                                                                         (HASH meaning ,non-overlapping-meaning)
                                                                         --
                                                                         (HASH form ,non-overlapping-form)))
+                                                                      :attributes (:cxn-type lexical
+                                                                                   :repair holophrase->item-based+lexical+holophrase--deletion)
                                                                       :cxn-inventory ,(copy-object cxn-inventory)))))));; trick to get the cxn without adding it to the cxn-inventory: make a copy of the cxn-inventory, make the cxn, get it, then forget about the copy
                  (item-based-cxn (second (multiple-value-list (eval
                                                                `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
@@ -139,6 +155,8 @@
                                                                                (HASH meaning ,overlapping-meaning)
                                                                                --
                                                                                (HASH form ,overlapping-form)))
+                                                                             :attributes (:cxn-type item-based
+                                                                                   :repair holophrase->item-based+lexical+holophrase--deletion)
                                                                              :cxn-inventory ,(copy-object cxn-inventory)))))))
 
             ;; return the holophrase-cxn, item-based and lexical cxns
@@ -152,7 +170,7 @@
 ;; get restart data from create-repair-cxns-holophrase-single-deletion = created cxns
 ;; apply holophrase
 
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-holophrase-single-deletion) (problem problem) (node cip-node) &key &allow-other-keys) 
+(defmethod handle-fix ((fix fcg::cxn-fix) (repair holophrase->item-based+lexical+holophrase--deletion) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the constructions provided by fix to the result of the node and return the construction-application-result"
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications ;; avoid notifications in web interace

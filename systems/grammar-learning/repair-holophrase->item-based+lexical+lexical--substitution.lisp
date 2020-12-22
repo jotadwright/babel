@@ -4,10 +4,10 @@
 ;; Repair Add item-based construction ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass add-item-based-cxn (repair) 
+(defclass holophrase->item-based+lexical+lexical--substitution (repair) 
   ((trigger :initform 'fcg::new-node)))
 
-(defmethod repair ((repair add-item-based-cxn)
+(defmethod repair ((repair holophrase->item-based+lexical+lexical--substitution)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -20,7 +20,7 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-(defmethod repair ((repair add-item-based-cxn)
+(defmethod repair ((repair holophrase->item-based+lexical+lexical--substitution)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -85,6 +85,8 @@ based on existing construction with sufficient overlap."
                                                                                           (HASH meaning ,non-overlapping-meaning-cxn)
                                                                                           --
                                                                                           (HASH form ,non-overlapping-form-cxn)))
+                                                                                        :attributes (:cxn-type lexical
+                                                                                                     :repair holophrase->item-based+lexical+lexical--substitution)
                                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-lex-cxn-2 (or lex-cxn-2 (second (multiple-value-list (eval
                                                                           `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-observation cxn-inventory)
@@ -97,6 +99,8 @@ based on existing construction with sufficient overlap."
                                                                                           (HASH meaning ,non-overlapping-meaning-observation)
                                                                                           --
                                                                                           (HASH form ,non-overlapping-form-observation)))
+                                                                                        :attributes (:cxn-type lexical
+                                                                                                     :repair holophrase->item-based+lexical+lexical--substitution)
                                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))
                (item-based-cxn (second (multiple-value-list (eval
                                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
@@ -111,12 +115,14 @@ based on existing construction with sufficient overlap."
                                                                              (HASH meaning ,overlapping-meaning-cxn)
                                                                              --
                                                                              (HASH form ,overlapping-form-cxn)))
+                                                                           :attributes (:cxn-type item-based
+                                                                                        :repair holophrase->item-based+lexical+lexical--substitution)
                                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
           (list new-lex-cxn-1 new-lex-cxn-2 item-based-cxn
                 th-link-1 th-link-2 (cons (cdr th-link-1) (car th-link-1))
                 (cons (cdr th-link-2) (car th-link-2))))))))
 
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair add-item-based-cxn) (problem problem) (node cip-node) &key &allow-other-keys) 
+(defmethod handle-fix ((fix fcg::cxn-fix) (repair holophrase->item-based+lexical+lexical--substitution) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications

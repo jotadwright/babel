@@ -4,10 +4,10 @@
 ;; Repair Add holophrase construction ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass add-holophrase-cxn (repair) 
+(defclass nothing->holophrase (repair) 
   ((trigger :initform 'fcg::new-node)))
   
-(defmethod repair ((repair add-holophrase-cxn)
+(defmethod repair ((repair nothing->holophrase)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -18,7 +18,7 @@
                    :problem problem
                    :restart-data (create-holophrase-cxn problem node))))
   
-(defmethod repair ((repair add-holophrase-cxn)
+(defmethod repair ((repair nothing->holophrase)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -46,6 +46,8 @@
                                                                         (HASH meaning ,meaning)
                                                                         --
                                                                         (HASH form ,form-constraints)))
+                                                                      :attributes (:cxn-type holophrase
+                                                                                   :repair nothing->holophrase)
                                                                       :cxn-inventory ,(copy-object cxn-inventory)))))))
     holophrase-cxn))
 
