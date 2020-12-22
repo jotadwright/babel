@@ -4,10 +4,10 @@
 ;; Repair Holophrase Single Addition  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass repair-holophrase-single-addition (repair) 
+(defclass holophrase->item-based+lexical--addition (repair) 
   ((trigger :initform 'fcg::new-node))) ;; it's always fcg::new-node, we created a new node in the search process
 
-(defmethod repair ((repair repair-holophrase-single-addition)
+(defmethod repair ((repair holophrase->item-based+lexical--addition)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -20,7 +20,7 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-(defmethod repair ((repair repair-holophrase-single-addition)
+(defmethod repair ((repair holophrase->item-based+lexical--addition)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -145,7 +145,7 @@
           )))))         ;; if no subset-holophrase is found, when returns nil and the repair is skipped
 
 
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-holophrase-single-addition) (problem problem) (node cip-node) &key &allow-other-keys) 
+(defmethod handle-fix ((fix fcg::cxn-fix) (repair holophrase->item-based+lexical--addition) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications

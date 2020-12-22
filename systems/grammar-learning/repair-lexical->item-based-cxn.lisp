@@ -153,6 +153,8 @@ based on existing construction with sufficient overlap."
                                                                              (HASH meaning ,non-overlapping-meaning)
                                                                              --
                                                                              (HASH form ,non-overlapping-form)))
+                                                                           :attributes (:cxn-type item-based
+                                                                                   :repair lexical->item-based)
                                                                            :cxn-inventory ,(copy-object cxn-inventory))))))
                )
             ;;(wi:add-element (make-html item-based-cxn))

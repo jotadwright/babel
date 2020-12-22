@@ -4,32 +4,34 @@
 ;; Repair Add lexical construction ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass add-lexical-cxn (repair) 
+(defclass item-based->lexical (repair) 
   ((trigger :initform 'fcg::new-node)))
   
-(defmethod repair ((repair add-lexical-cxn)
+(defmethod repair ((repair item-based->lexical)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by making a new lexical construction."
-  (let ((lex-cxn-and-th-link (create-lexical-cxn problem node)))
-    (when lex-cxn-and-th-link
-      (make-instance 'fcg::cxn-fix
-                     :repair repair
-                     :problem problem
-                     :restart-data lex-cxn-and-th-link))))
+  (when (initial-node-p node)
+    (let ((lex-cxn-and-th-link (create-lexical-cxn problem node)))
+      (when lex-cxn-and-th-link
+        (make-instance 'fcg::cxn-fix
+                       :repair repair
+                       :problem problem
+                       :restart-data lex-cxn-and-th-link)))))
   
-(defmethod repair ((repair add-lexical-cxn)
+(defmethod repair ((repair item-based->lexical)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by making a new lexical construction."
-  (let ((lex-cxn-and-th-link (create-lexical-cxn problem node)))
-    (when lex-cxn-and-th-link 
-      (make-instance 'fcg::cxn-fix
-                     :repair repair
-                     :problem problem
-                     :restart-data lex-cxn-and-th-link))))
+  (when (initial-node-p node)
+    (let ((lex-cxn-and-th-link (create-lexical-cxn problem node)))
+      (when lex-cxn-and-th-link 
+        (make-instance 'fcg::cxn-fix
+                       :repair repair
+                       :problem problem
+                       :restart-data lex-cxn-and-th-link)))))
 
 (defun find-matching-lex-cxns-in-root (cxn-inventory root-strings)
   (remove nil (loop for remaining-form in root-strings
@@ -55,14 +57,23 @@
 
 (defun create-lexical-cxn (problem node)
   "Creates a lexical cxn."
-  (let* ((observation (left-pole-structure (car-resulting-cfs (cipn-car node))))
-         (item-based-cxn (first (filter-by-phrase-type 'item-based (applied-constructions node))))
-         (string-predicates-in-root (form-predicates-with-variables (extract-string (get-root observation)))))
-
+  (with-disabled-monitor-notifications (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
+         (resulting-cars (loop for cxn in (constructions (construction-inventory node))
+                               when (and
+                                     (equal (attr-val cxn :cxn-type) 'item-based)
+                                     (fcg-apply cxn (car-source-cfs (cipn-car (initial-node node)))
+                                                (direction (cip node))
+                                                :configuration (configuration (construction-inventory node))
+                                                :cxn-inventory (construction-inventory node)))
+                               return it))
+         (item-based-cxn (when resulting-cars (original-cxn (car-applied-cxn (first resulting-cars)))))
+         (observation (when resulting-cars (left-pole-structure (car-resulting-cfs (first resulting-cars)))))
+         (string-predicates-in-root (when resulting-cars (form-predicates-with-variables (extract-string (get-root observation))))))
+    ;; TODO: rewrite this logic: there can be more than one matching lex cxn without th links and it could still apply, so there can be no new lex cxn and still make the th links
     ;; there is more than one string in root, but there can be a matching lex cxn with missing th links that can be subtracted
     (when (and (> (length string-predicates-in-root) 0)
                item-based-cxn)
-      (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
+      (let* (
              (matching-lex-cxns (find-matching-lex-cxns-in-root cxn-inventory string-predicates-in-root)))
         ;; there are one or more lex cxns, and one remaining string in root
         (when (or (and matching-lex-cxns
@@ -120,9 +131,9 @@
                                         (list (get-processing-cxn new-lex-cxn))
                                         (unless (= 1 (length string-predicates-in-root))
                                           (map 'list #'get-processing-cxn matching-lex-cxns))
-                                        (map 'list #'get-processing-cxn applied-lex-cxns)) th-links))))))))
+                                        (map 'list #'get-processing-cxn applied-lex-cxns)) th-links)))))))))
 
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair add-lexical-cxn) (problem problem) (node cip-node) &key &allow-other-keys)
+(defmethod handle-fix ((fix fcg::cxn-fix) (repair item-based->lexical) (problem problem) (node cip-node) &key &allow-other-keys)
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications

@@ -5,10 +5,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defclass repair-holophrase-single-deletion (repair) 
+(defclass holophrase->item-based+lexical+holophrase--deletion (repair) 
   ((trigger :initform 'fcg::new-node))) ;; it's always fcg::new-node, we created a new node in the search process
 
-(defmethod repair ((repair repair-holophrase-single-deletion)
+(defmethod repair ((repair holophrase->item-based+lexical+holophrase--deletion)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -21,7 +21,7 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-(defmethod repair ((repair repair-holophrase-single-deletion)
+(defmethod repair ((repair holophrase->item-based+lexical+holophrase--deletion)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -170,7 +170,7 @@
 ;; get restart data from create-repair-cxns-holophrase-single-deletion = created cxns
 ;; apply holophrase
 
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-holophrase-single-deletion) (problem problem) (node cip-node) &key &allow-other-keys) 
+(defmethod handle-fix ((fix fcg::cxn-fix) (repair holophrase->item-based+lexical+holophrase--deletion) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the constructions provided by fix to the result of the node and return the construction-application-result"
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications ;; avoid notifications in web interace
