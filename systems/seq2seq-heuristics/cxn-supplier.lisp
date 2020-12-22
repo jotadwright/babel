@@ -135,7 +135,7 @@
     seq2seq model for heuristics (for cxn cxns)"))
 
 
-(defun seq2seq-predicted-cxns-with-label (node label)
+(defun seq2seq-predicted-cxns-with-label-and-sorted (node label)
   "Get the predicted cxns from the seq2seq model and filter
    out those that have the correct label. Also, store the
    seq2seq prediction in the blackboard."
@@ -165,7 +165,7 @@
        :remaining-labels (remaining-labels (cxn-supplier parent))
        :all-constructions-of-current-label
        (if (eq (intern (mkstr (current-label (cxn-supplier parent))) :fcg) 'cxn)
-         (seq2seq-predicted-cxns-with-label node (current-label (cxn-supplier parent)))
+         (seq2seq-predicted-cxns-with-label-and-sorted node (current-label (cxn-supplier parent)))
          (all-constructions-of-label-hashed node (current-label (cxn-supplier parent)))))
       ;; there is no parent, start from first label and compute
       ;; the compatible cxns through the hash or the seq2seq model
@@ -179,7 +179,7 @@
          :remaining-labels (cdr labels)
          :all-constructions-of-current-label
          (if (eq (intern (mkstr (car labels)) :fcg) 'cxn)
-           (seq2seq-predicted-cxns-with-label node (car labels))
+           (seq2seq-predicted-cxns-with-label-and-sorted node (car labels))
            (all-constructions-of-label-hashed node (car labels))))))))
 
 
@@ -199,7 +199,7 @@
          (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
          (setf (all-constructions-of-current-label cxn-supplier)
                (if (eq (intern (mkstr (current-label cxn-supplier)) :fcg) 'cxn)
-                 (seq2seq-predicted-cxns-with-label node (current-label cxn-supplier))
+                 (seq2seq-predicted-cxns-with-label-and-sorted node (current-label cxn-supplier))
                  (all-constructions-of-label-hashed node (current-label cxn-supplier))))
          (setf (remaining-constructions cxn-supplier)
                (all-constructions-of-current-label cxn-supplier))
