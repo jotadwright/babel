@@ -42,14 +42,6 @@
                                                  :deadline (+ (get-universal-time) 1000000)))
             (list-of-strings->string
              (stream->list stream))))
-         ;(response-string (drakma:http-request endpoint
-         ;                                      :method :post
-         ;                                      :content-type "application/json"
-         ;                                      :content json
-         ;                                      :connection-timeout nil
-         ;                                      :read-timeout nil
-         ;                                      :write-timeout nil
-         ;                                      ))
          (response-object
           (handler-case (cl-json:decode-json-from-string response-string)
             (error (c) (warn (format nil "Error decoding json in seq2seq-next-cxn."))))))

@@ -20,7 +20,8 @@
                :clevr-grammar
                :cl-json
                :cl-mop
-               :trivial-timeout)
+               :trivial-timeout
+               :cl-csv)
   :serial t
   :components ((:file "package")
                (:file "irl-program-utils")

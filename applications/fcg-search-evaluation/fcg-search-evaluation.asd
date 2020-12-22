@@ -12,6 +12,7 @@
                :clevr-grammar
                :trivial-timeout
                :seq2seq-heuristics
-               :usocket)
+               :usocket
+               :cl-csv)
   :serial t
   :components ((:file "package")))

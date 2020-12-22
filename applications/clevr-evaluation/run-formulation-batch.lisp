@@ -2,184 +2,233 @@
 (ql:quickload :clevr-evaluation)
 (in-package :clevr-evaluation)
 
-(defun make-csv-line (&rest args)
-  "Create a comma separated string of args"
-  (format nil "~{~a~^,~}" args))
-
 (defun succeededp (cipn)
   "Check if the goal test succeeded"
   (and cipn (eql (first (statuses cipn)) 'fcg::succeeded)))
 
-(defun all-succeededp (cipns)
-  "Check if all goal tests of all cipns succeed"
-  (and cipns (apply #'always (mapcar #'succeededp cipns))))
+(defun get-depth-of-solution (cipn)
+  (length (all-parents cipn)))
 
-(defun formulate-until-solution (irl-program id num-solutions num-attempts timeout)
-  "Try to formulate the irl-program until
-   num-solutions are found"
-  (loop with cipns = nil
-        with utterances = nil
+(defun formulate-until-solution (irl-program id)
+  "Try to formulate the irl-program until a
+   solution is found"
+  (declare (ignorable id))
+  (loop with cipn = nil
+        with utterance = nil
+        until (succeededp cipn)
         for attempt from 1
-        until (or (all-succeededp cipns)
-                  (and (numberp num-attempts)
-                       (> attempt num-attempts)))
-        for (forms nodes)
+        for (form node)
         = (multiple-value-list
-           (handler-case
-               (trivial-timeout:with-timeout (timeout)
-                 (formulate-all irl-program :cxn-inventory *clevr*
-                                :silent nil :n num-solutions))
-             (trivial-timeout:timeout-error (error)
+           (formulate irl-program :cxn-inventory *CLEVR*))
+        when (succeededp node)
+        do (setf cipn node
+                 utterance form)
+        finally (return (values utterance cipn))))
+
+(defun formulate-until-solution-with-timeout (irl-program id timeout)
+  "Try to formulate the irl-program until a
+   solution is found"
+  (declare (ignorable id))
+  (multiple-value-bind (utterance cipn)
+      (handler-case
+          (with-timeout (timeout)
+            (loop with cipn = nil
+                  with utterance = nil
+                  until (succeededp cipn)
+                  for attempt from 1
+                  for (form node)
+                  = (multiple-value-list
+                     (formulate irl-program :cxn-inventory *CLEVR*))
+                  when (succeededp node)
+                  do (setf cipn node
+                           utterance form)
+                  finally (return (values utterance cipn))))
+        (timeout-error (e)
+          (declare (ignorable e))
+          (values nil nil)))
+    (values utterance cipn)))
+
+(defun formulate-num-attempts-with-timeout (irl-program id timeout max-attempts)
+  "Try to formulate the irl-program until a
+   solution is found"
+  (declare (ignorable id))
+  (loop with cipn = nil
+        with utterance = nil
+        until (or (succeededp cipn)
+                  (>= attempt max-attempts))
+        for attempt from 1
+        for (form node)
+        = (multiple-value-list
+           (handler-case (with-timeout (timeout)
+                           (formulate irl-program :cxn-inventory *CLEVR*))
+             (timeout-error (e)
+               (declare (ignorable e))
                (values nil nil))))
-        if (all-succeededp nodes)
-        do (progn ;(format t "~%[~a] - succeeded" id)
-             (setf cipns nodes
-                   utterances forms))
-        ;else
-        ;do (format t "~%[~a] - attempt ~a" id attempt)
-        finally (return (values utterances cipns))))
+        if (succeededp node)
+        do (setf cipn node
+                 utterance form)
+        else
+        do (format t "~%[~a] Attempt ~a" id attempt)
+        finally (return (values utterance cipn))))
 
-(defun get-utterance-and-formulation-cxns (id irl-program num-solutions num-attempts timeout)
-  "Run formulation until num-solutions are found.
-   Export the utterances and the constructions."
-  (multiple-value-bind (utterances cipns)
-      (formulate-until-solution
-       (fcg::instantiate-variables irl-program)
-       id num-solutions num-attempts timeout)
-    (if (and utterances cipns)
-      (values (mapcar #'list-of-strings->string utterances)
-              (mapcar
-               #'(lambda (cipn)
-                   (list-of-strings->string
-                    (reverse
-                     (mapcar (compose #'downcase #'mkstr #'name)
-                             (applied-constructions cipn)))))
-               cipns))
-      (values (loop repeat num-solutions collect "None")
-              (loop repeat num-solutions collect "None")))))
+(defun formulate-with-timeout (irl-program id timeout)
+  (declare (ignorable id))
+  (multiple-value-bind (utterance cipn)
+      (handler-case
+          (with-timeout (timeout)
+            (formulate irl-program :cxn-inventory *CLEVR* :silent t))
+        (timeout-error (e)
+          (declare (ignorable e))
+          (values nil nil)))
+    (values utterance cipn)))
 
+(defun get-utterance-and-formulation-cxns (id irl-program timeout num-attempts)
+  "Run formulation until a solution is found.
+   Export the utterance and the applied constructions."
+  (multiple-value-bind (utterance cipn)
+      (formulate-num-attempts-with-timeout irl-program id timeout num-attempts)
+    (if (and (null utterance) (null cipn))
+      (values "None" "None" "None")
+      (values (list-of-strings->string utterance)
+              (list-of-strings->string
+               (reverse
+                (mapcar (compose #'downcase #'mkstr #'name)
+                        (applied-constructions cipn))))
+              (get-depth-of-solution cipn)))))
 
-(defun process-inputfile (inputfile outputdir num-solutions num-attempts timeout)
+(defun process-inputfile (inputfile outputdir timeout num-attempts)
   "Process the inputfile"
   ;; open read/write pipes and create the header
-  ;; for the outputfile
+  ;; of the outputfile based on the header of
+  ;; the inputfile
   (let* ((lines-to-process (- (number-of-lines inputfile) 1))
          (in-stream (open inputfile :direction :input))
          (outputfile (make-pathname :directory (pathname-directory outputdir)
                                     :name (pathname-name inputfile)
                                     :type (pathname-type inputfile)))
-         (outputfile-exists-p (probe-file outputfile))
-         (out-stream (open outputfile :direction :output
-                           :if-exists :append
-                           :if-does-not-exist :create))
          (out-stream-header
-          (make-csv-line "id" "utterance" "irl_program"
-                         "rpn" "formulation_cxns")))
-    ;; skip the header of the input file
-    (read-line in-stream nil nil)
+          (list "id" "irl_program" "rpn"
+                "utterance" "formulation_cxns"
+                "depth_of_solution"))
+         (outputfile-exists-p (probe-file outputfile))
+         out-stream)
     ;; when the outputfile already exists, check how many
     ;; lines have already been processed and skip these
     ;; in the inputfile (they no longer need processing)
-    (when outputfile-exists-p
-      (let ((lines-already-processed
-             (round
-              (/ (- (number-of-lines outputfile) 1)
-                 num-solutions))))
-        (decf lines-to-process lines-already-processed)
-        (loop repeat lines-already-processed
-              do (read-line in-stream nil nil))))
-    ;; if the outputfile does not exist, create it and
-    ;; write the header to it
-    (unless outputfile-exists-p
-      (ensure-directories-exist outputfile)
-      (write-line out-stream-header out-stream)
-      (force-output out-stream))
-    ;; loop over the lines, formulate them
-    ;; for num-solutions times and
+    (if outputfile-exists-p
+      (let ((lines-already-processed (- (number-of-lines outputfile) 1)))
+        (if (= 0 lines-already-processed)
+          (setf outputfile-exists-p nil)
+          (progn (decf lines-to-process lines-already-processed)
+            (loop repeat lines-already-processed
+                  do (read-line in-stream nil nil))
+            (setf out-stream
+                  (open outputfile :direction :output
+                        :if-exists :append)))))
+      ;; if the outputfile does not exist, create it and
+      ;; write the header to it
+      (progn (ensure-directories-exist outputfile)
+        (setf out-stream
+            (open outputfile :direction :output
+                  :if-does-not-exist :create))
+        (write-csv-row out-stream-header :stream out-stream)
+        (force-output out-stream)))
+    ;; loop over the lines, comprehend them and
     ;; write to output
-    (with-progress-bar (bar lines-to-process ("Processing ~a" (pathname-name inputfile)))
-      (loop for line = (remove #\Return (read-line in-stream nil nil))
-            while line
-            do (let* ((fields (split line #\,))
-                      (id (first fields))
-                      (irl-program (read-from-string (third fields)))
-                      (rpn (fourth fields)))
-                 (multiple-value-bind (utterances formulation-cxns)
-                     (get-utterance-and-formulation-cxns id irl-program num-solutions num-attempts timeout)
-                   (loop for utterance in utterances
-                         for cxns in formulation-cxns
-                         for out-line = (if (string= utterance "None")
-                                          (make-csv-line id utterance "None" "None" cxns)
-                                          (make-csv-line id utterance
-                                                         (downcase (mkstr irl-program))
-                                                         rpn cxns))
-                         do (write-line out-line out-stream))
-                   (force-output out-stream)
-                   (update bar)))))
+    (with-progress-bar (bar lines-to-process
+                            ("Processing ~a" (pathname-name inputfile)))
+      (do-csv (row in-stream :skip-first-p (not outputfile-exists-p))
+        (destructuring-bind (id form irl-program rpn &rest rest) row
+          (declare (ignorable form rest))
+          (multiple-value-bind (utterance
+                                formulation-cxns
+                                depth-of-solution)
+              (get-utterance-and-formulation-cxns id (read-from-string irl-program)
+                                                  timeout num-attempts)
+            (let ((out-row
+                   (list id irl-program rpn
+                         utterance formulation-cxns
+                         depth-of-solution)))
+              (write-csv-row out-row :stream out-stream)
+              (force-output out-stream)
+              (update bar))))))
     ;; close the pipes
     (close in-stream)
     (force-output out-stream)
     (close out-stream)))
 
 #|
+
+(activate-monitor trace-fcg)
+
 (set-configurations *CLEVR*
-                    '((:max-nr-of-nodes . 50000)
-                      (:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                      (:priority-mode . :nr-of-applied-cxns))
+                    '((:queue-mode . :greedy-best-first)
+                      (:cxn-supplier-mode . :ordered-by-label-hashed)
+                      (:hash-mode . :hash-string-meaning-lex-id)
+                      (:priority-mode . :nr-of-applied-cxns)
+                      (:max-nr-of-nodes . 10000)
+                      (:parse-order hashed cxn)
+                      (:production-order hashed cxn hashed))
                     :replace t)
 
 (process-inputfile
  (babel-pathname :directory '("applications" "clevr-evaluation")
                  :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
- 1 1 10)
+ 2 30)
 |#
 
-(defun args->plist (args)
+(defun parse-args (args)
   (loop for arg in args
         for i from 0
         if (evenp i) collect (internal-symb (upcase arg))
         else collect arg))
 
 
-(defun main (args)
-  (let ((arg-plist (args->plist args)))
+(defun main (command-line-args)
+  (let ((args (parse-args command-line-args)))
     ;; check the command line args
-    (loop for indicator in '(inputfile outputdir max-nr-of-nodes
-                             num-solutions num-attempts
-                             timeout enable-cxn-sets)
-          unless (getf arg-plist indicator)
-          do (error "Missing command line argument: ~a" indicator))
-    ;; set the configurations for the CLEVR grammar
-    (set-configurations *CLEVR*
-                        '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                          (:priority-mode . :nr-of-applied-cxns))
-                        :replace t)
-    ;; if max-nr-of-nodes is set to NIL, remove the :restrict-nr-of-nodes node-test
-    (if (string= (getf arg-plist 'max-nr-of-nodes) "nil")
-      (set-configurations *CLEVR*
-                          '((:node-tests :check-duplicate)
-                            (:max-nr-of-nodes . 1000000))
-                          :replace t)
-      (set-configuration *CLEVR* :max-nr-of-nodes
-                         (parse-integer (getf arg-plist 'max-nr-of-nodes))
-                         :replace t))
-    ;; if enable-cxns-sets is set to t, enable them
-    (when (string= (getf arg-plist 'enable-cxn-sets) "t")
-      (set-configurations *CLEVR*
-                          '((:production-order lex nom cxn morph)
-                            (:parse-order morph lex nom cxn)
-                            (:cxn-sets-with-sequential-application morph lex))
-                          :replace t))
+    (loop for arg in '(inputfile outputdir max-nr-of-nodes strategy timeout)
+          unless (getf args arg)
+          do (error "Missing command line argument: ~a" arg))
+    ;; print the command line args
+    (format t "~%Received args: ~a" args)
+    ;; set the strategy
+    (let* ((strategy (make-kw (getf args 'strategy)))
+           (max-nr-of-nodes (parse-integer (getf args 'max-nr-of-nodes)))
+           (clevr-configurations
+            (case strategy
+              (:depth-first
+               `((:queue-mode . :greedy-best-first)
+                 (:cxn-supplier-mode . :ordered-by-label-hashed)
+                 (:hash-mode . :hash-string-meaning-lex-id)
+                 (:priority-mode . :nr-of-applied-cxns)
+                 (:max-nr-of-nodes . ,max-nr-of-nodes)
+                 (:parse-order hashed cxn)
+                 (:production-order hashed cxn hashed)))
+              (:priming
+               `((:queue-mode . :greedy-best-first)
+                 (:cxn-supplier-mode . :ordered-by-label-hashed)
+                 (:hash-mode . :hash-string-meaning-lex-id)
+                 (:priority-mode . :priming)
+                 (:max-nr-of-nodes . ,max-nr-of-nodes)
+                 (:parse-order hashed cxn)
+                 (:production-order hashed cxn hashed))))))
+      ;; set the configurations for the CLEVR grammar
+      (set-configurations *CLEVR* clevr-configurations :replace t)
+      ;; import priming data when found
+      (when (and (eql strategy :priming)
+                 (getf args 'import-priming-data-path))
+        (fcg-import-formulation-priming-data
+         (parse-namestring (getf args 'import-priming-data-path))
+         *CLEVR*)))
     ;; process the inputfile
-    (process-inputfile (getf arg-plist 'inputfile)
-                       (getf arg-plist 'outputdir)
-                       (parse-integer (getf arg-plist 'num-solutions))
-                       (if (string= (getf arg-plist 'num-attempts) "nil") nil
-                         (parse-integer (getf arg-plist 'num-attempts)))
-                       (parse-integer (getf arg-plist 'timeout)))))
+    (process-inputfile (getf args 'inputfile)
+                       (getf args 'outputdir)
+                       (parse-integer (getf args 'timeout)))))
+
+
 
 #-lispworks 
 (main #+ccl ccl:*unprocessed-command-line-arguments*
-      #+sbcl (rest sb-ext:*posix-argv*)
-      #+lispworks (rest system:*line-arguments-list*))
+      #+sbcl (rest sb-ext:*posix-argv*))
