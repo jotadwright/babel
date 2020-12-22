@@ -18,7 +18,7 @@
 
 (defun constructions-for-application (construction-inventory)
   (if (get-configuration construction-inventory :shuffle-cxns-before-application)
-    (shuffle (copy-list (constructions construction-inventory)))
+    (shuffle (copy-list (constructions-list construction-inventory)))
     (constructions construction-inventory)))
 
 ;; #########################################################

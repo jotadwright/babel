@@ -47,13 +47,13 @@
          (priority (first (all-parents node)))))
     0))
 
-(defmethod cip-priotity ((node cip-node) (mode (eql :seq2seq-additive-with-sets)))
+(defmethod cip-priority ((node cip-node) (mode (eql :seq2seq-additive-with-sets)))
   "The priority of the node depends on the current label of the cxn-supplier.
    If it is :cxn, use the probabilities predicted by the seq2seq model.
    Otherwise, assign equal probability to all cxns.
    Always sum with the priority of the parent."
   (if (all-parents node)
-    (if (eq (current-label (cxn-supplier node)) :cxn)
+    (if (eq (intern (mkstr (current-label (cxn-supplier (parent node)))) :fcg) 'cxn)
       (let* ((distribution (get-data (parent node) :seq2seq-prediction))
              (applied-cxn (first (applied-constructions node)))
              (cxn-prob (cdr (assoc (name applied-cxn) distribution
@@ -61,7 +61,10 @@
                                    :test #'equal))))
         (+ cxn-prob
            (priority (parent node))))
-      (let ((num-siblings (1+ (siblings node))))
+      (let ((num-siblings
+             (if (siblings node)
+               (1+ (length (siblings node)))
+               1)))
         (+ (float (/ 1 num-siblings))
            (priority (parent node)))))
     0))

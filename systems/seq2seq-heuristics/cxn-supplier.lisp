@@ -141,12 +141,16 @@
    seq2seq prediction in the blackboard."
   (let* ((distribution (seq2seq-distribution-for-node node))
          (cxns-with-label (all-constructions-of-label node label))
-         (compatible-cxns (loop for (cxn-name . prob) in distribution
-                                if (find (intern (mkstr cxn-name) :clevr-grammar)
-                                         cxns-with-label :test #'equal :key #'name)
-                                collect it)))
+         (compatible-cxns-with-probabilities
+          (loop for (cxn-name . prob) in distribution
+                for found-cxn = (find (intern (mkstr cxn-name) :clevr-grammar)
+                                      cxns-with-label :test #'equal :key #'name)
+                if found-cxn
+                collect (cons found-cxn prob)))
+         (sorted-compatible-cxns
+          (mapcar #'car (sort compatible-cxns-with-probabilities #'> :key #'cdr))))
     (set-data node :seq2seq-prediction distribution)
-    compatible-cxns))
+    sorted-compatible-cxns))
     
 
 (defmethod create-cxn-supplier ((node cip-node) (mode (eql :ordered-by-label-hashed+seq2seq)))
@@ -160,7 +164,7 @@
        :current-label (current-label (cxn-supplier parent))
        :remaining-labels (remaining-labels (cxn-supplier parent))
        :all-constructions-of-current-label
-       (if (eq (current-label (cxn-supplier parent)) :cxn)
+       (if (eq (intern (mkstr (current-label (cxn-supplier parent))) :fcg) 'cxn)
          (seq2seq-predicted-cxns-with-label node (current-label (cxn-supplier parent)))
          (all-constructions-of-label-hashed node (current-label (cxn-supplier parent)))))
       ;; there is no parent, start from first label and compute
@@ -174,7 +178,7 @@
          :current-label (car labels)
          :remaining-labels (cdr labels)
          :all-constructions-of-current-label
-         (if (eq (car labels) :cxn)
+         (if (eq (intern (mkstr (car labels)) :fcg) 'cxn)
            (seq2seq-predicted-cxns-with-label node (car labels))
            (all-constructions-of-label-hashed node (car labels))))))))
 
@@ -194,7 +198,9 @@
          (setf (current-label cxn-supplier) (car (remaining-labels cxn-supplier)))
          (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
          (setf (all-constructions-of-current-label cxn-supplier)
-               (all-constructions-of-label-hashed node (current-label cxn-supplier)))
+               (if (eq (intern (mkstr (current-label cxn-supplier)) :fcg) 'cxn)
+                 (seq2seq-predicted-cxns-with-label node (current-label cxn-supplier))
+                 (all-constructions-of-label-hashed node (current-label cxn-supplier))))
          (setf (remaining-constructions cxn-supplier)
                (all-constructions-of-current-label cxn-supplier))
          (next-cxn cxn-supplier node))))
