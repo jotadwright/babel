@@ -48,6 +48,29 @@
           (values nil nil)))
     (values utterance cipn)))
 
+(defun formulate-num-attempts-with-timeout (irl-program id timeout max-attempts)
+  "Try to formulate the irl-program until a
+   solution is found"
+  (declare (ignorable id))
+  (loop with cipn = nil
+        with utterance = nil
+        until (or (succeededp cipn)
+                  (>= attempt max-attempts))
+        for attempt from 1
+        for (form node)
+        = (multiple-value-list
+           (handler-case (with-timeout (timeout)
+                           (formulate irl-program :cxn-inventory *CLEVR*))
+             (timeout-error (e)
+               (declare (ignorable e))
+               (values nil nil))))
+        if (succeededp node)
+        do (setf cipn node
+                 utterance form)
+        else
+        do (format t "~%[~a] Attempt ~a" id attempt)
+        finally (return (values utterance cipn))))
+
 (defun formulate-with-timeout (irl-program id timeout)
   (declare (ignorable id))
   (multiple-value-bind (utterance cipn)
@@ -59,11 +82,11 @@
           (values nil nil)))
     (values utterance cipn)))
 
-(defun get-utterance-and-formulation-cxns (id irl-program timeout)
+(defun get-utterance-and-formulation-cxns (id irl-program timeout num-attempts)
   "Run formulation until a solution is found.
    Export the utterance and the applied constructions."
   (multiple-value-bind (utterance cipn)
-      (formulate-until-solution-with-timeout irl-program id timeout)
+      (formulate-num-attempts-with-timeout irl-program id timeout num-attempts)
     (if (and (null utterance) (null cipn))
       (values "None" "None" "None")
       (values (list-of-strings->string utterance)
@@ -73,7 +96,7 @@
                         (applied-constructions cipn))))
               (get-depth-of-solution cipn)))))
 
-(defun process-inputfile (inputfile outputdir timeout)
+(defun process-inputfile (inputfile outputdir timeout num-attempts)
   "Process the inputfile"
   ;; open read/write pipes and create the header
   ;; of the outputfile based on the header of
@@ -120,7 +143,8 @@
           (multiple-value-bind (utterance
                                 formulation-cxns
                                 depth-of-solution)
-              (get-utterance-and-formulation-cxns id (read-from-string irl-program) timeout)
+              (get-utterance-and-formulation-cxns id (read-from-string irl-program)
+                                                  timeout num-attempts)
             (let ((out-row
                    (list id irl-program rpn
                          utterance formulation-cxns
@@ -135,7 +159,8 @@
 
 #|
 
- (activate-monitor trace-fcg)
+(activate-monitor trace-fcg)
+
 (set-configurations *CLEVR*
                     '((:queue-mode . :greedy-best-first)
                       (:cxn-supplier-mode . :ordered-by-label-hashed)
@@ -150,7 +175,7 @@
  (babel-pathname :directory '("applications" "clevr-evaluation")
                  :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
- 60)
+ 2 30)
 |#
 
 (defun parse-args (args)
