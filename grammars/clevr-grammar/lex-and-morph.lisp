@@ -35,7 +35,7 @@
                           (syn-cat 
                                    (number ?number))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-lex)
                         :attributes (:lex-id ,(internal-symb (hyphenize lex-id)) 
                                      :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
@@ -59,7 +59,7 @@
                           --
                           (HASH form ((string ,sing-unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-morph)
                         :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))
     (eval `(def-fcg-cxn ,plural-cxn-name
                         ((,plural-unit-name
@@ -74,7 +74,7 @@
                           --
                           (HASH form ((string ,plural-unit-name ,plural-word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-morph)
                         :attributes (:string ,plural-word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; THING
@@ -98,7 +98,7 @@
                           (syn-cat 
                                    (number ?number))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-lex)
                         :attributes (:lex-id ,(internal-symb (hyphenize lex-id))
                                      :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
@@ -122,7 +122,7 @@
                           --
                           (HASH form ((string ,sing-unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-morph)
                         :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))
     (eval `(def-fcg-cxn ,plural-cxn-name
                         ((,plural-unit-name
@@ -137,7 +137,7 @@
                           --
                           (HASH form ((string ,plural-unit-name ,plural-word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-morph)
                         :attributes (:string ,plural-word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; COLOR
@@ -158,7 +158,7 @@
                           --
                           (HASH form ((string ,unit-name ,(downcase lex-id))))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-lex)
                         :attributes (:lex-id ,(internal-symb (hyphenize lex-id))
                                      :string ,(downcase lex-id)
                                      :meaning ,(internal-symb (hyphenize lex-id))
@@ -181,7 +181,7 @@
                           --
                           (lex-id ,(internal-symb (hyphenize lex-id)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-lex)
                         :attributes (:lex-id ,(internal-symb (hyphenize lex-id))
                                      :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
@@ -200,7 +200,7 @@
                           --
                           (HASH form ((string ,unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-morph)
                         :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; MATERIAL
@@ -220,7 +220,7 @@
                           --
                           (lex-id ,(internal-symb (hyphenize lex-id)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-lex)
                         :attributes (:lex-id ,(internal-symb (hyphenize lex-id))
                                      :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
@@ -239,7 +239,7 @@
                           --
                           (HASH form ((string ,unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-morph)
                         :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; RELATION
@@ -260,7 +260,7 @@
                           --
                           (lex-id ,(internal-symb (hyphenize lex-id)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-lex)
                         :attributes (:lex-id ,(internal-symb (hyphenize lex-id)) 
                                      :meaning ,(internal-symb (hyphenize lex-id))
                                      :clevr-datatype ,(symbol-name type))))))
@@ -280,7 +280,7 @@
                           --
                           (HASH form ((string ,unit-name ,word)))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-morph)
                         :attributes (:string ,word :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
 ;;;; TYPE
@@ -304,7 +304,7 @@
                           --
                           (HASH form ((string ,unit-name ,(downcase type))))))
                         :cxn-inventory ,cxn-inventory
-                        :cxn-set hashed
+                        :cxn-set (hashed hashed-lex)
                         :attributes (:string ,(downcase type)
                                      :meaning ,(internal-symb (hyphenize type)))))))
 

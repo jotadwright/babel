@@ -12,7 +12,7 @@
                     '((:cxn-supplier-mode . :ordered-by-label-hashed)
                       (:priority-mode . :nr-of-applied-cxns)
                       (:parse-order hashed cxn)
-                      (:production-order hashed cxn hashed)))
+                      (:production-order hashed-lex cxn hashed-morph)))
 
 ;; priming configurations
 ;; identical to depth first, but using the priming data
@@ -27,7 +27,7 @@
                     '((:cxn-supplier-mode . :ordered-by-label-hashed+seq2seq)
                       (:priority-mode . :seq2seq-additive-with-sets)
                       (:parse-order hashed cxn)
-                      (:production-order hashed cxn hashed)
+                      (:production-order hashed-lex cxn hashed-morph)
                       (:seq2seq-endpoint . #-ccl "http://localhost:8888/next-cxn"
                                            #+ccl "http://127.0.0.1:8888/next-cxn"))
                     :replace t)
