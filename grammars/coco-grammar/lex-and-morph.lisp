@@ -105,12 +105,14 @@
                                  (target ,out-var)))
                           (sem-cat (sem-class spatial-relation)
                                    (sem-type ,(internal-symb (hyphenize lex-id))))
-                          (syn-cat (lex-class preposition)))
+                          (syn-cat (lex-class preposition))
+                          (has-side ?side))
                          <-
                          (,unit-name
                           (HASH meaning ((bind spatial-relation-category ,out-var ,(internal-symb (hyphenize lex-id)))))
                           --
-                          (lex-id ,(internal-symb (hyphenize lex-id)))))
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
+                          (has-side ?side)))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
                         :attributes (:lex-id ,(internal-symb (hyphenize lex-id)) 
@@ -118,16 +120,17 @@
 
 (defmethod add-relation-morph-cxn (cxn-inventory lex-id form)
   (let ((cxn-name (internal-symb (upcase (string-append (hyphenize form) "-morph-cxn"))))
-        (unit-name (make-var (upcase (string-append (hyphenize form) "-unit")))))
+        (unit-name (make-var (upcase (string-append (hyphenize form) "-unit"))))
+        (has-side-p (if (search "side" form) '+ '-)))
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (footprints (morph)))
                          <-
                          (,unit-name
                           (lex-id ,(internal-symb (hyphenize lex-id)))
-                          (syn-cat (lex-class preposition)
-                                   )
+                          (syn-cat (lex-class preposition))
                           (footprints (NOT morph))
+                          (has-side ,has-side-p)
                           --
                           (HASH form ((string ,unit-name ,form)))))
                         :cxn-inventory ,cxn-inventory
@@ -138,9 +141,9 @@
 ;;;; TYPE
 ;; NOTE: type cxns have their property type also in the footprint
 ;; this way, other constructions can specify (NOT this-type)
-(defun add-coco-type-cxn (cxn-inventory type)
-  (let ((cxn-name (internal-symb (upcase (string-append (hyphenize type) "-lex-cxn"))))
-        (unit-name (make-var (upcase (string-append (hyphenize type) "-unit"))))
+(defun add-coco-type-cxn (cxn-inventory type form)
+  (let ((cxn-name (internal-symb (upcase (string-append (hyphenize form) "-lex-cxn"))))
+        (unit-name (make-var (upcase (string-append (hyphenize form) "-unit"))))
         (out-var (make-var 'attribute)))
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
@@ -154,11 +157,34 @@
                          (,unit-name
                           (HASH meaning ((bind attribute-category ,out-var ,(internal-symb (hyphenize type)))))
                           --
-                          (HASH form ((string ,unit-name ,(downcase type))))))
+                          (HASH form ((string ,unit-name ,(downcase form))))))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
-                        :attributes (:string ,(downcase type)
+                        :attributes (:string ,(downcase form)
                                      :meaning ,(internal-symb (hyphenize type)))))))
+
+;;;; COLORS
+(defun add-coco-color-cxn (cxn-inventory color)
+  (let ((cxn-name (internal-symb (upcase (string-append (hyphenize color) "-lex-cxn"))))
+        (unit-name (make-var (upcase (string-append (hyphenize color) "-unit"))))
+        (out-var (make-var 'color)))
+    (eval `(def-fcg-cxn ,cxn-name
+                        ((,unit-name
+                          (args ((sources nil)
+                                 (target ,out-var)))
+                          (sem-cat (sem-class color))
+                          (syn-cat (lex-class adjective)))
+                         <-
+                         (,unit-name
+                          (HASH meaning ((bind xkcd-color ,out-var ,(internal-symb (hyphenize color)))))
+                          --
+                          (HASH form ((string ,unit-name ,(downcase color))))))
+                        :cxn-inventory ,cxn-inventory
+                        :cxn-set lex
+                        :attributes (:lex-id ,(internal-symb (hyphenize color))
+                                     :string ,(downcase color)
+                                     :meaning ,(internal-symb (hyphenize color)))))))
+  
 
 (defun generate-lex-and-morph-cxns (cxn-inventory)
   ;; read the json file
@@ -184,8 +210,19 @@
           do (loop for form in (rest (assoc :forms coco-relation))
                    do (add-relation-morph-cxn cxn-inventory lex-id form)))
     ;; add lex cxns for the types
-    (loop for coco-type in (rest (assoc :types metadata))
-          do (add-coco-type-cxn cxn-inventory coco-type))))
+    (loop for coco-type-and-form in (rest (assoc :types metadata))
+          do (add-coco-type-cxn cxn-inventory
+                                (rest (assoc :type coco-type-and-form))
+                                (rest (assoc :form coco-type-and-form)))))
+  ;; read the xkcd colors file
+  (with-open-file (stream (babel-pathname :directory '("grammars" "coco-grammar" "data")
+                                            :name "xkcd-colors" :type "txt"))
+    (loop for line = (read-line stream nil nil)
+          for i from 1
+          while line
+          if (> i 1)
+          do (let ((color (first (split line #\tab))))
+               (add-coco-color-cxn cxn-inventory color)))))
 
 
 

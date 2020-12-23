@@ -33,6 +33,7 @@
                (:file "single-or")
                (:file "compare-integer")
                (:file "same-relate")
+               (:file "coco-addons")
                (:file "comparison")
                (:file "preprocess-utterance")
                (:file "rpn-meaning")

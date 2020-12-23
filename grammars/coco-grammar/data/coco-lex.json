@@ -674,30 +674,53 @@
   "relations": [
     {
       "lex-id": "left",
-      "forms": ["left of", "to the left of", "on the left side of"]
+      "forms": [
+        "left of",
+        "to the left of",
+        "on the left side of"
+      ]
     },
     {
       "lex-id": "right",
-      "forms": ["right of", "to the right of", "on the right side of"]
+      "forms": [
+        "right of",
+        "to the right of",
+        "on the right side of"
+      ]
     },
     {
       "lex-id": "front",
-      "forms": ["in front of"]
+      "forms": [
+        "in front of"
+      ]
     },
     {
       "lex-id": "behind",
-      "forms": ["behind"]
+      "forms": [
+        "behind"
+      ]
     },
     {
       "lex-id": "above",
-      "forms": ["above"]
+      "forms": [
+        "above"
+      ]
     },
     {
       "lex-id": "below",
-      "forms": ["below"]
+      "forms": [
+        "below"
+      ]
     }
   ],
   "types": [
-    "category"
+    {
+      "form": "category",
+      "type": "category"
+    },
+    {
+      "form": "color",
+      "type": "color"
+    }
   ]
 }
