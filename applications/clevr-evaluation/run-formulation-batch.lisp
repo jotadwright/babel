@@ -82,11 +82,11 @@
           (values nil nil)))
     (values utterance cipn)))
 
-(defun get-utterance-and-formulation-cxns (id irl-program timeout)
+(defun get-utterance-and-formulation-cxns (id irl-program timeout num-attempts)
   "Run formulation until a solution is found.
    Export the utterance and the applied constructions."
   (multiple-value-bind (utterance cipn)
-      (formulate-with-timeout irl-program id timeout)
+      (formulate-num-attempts-with-timeout irl-program id timeout num-attempts)
     (if (and (null utterance) (null cipn))
       (values "None" "None" "None")
       (values (list-of-strings->string utterance)
@@ -96,7 +96,7 @@
                         (applied-constructions cipn))))
               (get-depth-of-solution cipn)))))
 
-(defun process-inputfile (inputfile outputdir timeout)
+(defun process-inputfile (inputfile outputdir timeout num-attempts)
   "Process the inputfile"
   ;; open read/write pipes and create the header
   ;; of the outputfile based on the header of
@@ -143,7 +143,8 @@
           (multiple-value-bind (utterance
                                 formulation-cxns
                                 depth-of-solution)
-              (get-utterance-and-formulation-cxns id (read-from-string irl-program) timeout)
+              (get-utterance-and-formulation-cxns id (read-from-string irl-program)
+                                                  timeout num-attempts)
             (let ((out-row
                    (list id irl-program rpn
                          utterance formulation-cxns
@@ -224,7 +225,8 @@
     ;; process the inputfile
     (process-inputfile (getf args 'inputfile)
                        (getf args 'outputdir)
-                       (parse-integer (getf args 'timeout)))))
+                       (parse-integer (getf args 'timeout))
+                       (parse-integer (getf args 'num-attempts)))))
 
 
 
