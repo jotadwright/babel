@@ -232,7 +232,7 @@
       ;; set the configurations for the CLEVR grammar
       (set-configurations *CLEVR* clevr-configurations :replace t)
       (set-configurations (processing-cxn-inventory *CLEVR*)
-                          configurations :replace t)
+                          clevr-configurations :replace t)
       ;; import priming data when found
       (when (and (eql strategy :priming)
                  (getf args 'import-priming-data-path))
