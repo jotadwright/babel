@@ -605,9 +605,13 @@ mode ~a. Please check why it did not calculate a priority score." (get-configura
 
 (defun apply-sequentially? (node cxn)
   (let ((sequential-labels 
-	 (get-configuration (cip node) 
-			    :cxn-sets-with-sequential-application))
+	 (mapcar (compose #'intern #'symbol-name)
+                 (get-configuration (cip node) 
+                                    :cxn-sets-with-sequential-application)))
 	(cxn-label (attr-val cxn :label)))
+    (if (consp cxn-label)
+      (setf cxn-label (mapcar (compose #'intern #'symbol-name) cxn-label))
+      (setf cxn-label (intern (symbol-name cxn-label))))
     (or (attr-val cxn :apply-sequentially)
 	(if (consp cxn-label)
 	    (intersection cxn-label sequential-labels)
