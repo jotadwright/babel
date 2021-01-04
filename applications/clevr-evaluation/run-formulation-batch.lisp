@@ -65,8 +65,9 @@
                (declare (ignorable e))
                (values nil nil))))
         if (succeededp node)
-        do (setf cipn node
-                 utterance form)
+        do (progn (format t "~%[~a] Success" id)
+             (setf cipn node
+                   utterance form))
         else
         do (format t "~%[~a] Attempt ~a" id attempt)
         finally (return (values utterance cipn))))
@@ -168,7 +169,21 @@
                       (:priority-mode . :nr-of-applied-cxns)
                       (:parse-order hashed cxn)
                       (:production-order hashed-lex cxn hashed-morph)
-                      (:node-tests :check-duplicate))
+                      (:node-tests :check-duplicate)
+                      (:cxn-sets-with-sequential-application hashed-lex hashed-morph))
+                    :replace t)
+
+#'fcg::apply-sequentially?
+
+(set-configurations (processing-cxn-inventory *CLEVR*)
+                    '((:queue-mode . :greedy-best-first)
+                      (:cxn-supplier-mode . :ordered-by-label-hashed)
+                      (:hash-mode . :hash-string-meaning-lex-id)
+                      (:priority-mode . :nr-of-applied-cxns)
+                      (:parse-order hashed cxn)
+                      (:production-order hashed-lex cxn hashed-morph)
+                      (:node-tests :check-duplicate)
+                      (:cxn-sets-with-sequential-application hashed-lex hashed-morph))
                     :replace t)
 
 (process-inputfile
@@ -216,6 +231,8 @@
                  (:cxn-sets-with-sequential-application hashed-lex hashed-morph))))))
       ;; set the configurations for the CLEVR grammar
       (set-configurations *CLEVR* clevr-configurations :replace t)
+      (set-configurations (processing-cxn-inventory *CLEVR*)
+                          configurations :replace t)
       ;; import priming data when found
       (when (and (eql strategy :priming)
                  (getf args 'import-priming-data-path))
