@@ -114,6 +114,7 @@
                          (:seq2seq-rpn-fn . clevr-meaning->rpn)
                          
                          ;; For guiding search:
+                         (:cxn-sets-with-sequential-application hashed-lex hashed-morph)
                          (:node-expansion-mode . :multiple-cxns)
                          (:queue-mode . :greedy-best-first)
                          (:max-nr-of-nodes . 10000)

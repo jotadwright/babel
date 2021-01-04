@@ -12,7 +12,8 @@
                     '((:cxn-supplier-mode . :ordered-by-label-hashed)
                       (:priority-mode . :nr-of-applied-cxns)
                       (:parse-order hashed cxn)
-                      (:production-order hashed-lex cxn hashed-morph)))
+                      (:production-order hashed-lex cxn hashed-morph)
+                      (:max-nr-of-nodes . 15000)))
 
 ;; priming configurations
 ;; identical to depth first, but using the priming data
@@ -179,7 +180,7 @@
    (same set-3 obj-2 attr-1)
    (filter set-4 set-3 shape-2)
    (filter set-5 set-4 color-2)
-   (exist target set-5)
+   (count! target set-5)
 
    (bind shape-category shape-1 sphere)
    (bind color-category color-1 blue)
