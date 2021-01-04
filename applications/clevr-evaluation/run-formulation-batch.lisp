@@ -54,9 +54,9 @@
   (declare (ignorable id))
   (loop with cipn = nil
         with utterance = nil
+        for attempt from 1
         until (or (succeededp cipn)
-                  (>= attempt max-attempts))
-        for attempt from 0
+                  (> attempt max-attempts))
         for (form node)
         = (multiple-value-list
            (handler-case (with-timeout (timeout)
@@ -175,7 +175,7 @@
  (babel-pathname :directory '("applications" "clevr-evaluation")
                  :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
- 40 10)
+ 400 1)
 |#
 
 (defun parse-args (args)
