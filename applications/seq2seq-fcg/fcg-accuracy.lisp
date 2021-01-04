@@ -68,16 +68,14 @@
 ;;;; formulation
 ;;;; --------------------------------------------------
 
-(defmethod formulate-cxn-sequence (rpn-str cxn-sequence
+(defmethod formulate-cxn-sequence (irl-program cxn-sequence
                                    &key (cxn-inventory *fcg-constructions*)
                                    (silent nil) &allow-other-keys)
   (let ((package
          (cond ((eq cxn-inventory *clevr*)
                 :clevr-grammar)
                ((eq cxn-inventory *clevr-dialog*)
-                :clevr-dialog-grammar)))
-        (irl-program
-         (rpn->irl rpn-str :use-variables-p nil)))
+                :clevr-dialog-grammar))))
     (set-configurations cxn-inventory
                         '((:cxn-supplier-mode . :cxn-sequence)
                           (:priority-mode . :nr-of-applied-cxns)
@@ -99,61 +97,40 @@
   (let ((nr-of-lines (number-of-lines inputfile))
         solution-rate)
     (with-open-file (stream inputfile :direction :input)
-      (read-line stream nil nil) ; skip the header line
-      ;; init the progress bar
       (with-progress-bar (bar nr-of-lines ("Processing ~a" (namestring inputfile)))
-        (loop for line = (read-line stream nil nil)
-              while line
-              for line-counter from 1
-              for fields = (split line #\,)
-              for source = (first fields)  ; source is either utterance or rpn
-              for cxn-sequence = (split (third fields) #\space)
-              do (case direction
-                   (:comprehension
-                    (multiple-value-bind (meaning cipn)
-                        (cond
-                         ((eq cxn-inventory *clevr*)
-                          (comprehend-cxn-sequence source cxn-sequence
-                                                   :cxn-inventory cxn-inventory))
-                         ((eq cxn-inventory *clevr-dialog*)
-                          (comprehend-cxn-sequence source (reverse cxn-sequence)
-                                                   :cxn-inventory cxn-inventory)))
-                      (declare (ignorable meaning))
-                      (if (find 'fcg::succeeded (fcg::statuses cipn))
-                        (push 1 solution-rate) (push 0 solution-rate))))
-                   (:formulation
-                    (multiple-value-bind (utterance cipn)
-                        (cond
-                         ((eq cxn-inventory *clevr*)
-                          (formulate-cxn-sequence source cxn-sequence
-                                                  :cxn-inventory cxn-inventory))
-                         ((eq cxn-inventory *clevr-dialog)
-                          (error "Not yet implemented")))
-                      (declare (ignorable utterance))
-                      (if (find 'fcg::succeeded (fcg::statuses cipn))
-                        (push 1 solution-rate) (push 0 solution-rate)))))
-              do (update bar))))
+        (do-csv (row stream :skip-first-p t)
+          (destructuring-bind (id utterance
+                               irl_program rpn
+                               formulation_cxns
+                               sorted_formulation_cxns) row
+            (declare (ignorable index id utterance rpn formulation_cxns))
+            (let ((irl-program (read-from-string irl_program))
+                  (cxn-sequence (split sorted_formulation_cxns #\space)))
+              (case direction
+                (:formulation
+                 (multiple-value-bind (utterance cipn)
+                     (cond ((eq cxn-inventory *clevr*)
+                            (when (length> cxn-sequence 1)
+                              (formulate-cxn-sequence irl-program cxn-sequence
+                                                      :cxn-inventory cxn-inventory))))
+                   (declare (ignorable utterance))
+                   (if (and cipn (find 'fcg::succeeded (fcg::statuses cipn)))
+                     (push 1 solution-rate) (push 0 solution-rate)))))))
+          (update bar))))
     (format t "~%~%Solution rate: ~a~%" (average solution-rate))
     (ensure-directories-exist outputfile)
     (append-to-output inputfile outputfile (average solution-rate))
     (format t "Done!~%")))
 
 #|
-(defparameter *all-files*
-  (directory
-   (make-pathname :directory '(:absolute "Users"
-                               "jensnevens" "Projects"
-                               "seq2seq" "output"
-                               "comprehension_batch_0")
-                  :name :wild :type "csv")))
 
-(defparameter *output-file*
-  (babel-pathname :directory '(".tmp")
-                  :name "comprehension_models_batch_0_solution_rate"
-                  :type "csv"))
-
-(loop for file in *all-files*
-      do (prediction-accuracy file *output-file* :comprehension *clevr*))
+ (activate-monitor trace-fcg)
+ 
+(prediction-accuracy
+ (parse-namestring "/Users/jensnevens/Projects/seq2seq/data/data-no-cxn-sets/CLEVR_val_corpus_formulation_v2_sorted.csv")
+ (babel-pathname :directory '(".tmp") :name "test" :type "csv")
+ :formulation *CLEVR*)
+ 
 |#
 
 ;;;; Command line interface

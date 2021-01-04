@@ -6,4 +6,5 @@
   (:import-from :clevr-dialog-grammar :*clevr-dialog*)
   (:import-from :trivial-timeout :with-timeout
                 :timeout-error)
+  (:import-from :cl-csv :do-csv)
   (:shadowing-import-from :fcg :size :attributes))
