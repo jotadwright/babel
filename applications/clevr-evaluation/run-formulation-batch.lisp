@@ -56,7 +56,7 @@
         with utterance = nil
         until (or (succeededp cipn)
                   (>= attempt max-attempts))
-        for attempt from 1
+        for attempt from 0
         for (form node)
         = (multiple-value-list
            (handler-case (with-timeout (timeout)
@@ -166,16 +166,16 @@
                       (:cxn-supplier-mode . :ordered-by-label-hashed)
                       (:hash-mode . :hash-string-meaning-lex-id)
                       (:priority-mode . :nr-of-applied-cxns)
-                      (:max-nr-of-nodes . 10000)
                       (:parse-order hashed cxn)
-                      (:production-order hashed-lex cxn hashed-morph))
+                      (:production-order hashed-lex cxn hashed-morph)
+                      (:node-tests :check-duplicate))
                     :replace t)
 
 (process-inputfile
  (babel-pathname :directory '("applications" "clevr-evaluation")
                  :name "batch-0" :type "csv")
  (babel-pathname :directory '(".tmp"))
- 400 1)
+ 40 10)
 |#
 
 (defun parse-args (args)
@@ -184,18 +184,16 @@
         if (evenp i) collect (internal-symb (upcase arg))
         else collect arg))
 
-
 (defun main (command-line-args)
   (let ((args (parse-args command-line-args)))
     ;; check the command line args
-    (loop for arg in '(inputfile outputdir max-nr-of-nodes strategy timeout)
+    (loop for arg in '(inputfile outputdir strategy timeout)
           unless (getf args arg)
           do (error "Missing command line argument: ~a" arg))
     ;; print the command line args
     (format t "~%Received args: ~a" args)
     ;; set the strategy
     (let* ((strategy (make-kw (getf args 'strategy)))
-           (max-nr-of-nodes (parse-integer (getf args 'max-nr-of-nodes)))
            (clevr-configurations
             (case strategy
               (:depth-first
@@ -203,17 +201,19 @@
                  (:cxn-supplier-mode . :ordered-by-label-hashed)
                  (:hash-mode . :hash-string-meaning-lex-id)
                  (:priority-mode . :nr-of-applied-cxns)
-                 (:max-nr-of-nodes . ,max-nr-of-nodes)
                  (:parse-order hashed cxn)
-                 (:production-order hashed-lex cxn hashed-morph)))
+                 (:production-order hashed-lex cxn hashed-morph)
+                 (:node-tests :check-duplicate)
+                 (:cxn-sets-with-sequential-application hashed-lex hashed-morph)))
               (:priming
                `((:queue-mode . :greedy-best-first)
                  (:cxn-supplier-mode . :ordered-by-label-hashed)
                  (:hash-mode . :hash-string-meaning-lex-id)
                  (:priority-mode . :priming)
-                 (:max-nr-of-nodes . ,max-nr-of-nodes)
                  (:parse-order hashed cxn)
-                 (:production-order hashed-lex cxn hashed-morph))))))
+                 (:production-order hashed-lex cxn hashed-morph)
+                 (:node-tests :check-duplicate)
+                 (:cxn-sets-with-sequential-application hashed-lex hashed-morph))))))
       ;; set the configurations for the CLEVR grammar
       (set-configurations *CLEVR* clevr-configurations :replace t)
       ;; import priming data when found
