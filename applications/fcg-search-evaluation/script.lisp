@@ -63,10 +63,10 @@
     (length (split input #\space))
     (length input)))
 
-(defun get-output-length (input)
-  (if (stringp input)
-    (length (split input #\space))
-    (length input)))
+(defun get-output-length (output)
+  (if (stringp output)
+    (length (split output #\space))
+    (length output)))
 
 (defmethod cip-leafs ((cip construction-inventory-processor))
   "Get all leafs from the cipn"
@@ -261,14 +261,16 @@
               (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :nr-of-applied-cxns)
               (:parse-order hashed cxn)
-              (:production-order hashed cxn hashed)))
+              (:production-order hashed-lex nom cxn hashed-morph)
+              (:cxn-sets-with-sequential-application hashed-lex hashed-morph)))
            (:priming
             '((:queue-mode . :greedy-best-first)
               (:cxn-supplier-mode . :ordered-by-label-hashed)
               (:hash-mode . :hash-string-meaning-lex-id)
               (:priority-mode . :priming)
               (:parse-order hashed cxn)
-              (:production-order hashed cxn hashed)))
+              (:production-order hashed-lex nom cxn hashed-morph)
+              (:cxn-sets-with-sequential-application hashed-lex hashed-morph)))
            (:seq2seq
             (let ((endpoint #+ccl (format nil "http://127.0.0.1:~a/next-cxn"
                                           seq2seq-server-port)
@@ -280,12 +282,10 @@
                 (:priority-mode . :seq2seq-additive-with-sets)
                 (:seq2seq-endpoint . ,endpoint)
                 (:parse-order hashed cxn)
-                (:production-order hashed cxn hashed)))))))
+                (:production-order hashed-lex cxn hashed-morph)
+                (:cxn-sets-with-sequential-application hashed-lex hashed-morph)))))))
     (if (null max-nr-of-nodes)
-      (setf configurations
-            (append '((:node-tests :check-duplicate)
-                      (:max-nr-of-nodes . 1000000))
-                    configurations))
+      (push '(:node-tests :check-duplicate) configurations)
       (push `(:max-nr-of-nodes . ,max-nr-of-nodes) configurations))
     (set-configurations grammar configurations :replace t)
     (set-configurations (processing-cxn-inventory grammar)
@@ -338,24 +338,24 @@
   (setf (getf args 'grammar)
         (copy-object (eval (internal-symb (upcase (getf args 'grammar))))))
   (setf (getf args 'strategy)
-        (make-kw (upcase (getf args 'strategy))))
-  (when (getf args 'seq2seq-server-port)
-    (setf (getf args 'seq2seq-server-port)
-          (parse-integer (getf args 'seq2seq-server-port))))     
+        (make-kw (upcase (getf args 'strategy))))     
   (setf (getf args 'direction)
         (make-kw (upcase (getf args 'direction))))
   (setf (getf args 'timeout)
         (if (string= (getf args 'timeout) "nil")
           nil (parse-integer (getf args 'timeout))))
-  (setf (getf args 'max-nr-of-nodes)
-        (if (string= (getf args 'max-nr-of-nodes) "nil")
-          nil (parse-integer (getf args 'max-nr-of-nodes))))
+  (when (getf args 'max-nr-of-nodes)
+    (setf (getf args 'max-nr-of-nodes)
+          (parse-integer (getf args 'max-nr-of-nodes))))
   (when (getf args 'import-priming-data-path)
     (setf (getf args 'import-priming-data-path)
           (parse-namestring (getf args 'import-priming-data-path))))
   (when (getf args 'export-priming-data-path)
     (setf (getf args 'export-priming-data-path)
           (parse-namestring (getf args 'export-priming-data-path))))
+  (when (getf args 'seq2seq-server-port)
+    (setf (getf args 'seq2seq-server-port)
+          (parse-integer (getf args 'seq2seq-server-port))))
   args)
   
 
@@ -363,8 +363,7 @@
   (let ((arg-plist (args->plist args)))
     ;; check the command line args
     (loop for indicator in '(grammar inputfile outputdir
-                             strategy timeout direction
-                             max-nr-of-nodes)
+                             strategy timeout direction)
           unless (getf arg-plist indicator)
           do (error "Missing command line argument: ~a" indicator))
     ;; process the command line args
@@ -403,7 +402,7 @@ ccl -l script.lisp -b
        strategy depth-first
        timeout 60
        direction comprehension
-       max-nr-of-nodes 50000
+       [max-nr-of-nodes 50000]
        [seq2seq-server-port 8000]  ;; only useful in seq2seq strategy
        [import-priming-data-path raw-data/comprehension-priming-data.lsp]  ;; only useful in priming strategy
        [export-priming-data-path raw-data/comprehension-priming-data.lsp]  ;; only useful in priming strategy
