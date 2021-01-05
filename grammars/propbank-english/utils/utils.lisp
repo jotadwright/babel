@@ -322,7 +322,8 @@ grammar on the list-of-sentences"
                finally return freq-table)))
 
     (loop for sentence in list-of-sentences
-          for comprehension-result = (multiple-value-list (comprehend sentence :cxn-inventory hashed-cxn-inventory :silent t :time-out 10))
+          for comprehension-result = (multiple-value-list
+                                      (comprehend sentence :cxn-inventory hashed-cxn-inventory :silent t :timeout 5))
           if (eq 'time-out (first comprehension-result))
           do (format t "x")
           else do (format t ".")
@@ -332,24 +333,34 @@ grammar on the list-of-sentences"
     frequency-table))
 
 
-(defun find-outlier-cxns (learned-propbank-grammar dev-corpus &key (nr-of-test-sentences 100))
-  "Run the learned grammar on 100 sentences of the dev-corpus to check
-for faulty cxns."
-
-  (let* ((test-frequencies (collect-cxn-frequencies learned-propbank-grammar
-                                                   (mapcar #'sentence-string (subseq dev-corpus 0 nr-of-test-sentences))))
+(defun sort-cxns-for-outliers (learned-propbank-grammar dev-corpus &key (nr-of-test-sentences 100))
+  "Run the learned grammar on a number of sentences of the dev-corpus in order to detect faulty cxns."
+  (let* ((test-frequencies
+          (collect-cxn-frequencies learned-propbank-grammar
+                                   (mapcar #'sentence-string (subseq dev-corpus 0 nr-of-test-sentences))))
          (cxns-w-score
           (sort (loop for cxn in (constructions-list learned-propbank-grammar)
                       for cxn-test-frequency = (gethash (name cxn) test-frequencies)
-                      collect (cons (name cxn) (/ cxn-test-frequency (attr-val cxn :frequency))))
+                      collect (cons cxn (/ cxn-test-frequency (attr-val cxn :frequency))))
                 #'> :key #'cdr)))
 
-    (loop for (cxn-name . score) in cxns-w-score
+    (loop for (cxn . score) in cxns-w-score
           unless (= score 0)
-          do (format t "~a: ~a ~%" cxn-name score))
+          do (format t "~a: ~a ~%" (name cxn) score))
+    
     cxns-w-score))
 
-;(find-outlier-cxns *propbank-learned-cxn-inventory* *dev-sentences-all* :nr-of-test-sentences 100 )
+(defun clean-grammar (grammar dev-corpus &key (destructive t) (nr-of-test-sentences 100)
+                              (cut-off 2)) ;;2 = double frequency in dev-set, compared to training freq
+  (format t "Grammar size before cleaning: ~a ~%" (size grammar)) 
+  (loop with cxn-inventory = (if destructive grammar (copy-object grammar))
+        for (cxn . dev/train-ratio) in (sort-cxns-for-outliers cxn-inventory dev-corpus
+                                                                    :nr-of-test-sentences nr-of-test-sentences)
+        if (>= dev/train-ratio cut-off)
+        do (delete-cxn cxn cxn-inventory :hash-key (attr-val cxn :lemma))
+        else do (return cxn-inventory)))
+  
+;(clean-grammar *propbank-learned-cxn-inventory* (shuffle *dev-sentences-all*) :nr-of-test-sentences 10 :destructive t )
 
 (defun remove-cxns-under-frequency (grammar cutoff-frequency &key (destructive nil))
   (let ((cxn-inventory (if destructive
@@ -360,7 +371,7 @@ for faulty cxns."
             do (with-disabled-monitor-notifications (delete-cxn cxn cxn-inventory))
             finally return cxn-inventory)))
 
-
+#|
 (defun clean-grammar (grammar &key
                               (destructive t)
                               (remove-cxns-with-freq-1 nil)
@@ -386,7 +397,7 @@ for faulty cxns."
             finally return cxn-inventory))
     cxn-inventory))
 
-
+|#
 
 
 (defun clean-type-hierarchy (type-hierarchy &key
