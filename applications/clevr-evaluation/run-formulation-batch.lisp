@@ -26,27 +26,25 @@
         finally (return (values utterance cipn))))
 
 (defun formulate-until-solution-with-timeout (irl-program id timeout)
-  "Try to formulate the irl-program until a
-   solution is found"
   (declare (ignorable id))
-  (multiple-value-bind (utterance cipn)
-      (handler-case
-          (with-timeout (timeout)
-            (loop with cipn = nil
-                  with utterance = nil
-                  until (succeededp cipn)
-                  for attempt from 1
-                  for (form node)
-                  = (multiple-value-list
-                     (formulate irl-program :cxn-inventory *CLEVR*))
-                  when (succeededp node)
-                  do (setf cipn node
-                           utterance form)
-                  finally (return (values utterance cipn))))
-        (timeout-error (e)
-          (declare (ignorable e))
-          (values nil nil)))
-    (values utterance cipn)))
+  (loop with cipn = nil
+        with utterance = nil
+        for attempt from 1
+        until (succeededp cipn)
+        for (form node)
+        = (multiple-value-list
+           (handler-case (with-timeout (timeout)
+                           (formulate irl-program :cxn-inventory *CLEVR*))
+             (timeout-error (e)
+               (declare (ignorable e))
+               (values nil nil))))
+        if (succeededp node)
+        do (progn (format t "~%[~a] Success" id)
+             (setf cipn node
+                   utterance form))
+        else
+        do (format t "~%[~a] Attempt ~a" id attempt)
+        finally (return (values utterance cipn))))
 
 (defun formulate-num-attempts-with-timeout (irl-program id timeout max-attempts)
   "Try to formulate the irl-program until a
@@ -168,12 +166,10 @@
                       (:hash-mode . :hash-string-meaning-lex-id)
                       (:priority-mode . :nr-of-applied-cxns)
                       (:parse-order hashed cxn)
-                      (:production-order hashed-lex cxn hashed-morph)
+                      (:production-order hashed-lex nom cxn hashed-morph)
                       (:node-tests :check-duplicate)
                       (:cxn-sets-with-sequential-application hashed-lex hashed-morph))
                     :replace t)
-
-#'fcg::apply-sequentially?
 
 (set-configurations (processing-cxn-inventory *CLEVR*)
                     '((:queue-mode . :greedy-best-first)
@@ -181,7 +177,7 @@
                       (:hash-mode . :hash-string-meaning-lex-id)
                       (:priority-mode . :nr-of-applied-cxns)
                       (:parse-order hashed cxn)
-                      (:production-order hashed-lex cxn hashed-morph)
+                      (:production-order hashed-lex nom cxn hashed-morph)
                       (:node-tests :check-duplicate)
                       (:cxn-sets-with-sequential-application hashed-lex hashed-morph))
                     :replace t)
