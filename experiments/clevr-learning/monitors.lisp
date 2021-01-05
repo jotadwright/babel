@@ -8,10 +8,12 @@
                  and prints the number after :dot-interval")
 
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (if (= (mod (interaction-number interaction)
-              (get-configuration experiment :dot-interval)) 0)
-    (format t ". (~a)~%" (interaction-number interaction))
-    (format t ".")))
+  (cond ((= (interaction-number interaction) 1)
+         (format t "~%."))
+        ((= (mod (interaction-number interaction)
+                 (get-configuration experiment :dot-interval)) 0)
+         (format t ". (~a)~%" (interaction-number interaction)))
+        (t (format t "."))))
 
 ;;;; Communicative success
 (define-monitor record-communicative-success

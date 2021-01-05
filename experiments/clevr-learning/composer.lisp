@@ -10,7 +10,8 @@
   ;; make the chunk composer
   (make-chunk-composer
    :topic target-category
-   ; :meaning check if partial program is available?
+   ; if partial program is available, this can be passed along
+   ; using :meaning initarg
    :initial-chunk (make-instance 'chunk :id 'initial
                                  :target-var `(?answer . ,(type-of target-category))
                                  :open-vars `((?answer . ,(type-of target-category))))
@@ -22,10 +23,10 @@
                      ;; remove the :clevr-open-vars from
                      ;; the :check-node-modes
                      (:check-node-modes :check-duplicate 
-                      :clevr-primitive-occurrence-count                              
-                      :clevr-context-links
-                      :clevr-filter-group-length
-                      :clevr-open-vars)
+                                        :clevr-primitive-occurrence-count                              
+                                        :clevr-context-links
+                                        :clevr-filter-group-length
+                                        :clevr-open-vars)
                      (:expand-chunk-modes :combine-program)
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes
@@ -46,6 +47,26 @@
                        return s))
         finally
         (return solution)))
+
+(defun check-past-programs (solution solution-index list-of-past-programs agent)
+  (declare (ignorable solution-index agent))
+  (let ((solution-irl-program
+         (append (irl-program (chunk solution))
+                 (bind-statements solution))))
+    (loop for past-program in list-of-past-programs
+          never (equivalent-irl-programs? past-program solution-irl-program))))
+
+
+(defmethod compose-program-update (agent target-category
+                                         (strategy (eql :minimal+store-past-programs)))
+  (let* ((composer (make-default-composer agent target-category))
+         (past-programs (rest
+                         (assoc (utterance agent)
+                                (find-data agent 'past-programs)
+                                :test #'string=))))
+    (compose-until
+     composer (lambda (solution idx)
+                (check-past-programs solution idx past-programs agent)))))
 
 (define-event check-samples-started
   (list-of-samples list)
@@ -78,7 +99,8 @@
     (set-data (ontology agent) 'clevr-context clevr-context)
     success))
 
-(defmethod compose-program-update (agent target-category)
+(defmethod compose-program-update (agent target-category
+                                         (strategy (eql :minimal+store-past-scenes)))
   (let* ((composer (make-default-composer agent target-category))
          (all-samples (find-all (utterance agent) (find-data agent 'samples)
                                 :key #'second :test #'string=)))

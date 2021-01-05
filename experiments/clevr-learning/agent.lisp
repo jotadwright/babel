@@ -128,7 +128,7 @@
 
 (defmethod diagnose ((diagnostic parsing-diagnostic)
                      process-result &key trigger)
-  ;; check if the process result contains an applied-cxn
+  ;; check if the process result contains applied-cxns
   (declare (ignorable trigger))
   (if (find-data process-result 'applied-cxns)
     (notify parsing-succeeded)
@@ -166,7 +166,8 @@
                                         (applied-constructions cipn))))
           (push (cons 'applied-cxns all-applied-cxns) process-result-data)
           (push (cons 'irl-program irl-program) process-result-data)
-          (setf (applied-cxns agent) all-applied-cxns))))
+          (setf (applied-cxns agent) all-applied-cxns)
+          (setf (applied-program agent) irl-program))))
     (let ((process-result (make-process-result 1 process-result-data :process process)))
       (unless (notify-learning process-result :trigger 'parsing)
         process-result))))
@@ -181,16 +182,14 @@
                         (process-label (eql 'interpret))
                         task agent)
   ;; Interpret the parsed irl-program in the current scene
-  (let ((irl-program (find-data (input process) 'irl-program))
-        process-result-data)
-    (when irl-program
+  (let (process-result-data)
+    (when (applied-program agent)
        (let ((all-solutions
-              (evaluate-irl-program irl-program (ontology agent)
+              (evaluate-irl-program (applied-program agent) (ontology agent)
                                     :primitive-inventory (available-primitives agent))))
          (when (length= all-solutions 1)
-           (let ((answer (get-target-value irl-program (first all-solutions))))
-             (setf (applied-program agent) irl-program
-                   (topic-found agent) answer)
+           (let ((answer (get-target-value (applied-program agent) (first all-solutions))))
+             (setf (topic-found agent) answer)
              (push (cons 'found-topic answer) process-result-data)
              (notify interpretation-succeeded answer)))))
     (make-process-result 1 process-result-data :process process)))
@@ -225,8 +224,92 @@
 (define-event cxns-punished (cxns list))
 (define-event adjust-program-started)
 
+;;;; minimal + store-past-programs
+;;;; ==> store all past programs and use these when composing a new program
+;;;;     (the new program must be different from all previous programs)
+;;;;     only keep a single cxn for each utterance
+
+;;;; lateral-inhibition
+;;;; ==> keep all cxns for all utterances, but reward them using lateral
+;;;;     inhibition. When composing a new program, make sure it is different
+;;;;     from all meanings of all cxns for this utterance
+
+;;;; The above two strategies are equal. In the first strategy, all past
+;;;; programs are stored separately (e.g. in the blackboard of the agent)
+;;;; while in the second strategy, all past programs are contained in the
+;;;; meanings of all cxns. Both strategies will compose a new program that
+;;;; is not equivalent to any old program for the same utterance. The former
+;;;; strategy is slightly easier to implement, since we do not have to deal
+;;;; with finding meanings of removed cxns (when their score reaches 0).
+
+(defmethod run-alignment ((agent clevr-learning-learner) success
+                          (strategy (eql :minimal+store-past-programs)))
+  (notify alignment-started)
+  ;; when unsuccessful ...
+  (unless success
+    ;; remove the cxn for this utterance...
+    (when (applied-cxns agent)
+      (loop for cxn in (applied-cxns agent)
+            do (delete-cxn cxn (grammar agent))))
+    ;; add the current program to the list of past programs for this utterance...
+    (when (applied-program agent)
+      (if (find-data agent 'past-programs)
+        (if (assoc (utterance agent) (get-data agent 'past-programs) :test #'string=)
+          (push (applied-program agent)
+                (cdr (assoc (utterance agent)
+                            (get-data agent 'past-programs)
+                            :test #'string=)))
+          (push-data agent 'past-programs 
+                     (cons (utterance agent) (list (applied-program agent)))))         
+        (set-data agent 'past-programs
+                  (list (cons (utterance agent) (list (applied-program agent)))))))
+    ;; and generate a new  one that is different.
+    (let* ((composer-solution (compose-program-update agent (topic agent) strategy))
+           (holophrase-chunk (solution->chunk agent composer-solution)))
+      (notify chosen-composer-solution composer-solution)
+      (push-data (ontology agent) 'chunks holophrase-chunk)
+      (add-holophrase-cxn (grammar agent) (utterance agent) holophrase-chunk
+                          :initial-score (get-configuration agent :initial-cxn-score))
+      (add-composer-chunk agent (chunk (irl::node composer-solution))))))
+    
+
+(defmethod run-alignment ((agent clevr-learning-learner) success
+                          (strategy (eql :minimal+store-past-scenes)))
+  ;;;; store all past scenes and use these when composing a new program
+  ;;;; (the program must execute correctly on all of these scenes)
+  ;;;; only keep a single cxn for each utterance
+  (notify alignment-started)
+  ;; store the scene
+  (let* ((clevr-scene (find-data (ontology agent) 'clevr-context))
+         (new-sample (list (index clevr-scene) (utterance agent) (topic agent))))
+    (unless (find new-sample (find-data agent 'samples)
+                  :test #'(lambda (s1 s2)
+                            (and (= (first s1) (first s2))
+                                 (string= (second s1) (second s2)))))
+      (push-data agent 'samples new-sample)))
+  ;; when unsuccessful, remove the cxn for this utterance
+  ;; and compose a new one
+  (unless success
+    (when (applied-cxns agent)
+      (loop for cxn in (applied-cxns agent)
+            do (delete-cxn cxn (grammar agent))))
+    (notify adjust-program-started)
+    (let* ((composer-solution (compose-program-update agent (topic agent) strategy))
+           (holophrase-chunk (solution->chunk agent composer-solution)))
+      (notify chosen-composer-solution composer-solution)
+      (push-data (ontology agent) 'chunks holophrase-chunk)
+      (add-holophrase-cxn (grammar agent) (utterance agent) holophrase-chunk
+                          :initial-score (get-configuration agent :initial-cxn-score))
+      (add-composer-chunk agent (chunk (irl::node composer-solution))))))
+
+
+
 (defmethod run-alignment ((agent clevr-learning-learner) success
                           (strategy (eql :lateral-inhibition+store-past-scenes)))
+  ;;;; store all past scenes and use these when composing a new program
+  ;;;; (the program must execute correctly on all of these scenes)
+  ;;;; keep all cxns for all utterances, but increase/decrease the scores
+  ;;;; using lateral inhibition (why bother keeping all these cxns?)
   (notify alignment-started)
   ;; reward or punish the cxns
   (if success
@@ -252,16 +335,9 @@
                                  (string= (second s1) (second s2)))))
       (push-data agent 'samples new-sample)))
   ;; update the program if necessary
-  ;; TO DO; when only using holophrase,
-  ;; the current cxn can be removed and replaced
-  ;; However, when multiple cxns are used
-  ;; (after running Jonas' repairs)
-  ;; how should the lexicon be updated.
-  ;; Only update item-based cxns using the predicates
-  ;; (i.e. removing the bind statements?)
   (unless success
     (notify adjust-program-started)
-    (let* ((composer-solution (compose-program-update agent (topic agent)))
+    (let* ((composer-solution (compose-program-update agent (topic agent) strategy))
            (holophrase-chunk (solution->chunk agent composer-solution)))
       (notify chosen-composer-solution composer-solution)
       (push-data (ontology agent) 'chunks holophrase-chunk)

@@ -5,7 +5,8 @@
 ;; use this file to run experiments (possibly on the cluster)
 
 (run-experiments '(
-                   (initial-test ((:questions-per-challenge . 1000)))
+                   (initial-test ((:questions-per-challenge . 1000)
+                                  (:alignment-strategy . :minimal+store-past-scenes)))
                    )
                  :number-of-interactions 10000
                  :number-of-series 1
