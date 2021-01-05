@@ -157,6 +157,7 @@
                                                         (not (find 'pp (unit-feature-value (cdr unit-w-role) 'syn-class)))))
                                                core-units-with-role))
          (gram-category (make-gram-category core-units-with-role))
+         (abstract-gram-category (make-abstract-gram-category core-units-with-role))
          (cxn-units-with-role (loop for unit in core-units-with-role
                                     collect (make-propbank-conditional-unit-with-role unit gram-category 'fee)))
          (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category 'fee))
@@ -182,7 +183,7 @@
       (progn
         ;;1) Increase its frequency
         (incf (attr-val equivalent-cxn :frequency))
-        ;;2) Check if there was already a link in the type hierarchy between the lex-category and the gram-category:
+        ;;2a) Check if there was already a link in the type hierarchy between the lex-category and the gram-category:
         (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
                                       lex-category
                                       (attr-val equivalent-cxn :gram-category))
@@ -198,6 +199,24 @@
                     (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
             (add-link lex-category
                       (attr-val equivalent-cxn :gram-category) (get-type-hierarchy cxn-inventory) :weight 1.0)))
+        ;;2b) Check if there was already a link in the type hierarchy
+        ;;between the gram-category and the abstract-gram-category:
+        (if (graph-utils:edge-exists? (type-hierarchies::graph (get-type-hierarchy cxn-inventory))
+                                      (attr-val equivalent-cxn :gram-category)
+                                      abstract-gram-category)
+          ;;a) If yes, increase edge weight
+          (progn
+            (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) (attr-val equivalent-cxn :gram-category)
+                                           abstract-gram-category :delta 1.0)
+            (graph-utils::incf-edge-weight (type-hierarchies::graph (get-type-hierarchy cxn-inventory)) (attr-val equivalent-cxn :gram-category)
+                                           abstract-gram-category :delta 1.0 :edge-type 'gram-abstract-gram))
+          ;;b) Otherwise, add new connection (weight 1.0)
+          (progn
+            (add-link (attr-val equivalent-cxn :gram-category)
+                      abstract-gram-category (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'gram-abstract-gram)
+            (add-link (attr-val equivalent-cxn :gram-category)
+                      abstract-gram-category (get-type-hierarchy cxn-inventory) :weight 1.0)))
+        
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
 
@@ -206,6 +225,11 @@
         (add-category gram-category (get-type-hierarchy cxn-inventory))
         (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'lex-gram)
         (add-link lex-category gram-category (get-type-hierarchy cxn-inventory) :weight 1.0)
+        
+        (add-category abstract-gram-category (get-type-hierarchy cxn-inventory))
+        (add-link gram-category abstract-gram-category (get-type-hierarchy cxn-inventory) :weight 1.0 :type 'gram-abstract-gram)
+        (add-link gram-category abstract-gram-category (get-type-hierarchy cxn-inventory) :weight 1.0)
+        
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit
                                   <-
@@ -219,7 +243,8 @@
                                          :score ,(length cxn-units-with-role)
                                          :label argument-structure-cxn
                                          :frequency 1
-                                         :gram-category ,gram-category)
+                                         :gram-category ,gram-category
+                                         :abstract-gram-category ,abstract-gram-category)
                             :description ,(sentence-string propbank-sentence)
                             :cxn-inventory ,cxn-inventory))
         gram-category))))
@@ -850,6 +875,11 @@
                                                       (role-type r)
                                                       (feature-value (find 'syn-class (unit-body u)
                                                                            :key #'feature-name)))))))))
+
+(defun make-abstract-gram-category (units-with-role)
+  (intern (symbol-name (format nil "~{~a~^-~}"
+                                (loop for (r . nil) in units-with-role
+                                      collect (format nil "~a" (role-type r)))))))
 
 (defmethod make-cxn-schema (core-units-with-role cxn-units-with-role &key cxn-preposition-units cxn-s-bar-units)
   (loop with pp-unit-number = 0
