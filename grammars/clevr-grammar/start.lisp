@@ -11,8 +11,8 @@
 (set-configurations *fcg-constructions*
                     '((:cxn-supplier-mode . :ordered-by-label-hashed)
                       (:priority-mode . :nr-of-applied-cxns)
-                      (:parse-order hashed cxn)
-                      (:production-order hashed-lex cxn hashed-morph)
+                      (:parse-order hashed nom cxn)
+                      (:production-order hashed-lex nom cxn hashed-morph)
                       (:max-nr-of-nodes . 15000)))
 
 ;; priming configurations
