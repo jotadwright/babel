@@ -158,7 +158,8 @@
               <-
               (?where-is-unit
                (HASH meaning ((query ?out ?object ?side)
-                              (bind attribute-category ?side side)))
+                              (bind attribute-category ?side side)
+                              (get-context ?source)))
                --
                (HASH form ((string ?where-is-unit "where is")
                            (meets ?where-is-unit ?leftmost-np-unit))))

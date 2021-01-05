@@ -77,7 +77,7 @@
                                                          (mapcar #'fcg::name
                                                                  (applied-constructions cipn))))))
            (:svg . ,svg)))))))
-
+     
 ;; send a request to /comprehend
 ;; data must contain an "utterance" key
 ;; optionally, "meaning_representation" can be specified
@@ -103,4 +103,4 @@
        (http-condition 400 "Malformed JSON")))))
 
 
-;; curl -H "Content-Type: text/plain" -d '{"utterance" : "is there a sea below the sky?", "meaning_representation": "rpn", "want_svg": true}' http://localhost:9009/comprehend
+;; curl -H "Content-Type: text/plain" -d '{"utterance" : "where is the cow?", "meaning_representation": "rpn", "want_svg": true}' http://localhost:9009/comprehend

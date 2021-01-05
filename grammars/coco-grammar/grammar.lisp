@@ -27,7 +27,7 @@
                          (:queue-mode . :greedy-best-first)
                          (:max-nr-of-nodes . 10000)
                          (:hash-mode . :hash-string-meaning-lex-id))
-    :visualization-configurations ((:show-constructional-dependencies . nil)
+    :visualization-configurations ((:show-constructional-dependencies . t)
                                    (:hide-features . (footprints superunits))
                                    (:with-search-debug-data . t))
     :hierarchy-features (subunits)

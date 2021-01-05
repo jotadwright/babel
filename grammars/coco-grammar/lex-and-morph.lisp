@@ -165,7 +165,7 @@
 
 ;;;; COLORS
 (defun add-coco-color-cxn (cxn-inventory color)
-  (let ((cxn-name (internal-symb (upcase (string-append (hyphenize color) "-lex-cxn"))))
+  (let ((cxn-name (internal-symb (upcase (string-append (hyphenize color) "-color-lex-cxn"))))
         (unit-name (make-var (upcase (string-append (hyphenize color) "-unit"))))
         (out-var (make-var 'color)))
     (eval `(def-fcg-cxn ,cxn-name
@@ -215,6 +215,8 @@
                                 (rest (assoc :type coco-type-and-form))
                                 (rest (assoc :form coco-type-and-form)))))
   ;; read the xkcd colors file
+  ;; !!! BUG; some colors are also nouns
+  ;; !!! CHECK FOR DUPLICATES
   (with-open-file (stream (babel-pathname :directory '("grammars" "coco-grammar" "data")
                                             :name "xkcd-colors" :type "txt"))
     (loop for line = (read-line stream nil nil)
