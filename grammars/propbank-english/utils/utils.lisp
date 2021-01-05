@@ -311,6 +311,45 @@ split to the output buffer."
 ;; Cleaning the grammar ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun collect-cxn-frequencies (hashed-cxn-inventory list-of-sentences)
+  "Returns a hash table with as keys the cxns of the cxn-inventory and
+as value the frequency of every construction in the application of the
+grammar on the list-of-sentences"
+  (let ((frequency-table ;;initialization
+         (loop with freq-table = (make-hash-table)
+               for cxn in (constructions-list hashed-cxn-inventory)
+               do (setf (gethash (name cxn) freq-table) 0)
+               finally return freq-table)))
+
+    (loop for sentence in list-of-sentences
+          for comprehension-result = (multiple-value-list (comprehend sentence :cxn-inventory hashed-cxn-inventory :silent t :time-out 10))
+          if (eq 'time-out (first comprehension-result))
+          do (format t "x")
+          else do (format t ".")
+          (loop for cxn in (applied-constructions (second comprehension-result))
+                do (incf (gethash (name cxn) frequency-table))))
+    
+    frequency-table))
+
+
+(defun find-outlier-cxns (learned-propbank-grammar dev-corpus &key (nr-of-test-sentences 100))
+  "Run the learned grammar on 100 sentences of the dev-corpus to check
+for faulty cxns."
+
+  (let* ((test-frequencies (collect-cxn-frequencies learned-propbank-grammar
+                                                   (mapcar #'sentence-string (subseq dev-corpus 0 nr-of-test-sentences))))
+         (cxns-w-score
+          (sort (loop for cxn in (constructions-list learned-propbank-grammar)
+                      for cxn-test-frequency = (gethash (name cxn) test-frequencies)
+                      collect (cons (name cxn) (/ cxn-test-frequency (attr-val cxn :frequency))))
+                #'> :key #'cdr)))
+
+    (loop for (cxn-name . score) in cxns-w-score
+          unless (= score 0)
+          do (format t "~a: ~a ~%" cxn-name score))
+    cxns-w-score))
+
+;(find-outlier-cxns *propbank-learned-cxn-inventory* *dev-sentences-all* :nr-of-test-sentences 100 )
 
 (defun remove-cxns-under-frequency (grammar cutoff-frequency &key (destructive nil))
   (let ((cxn-inventory (if destructive
