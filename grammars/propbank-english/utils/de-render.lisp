@@ -110,8 +110,7 @@
     (find parent-unit-name unit-structure :key #'unit-name)))
   
 (defun run-phrasal-verb-check (units)
-  "Checks if there are particle units in the unit structure, ." ;;what about the vp above it?
-
+  "Checks if there are particle units in the unit structure, ."
   (let* ((phrasal-verb-units
           (loop for unit in units
                 for parent-unit = (find (unit-feature-value unit 'parent) units :key #'unit-name)
@@ -128,7 +127,7 @@
           for (phrasal-verb-unit . particle-unit) in phrasal-verb-units
           when (intersection (unit-feature-value vp-unit 'constituents)
                              (list (unit-name phrasal-verb-unit) (unit-name particle-unit)))
-          do (let* ((additional-vp-unit (create-phrasal-vp-unit phrasal-verb-unit particle-unit))
+          do (let* ((additional-vp-unit (create-phrasal-vp-unit phrasal-verb-unit particle-unit vp-unit))
                     (new-phrasal-verb-unit (update-unit-feature-value phrasal-verb-unit 'parent (unit-name additional-vp-unit)))
                     (new-particle-unit (update-unit-feature-value particle-unit 'parent (unit-name additional-vp-unit)))
                     (other-constituents (set-difference (unit-feature-value vp-unit 'constituents)
@@ -138,6 +137,7 @@
                        (let* ((parent-unit (parent-unit vp-unit units))
                               (other-parent-constituents (set-difference (unit-feature-value parent-unit 'constituents)
                                                                          (list (unit-name vp-unit)))))
+                         (assert parent-unit)
                          (update-unit-feature-value (parent-unit vp-unit units) 'constituents
                                                     (append other-parent-constituents (list (unit-name additional-vp-unit)))))
                       (update-unit-feature-value vp-unit 'constituents (append other-constituents (list (unit-name additional-vp-unit)))))))
@@ -154,13 +154,14 @@
     units))
 
 (defun update-unit-feature-value (unit feature-name new-feature-value)
+  (assert new-feature-value)
   `(,(unit-name unit) 
     ,@(loop for unit-feature in (unit-body unit)
             if (eql (first unit-feature) feature-name)
             collect (list feature-name new-feature-value)
             else collect unit-feature)))
 
-(defun create-phrasal-vp-unit (verb-unit particle-unit)
+(defun create-phrasal-vp-unit (verb-unit particle-unit parent-unit)
   (let ((phrasal-lemma (intern (upcase (format nil "~a-~a"
                                                (unit-feature-value verb-unit 'lemma)
                                                (unit-feature-value particle-unit 'lemma))))))
@@ -170,6 +171,7 @@
     (span ,(merge-unit-spans verb-unit particle-unit))
     (string ,(merge-unit-strings verb-unit particle-unit))
     (syn-class (vp))
+    (parent ,(unit-name parent-unit))
     (word-order ((adjacent ,(unit-name verb-unit) ,(unit-name particle-unit))
                  (precedes ,(unit-name verb-unit) ,(unit-name particle-unit))))
     (lemma ,phrasal-lemma))))
