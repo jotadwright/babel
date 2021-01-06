@@ -877,7 +877,7 @@
                                                                            :key #'feature-name)))))))))
 
 (defun make-abstract-gram-category (units-with-role)
-  (intern (symbol-name (format nil "~{~a~^-~}"
+  (intern (upcase (format nil "~{~a~^-~}"
                                 (loop for (r . nil) in units-with-role
                                       collect (format nil "~a" (role-type r)))))))
 
