@@ -148,8 +148,13 @@
 ;;>> Cleaning
 ;;--------------
 
+(sort-cxns-for-outliers *propbank-learned-cxn-inventory* (dev-split *ewt-annotations*)
+                        :timeout 10
+                        :nr-of-training-sentences (get-data (blackboard *propbank-learned-cxn-inventory*) :training-corpus-size)
+                        :nr-of-test-sentences 1000)
+
 (clean-grammar *propbank-learned-cxn-inventory* (dev-split *ewt-annotations*)
-               :nr-of-test-sentences 100 :timeout 10)
+               :nr-of-test-sentences 1000 :timeout 10)
 
 (add-element (make-html (find-cxn 'HAVE.03-CXN *propbank-learned-cxn-inventory* :hash-key 'have)))
 
