@@ -127,7 +127,7 @@
           for (phrasal-verb-unit . particle-unit) in phrasal-verb-units
           when (intersection (unit-feature-value vp-unit 'constituents)
                              (list (unit-name phrasal-verb-unit) (unit-name particle-unit)))
-          do (let* ((additional-vp-unit (create-phrasal-vp-unit phrasal-verb-unit particle-unit vp-unit))
+          do (let* ((additional-vp-unit (create-phrasal-vp-unit phrasal-verb-unit particle-unit))
                     (new-phrasal-verb-unit (update-unit-feature-value phrasal-verb-unit 'parent (unit-name additional-vp-unit)))
                     (new-particle-unit (update-unit-feature-value particle-unit 'parent (unit-name additional-vp-unit)))
                     (other-constituents (set-difference (unit-feature-value vp-unit 'constituents)
@@ -137,21 +137,22 @@
                        (let* ((parent-unit (parent-unit vp-unit units))
                               (other-parent-constituents (set-difference (unit-feature-value parent-unit 'constituents)
                                                                          (list (unit-name vp-unit)))))
-                         (assert parent-unit)
                          (update-unit-feature-value (parent-unit vp-unit units) 'constituents
                                                     (append other-parent-constituents (list (unit-name additional-vp-unit)))))
                       (update-unit-feature-value vp-unit 'constituents (append other-constituents (list (unit-name additional-vp-unit)))))))
+               
                ;;delete 3 old units
-               (delete phrasal-verb-unit units :test #'equalp)
-               (delete particle-unit units :test #'equalp)
-               (delete vp-unit units :test #'equalp)
+               (delete phrasal-verb-unit units :test #'equal)
+               (delete particle-unit units :test #'equal)
+               (delete vp-unit units :test #'equal)
                ;;add 4 new units
                (pushend new-vp-unit units)
+               (unless (unit-feature additional-vp-unit 'parent)
+                 (pushend  `(parent ,(unit-name new-vp-unit)) additional-vp-unit))
                (pushend additional-vp-unit units)
                (pushend new-phrasal-verb-unit units)
                (pushend new-particle-unit units)))
-         
-    units))
+    (remove-duplicates units :key #'unit-name)))
 
 (defun update-unit-feature-value (unit feature-name new-feature-value)
   (assert new-feature-value)
@@ -161,7 +162,7 @@
             collect (list feature-name new-feature-value)
             else collect unit-feature)))
 
-(defun create-phrasal-vp-unit (verb-unit particle-unit parent-unit)
+(defun create-phrasal-vp-unit (verb-unit particle-unit)
   (let ((phrasal-lemma (intern (upcase (format nil "~a-~a"
                                                (unit-feature-value verb-unit 'lemma)
                                                (unit-feature-value particle-unit 'lemma))))))
@@ -171,7 +172,7 @@
     (span ,(merge-unit-spans verb-unit particle-unit))
     (string ,(merge-unit-strings verb-unit particle-unit))
     (syn-class (vp))
-    (parent ,(unit-name parent-unit))
+  ;  (parent ,(unit-name parent-unit))
     (word-order ((adjacent ,(unit-name verb-unit) ,(unit-name particle-unit))
                  (precedes ,(unit-name verb-unit) ,(unit-name particle-unit))))
     (lemma ,phrasal-lemma))))

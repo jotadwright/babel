@@ -9,7 +9,7 @@
 (in-package :propbank-english)
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
-(load-propbank-annotations 'ewt :ignore-stored-data t)
+(load-propbank-annotations 'ewt :ignore-stored-data nil)
 (load-propbank-annotations 'ontonotes :ignore-stored-data t)
 ; *ewt-annotations*
 ; *ontonotes-annotations*
@@ -20,7 +20,7 @@
 
 ;; Activating trace-fcg
 (activate-monitor trace-fcg)
-
+;The dynamics of change in the state of health of children affected by the Chernobyl accident in all three countries - Belarus , Russia , and Ukraine - in the post-accident period is characterized by persistent negative tendencies : the morbidity rate is going up , the number of really healthy children is dropping , and disability is increasing .
 
 ;;;;;;;;;;;
 ;; Data  ;;
@@ -71,7 +71,16 @@
 (defparameter *train-sentences-all* (shuffle (append (train-split *ontonotes-annotations*)
                                                      (train-split *ewt-annotations*))))
 
-(defparameter *phrasal-sentences* (loop for sentence in *train-sentences-all-frames*
+(defparameter *dev-sentences-ewt* (dev-split *ewt-annotations*))
+(defparameter *dev-sentences-ontonotes* (dev-split *ontonotes-annotations*))
+(defparameter *dev-sentences-all*  (append *dev-sentences-ewt* *dev-sentences-ontonotes*))
+
+(length *dev-sentences-all*)
+
+
+
+
+(defparameter *phrasal-sentences* (loop for sentence in *train-sentences-ewt*
                                         for gold-frames = (propbank-frames sentence)
                                         append (loop for frame in gold-frames
                                                      when (search "_" (frame-name frame) )
@@ -84,7 +93,7 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "all-roles-ewt"
+                                :name "propbank-grammar-ewt-cleaning-100"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
@@ -131,20 +140,21 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   *train-sentences-all*
+   *phrasal-sentences*
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
+(comprehend-and-extract-frames (sentence-string (nth 5 *phrasal-sentences*))
+                         :cxn-inventory *propbank-learned-cxn-inventory* )
+
 ;;>> Cleaning
 ;;--------------
 
-(clean-grammar *propbank-learned-cxn-inventory* :remove-faulty-cnxs t)
+(clean-grammar *propbank-learned-cxn-inventory* *dev-sentences-ewt* :nr-of-test-sentences 100 :cut-off 2)
+(add-element (make-html (find-cxn 'HAVE.03-CXN *propbank-learned-cxn-inventory* :hash-key 'have)))
 
-
-(defparameter *cleaned-grammar* (remove-cxns-under-frequency *propbank-learned-cxn-inventory* 2))
-
-(clean-type-hierarchy (get-type-hierarchy *restored-grammar*) :remove-edges-with-freq-smaller-than 2)
+;(clean-type-hierarchy (get-type-hierarchy *restored-grammar*) :remove-edges-with-freq-smaller-than 2)
 
 
 ;;;;;;;;;;;;;;;;;
@@ -152,21 +162,17 @@
 ;;;;;;;;;;;;;;;;;
 
 (loop for i from 1
-      for sentence in (subseq *train-sentences-all-frames* 0 10)
+      for sentence in (subseq *train-sentences-ewt* 0 10)
       do (format t "~%~% Sentence: ~a ~%" i)
-      (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only t :silent t))
+      (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil))
 
 (setf *stack-overflow-behaviour* nil)
-(comprehend-and-extract-frames (sentence-string (second *phrasal-sentences*))
+(comprehend-and-extract-frames (sentence-string (nth 47 *train-sentences-ewt*))
                          :cxn-inventory *propbank-learned-cxn-inventory* )
 
 
-(set-configuration *restored-grammar* :node-tests '(:check-double-role-assignment))
-
-(add-element (make-html (find-cxn 'bust-up\(VP\)-CXN *propbank-learned-cxn-inventory* :hash-key 'bust-up :key #'name :test #'equal)))
-
-(comprehend-and-evaluate (list (sentence-string (first *phrasal-sentences*)))
-                         *restored-grammar* :silent nil)
+(comprehend-and-evaluate (list (nth 1 *train-sentences-ewt*))
+                         *propbank-learned-cxn-inventory* :silent nil)
 
 (add-element (make-html (find-cxn  'break-up\(vp\)-cxn  *propbank-learned-cxn-inventory-small* :hash-key 'break-up)))
 (evaluate-propbank-corpus (subseq (shuffle *train-sentences-all-frames*) 0 100) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
@@ -206,7 +212,7 @@
 
 
 
-(comprehend-and-extract-frames "Anne sent her mother a dozen roses" :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "She shouted the children into the queue" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "Tsar Nicholas II gave his wife a Fabergé egg." :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "It is a Fabergé egg that Tsar Nicholas II gave his wife." :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He called his mother while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
