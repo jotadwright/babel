@@ -16,8 +16,11 @@
 
 ;; CLEVR grammar default configurations:
 (set-configurations *CLEVR*
-                   '((:cxn-supplier-mode . :hashed-simple-queue)
-                     (:priority-mode . :priming)))
+                   '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                      (:priority-mode . :nr-of-applied-cxns)
+                      (:parse-order hashed nom cxn)
+                      (:production-order hashed-lex nom cxn hashed-morph)
+                      (:max-nr-of-nodes . 15000)))
 
 ;; Set the address of the neural modules server
 ;; and store it in the ontology so all primitives
@@ -89,7 +92,7 @@
           (add-element `((h3) ,(format nil "The ground truth answer is \"~a\""
                                        (downcase answer))))
           (add-element `((h3) ,(format nil "The computed answer is \"~a\""
-                                       (downcase computed-answer))))
+                                       (downcase (answer->str computed-answer)))))
           (add-element `((h3) ,(if (compare-answers answer computed-answer)
                                  "Correct!" "Incorrect!")))
           (compare-answers answer computed-answer))))))
