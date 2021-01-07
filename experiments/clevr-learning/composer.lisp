@@ -6,32 +6,38 @@
 ;; + Composer +
 ;; ------------
 
-(defun make-default-composer (agent target-category)
+(defun make-default-composer (agent target-category &key (partial-program nil))
   ;; make the chunk composer
   (make-chunk-composer
    :topic target-category
    ; if partial program is available, this can be passed along
-   ; using :meaning initarg
+   :meaning partial-program
    :initial-chunk (make-instance 'chunk :id 'initial
                                  :target-var `(?answer . ,(type-of target-category))
                                  :open-vars `((?answer . ,(type-of target-category))))
    :chunks (composer-chunks agent)
    :ontology (ontology agent)
    :primitive-inventory (available-primitives agent)
-   :configurations '((:max-search-depth . 25)
+   :configurations `((:max-search-depth . 25)
                      ;; when providing bind statements,
                      ;; remove the :clevr-open-vars from
                      ;; the :check-node-modes
-                     (:check-node-modes :check-duplicate 
-                                        :clevr-primitive-occurrence-count                              
-                                        :clevr-context-links
-                                        :clevr-filter-group-length
-                                        :clevr-open-vars)
+                     (:check-node-modes ,@(append '(:check-duplicate 
+                                                    :clevr-primitive-occurrence-count                              
+                                                    :clevr-context-links
+                                                    :clevr-filter-group-length)
+                                                  (unless partial-program
+                                                    '(:clevr-open-vars))))
                      (:expand-chunk-modes :combine-program)
                      (:node-rating-mode . :clevr-node-rating)
                      (:check-chunk-evaluation-result-modes
                       :clevr-coherent-filter-groups))
    :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions))))
+
+(defmethod compose-new-program (agent target-category &key (partial-program nil))
+  (let ((composer (make-default-composer agent target-category
+                                         :partial-program partial-program)))
+    (random-elt (get-next-solutions composer))))
 
 ;; + compose-until +
 (defun compose-until (composer fn)
@@ -57,8 +63,7 @@
           never (equivalent-irl-programs? past-program solution-irl-program))))
 
 
-(defmethod compose-program-update (agent target-category
-                                         (strategy (eql :minimal+store-past-programs)))
+(defmethod compose-program-update (agent target-category (strategy (eql :store-past-programs)))
   (let* ((composer (make-default-composer agent target-category))
          (past-programs (rest
                          (assoc (utterance agent)
@@ -99,15 +104,11 @@
     (set-data (ontology agent) 'clevr-context clevr-context)
     success))
 
-(defmethod compose-program-update (agent target-category
-                                         (strategy (eql :minimal+store-past-scenes)))
+(defmethod compose-program-update (agent target-category (strategy (eql :store-past-scenes)))
   (let* ((composer (make-default-composer agent target-category))
-         (all-samples (find-all (utterance agent) (find-data agent 'samples)
+         (all-samples (find-all (utterance agent) (find-data agent 'past-scenes)
                                 :key #'second :test #'string=)))
     (compose-until
      composer (lambda (s idx)
                 (check-all-samples s idx all-samples agent)))))
-              
-(defmethod compose-new-program (agent target-category)
-  (let ((composer (make-default-composer agent target-category)))
-    (random-elt (get-next-solutions composer))))
+        

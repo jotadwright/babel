@@ -7,7 +7,8 @@
   (:use :common-lisp :utils :experiment-framework
         :plot-raw-data :monitors :web-interface
         :tasks-and-processes :meta-layer-learning
-        :irl :fcg :clevr-world :clevr-primitives)
+        :irl :fcg :type-hierarchies :clevr-world
+        :clevr-primitives :gl)
   (:import-from :clevr-grammar :*CLEVR*)
   (:import-from :cl-json :decode-json-from-string
                 :decode-json-from-source)

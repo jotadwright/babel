@@ -75,7 +75,9 @@
 (defun compute-nr-of-meanings-per-form (agent)
   (loop with form-count = nil
         for cxn in (constructions-list (grammar agent))
-        for cxn-form = (attr-val cxn :form)
+        for cxn-form = (list-of-strings->string
+                        (render (extract-form-predicates cxn)
+                                (get-configuration (grammar agent) :render-mode)))
         for found = (assoc cxn-form form-count :test #'string=)
         if found do (incf (cdr found))
         else do (push (cons cxn-form 1) form-count)

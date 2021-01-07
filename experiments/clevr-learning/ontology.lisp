@@ -53,6 +53,7 @@
     (when target-binding
       (value target-binding))))
 
+#|
 (defun solution->chunk (agent solution &key (initial-score 0.5))
   "Store the irl-program AND the bind statements in a chunk"
   (make-instance 'chunk
@@ -80,6 +81,7 @@
                                                                      (available-primitives agent))))
                                       open-vars))
                  :score initial-score))
+|#
 
 (defun add-composer-chunk (agent chunk)
   ;; add the chunk to the ontology's composer-chunks

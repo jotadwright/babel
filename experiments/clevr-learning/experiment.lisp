@@ -30,7 +30,8 @@
 (define-configuration-default-value :cxn-decf-score 0.1)
 (define-configuration-default-value :chunk-incf-score 0.1)
 (define-configuration-default-value :chunk-decf-score 0.1)
-(define-configuration-default-value :alignment-strategy :lateral-inhibition+store-past-scenes)
+(define-configuration-default-value :alignment-strategy :lateral-inhibition)
+(define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 
 ;; Autotelic principle
