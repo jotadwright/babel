@@ -77,9 +77,6 @@
 
 (length *dev-sentences-all*)
 
-
-
-
 (defparameter *phrasal-sentences* (loop for sentence in *train-sentences-ewt*
                                         for gold-frames = (propbank-frames sentence)
                                         append (loop for frame in gold-frames
@@ -140,18 +137,20 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   *phrasal-sentences*
+   (train-split *ewt-annotations*)
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
-(comprehend-and-extract-frames (sentence-string (nth 5 *phrasal-sentences*))
+(comprehend-and-extract-frames (sentence-string (nth 595 *phrasal-sentences*))
                          :cxn-inventory *propbank-learned-cxn-inventory* )
 
 ;;>> Cleaning
 ;;--------------
 
-(clean-grammar *propbank-learned-cxn-inventory* *dev-sentences-ewt* :nr-of-test-sentences 100 :cut-off 2)
+(clean-grammar *propbank-learned-cxn-inventory* (dev-split *ewt-annotations*)
+               :nr-of-test-sentences 100 :timeout 10)
+
 (add-element (make-html (find-cxn 'HAVE.03-CXN *propbank-learned-cxn-inventory* :hash-key 'have)))
 
 ;(clean-type-hierarchy (get-type-hierarchy *restored-grammar*) :remove-edges-with-freq-smaller-than 2)

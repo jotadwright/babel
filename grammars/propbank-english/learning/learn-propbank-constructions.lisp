@@ -27,14 +27,18 @@
                                                 (footprints set))
                                 :cxn-inventory ,cxn-inventory
                                 :hashed t))))
+    (set-data (blackboard cxn-inventory) :training-corpus-size 0)
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
+          for training-corpus-size = (get-data (blackboard cxn-inventory) :training-corpus-size)
           for rolesets = (if selected-rolesets
                            (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
                            (all-rolesets sentence))
           do
           (when (= 0 (mod sentence-number 100))
             (format t "~%---> Sentence ~a." sentence-number))
+          (when rolesets
+            (set-data (blackboard cxn-inventory) :training-corpus-size (incf training-corpus-size)))
           (loop for roleset in rolesets
                 do
                 (loop for mode in (get-configuration cxn-inventory :learning-modes)
@@ -1062,22 +1066,23 @@ fillers (arg0, arg1) and the frame-evoking element unit."
          for unit-with-role in (remove fee-unit units-with-role :test #'equal) ;;discard the frame-evoking element (FEE) unit
          for path = (find-path-in-syntactic-tree (cdr unit-with-role) fee-unit unit-structure) ;;find path between a unit in the transient structure and the FEE unit
 
-         append (loop for unit-name in path
-                      for unit = (find unit-name unit-structure :key #'unit-name)
-                      for parent = (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
-                                     (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
-                      for form-constraints-for-children-with-role-and-same-type = (make-form-constraints-for-children-with-role-and-same-type unit cxn-units-with-role)
+         append (progn (assert path)
+                  (loop for unit-name in path
+                        for unit = (find unit-name unit-structure :key #'unit-name)
+                        for parent = (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
+                                       (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
+                        for form-constraints-for-children-with-role-and-same-type = (make-form-constraints-for-children-with-role-and-same-type unit cxn-units-with-role)
 
-                      unless (find (variablify unit-name) cxn-units-with-role :key #'unit-name) ;;check that the unit is not a frame-element
-                      collect `(,(variablify unit-name)
-                                --
-                                ,@(when parent
-                                    `((parent ,parent)))
-                                ,@(when form-constraints-for-children-with-role-and-same-type
-                                   `((word-order ,form-constraints-for-children-with-role-and-same-type)))
-                                ,(find 'syn-class (unit-body unit) :key #'feature-name)
-                                ,@(when (find 'passive (unit-body unit) :key #'feature-name)
-                                    `(,(find 'passive (unit-body unit) :key #'feature-name))))))
+                        unless (find (variablify unit-name) cxn-units-with-role :key #'unit-name) ;;check that the unit is not a frame-element
+                        collect `(,(variablify unit-name)
+                                  --
+                                  ,@(when parent
+                                      `((parent ,parent)))
+                                  ,@(when form-constraints-for-children-with-role-and-same-type
+                                      `((word-order ,form-constraints-for-children-with-role-and-same-type)))
+                                  ,(find 'syn-class (unit-body unit) :key #'feature-name)
+                                  ,@(when (find 'passive (unit-body unit) :key #'feature-name)
+                                      `(,(find 'passive (unit-body unit) :key #'feature-name)))))))
    :key #'unit-name))
 
 
