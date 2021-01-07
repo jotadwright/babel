@@ -152,7 +152,23 @@
                (pushend additional-vp-unit units)
                (pushend new-phrasal-verb-unit units)
                (pushend new-particle-unit units)))
-    (remove-duplicates units :key #'unit-name)))
+    (merge-units units)))
+
+
+(defun merge-units (unit-structure)
+  (let* ((unit-groups (group-by unit-structure #'unit-name))
+         (unit-names (mapcar #'first unit-groups)))
+    (loop for (nil . units) in unit-groups
+          if (> (length units) 1)
+          collect (let ((duplicated-unit (first units))
+                        (constituents-feature-value
+                         (remove-if-not #'(lambda (unit-name)
+                                            (member unit-name unit-names))
+                                        (remove-duplicates (loop for unit in units
+                                                                 append (unit-feature-value unit 'constituents))))))
+                  (update-unit-feature-value duplicated-unit 'constituents constituents-feature-value))          else append units)))
+
+;(merge-units (left-pole-structure *saved-cfs*))
 
 (defun update-unit-feature-value (unit feature-name new-feature-value)
   (assert new-feature-value)
