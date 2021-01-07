@@ -99,8 +99,8 @@
                          (:node-tests :check-duplicate :restrict-nr-of-nodes)
                          (:parse-goal-tests :no-applicable-cxns
                                             :connected-semantic-network
-                                            :connected-structure
-                                            :no-strings-in-root) ;; !!! also :connected-structure in comprehension
+                                            :connected-structure ;; !!! also :connected-structure in comprehension
+                                            :no-strings-in-root) 
                          (:production-goal-tests :no-applicable-cxns
                                                  :connected-structure
                                                  :no-meaning-in-root)
