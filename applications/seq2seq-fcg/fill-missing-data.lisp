@@ -4,51 +4,61 @@
 ;;;; Helper functions
 ;;;; ----------------
 
-(defun make-csv-line (&rest args)
-  "Create a comma separated string of args"
-  (format nil "~{~a~^,~}" args))
-
 (defun succeededp (cipn)
   "Check if the goal test succeeded"
   (and cipn (eql (first (statuses cipn)) 'fcg::succeeded)))
 
+(defun get-depth-of-solution (cipn)
+  (length (all-parents cipn)))
+
 ;;;; Formulation
 ;;;; -----------
 
-(defun formulate-with-timeout (irl-program rpn cxn-inventory timeout)
-  (set-data (blackboard cxn-inventory) :rpn-input rpn)
+(defun repair-formulate (irl-program rpn timeout)
+  (set-data (blackboard *CLEVR*) :rpn-input rpn)
   (multiple-value-bind (utterance cipn)
       (handler-case
           (with-timeout (timeout)
             (formulate irl-program
-                       :cxn-inventory cxn-inventory
-                       :silent t))
+                       :cxn-inventory *CLEVR*))
         (timeout-error (e)
           (values nil nil)))
-    (remove-data (blackboard cxn-inventory) :rpn-input)
+    (remove-data (blackboard *CLEVR*) :rpn-input)
     (if (succeededp cipn)
       (values (list-of-strings->string utterance)
               (list-of-strings->string
                (reverse
                 (mapcar (compose #'downcase #'mkstr #'name)
-                        (applied-constructions cipn)))))
+                        (applied-constructions cipn))))
+              (get-depth-of-solution cipn))
       (values nil nil))))
 
 ;;;; Main Functions
 ;;;; --------------
 
-(defun set-seq2seq-configurations (cxn-inventory port)
-  (let ((configs `((:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-                   (:priority-mode . :seq2seq-heuristic-additive)
-                   (:seq2seq-endpoint . #-ccl ,(format nil "http://localhost:~a/next-cxn" port)
-                                        #+ccl ,(format nil "http://127.0.0.1:~a/next-cxn" port))
-                   (:seq2seq-model-comprehension . "clevr_comprehension_model")
-                   (:seq2seq-model-formulation . "clevr_formulation_model"))))
-    (set-configurations cxn-inventory configs :replace t)
-    (set-configurations (processing-cxn-inventory cxn-inventory)
+(defun set-seq2seq-configurations (port)
+  (let ((configs
+         `(;; use the seq2seq model in formulation
+           (:cxn-supplier-mode . :ordered-by-label-hashed+seq2seq)
+           (:priority-mode . :seq2seq-additive-with-sets)
+           (:parse-order hashed cxn)
+           (:production-order hashed-lex cxn hashed-morph)
+           (:seq2seq-endpoint . #-ccl ,(format nil "http://localhost:~a/next-cxn" port)
+                                #+ccl ,(format nil "http://127.0.0.1:~a/next-cxn" port))
+           (:seq2seq-model-comprehension . "clevr_comprehension_model")
+           (:seq2seq-model-formulation . "clevr_formulation_model_v1")
+           ;; remove the max nr of nodes
+           (:node-tests :check-duplicate)
+           (:hash-mode . :hash-string-meaning-lex-id)
+           (:queue-mode . :greedy-best-first)
+           (:cxn-sets-with-sequential-application hashed-lex hashed-morph)
+           )))
+    (set-configurations *CLEVR* configs :replace t)
+    (set-configurations (processing-cxn-inventory *CLEVR*)
                         configs :replace t)))
 
-(defun fill-missing-data (inputfile outputdir grammar timeout)
+
+(defun fill-missing-data (inputfile outputdir timeout)
   ;; first, open a port to the inputfile and skip the header line
   ;; next, create the outputfile and write the header line
   ;; finally, process lines with no cxns and skip the other ones
@@ -58,33 +68,36 @@
          (outputfile (make-pathname :directory (pathname-directory outputdir)
                                     :name (pathname-name inputfile)
                                     :type (pathname-type inputfile)))
-         (new-solutions-found 0)
+         (missing-solutions 0)
+         (repaired-solutions 0)
          out-stream)
     (ensure-directories-exist outputfile)
     (setf out-stream (open outputfile :direction :output
                            :if-exists :supersede))
     (write-line header out-stream)
     (with-progress-bar (bar (- nr-of-lines 1) ("Processing ~a" (namestring inputfile)))
-      (loop for line = (read-line in-stream nil nil)
-            while line
-            for fields = (split line #\,)
-            if (string= (last-elt fields) "None")
-            do (let ((id (first fields))
-                     (irl-program (read-from-string (third fields)))
-                     (rpn (fourth fields)))
-                 (multiple-value-bind (utterance formulation-cxns)
-                     (formulate-with-timeout irl-program rpn grammar timeout)
-                   (if (and utterance formulation-cxns)
-                     (let ((new-line (make-csv-line id utterance irl-program rpn formulation-cxns)))
-                       (incf new-solutions-found)
-                       (write-line new-line out-stream))
-                     (write-line line out-stream))
-                   (force-output out-stream)))
-            else do (progn (write-line line out-stream)
-                      (force-output out-stream))
-            end
-            do (update bar)))
-    (format t "~%~%~a new solutions found" new-solutions-found)
+      (do-csv (row in-stream)
+        (destructuring-bind (id irl-program rpn utterance formulation-cxns depth) row
+          (declare (ignorable depth utterance))
+          (if (string= formulation-cxns "None")
+            (multiple-value-bind (repair-utterance repair-cxns repair-depth)
+                (repair-formulate (fcg::instantiate-variables
+                                   (read-from-string irl-program))
+                                  rpn timeout)
+              (incf missing-solutions)
+              (if (and repair-utterance repair-cxns repair-depth)
+                (let ((repair-row (list id irl-program rpn
+                                        repair-utterance
+                                        repair-cxns
+                                        repair-depth)))
+                  (incf repaired-solutions)
+                  (write-csv-row repair-row :stream out-stream))
+                (write-csv-row row :stream out-stream)))
+            (write-csv-row row :stream out-stream)))
+        (force-output out-stream)
+        (update bar)))
+    (format t "~%~%Repaired ~a out of ~a missing solutions"
+            repaired-solutions missing-solutions)
     (close in-stream)
     (force-output out-stream)
     (close out-stream)))
@@ -97,13 +110,12 @@
 
  (activate-monitor trace-fcg)
  
- (set-seq2seq-configurations *CLEVR* 8008)
+ (set-seq2seq-configurations 8888)
  
  (fill-missing-data
   (babel-pathname :directory '("applications" "seq2seq-fcg")
                   :name "batch-0" :type "csv")
-  (babel-pathname :directory '("applications" "seq2seq-fcg" "out"))
-  *clevr* 60)
+  (babel-pathname :directory '("applications" "seq2seq-fcg" "out"))  400)
 
 |#
     
@@ -121,16 +133,15 @@
   (let ((args (args->plist args)))
     (print "Received command line arguments:")
     (print args)
-    (loop for indicator in '(inputfile outputdir grammar timeout port)
+    (loop for indicator in '(inputfile outputdir timeout port)
           unless (getf args indicator)
           do (error "Missing command line argument: ~a" indicator))
-    (let* ((grammar (copy-object (eval (internal-symb (upcase (getf args 'grammar))))))
-           (timeout (parse-integer (getf args 'timeout "60")))
-           (port (parse-integer (getf args 'port "8888")))
-           (inputfile (parse-namestring (getf args 'inputfile)))
-           (outputdir (parse-namestring (getf args 'outputdir))))
-      (set-seq2seq-configurations grammar port)
-      (fill-missing-data inputfile outputdir grammar timeout))))
+    (let ((timeout (parse-integer (getf args 'timeout "400")))
+          (port (parse-integer (getf args 'port "8888")))
+          (inputfile (parse-namestring (getf args 'inputfile)))
+          (outputdir (parse-namestring (getf args 'outputdir))))
+      (set-seq2seq-configurations port)
+      (fill-missing-data inputfile outputdir timeout))))
 
 #-lispworks
 (main #+ccl ccl:*unprocessed-command-line-arguments*

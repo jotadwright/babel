@@ -7,10 +7,12 @@
   :license "Babel Research License"
   :depends-on (:utils
                :monitors
+               :irl
                :fcg
+               :seq2seq-heuristics
                :clevr-world
+               :clevr-primitives
                :clevr-grammar
-               :clevr-dialog-grammar
                :trivial-timeout
                :cl-csv)
   :serial t
