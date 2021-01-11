@@ -150,8 +150,8 @@
   ;; (i.e. cxns with high scores)
   ;;
   ;; TO DO; the new cxn does not have to be a holophrase
-  ;; cxn. If there was a partial program, the agent could
-  ;; immediately make an item-based cxn
+  ;; cxn per se. If there was a partial program, the agent
+  ;; could immediately make an item-based cxn
   (declare (ignorable trigger))
   (notify new-program-repair-started)
   (let* ((agent (owner (task (process object))))
