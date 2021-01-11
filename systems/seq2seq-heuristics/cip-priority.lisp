@@ -61,12 +61,7 @@
                                    :test #'equal))))
         (+ cxn-prob
            (priority (parent node))))
-      (let ((num-siblings
-             (if (siblings node)
-               (1+ (length (siblings node)))
-               1)))
-        (+ (float (/ 1 num-siblings))
-           (priority (parent node)))))
+      (+ (priority (parent node)) 1))
     0))
 
                                             

@@ -231,3 +231,4 @@
          (distribution (seq2seq-next-cxn utterance/meaning (reverse (applied-constructions node)) model endpoint
                                          :number-cutoff number-cutoff :probability-cutoff probability-cutoff)))
     distribution))
+
