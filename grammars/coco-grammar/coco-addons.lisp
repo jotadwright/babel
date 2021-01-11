@@ -9,7 +9,7 @@
 ;; (unique ?obj ?set)
 ;; (query ?answer ?obj side)
 
-(def-fcg-cxn the-photo-lex-cxn
+(def-fcg-cxn photo-lex-cxn
              ((?photo-unit
                (args ((sources nil)
                       (target ?context)))
@@ -24,7 +24,7 @@
                (HASH form ((string ?photo-unit "the photo"))))
               :cxn-set lex))
 
-(def-fcg-cxn the-photograph-lex-cxn
+(def-fcg-cxn photograph-lex-cxn
              ((?photo-unit
                (args ((sources nil)
                       (target ?context)))
@@ -39,7 +39,7 @@
                (HASH form ((string ?photo-unit "the photograph"))))
               :cxn-set lex))
 
-(def-fcg-cxn the-picture-lex-cxn
+(def-fcg-cxn picture-lex-cxn
              ((?photo-unit
                (args ((sources nil)
                       (target ?context)))
@@ -54,7 +54,7 @@
                (HASH form ((string ?photo-unit "the picture"))))
               :cxn-set lex))
               
-(def-fcg-cxn where-in-the-view-is-cxn
+(def-fcg-cxn where-in-the-view-is-x-cxn
              ((?relate-unit
                (subunits (?where-in-unit ?view-unit ?is-unit
                           ?determined-noun-phrase-unit))
@@ -96,7 +96,7 @@
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-set cxn)
 
-(def-fcg-cxn on-which-side-of-the-view-cxn
+(def-fcg-cxn on-which-side-of-the-view-is-x-cxn
              ((?relate-unit
                (subunits (?on-which-side-unit ?view-unit ?is-unit
                           ?determined-noun-phrase-unit))
@@ -147,7 +147,7 @@
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-set cxn)
 
-(def-fcg-cxn where-is-cxn
+(def-fcg-cxn where-is-x-cxn
              ((?relate-unit
                (subunits (?where-is-unit
                           ?determined-noun-phrase-unit))
@@ -187,7 +187,7 @@
 ;; (filter ?set-2 ?context R-side)
 ;; (member ?answer ?obj ?set-2)
 
-(def-fcg-cxn is-the-x-on-the-side-of-cxn
+(def-fcg-cxn is-x-on-the-side-of-cxn
              ((?relate-unit
                (subunits (?is-unit ?determined-noun-phrase-unit
                           ?relational-unit ?view-unit))
@@ -248,10 +248,10 @@
 ;; (get-context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj ?set-1)
-;; (filter ?set-2 ?context A)
-;; (member ?answer ?obj ?set-2)
+;; (query ?obj-color ?obj color)
+;; (equals ?target ?obj-color ?blue color)
 
-(def-fcg-cxn is-the-X-A-cxn
+(def-fcg-cxn is-X-A-cxn
              ((?exist-unit
                (subunits (?is-unit ?determined-noun-phrase-unit ?adjective-unit)))
               <-

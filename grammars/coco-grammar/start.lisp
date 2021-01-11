@@ -35,3 +35,6 @@
 (comprehend "is the cat black?")
 (comprehend "is the cat black or white?")
 (comprehend "is the zebra black or white?")
+
+
+(comprehend "is the woman to the left of a person?")
