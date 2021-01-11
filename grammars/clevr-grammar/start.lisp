@@ -30,10 +30,13 @@
                       (:parse-order hashed cxn)
                       (:production-order hashed-lex cxn hashed-morph)
                       (:seq2seq-endpoint . #-ccl "http://localhost:8888/next-cxn"
-                                           #+ccl "http://127.0.0.1:8888/next-cxn"))
+                                           #+ccl "http://127.0.0.1:8888/next-cxn")
+                      (:seq2seq-model-formulation . "clevr_formulation_model_v1"))
                     :replace t)
 
 (comprehend "What color is the cube?")
+
+(comprehend-and-formulate "What color is the cube?")
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
 (comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
@@ -101,7 +104,7 @@
    (bind shape-category shape-3 thing)
    (bind material-category mat-1 metal)
    (bind color-category color-3 blue)
-   (bind size-category size-1 large)))
+   (bind size-category size-1 large))))
 
 ;; and questions
 (formulate
@@ -130,7 +133,7 @@
    (bind spatial-relation-category rel-2 left)
    (bind shape-category shape-3 thing)
    (bind material-category mat-1 metal)
-   (bind color-category color-3 blue)))
+   (bind color-category color-3 blue))))
 
 ;; or questions
 (formulate
@@ -269,10 +272,10 @@
 (fcg:comprehend-all '("are there any" "blue" "things"))
 (fcg:comprehend-all '("is there a" "blue" "thing"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
-   (filter set-2 set-2 color-1)
+   (filter set-2 set-1 color-1)
    (exist target set-2)
    
    (bind shape-category shape-1 thing)
@@ -289,7 +292,7 @@
 (fcg:comprehend-all '("how big is" "the" "blue" "metal" "thing"))
 (fcg:comprehend-all '("there is a" "blue" "metal" "thing" ";" "how big is it"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 material-1)
@@ -310,7 +313,7 @@
 (fcg:comprehend-all '("the" "big" "metal" "thing" "has what" "color"))
 (fcg:comprehend-all '("the" "big" "metal" "thing" "is what" "color"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 mat-1)
@@ -334,7 +337,7 @@
 (fcg:comprehend-all '("there is a" "big" "blue" "thing" ";" "what is it made of"))
 (fcg:comprehend-all '("the" "big" "blue" "thing" "is made of what material"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -355,7 +358,7 @@
 (fcg:comprehend-all '("the" "big" "blue" "metal" "thing" "has what" "shape"))
 (fcg:comprehend-all '("the" "big" "blue" "metal" "thing" "is what" "shape"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 mat-1)
@@ -380,7 +383,7 @@
 (fcg:comprehend-all '("there is a" "green" "ball" ";" "how many" "other" "big" "blue" "metal" "things" "are" "left of" "it"))
 (fcg:comprehend-all '("there is a" "green" "ball" ";" "what number of" "big" "blue" "metal" "things" "are" "left of" "it"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -410,7 +413,7 @@
 (fcg:comprehend-all '("there is a" "green" "ball" ";" "is there a" "big" "blue" "metal" "thing"           "left of" "it"))
 (fcg:comprehend-all '("there is a" "green" "ball" ";" "is there a" "big" "blue" "metal" "thing" "that is" "left of" "it"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -451,7 +454,7 @@
 (fcg:comprehend-all '("there is a" "big" "metal" "thing"           "left of" "the" "green" "ball" ";" "how big is it"))
 (fcg:comprehend-all '("there is a" "big" "metal" "thing" "that is" "left of" "the" "green" "ball" ";" "how big is it"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -485,7 +488,7 @@
 (fcg:comprehend-all '("the" "big" "metal" "thing"           "left of" "the" "green" "ball" "has what" "color"))
 (fcg:comprehend-all '("the" "big" "metal" "thing" "that is" "left of" "the" "green" "ball" "has what" "color"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -524,7 +527,7 @@
 (fcg:comprehend-all '("the" "big" "blue"  "thing"           "left of" "the" "green" "ball" "is made of what material"))
 (fcg:comprehend-all '("the" "big" "blue"  "thing" "that is" "left of" "the" "green" "ball" "is made of what material"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -558,7 +561,7 @@
 (fcg:comprehend-all '("the" "big" "blue" "metal" "thing"           "left of" "the" "green" "ball" "is what" "shape"))
 (fcg:comprehend-all '("the" "big" "blue" "metal" "thing" "that is" "left of" "the" "green" "ball" "is what" "shape"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -589,7 +592,7 @@
 (fcg:comprehend-all '("how many" "big" "blue" "metal" "things" "are" "left of" "the" "green" "ball" "behind" "the" "red" "thing"))
 
 ;; does not produce all solutions, since max-nr-of-nodes is reached
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -620,7 +623,7 @@
 (fcg:comprehend-all '("are there any" "big" "blue" "metal" "things" "left of" "the" "green" "ball" "behind" "the" "red" "thing"))
 
 ;; does not produce all solutions, since max-nr-of-nodes is reached
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -656,7 +659,7 @@
 ;; question type 6; query shape
 (fcg:comprehend-all '("there is a" "large" "blue" "metal" "thing" "left of" "the" "green" "ball" "behind" "the" "red" "thing" ";" "what is its" "shape"))
 
-(fcg:formulate-all
+(fcg:formulate
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
@@ -819,8 +822,8 @@
    (filter set-11 set-10 mat-1)
    (filter set-12 set-11 color-4)
    (filter set-13 set-12 size-1)
-   (unique obj-3 set-13)
-   (query target obj-2 attr-1)
+   (unique obj-4 set-13)
+   (query target obj-4 attr-1)
 
    (bind shape-category shape-1 cube)
    (bind color-category color-1 purple)
@@ -835,7 +838,7 @@
    (bind material-category mat-1 metal)
    (bind color-category color-4 blue)
    (bind size-category size-1 large)
-   (bind attribute-category attr-1 ?attr)))
+   (bind attribute-category attr-1 color)))
 
 ;; -------------------------- ;;
 ;; single and question family ;;
@@ -1453,8 +1456,8 @@
  '((get-context context)
    (filter set-1 context shape-1)
    (filter set-2 set-1 color-1)
-   (unique obj-2 set-2)
-   (same set-3 obj-2 attr-1)
+   (unique obj-1 set-2)
+   (same set-3 obj-1 attr-1)
    (filter set-4 set-3 shape-2)
    (filter set-5 set-4 color-2)
    (unique obj-2 set-5)
