@@ -76,8 +76,13 @@
   "returns all constructions that of label 'label'"
   (loop for cxn in (constructions-for-application (construction-inventory (cip node)))
         for cxn-label = (attr-val cxn :label)
-        when (or (and (symbolp cxn-label) (string= (symbol-name label) (symbol-name cxn-label)))
-                 (and (listp cxn-label) (member label cxn-label)))
+        when (or (and (symbolp cxn-label)
+                      (eq (intern (symbol-name label))
+                          (intern (symbol-name cxn-label))))
+                 (and (listp cxn-label)
+                      (member (intern (symbol-name label))
+                              (mapcar #'intern (mapcar #'symbol-name cxn-label))
+                              :test #'eq)))
         collect cxn))
 
 (defun all-tried-constructions (cxn-supplier-with-ordered-labels) 
