@@ -65,3 +65,4 @@
 (comprehend "is the laptop on the left side of the picture?")
 (comprehend "how many people are there?")
 (comprehend "what color is the wall?")
+(comprehend "are the cats red?")

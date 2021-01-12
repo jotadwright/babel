@@ -412,6 +412,7 @@
                (footprints (NOT nominal))
                (syn-cat (lex-class adjective))))
              :cxn-set cxn)
+             
 
 ;; Is the X on the left or the right?
 ;; Is the X on the left side or on the right side?
