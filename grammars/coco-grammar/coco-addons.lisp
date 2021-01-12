@@ -3,6 +3,8 @@
 ;; On which side <of the <photo<graph>/picture>> is the X?
 ;; Where in the <photo<graph>/picture> is the X?
 ;; Where is the X?
+;; Which side is X on?
+;; On which side is the X?
 
 ;; (get-context ?context)
 ;; (filter ?set ?context X)
@@ -22,6 +24,21 @@
                (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?photo-unit "the photo"))))
+              :cxn-set lex))
+
+(def-fcg-cxn image-lex-cxn
+             ((?photo-unit
+               (args ((sources nil)
+                      (target ?context)))
+               (sem-cat (sem-class view))
+               (syn-cat (phrase-type det-noun)
+                        (definite +)
+                        (number singular)))
+              <-
+              (?photo-unit
+               (HASH meaning ((get-context ?context)))
+               --
+               (HASH form ((string ?photo-unit "the image"))))
               :cxn-set lex))
 
 (def-fcg-cxn photograph-lex-cxn
@@ -177,6 +194,61 @@
                (leftmost-unit ?leftmost-np-unit)
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-set cxn)
+
+(def-fcg-cxn which-side-is-X-on-cxn
+             ((?query-unit
+               (subunits (?which-side-is-unit ?determined-noun-phrase-unit ?on-unit)))
+              <-
+              (?which-side-is-unit
+               (HASH meaning ((get-context ?source)
+                              (query ?target ?object ?side)
+                              (bind attribute-category ?side side)))
+               --
+               (HASH form ((string ?which-side-is-unit "which side is")
+                           (meets ?which-side-is-unit ?leftmost-np-unit))))
+              (?determined-noun-phrase-unit
+               (args ((sources ?source)
+                      (target ?object)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (definite +))
+               (footprints (NOT relate base-relate))
+               --
+               (footprints (NOT relate base-relate))
+               (syn-cat (phrase-type np)
+                        (number singular)
+                        (definite +))
+               (leftmost-unit ?leftmost-np-unit)
+               (rightmost-unit ?rightmost-np-unit))
+              (?on-unit
+               --
+               (HASH form ((string ?on-unit "on")
+                           (meets ?rightmost-np-unit ?on-unit))))))
+
+(def-fcg-cxn on-which-side-is-X-cxn
+             ((?query-unit
+               (subunits (?on-which-side-is-unit ?determined-noun-phrase-unit)))
+              <-
+              (?on-which-side-is-unit
+               (HASH meaning ((get-context ?source)
+                              (query ?target ?object ?side)
+                              (bind attribute-category ?side side)))
+               --
+               (HASH form ((string ?on-which-side-is-unit "on which side is")
+                           (meets ?on-which-side-is-unit ?leftmost-np-unit))))
+              (?determined-noun-phrase-unit
+               (args ((sources ?source)
+                      (target ?object)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (definite +))
+               (footprints (NOT relate base-relate))
+               --
+               (footprints (NOT relate base-relate))
+               (syn-cat (phrase-type np)
+                        (number singular)
+                        (definite +))
+               (leftmost-unit ?leftmost-np-unit)
+               (rightmost-unit ?rightmost-np-unit))))
+              
               
 
 ;; Is the X on the R side of the photo/picture?
@@ -184,8 +256,7 @@
 ;; (get-context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj ?set-1)
-;; (filter ?set-2 ?context R-side)
-;; (member ?answer ?obj ?set-2)
+;; (verify ?target ?obj R)
 
 (def-fcg-cxn is-x-on-the-side-of-cxn
              ((?relate-unit
@@ -206,8 +277,7 @@
                (superunits (?relate-unit)))
               <-
               (?is-unit
-               (HASH meaning ((filter ?set ?source ?side)
-                              (member ?out ?object ?set)))
+               (HASH meaning ((verify ?out ?object ?side)))
                --
                (HASH form ((string ?is-unit "is")
                            (meets ?is-unit ?leftmost-np-unit))))
@@ -242,14 +312,72 @@
                (syn-cat (phrase-type det-noun))))
              :cxn-set cxn)
 
+;; is X R Y?
+;; is the woman to the left of a person?
+
+;; (get-context ?context)
+;; (filter ?set-1 ?context Y)
+;; (unique ?obj-1 ?set-1)
+;;
+;; (filter ?set-2 ?context)
+;; (unique ?obj-2 ?set-2)
+;;
+;; (verify ?target ?obj-2 ?obj-1 R)
+
+(def-fcg-cxn is-X-R-Y-cxn
+             ((?verify-unit
+               (subunits (?is-unit ?det-np-unit-1 ?spatial-relation-unit ?det-np-unit-2)))
+              <-
+              (?is-unit
+               (HASH meaning ((get-context ?source)
+                              (verify ?target ?object-2 ?object-1 ?spatial-relation)))
+               --
+               (HASH form ((string ?is-unit "is")
+                           (meets ?is-unit ?leftmost-np-unit-1))))
+              (?det-np-unit-1
+               (args ((sources ?source)
+                      (target ?object-2)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (definite +))
+               (footprints (NOT relate base-relate))
+               --
+               (footprints (NOT relate base-relate))
+               (syn-cat (phrase-type np)
+                        (number singular)
+                        (definite +))
+               (leftmost-unit ?leftmost-np-unit-1)
+               (rightmost-unit ?rightmost-np-unit-1))
+              (?spatial-relation-unit
+               (args ((target ?spatial-relation)))
+               (sem-cat (sem-class spatial-relation))
+               (footprints (NOT relate))
+               --
+               (footprints (NOT relate))
+               (syn-cat (lex-class preposition))
+               (HASH form ((meets ?rightmost-np-unit-1 ?spatial-relation-unit)
+                           (meets ?spatial-relation-unit ?leftmost-np-unit-2))))
+              (?det-np-unit-2
+               (args ((sources ?source)
+                      (target ?object-1)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (definite +))
+               (footprints (NOT relate base-relate))
+               --
+               (footprints (NOT relate base-relate))
+               (syn-cat (phrase-type np)
+                        (number singular)
+                        (definite +))
+               (leftmost-unit ?leftmost-np-unit-2)
+               (rightmost-unit ?rightmost-np-unit-2))))            
+              
+
 ;; Is the X A?
 ;; Is the cat black?
 
 ;; (get-context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj ?set-1)
-;; (query ?obj-color ?obj color)
-;; (equals ?target ?obj-color ?blue color)
+;; (verify ?target ?obj A)
 
 (def-fcg-cxn is-X-A-cxn
              ((?exist-unit
@@ -257,8 +385,7 @@
               <-
               (?is-unit
                (HASH meaning ((get-context ?source)
-                              (filter ?set ?source ?category)
-                              (member ?answer ?object ?set)))
+                              (verify ?target ?object ?category)))
                --
                (HASH form ((string ?is-unit "is")
                            (meets ?is-unit ?leftmost-np-unit))))
@@ -293,18 +420,18 @@
 ;; (get-context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj-1 ?set-1)
-;; (query-choice ?answer ?obj-A ?left ?right)
+;; (choose ?target ?obj-1 ?option-A ?option-B)
+
+
+;(def-fcg-cxn ...)
 
 ;; Is the X A or B?
 ;; Is the cat black or white?
 
 ;; (get-context ?context)
-;; (filter ?set-1 ?context ?X-bind)
-;; (bind coco-category ?x-bind X)
+;; (filter ?set-1 ?context X)
 ;; (unique ?obj-1 ?set-1)
-;; (query-choice ?answer ?obj-1 ?A-bind ?B-bind)
-;; (bind some-attribute ?a-bind A)
-;; (bind some-attribute ?b-bind B)
+;; (choose ?target ?obj-1 ?option-A ?option-B)
 
 (def-fcg-cxn is-x-a-or-b-cxn
              ((?either-unit
@@ -342,7 +469,7 @@
                (syn-cat (lex-class adjective)))
               (?or-unit
                (HASH meaning ((get-context ?source)
-                              (query-choice ?answer ?object ?category-A ?category-B)))
+                              (choose ?target ?object ?category-A ?category-B)))
                --
                (HASH form ((string ?or-unit "or")
                            (meets ?adjective-1-unit ?or-unit)
@@ -357,9 +484,6 @@
                (footprints (NOT nominal))
                (syn-cat (lex-class adjective))))
              :cxn-set cxn)
-
-;; What kind of X is R the Y?
-
 
 
 

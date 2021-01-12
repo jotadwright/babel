@@ -100,7 +100,7 @@
 ;; unique-determined <- "the" + nominal
 ;; this takes the topmost nominal (no superunits) and a determiner
 ;; and creates a determined noun phrase. It adds the 'unique' predicate.
-(def-fcg-cxn unique-determined-cxn
+(def-fcg-cxn unique-the-cxn
              ((?determined-noun-phrase-unit
                (subunits (?determiner-unit ?nominal-unit))
                (args ((sources ?source)
@@ -136,10 +136,48 @@
              :cxn-set cxn
              :cxn-inventory *COCO*)
 
+
+(def-fcg-cxn unique-a-cxn
+             ((?determined-noun-phrase-unit
+               (subunits (?determiner-unit ?nominal-unit))
+               (args ((sources ?source)
+                      (target ?target-object)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (phrase-type np)
+                        (definite +)
+                        (number singular))
+               (leftmost-unit ?determiner-unit)
+               (rightmost-unit ?rightmost-nom-unit))
+              (?nominal-unit
+               (superunits (?determined-noun-phrase-unit)))
+              <-
+              (?determiner-unit
+               (HASH meaning ((unique ?target-object ?target-set)))
+               --
+               (HASH form ((string ?determiner-unit "a")
+                           (meets ?determiner-unit ?leftmost-nom-unit))))
+              (?nominal-unit
+               (args ((sources ?source)
+                      (target ?target-set)))
+               (syn-cat (syn-function nominal)
+                        (lex-class np)
+                        (number singular))
+               (superunits nil)
+               --
+               (superunits nil)
+               (syn-cat (syn-function nominal)
+                        (lex-class np)
+                        (number singular))
+               (leftmost-unit ?leftmost-nom-unit)
+               (rightmost-unit ?rightmost-nom-unit)))
+             :cxn-set cxn
+             :cxn-inventory *COCO*)
+
+
 ;; unique-declared <- "there is a" + nominal
 ;; this takes the topmost nominal (no superunits) and a determiner
 ;; and creates a determined noun phrase. It adds the 'unique' predicate.
-(def-fcg-cxn unique-declared-cxn
+(def-fcg-cxn unique-there-is-a-cxn
              ((?determined-noun-phrase-unit
                (subunits (?declaration-unit ?nominal-unit))
                (args ((sources ?source)

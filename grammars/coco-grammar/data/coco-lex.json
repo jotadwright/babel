@@ -1,6 +1,66 @@
 {
   "nouns": [
     {
+      "lex-id": "canoe",
+      "singular": "canoe",
+      "plural": "canoes"
+    },
+    {
+      "lex-id": "coach",
+      "singular": "coach",
+      "plural": "coaches"
+    },
+    {
+      "lex-id": "belt",
+      "singular": "belt",
+      "plural": "belts"
+    },
+    {
+      "lex-id": "helmet",
+      "singular": "helmet",
+      "plural": "helmets"
+    },
+    {
+      "lex-id": "sock",
+      "singular": "sock",
+      "plural": "socks"
+    },
+    {
+      "lex-id": "player",
+      "singular": "player",
+      "plural": "players"
+    },
+    {
+      "lex-id": "field",
+      "singular": "field",
+      "plural": "fields"
+    },
+    {
+      "lex-id": "lamp",
+      "singular": "lamp",
+      "plural": "lamps"
+    },
+    {
+      "lex-id": "fireplace",
+      "singular": "fireplace",
+      "plural": "fireplaces"
+    },
+    {
+      "lex-id": "carpet",
+      "singular": "carpet",
+      "plural": "carpets"
+    },
+    {
+      "lex-id": "man",
+      "singular": "man",
+      "plural": "men"
+    },
+    {
+      "lex-id": "woman",
+      "singular": "woman",
+      "plural": "women"
+    },
+    {
       "lex-id": "thing",
       "singular": "thing",
       "plural": "things"
@@ -8,7 +68,7 @@
     {
       "lex-id": "person",
       "singular": "person",
-      "plural": "persons"
+      "plural": "people"
     },
     {
       "lex-id": "bicycle",
@@ -571,7 +631,7 @@
       "plural": "wood walls"
     },
     {
-      "lex-id": "water-other",
+      "lex-id": "water",
       "singular": "water",
       "plural": "water"
     },
@@ -581,92 +641,92 @@
       "plural": "window-blinds"
     },
     {
-      "lex-id": "window-other",
+      "lex-id": "window",
       "singular": "window",
       "plural": "windows"
     },
     {
-      "lex-id": "tree-merged",
+      "lex-id": "tree",
       "singular": "tree",
       "plural": "trees"
     },
     {
-      "lex-id": "fence-merged",
+      "lex-id": "fence",
       "singular": "fence",
       "plural": "fences"
     },
     {
-      "lex-id": "ceiling-merged",
+      "lex-id": "ceiling",
       "singular": "ceiling",
       "plural": "ceilings"
     },
     {
-      "lex-id": "sky-other-merged",
+      "lex-id": "sky",
       "singular": "sky",
       "plural": "skies"
     },
     {
-      "lex-id": "cabinet-merged",
+      "lex-id": "cabinet",
       "singular": "cabinet",
       "plural": "cabinets"
     },
     {
-      "lex-id": "table-merged",
+      "lex-id": "table",
       "singular": "table",
       "plural": "tables"
     },
     {
-      "lex-id": "floor-other-merged",
+      "lex-id": "floor",
       "singular": "floor",
       "plural": "floors"
     },
     {
-      "lex-id": "pavement-merged",
+      "lex-id": "pavement",
       "singular": "pavement",
       "plural": "pavements"
     },
     {
-      "lex-id": "mountain-merged",
+      "lex-id": "mountain",
       "singular": "mountain",
       "plural": "mountains"
     },
     {
-      "lex-id": "grass-merged",
+      "lex-id": "grass",
       "singular": "grass",
       "plural": "grass"
     },
     {
-      "lex-id": "dirt-merged",
+      "lex-id": "dirt",
       "singular": "dirt",
       "plural": "dirt"
     },
     {
-      "lex-id": "paper-merged",
+      "lex-id": "paper",
       "singular": "paper",
       "plural": "papers"
     },
     {
-      "lex-id": "food-other-merged",
+      "lex-id": "food",
       "singular": "food",
       "plural": "foods"
     },
     {
-      "lex-id": "building-other-merged",
+      "lex-id": "building",
       "singular": "building",
       "plural": "buildings"
     },
     {
-      "lex-id": "rock-merged",
+      "lex-id": "rock",
       "singular": "rock",
       "plural": "rocks"
     },
     {
-      "lex-id": "wall-other-merged",
+      "lex-id": "wall",
       "singular": "wall",
       "plural": "walls"
     },
     {
-      "lex-id": "rug-merged",
+      "lex-id": "rug",
       "singular": "rug",
       "plural": "rugs"
     }
@@ -711,6 +771,24 @@
       "forms": [
         "below"
       ]
+    },
+    {
+      "lex-id": "on",
+      "forms": [
+        "on"
+      ]
+    },
+    {
+      "lex-id": "beside",
+      "forms": [
+        "beside"
+      ]
+    },
+    {
+      "lex-id": "in",
+      "forms": [
+        "in"
+      ]
     }
   ],
   "types": [
@@ -721,6 +799,39 @@
     {
       "form": "color",
       "type": "color"
+    },
+    {
+      "form": "shape",
+      "type": "shape"
     }
-  ]
+  ],
+  "colors": [
+    "beige",
+    "black",
+    "blond",
+    "blue",
+    "brown",
+    "brunette",
+    "cream colored",
+    "dark",
+    "dark blue",
+    "dark brown",
+    "gold",
+    "gray",
+    "green",
+    "khaki",
+    "light blue",
+    "light brown",
+    "maroon",
+    "orange",
+    "pink",
+    "purple",
+    "red",
+    "silver",
+    "tan",
+    "teal",
+    "white",
+    "yellow"
+  ],
+  "sizes": ["tiny", "small", "large", "huge"]
 }

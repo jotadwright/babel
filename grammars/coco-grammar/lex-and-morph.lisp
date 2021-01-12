@@ -176,7 +176,7 @@
                           (syn-cat (lex-class adjective)))
                          <-
                          (,unit-name
-                          (HASH meaning ((bind xkcd-color ,out-var ,(internal-symb (hyphenize color)))))
+                          (HASH meaning ((bind color-category ,out-var ,(internal-symb (hyphenize color)))))
                           --
                           (HASH form ((string ,unit-name ,(downcase color))))))
                         :cxn-inventory ,cxn-inventory
@@ -184,6 +184,28 @@
                         :attributes (:lex-id ,(internal-symb (hyphenize color))
                                      :string ,(downcase color)
                                      :meaning ,(internal-symb (hyphenize color)))))))
+
+;;;; SIZES
+(defun add-coco-size-cxn (cxn-inventory size)
+  (let ((cxn-name (internal-symb (upcase (string-append (hyphenize size) "-size-lex-cxn"))))
+        (unit-name (make-var (upcase (string-append (hyphenize size) "-unit"))))
+        (out-var (make-var 'size)))
+    (eval `(def-fcg-cxn ,cxn-name
+                        ((,unit-name
+                          (args ((sources nil)
+                                 (target ,out-var)))
+                          (sem-cat (sem-class size))
+                          (syn-cat (lex-class adjective)))
+                         <-
+                         (,unit-name
+                          (HASH meaning ((bind size-category ,out-var ,(internal-symb (hyphenize size)))))
+                          --
+                          (HASH form ((string ,unit-name ,(downcase size))))))
+                        :cxn-inventory ,cxn-inventory
+                        :cxn-set lex
+                        :attributes (:lex-id ,(internal-symb (hyphenize size))
+                                     :string ,(downcase size)
+                                     :meaning ,(internal-symb (hyphenize size)))))))
   
 
 (defun generate-lex-and-morph-cxns (cxn-inventory)
@@ -213,18 +235,13 @@
     (loop for coco-type-and-form in (rest (assoc :types metadata))
           do (add-coco-type-cxn cxn-inventory
                                 (rest (assoc :type coco-type-and-form))
-                                (rest (assoc :form coco-type-and-form)))))
-  ;; read the xkcd colors file
-  ;; !!! BUG; some colors are also nouns
-  ;; !!! CHECK FOR DUPLICATES
-  (with-open-file (stream (babel-pathname :directory '("grammars" "coco-grammar" "data")
-                                            :name "xkcd-colors" :type "txt"))
-    (loop for line = (read-line stream nil nil)
-          for i from 1
-          while line
-          if (> i 1)
-          do (let ((color (first (split line #\tab))))
-               (add-coco-color-cxn cxn-inventory color)))))
+                                (rest (assoc :form coco-type-and-form))))
+    ;; add lex cxns for the colors
+    (loop for color-form in (rest (assoc :colors metadata))
+          do (add-coco-color-cxn cxn-inventory color-form))
+    ;; add lex cxns for the sizes
+    (loop for size-form in (rest (assoc :sizes metadata))
+          do (add-coco-size-cxn cxn-inventory size-form))))
 
 
 
