@@ -88,8 +88,9 @@
                                            determine-success
                                            align
                                            generalise)
-                              :diagnostics (list (make-instance 'diagnose-unknown-utterance))
-                              :repairs (list (make-instance 'repair-make-holophrase-cxn))))
+                              :diagnostics (list (make-instance 'diagnose-parsing-result))
+                              :repairs (list (make-instance 'repair-make-holophrase-cxn)
+                                             (make-instance 'repair-add-th-link-or-cxns))))
          (all-task-results (object-run-task agent task)))
     ;; there should be only one result
     (find-data (first all-task-results) 'success)))
@@ -111,9 +112,12 @@
 ;; -------------------
 
 (defclass unknown-utterance-problem (problem)
-  () (:documentation "Problem created when parsing fails"))
+  () (:documentation "Problem created when parsing fails and there are no applied cxns"))
 
-(defclass diagnose-unknown-utterance (diagnostic)
+(defclass partial-utterance-problem (problem)
+  () (:documentation "Problem created when parsing fails and there are some applied cxns"))
+
+(defclass diagnose-parsing-result (diagnostic)
   ((trigger :initform 'parsing-finished))
   (:documentation "Diagnostic to check the result of parsing"))
 
@@ -123,17 +127,30 @@
                    This repair uses the composer to create a new program
                    for the current question."))
 
-(define-event parsing-succeeded)
-(define-event new-program-repair-started)
-(define-event chosen-composer-solution (solution chunk-evaluation-result))
+(defclass repair-add-th-link-or-cxns (repair)
+  ((trigger :initform 'parsing-finished))
+  (:documentation "Repair created when a parsing problem is diagnosed.
+                   This repair adds links to the th in order to solve the parse."))
 
-(defmethod diagnose ((diagnostic diagnose-unknown-utterance)
+(define-event parsing-succeeded)
+
+(defmethod diagnose ((diagnostic diagnose-parsing-result)
                      process-result &key trigger)
   ;; check if parsing succeeded
+  ;; a different repair is triggered depending on
+  ;; whether no cxns could apply
+  ;; or some cxns could apply
   (declare (ignorable trigger))
-  (if (get-data process-result 'parsing-succeeded)
-    (notify parsing-succeeded)
-    (make-instance 'unknown-utterance-problem)))
+  (cond ((get-data process-result 'parsing-succeeded)
+         (notify parsing-succeeded))
+        ((null (get-data process-result 'applied-cxns))
+         (make-instance 'unknown-utterance-problem))
+        ((not (null (get-data process-result 'applied-cxns)))
+         (make-instance 'partial-utterance-problem))))
+
+
+(define-event new-program-repair-started)
+(define-event chosen-composer-solution (solution chunk-evaluation-result))
 
 (defmethod repair ((repair repair-make-holophrase-cxn)
                    (problem unknown-utterance-problem)
@@ -142,16 +159,6 @@
   ;; repair by composing a new program,
   ;; making a new holophrase cxn and adding it to
   ;; the agent's grammar
-  ;;
-  ;; TO DO; the composer can make use of a partial
-  ;; program, if there is any.
-  ;; However, this can be completely wrong, so maybe
-  ;; only make use of high quality partial programs
-  ;; (i.e. cxns with high scores)
-  ;;
-  ;; TO DO; the new cxn does not have to be a holophrase
-  ;; cxn per se. If there was a partial program, the agent
-  ;; could immediately make an item-based cxn
   (declare (ignorable trigger))
   (notify new-program-repair-started)
   (let* ((agent (owner (task (process object))))
@@ -162,6 +169,56 @@
     (add-holophrase-cxn (grammar agent) (utterance agent) new-irl-program
                         :initial-score (get-configuration agent :initial-cxn-score))
     (add-composer-chunk agent (chunk (irl::node composer-solution)))))
+
+
+(define-event item-based->lexical-repair-started)
+(define-event item-based->lexical-new-th-links (th type-hierarchy))
+
+(define-event lexical->item-based-repair-started)
+(define-event lexical->item-based-new-cxn-and-links
+  (item-based-cxn construction) (th type-hierarchy))
+  
+
+(defmethod repair ((repair repair-add-th-link-or-cxns)
+                   (problem partial-utterance-problem)
+                   (object process-result)
+                   &key trigger)
+  (declare (ignorable trigger))
+  (let ((agent (owner (task (process object))))
+        (applied-cxns (get-data object 'applied-cxns))
+        (partial-program (get-data object 'irl-program))
+        (cipn (get-data object 'cipn)))
+    (cond ((and (find 'item-based applied-cxns :key #'gl::phrase-type)
+                (find 'lexical applied-cxns :key #'gl::phrase-type))
+           ;; try to add th links, if item-based and lexical applied
+           (notify item-based->lexical-repair-started)
+           (let ((th-links
+                  (run-repair agent applied-cxns cipn :item-based->lexical)))
+             (when th-links
+               (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+                     for th-link in th-links
+                     do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                     do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+               (notify item-based->lexical-new-th-links
+                       (get-type-hierarchy (grammar agent))))))
+          ((loop for predicate in partial-program
+                 always (eql (first predicate) 'bind))
+           ;; if the partial program only contains bind statements
+           ;; use it to constrain the composer
+           ;; and make an item-based cxn + th links from the result
+           (notify lexical->item-based-repair-started)
+           (let ((item-based-cxn-and-th-links
+                  (run-repair agent applied-cxns cipn :lexical->item-based)))
+             (when item-based-cxn-and-th-links
+               (destructuring-bind (item-based-cxn th-links)
+                   item-based-cxn-and-th-links
+               (add-cxn item-based-cxn (grammar agent))
+               (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+                     for th-link in th-links
+                     do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                     do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+               (notify lexical->item-based-new-cxn-and-links
+                       item-based-cxn (get-type-hierarchy (grammar agent))))))))))
                                                 
 
 (defmethod run-process (process
@@ -174,11 +231,11 @@
     ;; that further restricts the composer, so we always put this
     ;; in the process result
     (let* ((process-result-data
-            `((applied-cxns . ,(mapcar #'get-original-cxn
+            `((cipn . ,cipn)
+              (applied-cxns . ,(mapcar #'get-original-cxn
                                        (applied-constructions cipn)))
               (irl-program . ,irl-program)
-              (parsing-succeeded . ,(eql (first (statuses cipn))
-                                         'fcg::succeeded))))
+              (parsing-succeeded . ,(eql (first (statuses cipn)) 'fcg::succeeded))))
            (process-result
             (make-process-result 1 process-result-data :process process)))
       (unless (notify-learning process-result :trigger 'parsing-finished)
@@ -239,11 +296,6 @@
                                                 (t (list new-cxns)))))
                          :process process)))
 
-(define-event alignment-started)
-(define-event cxns-rewarded (cxns list))
-(define-event cxns-punished (cxns list))
-(define-event adjust-program-started)
-
 (defun add-past-program (agent irl-program)
   (when irl-program
     (if (find-data agent 'past-programs)
@@ -266,6 +318,10 @@
                                  (string= (second s1) (second s2)))))
       (push-data agent 'past-scenes new-sample))))
 
+(define-event alignment-started)
+(define-event cxns-rewarded (cxns list))
+(define-event cxns-punished (cxns list))
+(define-event adjust-program-started)
 
 ;;;; store past programs (composer strategy)
 ;;;; ==> store all past programs and use these when composing a new program
@@ -358,7 +414,7 @@
         (notify cxns-punished (applied-cxns agent))))
     (alignment-update-program agent process-input (get-configuration agent :composer-strategy))))
 
-;;;; :minimal-holophrases+lateral-inhibition (alignment strategy)
+;;;; minimal-holophrases+lateral-inhibition (alignment strategy)
 ;;;; ==> we only want to keep a single cxn for each holophrase since
 ;;;;     we only want to be generalising over the last/best holophrase
 ;;;;     cxns. Therefore, we use the minimal strategy when concerning
@@ -400,6 +456,10 @@
 ;; + Generalisation process +
 ;; --------------------------
 
+(define-event holophrase->item-based-substitution-repair-started)
+(define-event holophrase->item-based-subsititution-new-cxn-and-th-links
+  (new-cxns list) (th type-hierarchy))
+
 (defmethod run-process (process
                         (process-label (eql 'generalise))
                         task agent)
@@ -408,138 +468,38 @@
   ;; NOTE: only doing this when communication was successful 
   ;; could increase the changes that something useful is being
   ;; learned here. However, for now, we always try to generalise
-  ;(when (find-data (input process) 'success)
+  ;;
+  ;; NOTE: repair need to be called in a particular order.
+  ;;
+  ;; NOTE: these repairs are only ran when parsing was a success.
+  ;; When it was unsuccessful, a holophrase is being added.
   (let ((applied-cxns
          (if (find-data (input process) 'new-cxns)
            (find-data (input process) 'new-cxns)
-           (find-data (input process) 'applied-cxns))))
-    (cond ((and (length= applied-cxns 1)
-                (eql (attr-val (first applied-cxns) :cxn-type) 'holophrase))
-           ;; a holophrase cxn was applied
-           ;; try to learn an item-based cxn
-           (let ((subsititution-cxns-and-th-links
-                  (create-item-based-cxn agent (first applied-cxns))))
-             (unless (null subsititution-cxns-and-th-links)
-               (destructuring-bind (cxn-1 cxn-2 cxn-3 &rest th-links)
-                   subsititution-cxns-and-th-links
-                 (declare (ignorable th-links))
-                 (add-cxn cxn-1 (grammar agent))
-                 (add-cxn cxn-2 (grammar agent))
-                 (add-cxn cxn-3 (grammar agent))
-                 (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                       for th-link in th-links
-                       do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                       do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
-                 ))))))
-  (make-process-result 1 nil :process process))
+           (find-data (input process) 'applied-cxns)))
+        (cipn (find-data (input process) 'cipn)))
+    ;; 2. holophrase->item-based with substitution
+    (let ((subsititution-cxns-and-th-links
+           (run-repair agent applied-cxns cipn :holophrase->item-based--substitution)))
+      (notify holophrase->item-based-substitution-repair-started)
+      (when subsititution-cxns-and-th-links
+        (destructuring-bind (cxn-1 cxn-2 cxn-3 &rest th-links)
+            subsititution-cxns-and-th-links
+          (declare (ignorable th-links))
+          (add-cxn cxn-1 (grammar agent))
+          (add-cxn cxn-2 (grammar agent))
+          (add-cxn cxn-3 (grammar agent))
+          (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+                for th-link in th-links
+                do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+          (notify holophrase->item-based-subsititution-new-cxn-and-th-links
+                  (list cxn-1 cxn-2 cxn-3)
+                  (get-type-hierarchy (grammar agent))))))
+    ;; 3. holophrase->item-based with addition
+    ;; 4. holophrase->item-based with deletion
+    (make-process-result 1 nil :process process)))
 
-(defun create-item-based-cxn (agent applied-holophrase-cxn)
-  (let* ((cxn-inventory (grammar agent))
-         (utterance
-          (list-of-strings->string
-           (render
-            (extract-form-predicates applied-holophrase-cxn)
-            (get-configuration cxn-inventory :render-mode))))
-         (meaning
-          (extract-meaning-predicates applied-holophrase-cxn)))
-    (multiple-value-bind (non-overlapping-meaning-observation
-                          non-overlapping-meaning-cxn
-                          non-overlapping-form-observation
-                          non-overlapping-form-cxn
-                          overlapping-meaning-cxn
-                          overlapping-form-cxn
-                          cxn)
-        (gl::select-cxn-for-making-item-based-cxn cxn-inventory utterance meaning)
-      (when cxn
-        (let* ((cxn-name-item-based-cxn
-                (gl::make-cxn-name overlapping-form-cxn cxn-inventory
-                                   :add-cxn-suffix nil))
-               (lex-cxn-1
-                (gl::find-cxn-by-form-and-meaning non-overlapping-form-cxn
-                                              non-overlapping-meaning-cxn
-                                              cxn-inventory))
-               (lex-cxn-2
-                (gl::find-cxn-by-form-and-meaning non-overlapping-form-observation
-                                              non-overlapping-meaning-observation
-                                              cxn-inventory))
-               ;; unit names
-               (unit-name-lex-cxn-1
-                (second (find 'string non-overlapping-form-cxn :key #'first)))
-               (unit-name-lex-cxn-2
-                (second (find 'string non-overlapping-form-observation :key #'first)))
-               ;; args and syn-cat
-               (lex-class-lex-cxn-1
-                (if lex-cxn-1
-                  (gl::lex-class-cxn lex-cxn-1)
-                  (intern (symbol-name (make-const unit-name-lex-cxn-1)) :type-hierarchies)))
-               (lex-class-lex-cxn-2
-                (if lex-cxn-2
-                  (gl::lex-class-cxn lex-cxn-2)
-                  (intern (symbol-name (make-const unit-name-lex-cxn-2)) :type-hierarchies)))
-               (lex-class-item-based-cxn
-                (intern (symbol-name (make-const cxn-name-item-based-cxn)) :type-hierarchies))
-               ;; Type hierachy links
-               (th-link-1 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
-               (th-link-2 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
-               (th-link-3 (cons (cdr th-link-1) (car th-link-1)))
-               (th-link-4 (cons (cdr th-link-2) (car th-link-2)))
-               ;; Args
-               (args-lex-cxn-1 (third (first non-overlapping-meaning-cxn))) ;; third if bind
-               (args-lex-cxn-2 (third (first non-overlapping-meaning-observation))) ;; third if bind
-               ;; CXNs
-               (new-lex-cxn-1
-                (or lex-cxn-1
-                    (second
-                     (multiple-value-list
-                      (eval
-                       `(def-fcg-cxn ,(gl::make-cxn-name non-overlapping-form-cxn cxn-inventory)
-                                     ((,unit-name-lex-cxn-1
-                                       (args (,args-lex-cxn-1))
-                                       (syn-cat (phrase-type lexical)
-                                                (lex-class ,lex-class-lex-cxn-1)))
-                                      <-
-                                      (,unit-name-lex-cxn-1
-                                       (HASH meaning ,non-overlapping-meaning-cxn)
-                                       --
-                                       (HASH form ,non-overlapping-form-cxn)))
-                                     :attributes (:cxn-type lexical)
-                                     :cxn-inventory ,(copy-object cxn-inventory)))))))
-               (new-lex-cxn-2
-                (or lex-cxn-2
-                    (second
-                     (multiple-value-list
-                      (eval
-                       `(def-fcg-cxn ,(gl::make-cxn-name non-overlapping-form-observation cxn-inventory)
-                                     ((,unit-name-lex-cxn-2
-                                       (args (,args-lex-cxn-2))
-                                       (syn-cat (phrase-type lexical)
-                                                (lex-class ,lex-class-lex-cxn-2)))
-                                      <-
-                                      (,unit-name-lex-cxn-2
-                                       (HASH meaning ,non-overlapping-meaning-observation)
-                                       --
-                                       (HASH form ,non-overlapping-form-observation)))
-                                     :attributes (:cxn-type lexical)
-                                     :cxn-inventory ,(copy-object cxn-inventory)))))))
-               (item-based-cxn
-                (second
-                 (multiple-value-list
-                  (eval
-                   `(def-fcg-cxn ,(gl::add-cxn-suffix cxn-name-item-based-cxn)
-                                 ((?item-based-unit
-                                   (syn-cat (phrase-type item-based))
-                                   (subunits (,unit-name-lex-cxn-1)))
-                                  (,unit-name-lex-cxn-1
-                                   (args (,args-lex-cxn-1))
-                                   (syn-cat (lex-class ,lex-class-item-based-cxn)))
-                                  <-
-                                  (?item-based-unit
-                                   (HASH meaning ,overlapping-meaning-cxn)
-                                   --
-                                   (HASH form ,overlapping-form-cxn)))
-                                 :attributes (:cxn-type item-based)
-                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
-          (list new-lex-cxn-1 new-lex-cxn-2 item-based-cxn
-                th-link-1 th-link-2 th-link-3 th-link-4))))))
+
   
 

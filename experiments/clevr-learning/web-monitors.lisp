@@ -36,11 +36,27 @@
   (add-element '((h2) "Parsing succeeded")))
 
 (define-event-handler (trace-interactions-in-wi new-program-repair-started)
-  (add-element '((h2) "Parsing failed")))
+  (add-element '((h2) "Parsing failed. Composing a new program")))
 
 (define-event-handler (trace-interactions-in-wi chosen-composer-solution)
   (add-element '((h3) "Chose the following composer solution:"))
   (add-element (make-html solution)))
+
+(define-event-handler (trace-interactions-in-wi item-based->lexical-repair-started)
+  (add-element '((h2) "Parsing failed. Adding type hierarchy links")))
+
+(define-event-handler (trace-interactions-in-wi item-based->lexical-new-th-links)
+  (add-element '((h3) "New links are added to the type hierarchy:"))
+  (add-element (make-html th)))
+
+(define-event-handler (trace-interactions-in-wi lexical->item-based-repair-started)
+  (add-element '((h2) "Parsing failed. Composing a new program using the partial program")))
+
+(define-event-handler (trace-interactions-in-wi lexical->item-based-new-cxn-and-links)
+  (add-element '((h3) "New item-based construction:"))
+  (add-element (make-html item-based-cxn))
+  (add-element '((h3) "New links are added to the type hierarchy:"))
+  (add-element (make-html th)))
 
 (define-event-handler (trace-interactions-in-wi interpretation-succeeded)
   (add-element '((h2) "Interpretation succeeded"))
@@ -82,3 +98,13 @@
                     `((b :style "color:green") "succeeded")
                     `((b :style "color:red") "failed"))))
   (add-element '((hr))))
+
+(define-event-handler (trace-interactions-in-wi holophrase->item-based-substitution-repair-started)
+  (add-element '((h2) "Generalising over the grammar (subsitution)")))
+
+(define-event-handler (trace-interactions-in-wi holophrase->item-based-subsititution-new-cxn-and-th-links)
+  (add-element '((h3) "New constructions are created:"))
+  (loop for cxn in new-cxns
+        do (add-element (make-html cxn)))
+  (add-element '((h3) "New links are added to the type hierarchy:"))
+  (add-element (make-html th)))
