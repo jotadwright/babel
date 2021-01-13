@@ -240,7 +240,7 @@
           (declare (ignorable rest))
           (case direction
             (:comprehension (comprehend-line grammar id utterance out-stream timeout))
-            (:formulation (formulate-line grammar id (read-from-string irl-program)
+            (:formulation (formulate-line grammar id (fcg::instantiate-variables (read-from-string irl-program))
                                           out-stream timeout)))
           (update bar))))
     ;; close the pipes
