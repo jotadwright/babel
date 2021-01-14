@@ -84,8 +84,9 @@
 (defun get-utterance-and-formulation-cxns (id irl-program timeout num-attempts)
   "Run formulation until a solution is found.
    Export the utterance and the applied constructions."
+  (declare (ignorable num-attempts))
   (multiple-value-bind (utterance cipn)
-      (formulate-num-attempts-with-timeout irl-program id timeout num-attempts)
+      (formulate-with-timeout irl-program id timeout)
     (if (and (null utterance) (null cipn))
       (values "None" "None" "None")
       (values (list-of-strings->string utterance)
@@ -142,8 +143,10 @@
           (multiple-value-bind (utterance
                                 formulation-cxns
                                 depth-of-solution)
-              (get-utterance-and-formulation-cxns id (read-from-string irl-program)
-                                                  timeout num-attempts)
+              (get-utterance-and-formulation-cxns
+               id (fcg::instantiate-variables
+                   (read-from-string irl-program))
+               timeout num-attempts)
             (let ((out-row
                    (list id irl-program rpn
                          utterance formulation-cxns
@@ -213,7 +216,7 @@
                  (:hash-mode . :hash-string-meaning-lex-id)
                  (:priority-mode . :nr-of-applied-cxns)
                  (:parse-order hashed cxn)
-                 (:production-order hashed-lex cxn hashed-morph)
+                 (:production-order hashed-lex nom cxn hashed-morph)
                  (:node-tests :check-duplicate)
                  (:cxn-sets-with-sequential-application hashed-lex hashed-morph)))
               (:priming
@@ -222,7 +225,7 @@
                  (:hash-mode . :hash-string-meaning-lex-id)
                  (:priority-mode . :priming)
                  (:parse-order hashed cxn)
-                 (:production-order hashed-lex cxn hashed-morph)
+                 (:production-order hashed-lex nom cxn hashed-morph)
                  (:node-tests :check-duplicate)
                  (:cxn-sets-with-sequential-application hashed-lex hashed-morph))))))
       ;; set the configurations for the CLEVR grammar
