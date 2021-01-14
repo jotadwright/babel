@@ -166,8 +166,8 @@
                  (referent ?ref)
                  (syn-function nominal)
                  (sem-class ?sem-class)
-                 (boundaries (leftmost-unit ?leftmost-nominal-unit)
-                             (rightmost-unit ?rightmost-nominal-unit)))
+                 (boundaries (leftmost-unit ?noun-unit)
+                             (rightmost-unit ?noun-unit)))
                 (?noun-unit
                  (footprints (nominal-cxn)))
                 <-
@@ -214,8 +214,8 @@
                              (rightmost-unit ?rightmost-nominal-unit)))
                 <-
                 (?my-unit
-                 (HASH meaning ((i i)
-                                (:poss ?ref i)))
+                 (HASH meaning ((i ?i)
+                                (:poss ?ref ?i)))
                  --
                  (HASH form ((string ?my-unit "my"))))
                 (?nominal-unit
@@ -431,9 +431,54 @@
                  (HASH form ((meets ?good-unit ?morning-unit))))))
 
   (def-fcg-cxn X-is-Y-cxn ;;X-is-Y-cxn
-               (<-
-                ))
-               
+               ((?statement-unit
+                 (referent ?y)
+                 (phrase-type clause)
+                 (subunits (?x-unit ?is-unit ?y-unit))
+                 (boundaries (leftmost-unit ?x-leftmost-unit)
+                             (rightmost-unit ?y-rightmost-unit)))
+                <-
+                (?x-unit
+                 (referent ?x)
+                 (sem-function referring-expression)
+                 --
+                 (phrase-type noun-phrase)
+                 (boundaries (leftmost-unit ?x-leftmost-unit)
+                             (rightmost-unit ?x-rightmost-unit)))
+                (?is-unit
+                 (HASH meaning ((:domain ?y ?x)))
+                 --
+                 (HASH form ((string ?is-unit "is")
+                             (meets ?x-rightmost-unit ?is-unit)
+                             (meets ?is-unit ?y-leftmost-unit))))
+                (?y-unit
+                 (referent ?y)
+                 --
+                 (lex-class (adjective))
+                 (boundaries (leftmost-unit ?y-leftmost-unit)
+                             (rightmost-unit ?y-rightmost-unit)))))
+
+  (def-fcg-cxn very-adverb-cxn
+               ((?very-x-unit
+                 (referent ?ref)
+                 (sem-class ?sc)
+                 (lex-class ?lc)
+                 (boundaries (leftmost-unit ?very-unit)
+                             (rightmost-unit ?modified-unit))
+                 (subunits (?very-unit ?modified-unit)))
+                <-
+                (?very-unit
+                 (HASH meaning ((:degree ?ref ?v)
+                                (very ?v)))
+                 --
+                 (HASH form ((string ?very-unit "very"))))
+                (?modified-unit
+                 (referent ?ref)
+                 --
+                 (sem-class ?sc)
+                 (lex-class ?lc)
+                 (HASH form ((meets ?very-unit ?modified-unit))))))
+
   (def-fcg-cxn direct-speech-cxn
                ((?direct-speech-unit
                  (referent ?s)
@@ -760,7 +805,7 @@
 
 (equivalent-amr-predicate-networks
  (comprehend "' my life is very monotonous , ' the fox said .")
- (amr::penman->predicates '(s / say-01
+ (penman->predicates '(s / say-01
                               :ARG0 (f / fox)
                               :ARG1 (m / monotonous
                                        :domain (l / life
