@@ -53,7 +53,7 @@
                (search (third (first (extract-form-predicates x))) utterance)
                (search (third (first (extract-form-predicates y))) utterance))))))
   
-
+#|
 (defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
   "subtract all lexical meanings from the gold standard"
   (let ((resulting-meaning gold-standard-meaning))
@@ -61,6 +61,7 @@
           for lex-cxn-meaning = (extract-meaning-predicates lex-cxn)
           do (setf resulting-meaning (set-difference resulting-meaning lex-cxn-meaning :test #'irl:unify-irl-programs)))
     resulting-meaning))
+|#
 
 (defun diff-non-overlapping-form (observed-form matching-lex-cxns)
   "subtract all lexical forms from the gold standard"

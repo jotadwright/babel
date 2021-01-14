@@ -72,7 +72,7 @@
 
 (defun lex-class-item-based (unit)
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure unit) :key #'first)))
-         (second (find 'lex-class (rest syn-cat) :key #'first))))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
 
 (defun lex-class-cxn (lexical-cxn)
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
