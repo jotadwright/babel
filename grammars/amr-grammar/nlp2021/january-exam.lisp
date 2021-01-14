@@ -155,7 +155,7 @@
                  (sem-class property))
                 <-
                 (?busy-unit
-                 (HASH meaning ((busy ?b)))
+                 (HASH meaning ((busy-01 ?b)))
                  --
                  (HASH form ((string ?busy-unit "busy"))))))
   
@@ -924,7 +924,7 @@
                --
                (HASH FORM ((STRING ?ENGINE-UNIT "engine"))))
               (?PHRASE-UNIT
-               (HASH meaning ((UNSCREW-01 ?u) (BOLT ?b) (STICK-01 ?s) (ENGINE ?e) (:arg0 ?u ?i) (:arg1 ?u ?b) (:arg1-of ?b ?s) (:arg2 ?s ?e) (:poss ?e ?i)))
+               (HASH meaning ((unscrew-01 ?u) (bolt ?b) (stick-01 ?s) (engine ?e) (:arg0 ?u ?i) (:arg1 ?u ?b) (:arg1-of ?b ?s) (:arg2 ?s ?e) (:poss ?e ?i)))
                --
                (HASH FORM ((MEETS ?TO-UNIT ?UNSCREW-UNIT)
                            (MEETS ?UNSCREW-UNIT ?A-UNIT)
@@ -1017,3 +1017,7 @@
                                                                 :poss i))))
                          :time (m / moment
                                   :mod (t2 / that)))))
+
+;((FCG::TRY-01 T) (FCG::I FCG::I) (FCG::BUSY-01 FCG::B2) (FCG::VERY FCG::V) (FCG::UNSCREW-01 FCG::U) (FCG::BOLT UTILS:B) (FCG::STICK-01 FCG::S) (FCG::ENGINE FCG::E) (FCG::MOMENT FCG::M) (FCG::THAT FCG::T2)
+(:ARG0 T FCG::I) (:ARG1 T FCG::U) (:TIME T FCG::M)
+(:ARG1-OF FCG::I FCG::B2) (:DEGREE FCG::B2 FCG::V) (:ARG0 FCG::U FCG::I) (:ARG1 FCG::U UTILS:B) (:ARG1-OF UTILS:B FCG::S) (:ARG2 FCG::S FCG::E) (:POSS FCG::E FCG::I) (:MOD FCG::M FCG::T2))
