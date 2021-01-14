@@ -49,6 +49,7 @@
                                                            :no-strings-in-root)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :path-exists) ;; this skips the add-th-links repair
+                                        (:update-th-links . t)
                                         )
                    :visualization-configurations ((:show-constructional-dependencies . nil))))))
     cxn-inventory))
@@ -65,7 +66,7 @@
         (eval
          `(def-fcg-cxn ,cxn-name
                        ((?holophrase-unit
-                         (syn-cat (grammar-learning::phrase-type grammar-learning::holophrase)))
+                         (syn-cat (gl::phrase-type gl::holophrase)))
                         <-
                         (?holophrase-unit
                          (HASH meaning ,irl-program)
@@ -101,35 +102,34 @@
       (setf (attr-val cxn :score) lower-bound)))
   (grammar agent))
 
-(defun get-form-competitors (agent cxns)
+(defun get-form-competitors (agent applied-cxns)
   "Get cxns with the same meaning as cxn"
   (let ((all-cxns-with-meaning
          (remove-duplicates
-          (loop for cxn in cxns
+          (loop for cxn in applied-cxns
                 for cxn-meaning = (extract-meaning-predicates cxn)
-                append (find-all cxn-meaning
-                                 (constructions-list (grammar agent))
-                                 :key #'extract-meaning-predicates)))))
-    (loop for cxn in cxns
-          do (delete cxn all-cxns-with-meaning))
+                append (remove cxn
+                               (find-all cxn-meaning
+                                         (constructions-list (grammar agent))
+                                         :key #'extract-meaning-predicates
+                                         :test #'unify-irl-programs))))))
+    (loop for cxn in applied-cxns
+          do (setf all-cxns-with-meaning
+                   (remove cxn all-cxns-with-meaning)))
     all-cxns-with-meaning))
 
-(defun get-meaning-competitors (agent cxns)
+(defun get-meaning-competitors (agent applied-cxns)
   "Get cxns with the same form as cxn"
   (let ((all-cxns-with-form
          (remove-duplicates
-          (loop for cxn in cxns
-                for cxn-form = (list-of-strings->string
-                                (render (extract-form-predicates cxn)
-                                        (get-configuration (grammar agent) :render-mode)))
-                append (find-all cxn-form
-                                 (constructions-list (grammar agent))
-                                 :key #'(lambda (other-cxn)
-                                          (list-of-strings->string
-                                           (render (extract-form-predicates other-cxn)
-                                                   (get-configuration (grammar agent) :render-mode))))
-                                 :test #'string=)))))
-    (loop for cxn in cxns
+          (loop for cxn in applied-cxns
+                for cxn-form = (extract-form-predicates cxn)
+                append (remove cxn
+                               (find-all cxn-form
+                                         (constructions-list (grammar agent))
+                                         :key #'extract-form-predicates
+                                         :test #'unify-irl-programs))))))
+    (loop for cxn in applied-cxns
           do (setf all-cxns-with-form
                    (remove cxn all-cxns-with-form)))
     all-cxns-with-form))

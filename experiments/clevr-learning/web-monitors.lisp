@@ -100,9 +100,29 @@
   (add-element '((hr))))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-substitution-repair-started)
-  (add-element '((h2) "Generalising over the grammar (subsitution)")))
+  (add-element '((h2) "Generalising over the grammar (substitution)")))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-subsititution-new-cxn-and-th-links)
+  (add-element '((h3) "New constructions are created:"))
+  (loop for cxn in new-cxns
+        do (add-element (make-html cxn)))
+  (add-element '((h3) "New links are added to the type hierarchy:"))
+  (add-element (make-html th)))
+
+(define-event-handler (trace-interactions-in-wi holophrase->item-based-addition-repair-started)
+  (add-element '((h2) "Generalising over the grammar (addition)")))
+
+(define-event-handler (trace-interactions-in-wi holophrase->item-based-addition-new-cxn-and-th-links)
+  (add-element '((h3) "New constructions are created:"))
+  (loop for cxn in new-cxns
+        do (add-element (make-html cxn)))
+  (add-element '((h3) "New links are added to the type hierarchy:"))
+  (add-element (make-html th)))
+
+(define-event-handler (trace-interactions-in-wi holophrase->item-based-deletion-repair-started)
+  (add-element '((h2) "Generalising over the grammar (deletion)")))
+
+(define-event-handler (trace-interactions-in-wi holophrase->item-based-deletion-new-cxn-and-th-links)
   (add-element '((h3) "New constructions are created:"))
   (loop for cxn in new-cxns
         do (add-element (make-html cxn)))
