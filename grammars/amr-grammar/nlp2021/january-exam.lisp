@@ -98,6 +98,20 @@
                  --
                  (HASH form ((string ?he-unit "he"))))))
 
+  (def-fcg-cxn i-cxn
+               ((?i-unit
+                 (referent ?i)
+                 (lex-class (pronoun))
+                 (phrase-type noun-phrase)
+                 (sem-class physical-entity)
+                 (boundaries (leftmost-unit ?i-unit)
+                             (rightmost-unit ?i-unit)))
+                <-
+                (?i-unit
+                 (HASH meaning ((i ?i)))
+                 --
+                 (HASH form ((string ?i-unit "I"))))))
+
   (def-fcg-cxn nothing-cxn
                ((?nothing-unit
                  (referent ?n)
@@ -133,6 +147,17 @@
                  (HASH meaning ((monotonous ?m)))
                  --
                  (HASH form ((string ?monotonous-unit "monotonous"))))))
+
+  (def-fcg-cxn busy-cxn
+               ((?busy-unit
+                 (referent ?b)
+                 (lex-class (adjective))
+                 (sem-class property))
+                <-
+                (?busy-unit
+                 (HASH meaning ((busy ?b)))
+                 --
+                 (HASH form ((string ?busy-unit "busy"))))))
   
   (def-fcg-cxn noun-adjective-cxn
                ((?nominal-unit
@@ -449,6 +474,34 @@
                  (HASH meaning ((:domain ?y ?x)))
                  --
                  (HASH form ((string ?is-unit "is")
+                             (meets ?x-rightmost-unit ?is-unit)
+                             (meets ?is-unit ?y-leftmost-unit))))
+                (?y-unit
+                 (referent ?y)
+                 --
+                 (lex-class (adjective))
+                 (boundaries (leftmost-unit ?y-leftmost-unit)
+                             (rightmost-unit ?y-rightmost-unit)))))
+
+  (def-fcg-cxn X-was-Y-cxn 
+               ((?statement-unit
+                 (referent ?x)
+                 (phrase-type clause)
+                 (subunits (?x-unit ?is-unit ?y-unit))
+                 (boundaries (leftmost-unit ?x-leftmost-unit)
+                             (rightmost-unit ?y-rightmost-unit)))
+                <-
+                (?x-unit
+                 (referent ?x)
+                 (sem-function referring-expression)
+                 --
+                 (phrase-type noun-phrase)
+                 (boundaries (leftmost-unit ?x-leftmost-unit)
+                             (rightmost-unit ?x-rightmost-unit)))
+                (?is-unit
+                 (HASH meaning ((:arg1-of ?x ?y)))
+                 --
+                 (HASH form ((string ?is-unit "was")
                              (meets ?x-rightmost-unit ?is-unit)
                              (meets ?is-unit ?y-leftmost-unit))))
                 (?y-unit
@@ -798,7 +851,145 @@
                              (rightmost-unit ?rightmost-sub-clause-unit)))
                 (?subject-sub-clause-unit
                  --
-                 (referent ?same-ref)))))
+                 (referent ?same-ref))))
+
+  (def-fcg-cxn at-that-moment-cxn
+               ((?at-that-moment-unit
+                 (referent ?m)
+                 (sem-function temporal-expression)
+                 (phrase-type adverbial-phrase)
+                 (subunits (?at-unit ?that-unit ?moment-unit))
+                 (boundaries (leftmost-unit ?at-unit)
+                             (rightmost-unit ?moment-unit)))
+                <-
+                (?at-unit
+                 --
+                 (HASH form ((string ?at-unit "at"))))
+                (?that-unit
+                 (HASH meaning ((that ?t)))
+                 --
+                 (HASH form ((string ?that-unit "that"))))
+                (?moment-unit
+                 (HASH meaning ((moment ?m)
+                                (:mod ?m ?t)))
+                 --
+                 (HASH form ((string ?moment-unit "moment")
+                             (meets ?at-unit ?that-unit)
+                             (meets ?that-unit ?moment-unit))))))
+
+  
+                
+(def-fcg-cxn TO-UNSCREW-A-BOLT-THAT-HAD-GOT-STUCK-IN-MY-ENGINE-CXN
+             ((?PHRASE-UNIT
+               (SUBUNITS (?TO-UNIT ?UNSCREW-UNIT ?A-UNIT ?BOLT-UNIT ?THAT-UNIT ?HAD-UNIT ?GOT-UNIT ?STUCK-UNIT ?IN-UNIT ?MY-UNIT ?ENGINE-UNIT))
+               (phrase-type infinitival-clause)
+               (BOUNDARIES (LEFTMOST-UNIT ?TO-UNIT)
+                           (RIGHTMOST-UNIT ?ENGINE-UNIT))
+               (referent ?u)
+               (sem-valence (:arg0 ?i)
+                            (:arg1 ?b)))
+              <-
+              
+              (?TO-UNIT
+               --
+               (HASH FORM ((STRING ?TO-UNIT "to"))))
+              (?UNSCREW-UNIT
+               --
+               (HASH FORM ((STRING ?UNSCREW-UNIT "unscrew"))))
+              (?A-UNIT
+               --
+               (HASH FORM ((STRING ?A-UNIT "a"))))
+              (?BOLT-UNIT
+               --
+               (HASH FORM ((STRING ?BOLT-UNIT "bolt"))))
+              (?THAT-UNIT
+               --
+               (HASH FORM ((STRING ?THAT-UNIT "that"))))
+              (?HAD-UNIT
+               --
+               (HASH FORM ((STRING ?HAD-UNIT "had"))))
+              (?GOT-UNIT
+               --
+               (HASH FORM ((STRING ?GOT-UNIT "got"))))
+              (?STUCK-UNIT
+               --
+               (HASH FORM ((STRING ?STUCK-UNIT "stuck"))))
+              (?IN-UNIT
+               --
+               (HASH FORM ((STRING ?IN-UNIT "in"))))
+              (?MY-UNIT
+               --
+               (HASH FORM ((STRING ?MY-UNIT "my"))))
+              (?ENGINE-UNIT
+               --
+               (HASH FORM ((STRING ?ENGINE-UNIT "engine"))))
+              (?PHRASE-UNIT
+               (HASH meaning ((UNSCREW-01 ?u) (BOLT ?b) (STICK-01 ?s) (ENGINE ?e) (:arg0 ?u ?i) (:arg1 ?u ?b) (:arg1-of ?b ?s) (:arg2 ?s ?e) (:poss ?e ?i)))
+               --
+               (HASH FORM ((MEETS ?TO-UNIT ?UNSCREW-UNIT)
+                           (MEETS ?UNSCREW-UNIT ?A-UNIT)
+                           (MEETS ?A-UNIT ?BOLT-UNIT)
+                           (MEETS ?BOLT-UNIT ?THAT-UNIT)
+                           (MEETS ?THAT-UNIT ?HAD-UNIT)
+                           (MEETS ?HAD-UNIT ?GOT-UNIT)
+                           (MEETS ?GOT-UNIT ?STUCK-UNIT)
+                           (MEETS ?STUCK-UNIT ?IN-UNIT)
+                           (MEETS ?IN-UNIT ?MY-UNIT)
+                           (MEETS ?MY-UNIT ?ENGINE-UNIT))))))
+
+
+(def-fcg-cxn transitive-try-cxn
+             ((?clause-unit
+               (clause-type transitive)
+               (sem-function predication)
+               (referent ?t)
+               (subunits (?arg0-unit ?trying-unit ?arg1-unit)))
+              <-
+              (?arg0-unit
+               (referent ?arg0)
+               --
+               (referent ?arg0)
+               (phrase-type clause)
+               (boundaries (leftmost-unit ?arg0-leftmost-unit)
+                           (rightmost-unit ?arg0-rightmost-unit)))
+              (?trying-unit
+               (HASH meaning ((try-01 ?t)
+                              (:arg0 ?t ?arg0)
+                              (:arg1 ?t ?arg1)))
+               --
+               (HASH form ((string ?trying-unit "trying")
+                           (meets ?arg0-rightmost-unit ?trying-unit)
+                           (meets ?trying-unit ?arg1-leftmost-unit))))
+              (?arg1-unit
+               (referent ?arg1)
+               --
+               (referent ?arg1)
+               (sem-valence (:arg0 ?arg0))
+               (phrase-type infinitival-clause)
+               (boundaries (leftmost-unit ?arg1-leftmost-unit)
+                           (rightmost-unit ?arg1-rightmost-unit)))))
+
+(def-fcg-cxn temporal-modification-of-event-cxn
+             ((?event-unit
+               (subunits (?time-unit)))
+              <-
+              (?event-unit
+               (referent ?event)
+               (sem-function predication)
+               (HASH meaning ((:time ?event ?time)))
+               --
+               (sem-function predication)
+               (clause-type ?clause))
+              (?time-unit
+               (referent ?time)
+               (sem-function temporal-expression)
+               --
+               (phrase-type adverbial-phrase))))
+)
+                     
+         
+        
+  
 
 ;(activate-monitor trace-fcg)
 
@@ -812,3 +1003,17 @@
                                                   :poss (i / i))
                                        :degree (v / very)))))
 
+(equivalent-amr-predicate-networks
+ (comprehend "at that moment I was very busy trying to unscrew a bolt that had got stuck in my engine")
+ (penman->predicates '(t / try-01
+                         :ARG0 (i / i
+                                  :ARG1-of (b2 / busy-01
+                                               :degree (v / very)))
+                         :ARG1 (u / unscrew-01
+                                  :ARG0 i
+                                  :ARG1 (b / bolt
+                                           :ARG1-of (s / stick-01
+                                                       :ARG2 (e / engine
+                                                                :poss i))))
+                         :time (m / moment
+                                  :mod (t2 / that)))))
