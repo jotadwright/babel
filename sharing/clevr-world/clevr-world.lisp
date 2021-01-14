@@ -218,11 +218,11 @@
 ;; clevr program node
 ;; ################################
 
-(export '(clevr-function function-name args))
+(export '(clevr-function function-name arguments))
 
 (defclass clevr-function (entity tree-node)
   ((function-name :type symbol :initarg :function-name :accessor function-name)
-   (args          :type list   :initarg :args          :accessor args          :initform nil))
+   (arguments     :type list   :initarg :arguments     :accessor arguments     :initform nil))
   (:documentation "A function in a CLEVR program"))
 
 (defmethod initialize-instance :around ((function clevr-function) &rest initargs &key id)
@@ -236,9 +236,9 @@
                                          (rest (assoc :function s-expr)))
                                         ((assoc :type s-expr)
                                          (rest (assoc :type s-expr))))))
-                 :args (mapcar #'internal-symb
-                               (mapcar #'upcase
-                                       (rest (assoc :value--inputs s-expr))))
+                 :arguments (mapcar #'internal-symb
+                                    (mapcar #'upcase
+                                            (rest (assoc :value--inputs s-expr))))
                  :children (rest (assoc :inputs s-expr))))
 
 ;; to do
