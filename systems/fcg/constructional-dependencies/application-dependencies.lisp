@@ -535,7 +535,7 @@ the nodes above the solution."
 
 (defun make-dot-id2 (name)
   (substitute-chars name
-                    (list #\- #\? #\! #\[ #\] #\{ #\} #\, #\; #\# #\=)
+                    (list #\- #\? #\! #\[ #\] #\{ #\} #\, #\; #\# #\= #\( #\) #\: #\+ #\. #\')
                     #\_))
   
 (defun substitute-chars (str chars replacement)
