@@ -72,9 +72,15 @@
          (repaired-solutions 0)
          out-stream)
     (ensure-directories-exist outputfile)
-    (setf out-stream (open outputfile :direction :output
-                           :if-exists :supersede))
-    (write-line header out-stream)
+    (if (probe-file outputfile)
+      (let ((processed-lines (- (number-of-lines outputfile) 1)))
+        (loop repeat processed-lines
+              do (read-line in-stream nil nil))
+        (setf out-stream (open outputfile :direction :output
+                               :if-exists :append))
+        (setf nr-of-lines (- nr-of-lines processed-lines)))
+      (progn (setf out-stream (open outputfile :direction :output))
+        (write-line header out-stream)))
     (with-progress-bar (bar (- nr-of-lines 1) ("Processing ~a" (namestring inputfile)))
       (do-csv (row in-stream)
         (destructuring-bind (id irl-program rpn utterance formulation-cxns depth) row
@@ -111,6 +117,13 @@
  (activate-monitor trace-fcg)
  
  (set-seq2seq-configurations 8888)
+
+ (fill-missing-data
+  (parse-namestring
+   "/Users/jensnevens/Desktop/seq2seq/input/batch-235.csv")
+  (parse-namestring
+   "/Users/jensnevens/Desktop/seq2seq/output/")
+  400)
  
  (fill-missing-data
   (babel-pathname :directory '("applications" "seq2seq-fcg")
