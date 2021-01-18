@@ -41,6 +41,11 @@
 (comprehend-and-formulate "Is the color of the metal block that is right of the yellow rubber object the same as the large metal cylinder?")
 (comprehend-and-formulate "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?")
 (comprehend-and-formulate "Does the matte object behind the gray metallic ball have the same color as the big rubber sphere?")
+(comprehend-and-formulate "Is the shape of the small gray matte thing the same as the object behind the big green rubber object?")
+(comprehend-and-formulate "There is a thing that is behind the small gray object; is its size the same as the matte block in front of the small brown block?")
+(comprehend-and-formulate "Do the big rubber cube that is behind the small rubber cube and the large matte cylinder have the same color?")
+(comprehend-and-formulate "Are the big brown ball that is on the right side of the big metal cylinder and the sphere on the left side of the small metallic ball made of the same material?")
+(comprehend-and-formulate "There is a tiny matte object right of the tiny gray matte thing; is its shape the same as the yellow object that is to the left of the small yellow matte cube?")
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
 (comprehend "What size is the blue metal thing left of the green ball behind the red thing?")

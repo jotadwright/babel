@@ -7,13 +7,10 @@
 ;; comparison question family                            ;;
 ;; ----------------------------------------------------- ;;
 
-;; TO DO; try to move the query meanings to these same-T-cxns
-
 (def-fcg-cxn the-same-T-cxn ;; feature end +, split -, anaphoric -
              ((?compare-type-unit
-               (args ((sources ?src-1 ?src-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (syn-cat (syn-class comparative-conjunction))
                (property-type ?type)
@@ -24,11 +21,10 @@
                (split -)
                (anaphoric -))
               <-
-              (?compare-type-unit
-               (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)))
-               --
-               )
               (?the-same
+               (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)
+                              (query ?src-1 ?object-1 ?attribute)
+                              (query ?src-2 ?object-2 ?attribute)))
                --
                (HASH form ((string ?the-same "the same")
                            (meets ?the-same ?type-unit))))
@@ -46,9 +42,8 @@
 
 (def-fcg-cxn the-T-of-the-same-as-cxn ;; feature end -, split +, anaphoric -
              ((?compare-type-unit
-               (args ((sources ?src-1 ?src-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (syn-cat (syn-class comparative-conjunction))
                (property-type ?type)
@@ -61,11 +56,8 @@
               (?the-same-as
                (HASH form ((precedes ?of ?the-same-as))))
               <-
-              (?compare-type-unit
-               (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)))
-               --
-               )
               (?the
+               (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)))
                --
                (HASH form ((string ?the "the")
                            (meets ?the ?type-unit))))
@@ -79,10 +71,12 @@
                (syn-cat (lex-class noun))
                (sem-cat (sem-class attribute)))
               (?of
+               (HASH meaning ((query ?src-1 ?object-1 ?attribute)))
                --
                (HASH form ((string ?of "of")
                            (meets ?type-unit ?of))))
               (?the-same-as
+               (HASH meaning ((query ?src-2 ?object-2 ?attribute)))
                --
                (HASH form ((string ?the-same-as "the same as")
                            ;(precedes ?of ?the-same-as)
@@ -92,9 +86,8 @@
 
 (def-fcg-cxn the-same-T-as-compare-cxn ;; feature end - split - anaphoric +
              ((?compare-type-unit
-               (args ((sources ?src-1 ?src-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (syn-cat (syn-class comparative-conjunction))
                (property-type ?type)
@@ -105,11 +98,8 @@
                (split -)
                (anaphoric +))
               <-
-              (?compare-type-unit
-               (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)))
-               --
-               )
               (?the-same
+               (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)))
                --
                (HASH form ((string ?the-same "the same"))))
               (?type-unit
@@ -124,6 +114,8 @@
                (HASH form ((meets ?the-same ?type-unit)
                            (meets ?type-unit ?as))))
               (?as
+               (HASH meaning ((query ?src-1 ?object-1 ?attribute)
+                              (query ?src-2 ?object-2 ?attribute)))
                --
                (HASH form ((string ?as "as")))))
              :cxn-set cxn
@@ -131,9 +123,8 @@
 
 (def-fcg-cxn T-the-same-as-cxn ;; feature end - split + anaphoric +
              ((?compare-type-unit
-               (args ((sources ?src-1 ?src-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (syn-cat (syn-class comparative-conjunction))
                (property-type ?type)
@@ -144,10 +135,6 @@
                (split +)
                (anaphoric +))
               <-
-              (?compare-type-unit
-               (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)))
-               --
-               )
               (?type-unit
                (args ((target ?attribute)))
                (syn-cat (lex-class noun))
@@ -158,6 +145,9 @@
                (syn-cat (lex-class noun))
                (sem-cat (sem-class attribute)))
               (?the-same-as
+               (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)
+                              (query ?src-1 ?object-1 ?attribute)
+                              (query ?src-2 ?object-2 ?attribute)))
                --
                (HASH form ((string ?the-same-as "the same as")
                            (meets ?type-unit ?the-same-as)))))
@@ -172,9 +162,7 @@
                (subunits (?rel-unit-1 ?and ?rel-unit-2 ?have ?compare-type-unit)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "do")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
@@ -215,9 +203,8 @@
                            (meets ?rightmost-np-unit-2 ?have)
                            (meets ?have ?leftmost-compare-unit))))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type ?type)
                (end +)(split -)(anaphoric -)
@@ -239,16 +226,13 @@
                (subunits (?compare-type-unit ?rel-unit-1 ?rel-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "is")
                            (meets ?compare-unit ?leftmost-compare-unit))))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type ?type)
                (end -)(split +)(anaphoric -)
@@ -298,9 +282,7 @@
                (subunits (?rel-unit-1 ?compare-type-unit ?rel-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "is")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
@@ -318,9 +300,8 @@
                (leftmost-unit ?leftmost-np-unit-1)
                (rightmost-unit ?rightmost-np-unit-1))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type ?type)
                (end -)(split -)(anaphoric +)
@@ -358,9 +339,7 @@
                (subunits (?rel-unit-1 ?have ?compare-type-unit ?rel-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "does")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
@@ -383,9 +362,8 @@
                            (meets ?rightmost-np-unit-1 ?have)
                            (meets ?have ?leftmost-compare-unit))))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type ?type)
                (end -)(split -)(anaphoric +)
@@ -439,16 +417,13 @@
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "does it have")
                            (meets ?compare-unit ?leftmost-compare-unit))))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type ?type)
                (end -)(split -)(anaphoric +)
@@ -503,16 +478,13 @@
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "is it")
                            (meets ?compare-unit ?leftmost-compare-unit))))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type ?type)
                (end -)(split -)(anaphoric +)
@@ -566,16 +538,13 @@
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "is its")
                            (meets ?compare-unit ?leftmost-compare-unit))))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type ?type)
                (end -)(split +)(anaphoric +)
@@ -611,9 +580,7 @@
                (subunits (?rel-unit-1 ?and ?rel-unit-2 ?made-of ?compare-type-unit)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "are")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
@@ -654,9 +621,8 @@
                            (meets ?rightmost-np-unit-2 ?made-of)
                            (meets ?made-of ?leftmost-compare-unit))))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type material)
                (end +)(split -)(anaphoric -)
@@ -677,9 +643,7 @@
                (subunits (?rel-unit-1 ?made-of ?compare-type-unit ?rel-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?value-1 ?object-1 ?attribute)
-                              (query ?value-2 ?object-2 ?attribute)))
+               (HASH meaning ((get-context ?context)))
                --
                (HASH form ((string ?compare-unit "is")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
@@ -702,9 +666,8 @@
                            (meets ?rightmost-np-unit-1 ?made-of)
                            (meets ?made-of ?leftmost-compare-unit))))
               (?compare-type-unit
-               (args ((sources ?value-1 ?value-2)
-                      (target ?target)
-                      (binding ?attribute)))
+               (args ((sources ?object-1 ?object-2)
+                      (target ?target)))
                (sem-cat (sem-function compare-property))
                (property-type material)
                (end -)(split -)(anaphoric +)
