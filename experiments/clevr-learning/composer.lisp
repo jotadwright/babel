@@ -6,33 +6,40 @@
 ;; + Composer +
 ;; ------------
 
+(defparameter *max-composer-depth-per-challenge-level*
+  '((1 . 8) (2 . 25) (3 . 25)))
+
 (defun make-default-composer (agent target-category &key (partial-program nil))
-  ;; make the chunk composer
-  (make-chunk-composer
-   :topic target-category
-   ; if partial program is available, this can be passed along
-   :meaning partial-program
-   :initial-chunk (make-instance 'chunk :id 'initial
-                                 :target-var `(?answer . ,(type-of target-category))
-                                 :open-vars `((?answer . ,(type-of target-category))))
-   :chunks (composer-chunks agent)
-   :ontology (ontology agent)
-   :primitive-inventory (available-primitives agent)
-   :configurations `((:max-search-depth . 25)
-                     ;; when providing bind statements,
-                     ;; remove the :clevr-open-vars from
-                     ;; the :check-node-modes
-                     (:check-node-modes ,@(append '(:check-duplicate 
-                                                    :clevr-primitive-occurrence-count                              
-                                                    :clevr-context-links
-                                                    :clevr-filter-group-length)
-                                                  (unless partial-program
-                                                    '(:clevr-open-vars))))
-                     (:expand-chunk-modes :combine-program)
-                     (:node-rating-mode . :clevr-node-rating)
-                     (:check-chunk-evaluation-result-modes
-                      :clevr-coherent-filter-groups))
-   :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions))))
+  (let* ((current-challenge-level
+          (get-configuration agent :current-challenge-level))
+         (max-composer-depth
+          (rest (assoc current-challenge-level *max-composer-depth-per-challenge-level*))))
+    ;; make the chunk composer
+    (make-chunk-composer
+     :topic target-category
+     ; if partial program is available, this can be passed along
+     :meaning partial-program
+     :initial-chunk (make-instance 'chunk :id 'initial
+                                   :target-var `(?answer . ,(type-of target-category))
+                                   :open-vars `((?answer . ,(type-of target-category))))
+     :chunks (composer-chunks agent)
+     :ontology (ontology agent)
+     :primitive-inventory (available-primitives agent)
+     :configurations `((:max-search-depth . ,max-composer-depth)
+                       ;; when providing bind statements,
+                       ;; remove the :clevr-open-vars from
+                       ;; the :check-node-modes
+                       (:check-node-modes ,@(append '(:check-duplicate 
+                                                      :clevr-primitive-occurrence-count                              
+                                                      :clevr-context-links
+                                                      :clevr-filter-group-length)
+                                                    (unless partial-program
+                                                      '(:clevr-open-vars))))
+                       (:expand-chunk-modes :combine-program)
+                       (:node-rating-mode . :clevr-node-rating)
+                       (:check-chunk-evaluation-result-modes
+                        :clevr-coherent-filter-groups))
+     :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions)))))
 
 (defmethod compose-new-program (agent target-category &key (partial-program nil))
   (let ((composer (make-default-composer agent target-category
@@ -42,17 +49,17 @@
 ;; + compose-until +
 (defun compose-until (composer fn)
   "Generate composer solutions until the
-   function 'fn' returns t on the solution"
-  (loop with solution = nil
-        while (not solution)
-        for solutions = (get-next-solutions composer)
-        do (setf solution
-                 (loop for s in solutions
-                       for i from 1
-                       when (funcall fn s i)
-                       return s))
-        finally
-        (return solution)))
+   function 'fn' returns t on the solution
+   or the composer runs out of solutions"
+  (loop with the-solution = nil
+        for next-solutions = (get-next-solutions composer)
+        do (loop for solution in next-solutions
+                 for i from 1
+                 when (funcall fn solution i)
+                 do (progn (setf the-solution solution) (return)))
+        until (or (null next-solutions)
+                  (not (null the-solution)))
+        finally (return the-solution)))
 
 (defun check-past-programs (solution solution-index list-of-past-programs agent)
   (declare (ignorable solution-index agent))

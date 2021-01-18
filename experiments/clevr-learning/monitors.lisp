@@ -12,7 +12,8 @@
          (format t "~%."))
         ((= (mod (interaction-number interaction)
                  (get-configuration experiment :dot-interval)) 0)
-         (format t ". (~a)~%" (interaction-number interaction)))
+         (format t ". (~a)~%" (interaction-number interaction))
+         (wi:clear-page))
         (t (format t "."))))
 
 ;;;; Communicative success

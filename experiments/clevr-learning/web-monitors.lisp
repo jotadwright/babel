@@ -67,10 +67,6 @@
     (add-element (make-html answer))
     (add-element `((p) ,(format nil "\"~a\"" answer)))))
 
-(define-event-handler (trace-interactions-in-wi new-holophrase-cxn)
-  (add-element '((h3) "New holophrase construction:"))
-  (add-element (make-html cxn)))
-
 (define-event-handler (trace-interactions-in-wi alignment-started)
   (add-element '((h2) "Alignment started")))
 
@@ -86,9 +82,6 @@
     (mapcar #'(lambda (cxn)
                 (add-element (make-html cxn)))
             cxns)))
-
-(define-event-handler (trace-interactions-in-wi adjust-program-started)
-  (add-element '((h2) "Composing a new program")))
 
 (define-event-handler (trace-interactions-in-wi agent-confidence-level)
   (add-element `((h2) ,(format nil "The agent is ~$% confident"

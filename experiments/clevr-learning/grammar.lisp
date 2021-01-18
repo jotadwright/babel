@@ -49,10 +49,11 @@
                                                            :no-strings-in-root)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :path-exists) ;; this skips the add-th-links repair
-                                        (:update-th-links . t)
-                                        )
+                                        (:update-th-links . t))
                    :visualization-configurations ((:show-constructional-dependencies . nil))))))
     cxn-inventory))
+
+(define-event lexicon-changed)
 
 (defun inc-cxn-score (cxn &key (delta 0.1) (upper-bound 1.0))
   "increase the score of the cxn"
@@ -92,17 +93,22 @@
 
 (defun get-meaning-competitors (agent applied-cxns)
   "Get cxns with the same form as cxn"
-  (let ((all-cxns-with-form
-         (remove-duplicates
-          (loop for cxn in applied-cxns
-                for cxn-form = (extract-form-predicates cxn)
-                append (remove cxn
-                               (find-all cxn-form
-                                         (constructions-list (grammar agent))
-                                         :key #'extract-form-predicates
-                                         :test #'unify-irl-programs))))))
-    (loop for cxn in applied-cxns
-          do (setf all-cxns-with-form
-                   (remove cxn all-cxns-with-form)))
-    all-cxns-with-form))
+  ;; what is the competitor of an item-based cxn??
+  (flet ((extract-and-render (cxn)
+           (list-of-strings->string
+            (render (extract-form-predicates cxn)
+                    (get-configuration (grammar agent) :render-mode)))))
+    (let ((all-cxns-with-form
+           (remove-duplicates
+            (loop for cxn in applied-cxns
+                  for cxn-form = (extract-and-render cxn)
+                  append (remove cxn
+                                 (find-all cxn-form
+                                           (constructions-list (grammar agent))
+                                           :key #'extract-and-render
+                                           :test #'string=))))))
+      (loop for cxn in applied-cxns
+            do (setf all-cxns-with-form
+                     (remove cxn all-cxns-with-form)))
+      all-cxns-with-form)))
   
