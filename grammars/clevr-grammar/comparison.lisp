@@ -7,6 +7,8 @@
 ;; comparison question family                            ;;
 ;; ----------------------------------------------------- ;;
 
+;; TO DO; try to move the query meanings to these same-T-cxns
+
 (def-fcg-cxn the-same-T-cxn ;; feature end +, split -, anaphoric -
              ((?compare-type-unit
                (args ((sources ?src-1 ?src-2)
@@ -242,7 +244,7 @@
                               (query ?value-2 ?object-2 ?attribute)))
                --
                (HASH form ((string ?compare-unit "is")
-                           (meets ?compare-unit ?leftmost-type-unit))))
+                           (meets ?compare-unit ?leftmost-compare-unit))))
               (?compare-type-unit
                (args ((sources ?value-1 ?value-2)
                       (target ?target)

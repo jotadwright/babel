@@ -13,7 +13,7 @@
                       (:priority-mode . :nr-of-applied-cxns)
                       (:parse-order hashed nom cxn)
                       (:production-order hashed-lex nom cxn hashed-morph)
-                      (:max-nr-of-nodes . 15000)))
+                      (:max-nr-of-nodes . 10000)))
 
 ;; priming configurations
 ;; identical to depth first, but using the priming data
@@ -31,12 +31,16 @@
                       (:production-order hashed-lex cxn hashed-morph)
                       (:seq2seq-endpoint . #-ccl "http://localhost:8888/next-cxn"
                                            #+ccl "http://127.0.0.1:8888/next-cxn")
-                      (:seq2seq-model-formulation . "clevr_formulation_model_v1"))
+                      (:seq2seq-model-formulation . "clevr_formulation_model_v2")
+                      )
                     :replace t)
 
 (comprehend "What color is the cube?")
-
 (comprehend-and-formulate "What color is the cube?")
+
+(comprehend-and-formulate "Is the color of the metal block that is right of the yellow rubber object the same as the large metal cylinder?")
+(comprehend-and-formulate "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?")
+(comprehend-and-formulate "Does the matte object behind the gray metallic ball have the same color as the big rubber sphere?")
 
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
 (comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
