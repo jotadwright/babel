@@ -149,9 +149,10 @@
          (make-instance 'partial-utterance-problem))))
 
 
-(define-event new-program-repair-started)
-(define-event chosen-composer-solution (solution chunk-evaluation-result))
-
+(define-event add-holophrase-repair-started)
+(define-event add-holophrase-new-cxn
+  (cxn construction))
+    
 (defmethod repair ((repair repair-make-holophrase-cxn)
                    (problem unknown-utterance-problem)
                    (object process-result)
@@ -160,24 +161,32 @@
   ;; making a new holophrase cxn and adding it to
   ;; the agent's grammar
   (declare (ignorable trigger))
-  (notify new-program-repair-started)
+  (notify add-holophrase-repair-started)
   (let* ((agent (owner (task (process object))))
-         (composer-solution (compose-new-program agent (topic agent)))
-         (new-irl-program (append (bind-statements composer-solution)
-                                  (irl-program (chunk composer-solution)))))
-    (notify chosen-composer-solution composer-solution)
-    (add-holophrase-cxn (grammar agent) (utterance agent) new-irl-program
-                        :initial-score (get-configuration agent :initial-cxn-score))
-    (add-composer-chunk agent (chunk (irl::node composer-solution)))))
+         (holophrase-cxn
+          (run-repair agent (get-data object 'applied-cxns)
+                      (get-data object 'cipn) :add-holophrase)))
+    (add-cxn holophrase-cxn (grammar agent))
+    (notify add-holophrase-new-cxn holophrase-cxn)))
 
 
 (define-event item-based->lexical-repair-started)
-(define-event item-based->lexical-new-th-links (th type-hierarchy))
+(define-event item-based->lexical-new-cxn-and-th-links
+  (cxn construction) (th type-hierarchy))
 
 (define-event lexical->item-based-repair-started)
 (define-event lexical->item-based-new-cxn-and-links
-  (item-based-cxn construction) (th type-hierarchy))
-  
+  (cxn construction) (th type-hierarchy))
+
+;; TO DO; refactor this such that all repairs are tried
+;; but the checks are implemented at the repair level.
+;; It should fall through all repairs until one works
+;; or otherwise, a holophrase is added.
+
+;; 1. only lexical cxns with good scores -> lexical->item-based
+;; 2. item-based (possibly with lexical) and root not empty -> item-based->lexical
+;; 3. item-based and with lexical and root empty -> add-th-links or compose update program for item-based and/or lex??
+;; 4. no applied cxns or none of the above -> compose-new-program
 
 (defmethod repair ((repair repair-add-th-link-or-cxns)
                    (problem partial-utterance-problem)
@@ -186,56 +195,76 @@
   (declare (ignorable trigger))
   (let* ((agent (owner (task (process object))))
          (applied-cxns (get-data object 'applied-cxns))
-         (partial-program (get-data object 'irl-program))
          (cipn (get-data object 'cipn))
-         (only-binds-p
-          (loop for predicate in partial-program
-                always (eql (first predicate) 'bind))))
-    (if only-binds-p
+         (only-lexical-cxns
+          (loop for cxn in applied-cxns
+                always (eql (attr-val cxn :cxn-type) 'lexical))))
+    (if only-lexical-cxns
       ;; if the partial program only contains bind statements
       ;; use it to constrain the composer
       ;; and make an item-based cxn + th links from the result
       ;; To improve the quality of these results, we can
       ;; empose a threshold on the score of the lexical cxn.
+      ;; When the threshold is not met, simply create a new
+      ;; holophrase from scratch.
       (let ((lex-cxns-any-good-p
              (loop for cxn in applied-cxns
-                   always (> (attr-val cxn :score) 0.75))))
+                   always (> (attr-val cxn :score) 0.6))))
+        
         (if lex-cxns-any-good-p
-          (progn (notify lexical->item-based-repair-started)
-            (let ((item-based-cxn-and-th-links
-                   (run-repair agent applied-cxns cipn :lexical->item-based)))
-              (when item-based-cxn-and-th-links
-                (destructuring-bind (item-based-cxn th-links)
-                    item-based-cxn-and-th-links
-                  (add-cxn item-based-cxn (grammar agent))
-                  ;; th-links are grouped per applied lex cxn
-                  (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                        for th-group in th-links
-                        do (loop for th-link in th-group
-                                 do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                                 do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5)))
-                  (notify lexical->item-based-new-cxn-and-links
-                          item-based-cxn (get-type-hierarchy (grammar agent)))))))
-          (progn ;; TO DO: MAKE A HOLOPHRASE
-            nil)))
-      ;; TO DO; try the item-based->lexical repair
-      ;; otherwise, try to add th links or still something else?
-      nil)))
-
-#|
-      ;; try to add th links, if both item-based and lexical applied
-      ;; !!! THIS ONLY APPLIES WHEN THE ROOT IS EMPTY...
-      (progn (notify item-based->lexical-repair-started)
-        (let ((th-links
-               (run-repair agent applied-cxns cipn :item-based->lexical)))
-          (when th-links
-            (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                  for th-link in th-links
-                  do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                  do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
-            (notify item-based->lexical-new-th-links
-                    (get-type-hierarchy (grammar agent)))))))))
-|#
+          (let ((item-based-cxn-and-th-links
+                 (run-repair agent applied-cxns cipn :lexical->item-based)))
+            (notify lexical->item-based-repair-started)
+            (destructuring-bind (item-based-cxn th-links)
+                item-based-cxn-and-th-links
+              (add-cxn item-based-cxn (grammar agent))
+              ;; th-links are grouped per applied lex cxn
+              (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+                    for th-group in th-links
+                    do (loop for th-link in th-group
+                             do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                             do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5)))
+              (notify lexical->item-based-new-cxn-and-links
+                      item-based-cxn (get-type-hierarchy (grammar agent)))))
+          
+          (progn (notify add-holophrase-repair-started)
+            (let ((holophrase-cxn
+                   (run-repair agent applied-cxns cipn :add-holophrase)))
+              (add-cxn holophrase-cxn (grammar agent))
+              (notify add-holophrase-new-cxn holophrase-cxn)))))
+      
+      ;; if not only lexical cxns, the applied cxns can be either
+      ;; an item-based cxn or a combination of item-based and lexical
+      ;; that does not yield a solution. In both of these cases, if there
+      ;; are still strings in the root, there is a lexical cxn missing
+      ;; to parse this utterance. This can be fixed using the
+      ;; item-based->lexical repair.
+      ;; If the root is empty, the parse could have failed due to missing
+      ;; th links. We try to add these.
+      ;; ??? Is it okay to check the root?
+      (let ((strings-in-root
+             (gl::form-predicates-with-variables
+              (extract-strings
+               (get-root
+                (left-pole-structure
+                 (car-resulting-cfs
+                  (first (cipn-car cipn)))))))))
+        
+        (if strings-in-root
+          (let ((lex-cxn-and-th-links
+                 (run-repair agent applied-cxns cipn :item-based->lexical)))
+            (notify item-based->lexical-repair-started)
+            (when lex-cxn-and-th-links
+              (destructuring-bind (lex-cxn &rest th-links) lex-cxn-and-th-links
+                (add-cxn lex-cxn (grammar agent))
+                (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+                      for th-link in th-links
+                      do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                      do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+                (notify item-based->lexical-new-cxn-and-th-links
+                        lex-cxn (get-type-hierarchy (grammar agent))))))
+          
+          nil)))))
   
                                                 
 
@@ -340,6 +369,9 @@
 (define-event cxns-rewarded (cxns list))
 (define-event cxns-punished (cxns list))
 (define-event adjust-program-started)
+
+
+;; TO DO; use the add-holophrase repair here
 
 ;;;; store past programs (composer strategy)
 ;;;; ==> store all past programs and use these when composing a new program
@@ -446,21 +478,23 @@
   (let ((success (find-data process-input 'success))
         (applied-cxns (find-data process-input 'applied-cxns)))
     (notify alignment-started)
-    ;; if there is a single applied cxns and it is a holophrase-cxn
-    ;; apply the minimal strategy
-    ;; otherwise, apply lateral inhibition
     (if success
-      (when (length> applied-cxns 1)
-        (loop for cxn in applied-cxns
-              do (inc-cxn-score cxn :delta (get-configuration agent :cxn-incf-score)))
-        (notify cxns-rewarded applied-cxns)
-        (loop for competitor in (remove-duplicates
-                                 (append (get-meaning-competitors agent applied-cxns)
-                                         (get-form-competitors agent applied-cxns)))
-              do (dec-cxn-score agent competitor
-                                :delta (get-configuration agent :cxn-decf-score))
-              collect competitor into punished-cxns
-              finally (notify cxns-punished punished-cxns)))
+      (if (and (length= applied-cxns 1)
+               (eql (attr-val (first applied-cxns) :cxn-type) 'holophrase))
+        (progn
+          (inc-cxn-score (first applied-cxns) :delta (get-configuration agent :cxn-incf-score))
+          (notify cxns-rewarded applied-cxns))
+        (progn
+          (loop for cxn in applied-cxns
+                do (inc-cxn-score cxn :delta (get-configuration agent :cxn-incf-score)))
+          (notify cxns-rewarded applied-cxns)
+          (loop for competitor in (remove-duplicates
+                                   (append (get-meaning-competitors agent applied-cxns)
+                                           (get-form-competitors agent applied-cxns)))
+                do (dec-cxn-score agent competitor
+                                  :delta (get-configuration agent :cxn-decf-score))
+                collect competitor into punished-cxns
+                finally (notify cxns-punished punished-cxns))))
       (if (and (length= applied-cxns 1)
                (eql (attr-val (first applied-cxns) :cxn-type) 'holophrase))
         (delete-cxn (first applied-cxns) (grammar agent))
@@ -491,70 +525,68 @@
                         task agent)
   ;; try out different generalisation strategies (Jonas' repairs)
   ;;
-  ;; NOTE: only doing this when communication was successful 
-  ;; could increase the changes that something useful is being
-  ;; learned here.
-  ;;
   ;; NOTE: these repairs are only ran when parsing was a success.
   ;; Other repairs can be executed when parsing failed (see above).
-  (when (find-data (input process) 'success)
-    (let ((applied-cxns
-           (if (find-data (input process) 'new-cxns)
-             (find-data (input process) 'new-cxns)
-             (find-data (input process) 'applied-cxns)))
-          (cipn (find-data (input process) 'cipn)))
-      ;; 2. holophrase->item-based with substitution
-      (let ((subsititution-cxns-and-th-links
-             (run-repair agent applied-cxns cipn :holophrase->item-based--substitution)))
-        (when subsititution-cxns-and-th-links
-          (notify holophrase->item-based-substitution-repair-started)
-          (destructuring-bind (cxn-1 cxn-2 cxn-3 &rest th-links)
-              subsititution-cxns-and-th-links
-            (add-cxn cxn-1 (grammar agent))
-            (add-cxn cxn-2 (grammar agent))
-            (add-cxn cxn-3 (grammar agent))
-            (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                  for th-link in th-links
-                  do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                  do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
-            (notify holophrase->item-based-subsititution-new-cxn-and-th-links
-                    (list cxn-1 cxn-2 cxn-3)
-                    (get-type-hierarchy (grammar agent))))))
-      ;; 3. holophrase->item-based with addition
-      (let ((addition-cxns-and-th-links
-             (run-repair agent applied-cxns cipn :holophrase->item-based--addition)))
-        (when addition-cxns-and-th-links
-          (notify holophrase->item-based-addition-repair-started)
-          (destructuring-bind (lex-cxn item-based-cxn &rest th-links)
-              addition-cxns-and-th-links
-            (add-cxn lex-cxn (grammar agent))
-            (add-cxn item-based-cxn (grammar agent))
-            (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                  for th-link in th-links
-                  do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                  do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
-            (notify holophrase->item-based-addition-new-cxn-and-th-links
-                    (list lex-cxn item-based-cxn)
-                    (get-type-hierarchy (grammar agent))))))
-      ;; 4. holophrase->item-based with deletion
-      (let ((deletion-cxns-and-th-links
-             (run-repair agent applied-cxns cipn :holophrase->item-based--deletion)))
-        (when deletion-cxns-and-th-links
-          (notify holophrase->item-based-deletion-repair-started)
-          (destructuring-bind (lex-cxn item-based-cxn &rest th-links)
-              deletion-cxns-and-th-links
-            (when lex-cxn
-              (add-cxn lex-cxn (grammar agent)))
-            (add-cxn item-based-cxn (grammar agent))
-            (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                  for th-link in th-links
-                  do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                  do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
-            (notify holophrase->item-based-deletion-new-cxn-and-th-links
-                    (list lex-cxn item-based-cxn)
-                    (get-type-hierarchy (grammar agent)))))))
+  ;;
+  ;; NOTE: in order to learn useful things, we only allow generalisation
+  ;; when both cxns involved have a high score.
+  (let ((applied-cxns
+         (if (find-data (input process) 'new-cxns)
+           (find-data (input process) 'new-cxns)
+           (find-data (input process) 'applied-cxns)))
+        (cipn (find-data (input process) 'cipn)))
+    ;; 2. holophrase->item-based with substitution
+    (let ((subsititution-cxns-and-th-links
+           (run-repair agent applied-cxns cipn :holophrase->item-based--substitution)))
+      (when subsititution-cxns-and-th-links
+        (notify holophrase->item-based-substitution-repair-started)
+        (destructuring-bind (cxn-1 cxn-2 cxn-3 &rest th-links)
+            subsititution-cxns-and-th-links
+          (add-cxn cxn-1 (grammar agent))
+          (add-cxn cxn-2 (grammar agent))
+          (add-cxn cxn-3 (grammar agent))
+          (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+                for th-link in th-links
+                do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+          (notify holophrase->item-based-subsititution-new-cxn-and-th-links
+                  (list cxn-1 cxn-2 cxn-3)
+                  (get-type-hierarchy (grammar agent))))))
+    ;; 3. holophrase->item-based with addition
+    (let ((addition-cxns-and-th-links
+           (run-repair agent applied-cxns cipn :holophrase->item-based--addition)))
+      (when addition-cxns-and-th-links
+        (notify holophrase->item-based-addition-repair-started)
+        (destructuring-bind (lex-cxn item-based-cxn &rest th-links)
+            addition-cxns-and-th-links
+          (add-cxn lex-cxn (grammar agent))
+          (add-cxn item-based-cxn (grammar agent))
+          (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+                for th-link in th-links
+                do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+          (notify holophrase->item-based-addition-new-cxn-and-th-links
+                  (list lex-cxn item-based-cxn)
+                  (get-type-hierarchy (grammar agent))))))
+    ;; 4. holophrase->item-based with deletion
+    (let ((deletion-cxns-and-th-links
+           (run-repair agent applied-cxns cipn :holophrase->item-based--deletion)))
+      (when deletion-cxns-and-th-links
+        (notify holophrase->item-based-deletion-repair-started)
+        (destructuring-bind (lex-cxn item-based-cxn &rest th-links)
+            deletion-cxns-and-th-links
+          (when lex-cxn
+            (add-cxn lex-cxn (grammar agent)))
+          (add-cxn item-based-cxn (grammar agent))
+          (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+                for th-link in th-links
+                do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+          (notify holophrase->item-based-deletion-new-cxn-and-th-links
+                  (list lex-cxn item-based-cxn)
+                  (get-type-hierarchy (grammar agent)))))))
     ;; process results
-    (make-process-result 1 nil :process process)))
+    (make-process-result 1 nil :process process))
 
 
   

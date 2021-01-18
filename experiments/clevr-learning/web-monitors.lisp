@@ -35,17 +35,19 @@
 (define-event-handler (trace-interactions-in-wi parsing-succeeded)
   (add-element '((h2) "Parsing succeeded")))
 
-(define-event-handler (trace-interactions-in-wi new-program-repair-started)
+(define-event-handler (trace-interactions-in-wi add-holophrase-repair-started)
   (add-element '((h2) "Parsing failed. Composing a new program")))
 
-(define-event-handler (trace-interactions-in-wi chosen-composer-solution)
-  (add-element '((h3) "Chose the following composer solution:"))
-  (add-element (make-html solution)))
+(define-event-handler (trace-interactions-in-wi add-holophrase-new-cxn)
+  (add-element '((h3) "New holophrase construction:"))
+  (add-element (make-html cxn)))
 
 (define-event-handler (trace-interactions-in-wi item-based->lexical-repair-started)
   (add-element '((h2) "Parsing failed. Adding type hierarchy links")))
 
-(define-event-handler (trace-interactions-in-wi item-based->lexical-new-th-links)
+(define-event-handler (trace-interactions-in-wi item-based->lexical-new-cxn-and-th-links)
+  (add-element '((h3) "New lexical construction:"))
+  (add-element (make-html cxn))
   (add-element '((h3) "New links are added to the type hierarchy:"))
   (add-element (make-html th)))
 
@@ -54,7 +56,7 @@
 
 (define-event-handler (trace-interactions-in-wi lexical->item-based-new-cxn-and-links)
   (add-element '((h3) "New item-based construction:"))
-  (add-element (make-html item-based-cxn))
+  (add-element (make-html cxn))
   (add-element '((h3) "New links are added to the type hierarchy:"))
   (add-element (make-html th)))
 
@@ -128,3 +130,7 @@
         do (add-element (make-html cxn)))
   (add-element '((h3) "New links are added to the type hierarchy:"))
   (add-element (make-html th)))
+
+(define-event-handler (trace-interactions-in-wi check-samples-started)
+  (add-element `((h3) ,(format nil "Checking solution ~a against ~a past scenes"
+                               solution-index (length list-of-samples)))))

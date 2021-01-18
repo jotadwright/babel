@@ -54,34 +54,6 @@
                    :visualization-configurations ((:show-constructional-dependencies . nil))))))
     cxn-inventory))
 
-(define-event new-holophrase-cxn (cxn fcg-construction))
-(define-event lexicon-changed)
-
-(defun add-holophrase-cxn (grammar form irl-program &key (initial-score 0.5))
-  (let* ((cxn-name (gl::make-cxn-name form grammar))
-         (form-constraints
-          (gl::form-constraints-with-variables
-           form (get-configuration grammar :de-render-mode))))
-    (multiple-value-bind (cxn-inventory cxn)
-        (eval
-         `(def-fcg-cxn ,cxn-name
-                       ((?holophrase-unit
-                         (syn-cat (gl::phrase-type gl::holophrase)))
-                        <-
-                        (?holophrase-unit
-                         (HASH meaning ,irl-program)
-                         --
-                         (HASH form ,form-constraints)))
-                       :cxn-inventory ,grammar
-                       :attributes (:score ,initial-score
-                                    ;:form ,form
-                                    ;:meaning ,(id chunk)
-                                    :cxn-type holophrase)))
-      (declare (ignorable cxn-inventory))
-      (notify new-holophrase-cxn cxn)
-      (notify lexicon-changed)
-      cxn)))
-
 (defun inc-cxn-score (cxn &key (delta 0.1) (upper-bound 1.0))
   "increase the score of the cxn"
   (incf (attr-val cxn :score) delta)
