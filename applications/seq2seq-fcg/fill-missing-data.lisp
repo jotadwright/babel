@@ -51,9 +51,23 @@
            (:node-tests :check-duplicate)
            (:hash-mode . :hash-string-meaning-lex-id)
            (:queue-mode . :greedy-best-first)
-           (:cxn-sets-with-sequential-application hashed-lex hashed-morph)
-           )))
+           (:cxn-sets-with-sequential-application hashed-lex hashed-morph))))
     (set-configurations *CLEVR* configs :replace t)
+    (set-configurations (processing-cxn-inventory *CLEVR*)
+                        configs :replace t)))
+
+
+(defun set-depth-first-configurations ()
+  (let ((configs
+         '((:queue-mode . :greedy-best-first)
+           (:cxn-supplier-mode . :ordered-by-label-hashed)
+           (:hash-mode . :hash-string-meaning-lex-id)
+           (:priority-mode . :nr-of-applied-cxns)
+           (:parse-order hashed cxn)
+           (:production-order hashed-lex nom cxn hashed-morph)
+           (:node-tests :check-duplicate)
+           (:cxn-sets-with-sequential-application hashed-lex hashed-morph))))
+    (set-configurations *clevr* configs :replace t)
     (set-configurations (processing-cxn-inventory *CLEVR*)
                         configs :replace t)))
 
@@ -146,14 +160,17 @@
   (let ((args (args->plist args)))
     (print "Received command line arguments:")
     (print args)
-    (loop for indicator in '(inputfile outputdir timeout port)
+    (loop for indicator in '(inputfile outputdir timeout strategy)
           unless (getf args indicator)
           do (error "Missing command line argument: ~a" indicator))
     (let ((timeout (parse-integer (getf args 'timeout "400")))
           (port (parse-integer (getf args 'port "8888")))
           (inputfile (parse-namestring (getf args 'inputfile)))
-          (outputdir (parse-namestring (getf args 'outputdir))))
-      (set-seq2seq-configurations port)
+          (outputdir (parse-namestring (getf args 'outputdir)))
+          (strategy (make-kw (upcase (getf args 'strategy "seq2seq")))))
+      (case strategy
+        (:seq2seq (set-seq2seq-configurations port))
+        (:depth-first (set-depth-first-configurations)))
       (fill-missing-data inputfile outputdir timeout))))
 
 #-lispworks
