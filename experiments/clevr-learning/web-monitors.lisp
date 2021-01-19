@@ -2,6 +2,18 @@
 
 (in-package :clevr-learning)
 
+(define-monitor trace-tasks-and-processes)
+
+(define-event-handler (trace-tasks-and-processes object-run-task-finished)
+  (add-element `((h3) ,(format nil "The ~a finished running the ~a"
+                               (downcase (mkstr (role tasks-and-processes::object)))
+                               (downcase (mkstr (label task))))))
+  (add-element (make-html task)))
+
+
+
+
+
 (define-monitor trace-interactions-in-wi)
 
 (define-event-handler (trace-interactions-in-wi challenge-level-questions-loaded)
