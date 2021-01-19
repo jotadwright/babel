@@ -14,6 +14,33 @@
 ;;;; Formulation
 ;;;; -----------
 
+(defun formulate-until-solution (irl-program rpn timeout)
+  (set-data (blackboard *CLEVR*) :rpn-input rpn)
+  (loop with cipn = nil
+        with utterance = nil
+        until (succeededp cipn)
+        for (form node)
+        = (multiple-value-list
+           (handler-case
+               (with-timeout (timeout)
+                 (formulate irl-program :cxn-inventory *CLEVR*))
+             (timeout-error (e)
+               (values nil nil))))
+        when (succeededp node)
+        do (progn
+             (remove-data (blackboard *CLEVR*) :rpn-input)
+             (setf cipn node
+                   utterance form))
+        finally
+        (return
+         (values
+          (list-of-strings->string utterance)
+          (list-of-strings->string
+           (reverse
+            (mapcar (compose #'downcase #'mkstr #'name)
+                    (applied-constructions cipn))))
+          (get-depth-of-solution cipn)))))
+
 (defun repair-formulate (irl-program rpn timeout)
   (set-data (blackboard *CLEVR*) :rpn-input rpn)
   (multiple-value-bind (utterance cipn)
@@ -101,9 +128,12 @@
           (declare (ignorable depth utterance))
           (if (string= formulation-cxns "None")
             (multiple-value-bind (repair-utterance repair-cxns repair-depth)
-                (repair-formulate (fcg::instantiate-variables
-                                   (read-from-string irl-program))
-                                  rpn timeout)
+                (formulate-until-solution (fcg::instantiate-variables
+                                           (read-from-string irl-program))
+                                          rpn timeout)
+                ;(repair-formulate (fcg::instantiate-variables
+                ;                   (read-from-string irl-program))
+                ;                  rpn timeout)
               (incf missing-solutions)
               (if (and repair-utterance repair-cxns repair-depth)
                 (let ((repair-row (list id irl-program rpn
