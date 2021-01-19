@@ -71,9 +71,19 @@
     (if remove-on-lower-bound
       (progn (notify lexicon-changed)
         (with-disabled-monitor-notifications
-          (delete-cxn cxn (grammar agent))))
+          (delete-cxn-and-th-node cxn (grammar agent))))
       (setf (attr-val cxn :score) lower-bound)))
   (grammar agent))
+
+(defun delete-cxn-and-th-node (cxn cxn-inventory)
+  (let ((lex-class (gl::lex-class-cxn cxn))
+        (type-hierarchy (get-type-hierarchy cxn-inventory)))
+    (delete-cxn cxn cxn-inventory)
+    (notify lexicon-changed)
+    (when lex-class
+      (graph-utils::delete-node
+       (type-hierarchies::graph type-hierarchy)
+       lex-class))))
 
 (defun get-form-competitors (agent applied-cxns)
   "Get cxns with the same meaning as cxn"

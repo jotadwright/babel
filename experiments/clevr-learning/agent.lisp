@@ -182,10 +182,7 @@
 (define-event add-th-links-new-th-links
   (th type-hierarchy))
 
-;; 1. only lexical cxns with good scores -> lexical->item-based
-;; 2. item-based (possibly with lexical) and root not empty -> item-based->lexical
-;; 3. item-based and with lexical and root empty -> add-th-links or compose update program for item-based and/or lex??
-;; 4. no applied cxns or none of the above -> compose-new-program
+;; TO DO; This repair could be split in multiple separate repairs
 
 (defmethod repair ((repair repair-add-th-link-or-cxns)
                    (problem partial-utterance-problem)
@@ -220,13 +217,14 @@
              (run-repair agent applied-cxns cipn :item-based->lexical)))
         (when lex-cxn-and-th-links
           (notify item-based->lexical-repair-started)
-          (destructuring-bind (lex-cxn th-links) lex-cxn-and-th-links
+          (destructuring-bind (lex-cxn th-groups) lex-cxn-and-th-links
             (setf continue nil)
             (add-cxn lex-cxn (grammar agent))
             (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                  for th-link in th-links
-                  do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                  do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+                  for th-group in th-groups
+                  do (loop for th-link in th-group
+                           do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+                           do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5)))
             (notify item-based->lexical-new-cxn-and-th-links
                     lex-cxn (get-type-hierarchy (grammar agent)))))))
     ;; 3. item-based and lexical cxn applied and root is empty -> add-th-links
@@ -326,7 +324,10 @@
                                                 (t (list new-cxns)))))
                          :process process)))
 
+
 (defun add-past-program (agent irl-program)
+  ;; Add the current irl-program to the list of
+  ;; failed programs for the current utterance
   (when irl-program
     (if (find-data agent 'past-programs)
       (if (assoc (utterance agent) (get-data agent 'past-programs) :test #'string=)
@@ -340,6 +341,8 @@
                 (list (cons (utterance agent) (list irl-program)))))))
 
 (defun add-past-scene (agent)
+  ;; Add the current scene and answer to the list
+  ;; of past scenes for the current utterance
   (let* ((clevr-scene (find-data (ontology agent) 'clevr-context))
          (new-sample (list (index clevr-scene) (utterance agent) (topic agent))))
     (unless (find new-sample (find-data agent 'past-scenes)
@@ -478,6 +481,8 @@
 ;; --------------------------
 ;; + Generalisation process +
 ;; --------------------------
+
+;; TO DO; this process could be implemented as a repair after alignment
 
 (define-event holophrase->item-based-substitution-repair-started)
 (define-event holophrase->item-based-subsititution-new-cxn-and-th-links
