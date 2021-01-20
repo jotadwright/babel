@@ -8,7 +8,7 @@
 
 (defclass clevr-learning-agent (agent object-w-tasks)
   ((topic :initarg :topic :initform nil
-          :accessor topic :type (or null entity)
+          :accessor topic :type (or null entity number)
           :documentation "The answer for the current question")
    (role :initarg :role :initform 'no-role :type symbol :accessor role
          :documentation "The role of the agent (tutor or learner)")
@@ -138,6 +138,26 @@
 (define-event parsing-succeeded)
 
 (defun all-applied-cxns (cipn)
+  ;; It is possible that FCG has tried multiple branches
+  ;; and none of them lead to a solution.
+  ;; However, combining the cxns applied in these branches
+  ;; can allow us to learn something...
+  ;; There are several cases:
+  ;; 1. permutations
+  ;;    Applying X-cxn and Y-cxn in branch 1
+  ;;    Applying Y-cxn and X-cxn in branch 2
+  ;;    This can be detected through 'permutation-of?'
+  ;;    Here, we only want to consider the cxns of one of the branches
+  ;; 2. competitors
+  ;;    Applying the-X-is-what-color-1-cxn and the-X-is-what-color-2-cxn
+  ;;    This can be detected through the form of the cxns
+  ;;    Here, we want to consider just one of them?
+  ;; (3. competitors and permutations can occur together?)
+  ;; 4. none of the above
+  ;;    the-big-X-is-what-color in branch 1
+  ;;    big-cxn in branch 2
+  ;;    Here, we want to comine the applied cxns of the branches
+  ;;    to learn something?
   (let ((leaves (remove-if #'(lambda (n) (find 'fcg::initial (fcg::statuses n)))
                            (fcg::get-cip-leaves (cip cipn)))))
     (if (length= leaves 1)
