@@ -42,6 +42,7 @@
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)
+(define-configuration-default-value :hide-type-hierarchy nil)
 
 ;; --------------
 ;; + Experiment +

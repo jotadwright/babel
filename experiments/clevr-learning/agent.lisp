@@ -60,10 +60,12 @@
                  :ontology (copy-object *clevr-ontology*)))
 
 (defun make-clevr-learning-learner (experiment)
-  (let ((learner
-         (make-instance 'clevr-learning-learner :role 'learner :experiment experiment
-                        :grammar (empty-cxn-set)
-                        :ontology (copy-object *clevr-ontology*))))
+  (let* ((hide-type-hierarchy
+          (get-configuration experiment :hide-type-hierarchy))
+         (learner
+          (make-instance 'clevr-learning-learner :role 'learner :experiment experiment
+                         :grammar (empty-cxn-set hide-type-hierarchy)
+                         :ontology (copy-object *clevr-ontology*))))
     (set-primitives-for-current-challenge-level learner)
     (update-composer-chunks-w-primitive-inventory learner)
     learner))
@@ -92,16 +94,17 @@
                                 repair-holophrase->item-based-addition
                                 repair-holophrase->item-based-deletion)
                 collect (make-instance repair)))
-         (task (make-instance 'learner-hearer-task
-                              :owner agent
-                              :label 'learner-hearer-task
-                              :processes '(initial-process
-                                           parse
-                                           interpret
-                                           determine-success
-                                           align)
-                              :diagnostics diagnostics
-                              :repairs repairs))
+         (task
+          (make-instance 'learner-hearer-task
+                         :owner agent
+                         :label 'learner-hearer-task
+                         :processes '(initial-process
+                                      parse
+                                      interpret
+                                      determine-success
+                                      align)
+                         :diagnostics diagnostics
+                         :repairs repairs))
          (all-task-results (object-run-task agent task)))
     ;; there should be only one result
     (find-data (first all-task-results) 'success)))
@@ -133,6 +136,21 @@
   () (:documentation "Problem created when parsing fails and there are some applied cxns"))
 
 (define-event parsing-succeeded)
+
+(defun all-applied-cxns (cipn)
+  (let ((leaves (remove-if #'(lambda (n) (find 'fcg::initial (fcg::statuses n)))
+                           (fcg::get-cip-leaves (cip cipn)))))
+    (if (length= leaves 1)
+      (mapcar #'get-original-cxn (applied-constructions cipn))
+      (loop with all-applied-cxns = nil
+            for leaf-node in leaves
+            for leaf-applied-cxns = (mapcar #'get-original-cxn (applied-constructions cipn))
+            when (or (null all-applied-cxns)
+                     (loop for cxns in all-applied-cxns
+                           never (permutation-of? cxns leaf-applied-cxns)))
+            do (push leaf-applied-cxns all-applied-cxns)
+            finally (return (apply #'append all-applied-cxns))))))
+  
 
 (defmethod diagnose ((diagnostic diagnose-parsing-result)
                      process-result &key trigger)
@@ -351,7 +369,6 @@
          (when (length= all-solutions 1)
            (let ((answer (get-target-value irl-program (first all-solutions))))
              (setf found-topic answer)
-             ;(push (cons 'found-topic answer) process-result-data)
              (notify interpretation-succeeded answer)))))
     (make-process-result 1 `((found-topic . ,found-topic)) :process process)))
 

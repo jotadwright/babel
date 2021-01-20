@@ -32,7 +32,7 @@
 
 (in-package :clevr-learning)
 
-(defun empty-cxn-set ()
+(defun empty-cxn-set (hide-type-hierarchy)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions-with-type-hierarchy
@@ -43,14 +43,16 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . :scores)
+                   :fcg-configurations ((:cxn-supplier-mode . :ordered-by-label-and-score)
+                                        (:parse-order lexical item-based holophrase)
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network
                                                            :no-strings-in-root)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :path-exists) ;; this skips the add-th-links repair
                                         (:update-th-links . t))
-                   :visualization-configurations ((:show-constructional-dependencies . nil))))))
+                   :visualization-configurations ((:show-constructional-dependencies . nil)
+                                                  (:show-type-hierarchy . ,(not hide-type-hierarchy)))))))
     cxn-inventory))
 
 (define-event lexicon-changed)
