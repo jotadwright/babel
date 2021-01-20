@@ -110,17 +110,29 @@
            (list-of-strings->string
             (render (extract-form-predicates cxn)
                     (get-configuration (grammar agent) :render-mode)))))
-    (let ((all-cxns-with-form
-           (remove-duplicates
-            (loop for cxn in applied-cxns
-                  for cxn-form = (extract-and-render cxn)
-                  append (remove cxn
-                                 (find-all cxn-form
-                                           (constructions-list (grammar agent))
-                                           :key #'extract-and-render
-                                           :test #'string=))))))
+    (let (all-competitors)
       (loop for cxn in applied-cxns
-            do (setf all-cxns-with-form
-                     (remove cxn all-cxns-with-form)))
-      all-cxns-with-form)))
+            for cxn-type = (attr-val cxn :cxn-type)
+            for all-cxns-of-type = (find-all cxn-type (constructions-list (grammar agent))
+                                             :key #'(lambda (cxn) (attr-val cxn :cxn-type)))
+            if (eql cxn-type 'item-based)
+            do (let* ((cxn-form (extract-form-predicates cxn))
+                      (competitors (remove cxn
+                                           (find-all cxn-form all-cxns-of-type
+                                                     :key #'extract-form-predicates
+                                                     :test #'unify))))
+                 (when competitors
+                   (push competitors all-competitors)))
+            else
+            do (let* ((cxn-form (extract-and-render cxn))
+                      (competitors (remove cxn
+                                           (find-all cxn-form all-cxns-of-type
+                                                     :key #'extract-and-render
+                                                     :test #'string=))))
+                 (when competitors
+                   (push competitors all-competitors))))
+      (loop for cxn in applied-cxns
+            do (setf all-competitors
+                     (remove cxn all-competitors)))
+      all-competitors)))
   

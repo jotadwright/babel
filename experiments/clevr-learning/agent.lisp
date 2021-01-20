@@ -137,39 +137,50 @@
 
 (define-event parsing-succeeded)
 
+
+;; It is possible that FCG has tried multiple branches
+;; and none of them lead to a solution.
+;; However, combining the cxns applied in these branches
+;; can allow us to learn something...
+;; There are several cases:
+;; 1. permutations
+;;    Applying X-cxn and Y-cxn in branch 1
+;;    Applying Y-cxn and X-cxn in branch 2
+;;    This can be detected through 'permutation-of?'
+;;    Here, we only want to consider the cxns of one of the branches
+;; 2. competitors
+;;    Applying the-X-is-what-color-1-cxn and the-X-is-what-color-2-cxn
+;;    This can be detected through the form of the cxns
+;;    Here, we want to consider just one of them?
+;; (3. competitors and permutations can occur together?)
+;; 4. none of the above
+;;    the-big-X-is-what-color in branch 1
+;;    big-cxn in branch 2
+;;    Here, we want to comine the applied cxns of the branches
+;;    to learn something?
+
 (defun all-applied-cxns (cipn)
-  ;; It is possible that FCG has tried multiple branches
-  ;; and none of them lead to a solution.
-  ;; However, combining the cxns applied in these branches
-  ;; can allow us to learn something...
-  ;; There are several cases:
-  ;; 1. permutations
-  ;;    Applying X-cxn and Y-cxn in branch 1
-  ;;    Applying Y-cxn and X-cxn in branch 2
-  ;;    This can be detected through 'permutation-of?'
-  ;;    Here, we only want to consider the cxns of one of the branches
-  ;; 2. competitors
-  ;;    Applying the-X-is-what-color-1-cxn and the-X-is-what-color-2-cxn
-  ;;    This can be detected through the form of the cxns
-  ;;    Here, we want to consider just one of them?
-  ;; (3. competitors and permutations can occur together?)
-  ;; 4. none of the above
-  ;;    the-big-X-is-what-color in branch 1
-  ;;    big-cxn in branch 2
-  ;;    Here, we want to comine the applied cxns of the branches
-  ;;    to learn something?
-  (let ((leaves (remove-if #'(lambda (n) (find 'fcg::initial (fcg::statuses n)))
-                           (fcg::get-cip-leaves (cip cipn)))))
-    (if (length= leaves 1)
-      (mapcar #'get-original-cxn (applied-constructions cipn))
-      (loop with all-applied-cxns = nil
-            for leaf-node in leaves
-            for leaf-applied-cxns = (mapcar #'get-original-cxn (applied-constructions cipn))
-            when (or (null all-applied-cxns)
-                     (loop for cxns in all-applied-cxns
-                           never (permutation-of? cxns leaf-applied-cxns)))
-            do (push leaf-applied-cxns all-applied-cxns)
-            finally (return (apply #'append all-applied-cxns))))))
+  (let ((leaf-nodes
+         (remove nil
+                 (traverse-depth-first
+                  (cip cipn) :collect-fn #'(lambda (node)
+                                             (when (null (children node))
+                                               node))))))
+    (if (length= leaf-nodes 1)
+      (mapcar #'get-original-cxn
+              (fcg::applied-constructions (first leaf-nodes)))
+      (let* ((applied-cxns-per-branch
+              (loop for node in leaf-nodes
+                    collect (mapcar #'get-original-cxn
+                                    (fcg::applied-constructions node))))
+             (applied-cxns (first applied-cxns-per-branch))
+             (other-branches-identical-p
+              (loop for other-cxns in (rest applied-cxns-per-branch)
+                    always (permutation-of? other-cxns applied-cxns))))
+        (if other-branches-identical-p
+          applied-cxns
+          (apply #'append applied-cxns-per-branch))))))
+          
   
 
 (defmethod diagnose ((diagnostic diagnose-parsing-result)
@@ -184,6 +195,8 @@
         ((null (get-data process-result 'applied-cxns))
          (make-instance 'unknown-utterance-problem))
         ((not (null (get-data process-result 'applied-cxns)))
+         (set-data process-result 'applied-cxns
+                   (all-applied-cxns (get-data process-result 'cipn)))
          (make-instance 'partial-utterance-problem))))
 
 
@@ -316,20 +329,18 @@
 (define-event add-th-links-new-th-links
   (th type-hierarchy))
 
-;; TO DO; This repair needs to be properly tested
-
 (defmethod repair ((repair repair-add-th-links)
                    (problem partial-utterance-problem)
                    (object process-result)
                    &key trigger)
   (declare (ignorable trigger))
+  ;; item-based and lexical-cxn without solution
+  ;; => add th links!
   (let* ((agent (owner (task (process object))))
          (applied-cxns (get-data object 'applied-cxns))
-         (cipn (get-data object 'cipn)))
-    ;; item-based and lexical cxn applied and root is empty -> add-th-links
-    ;;  or compose update for item-based and/or lex ???
-    (let ((th-links
-           (run-repair agent applied-cxns cipn :add-th-links)))
+         (cipn (get-data object 'cipn))
+         (th-links
+          (run-repair agent applied-cxns cipn :add-th-links)))
       (when th-links
         (notify add-th-links-repair-started)
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
@@ -337,7 +348,7 @@
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify add-th-links-new-th-links (get-type-hierarchy (grammar agent)))
-        (make-instance 'fix :issued-by repair :problem problem)))))
+        (make-instance 'fix :issued-by repair :problem problem))))
 
 ;; NOTE: The following case is not covered yet:
 ;; "How big is the large cube?"
