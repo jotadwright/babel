@@ -13,15 +13,20 @@
   (let* ((current-challenge-level
           (get-configuration agent :current-challenge-level))
          (max-composer-depth
-          (rest (assoc current-challenge-level *max-composer-depth-per-challenge-level*))))
+          (rest (assoc current-challenge-level *max-composer-depth-per-challenge-level*)))
+         (target-category-type
+          #-sbcl (type-of target-category)
+          #+sbcl (if (numberp target-category)
+                   'integer (type-of target-category))
+          ))
     ;; make the chunk composer
     (make-chunk-composer
      :topic target-category
      ; if partial program is available, this can be passed along
      :meaning partial-program
      :initial-chunk (make-instance 'chunk :id 'initial
-                                   :target-var `(?answer . ,(type-of target-category))
-                                   :open-vars `((?answer . ,(type-of target-category))))
+                                   :target-var `(?answer . ,target-category-type)
+                                   :open-vars `((?answer . ,target-category-type)))
      :chunks (composer-chunks agent)
      :ontology (ontology agent)
      :primitive-inventory (available-primitives agent)
