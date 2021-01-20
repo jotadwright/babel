@@ -52,6 +52,8 @@
                                   (:show-constructional-dependencies . t)
                                   (:labeled-paths . nil) ;;nil/no-bindings/full
                                   (:colored-paths . nil)
+                                  ;; Type hierarchy:
+                                  (:show-type-hierarchy . t)
                                   )))
 
 ;;hash table where all the nodes of the application process
