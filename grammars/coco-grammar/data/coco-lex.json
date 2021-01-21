@@ -1,6 +1,61 @@
 {
   "nouns": [
     {
+      "lex-id": "can",
+      "singular": "can",
+      "plural": "cans"
+    },
+    {
+      "lex-id": "dish soap",
+      "singular": "dish soap",
+      "plural": "dish soaps"
+    },
+    {
+      "lex-id": "chimney",
+      "singular": "chimney",
+      "plural": "chimneys"
+    },
+    {
+      "lex-id": "flag",
+      "singular": "flag",
+      "plural": "flags"
+    },
+    {
+      "lex-id": "plier",
+      "singular": "plier",
+      "plural": "pliers"
+    },
+    {
+      "lex-id": "bucket",
+      "singular": "bucket",
+      "plural": "buckets"
+    },
+    {
+      "lex-id": "tennis racket",
+      "singular": "racket",
+      "plural": "rackets"
+    },
+    {
+      "lex-id": "cabinet",
+      "singular": "drawer",
+      "plural": "drawers"
+    },
+    {
+      "lex-id": "cabinet",
+      "singular": "cabinet",
+      "plural": "cabinets"
+    },
+    {
+      "lex-id": "person",
+      "singular": "umpire",
+      "plural": "umpires"
+    },
+    {
+      "lex-id": "picture",
+      "singular": "picture",
+      "plural": "pictures"
+    },
+    {
       "lex-id": "canoe",
       "singular": "canoe",
       "plural": "canoes"
@@ -26,7 +81,7 @@
       "plural": "socks"
     },
     {
-      "lex-id": "player",
+      "lex-id": "person",
       "singular": "player",
       "plural": "players"
     },
@@ -56,9 +111,19 @@
       "plural": "men"
     },
     {
+      "lex-id": "man",
+      "singular": "boy",
+      "plural": "boys"
+    },
+    {
       "lex-id": "woman",
       "singular": "woman",
       "plural": "women"
+    },
+    {
+      "lex-id": "woman",
+      "singular": "girl",
+      "plural": "girls"
     },
     {
       "lex-id": "thing",
@@ -231,6 +296,11 @@
       "plural": "sports balls"
     },
     {
+      "lex-id": "sports ball",
+      "singular": "ball",
+      "plural": "balls"
+    },
+    {
       "lex-id": "kite",
       "singular": "kite",
       "plural": "kites"
@@ -239,6 +309,11 @@
       "lex-id": "baseball bat",
       "singular": "baseball bat",
       "plural": "baseball bats"
+    },
+    {
+      "lex-id": "baseball bat",
+      "singular": "bat",
+      "plural": "bats"
     },
     {
       "lex-id": "baseball glove",
@@ -366,7 +441,7 @@
       "plural": "beds"
     },
     {
-      "lex-id": "dining table",
+      "lex-id": "table",
       "singular": "dining table",
       "plural": "dining tables"
     },
@@ -701,6 +776,11 @@
       "plural": "dirt"
     },
     {
+      "lex-id": "dirt",
+      "singular": "mud",
+      "plural": "mud"
+    },
+    {
       "lex-id": "paper",
       "singular": "paper",
       "plural": "papers"
@@ -737,7 +817,9 @@
       "forms": [
         "left of",
         "to the left of",
-        "on the left side of"
+        "on the left side of",
+        "on the left",
+        "on the left side"
       ]
     },
     {
@@ -745,7 +827,9 @@
       "forms": [
         "right of",
         "to the right of",
-        "on the right side of"
+        "on the right side of",
+        "on the right",
+        "on the right side"
       ]
     },
     {

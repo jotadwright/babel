@@ -106,13 +106,13 @@
                           (sem-cat (sem-class spatial-relation)
                                    (sem-type ,(internal-symb (hyphenize lex-id))))
                           (syn-cat (lex-class preposition))
-                          (has-side ?side))
+                          (suffix ?suffix))
                          <-
                          (,unit-name
                           (HASH meaning ((bind spatial-relation-category ,out-var ,(internal-symb (hyphenize lex-id)))))
                           --
                           (lex-id ,(internal-symb (hyphenize lex-id)))
-                          (has-side ?side)))
+                          (suffix ?suffix)))
                         :cxn-inventory ,cxn-inventory
                         :cxn-set lex
                         :attributes (:lex-id ,(internal-symb (hyphenize lex-id)) 
@@ -121,7 +121,10 @@
 (defmethod add-relation-morph-cxn (cxn-inventory lex-id form)
   (let ((cxn-name (internal-symb (upcase (string-append (hyphenize form) "-morph-cxn"))))
         (unit-name (make-var (upcase (string-append (hyphenize form) "-unit"))))
-        (has-side-p (if (search "side" form) '+ '-)))
+        (suffix (cond ((search "side of" form) 'side-of)
+                      ((search "side" form) 'side)
+                      ((search "of" form) 'of)
+                      (t '-))))
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (footprints (morph)))
@@ -130,7 +133,7 @@
                           (lex-id ,(internal-symb (hyphenize lex-id)))
                           (syn-cat (lex-class preposition))
                           (footprints (NOT morph))
-                          (has-side ,has-side-p)
+                          (suffix ,suffix)
                           --
                           (HASH form ((string ,unit-name ,form)))))
                         :cxn-inventory ,cxn-inventory
