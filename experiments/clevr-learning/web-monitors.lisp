@@ -55,7 +55,7 @@
   (add-element (make-html cxn)))
 
 (define-event-handler (trace-interactions-in-wi item-based->lexical-repair-started)
-  (add-element '((h2) "Parsing failed. Adding type hierarchy links")))
+  (add-element '((h2) "Parsing failed. Composing a new program using the partial program")))
 
 (define-event-handler (trace-interactions-in-wi item-based->lexical-new-cxn-and-th-links)
   (add-element '((h3) "New lexical construction:"))
@@ -69,6 +69,13 @@
 (define-event-handler (trace-interactions-in-wi lexical->item-based-new-cxn-and-links)
   (add-element '((h3) "New item-based construction:"))
   (add-element (make-html cxn))
+  (add-element '((h3) "New links are added to the type hierarchy:"))
+  (add-element (make-html th)))
+
+(define-event-handler (trace-interactions-in-wi add-th-links-repair-started)
+  (add-element '((h2) "Parsing failed. Adding type hierarchy links")))
+
+(define-event-handler (trace-interactions-in-wi add-th-links-new-th-links)
   (add-element '((h3) "New links are added to the type hierarchy:"))
   (add-element (make-html th)))
 

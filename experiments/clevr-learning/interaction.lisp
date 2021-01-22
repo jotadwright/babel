@@ -17,10 +17,7 @@
                              question scene answer)
   (setf (utterance agent) question
         (topic agent) answer
-        (communicated-successfully agent) t
-        (applied-cxns agent) nil
-        (applied-program agent) nil
-        (topic-found agent) nil)
+        (communicated-successfully agent) t)
   (set-data (ontology agent) 'clevr-context scene))
 
 ;; ---------------
@@ -60,7 +57,10 @@
   ;; add the success to the confidence buffer
   (let ((successp
          (loop for agent in (population experiment)
-               always (communicated-successfully agent))))
+               always (communicated-successfully agent)))
+        (composer-strategy
+         (get-configuration experiment :composer-strategy))
+        (agent (learner experiment)))
     (if (= (length (confidence-buffer experiment))
            (get-configuration experiment :evaluation-window-size))
       (setf (confidence-buffer experiment)
@@ -68,16 +68,24 @@
                   (butlast (confidence-buffer experiment))))
       (push (if successp 1 0) (confidence-buffer experiment)))
     (notify agent-confidence-level (average (confidence-buffer experiment)))
-    ;; check the confidence level and (maybe) transition to the next challenge
-    ;; clear the confidence buffer
-    (when (and (> (average (confidence-buffer experiment))
-                  (get-configuration experiment :confidence-threshold))
-               (< (get-configuration experiment :current-challenge-level)
-                  (get-configuration experiment :max-challenge-level)))
-      (set-configuration experiment :current-challenge-level
-                         (1+ (get-configuration experiment :current-challenge-level))
-                         :replace t)
-      (setf (confidence-buffer experiment) nil)
-      (load-questions-for-current-challenge-level experiment)
-      (set-primitives-for-current-challenge-level (learner experiment))
-      (update-composer-chunks-w-primitive-inventory (learner experiment)))))
+    ;; add the current scene/program to memory, depending on the
+    ;; composer strategy and the success
+    (case composer-strategy
+      (:store-past-programs
+       (unless successp
+         (add-past-program agent (find-data (task-result agent) 'irl-program))))
+      (:store-past-scenes
+       (add-past-scene agent))))
+  ;; check the confidence level and (maybe) transition to the next challenge
+  ;; clear the confidence buffer
+  (when (and (> (average (confidence-buffer experiment))
+                (get-configuration experiment :confidence-threshold))
+             (< (get-configuration experiment :current-challenge-level)
+                (get-configuration experiment :max-challenge-level)))
+    (set-configuration experiment :current-challenge-level
+                       (1+ (get-configuration experiment :current-challenge-level))
+                       :replace t)
+    (setf (confidence-buffer experiment) nil)
+    (load-questions-for-current-challenge-level experiment)
+    (set-primitives-for-current-challenge-level (learner experiment))
+    (update-composer-chunks-w-primitive-inventory (learner experiment))))

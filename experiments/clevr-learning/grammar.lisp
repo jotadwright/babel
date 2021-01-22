@@ -106,6 +106,7 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'holophrase)))
+  ;; holophrase competitors have exactly the same form
   (flet ((extract-and-render (cxn)
            (list-of-strings->string
             (render (extract-form-predicates cxn)
@@ -124,6 +125,7 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'lexical)))
+  ;; lexical competitors have exactly the same form
   (flet ((extract-and-render (cxn)
            (list-of-strings->string
             (render (extract-form-predicates cxn)
@@ -142,6 +144,7 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'item-based)))
+  ;; item-based competitors have unifiable form constraints
   (let* ((all-cxns-of-type
           (remove cxn
                   (find-all cxn-type (constructions-list cxn-inventory)
@@ -152,12 +155,46 @@
                     :key #'extract-form-predicates
                     :test #'unify)))
       competitors))
+
+#|
+(defun combined-meaning-competitors (applied-cxns cxn-inventory)
+  ;; render the applied cxns and all holophrases
+  ;; and find all meaning competitors
+  (let* ((all-form-predicates
+          (loop for cxn in applied-cxns
+                append (gl::form-predicates-with-variables
+                        (extract-form-predicates cxn))))
+         ;(applied-cxns-form
+         ; (list-of-strings->string
+         ;  (render all-form-predicates
+         ;          (get-configuration cxn-inventory :render-mode))))
+         (holophrase-cxns
+          (find-all 'holophrase (constructions-list cxn-inventory)
+                    :key #'(lambda (cxn) (attr-val cxn :cxn-type))))
+         (holophrase-form-predicates
+          (loop for cxn in holophrase-cxns
+                collect (gl::form-predicates-with-variables
+                         (extract-form-predicates cxn)))))
+    (loop for holophrase-cxn in holophrase-cxns
+          for holophrase-predicates in holophrase-form-predicates
+          when (unify all-form-predicates holophrase-predicates)
+          collect holophrase-cxn)))
+|#
+    
           
 
 (defun get-meaning-competitors (agent applied-cxns)
   "Get cxns with the same form as cxn"
-  (loop for cxn in applied-cxns
-        for cxn-type = (attr-val cxn :cxn-type)
-        for competitors = (meaning-competitors-for-cxn-type
-                           cxn (grammar agent) cxn-type)
-        append competitors))
+  (append
+   ;; get competitors for each construction separately
+   (loop for cxn in applied-cxns
+         for cxn-type = (attr-val cxn :cxn-type)
+         for competitors = (meaning-competitors-for-cxn-type
+                            cxn (grammar agent) cxn-type)
+         append competitors)
+   ;; TO DO
+   ;; get competitors for the combined applied cxns
+   ;; (item-based + lexical might have a holophrase competitor)
+   ;(when (length> applied-cxns 1)
+   ;  (combined-meaning-competitors applied-cxns (grammar agent)))
+   nil))

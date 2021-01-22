@@ -177,7 +177,8 @@
     :draw-y-1-grid t
     :y-label "Number of constructions"
     :x-label "Total number of interactions"
-    :file-name (babel-pathname :name "num-cxns-per-type" :directory '("experiments" "clevr-learning" "graphs"))
+    :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
+                               :directory '("experiments" "clevr-learning" "graphs"))
     :graphic-type "pdf")
 
 
@@ -208,6 +209,7 @@
     :draw-y-1-grid t
     :y-label "Construction Score"
     :x-label "Total number of interactions"
-    :file-name (babel-pathname :name "avg-cxn-score-per-type" :directory '("experiments" "clevr-learning" "graphs"))
+    :file-name (babel-pathname :name "avg-cxn-score-per-type" :type "pdf"
+                               :directory '("experiments" "clevr-learning" "graphs"))
     :graphic-type "pdf")
 

@@ -46,11 +46,6 @@
                         :clevr-coherent-filter-groups))
      :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions)))))
 
-(defmethod compose-new-program (agent target-category &key (partial-program nil))
-  (let ((composer (make-default-composer agent target-category
-                                         :partial-program partial-program)))
-    (random-elt (get-next-solutions composer))))
-
 ;; + compose-until +
 (defun compose-until (composer fn)
   "Generate composer solutions until the
@@ -66,6 +61,7 @@
                   (not (null the-solution)))
         finally (return the-solution)))
 
+;; + store past programs +
 (defun check-past-programs (solution solution-index list-of-past-programs agent)
   (declare (ignorable solution-index agent))
   (let ((solution-irl-program
@@ -75,21 +71,26 @@
           never (equivalent-irl-programs? past-program solution-irl-program))))
 
 
-(defmethod compose-program-update (agent target-category (strategy (eql :store-past-programs)))
-  (let* ((composer (make-default-composer agent target-category))
-         (past-programs (rest
-                         (assoc (utterance agent)
-                                (find-data agent 'past-programs)
-                                :test #'string=))))
-    (compose-until
-     composer (lambda (solution idx)
-                (check-past-programs solution idx past-programs agent)))))
+(defmethod compose-program ((agent clevr-learning-learner) target-category
+                            (strategy (eql :store-past-programs))
+                            &key partial-program)
+  (let ((composer (make-default-composer agent target-category
+                                         :partial-program partial-program))
+        (past-programs (rest (assoc (utterance agent)
+                                    (find-data agent 'past-programs)
+                                    :test #'string=))))
+    (if past-programs
+      (compose-until
+       composer (lambda (solution idx)
+                  (check-past-programs solution idx past-programs agent)))
+      (random-elt (get-next-solutions composer)))))
 
+;; + store past scenes +
 (define-event check-samples-started
   (list-of-samples list)
   (solution-index number))              
 
-(defun check-all-samples (solution solution-index list-of-samples agent)
+(defun check-past-scenes (solution solution-index list-of-samples agent)
   "A sample is a triple of (context-id utterance answer). The irl-program
   of the evaluation result has to return the correct answer for all samples
   of the same utterance."
@@ -116,11 +117,15 @@
     (set-data (ontology agent) 'clevr-context clevr-context)
     success))
 
-(defmethod compose-program-update (agent target-category (strategy (eql :store-past-scenes)))
-  (let* ((composer (make-default-composer agent target-category))
-         (all-samples (find-all (utterance agent) (find-data agent 'past-scenes)
-                                :key #'second :test #'string=)))
-    (compose-until
-     composer (lambda (s idx)
-                (check-all-samples s idx all-samples agent)))))
-        
+(defmethod compose-program ((agent clevr-learning-learner) target-category
+                            (strategy (eql :store-past-scenes))
+                            &key partial-program)
+  (let ((composer (make-default-composer agent target-category
+                                         :partial-program partial-program))
+        (past-scenes (find-all (utterance agent) (find-data agent 'past-scenes)
+                               :key #'second :test #'string=)))
+    (if past-scenes
+      (compose-until
+       composer (lambda (solution idx)
+                  (check-past-scenes solution idx past-scenes agent)))
+      (random-elt (get-next-solutions composer)))))

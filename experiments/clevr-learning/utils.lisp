@@ -2,6 +2,20 @@
 
 (in-package :clevr-learning)
 
+(defun extract-meanings-from-cipn (cipn)
+  (extract-meanings
+   (left-pole-structure
+    (car-resulting-cfs
+     (cipn-car cipn)))))
+
+(defun extract-forms-from-cipn (cipn)
+  (extract-forms
+   (left-pole-structure
+    (car-resulting-cfs
+     (cipn-car cipn)))))
+
+
+
 (defun run-experiments (strategies
                          &key
                          (number-of-interactions 5)

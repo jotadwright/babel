@@ -24,15 +24,10 @@
   () (:documentation "The tutor agent"))
 
 (defclass clevr-learning-learner (clevr-learning-agent)
-  ((applied-cxns :accessor applied-cxns :initarg :applied-cxns
-                 :initform nil :type list
-                 :documentation "The cxns used in the current interaction")
-   (applied-program :accessor applied-program :initarg :applied-program
-                   :initform nil :type list
-                   :documentation "The irl-program used in the current interaction")
-   (topic-found :accessor topic-found :initarg :topic-found
-                :initform nil :type (or null entity)
-                :documentation "The answer found by the learner")
+  ((task-result :initarg :task-result
+                :accessor task-result
+                :initform nil
+                :documentation "Pointer to the result of the task")
    (available-primitives :initarg :available-primitives
                          :accessor available-primitives
                          :initform nil :type (or null primitive-inventory)
@@ -107,7 +102,8 @@
                          :repairs repairs))
          (all-task-results (object-run-task agent task)))
     ;; there should be only one result
-    (find-data (first all-task-results) 'success)))
+    (setf (task-result agent) (first all-task-results))
+    (find-data (task-result agent) 'success)))
 
 ;; -------------------
 ;; + Initial process +
@@ -201,10 +197,13 @@
 
 
 (defclass repair-make-holophrase-cxn (repair)
-  ((trigger :initform 'parsing-finished))
+  ((trigger :initform '(parsing-finished alignment-finished)))
   (:documentation "Repair created when a parsing problem is diagnosed.
                    This repair uses the composer to create a new program
                    for the current question."))
+
+(defmethod trigger? ((repair repair-make-holophrase-cxn) trigger &key &allow-other-keys)
+  (member trigger (trigger repair)))
 
 (define-event add-holophrase-repair-started)
 (define-event add-holophrase-new-cxn
@@ -227,25 +226,6 @@
     (add-cxn holophrase-cxn (grammar agent))
     (notify add-holophrase-new-cxn holophrase-cxn)
     (make-instance 'fix :issued-by repair :problem problem)))
-
-(defmethod repair ((repair repair-make-holophrase-cxn)
-                   (problem partial-utterance-problem)
-                   (object process-result)
-                   &key trigger)
-  ;; repair by composing a new program,
-  ;; making a new holophrase cxn and adding it to
-  ;; the agent's grammar
-  (declare (ignorable trigger))
-  (notify add-holophrase-repair-started)
-  (let* ((agent (owner (task (process object))))
-         (holophrase-cxn
-          (run-repair agent (get-data object 'applied-cxns)
-                      (get-data object 'cipn) :add-holophrase)))
-    (notify lexicon-changed)
-    (add-cxn holophrase-cxn (grammar agent))
-    (notify add-holophrase-new-cxn holophrase-cxn)
-    (make-instance 'fix :issued-by repair :problem problem)))
-
 
 
 (defclass repair-lexical->item-based (repair)
@@ -354,6 +334,25 @@
         (notify add-th-links-new-th-links (get-type-hierarchy (grammar agent)))
         (make-instance 'fix :issued-by repair :problem problem))))
 
+
+(defmethod repair ((repair repair-make-holophrase-cxn)
+                   (problem partial-utterance-problem)
+                   (object process-result)
+                   &key trigger)
+  ;; repair by composing a new program,
+  ;; making a new holophrase cxn and adding it to
+  ;; the agent's grammar
+  (declare (ignorable trigger))
+  (notify add-holophrase-repair-started)
+  (let* ((agent (owner (task (process object))))
+         (holophrase-cxn
+          (run-repair agent (get-data object 'applied-cxns)
+                      (get-data object 'cipn) :add-holophrase)))
+    (notify lexicon-changed)
+    (add-cxn holophrase-cxn (grammar agent))
+    (notify add-holophrase-new-cxn holophrase-cxn)
+    (make-instance 'fix :issued-by repair :problem problem)))
+
 ;; NOTE: The following case is not covered yet:
 ;; "How big is the large cube?"
 ;; how-big-is-the-large-X -> no solution
@@ -415,10 +414,10 @@
                         (process-label (eql 'determine-success))
                         task agent)
   ;; Check if the computer answer matches the ground truth answer
-  (let ((successp (and (find-data (input process) 'found-topic)
-                       (equal-entity (find-data (input process) 'found-topic)
-                                     (topic agent)))))
-    (make-process-result 1 `((success . ,successp)) :process process)))
+  (let ((success (and (find-data (input process) 'found-topic)
+                      (equal-entity (find-data (input process) 'found-topic)
+                                    (topic agent)))))
+    (make-process-result 1 `((success . ,success)) :process process)))
 
 ;; ---------------------
 ;; + Alignment process +
@@ -443,6 +442,10 @@
   () (:documentation "Problem created when alignment was a success
                       and it is possible to generalise over the grammar."))
 
+(defclass failed-interaction-problem (problem)
+  () (:documentation "Problem created when the interaction was completed,
+                      but not successful"))
+
 (defmethod diagnose ((diagnostic diagnose-aligment-result)
                      process-result &key trigger)
   ;; check if parsing succeeded
@@ -450,8 +453,30 @@
   ;; whether no cxns could apply
   ;; or some cxns could apply
   (declare (ignorable trigger))
-  (when (find-data process-result 'success)
-    (make-instance 'possible-generalisation-problem)))
+  (if (find-data process-result 'success)
+    (make-instance 'possible-generalisation-problem)
+    (make-instance 'failed-interaction-problem)))
+
+
+(defmethod repair ((repair repair-make-holophrase-cxn)
+                   (problem failed-interaction-problem)
+                   (object process-result)
+                   &key trigger)
+  ;; repair by composing a new program,
+  ;; making a new holophrase cxn and adding it to
+  ;; the agent's grammar
+  (declare (ignorable trigger))
+  (notify add-holophrase-repair-started)
+  (let* ((agent (owner (task (process object))))
+         (holophrase-cxn
+          (run-repair agent (get-data object 'applied-cxns)
+                      (get-data object 'cipn) :add-holophrase)))
+    (notify lexicon-changed)
+    (add-cxn holophrase-cxn (grammar agent))
+    (notify add-holophrase-new-cxn holophrase-cxn)
+    (make-instance 'fix :issued-by repair :problem problem)))
+
+
 
 (defclass repair-holophrase->item-based-substitution (repair)
   ((trigger :initform 'alignment-finished))
