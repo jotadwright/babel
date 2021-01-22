@@ -15,47 +15,6 @@
                       (:production-order hashed-lex nom cxn hashed-morph)
                       (:max-nr-of-nodes . 10000)))
 
-(formulate
- (fcg::instantiate-variables
-  '((get-context ?source-47189)
-    (filter ?target-50528 ?source-47189 ?shape-4)
-    (filter ?target-50534 ?target-50528 ?material-4)
-    (filter ?target-50537 ?target-50534 ?color-24251)
-    (filter ?target-50542 ?target-50537 ?size-4)
-    (unique ?target-object-9248 ?target-50542)
-    (relate ?source-47187 ?target-object-9248 ?spatial-relation-4)
-    (filter ?target-50526 ?source-47187 ?shape-8)
-    (filter ?target-50539 ?target-50526 ?color-12)
-    (unique ?target-object-9247 ?target-50539)
-    (query ?src-16 ?target-object-9247 ?attribute-8)
-
-    (filter ?target-1 ?source-47189 ?shape-28811)
-    (filter ?target-2 ?target-1 ?color-24250)
-    (filter ?target-50524 ?target-2 ?size-2)
-    (unique ?target-object-1 ?target-50524)
-    (relate ?source-47188 ?target-object-1 ?spatial-relation-8)
-    (filter ?target-50527 ?source-47188 ?shape-28810)
-    (filter ?target-50532 ?target-50527 ?color-4)
-    (unique ?target-object-9249 ?target-50532)
-    (query ?src-15 ?target-object-9249 ?attribute-8)
-
-    (equal? ?target-101 ?src-15 ?src-16 ?attribute-8)
-    
-    (bind spatial-relation-category ?spatial-relation-8 front)
-    (bind color-category ?color-12 purple)
-    (bind material-category ?material-4 metal)
-    (bind shape-category ?shape-28810 thing)
-    (bind size-category ?size-2 small)
-    (bind shape-category ?shape-28811 thing)
-    (bind attribute-category ?attribute-8 material)
-    (bind color-category ?color-24250 red)
-    (bind shape-category ?shape-8 thing)
-    (bind shape-category ?shape-4 sphere)
-    (bind color-category ?color-4 red)
-    (bind color-category ?color-24251 red)
-    (bind size-category ?size-4 large)
-    (bind spatial-relation-category ?spatial-relation-4 right))))
-
 ;; priming configurations
 ;; identical to depth first, but using the priming data
 (set-configurations *fcg-constructions*
@@ -72,8 +31,7 @@
                       (:production-order hashed-lex cxn hashed-morph)
                       (:seq2seq-endpoint . #-ccl "http://localhost:8888/next-cxn"
                                            #+ccl "http://127.0.0.1:8888/next-cxn")
-                      (:seq2seq-model-formulation . "clevr_formulation_model_v2")
-                      )
+                      (:seq2seq-model-formulation . "clevr_formulation_model"))
                     :replace t)
 
 (comprehend "What color is the cube?")
