@@ -152,3 +152,62 @@
 
 (define-event-handler (record-confidence-level interaction-finished)
   (record-value monitor (average (confidence-buffer experiment))))
+
+;;;; lexicon size per cxn type
+(define-monitor record-lexicon-size-per-type
+                :class 'alist-recorder
+                :average-window 1)
+
+(define-event-handler (record-lexicon-size-per-type interaction-finished)
+  (let ((all-constructions
+         (constructions-list (grammar (learner experiment)))))
+    (loop with processed-cxn-types = nil
+          for cxn in all-constructions
+          for cxn-type = (attr-val cxn :cxn-type)
+          for all-cxns-of-type = (find-all cxn-type all-constructions
+                                           :key #'(lambda (cxn) (attr-val cxn :cxn-type)))
+          unless (find cxn-type processed-cxn-types)
+          do (push cxn-type processed-cxn-types)
+          (set-value-for-symbol monitor cxn-type (length all-cxns-of-type)))))
+
+(define-monitor plot-num-cxns-per-type
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-lexicon-size-per-type
+    :average-windows 1
+    :draw-y-1-grid t
+    :y-label "Number of constructions"
+    :x-label "Total number of interactions"
+    :file-name (babel-pathname :name "num-cxns-per-type" :directory '("experiments" "clevr-learning" "graphs"))
+    :graphic-type "pdf")
+
+
+
+
+;;;; avg cxn score per cxn type
+(define-monitor record-cxn-score-per-type
+                :class 'alist-recorder
+                :average-window 1)
+
+(define-event-handler (record-cxn-score-per-type interaction-finished)
+  (let ((all-constructions
+         (constructions-list (grammar (learner experiment)))))
+    (loop with processed-cxn-types = nil
+          for cxn in all-constructions
+          for cxn-type = (attr-val cxn :cxn-type)
+          for all-cxns-of-type = (find-all cxn-type all-constructions
+                                           :key #'(lambda (cxn) (attr-val cxn :cxn-type)))
+          for cxn-scores = (mapcar #'(lambda (cxn) (attr-val cxn :score)) all-cxns-of-type)
+          unless (find cxn-type processed-cxn-types)
+          do (push cxn-type processed-cxn-types)
+          (set-value-for-symbol monitor cxn-type (average cxn-scores)))))
+
+(define-monitor plot-cxn-score-per-type
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-cxn-score-per-type
+    :average-windows 1
+    :draw-y-1-grid t
+    :y-label "Construction Score"
+    :x-label "Total number of interactions"
+    :file-name (babel-pathname :name "avg-cxn-score-per-type" :directory '("experiments" "clevr-learning" "graphs"))
+    :graphic-type "pdf")
+

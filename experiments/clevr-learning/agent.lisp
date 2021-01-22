@@ -223,6 +223,7 @@
          (holophrase-cxn
           (run-repair agent (get-data object 'applied-cxns)
                       (get-data object 'cipn) :add-holophrase)))
+    (notify lexicon-changed)
     (add-cxn holophrase-cxn (grammar agent))
     (notify add-holophrase-new-cxn holophrase-cxn)
     (make-instance 'fix :issued-by repair :problem problem)))
@@ -240,6 +241,7 @@
          (holophrase-cxn
           (run-repair agent (get-data object 'applied-cxns)
                       (get-data object 'cipn) :add-holophrase)))
+    (notify lexicon-changed)
     (add-cxn holophrase-cxn (grammar agent))
     (notify add-holophrase-new-cxn holophrase-cxn)
     (make-instance 'fix :issued-by repair :problem problem)))
@@ -271,6 +273,7 @@
         (notify lexical->item-based-repair-started)
         (destructuring-bind (item-based-cxn th-links)
             item-based-cxn-and-th-links
+          (notify lexicon-changed)
           (add-cxn item-based-cxn (grammar agent))
           ;; th-links are grouped per applied lex cxn
           (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
@@ -308,6 +311,7 @@
       (when lex-cxn-and-th-links
         (notify item-based->lexical-repair-started)
         (destructuring-bind (lex-cxn th-groups) lex-cxn-and-th-links
+          (notify lexicon-changed)
           (add-cxn lex-cxn (grammar agent))
           (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
                 for th-group in th-groups
@@ -474,6 +478,7 @@
       (notify holophrase->item-based-substitution-repair-started)
       (destructuring-bind (cxn-1 cxn-2 cxn-3 &rest th-links)
           subsititution-cxns-and-th-links
+        (notify lexicon-changed)
         (add-cxn cxn-1 (grammar agent))
         (add-cxn cxn-2 (grammar agent))
         (add-cxn cxn-3 (grammar agent))
@@ -512,6 +517,7 @@
       (notify holophrase->item-based-addition-repair-started)
       (destructuring-bind (lex-cxn item-based-cxn &rest th-links)
           addition-cxns-and-th-links
+        (notify lexicon-changed)
         (add-cxn lex-cxn (grammar agent))
         (add-cxn item-based-cxn (grammar agent))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
@@ -550,6 +556,7 @@
       (notify holophrase->item-based-deletion-repair-started)
       (destructuring-bind (lex-cxn item-based-cxn &rest th-links)
           deletion-cxns-and-th-links
+        (notify lexicon-changed)
         (when lex-cxn
           (add-cxn lex-cxn (grammar agent)))
         (add-cxn item-based-cxn (grammar agent))

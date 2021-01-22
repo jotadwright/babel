@@ -103,36 +103,61 @@
                    (remove cxn all-cxns-with-meaning)))
     all-cxns-with-meaning))
 
-(defun get-meaning-competitors (agent applied-cxns)
-  "Get cxns with the same form as cxn"
-  ;; what is the competitor of an item-based cxn??
+(defmethod meaning-competitors-for-cxn-type ((cxn construction)
+                                             (cxn-inventory construction-inventory)
+                                             (cxn-type (eql 'holophrase)))
   (flet ((extract-and-render (cxn)
            (list-of-strings->string
             (render (extract-form-predicates cxn)
-                    (get-configuration (grammar agent) :render-mode)))))
-    (let (all-competitors)
-      (loop for cxn in applied-cxns
-            for cxn-type = (attr-val cxn :cxn-type)
-            for all-cxns-of-type = (find-all cxn-type (constructions-list (grammar agent))
-                                             :key #'(lambda (cxn) (attr-val cxn :cxn-type)))
-            if (eql cxn-type 'item-based)
-            do (let* ((cxn-form (extract-form-predicates cxn))
-                      (competitors (remove cxn
-                                           (find-all cxn-form all-cxns-of-type
-                                                     :key #'extract-form-predicates
-                                                     :test #'unify))))
-                 (when competitors
-                   (push competitors all-competitors)))
-            else
-            do (let* ((cxn-form (extract-and-render cxn))
-                      (competitors (remove cxn
-                                           (find-all cxn-form all-cxns-of-type
-                                                     :key #'extract-and-render
-                                                     :test #'string=))))
-                 (when competitors
-                   (push competitors all-competitors))))
-      (loop for cxn in applied-cxns
-            do (setf all-competitors
-                     (remove cxn all-competitors)))
-      all-competitors)))
-  
+                    (get-configuration cxn-inventory :render-mode)))))
+    (let* ((all-cxns-of-type
+            (remove cxn
+                    (find-all cxn-type (constructions-list cxn-inventory)
+                              :key #'(lambda (cxn) (attr-val cxn :cxn-type)))))
+           (cxn-form (extract-and-render cxn))
+           (competitors
+            (find-all cxn-form all-cxns-of-type
+                      :key #'extract-and-render
+                      :test #'string=)))
+      competitors)))
+
+(defmethod meaning-competitors-for-cxn-type ((cxn construction)
+                                             (cxn-inventory construction-inventory)
+                                             (cxn-type (eql 'lexical)))
+  (flet ((extract-and-render (cxn)
+           (list-of-strings->string
+            (render (extract-form-predicates cxn)
+                    (get-configuration cxn-inventory :render-mode)))))
+    (let* ((all-cxns-of-type
+            (remove cxn
+                    (find-all cxn-type (constructions-list cxn-inventory)
+                              :key #'(lambda (cxn) (attr-val cxn :cxn-type)))))
+           (cxn-form (extract-and-render cxn))
+           (competitors
+            (find-all cxn-form all-cxns-of-type
+                      :key #'extract-and-render
+                      :test #'string=)))
+      competitors)))
+
+(defmethod meaning-competitors-for-cxn-type ((cxn construction)
+                                             (cxn-inventory construction-inventory)
+                                             (cxn-type (eql 'item-based)))
+  (let* ((all-cxns-of-type
+          (remove cxn
+                  (find-all cxn-type (constructions-list cxn-inventory)
+                            :key #'(lambda (cxn) (attr-val cxn :cxn-type)))))
+         (cxn-form (extract-form-predicates cxn))
+         (competitors
+          (find-all cxn-form all-cxns-of-type
+                    :key #'extract-form-predicates
+                    :test #'unify)))
+      competitors))
+          
+
+(defun get-meaning-competitors (agent applied-cxns)
+  "Get cxns with the same form as cxn"
+  (loop for cxn in applied-cxns
+        for cxn-type = (attr-val cxn :cxn-type)
+        for competitors = (meaning-competitors-for-cxn-type
+                           cxn (grammar agent) cxn-type)
+        append competitors))

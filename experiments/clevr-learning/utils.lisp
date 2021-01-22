@@ -75,3 +75,23 @@
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label))
   (format t "~%Graphs have been created"))
+
+(defun create-num-cxns-per-type-graph (&key 
+                                       (configurations nil)
+                                       (nr-of-interactions 2000))
+  (format t "~%Running ~a interactions in order to create the graph. Please be patient." nr-of-interactions)
+  (activate-monitor plot-num-cxns-per-type)
+  (run-batch 'clevr-learning-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-num-cxns-per-type)
+  (format t "~%Graphs have been created"))
+
+(defun create-cxn-scores-per-type-graph (&key 
+                                         (configurations nil)
+                                         (nr-of-interactions 2000))
+  (format t "~%Running ~a interactions in order to create the graph. Please be patient." nr-of-interactions)
+  (activate-monitor plot-cxn-score-per-type)
+  (run-batch 'clevr-learning-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-cxn-score-per-type)
+  (format t "~%Graphs have been created"))
