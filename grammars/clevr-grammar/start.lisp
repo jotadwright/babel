@@ -12,7 +12,7 @@
                     '((:cxn-supplier-mode . :ordered-by-label-hashed)
                       (:priority-mode . :nr-of-applied-cxns)
                       (:parse-order hashed nom cxn)
-                      (:production-order hashed-lex nom cxn hashed-morph)
+                      (:production-order hashed-lex cxn hashed-morph)
                       (:max-nr-of-nodes . 10000)))
 
 ;; priming configurations
@@ -33,6 +33,15 @@
                                            #+ccl "http://127.0.0.1:8888/next-cxn")
                       (:seq2seq-model-formulation . "clevr_formulation_model"))
                     :replace t)
+
+
+(comprehend-and-formulate "There is a small ball on the left side of the blue rubber cylinder; is its color the same as the matte ball behind the large blue ball?")
+(comprehend-and-formulate "Is the material of the blue object on the left side of the tiny red cylinder the same as the big green object to the left of the blue metallic cylinder?")
+(comprehend-and-formulate "There is a cyan rubber cylinder that is in front of the red metal cube; is it the same size as the metal object in front of the small rubber cylinder?")
+
+
+
+
 
 (comprehend "What color is the cube?")
 (comprehend-and-formulate "What color is the cube?")

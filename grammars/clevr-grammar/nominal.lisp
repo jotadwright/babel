@@ -154,7 +154,13 @@
                (rightmost-unit ?rightmost-nom-unit))
               (?nominal-unit
                (superunits (?determined-noun-phrase-unit)))
+              (root
+               (footprints (there-is-a)))
               <-
+              (root
+               (footprints (NOT there-is-a))
+               --
+               (footprints (NOT there-is-a)))
               (?declaration-unit
                (HASH meaning ((unique ?target-object ?target-set)))
                --

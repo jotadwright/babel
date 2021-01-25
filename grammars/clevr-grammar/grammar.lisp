@@ -86,6 +86,22 @@
 
 |#
 
+(defmethod cip-node-test ((node cip-node) (mode (eql :connected-structure-for-morph)))
+  (if (eql (direction (cip node)) '->)
+    (let* ((applied-cxn-label (attr-val (first (applied-constructions node)) :label)))
+      (if (and (listp applied-cxn-label) (find 'hashed-morph applied-cxn-label))
+        (let* ((left-pole (left-pole-structure (car-resulting-cfs (cipn-car node))))
+               (connected? (fcg::connected-syntactic-structure
+                            left-pole
+                            :grammar-hierarchy-features
+                            (fcg::hierarchy-features (construction-inventory node)))))
+          (or connected?
+              (progn
+                (set-data (goal-test-data node) 'dependencies-realized left-pole)
+                nil)))
+        t))
+    t))
+
 (def-fcg-constructions clevr-grammar
     :feature-types ((args set-of-predicates)
                     (form set-of-predicates)
@@ -96,7 +112,7 @@
     :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-within-3) ;; special de-render mode: precedes within N
                          (:render-mode . :generate-and-test) ;; using the new renderer
                          (:form-predicates meets precedes)
-                         (:node-tests :check-duplicate :restrict-nr-of-nodes)
+                         (:node-tests :check-duplicate :connected-structure-for-morph :restrict-nr-of-nodes)
                          (:parse-goal-tests :no-applicable-cxns
                                             :connected-semantic-network
                                             :connected-structure ;; !!! also :connected-structure in comprehension
