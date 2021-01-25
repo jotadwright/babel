@@ -86,12 +86,12 @@
       "plural": "players"
     },
     {
-      "lex-id": "field",
+      "lex-id": "playing field",
       "singular": "field",
       "plural": "fields"
     },
     {
-      "lex-id": "lamp",
+      "lex-id": "light",
       "singular": "lamp",
       "plural": "lamps"
     },
@@ -626,9 +626,9 @@
       "plural": "platforms"
     },
     {
-      "lex-id": "playingfield",
-      "singular": "playingfield",
-      "plural": "playingfields"
+      "lex-id": "playing field",
+      "singular": "playing field",
+      "plural": "playing fields"
     },
     {
       "lex-id": "railroad",

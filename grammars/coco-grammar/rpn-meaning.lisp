@@ -7,20 +7,35 @@
 
 (defun linked-bind-statement (predicate irl-program)
   "Get the bind-predicate linked to the given predicate"
-  (let* ((var (last-elt predicate))
+  (let* ((vars (if (eql (first predicate) 'coco-grammar::choose)
+                 (subseq predicate (- (length predicate) 2))
+                 (subseq predicate (- (length predicate) 1))))
+         (all-linked
+          (loop for var in vars
+                append (all-linked-predicates predicate var irl-program)))
+         (binding-list
+          (remove-if-not #'(lambda (pred) (eql (first pred) 'bind))
+                         all-linked)))
+    (when binding-list binding-list)))
+
+#|
+ (let* ((var (last-elt predicate))
          (all-linked (all-linked-predicates predicate var irl-program))
          (binding-list (remove-if-not #'(lambda (pred)
                                           (eql (first pred) 'bind))
                                       all-linked)))
     (when binding-list
       (first binding-list))))
+|#
 
 (defun input-vars (predicate)
   "Get the (possibly multiple) input variable(s) of a predicate"
   (unless (eql (first predicate) 'bind)
-    (if (member (first predicate) '(filter query same equal? relate))
-      (subseq predicate 2 (- (length predicate) 1))    
-      (subseq predicate 2))))
+    (cond ((member (first predicate) '(filter query same equal? relate))
+           (subseq predicate 2 (- (length predicate) 1)))
+          ((eql (first predicate) 'coco-grammar::choose)
+           (subseq predicate 2 (- (length predicate) 2)))
+          (t (subseq predicate 2)))))
 
 (defun duplicate-context (irl-program)
   "When the CLEVR program is a tree, the meaning network has a single
@@ -85,15 +100,22 @@
                 (duplicate-context irl-program))))
         processed-irl-program))))
 
-(defun predicate->polish (predicate bind-statement)
+(defun predicate->polish (predicate bind-statements)
   "Write a predicate in polish notation"
-  (if bind-statement
-    (if (eql (first predicate) 'filter)
-      (list (first predicate)
-            (read-from-string (downcase (first (split (mkstr (second bind-statement)) #\-))))
-            (fourth bind-statement))
-      (list (first predicate)
-            (fourth bind-statement)))
+  (if bind-statements
+    (cond ((eql (first predicate) 'filter)
+           (let ((bind-statement (first bind-statements)))
+             (list (first predicate)
+                   (read-from-string (downcase (first (split (mkstr (second bind-statement)) #\-))))
+                   (fourth bind-statement))))
+          ((eql (first predicate) 'coco-grammar::choose)
+           (list (first predicate)
+                 (read-from-string (downcase (first (split (mkstr (second (first bind-statements))) #\-))))))
+          ((eql (first predicate) 'coco-grammar::or)
+           (list (first predicate)
+                 (read-from-string (downcase (first (split (mkstr (second (first bind-statements))) #\-))))))
+          (t (list (first predicate)
+                   (fourth (first bind-statements)))))
     (list (first predicate))))
 
 (defun program->rpn (irl-program)
@@ -104,9 +126,9 @@
     (loop while stack
           for current-predicate = (pop stack)
           for in-vars = (input-vars current-predicate)
-          for bind-statement = (linked-bind-statement current-predicate irl-program)
+          for bind-statements = (linked-bind-statement current-predicate irl-program)
           do (progn
-               (push (predicate->polish current-predicate bind-statement) rpn)
+               (push (predicate->polish current-predicate bind-statements) rpn)
                (dolist (var in-vars)
                  (when (variable-p var)
                    (let ((all-linked (all-linked-predicates current-predicate var irl-program)))
