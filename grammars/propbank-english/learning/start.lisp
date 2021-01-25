@@ -10,7 +10,7 @@
 
 ;; Loading the Propbank annotations (takes a couple of minutes)
 (load-propbank-annotations 'ewt :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes :ignore-stored-data t)
+(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
@@ -19,7 +19,7 @@
 (setf nlp-tools::*penelope-host* "http://localhost:5000")
 
 ;; Activating trace-fcg
-(activate-monitor trace-fcg)
+(deactivate-monitor trace-fcg)
 ;The dynamics of change in the state of health of children affected by the Chernobyl accident in all three countries - Belarus , Russia , and Ukraine - in the post-accident period is characterized by persistent negative tendencies : the morbidity rate is going up , the number of really healthy children is dropping , and disability is increasing .
 
 ;;;;;;;;;;;
@@ -90,12 +90,12 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "propbank-grammar-ewt-cleaning-100"
+                                :name "propbank-grammar-partial"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                           :name "all-roles-ewt"
+                           :name "propbank-grammar-partial"
                            :type "fcg")))
 (size *restored-grammar*)
 
@@ -137,24 +137,26 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (train-split *ewt-annotations*)
+   *train-sentences-all*
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
-(comprehend-and-extract-frames (sentence-string (nth 595 *phrasal-sentences*))
+
+(activate-monitor trace-fcg)
+(comprehend-and-extract-frames (sentence-string (nth 4 (train-split *ewt-annotations*)))
                          :cxn-inventory *propbank-learned-cxn-inventory* )
 
 ;;>> Cleaning
 ;;--------------
 
-(sort-cxns-for-outliers *propbank-learned-cxn-inventory* (dev-split *ewt-annotations*)
+(sort-cxns-for-outliers *restored-grammar* (dev-split *ontonotes-annotations*)
                         :timeout 10
-                        :nr-of-training-sentences (get-data (blackboard *propbank-learned-cxn-inventory*) :training-corpus-size)
-                        :nr-of-test-sentences 1000)
-
-(clean-grammar *propbank-learned-cxn-inventory* (dev-split *ewt-annotations*)
-               :nr-of-test-sentences 1000 :timeout 10)
+                        :nr-of-training-sentences (get-data (blackboard *restored-grammar*) :training-corpus-size)
+                        :nr-of-test-sentences 100)
+;;*restored-grammar* ;111102 cxns ;;> <hashed-fcg-construction-set: 111099 cxns>
+(clean-grammar *restored-grammar* (dev-split *ontonotes-annotations*)
+               :nr-of-test-sentences 500 :timeout 10)
 
 (add-element (make-html (find-cxn 'HAVE.03-CXN *propbank-learned-cxn-inventory* :hash-key 'have)))
 
@@ -181,6 +183,28 @@
 (add-element (make-html (find-cxn  'break-up\(vp\)-cxn  *propbank-learned-cxn-inventory-small* :hash-key 'break-up)))
 (evaluate-propbank-corpus (subseq (shuffle *train-sentences-all-frames*) 0 100) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
+
+(comprehend-and-evaluate  (list (nth 1238 *train-sentences-all*))   *propbank-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames "In a medium bowl, mix together corn, red onion, jicama, red bell pepper, and cilantro."
+                               :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Stir in lime juice and zest"
+                               :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "add cayenne pepper, ground black pepper, and salt to the mixture"
+                               :cxn-inventory *propbank-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames "Preheat grill for high heat."
+                               :cxn-inventory *propbank-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames "Brush each fillet with olive oil, and sprinkle with spices to taste."
+                               :cxn-inventory *propbank-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames "Use high-quality prepared tomato sauce for a better end result. "
+                               :cxn-inventory *propbank-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames "Beat the eggs and add them to the dry ingredients." :cxn-inventory *propbank-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames "Marinate overnight in the refrigerator." :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (evaluate-propbank-corpus *train-sentences-all-frames* *cleaned-grammar* :timeout 60)
 
@@ -213,6 +237,14 @@
       (find "Inventories are closely watched for such clues , for instance ." *spacy-benepar-compatible-sentences* :key #'sentence-string :test #'string=))
 ;;ARG1:NNS nooit gezien
 (comprehend-and-extract-frames "Inventories are closely watched for such clues , for instance ." :cxn-inventory *restored-grammar*)
+(activate-monitor trace-fcg)
+(set-configuration (visualization-configuration *propbank-learned-cxn-inventory*) :show-constructional-dependencies t)
+(comprehend-and-extract-frames "Melinda Gates wrote that income inequality is still rising" :cxn-inventory *restored-grammar* :timeout nil)
+
+(remhash 'that (constructions-hash-table *restored-grammar*))
+(remhash 'that (constructions-hash-table (processing-cxn-inventory  *restored-grammar*)))
+(with-disabled-monitor-notifications (delete-cxn *saved-cxn* *restored-grammar* :hash-key 'THAT))
+
 
 
 
@@ -224,7 +256,8 @@
 (comprehend-and-extract-frames "Elise will not let the Pokemon escape" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He usually takes the bus to school" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "She had dinner in Paris." :cxn-inventory *cleaned-grammar*)
+
+(comprehend-and-extract-frames "She had dinner in Paris." :cxn-inventory *propbank-learned-cxn-inventory*)
 
 
 
