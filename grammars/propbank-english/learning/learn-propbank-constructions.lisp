@@ -433,7 +433,9 @@
          (gram-category (make-gram-category units-with-role))
          (footprint (make-const 'pp))
          (cxn-units-with-role (loop for unit in units-with-role
-                                    collect (make-propbank-conditional-unit-with-role unit gram-category footprint)))
+                                     if (equal (role-type (car unit)) "V")
+                                     collect (make-propbank-conditional-unit-with-role unit gram-category footprint :frame-evoking t)
+                                     else collect (make-propbank-conditional-unit-with-role unit gram-category footprint)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame gram-category footprint :include-gram-category? nil))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
          (cxn-preposition-units (make-preposition-unit pp-unit ts-unit-structure)) ;;list with 1 or 3 units
@@ -553,7 +555,9 @@
          (footprint (make-const 'sbar))
          (cxn-sbar-unit (make-subclause-word-unit sbar-unit ts-unit-structure)) ;;1 unit
          (cxn-units-with-role (loop for unit in units-with-role
-                                    collect (make-propbank-conditional-unit-with-role unit gram-category footprint)))
+                                     if (equal (role-type (car unit)) "V")
+                                     collect (make-propbank-conditional-unit-with-role unit gram-category footprint :frame-evoking t)
+                                     else collect (make-propbank-conditional-unit-with-role unit gram-category footprint)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame gram-category footprint :include-gram-category? nil))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
          (sbar-lemma (second (or (find 'lemma (nthcdr 2 cxn-sbar-unit) :key #'feature-name)
@@ -724,6 +728,7 @@
          (units-with-role (units-with-role ts-unit-structure gold-frame))
          (argm-phrases (remove-if-not #'(lambda (unit-with-role)
                                         (and (search "ARGM" (role-type (car unit-with-role)))
+                                             (equalp (unit-feature-value (cdr unit-with-role) 'node-type) 'phrase)
                                              (not (or (find 'sbar (unit-feature-value (cdr unit-with-role) 'syn-class))
                                                       (find 's (unit-feature-value (cdr unit-with-role) 'syn-class))
                                                       (find 'pp (unit-feature-value (cdr unit-with-role) 'syn-class))))))
@@ -755,7 +760,7 @@
          (cxn-units-with-role
           (loop for unit-w-role in units-with-role
                 if (equal (role-type (car unit-w-role)) "V")
-                collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint)
+                collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint :frame-evoking t)
                 else collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint :string argm-string)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame nil footprint :include-gram-category? nil))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
