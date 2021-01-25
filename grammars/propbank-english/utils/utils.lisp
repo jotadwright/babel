@@ -340,14 +340,15 @@ grammar on the list-of-sentences"
   (assert nr-of-training-sentences)
   (let* ((selected-test-sentences (subseq (shuffle dev-corpus) 0 nr-of-test-sentences))
          (test-frequencies-and-nr-of-timeouts
-          (multiple-value-list (collect-cxn-frequencies learned-propbank-grammar (mapcar #'sentence-string selected-test-sentences)
+          (multiple-value-list (collect-cxn-frequencies learned-propbank-grammar
+                                                        (mapcar #'sentence-string selected-test-sentences)
                                                         :timeout timeout)))
          (cxns-w-score
           (sort
            (loop for cxn in (constructions-list learned-propbank-grammar)
                  for cxn-test-frequency = (gethash (name cxn) (first test-frequencies-and-nr-of-timeouts))
                  when (> cxn-test-frequency 0)
-                 collect (cons cxn `(- ,(float (/ cxn-test-frequency ;;percentage of occurrence in testing
+                 collect (cons cxn `(/ ,(float (/ cxn-test-frequency ;;percentage of occurrence in testing
                                                   (- (length selected-test-sentences) (second test-frequencies-and-nr-of-timeouts)))
                                                )
                                        ,(float (/ (attr-val cxn :frequency) ;;percentage of occurrence in training
@@ -361,14 +362,15 @@ grammar on the list-of-sentences"
     cxns-w-score))
 
 (defun clean-grammar (grammar dev-corpus &key (destructive t) (nr-of-test-sentences 100) (timeout 10)
-                              (cut-off 0.2)) ;;2 = double frequency in dev-set, compared to training freq
+                              (cut-off 3000)) ;;
   (format t "~%>>Grammar size before cleaning: ~a ~%" (size grammar)) 
   (loop with cxn-inventory = (if destructive grammar (copy-object grammar))
         for (cxn . dev/train-ratio) in (sort-cxns-for-outliers cxn-inventory dev-corpus :timeout timeout
                                                                :nr-of-training-sentences (get-data (blackboard grammar) :training-corpus-size)
                                                                :nr-of-test-sentences nr-of-test-sentences)
-        if (>= (abs (eval dev/train-ratio)) cut-off)
-        do (format t "should delete ~a~%" (name cxn)) ;(delete-cxn cxn cxn-inventory :hash-key (attr-val cxn :lemma))
+        if (>= (eval dev/train-ratio) cut-off)
+        do (with-disabled-monitor-notifications
+             (delete-cxn cxn cxn-inventory :hash-key (attr-val cxn :lemma)))
         else do (return cxn-inventory)))
   
 ;(clean-grammar *propbank-learned-cxn-inventory* (shuffle *dev-sentences-all*) :nr-of-test-sentences 10 :destructive t )
