@@ -225,7 +225,11 @@
     (notify lexicon-changed)
     (add-cxn holophrase-cxn (grammar agent))
     (notify add-holophrase-new-cxn holophrase-cxn)
-    (make-instance 'fix :issued-by repair :problem problem)))
+    (make-instance 'fix
+                   :issued-by repair
+                   :problem problem
+                   ;:restart-data holophrase-cxn
+                   )))
 
 
 (defclass repair-lexical->item-based (repair)
@@ -263,7 +267,11 @@
                          do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5)))
           (notify lexical->item-based-new-cxn-and-links
                   item-based-cxn (get-type-hierarchy (grammar agent)))
-          (make-instance 'fix :issued-by repair :problem problem))))))
+          (make-instance 'fix
+                         :issued-by repair
+                         :problem problem
+                         ;:restart-data item-based-cxn
+                         ))))))
 
 
 
@@ -300,7 +308,11 @@
                          do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5)))
           (notify item-based->lexical-new-cxn-and-th-links
                   lex-cxn (get-type-hierarchy (grammar agent)))
-          (make-instance 'fix :issued-by repair :problem problem))))))
+          (make-instance 'fix
+                         :issued-by repair
+                         :problem problem
+                         ;:restart-data lex-cxn
+                         ))))))
 
 
 
@@ -332,7 +344,11 @@
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify add-th-links-new-th-links (get-type-hierarchy (grammar agent)))
-        (make-instance 'fix :issued-by repair :problem problem))))
+        (make-instance 'fix
+                       :issued-by repair
+                       :problem problem
+                       ;:restart-data t
+                       ))))
 
 
 (defmethod repair ((repair repair-make-holophrase-cxn)
@@ -351,7 +367,11 @@
     (notify lexicon-changed)
     (add-cxn holophrase-cxn (grammar agent))
     (notify add-holophrase-new-cxn holophrase-cxn)
-    (make-instance 'fix :issued-by repair :problem problem)))
+    (make-instance 'fix
+                   :issued-by repair
+                   :problem problem
+                   ;:restart-data holophrase-cxn
+                   )))
 
 ;; NOTE: The following case is not covered yet:
 ;; "How big is the large cube?"
@@ -377,7 +397,8 @@
             `((cipn . ,cipn)
               (applied-cxns . ,(mapcar #'get-original-cxn
                                        (applied-constructions cipn)))
-              (irl-program . ,irl-program)))
+              (irl-program . ,irl-program)
+              (restart-occurred-p . ,(find 'restart (status process)))))
            (process-result
             (make-process-result 1 process-result-data :process process)))
       (unless (notify-learning process-result :trigger 'parsing-finished)
@@ -426,9 +447,12 @@
 (defmethod run-process (process
                         (process-label (eql 'align))
                         task agent)
-  ;; run the alignment strategy
-  (run-alignment agent (input process)
-                 (get-configuration agent :alignment-strategy))
+  ;; run the alignment strategy, unless when there was
+  ;; a restart. In that case, do not punish or reward
+  ;; the newly introduced cxns.
+  (unless (find-data (input process) 'restart-occurred-p)
+    (run-alignment agent (input process)
+                   (get-configuration agent :alignment-strategy)))
   (let ((process-result
          (make-process-result 1 nil :process process)))
     (notify-learning process-result :trigger 'alignment-finished)

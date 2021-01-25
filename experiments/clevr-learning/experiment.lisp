@@ -69,12 +69,18 @@
   (setf (population experiment)
         (list (make-clevr-learning-tutor experiment)
               (make-clevr-learning-learner experiment)))
+  ;; fill the confidence buffer with zeros
+  (setf (confidence-buffer experiment)
+        (make-list (get-configuration experiment :evaluation-window-size)
+                   :initial-element 0))
   ;; activate dot printing monitor
   (activate-monitor print-a-dot-for-each-interaction))
 
 (define-event challenge-level-questions-loaded (level number))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment))
+  ;; Loads N (:questions-per-challenge) random questions
+  ;; of the current challenge level
   (let* ((all-challenge-files
           (directory
            (merge-pathnames

@@ -114,7 +114,7 @@
     (let* ((all-cxns-of-type
             (remove cxn
                     (find-all cxn-type (constructions-list cxn-inventory)
-                              :key #'(lambda (cxn) (attr-val cxn :cxn-type)))))
+                              :key #'get-cxn-type)))
            (cxn-form (extract-and-render cxn))
            (competitors
             (find-all cxn-form all-cxns-of-type
@@ -133,7 +133,7 @@
     (let* ((all-cxns-of-type
             (remove cxn
                     (find-all cxn-type (constructions-list cxn-inventory)
-                              :key #'(lambda (cxn) (attr-val cxn :cxn-type)))))
+                              :key #'get-cxn-type)))
            (cxn-form (extract-and-render cxn))
            (competitors
             (find-all cxn-form all-cxns-of-type
@@ -148,7 +148,7 @@
   (let* ((all-cxns-of-type
           (remove cxn
                   (find-all cxn-type (constructions-list cxn-inventory)
-                            :key #'(lambda (cxn) (attr-val cxn :cxn-type)))))
+                            :key #'get-cxn-type)))
          (cxn-form (extract-form-predicates cxn))
          (competitors
           (find-all cxn-form all-cxns-of-type
@@ -156,30 +156,25 @@
                     :test #'unify)))
       competitors))
 
-#|
-(defun combined-meaning-competitors (applied-cxns cxn-inventory)
-  ;; render the applied cxns and all holophrases
-  ;; and find all meaning competitors
-  (let* ((all-form-predicates
-          (loop for cxn in applied-cxns
-                append (gl::form-predicates-with-variables
-                        (extract-form-predicates cxn))))
-         ;(applied-cxns-form
-         ; (list-of-strings->string
-         ;  (render all-form-predicates
-         ;          (get-configuration cxn-inventory :render-mode))))
-         (holophrase-cxns
-          (find-all 'holophrase (constructions-list cxn-inventory)
-                    :key #'(lambda (cxn) (attr-val cxn :cxn-type))))
-         (holophrase-form-predicates
-          (loop for cxn in holophrase-cxns
-                collect (gl::form-predicates-with-variables
-                         (extract-form-predicates cxn)))))
-    (loop for holophrase-cxn in holophrase-cxns
-          for holophrase-predicates in holophrase-form-predicates
-          when (unify all-form-predicates holophrase-predicates)
-          collect holophrase-cxn)))
-|#
+
+(defun combined-meaning-competitors (agent cxn-inventory)
+  ;; the holophrase from which the current sequence
+  ;; of applied cxns originated can still exist.
+  ;; When succesful, decrease its score
+  (flet ((extract-and-render (cxn)
+           (list-of-strings->string
+            (render (extract-form-predicates cxn)
+                    (get-configuration cxn-inventory :render-mode)))))
+  (let ((holophrase-cxns
+         (find-all 'holophrase (constructions-list cxn-inventory)
+                   :key #'get-cxn-type))
+        (processed-utterance
+         (list-of-strings->string
+          (fcg::tokenize (utterance agent)))))
+    (loop for cxn in holophrase-cxns
+          when (string= processed-utterance
+                        (extract-and-render cxn))
+          collect cxn))))
     
           
 
@@ -188,13 +183,11 @@
   (append
    ;; get competitors for each construction separately
    (loop for cxn in applied-cxns
-         for cxn-type = (attr-val cxn :cxn-type)
+         for cxn-type = (get-cxn-type cxn)
          for competitors = (meaning-competitors-for-cxn-type
                             cxn (grammar agent) cxn-type)
          append competitors)
-   ;; TO DO
    ;; get competitors for the combined applied cxns
    ;; (item-based + lexical might have a holophrase competitor)
-   ;(when (length> applied-cxns 1)
-   ;  (combined-meaning-competitors applied-cxns (grammar agent)))
-   nil))
+   (when (length> applied-cxns 1)
+     (combined-meaning-competitors agent (grammar agent)))))

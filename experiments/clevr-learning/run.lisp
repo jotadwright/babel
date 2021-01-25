@@ -5,14 +5,30 @@
 ;; use this file to run experiments (possibly on the cluster)
 
 (run-experiments '(
-                   (initial-test ((:questions-per-challenge . 1000)
-                                  (:alignment-strategy . :minimal+store-past-scenes)))
+                   (test
+                    ((:questions-per-challenge . 500)
+                     (:alignment-strategy . :minimal-holophrases+lateral-inhibition)
+                     (:composer-strategy . :store-past-scenes)
+                     (:hide-type-hierarchy . t)))
                    )
-                 :number-of-interactions 10000
+                 :number-of-interactions 5000
                  :number-of-series 1
-                 :monitors (list "export-communicative-success"
+                 :monitors (list ;; success
+                                 "export-communicative-success"
+                                 ;; lexicon size
                                  "export-lexicon-size"
-                                 "export-meanings-per-form"
-                                 "export-lexicon-change"
+                                 "export-nr-of-holophrase-cxns"
+                                 "export-nr-of-item-based-cxns"
+                                 "export-nr-of-lexical-cxns"
+                                 ;; cxn scores
                                  "export-avg-cxn-score"
-                                 "export-confidence-level"))
+                                 "export-avg-holophrase-cxn-score"
+                                 "export-avg-item-based-cxn-score"
+                                 "export-avg-lexical-cxn-score"
+                                 ;; type of applied cxns
+                                 "export-holophrase-cxn-usage"
+                                 "export-item-based-cxn-usage"
+                                 ;; others
+                                 "export-lexicon-change"
+                                 "export-confidence-level"
+                                 ))

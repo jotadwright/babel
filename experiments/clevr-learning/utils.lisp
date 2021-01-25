@@ -14,6 +14,9 @@
     (car-resulting-cfs
      (cipn-car cipn)))))
 
+(defun get-cxn-type (cxn)
+  (attr-val cxn :cxn-type))
+
 
 
 (defun run-experiments (strategies
