@@ -7,26 +7,16 @@
 
 (defun linked-bind-statement (predicate irl-program)
   "Get the bind-predicate linked to the given predicate"
-  (let* ((vars (if (eql (first predicate) 'coco-grammar::choose)
-                 (subseq predicate (- (length predicate) 2))
-                 (subseq predicate (- (length predicate) 1))))
+  (let* ((bind-vars (if (eql (first predicate) 'coco-grammar::choose)
+                      (subseq predicate (- (length predicate) 2))
+                      (subseq predicate (- (length predicate) 1))))
          (all-linked
-          (loop for var in vars
+          (loop for var in bind-vars
                 append (all-linked-predicates predicate var irl-program)))
          (binding-list
           (remove-if-not #'(lambda (pred) (eql (first pred) 'bind))
                          all-linked)))
     (when binding-list binding-list)))
-
-#|
- (let* ((var (last-elt predicate))
-         (all-linked (all-linked-predicates predicate var irl-program))
-         (binding-list (remove-if-not #'(lambda (pred)
-                                          (eql (first pred) 'bind))
-                                      all-linked)))
-    (when binding-list
-      (first binding-list))))
-|#
 
 (defun input-vars (predicate)
   "Get the (possibly multiple) input variable(s) of a predicate"
@@ -35,6 +25,10 @@
            (subseq predicate 2 (- (length predicate) 1)))
           ((eql (first predicate) 'coco-grammar::choose)
            (subseq predicate 2 (- (length predicate) 2)))
+          ((eql (first predicate) 'coco-grammar::verify)
+           (if (= (length predicate) 4)
+             (list (third predicate))
+             (subseq predicate 2 (- (length predicate) 1))))
           (t (subseq predicate 2)))))
 
 (defun duplicate-context (irl-program)

@@ -780,15 +780,19 @@
              ((?exist-unit
                (args ((sources ?context)
                       (target ?target)))
-               (subunits (?are-there-unit ?disjunction-unit)))
+               (subunits (?are-unit ?there-unit ?disjunction-unit)))
               <-
-              (?are-there-unit
-               (HASH meaning ((get-context ?context)
-                              (exist ?bool-1 ?set-1)
+              (?are-unit
+               (HASH meaning ((get-context ?context)))
+               --
+               (HASH form ((string ?are-unit "are")
+                           (meets ?are-unit ?there-unit))))
+              (?there-unit
+               (HASH meaning ((exist ?bool-1 ?set-1)
                               (exist ?bool-2 ?set-2)))
                --
-               (HASH form ((string ?are-there-unit "are there")
-                           (meets ?are-there-unit ?leftmost-disjunction-unit))))
+               (HASH form ((string ?there-unit "there")
+                           (meets ?there-unit ?leftmost-disjunction-unit))))
               (?disjunction-unit
                (args ((sources ?context)
                       (target ?target)
@@ -856,14 +860,18 @@
              ((?exist-unit
                (args ((sources ?context)
                       (target ?target)))
-               (subunits (?are-there-unit ?disjunction-unit ?in-unit ?view-unit)))
+               (subunits (?are-unit ?there-unit ?disjunction-unit ?in-unit ?view-unit)))
               <-
-              (?are-there-unit
-               (HASH meaning ((exist ?bool-1 ?set-1)
-                              (exist ?bool-2 ?set-2)))
+              (?are-unit
+               (HASH meaning ((exist ?bool-1 ?set-1)))
                --
-               (HASH form ((string ?are-there-unit "are there")
-                           (meets ?are-there-unit ?leftmost-disjunction-unit))))
+               (HASH form ((string ?are-unit "are")
+                           (meets ?are-unit ?there-unit))))
+              (?there-unit
+               (HASH meaning ((exist ?bool-2 ?set-2)))
+               --
+               (HASH form ((string ?there-unit "there")
+                           (meets ?there-unit ?leftmost-disjunction-unit))))
               (?disjunction-unit
                (args ((sources ?context)
                       (target ?target)
@@ -961,15 +969,19 @@
              ((?exist-unit
                (args ((sources ?context)
                       (target ?target)))
-               (subunits (?are-there-unit ?conjunction-unit)))
+               (subunits (?are-unit ?there-unit ?conjunction-unit)))
               <-
-              (?are-there-unit
-               (HASH meaning ((get-context ?context)
-                              (exist ?bool-1 ?set-1)
+              (?are-unit
+               (HASH meaning ((get-context ?context)))
+               --
+               (HASH form ((string ?are-unit "are")
+                           (meets ?are-unit ?there-unit))))
+              (?there-unit
+               (HASH meaning ((exist ?bool-1 ?set-1)
                               (exist ?bool-2 ?set-2)))
                --
-               (HASH form ((string ?are-there-unit "are there")
-                           (meets ?are-there-unit ?leftmost-conjunction-unit))))
+               (HASH form ((string ?there-unit "there")
+                           (meets ?there-unit ?leftmost-conjunction-unit))))
               (?conjunction-unit
                (args ((sources ?context)
                       (target ?target)
