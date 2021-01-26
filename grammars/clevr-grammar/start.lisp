@@ -12,7 +12,7 @@
                     '((:cxn-supplier-mode . :ordered-by-label-hashed)
                       (:priority-mode . :nr-of-applied-cxns)
                       (:parse-order hashed nom cxn)
-                      (:production-order hashed-lex cxn hashed-morph)
+                      (:production-order hashed-lex nom cxn hashed-morph)
                       (:max-nr-of-nodes . 10000)))
 
 ;; priming configurations
@@ -34,10 +34,11 @@
                       (:seq2seq-model-formulation . "clevr_formulation_model"))
                     :replace t)
 
+(comprehend-and-formulate "Do the big rubber object on the left side of the big gray thing and the large sphere that is in front of the large blue rubber thing have the same color?")
+;; nr of nodes for solution: 2200, 775, 772, 5230, 2971, 2073
 
-(comprehend-and-formulate "There is a small ball on the left side of the blue rubber cylinder; is its color the same as the matte ball behind the large blue ball?")
-(comprehend-and-formulate "Is the material of the blue object on the left side of the tiny red cylinder the same as the big green object to the left of the blue metallic cylinder?")
-(comprehend-and-formulate "There is a cyan rubber cylinder that is in front of the red metal cube; is it the same size as the metal object in front of the small rubber cylinder?")
+(comprehend-and-formulate "Is the material of the big gray thing that is in front of the tiny green metallic object the same as the green object that is behind the gray matte ball?")
+;; nr of nodes for solution: 1608, 2600, 71, 2598, 3372
 
 
 

@@ -60,7 +60,13 @@
                (material-suffix +))
               (?plural-nominal-unit
                (footprints (count)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?counting-unit
                (HASH meaning ((count! ?target ?count-set)))
                --
@@ -105,7 +111,13 @@
                (material-suffix -))
               (?plural-nominal-unit
                (footprints (count)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?counting-unit
                (HASH meaning ((count! ?target ?count-set)))
                --
@@ -150,7 +162,13 @@
                (material-suffix -))
               (?plural-nominal-unit
                (footprints (count)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?counting-unit
                (HASH meaning ((count! ?target ?count-set)))
                --
@@ -196,7 +214,13 @@
                (material-suffix +))
               (?plural-nominal-unit
                (footprints (count)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?counting-unit
                (HASH meaning ((count! ?target ?count-set)))
                --
@@ -241,7 +265,13 @@
                (material-suffix -))
               (?plural-nominal-unit
                (footprints (count)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?counting-unit
                (HASH meaning ((count! ?target ?count-set)))
                --
@@ -287,7 +317,13 @@
                (material-suffix -))
               (?plural-nominal-unit
                (footprints (count)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?counting-unit
                (HASH meaning ((count! ?target ?count-set)))
                --

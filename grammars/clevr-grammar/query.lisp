@@ -37,7 +37,13 @@
                (rightmost-unit ?is)
                (subunits (?what ?type-unit ?is))
                (footprints (query)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?query-type-unit
                (HASH meaning ((query ?target ?source ?attribute)))
                --
@@ -75,7 +81,13 @@
                (leftmost-unit ?what-is)
                (rightmost-unit ?of)
                (footprints (query)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?query-type-unit
                (HASH meaning ((query ?target ?source ?attribute)))
                --
@@ -115,7 +127,13 @@
                (leftmost-unit ?what)
                (rightmost-unit ?is-it)
                (footprints (query)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?query-type-unit
                (HASH meaning ((query ?target ?source ?attribute)))
                --
@@ -151,7 +169,13 @@
                (leftmost-unit ?what-is-its)
                (rightmost-unit ?type-unit)
                (footprints (query)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?query-type-unit
                (HASH meaning ((query ?target ?source ?attribute)))
                --
@@ -187,7 +211,13 @@
                (leftmost-unit ?has-what)
                (rightmost-unit ?type-unit)
                (footprints (query ?type)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?query-type-unit
                (HASH meaning ((query ?target ?source ?attribute)))
                --
@@ -220,7 +250,13 @@
                (leftmost-unit ?is-what)
                (rightmost-unit ?type-unit)
                (footprints (query ?type)))
+              (root
+               (footprints (mutually-exclusive)))
               <-
+              (root
+               (footprints (NOT mutually-exclusive))
+               --
+               (footprints (NOT mutually-exclusive)))
               (?query-type-unit
                (HASH meaning ((query ?target ?source ?attribute)))
                --
