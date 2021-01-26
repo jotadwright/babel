@@ -6,7 +6,7 @@
 ;; Which side is X on?
 ;; On which side is the X?
 
-;; (get-context ?context)
+;; (get_context ?context)
 ;; (filter ?set ?context X)
 ;; (unique ?obj ?set)
 ;; (query ?answer ?obj side)
@@ -23,7 +23,7 @@
                (rightmost-unit ?photo-unit))
               <-
               (?photo-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?photo-unit "the photo")))))
               :cxn-set lex)
@@ -40,7 +40,7 @@
                (rightmost-unit ?photo-unit))
               <-
               (?photo-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?photo-unit "the image")))))
               :cxn-set lex)
@@ -57,7 +57,7 @@
                (rightmost-unit ?photo-unit))
               <-
               (?photo-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?photo-unit "the photograph")))))
               :cxn-set lex)
@@ -79,7 +79,7 @@
                (HASH form ((string ?the-unit "the")
                            (meets ?the-unit ?picture-unit))))
               (?picture-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?picture-unit "picture")))))
               :cxn-set lex)
@@ -196,7 +196,7 @@
               (?where-is-unit
                (HASH meaning ((query ?out ?object ?side)
                               (bind attribute-category ?side side)
-                              (get-context ?source)))
+                              (get_context ?source)))
                --
                (HASH form ((string ?where-is-unit "where is")
                            (meets ?where-is-unit ?leftmost-np-unit))))
@@ -220,7 +220,7 @@
                (subunits (?which-side-is-unit ?determined-noun-phrase-unit ?on-unit)))
               <-
               (?which-side-is-unit
-               (HASH meaning ((get-context ?source)
+               (HASH meaning ((get_context ?source)
                               (query ?target ?object ?side)
                               (bind attribute-category ?side side)))
                --
@@ -249,7 +249,7 @@
                (subunits (?on-which-side-is-unit ?determined-noun-phrase-unit)))
               <-
               (?on-which-side-is-unit
-               (HASH meaning ((get-context ?source)
+               (HASH meaning ((get_context ?source)
                               (query ?target ?object ?side)
                               (bind attribute-category ?side side)))
                --
@@ -273,7 +273,7 @@
 
 ;; Is the X on the R side of the photo/picture?
 
-;; (get-context ?context)
+;; (get_context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj ?set-1)
 ;; (verify ?target ?obj R)
@@ -337,7 +337,7 @@
 ;; is X R Y?
 ;; is the woman to the left of a person?
 
-;; (get-context ?context)
+;; (get_context ?context)
 ;; (filter ?set-1 ?context Y)
 ;; (unique ?obj-1 ?set-1)
 ;;
@@ -351,7 +351,7 @@
                (subunits (?is-unit ?det-np-unit-1 ?spatial-relation-unit ?det-np-unit-2)))
               <-
               (?is-unit
-               (HASH meaning ((get-context ?source)
+               (HASH meaning ((get_context ?source)
                               (verify_relation ?target ?object-2 ?object-1 ?spatial-relation)))
                --
                (HASH form ((string ?is-unit "is")
@@ -396,7 +396,7 @@
 ;; Is the X A?
 ;; Is the cat black?
 
-;; (get-context ?context)
+;; (get_context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj ?set-1)
 ;; (verify ?target ?obj A)
@@ -406,7 +406,7 @@
                (subunits (?is-unit ?determined-noun-phrase-unit ?adjective-unit)))
               <-
               (?is-unit
-               (HASH meaning ((get-context ?source)
+               (HASH meaning ((get_context ?source)
                               (verify ?target ?object ?category)))
                --
                (HASH form ((string ?is-unit "is")
@@ -439,7 +439,7 @@
 ;; Is the X A or B?
 ;; Is the cat black or white?
 
-;; (get-context ?context)
+;; (get_context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj-1 ?set-1)
 ;; (choose ?target ?obj-1 ?option-A ?option-B)
@@ -479,7 +479,7 @@
                (footprints (NOT nominal))
                (syn-cat (lex-class adjective)))
               (?or-unit
-               (HASH meaning ((get-context ?source)
+               (HASH meaning ((get_context ?source)
                               (choose ?target ?object ?category-A ?category-B)))
                --
                (HASH form ((string ?or-unit "or")
@@ -501,7 +501,7 @@
 ;; Is the X on the left side or on the right side?
 ;; Is the X on the left side or on the right side of the picture?
 
-;; (get-context ?context)
+;; (get_context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj-1 ?set-1)
 ;; (choose ?target ?obj-1 ?option-A ?option-B)
@@ -509,7 +509,7 @@
 ;; Where in the view is the X, on the left or on the right?
 ;; Where in the view is the X, on the left side or on the right side?
 
-;; (get-context ?context)
+;; (get_context ?context)
 ;; (filter ?set-1 ?context X)
 ;; (unique ?obj-1 ?set-1)
 ;; (choose ?target ?obj-1 ?option-A ?option-B)
@@ -569,7 +569,7 @@
                (superunits (?clause)))
               <-
               (?is-unit
-               (HASH meaning ((get-context ?source)))
+               (HASH meaning ((get_context ?source)))
                --
                (HASH form ((string ?is-unit "is")
                            (meets ?is-unit ?leftmost-np-unit))))
@@ -717,7 +717,7 @@
 ;; Are there any Xs or Ys?
 ;; Are there either any Xs or Ys?
 
-;; ((get-context ?context)
+;; ((get_context ?context)
 ;;  (filter ?X-set ?context X)
 ;;  (exist ?X-exist ?X-set)
 ;;  (filter ?Y-set ?context Y)
@@ -783,7 +783,7 @@
                (subunits (?are-unit ?there-unit ?disjunction-unit)))
               <-
               (?are-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?are-unit "are")
                            (meets ?are-unit ?there-unit))))
@@ -812,7 +812,7 @@
                (subunits (?are-there-unit ?disjunction-unit)))
               <-
               (?are-there-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (exist ?bool-1 ?set-1)
                               (exist ?bool-2 ?set-2)))
                --
@@ -837,7 +837,7 @@
                (subunits (?are-there-unit ?disjunction-unit)))
               <-
               (?are-there-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (exist ?bool-1 ?set-1)
                               (exist ?bool-2 ?set-2)))
                --
@@ -906,7 +906,7 @@
 ;; Are there both Xs and Ys?
 ;; Are there both Xs and Ys in the view?
 
-;; ((get-context ?context)
+;; ((get_context ?context)
 ;;  (filter ?X-set ?context X)
 ;;  (exist ?X-exist ?X-set)
 ;;  (filter ?Y-set ?context Y)
@@ -972,7 +972,7 @@
                (subunits (?are-unit ?there-unit ?conjunction-unit)))
               <-
               (?are-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?are-unit "are")
                            (meets ?are-unit ?there-unit))))
@@ -1001,7 +1001,7 @@
                (subunits (?are-there-unit ?conjunction-unit)))
               <-
               (?are-there-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (exist ?bool-1 ?set-1)
                               (exist ?bool-2 ?set-2)))
                --

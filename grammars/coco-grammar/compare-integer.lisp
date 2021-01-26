@@ -47,13 +47,13 @@
                (args ((sources ?src-1 ?src-2)
                       (target ?target)))
                (sem-cat (sem-class countable-comparator)
-                        (comparison less-than))
+                        (comparison less_than))
                (syn-cat (syn-class comparative-adjective)))
               <-
               (?comparator-unit
                (HASH meaning ((count! ?count-1 ?src-1)
                               (count! ?count-2 ?src-2)
-                              (less-than ?target ?count-1 ?count-2)))
+                              (less_than ?target ?count-1 ?count-2)))
                --
                (HASH form ((string ?comparator-unit "fewer")))))
              :cxn-set cxn
@@ -64,13 +64,13 @@
                (args ((sources ?src-1 ?src-2)
                       (target ?target)))
                (sem-cat (sem-class countable-comparator)
-                        (comparison greater-than))
+                        (comparison greater_than))
                (syn-cat (syn-class comparative-adjective)))
               <-
               (?comparator-unit
                (HASH meaning ((count! ?count-1 ?src-1)
                               (count! ?count-2 ?src-2)
-                              (greater-than ?target ?count-1 ?count-2)))
+                              (greater_than ?target ?count-1 ?count-2)))
                --
                (HASH form ((string ?comparator-unit "more")))))
              :cxn-set cxn
@@ -93,35 +93,35 @@
              :cxn-set cxn
              :cxn-inventory *COCO*)
 
-(def-fcg-cxn less-than-cxn
+(def-fcg-cxn less_than-cxn
              ((?comparator-unit
                (args ((sources ?src-1 ?src-2)
                       (target ?target)))
                (sem-cat (sem-class uncountable-comparator)
-                        (comparison less-than))
+                        (comparison less_than))
                (syn-cat (syn-class comparative-conjunction)))
               <-
               (?comparator-unit
                (HASH meaning ((count! ?count-1 ?src-1)
                               (count! ?count-2 ?src-2)
-                              (less-than ?target ?count-1 ?count-2)))
+                              (less_than ?target ?count-1 ?count-2)))
                --
                (HASH form ((string ?comparator-unit "less than")))))
              :cxn-set cxn
              :cxn-inventory *COCO*)
 
-(def-fcg-cxn greater-than-cxn
+(def-fcg-cxn greater_than-cxn
              ((?comparator-unit
                (args ((sources ?src-1 ?src-2)
                       (target ?target)))
                (sem-cat (sem-class uncountable-comparator)
-                        (comparison greater-than))
+                        (comparison greater_than))
                (syn-cat (syn-class comparative-conjunction)))
               <-
               (?comparator-unit
                (HASH meaning ((count! ?count-1 ?src-1)
                               (count! ?count-2 ?src-2)
-                              (greater-than ?target ?count-1 ?count-2)))
+                              (greater_than ?target ?count-1 ?count-2)))
                --
                (HASH form ((string ?comparator-unit "greater than")))))
              :cxn-set cxn
@@ -135,7 +135,7 @@
                (subunits (?there ?comparator-unit ?plural-nominal-unit-1 ?and ?plural-nominal-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?compare-unit "are")
                            (meets ?compare-unit ?there))))
@@ -198,7 +198,7 @@
                (subunits (?there ?comparator-unit ?plural-nominal-unit-1 ?than ?plural-nominal-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?compare-unit "are")
                            (meets ?compare-unit ?there))))
@@ -261,7 +261,7 @@
                (subunits (?plural-nominal-unit-1 ?comparator-unit ?number-of-unit ?plural-nominal-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                (HASH form ((string ?compare-unit "is the number of")
                            (meets ?compare-unit ?leftmost-nom-unit-1))))

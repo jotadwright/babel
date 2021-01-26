@@ -170,7 +170,7 @@
                (subunits (?rel-unit-1 ?and ?rel-unit-2 ?have ?compare-type-unit)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --
@@ -237,7 +237,7 @@
                (subunits (?compare-type-unit ?rel-unit-1 ?rel-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --
@@ -296,7 +296,7 @@
                (subunits (?rel-unit-1 ?compare-type-unit ?rel-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --
@@ -356,7 +356,7 @@
                (subunits (?rel-unit-1 ?have ?compare-type-unit ?rel-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --
@@ -437,7 +437,7 @@
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --
@@ -501,7 +501,7 @@
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --
@@ -564,7 +564,7 @@
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --
@@ -609,7 +609,7 @@
                (subunits (?rel-unit-1 ?and ?rel-unit-2 ?made-of ?compare-type-unit)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --
@@ -675,7 +675,7 @@
                (subunits (?rel-unit-1 ?made-of ?compare-type-unit ?rel-unit-2)))
               <-
               (?compare-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?value-1 ?object-1 ?attribute)
                               (query ?value-2 ?object-2 ?attribute)))
                --

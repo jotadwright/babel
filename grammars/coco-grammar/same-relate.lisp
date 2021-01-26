@@ -50,7 +50,7 @@
                (subunits (?exist-unit ?same-type-unit ?determined-noun-phrase-unit)))
               <-
               (?same-exist-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?exist-unit
@@ -102,7 +102,7 @@
                (subunits (?exist-unit ?made-of ?same-type-unit ?determined-noun-phrase-unit)))
               <-
               (?same-exist-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?exist-unit
@@ -159,7 +159,7 @@
                (subunits (?count-unit ?same-type-unit ?determined-noun-phrase-unit)))
               <-
               (?same-count-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?count-unit
@@ -212,7 +212,7 @@
                (subunits (?count-unit ?made-of ?same-type-unit ?determined-noun-phrase-unit)))
               <-
               (?same-count-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?count-unit
@@ -275,7 +275,7 @@
                (footprints (query)))
               <-
              (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
              (?query-type-unit
@@ -362,7 +362,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?query-type-unit
@@ -448,7 +448,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?determined-np-unit-1
@@ -535,7 +535,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?the
@@ -621,7 +621,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?declared-noun-phrase-unit
@@ -712,7 +712,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?there-is-unit
@@ -798,7 +798,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?declared-noun-phrase-unit
@@ -883,7 +883,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?there-is-unit
@@ -963,7 +963,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?query-type-unit
@@ -1054,7 +1054,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?query-type-unit
@@ -1144,7 +1144,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?determined-np-unit-1
@@ -1235,7 +1235,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?the
@@ -1325,7 +1325,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?declared-np-unit
@@ -1420,7 +1420,7 @@
                (footprints (query)))
               <-
               (?same-query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?there-is-unit

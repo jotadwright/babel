@@ -19,7 +19,7 @@
                (footprints (hop)))
               <-
               (?count-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?counting-unit
@@ -54,7 +54,7 @@
                (footprints (hop)))
               <-
               (?count-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (relate ?count-set ?object ?spatial-relation)))
                --
                )
@@ -108,7 +108,7 @@
                (footprints (hop)))
               <-
               (?count-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (relate ?count-set ?object ?spatial-relation)))
                --
                )
@@ -168,7 +168,7 @@
                (subunits (?are-any ?plural-nominal-unit ?visible)))
               <-
               (?exist-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (exist ?target ?exist-set)))
                --
                )
@@ -209,7 +209,7 @@
                (footprints (exist hop)))
               <-
               (?exist-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?existing-unit
@@ -242,7 +242,7 @@
                (footprints (exist hop)))
               <-
               (?exist-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (relate ?exist-set ?object ?spatial-relation)))
                --
                )
@@ -297,7 +297,7 @@
                (footprints (exist hop)))
               <-
               (?exist-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (relate ?exist-set ?object ?spatial-relation)))
                --
                )
@@ -360,7 +360,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?query-type-unit
@@ -404,7 +404,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?determined-noun-phrase-unit
@@ -449,7 +449,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?declared-noun-phrase-unit
@@ -498,7 +498,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute material)))
                --
@@ -537,7 +537,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?query-type-unit
@@ -585,7 +585,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute material)))
                --
@@ -625,7 +625,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)))
                --
                )
@@ -670,7 +670,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute size)))
                --
@@ -706,7 +706,7 @@
                (footprints (query)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute size)))
                --

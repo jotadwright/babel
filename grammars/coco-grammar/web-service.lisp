@@ -2,28 +2,6 @@
 
 (in-package :coco-web-service)
 
-;; verify_relation
-(coco-meaning->rpn (fcg:comprehend "Is the woman to the left of a person?"))
-;=> "get-context filter_coco[woman] unique get-context filter_coco[person] unique verify_relation[left]"
-
-;; verify_side
-(coco-meaning->rpn (fcg:comprehend "is the picture on the left side of the photo?"))
-;=> "get-context filter_coco[picture] unique verify_side[left]"
-
-;; verify
-(coco-meaning->rpn (fcg:comprehend "is the cat black?"))
-;=> "get-context filter_coco[cat] unique verify_color[black]"
-
-;; query
-(coco-meaning->rpn (fcg:comprehend "on which side of the picture is the picture?"))
-
-;; and
-(coco-meaning->rpn (fcg:comprehend "is there both dirt and grass in the photo?"))
-;; or
-(coco-meaning->rpn (fcg:comprehend "Are there either any boys or balls?"))
-
-(coco-meaning->rpn (fcg:comprehend "are there an equal number of cows and sheep?"))
-
 ;;;; Helper functions
 ;;;; ----------------
 

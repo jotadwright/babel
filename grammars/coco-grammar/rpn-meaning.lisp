@@ -32,10 +32,10 @@
 
 (defun duplicate-context (irl-program)
   "When the CLEVR program is a tree, the meaning network has a single
-   get-context predicate that links to 2 (or more) other predicates.
-   Decouple these get-context predicates such that the meaning network
+   get_context predicate that links to 2 (or more) other predicates.
+   Decouple these get_context predicates such that the meaning network
    is also a tree"
-  (let* ((context-predicate (find 'get-context irl-program :key #'first))
+  (let* ((context-predicate (find 'coco-grammar::get_context irl-program :key #'first))
          (context-var (second context-predicate))
          (next-predicates (all-linked-predicates context-predicate context-var irl-program)))
     (when (> (length next-predicates) 1)
@@ -45,7 +45,7 @@
               for predicate in next-predicates
               do (progn
                    (setf irl-program (remove predicate irl-program :test #'equal))
-                   (push `(get-context ,var) irl-program)
+                   (push `(get_context ,var) irl-program)
                    (push (subst var context-var predicate) irl-program))
               finally
               (setf irl-program (remove context-predicate irl-program :test #'equal)))))
@@ -167,7 +167,7 @@
                  (format nil "~a_~a[~a]"
                          (first elem)
                          (second elem)
-                         (third elem))))))))
+                         (replace-char (mkstr (third elem)) #\- #\space))))))))
 
 (defun coco-meaning->rpn (irl-program)
   "This function takes care of all the steps to transform
@@ -175,12 +175,12 @@
    - variablify the network; all symbols except the predicate names
      are turned to variables. For bind statements, only the third
      element become variables.
-   - preprocess the network; e.g. duplicate the get-context if needed
+   - preprocess the network; e.g. duplicate the get_context if needed
      and remove filter(thing) operations
    - transform to RPN notation; each operation is a list of symbols,
-     e.g. ((get-context) (filter color red))
+     e.g. ((get_context) (filter color red))
    - RPN to list of string; using the facebook notation,
-     e.g. get-context filter_color[red]
+     e.g. get_context filter_color[red]
    - list of string to single string"
   (list-of-strings->string 
    (rpn->str
@@ -229,12 +229,12 @@
     `((equal-integer ,(make-var)
                     ,(second last-predicate)
                     ,(second other-predicate))))
-   ((string= rpn-fn "less-than")
-    `((less-than ,(make-var)
+   ((string= rpn-fn "less_than")
+    `((less_than ,(make-var)
                 ,(second last-predicate)
                 ,(second other-predicate))))
-   ((string= rpn-fn "greater-than")
-    `((greater-than ,(make-var)
+   ((string= rpn-fn "greater_than")
+    `((greater_than ,(make-var)
                    ,(second last-predicate)
                    ,(second other-predicate))))
    ((search "equal" rpn-fn)
@@ -321,7 +321,7 @@
                      (setf irl-program
                            (append 
                             (rpn-filters->irl filter-stack
-                                              `(get-context ,context-variable))
+                                              `(get_context ,context-variable))
                             irl-program)))
                    (setf irl-program
                          (append
@@ -329,7 +329,7 @@
                                             (first irl-program))
                           irl-program)))
                  (setf filter-stack nil))
-               (if (string= rpn-fn "get-context")
+               (if (string= rpn-fn "get_context")
                  (if context-variable
                    (progn
                      (setf keep-fn (first irl-program))
@@ -337,7 +337,7 @@
                    (let ((v (make-var)))
                      (setf context-variable v)
                      (push
-                      `(get-context ,context-variable)
+                      `(get_context ,context-variable)
                       irl-program)))
                  (if use-context-var-next
                    (progn (setf use-context-var-next nil)
@@ -345,7 +345,7 @@
                           (append 
                             (rpn-fn->irl rpn-fn
                                          (first irl-program)
-                                         `(get-context ,context-variable))
+                                         `(get_context ,context-variable))
                            irl-program)))
                    (setf irl-program
                          (append 

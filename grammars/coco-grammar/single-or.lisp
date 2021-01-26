@@ -116,7 +116,7 @@
                (footprints (single-or)))
               <-
               (?count-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?counting-unit

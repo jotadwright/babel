@@ -184,7 +184,7 @@
                (footprints (single-and)))
               <-
               (?count-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?counting-unit
@@ -224,7 +224,7 @@
                (subunits (?query-type-unit ?determined-noun-phrase-unit ?that-is ?intersect-unit)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?query-type-unit
@@ -279,7 +279,7 @@
                (subunits (?determined-noun-phrase-unit ?that-is ?intersect-unit ?query-type-unit)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?determined-noun-phrase-unit
@@ -335,7 +335,7 @@
                (subunits (?declared-noun-phrase-unit ?that-is ?intersect-unit ?semicolon ?query-type-unit)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((get_context ?context)))
                --
                )
               (?declared-noun-phrase-unit
@@ -395,7 +395,7 @@
                (subunits (?determined-noun-phrase-unit ?that-is ?intersect-unit)))
               <-
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute size)))
                --
@@ -474,7 +474,7 @@
                            (meets ?rightmost-intersect-unit ?semicolon)
                            (meets ?semicolon ?query-unit))))
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute size)))
                --
@@ -523,7 +523,7 @@
                (leftmost-unit ?leftmost-intersect-unit)
                (rightmost-unit ?rightmost-intersect-unit))
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute material)))
                --
@@ -569,7 +569,7 @@
                (leftmost-unit ?leftmost-intersect-unit)
                (rightmost-unit ?rightmost-intersect-unit))
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)))
                --
                (HASH form ((string ?query-unit "is made of what")
@@ -629,7 +629,7 @@
                            (meets ?rightmost-intersect-unit ?semicolon)
                            (meets ?semicolon ?query-unit))))
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute material)))
                --
@@ -691,7 +691,7 @@
                (syn-cat (lex-class noun))
                (sem-cat (sem-class attribute)))
               (?query-unit
-               (HASH meaning ((get-context ?context)
+               (HASH meaning ((get_context ?context)
                               (query ?target ?object ?attribute)))
                --
                (HASH form ((string ?query-unit "is it made of")
