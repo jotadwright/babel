@@ -90,7 +90,7 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "propbank-grammar-partial"
+                                :name "propbank-grammar-ontonotes-ewt-cleaned"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
