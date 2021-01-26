@@ -297,7 +297,7 @@
                (superunits (?relate-unit)))
               <-
               (?is-unit
-               (HASH meaning ((verify ?out ?object ?side)))
+               (HASH meaning ((verify_side ?out ?object ?side)))
                --
                (HASH form ((string ?is-unit "is")
                            (meets ?is-unit ?leftmost-np-unit))))
@@ -352,7 +352,7 @@
               <-
               (?is-unit
                (HASH meaning ((get-context ?source)
-                              (verify ?target ?object-2 ?object-1 ?spatial-relation)))
+                              (verify_relation ?target ?object-2 ?object-1 ?spatial-relation)))
                --
                (HASH form ((string ?is-unit "is")
                            (meets ?is-unit ?leftmost-np-unit-1))))

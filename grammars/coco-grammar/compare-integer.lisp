@@ -19,7 +19,7 @@
               (?comparator-unit
                (HASH meaning ((count! ?count-1 ?src-1)
                               (count! ?count-2 ?src-2)
-                              (equal-integer ?target ?count-1 ?count-2)))
+                              (equal_integer ?target ?count-1 ?count-2)))
                --
                (HASH form ((string ?comparator-unit "an equal number of")))))
              :cxn-set cxn
@@ -36,7 +36,7 @@
               (?comparator-unit
                (HASH meaning ((count! ?count-1 ?src-1)
                               (count! ?count-2 ?src-2)
-                              (equal-integer ?target ?count-1 ?count-2)))
+                              (equal_integer ?target ?count-1 ?count-2)))
                --
                (HASH form ((string ?comparator-unit "the same number of")))))
              :cxn-set cxn
@@ -87,7 +87,7 @@
               (?comparator-unit
                (HASH meaning ((count! ?count-1 ?src-1)
                               (count! ?count-2 ?src-2)
-                              (equal-integer ?target ?count-1 ?count-2)))
+                              (equal_integer ?target ?count-1 ?count-2)))
                --
                (HASH form ((string ?comparator-unit "the same as")))))
              :cxn-set cxn

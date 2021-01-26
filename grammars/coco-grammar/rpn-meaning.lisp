@@ -21,14 +21,13 @@
 (defun input-vars (predicate)
   "Get the (possibly multiple) input variable(s) of a predicate"
   (unless (eql (first predicate) 'bind)
-    (cond ((member (first predicate) '(filter query same equal? relate))
+    (cond ((member (first predicate) '(filter query same equal? relate
+                                       coco-grammar::verify_side
+                                       coco-grammar::verify
+                                       coco-grammar::verify_relation))
            (subseq predicate 2 (- (length predicate) 1)))
           ((eql (first predicate) 'coco-grammar::choose)
            (subseq predicate 2 (- (length predicate) 2)))
-          ((eql (first predicate) 'coco-grammar::verify)
-           (if (= (length predicate) 4)
-             (list (third predicate))
-             (subseq predicate 2 (- (length predicate) 1))))
           (t (subseq predicate 2)))))
 
 (defun duplicate-context (irl-program)
@@ -97,15 +96,18 @@
 (defun predicate->polish (predicate bind-statements)
   "Write a predicate in polish notation"
   (if bind-statements
-    (cond ((eql (first predicate) 'filter)
+    (cond ((or (eql (first predicate) 'filter)
+               (eql (first predicate) 'coco-grammar::verify))
            (let ((bind-statement (first bind-statements)))
              (list (first predicate)
                    (read-from-string (downcase (first (split (mkstr (second bind-statement)) #\-))))
                    (fourth bind-statement))))
+          ((or (eql (first predicate) 'coco-grammar::verify_side)
+               (eql (first predicate) 'coco-grammar::verify_relation))
+           (let ((parts (split (mkstr (first predicate)) #\_)))
+             (list (first parts) (second parts)
+                   (fourth (first bind-statements)))))
           ((eql (first predicate) 'coco-grammar::choose)
-           (list (first predicate)
-                 (read-from-string (downcase (first (split (mkstr (second (first bind-statements))) #\-))))))
-          ((eql (first predicate) 'coco-grammar::or)
            (list (first predicate)
                  (read-from-string (downcase (first (split (mkstr (second (first bind-statements))) #\-))))))
           (t (list (first predicate)
@@ -159,8 +161,8 @@
                  (mkstr (first elem)))
                 ((= (length elem) 2)
                  (format nil "~a_~a"
-                         (first elem)
-                         (second elem)))
+                           (first elem)
+                           (second elem)))
                 ((= (length elem) 3)
                  (format nil "~a_~a[~a]"
                          (first elem)
