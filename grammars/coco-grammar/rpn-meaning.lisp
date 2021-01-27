@@ -22,7 +22,6 @@
   "Get the (possibly multiple) input variable(s) of a predicate"
   (unless (eql (first predicate) 'bind)
     (cond ((member (first predicate) '(filter query same equal? relate
-                                       coco-grammar::verify_side
                                        coco-grammar::verify
                                        coco-grammar::verify_relation))
            (subseq predicate 2 (- (length predicate) 1)))
@@ -102,8 +101,7 @@
              (list (first predicate)
                    (read-from-string (downcase (first (split (mkstr (second bind-statement)) #\-))))
                    (fourth bind-statement))))
-          ((or (eql (first predicate) 'coco-grammar::verify_side)
-               (eql (first predicate) 'coco-grammar::verify_relation))
+          ((eql (first predicate) 'coco-grammar::verify_relation)
            (let ((parts (split (mkstr (first predicate)) #\_)))
              (list (first parts) (second parts)
                    (fourth (first bind-statements)))))

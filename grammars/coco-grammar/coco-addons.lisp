@@ -98,7 +98,7 @@
               <-
               (?where-in-unit
                (HASH meaning ((query ?out ?object ?side)
-                              (bind attribute-category ?side side)))
+                              (bind attribute-category ?side spatial)))
                --
                (HASH form ((string ?where-in-unit "where in")
                            (meets ?where-in-unit ?leftmost-view-unit))))
@@ -151,7 +151,7 @@
               <-
               (?on-which-side-unit
                (HASH meaning ((query ?target ?object ?side)
-                              (bind attribute-category ?side side)))
+                              (bind attribute-category ?side spatial)))
                --
                (HASH form ((string ?on-which-side-unit "on which side of")
                            (meets ?on-which-side-unit ?leftmost-view-unit))))
@@ -195,7 +195,7 @@
               <-
               (?where-is-unit
                (HASH meaning ((query ?out ?object ?side)
-                              (bind attribute-category ?side side)
+                              (bind attribute-category ?side spatial)
                               (get_context ?source)))
                --
                (HASH form ((string ?where-is-unit "where is")
@@ -221,7 +221,7 @@
               <-
               (?which-side-is-unit
                (HASH meaning ((get_context ?source)
-                              (query ?target ?object ?side)
+                              (query ?target ?object spatial)
                               (bind attribute-category ?side side)))
                --
                (HASH form ((string ?which-side-is-unit "which side is")
@@ -250,7 +250,7 @@
               <-
               (?on-which-side-is-unit
                (HASH meaning ((get_context ?source)
-                              (query ?target ?object ?side)
+                              (query ?target ?object spatial)
                               (bind attribute-category ?side side)))
                --
                (HASH form ((string ?on-which-side-is-unit "on which side is")
@@ -297,7 +297,7 @@
                (superunits (?relate-unit)))
               <-
               (?is-unit
-               (HASH meaning ((verify_side ?out ?object ?side)))
+               (HASH meaning ((verify ?out ?object ?side)))
                --
                (HASH form ((string ?is-unit "is")
                            (meets ?is-unit ?leftmost-np-unit))))

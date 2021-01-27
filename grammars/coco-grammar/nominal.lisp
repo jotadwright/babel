@@ -152,7 +152,7 @@
                (superunits (?determined-noun-phrase-unit)))
               <-
               (?determiner-unit
-               (HASH meaning ((unique ?target-object ?target-set)))
+               (HASH meaning ((any ?target-object ?target-set)))
                --
                (HASH form ((string ?determiner-unit "a")
                            (meets ?determiner-unit ?leftmost-nom-unit))))
