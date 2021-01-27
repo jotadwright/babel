@@ -165,7 +165,7 @@
                  (format nil "~a_~a[~a]"
                          (first elem)
                          (second elem)
-                         (replace-char (mkstr (third elem)) #\- #\space))))))))
+                         (third elem))))))))
 
 (defun coco-meaning->rpn (irl-program)
   "This function takes care of all the steps to transform
