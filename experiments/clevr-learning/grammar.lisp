@@ -78,7 +78,10 @@
   (grammar agent))
 
 (defun delete-cxn-and-th-node (cxn cxn-inventory)
-  (let ((lex-class (gl::lex-class-cxn cxn))
+  (let ((lex-class
+         (loop for unit in (contributing-part cxn)
+               for lex-class = (gl::lex-class-item-based unit)
+               when lex-class return lex-class))
         (type-hierarchy (get-type-hierarchy cxn-inventory)))
     (delete-cxn cxn cxn-inventory)
     (notify lexicon-changed)

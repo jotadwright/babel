@@ -156,15 +156,22 @@
 ;;    to learn something?
 
 (defun all-applied-cxns (cipn)
+  ;; take all the non-duplicate leaf nodes
   (let ((leaf-nodes
-         (remove nil
-                 (traverse-depth-first
-                  (cip cipn) :collect-fn #'(lambda (node)
+         (remove-if #'(lambda (node)
+                        (find 'fcg::duplicate (fcg::statuses node)))
+                    (remove nil
+                            (traverse-depth-first
+                             (cip cipn)
+                             :collect-fn #'(lambda (node)
                                              (when (null (children node))
-                                               node))))))
+                                               node)))))))
+    ;; if there is only 1 leaf node, extract the applied cxns
     (if (length= leaf-nodes 1)
       (mapcar #'get-original-cxn
               (fcg::applied-constructions (first leaf-nodes)))
+      ;; if there are multiple leaf nodes, check if they are permutations
+      ;; if they are not, take the leaf node with the most applied cxns
       (let* ((applied-cxns-per-branch
               (loop for node in leaf-nodes
                     collect (mapcar #'get-original-cxn
@@ -175,7 +182,7 @@
                     always (permutation-of? other-cxns applied-cxns))))
         (if other-branches-identical-p
           applied-cxns
-          (apply #'append applied-cxns-per-branch))))))
+          (the-biggest #'length applied-cxns-per-branch))))))
           
   
 
