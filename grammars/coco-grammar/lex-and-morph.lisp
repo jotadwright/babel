@@ -29,7 +29,7 @@
                                    (number ?number)))
                          <-
                          (,unit-name
-                          (HASH meaning ((bind coco-category ,out-var ,(internal-symb (hyphenize lex-id)))))
+                          (HASH meaning ((bind entity ,out-var ,(internal-symb (hyphenize lex-id)))))
                           --
                           (lex-id ,(internal-symb (hyphenize lex-id)))
                           (syn-cat (number ?number))))

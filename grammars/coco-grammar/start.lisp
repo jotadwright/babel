@@ -2,6 +2,8 @@
 (in-package :coco-grammar)
 (activate-monitor trace-fcg)
 
+(comprehend "is there a suitcase on the pavement")
+
 (comprehend "how many cows are there?")
 (comprehend "is there a sheep left of the cow?")
 (comprehend "how many sheep are right of the cow?")

@@ -3,16 +3,10 @@
 (in-package :coco-web-service)
 
 #|
-(coco-meaning->rpn (fcg:comprehend "is the cat on the left or on the right")) ; choose_spatial
-(coco-meaning->rpn (fcg:comprehend "is the cat on the left side of the photo")) ; verify_spatial[left]
-(coco-meaning->rpn (fcg:comprehend "is the cat black")) ; verify_color[black]
-(coco-meaning->rpn (fcg:comprehend "is the cat on the left side of the person")) ; verify_relation[left]
-(coco-meaning->rpn (fcg:comprehend "on which side of the photo is the cat")) ; query_spatial
-
-(coco-meaning->rpn (fcg:comprehend "are there any suitcases on the pavement"))
-(coco-meaning->rpn (fcg:comprehend "is the man in a canoe"))
-(coco-meaning->rpn (fcg:comprehend "is the person in a car"))
-;; => "get_context filter_coco[person] unique get_context filter_coco[car] any verify_relation[in]"
+ (coco-meaning->rpn (fcg:comprehend "is the cat black or white"))
+ ;; => "get_context filter_entity[cat] unique choose_color[black|white]"
+ (coco-meaning->rpn (fcg:comprehend "is the cat on the left or on the right"))
+ ;; => "get_context filter_entity[cat] unique choose_spatial[left|right]"
 |#
 
 ;;;; Helper functions

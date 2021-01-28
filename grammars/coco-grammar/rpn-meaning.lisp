@@ -107,7 +107,9 @@
                    (fourth (first bind-statements)))))
           ((eql (first predicate) 'coco-grammar::choose)
            (list (first predicate)
-                 (read-from-string (downcase (first (split (mkstr (second (first bind-statements))) #\-))))))
+                 (read-from-string (downcase (first (split (mkstr (second (first bind-statements))) #\-))))
+                 (fourth (first bind-statements))
+                 (fourth (second bind-statements))))
           (t (list (first predicate)
                    (fourth (first bind-statements)))))
     (list (first predicate))))
@@ -165,7 +167,11 @@
                  (format nil "~a_~a[~a]"
                          (first elem)
                          (second elem)
-                         (third elem))))))))
+                         (third elem)))
+                ((= (length elem) 4)
+                 (format nil "~a_~a[~a|~a]"
+                         (first elem) (second elem)
+                         (third elem) (fourth elem))))))))
 
 (defun coco-meaning->rpn (irl-program)
   "This function takes care of all the steps to transform
