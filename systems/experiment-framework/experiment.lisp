@@ -260,6 +260,7 @@ name."
        (monitors::deactivate-all-monitors)
         (loop for monitor-string in monitors
               for monitor = (monitors::get-monitor (read-from-string monitor-string))
+              do (monitors::activate-monitor-method (read-from-string monitor-string))
               when (slot-exists-p monitor 'file-name)
               do (setf (slot-value monitor 'file-name)
                        (ensure-directories-exist
@@ -267,8 +268,7 @@ name."
                                                         `(:relative ,(string-downcase (symbol-name (first configuration))))
                                                         :name (pathname-name (file-name monitor)) 
                                                         :type (pathname-type (file-name monitor)))
-                                         output-dir)))
-             (monitors::activate-monitor-method (read-from-string monitor-string)))
+                                         output-dir))))
        
         ;; run the actual batch for the current configuration
          (run-batch experiment-class number-of-interactions number-of-series

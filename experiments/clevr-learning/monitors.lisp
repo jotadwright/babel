@@ -368,3 +368,15 @@
     (record-value monitor (if (or (find 'item-based applied-cxns :key #'get-cxn-type)
                                   (find 'lexical applied-cxns :key #'get-cxn-type))
                             1 0))))
+
+
+;; export type hierarchy after series
+(define-monitor export-type-hierarchy)
+
+(defun export-type-hierarchy (agent)
+  (let ((th (get-type-hierarchy (grammar agent))))
+    (type-hierarchy->image th :render-program "circo" :weights? t :format "pdf")))
+
+(define-event-handler (export-type-hierarchy run-series-finished)
+  (export-type-hierarchy (learner experiment)))
+    

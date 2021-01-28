@@ -133,28 +133,6 @@
 
 (define-event parsing-succeeded)
 
-
-;; It is possible that FCG has tried multiple branches
-;; and none of them lead to a solution.
-;; However, combining the cxns applied in these branches
-;; can allow us to learn something...
-;; There are several cases:
-;; 1. permutations
-;;    Applying X-cxn and Y-cxn in branch 1
-;;    Applying Y-cxn and X-cxn in branch 2
-;;    This can be detected through 'permutation-of?'
-;;    Here, we only want to consider the cxns of one of the branches
-;; 2. competitors
-;;    Applying the-X-is-what-color-1-cxn and the-X-is-what-color-2-cxn
-;;    This can be detected through the form of the cxns
-;;    Here, we want to consider just one of them?
-;; (3. competitors and permutations can occur together?)
-;; 4. none of the above
-;;    the-big-X-is-what-color in branch 1
-;;    big-cxn in branch 2
-;;    Here, we want to comine the applied cxns of the branches
-;;    to learn something?
-
 (defun all-applied-cxns (cipn)
   ;; take all the non-duplicate leaf nodes
   (let ((leaf-nodes
@@ -171,7 +149,8 @@
       (mapcar #'get-original-cxn
               (fcg::applied-constructions (first leaf-nodes)))
       ;; if there are multiple leaf nodes, check if they are permutations
-      ;; if they are not, take the leaf node with the most applied cxns
+      ;; if they are not, take the leaf node with the most applied cxns (?)
+      ;; TO DO; how to determine the best leaf node to take?? 
       (let* ((applied-cxns-per-branch
               (loop for node in leaf-nodes
                     collect (mapcar #'get-original-cxn

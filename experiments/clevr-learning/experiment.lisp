@@ -72,9 +72,7 @@
   ;; fill the confidence buffer with zeros
   (setf (confidence-buffer experiment)
         (make-list (get-configuration experiment :evaluation-window-size)
-                   :initial-element 0))
-  ;; activate dot printing monitor
-  (activate-monitor print-a-dot-for-each-interaction))
+                   :initial-element 0)))
 
 (define-event challenge-level-questions-loaded (level number))
 
