@@ -216,7 +216,7 @@
                  (:hash-mode . :hash-string-meaning-lex-id)
                  (:priority-mode . :nr-of-applied-cxns)
                  (:parse-order hashed cxn)
-                 (:production-order hashed-lex nom cxn hashed-morph)
+                 (:production-order hashed-lex cxn hashed-morph)
                  (:node-tests :check-duplicate)
                  (:cxn-sets-with-sequential-application hashed-lex hashed-morph)))
               (:priming
@@ -225,7 +225,7 @@
                  (:hash-mode . :hash-string-meaning-lex-id)
                  (:priority-mode . :priming)
                  (:parse-order hashed cxn)
-                 (:production-order hashed-lex nom cxn hashed-morph)
+                 (:production-order hashed-lex cxn hashed-morph)
                  (:node-tests :check-duplicate)
                  (:cxn-sets-with-sequential-application hashed-lex hashed-morph))))))
       ;; set the configurations for the CLEVR grammar
