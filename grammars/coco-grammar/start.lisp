@@ -90,3 +90,5 @@
 (comprehend "Are there either any chimneys or flags?")
 (comprehend "Are there both giraffes and dogs in the photograph?")
 (comprehend "is there both dirt and grass in the photo?")
+(comprehend "are there any girls to the right of the boy on the left?")
+(comprehend "is the traffic light on the left red?")

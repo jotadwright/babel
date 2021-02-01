@@ -7,6 +7,8 @@
  ;; => "get_context filter_entity[cat] unique choose_color[black|white]"
  (coco-meaning->rpn (fcg:comprehend "is the cat on the left or on the right"))
  ;; => "get_context filter_entity[cat] unique choose_spatial[left|right]"
+ (coco-meaning->rpn (fcg:comprehend "are there any girls to the right of the boy on the left?"))
+ ;; => "get_context filter_entity[man] filter_spatial[left] unique relate_right filter_entity[woman] exist"
 |#
 
 ;;;; Helper functions
