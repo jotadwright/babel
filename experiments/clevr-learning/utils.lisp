@@ -32,7 +32,9 @@
                                  "export-confidence-level"))
                          (determine-interacting-agents-mode :tutor-learner)
                          (questions-per-challenge 1000)
-                         (alignment-strategy :lateral-inhibition+store-past-scenes))
+                         (alignment-strategy :minimal-holophrases+lateral-inhibition)
+                         (composer-strategy :store-past-scenes)
+                         (hide-type-hierarchy nil))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
     :experiment-class 'clevr-learning-experiment 
@@ -41,7 +43,9 @@
     :named-configurations strategies
     :shared-configuration `((:determine-interacting-agents-mode . ,determine-interacting-agents-mode)
                             (:alignment-strategy . ,alignment-strategy)
-                            (:questions-per-challenge . ,questions-per-challenge))
+                            (:composer-strategy . ,composer-strategy)
+                            (:questions-per-challenge . ,questions-per-challenge)
+                            (:hide-type-hierarchy . ,hide-type-hierarchy))
     :monitors monitors
     :output-dir (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))

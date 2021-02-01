@@ -11,7 +11,7 @@
                      (:composer-strategy . :store-past-scenes)
                      (:hide-type-hierarchy . t)))
                    )
-                 :number-of-interactions 5000
+                 :number-of-interactions 15000
                  :number-of-series 1
                  :monitors (list ;; success
                                  "export-communicative-success"
