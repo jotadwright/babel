@@ -9,11 +9,13 @@
            #:add-edge-type
 	   #:graph
 	   #:copy-graph
-	   #:graph=
+	   #:graph-equal
 	   #:graph?
 	   #:directed?
 	   #:undirected?
+           #:node-ids
 	   #:add-node
+           #:delete-node
 	   #:adjust-adjacency-matrix
 	   #:lookup-node
 	   #:map-nodes
@@ -27,6 +29,7 @@
 	   #:neighbors
 	   #:inbound-neighbors
 	   #:outbound-neighbors
+           #:do-outbound-neighbors
 	   #:edges
 	   #:edge-exists?
 	   #:add-edge
@@ -42,6 +45,8 @@
 	   #:degree-distribution
 	   #:in-degree-distribution
 	   #:find-shortest-path
+           #:all-pairs-shortest-paths
+           #:reconstruct-path-all-pairs
 	   #:calculate-shortest-paths
            #:spanning-tree
 	   #:distance-map
