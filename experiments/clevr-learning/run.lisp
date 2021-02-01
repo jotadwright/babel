@@ -33,4 +33,5 @@
                                  "export-confidence-level"
                                  "export-type-hierarchy"
                                  "export-learner-grammar"
+                                 "print-a-dot-for-each-interaction"
                                  ))
