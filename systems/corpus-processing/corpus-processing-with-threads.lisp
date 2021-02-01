@@ -33,15 +33,15 @@
 
 (in-package :utils)
 
-(export '(process-corpus))
+(export '(process-corpus-with-threads))
 
-(defun process-corpus (&key function
-                            function-kwargs
-                            inputfile
-                            outputfile
-                            (number-of-threads 4)
-                            (number-of-lines-per-thread 2000)
-                            write-empty-lines-p)
+(defun process-corpus-with-threads (&key function
+                                         function-kwargs
+                                         inputfile
+                                         outputfile
+                                         (number-of-threads 4)
+                                         (number-of-lines-per-thread 2000)
+                                         write-empty-lines-p)
   "Applies function to every line in inputfile and writes the result in outputfile.
    A higher number-of-threads results in a higher speed (if these threads are available).
    A higher number-of-lines-per-thread results in a higher speed, but also in a higher
