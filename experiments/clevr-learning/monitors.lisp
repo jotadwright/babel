@@ -49,7 +49,7 @@
 ;;;; Lexicon size
 (define-monitor record-lexicon-size
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-lexicon-size
@@ -68,7 +68,7 @@
 ;;;; # of holophrase cxns
 (define-monitor record-nr-of-holophrase-cxns
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-nr-of-holophrase-cxns
@@ -87,7 +87,7 @@
 ;;;; # of item-based cxns
 (define-monitor record-nr-of-item-based-cxns
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-nr-of-item-based-cxns
@@ -106,7 +106,7 @@
 ;;;; # of lexical cxns
 (define-monitor record-nr-of-lexical-cxns
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-nr-of-lexical-cxns
@@ -329,7 +329,7 @@
 ;; holophrase-cxn-usage
 (define-monitor record-holophrase-cxn-usage
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1
                 :documentation "records how often the lexicon changes")
 
 (define-monitor export-holophrase-cxn-usage
@@ -350,7 +350,7 @@
 ;; item-based-cxn-usage
 (define-monitor record-item-based-cxn-usage
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1
                 :documentation "records how often the lexicon changes")
 
 (define-monitor export-item-based-cxn-usage
