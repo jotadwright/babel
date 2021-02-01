@@ -375,7 +375,15 @@
 
 (defun export-type-hierarchy (agent)
   (let ((th (get-type-hierarchy (grammar agent))))
-    (type-hierarchy->image th :render-program "circo" :weights? t :format "pdf")))
+    (type-hierarchy->image th :render-program "circo" :weights? t
+                           :path (babel-pathname :directory '("experiments" "clevr-learning" "graphs"))
+                           :file-name (mkstr
+                                       (multiple-value-bind (sec min hour day month year)
+                                           (decode-universal-time (get-universal-time))
+                                         (format nil "~d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-"
+                                                 year month day hour min sec))
+                                       "learned-type-hierarchy")
+                           :format "pdf")))
 
 (define-event-handler (export-type-hierarchy run-series-finished)
   (export-type-hierarchy (learner experiment)))
