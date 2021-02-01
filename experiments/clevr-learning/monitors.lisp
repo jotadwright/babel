@@ -387,4 +387,16 @@
 
 (define-event-handler (export-type-hierarchy run-series-finished)
   (export-type-hierarchy (learner experiment)))
+
+;; export grammar after series
+(define-monitor export-learner-grammar)
+
+(defun export-grammar (cxn-inventory)
+  (let ((path (make-file-name-with-time
+               (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                               :name "learner-grammar" :type "store"))))
+    (cl-store:store cxn-inventory path)))
+
+(define-event-handler (export-learner-grammar run-series-finished)
+  (export-grammar (grammar (learner experiment))))
     

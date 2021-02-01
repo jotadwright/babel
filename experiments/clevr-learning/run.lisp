@@ -31,4 +31,6 @@
                                  ;; others
                                  "export-lexicon-change"
                                  "export-confidence-level"
+                                 "export-type-hierarchy"
+                                 "export-learner-grammar"
                                  ))
