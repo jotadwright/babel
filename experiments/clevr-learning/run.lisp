@@ -9,7 +9,8 @@
                     ((:questions-per-challenge . 500)
                      (:alignment-strategy . :minimal-holophrases+lateral-inhibition)
                      (:composer-strategy . :store-past-scenes)
-                     (:hide-type-hierarchy . t)))
+                     (:hide-type-hierarchy . t)
+                     (:question-sample-method . :first)))
                    )
                  :number-of-interactions 15000
                  :number-of-series 1
@@ -35,3 +36,22 @@
                                  "export-learner-grammar"
                                  "print-a-dot-for-each-interaction"
                                  ))
+    
+
+#|
+;; keep a list of "top-level arguments". After encountering
+;; --configurations, parse everything as a configuration until
+;; a top-level argument is encountered.
+
+;; keep a conversion function for each argument, e.g. #'identity
+;; or #'make-symbol or #'parse-integer, etc.
+ 
+ sbcl --load run.lisp --quit
+      --number-of-interactions 1000
+      --number-of-series 1
+      --experiment-name test
+      --configurations
+      --questions-per-challenge 500
+      --alignment-strategy blabla
+      --monitors
+|#

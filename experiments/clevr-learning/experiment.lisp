@@ -21,6 +21,7 @@
                                     (make-pathname :directory '(:relative "stage-3")
                                                    :name :wild :type "txt"))
 (define-configuration-default-value :questions-per-challenge 1000)
+(define-configuration-default-value :question-sample-method :random) ; random or first
 (define-configuration-default-value :clevr-world-data-sets '("val"))
 
 ;; Strategies and scores
@@ -77,20 +78,29 @@
 (define-event challenge-level-questions-loaded (level number))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment))
-  ;; Loads N (:questions-per-challenge) random questions
-  ;; of the current challenge level
+  ;; Loads N (:questions-per-challenge) questions of the current challenge level
+  ;; Either choose these questions randomly or take the first N
   (let* ((all-challenge-files
-          (directory
-           (merge-pathnames
-            (case (get-configuration experiment :current-challenge-level)
-              (1 (get-configuration experiment :challenge-1-files))
-              (2 (get-configuration experiment :challenge-2-files))
-              (3 (get-configuration experiment :challenge-3-files)))
-            (get-configuration experiment :challenge-files-root))))
+          (sort
+           (directory
+            (merge-pathnames
+             (case (get-configuration experiment :current-challenge-level)
+               (1 (get-configuration experiment :challenge-1-files))
+               (2 (get-configuration experiment :challenge-2-files))
+               (3 (get-configuration experiment :challenge-3-files)))
+             (get-configuration experiment :challenge-files-root)))
+           #'string< :key #'namestring))
+         (sample-method
+          (get-configuration experiment :question-sample-method))
+         (number-of-files
+          (get-configuration experiment :questions-per-challenge))
          (challenge-files
-          (let ((n (get-configuration experiment :questions-per-challenge)))
-            (if n (random-elts all-challenge-files n)
-              all-challenge-files))))
+          (cond ((eql sample-method :random)
+                 (random-elts all-challenge-files number-of-files))
+                ((eql sample-method :first)
+                 (subseq all-challenge-files 0 number-of-files))
+                ((eql sample-method :all)
+                 all-challenge-files))))
     (setf (question-files experiment) challenge-files)
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))

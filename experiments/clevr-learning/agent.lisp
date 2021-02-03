@@ -204,18 +204,20 @@
   ;; the agent's grammar
   (declare (ignorable trigger))
   (notify add-holophrase-repair-started)
-  (let* ((agent (owner (task (process object))))
-         (holophrase-cxn
-          (run-repair agent (get-data object 'applied-cxns)
-                      (get-data object 'cipn) :add-holophrase)))
-    (notify lexicon-changed)
-    (add-cxn holophrase-cxn (grammar agent))
-    (notify add-holophrase-new-cxn holophrase-cxn)
-    (make-instance 'fix
-                   :issued-by repair
-                   :problem problem
-                   ;:restart-data holophrase-cxn
-                   )))
+  (let ((agent (owner (task (process object)))))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent (get-data object 'applied-cxns)
+                    (get-data object 'cipn) :add-holophrase)
+      (declare (ignorable th-links))
+      (notify lexicon-changed)
+      (loop for cxn in cxns
+            do (add-cxn cxn (grammar agent)))
+      (notify add-holophrase-new-cxn (first cxns))
+      (make-instance 'fix
+                     :issued-by repair
+                     :problem problem
+                     ;:restart-data holophrase-cxn
+                     ))))
 
 
 (defclass repair-lexical->item-based (repair)
@@ -237,27 +239,24 @@
          (applied-cxns (get-data object 'applied-cxns))
          (cipn (get-data object 'cipn)))
     ;; only lexical cxns applied -> make an item-based cxn
-    (let ((item-based-cxn-and-th-links
-           (run-repair agent applied-cxns cipn :lexical->item-based)))
-      (when item-based-cxn-and-th-links
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent applied-cxns cipn :lexical->item-based)
+      (when (and cxns th-links)
         (notify lexical->item-based-repair-started)
-        (destructuring-bind (item-based-cxn th-links)
-            item-based-cxn-and-th-links
-          (notify lexicon-changed)
-          (add-cxn item-based-cxn (grammar agent))
-          ;; th-links are grouped per applied lex cxn
-          (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                for th-group in th-links
-                do (loop for th-link in th-group
-                         do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                         do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5)))
-          (notify lexical->item-based-new-cxn-and-links
-                  item-based-cxn (get-type-hierarchy (grammar agent)))
-          (make-instance 'fix
-                         :issued-by repair
-                         :problem problem
-                         ;:restart-data item-based-cxn
-                         ))))))
+        (notify lexicon-changed)
+        (loop for cxn in cxns
+              do (add-cxn cxn (grammar agent)))
+        (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              for th-link in th-links
+              do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+        (notify lexical->item-based-new-cxn-and-links
+                (first cxns) (get-type-hierarchy (grammar agent)))
+        (make-instance 'fix
+                       :issued-by repair
+                       :problem problem
+                       ;:restart-data item-based-cxn
+                       )))))
 
 
 
@@ -280,25 +279,24 @@
          (applied-cxns (get-data object 'applied-cxns))
          (cipn (get-data object 'cipn)))
     ;;  item-based cxn applied and root not empty -> make a lexical cxn
-    (let ((lex-cxn-and-th-links
-           (run-repair agent applied-cxns cipn :item-based->lexical)))
-      (when lex-cxn-and-th-links
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent applied-cxns cipn :item-based->lexical)
+      (when cxns
         (notify item-based->lexical-repair-started)
-        (destructuring-bind (lex-cxn th-groups) lex-cxn-and-th-links
-          (notify lexicon-changed)
-          (add-cxn lex-cxn (grammar agent))
-          (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
-                for th-group in th-groups
-                do (loop for th-link in th-group
-                         do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-                         do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5)))
-          (notify item-based->lexical-new-cxn-and-th-links
-                  lex-cxn (get-type-hierarchy (grammar agent)))
-          (make-instance 'fix
-                         :issued-by repair
-                         :problem problem
-                         ;:restart-data lex-cxn
-                         ))))))
+        (notify lexicon-changed)
+        (loop for cxn in cxns
+              do (add-cxn cxn (grammar agent)))
+        (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              for th-link in th-links
+              do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+        (notify item-based->lexical-new-cxn-and-th-links
+                (first cxns) (get-type-hierarchy (grammar agent)))
+        (make-instance 'fix
+                       :issued-by repair
+                       :problem problem
+                       ;:restart-data lex-cxn
+                       )))))
 
 
 
@@ -320,9 +318,10 @@
   ;; => add th links!
   (let* ((agent (owner (task (process object))))
          (applied-cxns (get-data object 'applied-cxns))
-         (cipn (get-data object 'cipn))
-         (th-links
-          (run-repair agent applied-cxns cipn :add-th-links)))
+         (cipn (get-data object 'cipn)))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent applied-cxns cipn :add-th-links)
+      (declare (ignorable cxns))
       (when th-links
         (notify add-th-links-repair-started)
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
@@ -334,7 +333,7 @@
                        :issued-by repair
                        :problem problem
                        ;:restart-data t
-                       ))))
+                       )))))
 
 
 (defmethod repair ((repair repair-make-holophrase-cxn)
@@ -346,18 +345,20 @@
   ;; the agent's grammar
   (declare (ignorable trigger))
   (notify add-holophrase-repair-started)
-  (let* ((agent (owner (task (process object))))
-         (holophrase-cxn
-          (run-repair agent (get-data object 'applied-cxns)
-                      (get-data object 'cipn) :add-holophrase)))
-    (notify lexicon-changed)
-    (add-cxn holophrase-cxn (grammar agent))
-    (notify add-holophrase-new-cxn holophrase-cxn)
-    (make-instance 'fix
-                   :issued-by repair
-                   :problem problem
-                   ;:restart-data holophrase-cxn
-                   )))
+  (let ((agent (owner (task (process object)))))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent (get-data object 'applied-cxns)
+                    (get-data object 'cipn) :add-holophrase)
+      (declare (ignorable th-links))
+      (notify lexicon-changed)
+      (loop for cxn in cxns
+            do (add-cxn cxn (grammar agent)))
+      (notify add-holophrase-new-cxn (first cxns))
+      (make-instance 'fix
+                     :issued-by repair
+                     :problem problem
+                     ;:restart-data holophrase-cxn
+                     ))))
 
 ;; NOTE: The following case is not covered yet:
 ;; "How big is the large cube?"
@@ -477,14 +478,16 @@
   ;; the agent's grammar
   (declare (ignorable trigger))
   (notify add-holophrase-repair-started)
-  (let* ((agent (owner (task (process object))))
-         (holophrase-cxn
-          (run-repair agent (get-data object 'applied-cxns)
-                      (get-data object 'cipn) :add-holophrase)))
-    (notify lexicon-changed)
-    (add-cxn holophrase-cxn (grammar agent))
-    (notify add-holophrase-new-cxn holophrase-cxn)
-    (make-instance 'fix :issued-by repair :problem problem)))
+  (let ((agent (owner (task (process object)))))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent (get-data object 'applied-cxns)
+                    (get-data object 'cipn) :add-holophrase)
+      (declare (ignorable th-links))
+      (notify lexicon-changed)
+      (loop for cxn in cxns
+            do (add-cxn cxn (grammar agent)))
+      (notify add-holophrase-new-cxn (first cxns))
+      (make-instance 'fix :issued-by repair :problem problem))))
 
 
 
@@ -506,24 +509,20 @@
   (let* ((agent (owner (task (process object))))
          (applied-cxns
           (find-data object 'applied-cxns))
-         (cipn (find-data object 'cipn))
-         (subsititution-cxns-and-th-links
-          (run-repair agent applied-cxns cipn :holophrase->item-based--substitution)))
-    (when subsititution-cxns-and-th-links
-      (notify holophrase->item-based-substitution-repair-started)
-      (destructuring-bind (cxn-1 cxn-2 cxn-3 &rest th-links)
-          subsititution-cxns-and-th-links
+         (cipn (find-data object 'cipn)))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent applied-cxns cipn :holophrase->item-based--substitution)
+      (when (and cxns th-links)
+        (notify holophrase->item-based-substitution-repair-started)
         (notify lexicon-changed)
-        (add-cxn cxn-1 (grammar agent))
-        (add-cxn cxn-2 (grammar agent))
-        (add-cxn cxn-3 (grammar agent))
+        (loop for cxn in cxns
+              do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify holophrase->item-based-subsititution-new-cxn-and-th-links
-                (list cxn-1 cxn-2 cxn-3)
-                (get-type-hierarchy (grammar agent)))
+                cxns (get-type-hierarchy (grammar agent)))
         (make-instance 'fix :issued-by repair :problem problem)))))
 
 
@@ -545,23 +544,20 @@
   (let* ((agent (owner (task (process object))))
          (applied-cxns
           (find-data object 'applied-cxns))
-         (cipn (find-data object 'cipn))
-         (addition-cxns-and-th-links
-          (run-repair agent applied-cxns cipn :holophrase->item-based--addition)))
-    (when addition-cxns-and-th-links
-      (notify holophrase->item-based-addition-repair-started)
-      (destructuring-bind (lex-cxn item-based-cxn &rest th-links)
-          addition-cxns-and-th-links
+         (cipn (find-data object 'cipn)))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent applied-cxns cipn :holophrase->item-based--addition)
+      (when (and cxns th-links)
+        (notify holophrase->item-based-addition-repair-started)
         (notify lexicon-changed)
-        (add-cxn lex-cxn (grammar agent))
-        (add-cxn item-based-cxn (grammar agent))
+        (loop for cxn in cxns
+              do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify holophrase->item-based-addition-new-cxn-and-th-links
-                (list lex-cxn item-based-cxn)
-                (get-type-hierarchy (grammar agent)))
+                cxns (get-type-hierarchy (grammar agent)))
         (make-instance 'fix :issued-by repair :problem problem)))))
 
 
@@ -584,24 +580,20 @@
   (let* ((agent (owner (task (process object))))
          (applied-cxns
           (find-data object 'applied-cxns))
-         (cipn (find-data object 'cipn))
-         (deletion-cxns-and-th-links
-          (run-repair agent applied-cxns cipn :holophrase->item-based--deletion)))
-    (when deletion-cxns-and-th-links
-      (notify holophrase->item-based-deletion-repair-started)
-      (destructuring-bind (lex-cxn item-based-cxn &rest th-links)
-          deletion-cxns-and-th-links
+         (cipn (find-data object 'cipn)))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent applied-cxns cipn :holophrase->item-based--deletion)
+      (when (and cxns th-links)
+        (notify holophrase->item-based-deletion-repair-started)
         (notify lexicon-changed)
-        (when lex-cxn
-          (add-cxn lex-cxn (grammar agent)))
-        (add-cxn item-based-cxn (grammar agent))
+        (loop for cxn in cxns
+              do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify holophrase->item-based-deletion-new-cxn-and-th-links
-                (list lex-cxn item-based-cxn)
-                (get-type-hierarchy (grammar agent)))
+                cxns (get-type-hierarchy (grammar agent)))
         (make-instance 'fix :issued-by repair :problem problem)))))
 
   

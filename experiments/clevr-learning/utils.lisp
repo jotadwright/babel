@@ -24,17 +24,34 @@
                          (number-of-interactions 5)
                          (number-of-series 1)
                          (monitors
-                           (list "export-communicative-success"
+                           (list ;; success
+                                 "export-communicative-success"
+                                 ;; lexicon size
                                  "export-lexicon-size"
-                                 "export-meanings-per-form"
-                                 "export-lexicon-change"
+                                 "export-nr-of-holophrase-cxns"
+                                 "export-nr-of-item-based-cxns"
+                                 "export-nr-of-lexical-cxns"
+                                 ;; cxn scores
                                  "export-avg-cxn-score"
-                                 "export-confidence-level"))
+                                 "export-avg-holophrase-cxn-score"
+                                 "export-avg-item-based-cxn-score"
+                                 "export-avg-lexical-cxn-score"
+                                 ;; type of applied cxns
+                                 "export-holophrase-cxn-usage"
+                                 "export-item-based-cxn-usage"
+                                 ;; others
+                                 "export-lexicon-change"
+                                 "export-confidence-level"
+                                 "export-type-hierarchy"
+                                 "export-learner-grammar"
+                                 "print-a-dot-for-each-interaction"
+                                 ))
                          (determine-interacting-agents-mode :tutor-learner)
-                         (questions-per-challenge 1000)
+                         (questions-per-challenge 500)
                          (alignment-strategy :minimal-holophrases+lateral-inhibition)
                          (composer-strategy :store-past-scenes)
-                         (hide-type-hierarchy nil))
+                         (hide-type-hierarchy t)
+                         (question-sample-method :first))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
     :experiment-class 'clevr-learning-experiment 
@@ -45,10 +62,13 @@
                             (:alignment-strategy . ,alignment-strategy)
                             (:composer-strategy . ,composer-strategy)
                             (:questions-per-challenge . ,questions-per-challenge)
-                            (:hide-type-hierarchy . ,hide-type-hierarchy))
+                            (:hide-type-hierarchy . ,hide-type-hierarchy)
+                            (:question-sample-method . ,question-sample-method))
     :monitors monitors
     :output-dir (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
+
+
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names
                                               y-axis y1-max y2-max xlabel y1-label y2-label
@@ -97,6 +117,8 @@
     :y2-label (when y2-label y2-label))
   (format t "~%Graphs have been created"))
 
+
+
 (defun create-num-cxns-per-type-graph (&key 
                                        (configurations nil)
                                        (nr-of-interactions 2000))
@@ -106,6 +128,8 @@
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-num-cxns-per-type)
   (format t "~%Graphs have been created"))
+
+
 
 (defun create-cxn-scores-per-type-graph (&key 
                                          (configurations nil)
