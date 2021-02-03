@@ -15,7 +15,7 @@
 (in-package :utils)
 
 (export '(run-prog pipe-through pipe-input pipe-output close-pipe with-open-pipe
-          exec-and-print exec-and-return open-file-in-OS copy-file which
+          exec-and-print exec-and-return open-file-in-OS copy-file
           program-installed-p number-of-lines who-am-i read-random-line))
 
 
@@ -211,13 +211,7 @@ Useful for re-using the &REST arg after removing some options."
 
 (defun program-installed-p (program)
   "uses 'which' to check if a given program is installed and in the PATH"
-  (exec-and-return "which" (mkstr program)))
-
-(defun which (program)
-  (cl-ppcre:regex-replace-all
-   "\\s+$"
-   (trivial-shell:shell-command (format nil "/usr/bin/which ~A" program))
-   ""))
+  (first (exec-and-return "which" (mkstr program))))
 
 (defun number-of-lines (file)
   "Returns the number of lines in a file"

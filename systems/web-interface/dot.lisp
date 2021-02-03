@@ -58,7 +58,7 @@
                                      (make-pathname :name "" 
                                                     :type format))
                     (mkstr (make-id 'graph))))))
-    (if (which render-program)
+    (if (program-installed-p render-program)
       (progn (ensure-directories-exist path)
         ;; create the graphic file
         (pipe-through 
@@ -103,7 +103,7 @@
 (defun s-dot->svg (s-dot-expression &key (render-program "dot"))
   "Renders the s-dot expression to the dot format, then runs dot on it
    and returns the resulting svg xml expression."
-  (if (which render-program)
+  (if (program-installed-p render-program)
     (pipe-through (input output render-program "-Tsvg")
       (s-dot:s-dot->dot input s-dot-expression)
       (force-output input)
