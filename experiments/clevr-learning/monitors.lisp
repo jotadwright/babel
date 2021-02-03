@@ -374,19 +374,33 @@
 (define-monitor export-type-hierarchy)
 
 (defun export-type-hierarchy (agent)
-  (let ((th (get-type-hierarchy (grammar agent))))
+  (let ((th (get-type-hierarchy (grammar agent)))
+        (filename (pathname-name
+                   (parse-namestring
+                    (make-file-name-with-time "learned-type-hierarchy-~a")))))
     (type-hierarchy->image th :render-program "circo" :weights? t
                            :path (babel-pathname :directory '("experiments" "clevr-learning" "graphs"))
-                           :file-name (mkstr
-                                       (multiple-value-bind (sec min hour day month year)
-                                           (decode-universal-time (get-universal-time))
-                                         (format nil "~d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-"
-                                                 year month day hour min sec))
-                                       "learned-type-hierarchy")
-                           :format "pdf")))
+                           :file-name filename :format "pdf")))
 
 (define-event-handler (export-type-hierarchy run-series-finished)
   (export-type-hierarchy (learner experiment)))
+
+;; export type hierarchy every nth interaction
+(define-monitor export-type-hierarchy-every-nth-interaction)
+
+(define-event-handler (export-type-hierarchy-every-nth-interaction interaction-finished)
+  (let ((interaction-nr (interaction-number (current-interaction experiment)))
+        (n (get-configuration-or-default experiment :export-interval 100)))
+    (when (= (mod interaction-nr n) 0)
+      (let ((th (get-type-hierarchy (grammar (learner experiment))))
+            (filename (pathname-name
+                       (parse-namestring
+                        (make-file-name-with-time
+                         (format nil "learned-type-hierarchy-~a"
+                                 interaction-nr))))))
+        (type-hierarchy->image th :render-program "circo" :weights? t
+                               :path (babel-pathname :directory '("experiments" "clevr-learning" "graphs"))
+                               :file-name filename :format "pdf")))))
 
 ;; export grammar after series
 (define-monitor export-learner-grammar)

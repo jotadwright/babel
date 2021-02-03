@@ -27,9 +27,9 @@
 (define-event interaction-before-finished
   (scene clevr-scene) (question string) (answer t))
 
-(defmethod interact :before ((experiment clevr-learning-experiment)
-                             interaction &key)
-  ;; Choose a random scene and a random question and initialize the agents
+(defun sample (experiment)
+  ;; !!!!!!!!!!! This is an ugly temporary solution
+  ;; Needs to be fixed in the future...
   (let* ((random-file (random-elt (question-files experiment)))
          (file-data (decode-json-from-source random-file))
          (question (rest (assoc :question file-data)))
@@ -38,6 +38,14 @@
                                           (world experiment)))
          (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
                                            *clevr-ontology*)))
+    (if (search "How big" question)
+      (sample experiment)
+      (values (question clevr-scene answer-entity)))))
+
+(defmethod interact :before ((experiment clevr-learning-experiment)
+                             interaction &key)
+  ;; Choose a random scene and a random question and initialize the agents
+  (multiple-value-bind (question clevr-scene answer-entity) (sample experiment)
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent question clevr-scene answer-entity))
     (notify interaction-before-finished clevr-scene question answer-entity)))
