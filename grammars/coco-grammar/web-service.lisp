@@ -3,12 +3,12 @@
 (in-package :coco-web-service)
 
 #|
- (coco-meaning->rpn (fcg:comprehend "is the cat black or white"))
- ;; => "get_context filter_entity[cat] unique choose_color[black|white]"
- (coco-meaning->rpn (fcg:comprehend "is the cat on the left or on the right"))
- ;; => "get_context filter_entity[cat] unique choose_spatial[left|right]"
- (coco-meaning->rpn (fcg:comprehend "are there any girls to the right of the boy on the left?"))
- ;; => "get_context filter_entity[man] filter_spatial[left] unique relate_right filter_entity[woman] exist"
+ (coco-meaning->rpn (fcg:comprehend "what color is the traffic light left of the cat"))
+ (coco-meaning->rpn (fcg:comprehend "what color is the leftmost traffic light"))
+(coco-meaning->rpn (fcg:comprehend "is the person in the leftmost car"))
+(coco-meaning->rpn (fcg:comprehend "where in the photo is the rightmost woman, on the left or on the right"))
+(coco-meaning->rpn (fcg:comprehend "where in the photo is the leftmost wine glass"))
+(coco-meaning->rpn (fcg:comprehend "what is the sex of the leftmost person"))
 |#
 
 ;;;; Helper functions

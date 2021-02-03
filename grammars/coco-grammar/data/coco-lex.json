@@ -811,6 +811,20 @@
       "plural": "rugs"
     }
   ],
+  "extreme-relations": [
+    {
+      "lex-id": "leftmost",
+      "forms": [
+        "leftmost"
+      ]
+    },
+    {
+      "lex-id": "rightmost",
+      "forms": [
+        "rightmost"
+      ]
+    }
+  ],
   "relations": [
     {
       "lex-id": "left",
@@ -887,6 +901,10 @@
     {
       "form": "shape",
       "type": "shape"
+    },
+    {
+      "form": "sex",
+      "type": "sex"
     }
   ],
   "colors": [

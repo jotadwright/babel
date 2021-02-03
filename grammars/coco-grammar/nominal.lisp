@@ -77,6 +77,7 @@
                (syn-cat (lex-class adjective))
                (footprints (NOT nominal))
                --
+               (sem-cat (sem-class (NOT extreme-relation)))
                (footprints (NOT nominal))
                (syn-cat (lex-class adjective)))
               (?nominal-unit
@@ -146,6 +147,56 @@
                (suffix -)
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))))
+             :cxn-set nom
+             :cxn-inventory *COCO*)
+
+(def-fcg-cxn extreme-relate-nominal-cxn
+             ((?super-nominal-unit
+               (args ((sources ?source)
+                      (target ?target)))
+               (leftmost-unit ?adjective-unit)
+               (rightmost-unit ?rightmost-nom-unit)
+               (subunits (?adjective-unit ?nominal-unit))
+               (superunits nil)
+               (syn-cat (lex-class np)
+                        (syn-function nominal)
+                        (number ?number))
+               (sem-cat (sem-class object)))
+              (?adjective-unit
+               (footprints (nominal))
+               (superunits (?super-nominal-unit)))
+              (?nominal-unit
+               (superunits (?super-nominal-unit))
+               (footprints (nominal)))
+              <-
+              (?super-nominal-unit
+               (HASH meaning ((extreme_relate ?target ?between ?category)))
+               --
+               )
+              (?adjective-unit
+               (args ((target ?category)))
+               (sem-cat (sem-class extreme-relation))
+               (syn-cat (lex-class adjective))
+               (footprints (NOT nominal))
+               --
+               (sem-cat (sem-class extreme-relation))
+               (footprints (NOT nominal))
+               (syn-cat (lex-class adjective)))
+              (?nominal-unit
+               (args ((sources ?source)
+                      (target ?between)))
+               (syn-cat (lex-class np)
+                        (syn-function nominal)
+                        (number ?number))
+               (footprints (NOT nominal))
+               --
+               (footprints (NOT nominal))
+               (syn-cat (syn-function nominal)
+                        (lex-class np)
+                        (number ?number))
+               (leftmost-unit ?leftmost-nom-unit)
+               (rightmost-unit ?rightmost-nom-unit)
+               (HASH form ((meets ?adjective-unit ?leftmost-nom-unit)))))
              :cxn-set nom
              :cxn-inventory *COCO*)
 

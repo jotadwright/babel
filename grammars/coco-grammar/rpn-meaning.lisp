@@ -23,7 +23,8 @@
   (unless (eql (first predicate) 'bind)
     (cond ((member (first predicate) '(filter query same equal? relate
                                        coco-grammar::verify
-                                       coco-grammar::verify_relation))
+                                       coco-grammar::verify_relation
+                                       coco-grammar::extreme_relate))
            (subseq predicate 2 (- (length predicate) 1)))
           ((eql (first predicate) 'coco-grammar::choose)
            (subseq predicate 2 (- (length predicate) 2)))
@@ -101,7 +102,8 @@
              (list (first predicate)
                    (read-from-string (downcase (first (split (mkstr (second bind-statement)) #\-))))
                    (fourth bind-statement))))
-          ((eql (first predicate) 'coco-grammar::verify_relation)
+          ((or (eql (first predicate) 'coco-grammar::verify_relation)
+               (eql (first predicate) 'coco-grammar::extreme_relate))
            (let ((parts (split (mkstr (first predicate)) #\_)))
              (list (first parts) (second parts)
                    (fourth (first bind-statements)))))

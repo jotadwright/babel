@@ -141,6 +141,52 @@
                         :attributes (:string ,form
                                      :lex-id ,(internal-symb (hyphenize lex-id)))))))
 
+;;;; EXTREME RELATIONS
+(defgeneric add-extreme-relation-lex-cxn (cxn-inventory lex-id)
+  (:documentation "Add the lex cxn for an extreme spatial relation"))
+(defgeneric add-extreme-relation-morph-cxn (cxn-inventory lex-id form)
+  (:documentation "Add the morph cxn for an extreme spatial relation"))
+
+(defmethod add-extreme-relation-lex-cxn (cxn-inventory lex-id)
+  (let ((cxn-name (internal-symb (upcase (string-append (hyphenize lex-id) "-lex-cxn"))))
+        (unit-name (make-var (upcase (string-append (hyphenize lex-id) "-unit"))))
+        (out-var (make-var 'extreme-relation))
+        (binding (subseq lex-id 0 (search "most" lex-id))))
+    (eval `(def-fcg-cxn ,cxn-name
+                        ((,unit-name
+                          (args ((sources nil)
+                                 (target ,out-var)))
+                          (sem-cat (sem-class extreme-relation)
+                                   (sem-type ,(internal-symb (hyphenize lex-id))))
+                          (syn-cat (lex-class adjective)))
+                         <-
+                         (,unit-name
+                          (HASH meaning ((bind spatial-relation-category ,out-var ,(internal-symb (hyphenize binding)))))
+                          --
+                          (lex-id ,(internal-symb (hyphenize lex-id)))))
+                        :cxn-inventory ,cxn-inventory
+                        :cxn-set lex
+                        :attributes (:lex-id ,(internal-symb (hyphenize lex-id)) 
+                                     :meaning ,(internal-symb (hyphenize lex-id)))))))
+
+(defmethod add-extreme-relation-morph-cxn (cxn-inventory lex-id form)
+  (let ((cxn-name (internal-symb (upcase (string-append (hyphenize form) "-morph-cxn"))))
+        (unit-name (make-var (upcase (string-append (hyphenize form) "-unit")))))
+    (eval `(def-fcg-cxn ,cxn-name
+                        ((,unit-name
+                          (footprints (morph)))
+                         <-
+                         (,unit-name
+                          (lex-id ,(internal-symb (hyphenize lex-id)))
+                          (syn-cat (lex-class adjective))
+                          (footprints (NOT morph))
+                          --
+                          (HASH form ((string ,unit-name ,form)))))
+                        :cxn-inventory ,cxn-inventory
+                        :cxn-set morph
+                        :attributes (:string ,form
+                                     :lex-id ,(internal-symb (hyphenize lex-id)))))))
+
 ;;;; TYPE
 ;; NOTE: type cxns have their property type also in the footprint
 ;; this way, other constructions can specify (NOT this-type)
@@ -234,6 +280,12 @@
           do (add-relation-lex-cxn cxn-inventory lex-id)
           do (loop for form in (rest (assoc :forms coco-relation))
                    do (add-relation-morph-cxn cxn-inventory lex-id form)))
+    ;; add lex and morph cxns for the extreme relations
+    (loop for coco-extreme-relation in (rest (assoc :extreme-relations metadata))
+          for lex-id = (rest (assoc :lex-id coco-extreme-relation))
+          do (add-extreme-relation-lex-cxn cxn-inventory lex-id)
+          do (loop for form in (rest (assoc :forms coco-extreme-relation))
+                   do (add-extreme-relation-morph-cxn cxn-inventory lex-id form)))
     ;; add lex cxns for the types
     (loop for coco-type-and-form in (rest (assoc :types metadata))
           do (add-coco-type-cxn cxn-inventory
