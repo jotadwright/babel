@@ -29,11 +29,13 @@
                                  ;; type of applied cxns
                                  "export-holophrase-cxn-usage"
                                  "export-item-based-cxn-usage"
-                                 ;; others
+                                 ;; other metrics
                                  "export-lexicon-change"
                                  "export-confidence-level"
-                                 "export-type-hierarchy"
+                                 ;; export data
+                                 "export-type-hierarchy-every-nth-interaction"
                                  "export-learner-grammar"
+                                 ;; print dots
                                  "print-a-dot-for-each-interaction"
                                  ))
     
