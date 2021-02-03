@@ -40,7 +40,7 @@
                                            *clevr-ontology*)))
     (if (search "How big" question)
       (sample experiment)
-      (values (question clevr-scene answer-entity)))))
+      (values question clevr-scene answer-entity))))
 
 (defmethod interact :before ((experiment clevr-learning-experiment)
                              interaction &key)
