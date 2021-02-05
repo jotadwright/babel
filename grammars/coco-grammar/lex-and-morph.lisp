@@ -158,7 +158,7 @@
                                  (target ,out-var)))
                           (sem-cat (sem-class extreme-relation)
                                    (sem-type ,(internal-symb (hyphenize lex-id))))
-                          (syn-cat (lex-class adjective)))
+                          (syn-cat (lex-class spatial-adjective)))
                          <-
                          (,unit-name
                           (HASH meaning ((bind spatial-relation-category ,out-var ,(internal-symb (hyphenize binding)))))
@@ -178,7 +178,7 @@
                          <-
                          (,unit-name
                           (lex-id ,(internal-symb (hyphenize lex-id)))
-                          (syn-cat (lex-class adjective))
+                          (syn-cat (lex-class spatial-adjective))
                           (footprints (NOT morph))
                           --
                           (HASH form ((string ,unit-name ,form)))))

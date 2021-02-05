@@ -2,13 +2,17 @@
 (in-package :coco-grammar)
 (activate-monitor trace-fcg)
 
-(comprehend "what color is the leftmost traffic light")
-(comprehend "is the person in the leftmost car")
-(comprehend "where in the photo is the rightmost woman, on the left or on the right")
-(comprehend "where in the photo is the leftmost wine glass")
-(comprehend "what is the sex of the leftmost person")
+#|
+ "Is the black suitcase to the left of a person?" -> niet ok
+"Is the suitcase to the left of a person?" -> ok
+"Is the rightmost suitcase to the left of a person?" -> ok
+|#
 
-(comprehend "is there a suitcase on the pavement")
+(comprehend-all "the black cat")
+(comprehend-all "the leftmost cat")
+(comprehend-all "is the black suitcase to the left of a person")
+(comprehend-all "Is the suitcase to the left of a person?")
+(comprehend-all "Is the rightmost suitcase to the left of a person?")
 
 (comprehend "how many cows are there?")
 (comprehend "is there a sheep left of the cow?")
