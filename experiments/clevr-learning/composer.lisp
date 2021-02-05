@@ -15,9 +15,9 @@
          (max-composer-depth
           (rest (assoc current-challenge-level *max-composer-depth-per-challenge-level*)))
          (target-category-type
-          #-sbcl (type-of target-category)
-          #+sbcl (if (numberp target-category)
-                   'integer (type-of target-category))
+          #+lispworks (type-of target-category)
+          #-lispworks (if (numberp target-category)
+                          'integer (type-of target-category))
           ))
     ;; make the chunk composer
     (make-chunk-composer

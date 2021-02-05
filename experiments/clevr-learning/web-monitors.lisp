@@ -11,6 +11,41 @@
   (add-element (make-html task)))
 
 
+(defun new-th-links->s-dot (type-hierarchy new-links)
+  (let* ((g (type-hierarchies::graph type-hierarchy))
+         (graph-properties '((s-dot::fontcolor "#000000")
+                             (s-dot::fontsize "10.0")
+                             (s-dot::fontname "Helvetica")
+                             (s-dot::rankdir "LR")))
+         (all-node-names
+          (remove-duplicates
+           (loop for (from . to) in new-links
+                 append (list from to))))
+         (all-node-ids
+          (loop for node-name in all-node-names
+                for id = (gethash node-name (graph-utils::nodes g))
+                collect id))
+         (all-edges
+          (loop for (from . to) in new-links
+                collect (cons (gethash from (graph-utils::nodes g))
+                              (gethash to (graph-utils::nodes g)))))
+         (s-dot-nodes
+          (loop for node-name in all-node-names
+                for node-id in all-node-ids
+                collect (graph-utils::type-hierarchy-node->s-dot
+                         node-name node-id)))
+         (s-dot-edges
+          (loop for (from-id . to-id) in all-edges
+                for edge-weight = (graph-utils::edge-weight g from-id to-id)
+                collect (graph-utils::type-hierarchy-edge->s-dot
+                         from-id to-id
+                         :weight edge-weight :directedp t
+                         :colored-edges-0-1 nil))))
+    `(s-dot::graph ,graph-properties
+                   ,@s-dot-nodes
+                   ,@s-dot-edges)))
+
+
 
 
 
@@ -61,7 +96,9 @@
   (add-element '((h3) "New lexical construction:"))
   (add-element (make-html cxn))
   (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element (make-html th)))
+  (add-element
+   `((div) ,(s-dot->svg
+             (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi lexical->item-based-repair-started)
   (add-element '((h2) "Parsing failed. Composing a new program using the partial program")))
@@ -70,14 +107,18 @@
   (add-element '((h3) "New item-based construction:"))
   (add-element (make-html cxn))
   (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element (make-html th)))
+  (add-element
+   `((div) ,(s-dot->svg
+             (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi add-th-links-repair-started)
   (add-element '((h2) "Parsing failed. Adding type hierarchy links")))
 
 (define-event-handler (trace-interactions-in-wi add-th-links-new-th-links)
   (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element (make-html th)))
+  (add-element
+   `((div) ,(s-dot->svg
+             (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi interpretation-succeeded)
   (add-element '((h2) "Interpretation succeeded"))
@@ -121,7 +162,9 @@
   (loop for cxn in new-cxns
         do (add-element (make-html cxn)))
   (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element (make-html th)))
+  (add-element
+   `((div) ,(s-dot->svg
+             (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-addition-repair-started)
   (add-element '((h2) "Generalising over the grammar (addition)")))
@@ -131,7 +174,9 @@
   (loop for cxn in new-cxns
         do (add-element (make-html cxn)))
   (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element (make-html th)))
+  (add-element
+   `((div) ,(s-dot->svg
+             (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-deletion-repair-started)
   (add-element '((h2) "Generalising over the grammar (deletion)")))
@@ -141,7 +186,9 @@
   (loop for cxn in new-cxns
         do (add-element (make-html cxn)))
   (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element (make-html th)))
+  (add-element
+   `((div) ,(s-dot->svg
+             (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi check-samples-started)
   (add-element `((h3) ,(format nil "Checking solution ~a against ~a past scenes"

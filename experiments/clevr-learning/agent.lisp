@@ -228,7 +228,8 @@
                          
 (define-event lexical->item-based-repair-started)
 (define-event lexical->item-based-new-cxn-and-links
-  (cxn construction) (th type-hierarchy))
+  (cxn construction) (th type-hierarchy)
+  (new-links list))
 
 (defmethod repair ((repair repair-lexical->item-based)
                    (problem partial-utterance-problem)
@@ -251,7 +252,8 @@
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify lexical->item-based-new-cxn-and-links
-                (first cxns) (get-type-hierarchy (grammar agent)))
+                (first cxns) (get-type-hierarchy (grammar agent))
+                th-links)
         (make-instance 'fix
                        :issued-by repair
                        :problem problem
@@ -268,7 +270,8 @@
 
 (define-event item-based->lexical-repair-started)
 (define-event item-based->lexical-new-cxn-and-th-links
-  (cxn construction) (th type-hierarchy))
+  (cxn construction) (th type-hierarchy)
+  (new-links list))
 
 (defmethod repair ((repair repair-item-based->lexical)
                    (problem partial-utterance-problem)
@@ -291,7 +294,8 @@
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify item-based->lexical-new-cxn-and-th-links
-                (first cxns) (get-type-hierarchy (grammar agent)))
+                (first cxns) (get-type-hierarchy (grammar agent))
+                th-links)
         (make-instance 'fix
                        :issued-by repair
                        :problem problem
@@ -307,7 +311,7 @@
 
 (define-event add-th-links-repair-started)
 (define-event add-th-links-new-th-links
-  (th type-hierarchy))
+  (th type-hierarchy) (new-links list))
 
 (defmethod repair ((repair repair-add-th-links)
                    (problem partial-utterance-problem)
@@ -328,7 +332,7 @@
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
-        (notify add-th-links-new-th-links (get-type-hierarchy (grammar agent)))
+        (notify add-th-links-new-th-links (get-type-hierarchy (grammar agent)) th-links)
         (make-instance 'fix
                        :issued-by repair
                        :problem problem
@@ -498,7 +502,7 @@
 
 (define-event holophrase->item-based-substitution-repair-started)
 (define-event holophrase->item-based-subsititution-new-cxn-and-th-links
-  (new-cxns list) (th type-hierarchy))
+  (new-cxns list) (th type-hierarchy) (new-links list))
 
 (defmethod repair ((repair repair-holophrase->item-based-substitution)
                    (problem possible-generalisation-problem)
@@ -522,7 +526,7 @@
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify holophrase->item-based-subsititution-new-cxn-and-th-links
-                cxns (get-type-hierarchy (grammar agent)))
+                cxns (get-type-hierarchy (grammar agent)) th-links)
         (make-instance 'fix :issued-by repair :problem problem)))))
 
 
@@ -533,7 +537,7 @@
 
 (define-event holophrase->item-based-addition-repair-started)
 (define-event holophrase->item-based-addition-new-cxn-and-th-links
-  (new-cxns list) (th type-hierarchy))
+  (new-cxns list) (th type-hierarchy) (new-links list))
 
 (defmethod repair ((repair repair-holophrase->item-based-addition)
                    (problem possible-generalisation-problem)
@@ -557,7 +561,7 @@
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify holophrase->item-based-addition-new-cxn-and-th-links
-                cxns (get-type-hierarchy (grammar agent)))
+                cxns (get-type-hierarchy (grammar agent)) th-links)
         (make-instance 'fix :issued-by repair :problem problem)))))
 
 
@@ -569,7 +573,7 @@
 
 (define-event holophrase->item-based-deletion-repair-started)
 (define-event holophrase->item-based-deletion-new-cxn-and-th-links
-  (new-cxns list) (th type-hierarchy))
+  (new-cxns list) (th type-hierarchy) (new-links list))
 
 (defmethod repair ((repair repair-holophrase->item-based-deletion)
                    (problem possible-generalisation-problem)
@@ -593,7 +597,7 @@
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
         (notify holophrase->item-based-deletion-new-cxn-and-th-links
-                cxns (get-type-hierarchy (grammar agent)))
+                cxns (get-type-hierarchy (grammar agent)) th-links)
         (make-instance 'fix :issued-by repair :problem problem)))))
 
   
