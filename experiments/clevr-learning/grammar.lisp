@@ -90,21 +90,8 @@
        (type-hierarchies::graph type-hierarchy)
        lex-class))))
 
-(defun get-form-competitors (agent applied-cxns)
-  "Get cxns with the same meaning as cxn"
-  (let ((all-cxns-with-meaning
-         (remove-duplicates
-          (loop for cxn in applied-cxns
-                for cxn-meaning = (extract-meaning-predicates cxn)
-                append (remove cxn
-                               (find-all cxn-meaning
-                                         (constructions-list (grammar agent))
-                                         :key #'extract-meaning-predicates
-                                         :test #'unify-irl-programs))))))
-    (loop for cxn in applied-cxns
-          do (setf all-cxns-with-meaning
-                   (remove cxn all-cxns-with-meaning)))
-    all-cxns-with-meaning))
+;;;;  COMPETITORS
+;;;; -------------
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
