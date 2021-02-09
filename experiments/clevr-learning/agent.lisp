@@ -330,17 +330,6 @@
                      ;:restart-data holophrase-cxn
                      ))))
 
-;; NOTE: The following case is not covered yet:
-;; "How big is the large cube?"
-;; how-big-is-the-large-X -> no solution
-;; big-cxn -> no solution
-;; Depending on which branch is executed first,
-;; the lexical->item-based or the item-based->lexical
-;; repair will be triggered. However, this could be
-;; solved with item-based+lexical->item-based repair.
-;; In order for this to work, need to check all branches
-;; of comprehension, instead of the applied cxns.
-
 (defun all-applied-cxns (cipn)
   (cond (; success node
          (find 'fcg::succeeded (fcg::statuses cipn))
