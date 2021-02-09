@@ -2,18 +2,6 @@
 (in-package :coco-grammar)
 (activate-monitor trace-fcg)
 
-#|
- "Is the black suitcase to the left of a person?" -> niet ok
-"Is the suitcase to the left of a person?" -> ok
-"Is the rightmost suitcase to the left of a person?" -> ok
-|#
-
-(comprehend-all "the black cat")
-(comprehend-all "the leftmost cat")
-(comprehend-all "is the black suitcase to the left of a person")
-(comprehend-all "Is the suitcase to the left of a person?")
-(comprehend-all "Is the rightmost suitcase to the left of a person?")
-
 (comprehend "how many cows are there?")
 (comprehend "is there a sheep left of the cow?")
 (comprehend "how many sheep are right of the cow?")
