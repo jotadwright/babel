@@ -1,5 +1,11 @@
 (in-package :propbank-english)
 
+
+(defparameter *restored-grammar*
+  (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
+                           :name "propbank-grammar-ontonotes-ewt-cleaned"
+                           :type "fcg")))
+
 (defun find-constructions-by-schema (schema cxn-inventory &key (collect-fn #'identity))
   "Returns the constructions of which the schema matches the given schema."
   (loop for cxn in (constructions-list cxn-inventory)
