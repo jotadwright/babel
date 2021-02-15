@@ -18,33 +18,71 @@
           #+lispworks (type-of target-category)
           #-lispworks (if (numberp target-category)
                           'integer (type-of target-category))
-          ))
-    ;; make the chunk composer
-    (make-chunk-composer
-     :topic target-category
-     ; if partial program is available, this can be passed along
-     :meaning partial-program
-     :initial-chunk (make-instance 'chunk :id 'initial
-                                   :target-var `(?answer . ,target-category-type)
-                                   :open-vars `((?answer . ,target-category-type)))
-     :chunks (composer-chunks agent)
-     :ontology (ontology agent)
-     :primitive-inventory (available-primitives agent)
-     :configurations `((:max-search-depth . ,max-composer-depth)
-                       ;; when providing bind statements,
-                       ;; remove the :clevr-open-vars from
-                       ;; the :check-node-modes
-                       (:check-node-modes ,@(append '(:check-duplicate 
-                                                      :clevr-primitive-occurrence-count                              
-                                                      :clevr-context-links
-                                                      :clevr-filter-group-length)
-                                                    (unless partial-program
-                                                      '(:clevr-open-vars))))
-                       (:expand-chunk-modes :combine-program)
-                       (:node-rating-mode . :clevr-node-rating)
-                       (:check-chunk-evaluation-result-modes
-                        :clevr-coherent-filter-groups))
-     :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions)))))
+          )
+         ;; extract bind statements and other primitives
+         ;; from the partial program
+         (partial-program-bindings
+          (find-all 'bind partial-program :key #'first))
+         (partial-program-primitives
+          (set-difference partial-program partial-program-bindings))
+         ;; make a list of open vars
+         (open-vars
+          (append `((?answer . ,target-category-type))
+                  (when partial-program-primitives
+                    (loop for var in (get-open-vars partial-program-primitives)
+                          for binding? = (find var partial-program-bindings :key #'third)
+                          if binding? collect (cons var (second binding?))
+                          else collect (cons var 'category)))))
+         ;; when partial bindings available, add
+         ;; :check-bindings to the check chunk
+         ;; evaluation result modes
+         (check-chunk-evaluation-result-modes
+          (append '(:clevr-coherent-filter-groups)
+                  (when partial-program-bindings
+                    '(:check-bindings))))
+         ;; make the chunk composer
+         (composer
+          (make-chunk-composer
+           :topic target-category
+           ; if partial primitives are available, this can be passed along
+           :meaning partial-program-primitives
+           :initial-chunk (make-instance 'chunk :id 'initial
+                                         :target-var `(?answer . ,target-category-type)
+                                         :open-vars open-vars)
+           :chunks (composer-chunks agent)
+           :ontology (ontology agent)
+           :primitive-inventory (available-primitives agent)
+           :configurations `((:max-search-depth . ,max-composer-depth)
+                             (:check-node-modes ;; no duplicates
+                                                :check-duplicate
+                                                ;; no predicates with multiple times
+                                                ;; the same variable
+                                                :no-circular-primitives
+                                                ;; meaning has to be fully connected
+                                                :fully-connected-meaning
+                                                ;; limit on the nr of times each primitive
+                                                ;; can occur (clevr specific)
+                                                :clevr-primitive-occurrence-count
+                                                ;; limit to which primitives get-context
+                                                ;; can connect (clevr specific)
+                                                :clevr-context-links
+                                                ;; the last variable of certain predicates
+                                                ;; has to be an open variable (clevr specific)
+                                                :clevr-open-vars
+                                                ;; a filter group can be maximally 4 long
+                                                ;; (clevr specific)
+                                                :clevr-filter-group-length)
+                             (:expand-chunk-modes :combine-program)
+                             (:node-rating-mode . :clevr-node-rating)
+                             (:check-chunk-evaluation-result-modes
+                              ,@check-chunk-evaluation-result-modes))
+           :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions)))))
+    ;; when partial bindings, add them to the composer's
+    ;; blackboard because we cannot access them otherwise
+    ;; in the check chunk evaluation result mode
+    (when partial-program-bindings
+      (set-data composer 'irl::partial-bindings partial-program-bindings))
+    composer))
 
 ;; + compose-until +
 (defun compose-until (composer fn)

@@ -131,39 +131,7 @@
 (defclass partial-utterance-problem (problem)
   () (:documentation "Problem created when parsing fails and there are some applied cxns"))
 
-(define-event parsing-succeeded)
-
-(defun all-applied-cxns (cipn)
-  ;; take all the non-duplicate leaf nodes
-  (let ((leaf-nodes
-         (remove-if #'(lambda (node)
-                        (find 'fcg::duplicate (fcg::statuses node)))
-                    (remove nil
-                            (traverse-depth-first
-                             (cip cipn)
-                             :collect-fn #'(lambda (node)
-                                             (when (null (children node))
-                                               node)))))))
-    ;; if there is only 1 leaf node, extract the applied cxns
-    (if (length= leaf-nodes 1)
-      (mapcar #'get-original-cxn
-              (fcg::applied-constructions (first leaf-nodes)))
-      ;; if there are multiple leaf nodes, check if they are permutations
-      ;; if they are not, take the leaf node with the most applied cxns (?)
-      ;; TO DO; how to determine the best leaf node to take?? 
-      (let* ((applied-cxns-per-branch
-              (loop for node in leaf-nodes
-                    collect (mapcar #'get-original-cxn
-                                    (fcg::applied-constructions node))))
-             (applied-cxns (first applied-cxns-per-branch))
-             (other-branches-identical-p
-              (loop for other-cxns in (rest applied-cxns-per-branch)
-                    always (permutation-of? other-cxns applied-cxns))))
-        (if other-branches-identical-p
-          applied-cxns
-          (the-biggest #'length applied-cxns-per-branch))))))
-          
-  
+(define-event parsing-succeeded)      
 
 (defmethod diagnose ((diagnostic diagnose-parsing-result)
                      process-result &key trigger)
@@ -172,13 +140,11 @@
   ;; whether no cxns could apply
   ;; or some cxns could apply
   (declare (ignorable trigger))
-  (cond ((find 'fcg::succeeded (fcg:statuses (get-data process-result 'cipn)))
-         (notify parsing-succeeded))
-        ((null (get-data process-result 'applied-cxns))
+  (cond ((null (get-data process-result 'applied-cxns))
          (make-instance 'unknown-utterance-problem))
+        ((find 'fcg::succeeded (fcg:statuses (get-data process-result 'cipn)))
+         (notify parsing-succeeded))
         ((not (null (get-data process-result 'applied-cxns)))
-         (set-data process-result 'applied-cxns
-                   (all-applied-cxns (get-data process-result 'cipn)))
          (make-instance 'partial-utterance-problem))))
 
 
@@ -336,7 +302,7 @@
         (make-instance 'fix
                        :issued-by repair
                        :problem problem
-                       ;:restart-data t
+                       :restart-data t
                        )))))
 
 
@@ -364,16 +330,47 @@
                      ;:restart-data holophrase-cxn
                      ))))
 
-;; NOTE: The following case is not covered yet:
-;; "How big is the large cube?"
-;; how-big-is-the-large-X -> no solution
-;; big-cxn -> no solution
-;; Depending on which branch is executed first,
-;; the lexical->item-based or the item-based->lexical
-;; repair will be triggered. However, this could be
-;; solved with item-based+lexical->item-based repair.
-;; In order for this to work, need to check all branches
-;; of comprehension, instead of the applied cxns.
+(defun all-applied-cxns (cipn)
+  (cond (; success node
+         (find 'fcg::succeeded (fcg::statuses cipn))
+         (values cipn (mapcar #'get-original-cxn
+                              (fcg::applied-constructions cipn))))
+        ; initial node
+        ((and (null (parent cipn))
+              (null (children cipn)))
+         (values nil nil))
+        (t (let ((all-leaf-nodes
+                  (traverse-depth-first (cip cipn)
+                                       :collect-fn #'(lambda (node)
+                                                       (when (null (children node))
+                                                         node)))))
+            (setf all-leaf-nodes
+                  (remove nil all-leaf-nodes))
+            (setf all-leaf-nodes
+                  (remove-if #'(lambda (node)
+                                 (find 'fcg::duplicate (fcg::statuses node)))
+                             all-leaf-nodes))
+            (cond (;; when there is only 1 non-duplicate node, use that one
+                   (length= all-leaf-nodes 1)
+                   (values (first all-leaf-nodes)
+                           (mapcar #'get-original-cxn
+                                   (fcg::applied-constructions (first all-leaf-nodes)))))
+                  ;; when there are multiple leaf nodes, and one of them is
+                  ;; second-merge-failed, use that one
+                  ((find 'fcg::second-merge-failed all-leaf-nodes
+                         :key #'(lambda (node) (fcg::statuses node))
+                         :test #'member)
+                   (let* ((smf-node (find 'fcg::second-merge-failed all-leaf-nodes
+                                          :key #'(lambda (node) (fcg::statuses node))
+                                          :test #'member))
+                          (applied-cxns (mapcar #'get-original-cxn
+                                                (fcg::applied-constructions smf-node))))
+                     (values smf-node applied-cxns)))
+                  ;; otherwise, just take a random one, we'll see!
+                  (t (let* ((random-node (random-elt all-leaf-nodes))
+                            (applied-cxns (mapcar #'get-original-cxn
+                                                (fcg::applied-constructions random-node))))
+                       (values random-node applied-cxns))))))))
 
 (defmethod run-process (process
                         (process-label (eql 'parse))
@@ -385,11 +382,11 @@
     ;; that further restricts the composer, so we always put this
     ;; in the process result
     (let* ((process-result-data
-            `((cipn . ,cipn)
-              (applied-cxns . ,(mapcar #'get-original-cxn
-                                       (applied-constructions cipn)))
-              (irl-program . ,irl-program)
-              (restart-occurred-p . ,(find 'restart (status process)))))
+            (multiple-value-bind (cipn applied-cxns) (all-applied-cxns cipn)
+              `((cipn . ,cipn)
+                (applied-cxns . ,applied-cxns)
+                (irl-program . ,irl-program)
+                (restart-occurred-p . ,(find 'restart (status process))))))
            (process-result
             (make-process-result 1 process-result-data :process process)))
       (unless (notify-learning process-result :trigger 'parsing-finished)
@@ -438,12 +435,9 @@
 (defmethod run-process (process
                         (process-label (eql 'align))
                         task agent)
-  ;; run the alignment strategy, unless when there was
-  ;; a restart. In that case, do not punish or reward
-  ;; the newly introduced cxns.
-  (unless (find-data (input process) 'restart-occurred-p)
-    (run-alignment agent (input process)
-                   (get-configuration agent :alignment-strategy)))
+  ;; run the alignment strategy
+  (run-alignment agent (input process)
+                 (get-configuration agent :alignment-strategy))
   (let ((process-result
          (make-process-result 1 nil :process process)))
     (notify-learning process-result :trigger 'alignment-finished)

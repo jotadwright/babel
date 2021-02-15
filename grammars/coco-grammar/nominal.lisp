@@ -77,7 +77,6 @@
                (syn-cat (lex-class adjective))
                (footprints (NOT nominal))
                --
-               (sem-cat (sem-class (NOT extreme-relation)))
                (footprints (NOT nominal))
                (syn-cat (lex-class adjective)))
               (?nominal-unit
@@ -176,12 +175,11 @@
               (?adjective-unit
                (args ((target ?category)))
                (sem-cat (sem-class extreme-relation))
-               (syn-cat (lex-class adjective))
+               (syn-cat (lex-class spatial-adjective))
                (footprints (NOT nominal))
                --
-               (sem-cat (sem-class extreme-relation))
                (footprints (NOT nominal))
-               (syn-cat (lex-class adjective)))
+               (syn-cat (lex-class spatial-adjective)))
               (?nominal-unit
                (args ((sources ?source)
                       (target ?between)))

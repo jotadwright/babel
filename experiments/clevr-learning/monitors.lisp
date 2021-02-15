@@ -398,9 +398,13 @@
                         (make-file-name-with-time
                          (format nil "learned-type-hierarchy-~a"
                                  interaction-nr))))))
-        (type-hierarchy->image th :render-program "circo" :weights? t
-                               :path (babel-pathname :directory '("experiments" "clevr-learning" "graphs"))
-                               :file-name filename :format "pdf")))))
+        (type-hierarchy-components->images
+         ;type-hierarchy->image
+         th :render-program "circo" :weights? t
+         :path (babel-pathname :directory '("experiments" "clevr-learning" "graphs"))
+         :file-name filename :format "pdf"
+         :minimum-component-size 1
+         )))))
 
 ;; export grammar after series
 (define-monitor export-learner-grammar)

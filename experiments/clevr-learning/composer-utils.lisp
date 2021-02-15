@@ -27,6 +27,8 @@
 (defmethod check-node ((node chunk-composer-node)
                        (composer chunk-composer)
                        (mode (eql :clevr-primitive-occurrence-count)))
+  ;; each clevr primitive can only occur a maximum number of times
+  ;; in a program. Check these amounts.
   (let* ((chunk (chunk node))
          (irl-program (irl-program chunk))
          (unique-primitives (remove-duplicates (mapcar #'first irl-program)))
@@ -47,13 +49,12 @@
     (if context-predicates
       (loop for context-predicate in context-predicates
             for context-var = (second context-predicate)
-            always (loop for p in '(clevr-world:count! clevr-world:exist
-                                    clevr-world:intersect clevr-world:union!
-                                    clevr-world:unique)
-                        for preds = (find-all p irl-program :key #'car)
-                        never (loop for pred in preds
-                                    thereis (or (eql (third pred) context-var)
-                                                (eql (fourth pred) context-var)))))
+            for predicates-with-var = (find-all context-var irl-program :test #'member)
+            always (loop for predicate in predicates-with-var
+                         never (member (first predicate)
+                                       '(clevr-world:count! clevr-world:exist
+                                         clevr-world:intersect clevr-world:union!
+                                         clevr-world:unique))))
       t)))
 
 
@@ -74,10 +75,28 @@
 (defmethod check-node ((node chunk-composer-node)
                        (composer chunk-composer)
                        (mode (eql :clevr-filter-group-length)))
+  ;; filter predicates chained together can be maximally 4 long
   (let* ((irl-program (irl-program (chunk node)))
          (filter-groups (collect-filter-groups irl-program)))
     (loop for group in filter-groups
           never (length> group 4))))
+
+(defmethod check-node ((node chunk-composer-node)
+                       (composer chunk-composer)
+                       (mode (eql :no-circular-primitives)))
+  ;; Primitives with duplicate variables, e.g. (filter ?set ?set ?bind)
+  ;; are not allowed
+  (let ((irl-program (irl-program (chunk node))))
+    (loop for predicate in irl-program
+          for arguments = (cdr predicate)
+          always (length= arguments (remove-duplicates arguments)))))
+
+(defmethod check-node ((node chunk-composer-node)
+                       (composer chunk-composer)
+                       (mode (eql :fully-connected-meaning)))
+  ;; The meaning has to be fully connected
+  (let ((irl-program (irl-program (chunk node))))
+    (fcg:connected-semantic-network irl-program)))
 
 
 ; + Check chunk evaluation result +
@@ -86,8 +105,10 @@
    first-predicate-fn is used to compute the first meaning predicate from the network.
    next-predicate-fn takes a predicate and the network and computes the next predicate(s)
    do-fn is called on every predicate"
-  (let ((stack (list (funcall first-predicate-fn irl-program)))
-        visited)
+  (let* ((first-predicate (funcall first-predicate-fn irl-program))
+         (stack (when first-predicate
+                  (list first-predicate)))
+         visited)
     (loop while stack
           for current-predicate = (pop stack)
           for next-predicates = (funcall next-predicate-fn current-predicate irl-program)
@@ -153,6 +174,26 @@
               always (all-different-bind-types result group))
         t))
     t))
+
+
+(defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
+                                          (composer chunk-composer)
+                                          (mode (eql :check-bindings)))
+  ;; Check if the bindings in this solution match the partial
+  ;; bindings that were passed along, if not, refuse this solution
+  (when (find-data composer 'partial-bindings)
+    (let ((partial-bindings (find-data composer 'partial-bindings))
+          (found-bindings (bind-statements result)))
+      (when (length>= found-bindings partial-bindings)
+        (let* ((bind-values-no-duplicates
+                (remove-duplicates
+                 (mapcar #'fourth partial-bindings)))
+               (occurrence-counts
+                (loop for b in bind-values-no-duplicates
+                      collect (cons b (count b partial-bindings :key #'fourth)))))
+          (loop for (b . count) in occurrence-counts
+                for found? = (find-all b found-bindings :key #'fourth)
+                always (= count (length found?))))))))
 
 ; + Expand-chunk functions +
 (defun add-context-var-to-open-vars (chunk)

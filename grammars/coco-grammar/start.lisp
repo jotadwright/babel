@@ -2,14 +2,6 @@
 (in-package :coco-grammar)
 (activate-monitor trace-fcg)
 
-(comprehend "what color is the leftmost traffic light")
-(comprehend "is the person in the leftmost car")
-(comprehend "where in the photo is the rightmost woman, on the left or on the right")
-(comprehend "where in the photo is the leftmost wine glass")
-(comprehend "what is the sex of the leftmost person")
-
-(comprehend "is there a suitcase on the pavement")
-
 (comprehend "how many cows are there?")
 (comprehend "is there a sheep left of the cow?")
 (comprehend "how many sheep are right of the cow?")
