@@ -83,26 +83,22 @@
                  :score initial-score))
 |#
 
-(defun add-composer-chunk (agent chunk)
-  ;; add the chunk to the ontology's composer-chunks
+(defun add-composer-chunk (agent irl-program)
+  ;; add a chunk to the ontology's composer-chunks
   ;; unless when an identical chunk is already there
   ;; only check chunks with more than 1 predicate
-  (let* ((chunk-id (make-id
+  (let* ((program-without-context
+          (remove 'get-context irl-program :key #'first))
+         (chunk-id (make-id
                     (format nil "~{~a~^+~}"
                             (reverse
-                             (remove 'get-context
-                                     (mapcar #'car
-                                             (irl-program chunk)))))))
-         (context-vars
-          (mapcar #'second (find-all 'get-context (irl-program chunk) :key #'car)))
+                             (mapcar #'first
+                                     program-without-context)))))
          (new-chunk
-          (make-instance 'chunk :id chunk-id
-                         :irl-program (remove 'get-context (irl-program chunk) :key #'car)
-                         :target-var (irl::target-var chunk)
-                         :open-vars (append (irl::open-vars chunk)
-                                            (loop for cv in context-vars
-                                                  collect (cons cv 'clevr-object-set)))
-                         :score (irl::score chunk)))
+          (create-chunk-from-irl-program program-without-context
+                                         :id chunk-id
+                                         :target-var (get-target-var irl-program)
+                                         :primitive-inventory (available-primitives agent)))
          (add-chunk-p
           (and (> (length (irl-program new-chunk)) 1)
                (loop for other-chunk in (composer-chunks agent)

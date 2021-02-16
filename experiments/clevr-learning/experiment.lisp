@@ -27,10 +27,14 @@
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :initial-chunk-score 0.5)
+(define-configuration-default-value :initial-th-link-weight 0.1)
+
 (define-configuration-default-value :cxn-incf-score 0.1)
-(define-configuration-default-value :cxn-decf-score 0.2)
+(define-configuration-default-value :cxn-decf-score 0.3)
 (define-configuration-default-value :chunk-incf-score 0.1)
 (define-configuration-default-value :chunk-decf-score 0.1)
+(define-configuration-default-value :th-link-incf-score 0.1)
+
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)

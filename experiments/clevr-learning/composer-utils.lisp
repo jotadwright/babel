@@ -44,8 +44,7 @@
   ;; inputs from count!, exist, intersect, union!
   ;; and unique cannot be the output of get-context
   (let* ((irl-program (irl-program (chunk node)))
-         (context-predicates (find-all 'clevr-world:get-context
-                                       irl-program :key #'car)))
+         (context-predicates (find-all 'clevr-world:get-context  irl-program :key #'car)))
     (if context-predicates
       (loop for context-predicate in context-predicates
             for context-var = (second context-predicate)
@@ -76,10 +75,12 @@
                        (composer chunk-composer)
                        (mode (eql :clevr-filter-group-length)))
   ;; filter predicates chained together can be maximally 4 long
-  (let* ((irl-program (irl-program (chunk node)))
-         (filter-groups (collect-filter-groups irl-program)))
-    (loop for group in filter-groups
-          never (length> group 4))))
+  (let ((irl-program (irl-program (chunk node))))
+    (if (> (count 'clevr-world:filter irl-program :key #'first) 1)
+      (let ((filter-groups (collect-filter-groups irl-program)))
+        (loop for group in filter-groups
+              never (length> group 4)))
+      t)))
 
 (defmethod check-node ((node chunk-composer-node)
                        (composer chunk-composer)
@@ -112,10 +113,10 @@
     (loop while stack
           for current-predicate = (pop stack)
           for next-predicates = (funcall next-predicate-fn current-predicate irl-program)
+          unless (find current-predicate visited :test #'equal)
           do (mapcar #'(lambda (p) (push p stack)) next-predicates)
-          do (unless (find current-predicate visited :test #'equal)
-               (funcall do-fn current-predicate)
-               (push current-predicate visited)))))
+          (funcall do-fn current-predicate)
+          (push current-predicate visited))))
 
 (defun collect-filter-groups (irl-program)
   "Collect groups of filter operations using traverse-meaning-network."
@@ -124,21 +125,16 @@
      irl-program
      ;; use get-context predicates as start of the search
      :first-predicate-fn #'(lambda (program)
-                             (find (internal-symb 'get-context)
-                                   program :key #'first))
+                             (find 'clevr-world:get-context program :key #'first))
      ;; traverse the network by following in/out variables
      :next-predicate-fn #'(lambda (predicate program)
-                            (or (find-all (second predicate)
-                                          program :key #'third)
-                                (find-all (second predicate)
-                                          program :key #'fourth)))
+                            (or (find-all (second predicate) program :key #'third)
+                                (find-all (second predicate) program :key #'fourth)))
      ;; collect filter predicates in groups
      :do-fn #'(lambda (predidate)
-                (cond ((and prev-was-filter
-                            (eql (first predidate)
-                                 (internal-symb 'filter)))
+                (cond ((and prev-was-filter (eql (first predidate) 'clevr-world:filter))
                        (push predidate (first filter-groups)))
-                      ((eql (first predidate) (internal-symb 'filter))
+                      ((eql (first predidate) 'clevr-world:filter)
                        (push (list predidate) filter-groups)
                        (setf prev-was-filter t))
                       (prev-was-filter
@@ -163,9 +159,7 @@
                                           (composer chunk-composer)
                                           (mode (eql :clevr-coherent-filter-groups)))
   ;; find filter groups
-  (if (> (count (internal-symb 'filter)
-                (irl-program (chunk result))
-                :key #'first) 1)
+  (if (> (count 'clevr-world:filter (irl-program (chunk result)) :key #'first) 1)
     (let ((filter-groups (collect-filter-groups (irl-program (chunk result)))))
       (if filter-groups
         (loop for group in filter-groups
@@ -195,13 +189,14 @@
                 for found? = (find-all b found-bindings :key #'fourth)
                 always (= count (length found?))))))))
 
+
 ; + Expand-chunk functions +
 (defun add-context-var-to-open-vars (chunk)
   "The get-context var is allowed to occur 3 times in the irl-program,
    even though the get-context primitive is allowed to occur once.
    The variable needs to be shared. To enforce this, it is added to the
    open variables of the chunk, unless it is already shared."
-  (let ((get-context-predicate (find (internal-symb 'get-context)
+  (let ((get-context-predicate (find 'clevr-world:get-context
                                      (irl-program chunk)
                                      :key #'first)))
     (when get-context-predicate
@@ -210,7 +205,7 @@
           (let* ((all-variables (find-all-anywhere-if #'variable-p (irl-program chunk)))
                  (context-var-count (count context-var all-variables)))
             (when (< context-var-count 3)
-              (push (cons context-var (internal-symb 'clevr-object-set))
+              (push (cons context-var 'clevr-world:clevr-object-set)
                     (open-vars chunk)))))))
     chunk))
 
@@ -231,16 +226,16 @@
                          (mode (eql :clevr-expand-chunk)))
   (if (loop for predicate in (irl-program chunk)
             thereis (member (first predicate)
-                            (mapcar #'internal-symb
-                                    '(union! intersect equal?
-                                      equal-integer less-than
-                                      greater-than))))
+                            '(clevr-world:union! clevr-world:intersect clevr-world:equal?
+                                                 clevr-world:equal-integer clevr-world:less-than
+                                                 clevr-world:greater-than)))
     (append (expand-chunk chunk composer :combine-program)
             (check-duplicate-variables
              (expand-chunk
               (add-context-var-to-open-vars chunk)
               composer :link-open-variables)))
     (expand-chunk chunk composer :combine-program)))
+
 
 ;; + node rating mode +
 ;; maybe add a preference for chain-type programs

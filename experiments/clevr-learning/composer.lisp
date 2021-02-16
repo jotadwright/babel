@@ -37,9 +37,9 @@
          ;; :check-bindings to the check chunk
          ;; evaluation result modes
          (check-chunk-evaluation-result-modes
-          (append '(:clevr-coherent-filter-groups)
-                  (when partial-program-bindings
-                    '(:check-bindings))))
+          (append (when partial-program-bindings
+                    '(:check-bindings))
+                  '(:clevr-coherent-filter-groups)))
          ;; make the chunk composer
          (composer
           (make-chunk-composer
@@ -76,7 +76,8 @@
                              (:node-rating-mode . :clevr-node-rating)
                              (:check-chunk-evaluation-result-modes
                               ,@check-chunk-evaluation-result-modes))
-           :primitive-inventory-configurations '((:node-tests :no-duplicate-solutions)))))
+           :primitive-inventory-configurations '((:node-tests))
+           )))
     ;; when partial bindings, add them to the composer's
     ;; blackboard because we cannot access them otherwise
     ;; in the check chunk evaluation result mode

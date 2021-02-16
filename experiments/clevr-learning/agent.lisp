@@ -214,9 +214,10 @@
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
         (notify lexical->item-based-new-cxn-and-links
                 (first cxns) (get-type-hierarchy (grammar agent))
                 th-links)
@@ -256,9 +257,10 @@
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
         (notify item-based->lexical-new-cxn-and-th-links
                 (first cxns) (get-type-hierarchy (grammar agent))
                 th-links)
@@ -295,9 +297,10 @@
       (when th-links
         (notify add-th-links-repair-started)
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
         (notify add-th-links-new-th-links (get-type-hierarchy (grammar agent)) th-links)
         (make-instance 'fix
                        :issued-by repair
@@ -516,9 +519,10 @@
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
         (notify holophrase->item-based-subsititution-new-cxn-and-th-links
                 cxns (get-type-hierarchy (grammar agent)) th-links)
         (make-instance 'fix :issued-by repair :problem problem)))))
@@ -551,9 +555,10 @@
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
         (notify holophrase->item-based-addition-new-cxn-and-th-links
                 cxns (get-type-hierarchy (grammar agent)) th-links)
         (make-instance 'fix :issued-by repair :problem problem)))))
@@ -587,9 +592,10 @@
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
               for th-link in th-links
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
-              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight 0.5))
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
         (notify holophrase->item-based-deletion-new-cxn-and-th-links
                 cxns (get-type-hierarchy (grammar agent)) th-links)
         (make-instance 'fix :issued-by repair :problem problem)))))
