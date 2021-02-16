@@ -56,6 +56,9 @@
 
 (defmethod node-test ((node irl-program-processor-node)
                       (mode (eql :no-duplicate-solutions)))
+  "When this node is has no more remaining primitives (leaf node),
+   walk over all solutions thus far and check if this is not a
+   duplicate solution."
   (if (primitives-remaining node) t
     (let ((duplicatep
            ;; this assumes the bindings are always ordered in the same way
