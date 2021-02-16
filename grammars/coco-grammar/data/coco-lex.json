@@ -436,6 +436,11 @@
       "plural": "potted plants"
     },
     {
+      "lex-id": "plant",
+      "singular": "plant",
+      "plural": "plants"
+    },
+    {
       "lex-id": "bed",
       "singular": "bed",
       "plural": "beds"
