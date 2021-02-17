@@ -5,23 +5,18 @@
 ;; match-chunk
 ;; ----------------------------------------------------------------------------
 
-#|
-(define-event-handler ((trace-irl-in-web-browser
-                        trace-irl-in-web-browser-verbose)
-                       match-chunk-started)
+(define-event-handler (trace-irl-verbose match-chunk-started)
   (add-element '((hr)))
   (add-element `((p) "matching chunk " ,(make-html chunk :expand-initially t)))
   (add-element `((p) "with meaning " ,(html-pprint meaning :max-width 100)
                  ,(irl-program->svg meaning))))
 
-(define-event-handler ((trace-irl-in-web-browser 
-                        trace-irl-in-web-browser-verbose) match-chunk-finished)
+(define-event-handler (trace-irl-verbose match-chunk-finished)
   (if matched-chunks
       (add-element `((p) "matched-chunks: " ((br))
                      ,@(loop for chunk in matched-chunks
                           collect (make-html chunk :expand-initially t))))
       (add-element `((p) ((b) "no results")))))
-|#
 
 ;; ============================================================================
 ;; chunk-composer

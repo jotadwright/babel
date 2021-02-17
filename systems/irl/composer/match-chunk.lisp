@@ -195,9 +195,13 @@
 ;; match chunk to meaning
 ;; -----------------------------------------
 
+(define-event match-chunk-started (chunk chunk) (meaning list))
+(define-event match-chunk-finished (matched-chunks list))
+
 (defun match-chunk (chunk meaning)
   "Match a chunk with a meaning. Returns a list of chunks.
    If no chunks are returned, the meaning does not match the chunk."
+  (notify match-chunk-started chunk meaning)
   (let* ((u-frames (embedding meaning chunk))
          (chunks (loop for frame in u-frames
                        ;; compute new bind statements
@@ -233,6 +237,7 @@
                                 :target-var (target-var chunk)
                                 :open-vars open-vars
                                 :score (score chunk)))))
+    (notify match-chunk-finished chunks)
     (values chunks u-frames)))
 
 
