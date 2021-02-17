@@ -35,8 +35,11 @@ An tutor-learner experiment for learning the CLEVR grammar.
 	-> the function update-th-links is called, but new weights to not appear in the web interface
 
  - Where do competiting cxns arise?
-	When a lex is created using holophrase->item-based and the same lex is recognized later, the lex->item-based will always be triggered. The only way for competing lex cxns to appear is when the holophrase->item-based creates the same lex again, but with a different meaning. How often does this happen?
-	-> make a monitor for this!
+	When a lex is created using holophrase->item-based and the same lex is recognized later, 
+	the lex->item-based will always be triggered. 
+	The only way for competing lex cxns to appear is when the holophrase->item-based creates 
+	the same lex again, but with a different meaning. How often does this happen?
+	-> added a monitor for this!
 	-> maybe happens more often with more sentences
 
  - Edge case in comprehension:
@@ -44,8 +47,7 @@ An tutor-learner experiment for learning the CLEVR grammar.
 	This will not trigger any repair! However, it would be a clear case
 	for the lex->item-based repair. It is clear that the item-based cxn
 	that applied was not sufficient, so it can be ignored.
-	Maybe this can be tried after all repairs? Or it needs to be checked
-	already in the lex->item-based repair.
+	Add this to the lex->item-based repair.
 
  - Similar edge case:
 	X lexical cxns applied, item-based with X slots and 1 string in root!
@@ -54,7 +56,8 @@ An tutor-learner experiment for learning the CLEVR grammar.
 
 ## To Do 
 
- - When parsing succeeds using multiple cxns, but interpretation fails (wrong answer), why not try to compose a program using subsets of the applied cxns instead of making a new holophrase directly?
+ - When parsing succeeds using multiple cxns, but interpretation fails (wrong answer), 
+   why not try to compose a program using subsets of the applied cxns instead of making a new holophrase directly?
 	-> There is no way of knowing which of the cxns are actually good? Maybe via the score?
 
  - run longer experiment with 500 sentences to check convergence
