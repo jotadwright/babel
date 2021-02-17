@@ -44,9 +44,8 @@
          ;; :check-bindings to the check chunk
          ;; evaluation result modes
          (check-chunk-evaluation-result-modes
-          (append (when partial-program-bindings
-                    '(:check-bindings))
-                  '(:clevr-coherent-filter-groups)))
+          (when partial-program-bindings
+            '(:check-bindings)))
          ;; make the chunk composer
          (composer
           (make-chunk-composer
@@ -86,9 +85,10 @@
                              ;; remove unwanted chunk eval results
                              (:check-chunk-evaluation-result-modes
                               ,@check-chunk-evaluation-result-modes))
-           ;; turn off the :no-duplicate-solutions node test
-           ;; since it checks too many things
-           :primitive-inventory-configurations '((:node-tests))
+           ;; some extreme optimisations that are CLEVR specific
+           ;; also, they will not work for level 3 questions!
+           :primitive-inventory-configurations '((:node-tests :remove-clevr-incoherent-filter-groups
+                                                  :remove-clevr-filter-permutations))
            )))
     ;; when partial bindings, add them to the composer's
     ;; blackboard because we cannot access them otherwise

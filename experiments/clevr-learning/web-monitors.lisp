@@ -144,8 +144,8 @@
             cxns)))
 
 (define-event-handler (trace-interactions-in-wi agent-confidence-level)
-  (add-element `((h2) ,(format nil "The agent is ~$% confident"
-                               (* 100 level)))))
+  (add-element `((h2) ,(format nil "The agent is ~,2f% confident"
+                               (* 100.0 level)))))
 
 (define-event-handler (trace-interactions-in-wi interaction-finished)
   (add-element `((h1) "Interaction "

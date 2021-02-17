@@ -93,48 +93,45 @@
 ;;;;  COMPETITORS
 ;;;; -------------
 
+(defun extract-and-render (cxn)
+  (list-of-strings->string
+   (render (extract-form-predicates cxn)
+           (get-configuration (cxn-inventory cxn) :render-mode))))
+
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'holophrase)))
   ;; holophrase competitors have exactly the same form
-  (flet ((extract-and-render (cxn)
-           (list-of-strings->string
-            (render (extract-form-predicates cxn)
-                    (get-configuration cxn-inventory :render-mode)))))
-    (let* ((all-cxns-of-type
-            (remove cxn
-                    (find-all cxn-type (constructions-list cxn-inventory)
-                              :key #'get-cxn-type)))
-           (cxn-form (extract-and-render cxn))
-           (competitors
-            (find-all cxn-form all-cxns-of-type
-                      :key #'extract-and-render
-                      :test #'string=)))
-      competitors)))
+  (let* ((all-cxns-of-type
+          (remove cxn
+                  (find-all cxn-type (constructions-list cxn-inventory)
+                            :key #'get-cxn-type)))
+         (cxn-form (extract-and-render cxn))
+         (competitors
+          (find-all cxn-form all-cxns-of-type
+                    :key #'extract-and-render
+                    :test #'string=)))
+    competitors))
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'lexical)))
   ;; lexical competitors have exactly the same form
-  (flet ((extract-and-render (cxn)
-           (list-of-strings->string
-            (render (extract-form-predicates cxn)
-                    (get-configuration cxn-inventory :render-mode)))))
-    (let* ((all-cxns-of-type
-            (remove cxn
-                    (find-all cxn-type (constructions-list cxn-inventory)
-                              :key #'get-cxn-type)))
-           (cxn-form (extract-and-render cxn))
-           (competitors
-            (find-all cxn-form all-cxns-of-type
-                      :key #'extract-and-render
-                      :test #'string=)))
-      competitors)))
+  (let* ((all-cxns-of-type
+          (remove cxn
+                  (find-all cxn-type (constructions-list cxn-inventory)
+                            :key #'get-cxn-type)))
+         (cxn-form (extract-and-render cxn))
+         (competitors
+          (find-all cxn-form all-cxns-of-type
+                    :key #'extract-and-render
+                    :test #'string=)))
+    competitors))
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'item-based)))
-  ;; item-based competitors have unifiable form constraints
+  ;; item-based competitors have unifiable form constraints (?)
   (let* ((all-cxns-of-type
           (remove cxn
                   (find-all cxn-type (constructions-list cxn-inventory)
@@ -148,13 +145,11 @@
 
 
 (defun combined-meaning-competitors (agent cxn-inventory)
-  ;; the holophrase from which the current sequence
+  ;; the holophrase from which the current set
   ;; of applied cxns originated can still exist.
-  ;; When succesful, decrease its score
-  (flet ((extract-and-render (cxn)
-           (list-of-strings->string
-            (render (extract-form-predicates cxn)
-                    (get-configuration cxn-inventory :render-mode)))))
+  ;; When using a set of cxns successfully,
+  ;; decrease the score of this corresponding holophrase
+  ;; Lookup via utterance
   (let ((holophrase-cxns
          (find-all 'holophrase (constructions-list cxn-inventory)
                    :key #'get-cxn-type))
@@ -164,7 +159,7 @@
     (loop for cxn in holophrase-cxns
           when (string= processed-utterance
                         (extract-and-render cxn))
-          collect cxn))))
+          collect cxn)))
     
           
 

@@ -265,53 +265,68 @@
        ;; the higher the score the better
        (score chunk))))
 
-;; IRL program evaluation node tests
-;; This test checks whether there are
-;; no duplicate solutions AND
-;; no solutions that are permutations
-;; of each other, in particular concerning
-;; the filter primitives
-
-(defun duplicate-solution-p (solution node)
-  (let ((duplicatep
-         (loop for value in (mapcar #'value solution)
-               for node-value in (mapcar #'value (bindings node))
-               always (or (and (null value) (null node-value))
-                          (and value node-value
-                               (equal-entity value node-value))))))
-    (when duplicatep
-      (setf (status node) 'duplicate))
-    duplicatep))
-
-(defun permutation-solution-p (solution node)
-  (let* ((irl-program (irl-program (processor node)))
-         (filter-groups
-          (remove-if #'(lambda (l) (= l 1))
-                     (collect-filter-groups irl-program)
-                     :key #'length))
-         (permutationp
-          (when filter-groups
-            (loop for group in filter-groups
-                  for vars = (mapcar #'last-elt group)
-                  for solution-values
-                  = (loop for v in vars
-                          collect (value (find v solution :key #'var)))
-                  for group-values
-                  = (loop for v in vars
-                          collect (value (find v (bindings node) :key #'var)))
-                  always (permutation-of? solution-values group-values
-                                          :test #'equal-entity)))))
-    (when permutationp
-      (setf (status node) 'duplicate))
-    permutationp))
-
+;; ---------------------------------------------------------
+;; clevr filter permutation detection
 
 (defmethod node-test ((node irl-program-processor-node)
-                      (mode (eql :no-duplicate-and-permutation-solutions)))
-  ;; if there are primitives remaining, don't run the node test
-  (if (primitives-remaining node) t
-    ;; a node is a good one if there is not a single other solution
-    ;; that is a duplicate or a permutation of the current node
-    (loop for solution in (solutions (processor node))
-          never (or (duplicate-solution-p solution node)
-                    (permutation-solution-p solution node)))))
+                      (mode (eql :remove-clevr-filter-permutations)))
+  ;; Detect and remove permutations in bindings of filter predicates
+  ;; as soon as possible
+  (if (eql (first (primitive-under-evaluation node)) 'clevr-world:filter)
+    (let ((filter-group
+           (loop with group = nil
+                 with current-node = node
+                 while (eql (first (primitive-under-evaluation current-node)) 'clevr-world:filter)
+                 do (push current-node group)
+                 do (setf current-node (parent current-node))
+                 finally (return group))))
+      (if (length> filter-group 1)
+        (let* ((filter-bindings
+                (loop for node in filter-group
+                      for pue = (primitive-under-evaluation node)
+                      for bind-var = (last-elt pue)
+                      for binding = (find bind-var (bindings node) :key #'var)
+                      for bind-val = (value binding)
+                      collect bind-val))
+               (processed-permutations
+                (find-data (blackboard (processor node))
+                          'processed-permutations))
+               (new-permutation-p
+                (loop for permut in processed-permutations
+                      never (and (length= permut filter-bindings)
+                                 (permutation-of? permut filter-bindings)))))
+          (if new-permutation-p
+            (progn (push-data (blackboard (processor node))
+                              'processed-permutations filter-bindings)
+              t)
+            nil))
+        t))
+    t))
+
+;; ---------------------------------------------------------
+;; clevr coherent filter groups
+
+(defmethod node-test ((node irl-program-processor-node)
+                      (mode (eql :remove-clevr-incoherent-filter-groups)))
+  ;; Detect and remove incoherent filter groups as soon as possible
+  (if (eql (first (primitive-under-evaluation node)) 'clevr-world:filter)
+    (let ((filter-group
+           (loop with group = nil
+                 with current-node = node
+                 while (eql (first (primitive-under-evaluation current-node)) 'clevr-world:filter)
+                 do (push current-node group)
+                 do (setf current-node (parent current-node))
+                 finally (return group))))
+      (if (length> filter-group 1)
+        (let ((filter-binding-types
+               (loop for node in filter-group
+                     for pue = (primitive-under-evaluation node)
+                     for bind-var = (last-elt pue)
+                     for binding = (find bind-var (bindings node) :key #'var)
+                     for bind-val = (value binding)
+                     collect (type-of bind-val))))
+          (length= filter-binding-types
+                   (remove-duplicates filter-binding-types)))
+        t))
+    t))
+              
