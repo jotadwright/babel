@@ -33,6 +33,13 @@
                           for binding? = (find var partial-program-bindings :key #'third)
                           if binding? collect (cons var (second binding?))
                           else collect (cons var 'category)))))
+         ;; initial chunk
+         (initial-chunk
+          (make-instance 'chunk :id 'initial
+                         :target-var `(?answer . ,target-category-type)
+                         :open-vars open-vars
+                         :irl-program (when partial-program-primitives
+                                        partial-program-primitives)))
          ;; when partial bindings available, add
          ;; :check-bindings to the check chunk
          ;; evaluation result modes
@@ -44,15 +51,13 @@
          (composer
           (make-chunk-composer
            :topic target-category
-           ; if partial primitives are available, this can be passed along
            :meaning partial-program-primitives
-           :initial-chunk (make-instance 'chunk :id 'initial
-                                         :target-var `(?answer . ,target-category-type)
-                                         :open-vars open-vars)
+           :initial-chunk initial-chunk
            :chunks (composer-chunks agent)
            :ontology (ontology agent)
            :primitive-inventory (available-primitives agent)
-           :configurations `((:max-search-depth . ,max-composer-depth)
+           :configurations `(;; max depth = max length of irl program
+                             (:max-search-depth . ,max-composer-depth)
                              (:check-node-modes ;; no duplicates
                                                 :check-duplicate
                                                 ;; no predicates with multiple times
@@ -72,10 +77,17 @@
                                                 ;; a filter group can be maximally 4 long
                                                 ;; (clevr specific)
                                                 :clevr-filter-group-length)
+                             ;; default expand mode
                              (:expand-chunk-modes :combine-program)
+                             ;; prefer less depth, less open vars
+                             ;; less duplicate primitives and prefer
+                             ;; chain-type over tree-type programs
                              (:node-rating-mode . :clevr-node-rating)
+                             ;; remove unwanted chunk eval results
                              (:check-chunk-evaluation-result-modes
                               ,@check-chunk-evaluation-result-modes))
+           ;; turn off the :no-duplicate-solutions node test
+           ;; since it checks too many things
            :primitive-inventory-configurations '((:node-tests))
            )))
     ;; when partial bindings, add them to the composer's

@@ -122,25 +122,27 @@
 (define-event-handler (record-nr-of-lexical-cxns interaction-finished)
   (record-value monitor (length (get-cxns-of-type (learner experiment) 'lexical))))
 
-;;;; Number of meanings per form
-(define-monitor record-meanings-per-form
+;;;; Number of meanings per form for lexical cxns
+(define-monitor record-lexical-meanings-per-form
                 :class 'data-recorder
                 :average-window 100
                 :documentation "records avg nr of meanings per form")
 
-(define-monitor export-meanings-per-form
+(define-monitor export-lexical-meanings-per-form
                 :class 'lisp-data-file-writer
-                :documentation "Exports nr of meanings per form"
-                :data-sources '(record-meanings-per-form)
-                :file-name (babel-pathname :name "meanings-per-form" :type "lisp"
+                :documentation "Exports nr of meanings per form for lexical cxns"
+                :data-sources '(record-lexical-meanings-per-form)
+                :file-name (babel-pathname :name "lexical-meanings-per-form" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
 
-(defun compute-nr-of-meanings-per-form (agent)
+(defun compute-nr-of-lexical-meanings-per-form (agent)
   (loop with form-count = nil
-        for cxn in (constructions-list (grammar agent))
+        with lexical-cxns = (find-all 'lexical (constructions-list (grammar agent))
+                                      :key #'get-cxn-type)
+        for cxn in lexical-cxns
         for cxn-form = (list-of-strings->string
                         (render (extract-form-predicates cxn)
                                 (get-configuration (grammar agent) :render-mode)))
@@ -150,9 +152,9 @@
         finally
         (return (average (mapcar #'cdr form-count)))))
 
-(define-event-handler (record-meanings-per-form interaction-finished)
+(define-event-handler (record-lexical-meanings-per-form interaction-finished)
    (record-value monitor
-                 (compute-nr-of-meanings-per-form
+                 (compute-nr-of-lexical-meanings-per-form
                   (learner experiment))))
 
 ;;;; Frequency of lexicon change

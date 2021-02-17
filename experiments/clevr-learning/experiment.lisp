@@ -104,7 +104,7 @@
                 ((eql sample-method :first)
                  (subseq all-challenge-files 0 number-of-files))
                 ((eql sample-method :all)
-                 all-challenge-files))))
+                 (shuffle all-challenge-files)))))
     (format t "~%LOADING QUESTION FILES FOR STAGE ~a"
             (get-configuration experiment :current-challenge-level))
     (setf (question-files experiment) challenge-files)
