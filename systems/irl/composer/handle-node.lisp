@@ -84,18 +84,23 @@
   (setf (next-handler node) nil)
   ;; as long as max depth is not reached, expand the current node
   ;; using the expand-chunk-fns
-  (let ((children
-         (when (> (get-configuration composer :max-search-depth)
-                  (node-depth node))
-           (loop for (new-chunk . source-chunks) in (run-expand-chunk-fns (chunk node) composer)
-                 collect (make-instance 'chunk-composer-node :composer composer
-                                       :source-chunks (append source-chunks (source-chunks node))
-                                       :chunk new-chunk
-                                       :node-number (incf (node-counter composer))
-                                       :node-depth (1+ (node-depth node)))))))
+  ;; when using max depth, users might expects this to refer to
+  ;; the number of primitives instead of the number of nodes
+  ;; however, with chunking, this can be different
+  ;; so also check the length of the program
+  (let* ((max-depth (get-configuration composer :max-search-depth))
+         (children
+          (when (and (> max-depth (node-depth node))
+                     (> max-depth (length (irl-program (chunk node)))))
+            (loop for (new-chunk . source-chunks) in (run-expand-chunk-fns (chunk node) composer)
+                  collect (make-instance 'chunk-composer-node :composer composer
+                                         :source-chunks (append source-chunks (source-chunks node))
+                                         :chunk new-chunk
+                                         :node-number (incf (node-counter composer))
+                                         :node-depth (1+ (node-depth node)))))))
     (when (and (null children)
-               (<= (get-configuration composer :max-search-depth)
-                   (node-depth node)))
+               (or (<= max-depth (node-depth node))
+                   (<= max-depth (length (irl-program (chunk node))))))
       (push 'max-depth-reached (statuses node)))
     (notify chunk-composer-node-changed-status node)
     (loop for child in children
