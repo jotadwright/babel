@@ -2,6 +2,34 @@
 (in-package :coco-grammar)
 (activate-monitor trace-fcg)
 
+;; cars photo
+(comprehend "do the leftmost car and the rightmost car have the same color?")
+(comprehend "are there an equal number of cars and traffic lights?")
+;; savana photo
+(comprehend "how many things are either zebras or giraffes") ;; would be better with 'animals' instead of 'things'
+;; anslow photo
+(comprehend "are there more laptops than people")
+;; football photo
+;; don't know if this will work
+;; assuming the color of the player == the color of the shirt
+(comprehend "is there a white player left of the rightmost yellow player") 
+;; tennis court photo
+(comprehend "are there fewer tennis rackets than people")
+;; breakfast photo
+(comprehend "are there any cups that have the same color as the rightmost apple")
+(comprehend "how many things are either apples or cups?") ;; here 'things' is okay
+(comprehend "what color is the thing that is both right of the red apple and left of the cup")
+(comprehend "what category is the thing that is both right of the red apple and left of the cup") ;; 'category' is maybe a bit weird
+;; surfer boy photo
+(comprehend "is the tent on the sand") ;; don't know about panoptic segmentatio here, might require beach??
+;; cats + teddies photo
+(comprehend "how many black cats are there?")
+;; home office photo
+(comprehend "do the mouse and the bottle have the same color")
+
+
+
+
 (comprehend "how many cows are there?")
 (comprehend "is there a sheep left of the cow?")
 (comprehend "how many sheep are right of the cow?")
