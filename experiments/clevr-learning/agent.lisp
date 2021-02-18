@@ -343,16 +343,13 @@
               (null (children cipn)))
          (values nil nil))
         (t (let ((all-leaf-nodes
-                  (traverse-depth-first (cip cipn)
-                                       :collect-fn #'(lambda (node)
-                                                       (when (null (children node))
-                                                         node)))))
-            (setf all-leaf-nodes
-                  (remove nil all-leaf-nodes))
-            (setf all-leaf-nodes
                   (remove-if #'(lambda (node)
                                  (find 'fcg::duplicate (fcg::statuses node)))
-                             all-leaf-nodes))
+                             (remove nil
+                                     (traverse-depth-first (cip cipn)
+                                                           :collect-fn #'(lambda (node)
+                                                                           (when (null (children node))
+                                                                             node)))))))
             (cond (;; when there is only 1 non-duplicate node, use that one
                    (length= all-leaf-nodes 1)
                    (values (first all-leaf-nodes)
@@ -374,6 +371,7 @@
                             (applied-cxns (mapcar #'get-original-cxn
                                                 (fcg::applied-constructions random-node))))
                        (values random-node applied-cxns))))))))
+
 
 (defmethod run-process (process
                         (process-label (eql 'parse))

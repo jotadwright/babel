@@ -17,6 +17,18 @@
 (defun get-cxn-type (cxn)
   (attr-val cxn :cxn-type))
 
+(defun item-based-number-of-slots (cxn)
+  (when (eql (get-cxn-type cxn) 'item-based)
+    (1- (length (contributing-part cxn)))))
+
+(defun get-strings-from-root (node)
+  (gl::form-predicates-with-variables
+   (extract-string
+    (get-root
+     (left-pole-structure
+      (car-resulting-cfs
+       (cipn-car node)))))))
+
 
 
 (defun run-experiments (strategies
