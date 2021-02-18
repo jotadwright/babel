@@ -56,7 +56,6 @@ An tutor-learner experiment for learning the CLEVR grammar.
 
  - Do something with multiple composer solutions?? Make hypotheses?
  - Do something with multiple comprehension branches?? Make hypotheses?
- - Can a hashed cxn inventory be combined with the type hierarchy?
 
  - When parsing succeeds using multiple cxns, but interpretation fails (wrong answer), 
    why not try to compose a program using subsets of the applied cxns instead of making a new holophrase directly?

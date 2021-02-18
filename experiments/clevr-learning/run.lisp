@@ -10,7 +10,8 @@
                      (:alignment-strategy . :minimal-holophrases+lateral-inhibition)
                      (:composer-strategy . :store-past-scenes)
                      (:hide-type-hierarchy . t)
-                     (:question-sample-method . :first)))
+                     (:question-sample-method . :first)
+                     (:confidence-threshold . 0.999)))
                    )
                  :number-of-interactions 15000
                  :number-of-series 1
