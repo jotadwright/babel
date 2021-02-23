@@ -30,7 +30,7 @@
 (define-configuration-default-value :initial-th-link-weight 0.1)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
-(define-configuration-default-value :cxn-decf-score 0.3)
+(define-configuration-default-value :cxn-decf-score 0.2)
 (define-configuration-default-value :chunk-incf-score 0.1)
 (define-configuration-default-value :chunk-decf-score 0.1)
 (define-configuration-default-value :th-link-incf-score 0.1)
@@ -43,7 +43,7 @@
 (define-configuration-default-value :current-challenge-level 1)
 (define-configuration-default-value :max-challenge-level 3)
 (define-configuration-default-value :evaluation-window-size 100)
-(define-configuration-default-value :confidence-threshold 0.999)
+(define-configuration-default-value :confidence-threshold 0.95)
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)

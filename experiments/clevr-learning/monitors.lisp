@@ -33,6 +33,17 @@
                 :average-window 100
                 :documentation "records the game outcome of each game (1 or 0).")
 
+(define-monitor display-communicative-success
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-communicative-success))
+                :update-interval 1000
+                :caption '("communicative success")
+                :x-label "# Games" 
+                :y1-label "Communicative Success" 
+                :y1-max 1.0 :y1-min 0 
+                :draw-y1-grid t)
+
 (define-monitor export-communicative-success
                 :class 'lisp-data-file-writer
                 :documentation "Exports communicative success"
@@ -411,12 +422,25 @@
 ;; export grammar after series
 (define-monitor export-learner-grammar)
 
-(defun export-grammar (cxn-inventory)
-  (let ((path (make-file-name-with-time
-               (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
-                               :name "learner-grammar" :type "store"))))
+(defun export-grammar (cxn-inventory pathname)
+  (let ((path (make-file-name-with-time pathname)))
     (cl-store:store cxn-inventory path)))
 
 (define-event-handler (export-learner-grammar run-series-finished)
-  (export-grammar (grammar (learner experiment))))
+  (export-grammar (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                                      :name "learner-grammar" :type "store")
+                  (grammar (learner experiment))))
+
+;; export grammar every nth interaction
+(define-monitor export-learner-grammar-every-nth-interaction)
+
+(define-event-handler (export-learner-grammar-every-nth-interaction interaction-finished)
+  (let ((interaction-nr (interaction-number (current-interaction experiment)))
+        (n (get-configuration-or-default experiment :export-interval 100)))
+    (when (= (mod interaction-nr n) 0)
+      (let ((pathname (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                                      :name (format nil "learner-grammar-~a" interaction-nr)
+                                      :type "store")))
+        (export-grammar (grammar (learner experiment))
+                        pathname)))))
     
