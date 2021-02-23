@@ -24,6 +24,27 @@
 ;; This could also be done using a bind-statement. For this, we would
 ;; need to introduce e.g. attribute-category class.
 
+(def-fcg-cxn what-is-cxn
+             ((?query-type-unit
+               (args ((sources ?source)
+                      (target ?target)))
+               (sem-cat (sem-function query-property))
+               (property-type category)
+               (syn-cat (anaphoric -)
+                        (position front)
+                        (material-suffix +))
+               (leftmost-unit ?what-is-unit)
+               (rightmost-unit ?what-is-unit)
+               (footprints (query)))
+              <-
+              (?query-type-unit
+               (HASH meaning ((query ?target ?source ?attribute)
+                              (bind attribute-category ?attribute category)))
+               --
+               (HASH form ((string ?what "what is")))))
+             :cxn-inventory *COCO*
+             :cxn-set cxn)
+
 (def-fcg-cxn what-T-is-cxn
              ((?query-type-unit
                (args ((sources ?source)
