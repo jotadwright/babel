@@ -1,6 +1,11 @@
 {
   "nouns": [
     {
+      "lex-id": "animal",
+      "singular": "animal",
+      "plural": "animals"
+    },
+    {
       "lex-id": "can",
       "singular": "can",
       "plural": "cans"

@@ -6,7 +6,7 @@
 (comprehend "do the leftmost car and the rightmost car have the same color?")
 (comprehend "are there an equal number of cars and traffic lights?")
 ;; savana photo
-(comprehend "how many things are either zebras or giraffes") ;; would be better with 'animals' instead of 'things'
+(comprehend "how many animals are either zebras or giraffes") ;; would be better with 'animals' instead of 'things'
 ;; anslow photo
 (comprehend "are there more laptops than people")
 ;; football photo
