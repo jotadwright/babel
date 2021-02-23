@@ -6,12 +6,13 @@
 
 (run-experiments '(
                    (clevr-learning-experiment
-                    ((:questions-per-challenge . 500)
+                    ((:questions-per-challenge . 5000)
                      (:alignment-strategy . :minimal-holophrases+lateral-inhibition)
                      (:composer-strategy . :store-past-scenes)
                      (:hide-type-hierarchy . t)
                      (:question-sample-method . :first)
-                     (:confidence-threshold . 0.999)))
+                     (:confidence-threshold . 1.1)
+                     (:export-interval . 1000)))
                    )
                  :number-of-interactions 15000
                  :number-of-series 1
@@ -36,8 +37,7 @@
                                  ;; competition for lexical cxns
                                  "export-lexical-meanings-per-form"
                                  ;; export data
-                                 "export-type-hierarchy-every-nth-interaction"
-                                 "export-learner-grammar"
+                                 "export-learner-grammar-every-nth-interaction"
                                  ;; print dots
                                  "print-a-dot-for-each-interaction"
                                  ))
