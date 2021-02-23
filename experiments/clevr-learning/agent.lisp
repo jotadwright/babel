@@ -390,6 +390,10 @@
                 (restart-occurred-p . ,(find 'restart (status process))))))
            (process-result
             (make-process-result 1 process-result-data :process process)))
+      ;; update the :last-used property of the cxns
+      (loop for cxn in (rest (assoc 'applied-cxns process-result-data))
+            do (set-cxn-last-used agent cxn))
+      ;; check if a repair needs to be triggered
       (unless (notify-learning process-result :trigger 'parsing-finished)
         process-result))))
 

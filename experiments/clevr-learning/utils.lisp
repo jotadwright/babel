@@ -29,6 +29,13 @@
       (car-resulting-cfs
        (cipn-car node)))))))
 
+(defun set-cxn-last-used (agent cxn)
+  (let ((current-interaction-nr
+         (interaction-number
+          (current-interaction
+           (experiment agent)))))
+    (setf (attr-val cxn :last-used) current-interaction-nr)))
+
 
 
 (defun run-experiments (strategies
