@@ -5,15 +5,16 @@
 ;; use this file to run experiments (possibly on the cluster)
 
 (run-experiments '(
-                   (all_questions+50k_games
-                    ((:question-sample-method . :all)
+                   (5k_questions+25k_games
+                    ((:question-sample-method . :first)
+                     (:questions-per-challenge . 5000)
                      (:alignment-strategy . :minimal-holophrases+lateral-inhibition)
                      (:composer-strategy . :store-past-scenes)
                      (:hide-type-hierarchy . t)
                      (:confidence-threshold . 1.1)
                      (:export-interval . 1000)))
                    )
-                 :number-of-interactions 50000
+                 :number-of-interactions 25000
                  :number-of-series 1
                  :monitors (list ;; success
                                  "export-communicative-success"
