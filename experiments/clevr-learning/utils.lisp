@@ -36,7 +36,16 @@
            (experiment agent)))))
     (setf (attr-val cxn :last-used) current-interaction-nr)))
 
+(defun extract-and-render (cxn)
+  (list-of-strings->string
+   (render (extract-form-predicates cxn)
+           (get-configuration (cxn-inventory cxn) :render-mode))))
 
+
+
+
+;;;; UTILS FOR RUNNING GAMES
+;;;; -----------------------
 
 (defun run-experiments (strategies
                          &key

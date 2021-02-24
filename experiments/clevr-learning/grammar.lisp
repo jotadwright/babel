@@ -93,11 +93,6 @@
 ;;;;  COMPETITORS
 ;;;; -------------
 
-(defun extract-and-render (cxn)
-  (list-of-strings->string
-   (render (extract-form-predicates cxn)
-           (get-configuration (cxn-inventory cxn) :render-mode))))
-
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'holophrase)))
@@ -131,37 +126,50 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'item-based)))
-  ;; item-based competitors have unifiable form constraints (?)
-  (let* ((all-cxns-of-type
-          (remove cxn
-                  (find-all cxn-type (constructions-list cxn-inventory)
-                            :key #'get-cxn-type)))
-         (cxn-form (extract-form-predicates cxn))
+  ;; item-based cxns have no meaning competitors
+  nil)
+
+
+(defun combined-meaning-competitors (agent applied-cxns)
+  ;; the current set of applied cxns might have some less
+  ;; general alternatives, e.g. an item-based with fewer
+  ;; slots or a holophrase cxn. These can be punished as
+  ;; well. We find them through comprehend-all with a
+  ;; simple queue as cxn supplier
+  (set-configuration (grammar agent) :cxn-supplier-mode
+                     :simple-queue :replace t)
+  (multiple-value-bind (meanings cipns)
+      (comprehend-all (utterance agent)
+                      :cxn-inventory (grammar agent)
+                      :silent t)
+    (declare (ignorable meanings))
+    (set-configuration (grammar agent) :cxn-supplier-mode
+                       :ordered-by-label-and-score :replace t)
+    (when (length> cipns 1)
+      (remove-duplicates
+       (loop for cipn in cipns
+            for cipn-applied-cxns = (applied-constructions cipn)
+            unless (permutation-of? applied-cxns cipn-applied-cxns
+                                    :key #'name :test #'eql)
+            append (loop for cxn in cipn-applied-cxns
+                         unless (eql (get-cxn-type cxn) 'lexical)
+                         collect (get-original-cxn cxn)))))))
+
+#|
+  (let* ((holophrase-cxns
+          (find-all 'holophrase (constructions-list (grammar agent))
+                    :key #'get-cxn-type))
+         (processed-utterance
+          (list-of-strings->string
+           (fcg::tokenize (utterance agent))))
          (competitors
-          (find-all cxn-form all-cxns-of-type
-                    :key #'extract-form-predicates
-                    :test #'unify)))
-      competitors))
-
-
-(defun combined-meaning-competitors (agent cxn-inventory)
-  ;; the holophrase from which the current set
-  ;; of applied cxns originated can still exist.
-  ;; When using a set of cxns successfully,
-  ;; decrease the score of this corresponding holophrase
-  ;; Lookup via utterance
-  (let ((holophrase-cxns
-         (find-all 'holophrase (constructions-list cxn-inventory)
-                   :key #'get-cxn-type))
-        (processed-utterance
-         (list-of-strings->string
-          (fcg::tokenize (utterance agent)))))
-    (loop for cxn in holophrase-cxns
-          when (string= processed-utterance
-                        (extract-and-render cxn))
-          collect cxn)))
-    
-          
+          (loop for cxn in holophrase-cxns
+                when (string= processed-utterance
+                              (extract-and-render cxn))
+                collect cxn)))
+    (when competitors
+      (progn competitors))))
+|#       
 
 (defun get-meaning-competitors (agent applied-cxns)
   "Get cxns with the same form as cxn"
@@ -173,6 +181,7 @@
                             cxn (grammar agent) cxn-type)
          append competitors)
    ;; get competitors for the combined applied cxns
-   ;; (item-based + lexical might have a holophrase competitor)
+   ;; (item-based + lexical might have a holophrase competitor
+   ;;  or some item-based + lexical that is less general)
    (when (length> applied-cxns 1)
-     (combined-meaning-competitors agent (grammar agent)))))
+     (combined-meaning-competitors agent applied-cxns))))
