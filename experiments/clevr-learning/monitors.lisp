@@ -30,7 +30,7 @@
 ;;;; Communicative success
 (define-monitor record-communicative-success
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1000
                 :documentation "records the game outcome of each game (1 or 0).")
 
 (define-monitor display-communicative-success
@@ -133,10 +133,10 @@
 (define-event-handler (record-nr-of-lexical-cxns interaction-finished)
   (record-value monitor (length (get-cxns-of-type (learner experiment) 'lexical))))
 
-;;;; Number of meanings per form for lexical cxns
+;;;; # meanings per form for lexical cxns
 (define-monitor record-lexical-meanings-per-form
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1000
                 :documentation "records avg nr of meanings per form")
 
 (define-monitor export-lexical-meanings-per-form
@@ -168,10 +168,43 @@
                  (compute-nr-of-lexical-meanings-per-form
                   (learner experiment))))
 
+;;;; # forms per meaning for lexical cxns
+(define-monitor record-lexical-forms-per-meaning
+                :class 'data-recorder
+                :average-window 1000
+                :documentation "records avg nr of forms per meaning")
+
+(define-monitor export-lexical-forms-per-meaning
+                :class 'lisp-data-file-writer
+                :documentation "Exports nr of forms per meaning for lexical cxns"
+                :data-sources '(record-lexical-forms-per-meaning)
+                :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :column-separator " "
+                :comment-string "#")
+
+(defun compute-nr-of-lexical-forms-per-meaning (agent)
+  (loop with meaning-count = nil
+        with lexical-cxns = (find-all 'lexical (constructions-list (grammar agent))
+                                      :key #'get-cxn-type)
+        for cxn in lexical-cxns
+        for cxn-meaning = (last-elt (first (extract-meaning-predicates cxn)))
+        for found = (assoc cxn-meaning meaning-count)
+        if found do (incf (cdr found))
+        else do (push (cons cxn-meaning 1) meaning-count)
+        finally
+        (return (average (mapcar #'cdr meaning-count)))))
+
+(define-event-handler (record-lexical-forms-per-meaning interaction-finished)
+   (record-value monitor
+                 (compute-nr-of-lexical-forms-per-meaning
+                  (learner experiment))))
+
 ;;;; Frequency of lexicon change
 (define-monitor record-lexicon-change
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1000
                 :documentation "records how often the lexicon changes")
 
 (define-monitor export-lexicon-change
@@ -190,7 +223,7 @@
 ;;;; Avg cxn score
 (define-monitor record-avg-cxn-score
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1000
                 :documentation "record the avg cxn score")
 
 (define-monitor export-avg-cxn-score
@@ -209,7 +242,7 @@
 ;;;; Avg holophrase cxn score
 (define-monitor record-avg-holophrase-cxn-score
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1000
                 :documentation "record the avg cxn score")
 
 (define-monitor export-avg-holophrase-cxn-score
@@ -228,7 +261,7 @@
 ;;;; Avg item-based cxn score
 (define-monitor record-avg-item-based-cxn-score
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1000
                 :documentation "record the avg cxn score")
 
 (define-monitor export-avg-item-based-cxn-score
@@ -247,7 +280,7 @@
 ;;;; Avg lexical cxn score
 (define-monitor record-avg-lexical-cxn-score
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1000
                 :documentation "record the avg cxn score")
 
 (define-monitor export-avg-lexical-cxn-score
@@ -266,7 +299,7 @@
 ;;;; learner confidence level
 (define-monitor record-confidence-level
                 :class 'data-recorder
-                :average-window 100
+                :average-window 1000
                 :documentation "record the confidence level")
 
 (define-monitor export-confidence-level
@@ -342,7 +375,7 @@
 ;; holophrase-cxn-usage
 (define-monitor record-holophrase-cxn-usage
                 :class 'data-recorder
-                :average-window 1
+                :average-window 1000
                 :documentation "records how often the lexicon changes")
 
 (define-monitor export-holophrase-cxn-usage
@@ -363,7 +396,7 @@
 ;; item-based-cxn-usage
 (define-monitor record-item-based-cxn-usage
                 :class 'data-recorder
-                :average-window 1
+                :average-window 1000
                 :documentation "records how often the lexicon changes")
 
 (define-monitor export-item-based-cxn-usage

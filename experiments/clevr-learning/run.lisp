@@ -5,16 +5,15 @@
 ;; use this file to run experiments (possibly on the cluster)
 
 (run-experiments '(
-                   (clevr-learning-experiment
-                    ((:questions-per-challenge . 5000)
+                   (all_questions+50k_games
+                    ((:question-sample-method . :all)
                      (:alignment-strategy . :minimal-holophrases+lateral-inhibition)
                      (:composer-strategy . :store-past-scenes)
                      (:hide-type-hierarchy . t)
-                     (:question-sample-method . :first)
                      (:confidence-threshold . 1.1)
                      (:export-interval . 1000)))
                    )
-                 :number-of-interactions 15000
+                 :number-of-interactions 50000
                  :number-of-series 1
                  :monitors (list ;; success
                                  "export-communicative-success"
@@ -36,6 +35,7 @@
                                  "export-confidence-level"
                                  ;; competition for lexical cxns
                                  "export-lexical-meanings-per-form"
+                                 "export-lexical-forms-per-meaning"
                                  ;; export data
                                  "export-learner-grammar-every-nth-interaction"
                                  ;; print dots
