@@ -116,8 +116,7 @@
           (random-elts all-files number-of-questions))
          (data
           (loop for file in files
-                for file-data = (jonathan.decode:parse
-                                 (uiop/stream:read-file-string file))
+                for file-data = (decode-json-as-plist-from-source file)
                 for scenes-and-answers = (random-elts (getf file-data :|answers|)
                                                       scenes-per-questions)
                 collect (list :|question| (getf file-data :|question|)
@@ -134,8 +133,7 @@
           (subseq all-files 0 number-of-questions))
          (data
           (loop for file in files
-                for file-data = (jonathan.decode:parse
-                                 (uiop/stream:read-file-string file))
+                for file-data = (decode-json-as-plist-from-source file)
                 for scenes-and-answers = (random-elts (getf file-data :|answers|)
                                                       scenes-per-questions)
                 collect (list :|question| (getf file-data :|question|)
@@ -148,8 +146,7 @@
           (get-configuration experiment :scenes-per-question))
          (data
           (loop for file in all-files
-                for file-data = (jonathan.decode:parse
-                                 (uiop/stream:read-file-string file))
+                for file-data = (decode-json-as-plist-from-source file)
                 for scenes-and-answers = (random-elts (getf file-data :|answers|)
                                                       scenes-per-questions)
                 collect (list :|question| (getf file-data :|question|)
