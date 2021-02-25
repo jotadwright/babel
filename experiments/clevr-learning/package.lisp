@@ -10,6 +10,4 @@
         :irl :fcg :type-hierarchies :clevr-world
         :clevr-primitives :gl)
   (:import-from :clevr-grammar :*CLEVR*)
-  (:import-from :cl-json :decode-json-from-string
-                :decode-json-from-source)
   (:shadowing-import-from :fcg :size :attributes))
