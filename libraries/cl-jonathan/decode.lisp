@@ -36,15 +36,15 @@
                          :exclude-normalize-keys exclude-normalize-keys
                          :unescape-unicode-escape-sequence unescape-unicode-escape-sequence))
 
-(defun alist-key-normalizer (key)
+(defun key-normalizer (key)
   "The typical alist key normalizer. It takes a key (string)
    and transforms it into a keyword. Also, underscores (_) are
    replaced by double hyphens (--)"
-  (make-kw (regex-replace-all "_" (upcase key) "--")))
+  (make-kw (regex-replace-all "_" (format nil "~:@(~a~)" key) "--")))
 
 (defun decode-json-as-alist (string &key junk-allowed
                                     keywords-to-read
-                                    (keyword-normalizer #'alist-key-normalizer)
+                                    (keyword-normalizer #'key-normalizer)
                                     (normalize-all t)
                                     exclude-normalize-keys
                                     (unescape-unicode-escape-sequence t))
@@ -59,7 +59,7 @@
 
 (defun decode-json-as-alist-from-source (pathname &key junk-allowed
                                                   keywords-to-read
-                                                  (keyword-normalizer #'alist-key-normalizer)
+                                                  (keyword-normalizer #'key-normalizer)
                                                   (normalize-all t)
                                                   exclude-normalize-keys
                                                   (unescape-unicode-escape-sequence t))
