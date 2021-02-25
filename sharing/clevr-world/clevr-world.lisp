@@ -154,7 +154,7 @@
 
 (defmethod load-object ((type (eql 'scene)) filename &key)
   "Load a scene from file"
-  (let ((s-expr (decode-json-from-source filename)))
+  (let ((s-expr (decode-json-as-alist-from-source filename)))
     (s-expr->object 'scene s-expr :directory filename)))
 
 (defun collect-relations-for-object (all-relationships index)
@@ -349,7 +349,7 @@
   "Load a question-set from file"
   (let ((s-expr
          (with-open-file (stream filename :direction :input)
-           (mapcar #'decode-json-from-string
+           (mapcar #'decode-json-as-alist
                    (stream->list stream)))))
     (s-expr->object 'question-set s-expr :directory filename)))
 

@@ -99,11 +99,11 @@
    How to handle 'thing'? Also consider this a shape?"
   (let* ((metadata-file (babel-pathname :directory '("sharing" "clevr-world" "data")
                                         :name "metadata" :type "json"))
-         (metadata (decode-json-from-source metadata-file))
+         (metadata (decode-json-as-alist-from-source metadata-file))
          (metadata-types (cdr (assoc :types metadata)))
          (clevr-ontology (make-blackboard)))
     (loop for (category-key . vocab) in metadata-types
-          for category = (internal-symb (upcase (subseq (mkstr category-key) 1)))
+          for category = (internal-symb (upcase (mkstr category-key)))
           when vocab
           do (loop for value-str in vocab
                    for value = (internal-symb (upcase value-str))
