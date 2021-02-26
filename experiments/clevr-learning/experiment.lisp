@@ -13,13 +13,13 @@
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :challenge-1-files
                                     (make-pathname :directory '(:relative "stage-1")
-                                                   :name :wild :type "txt"))
+                                                   :name :wild :type "lisp"))
 (define-configuration-default-value :challenge-2-files
                                     (make-pathname :directory '(:relative "stage-2")
-                                                   :name :wild :type "txt"))
+                                                   :name :wild :type "lisp"))
 (define-configuration-default-value :challenge-3-files
                                     (make-pathname :directory '(:relative "stage-3")
-                                                   :name :wild :type "txt"))
+                                                   :name :wild :type "lisp"))
 (define-configuration-default-value :questions-per-challenge 1000)
 (define-configuration-default-value :scenes-per-question 100)
 (define-configuration-default-value :question-sample-mode :random) ; random or first
@@ -116,11 +116,12 @@
           (random-elts all-files number-of-questions))
          (data
           (loop for file in files
-                for file-data = (decode-json-as-plist-from-source file)
-                for scenes-and-answers = (random-elts (getf file-data :|answers|)
+                for file-data = (with-open-file (stream file :direction :input)
+                                  (read stream))
+                for scenes-and-answers = (random-elts (rest (assoc :answers file-data))
                                                       scenes-per-questions)
-                collect (list :|question| (getf file-data :|question|)
-                              :|answers| scenes-and-answers))))
+                collect (list (assoc :question file-data)
+                              (cons :answers scenes-and-answers)))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
@@ -133,11 +134,12 @@
           (subseq all-files 0 number-of-questions))
          (data
           (loop for file in files
-                for file-data = (decode-json-as-plist-from-source file)
-                for scenes-and-answers = (random-elts (getf file-data :|answers|)
+                for file-data = (with-open-file (stream file :direction :input)
+                                  (read stream))
+                for scenes-and-answers = (random-elts (rest (assoc :answers file-data))
                                                       scenes-per-questions)
-                collect (list :|question| (getf file-data :|question|)
-                              :|answers| scenes-and-answers))))
+                collect (list (assoc :question file-data)
+                              (cons :answers scenes-and-answers)))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
@@ -146,11 +148,12 @@
           (get-configuration experiment :scenes-per-question))
          (data
           (loop for file in all-files
-                for file-data = (decode-json-as-plist-from-source file)
-                for scenes-and-answers = (random-elts (getf file-data :|answers|)
+                for file-data = (with-open-file (stream file :direction :input)
+                                  (read stream))
+                for scenes-and-answers = (random-elts (rest (assoc :answers file-data))
                                                       scenes-per-questions)
-                collect (list :|question| (getf file-data :|question|)
-                              :|answers| scenes-and-answers))))
+                collect (list (assoc :question file-data)
+                              (cons :answers scenes-and-answers)))))
     (setf (question-data experiment) data)))
 
 (defmethod tutor ((experiment clevr-learning-experiment))

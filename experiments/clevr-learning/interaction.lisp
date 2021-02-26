@@ -29,11 +29,11 @@
 
 (defun sample (experiment)
   (let* ((random-sample (random-elt (question-data experiment)))
-         (question (getf random-sample :|question|))
-         (random-scene-and-answer (random-elt (getf random-sample :|answers|)))
-         (clevr-scene (find-scene-by-name (getf random-scene-and-answer :|scene|)
+         (question (rest (assoc :question random-sample)))
+         (random-scene-and-answer (random-elt (rest (assoc :answers random-sample))))
+         (clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
                                           (world experiment)))
-         (answer-entity (find-clevr-entity (getf random-scene-and-answer :|answer|)
+         (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
                                            *clevr-ontology*)))
     ;; !!!!!!!!!!! This is an ugly temporary solution
     ;; Needs to be fixed in the future...

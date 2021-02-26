@@ -31,21 +31,21 @@
                  (composer-chunks agent))))
     
 
-(defun find-clevr-entity (answer-str ontology)
+(defun find-clevr-entity (answer ontology)
   (let ((all-categories
          (loop for field in (fields ontology)
                for field-data = (get-data ontology field)
                when (listp field-data)
                append field-data)))
     (cond
-     ((stringp answer-str)
-      (let ((found (find (internal-symb (upcase (mkstr answer-str)))
-                         all-categories :key #'id)))
-        (if found found (parse-integer answer-str))))
-     ((eql t answer-str)
-      (find 'yes all-categories :key #'id))
-     ((null answer-str)
-      (find 'no all-categories :key #'id)))))
+     ;; a number
+     ((numberp answer) answer)
+     ;; NIL
+     ((null answer) (find 'no all-categories :key #'id))
+     ;; T
+     ((eql answer t) (find 'yes all-categories :key #'id))
+     ;; otherwise, its an ID of an entity
+     (t (find answer all-categories :key #'id)))))
 
 (defun get-target-value (irl-program list-of-bindings)
   (let* ((target-variable (get-target-var irl-program))
