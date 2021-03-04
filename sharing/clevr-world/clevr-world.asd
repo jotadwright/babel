@@ -9,7 +9,7 @@
                :web-interface
                :irl
                :fcg
-               :cl-json)
+               :cl-jonathan)
   :serial t
   :components ((:file "package")
                (:file "clevr-symbols")

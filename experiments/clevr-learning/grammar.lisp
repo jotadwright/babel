@@ -49,7 +49,7 @@
                                                            :connected-semantic-network
                                                            :no-strings-in-root)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
-                                        (:th-connected-mode . :path-exists)
+                                        (:th-connected-mode . :neighbours) ;:path-exists)
                                         (:update-th-links . t))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-type-hierarchy . ,(not hide-type-hierarchy)))))))

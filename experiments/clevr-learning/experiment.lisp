@@ -13,15 +13,16 @@
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :challenge-1-files
                                     (make-pathname :directory '(:relative "stage-1")
-                                                   :name :wild :type "txt"))
+                                                   :name :wild :type "lisp"))
 (define-configuration-default-value :challenge-2-files
                                     (make-pathname :directory '(:relative "stage-2")
-                                                   :name :wild :type "txt"))
+                                                   :name :wild :type "lisp"))
 (define-configuration-default-value :challenge-3-files
                                     (make-pathname :directory '(:relative "stage-3")
-                                                   :name :wild :type "txt"))
+                                                   :name :wild :type "lisp"))
 (define-configuration-default-value :questions-per-challenge 1000)
-(define-configuration-default-value :question-sample-method :random) ; random or first
+(define-configuration-default-value :scenes-per-question 100)
+(define-configuration-default-value :question-sample-mode :random) ; random or first
 (define-configuration-default-value :clevr-world-data-sets '("val"))
 
 ;; Strategies and scores
@@ -56,9 +57,9 @@
 ;; --------------
 
 (defclass clevr-learning-experiment (experiment)
-  ((question-files :initarg :question-files :initform nil 
-                   :accessor question-files :type list
-                   :documentation "A list of filenames for the current challenge level")
+  ((question-data :initarg :question-data :initform nil 
+                   :accessor question-data :type list
+                   :documentation "A list of samples for the current challenge level")
    (confidence-buffer :initarg :confidence-buffer :initform nil
                       :accessor confidence-buffer :type list
                       :documentation "A buffer to keep track of outcomes of games"))
@@ -71,7 +72,8 @@
                        :data-sets (get-configuration experiment :clevr-world-data-sets)
                        :load-questions nil))
   ;; set the questions of the experiment
-  (load-questions-for-current-challenge-level experiment)
+  (load-questions-for-current-challenge-level
+   experiment (get-configuration experiment :question-sample-mode))
   ;; set the population of the experiment
   (setf (population experiment)
         (list (make-clevr-learning-tutor experiment)
@@ -83,10 +85,12 @@
 
 (define-event challenge-level-questions-loaded (level number))
 
-(defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment))
-  ;; Loads N (:questions-per-challenge) questions of the current challenge level
-  ;; Either choose these questions randomly or take the first N
-  (let* ((all-challenge-files
+(defgeneric load-questions-for-current-challenge-level (experiment  mode &optional all-files)
+  (:documentation "Load all data for the current challenge level"))
+
+(defmethod load-questions-for-current-challenge-level :around ((experiment clevr-learning-experiment)
+                                                               mode &optional all-files)
+  (let ((all-challenge-files
           (sort
            (directory
             (merge-pathnames
@@ -95,23 +99,62 @@
                (2 (get-configuration experiment :challenge-2-files))
                (3 (get-configuration experiment :challenge-3-files)))
              (get-configuration experiment :challenge-files-root)))
-           #'string< :key #'namestring))
-         (sample-method
-          (get-configuration experiment :question-sample-method))
-         (number-of-files
-          (get-configuration experiment :questions-per-challenge))
-         (challenge-files
-          (cond ((eql sample-method :random)
-                 (random-elts all-challenge-files number-of-files))
-                ((eql sample-method :first)
-                 (subseq all-challenge-files 0 number-of-files))
-                ((eql sample-method :all)
-                 (shuffle all-challenge-files)))))
-    (format t "~%LOADING QUESTION FILES FOR STAGE ~a"
-            (get-configuration experiment :current-challenge-level))
-    (setf (question-files experiment) challenge-files)
+           #'string< :key #'namestring)))
+    (format t "~%Loading data...")
+    (call-next-method experiment mode all-challenge-files)
+    (format t "~%Done!")
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))
+
+(defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
+                                                       (mode (eql :random)) &optional all-files)
+  (let* ((number-of-questions
+          (get-configuration experiment :questions-per-challenge))
+         (scenes-per-questions
+          (get-configuration experiment :scenes-per-question))
+         (files
+          (random-elts all-files number-of-questions))
+         (data
+          (loop for file in files
+                for file-data = (with-open-file (stream file :direction :input)
+                                  (read stream))
+                for scenes-and-answers = (random-elts (rest (assoc :answers file-data))
+                                                      scenes-per-questions)
+                collect (list (assoc :question file-data)
+                              (cons :answers scenes-and-answers)))))
+    (setf (question-data experiment) data)))
+
+(defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
+                                                       (mode (eql :first)) &optional all-files)
+  (let* ((number-of-questions
+          (get-configuration experiment :questions-per-challenge))
+         (scenes-per-questions
+          (get-configuration experiment :scenes-per-question))
+         (files
+          (subseq all-files 0 number-of-questions))
+         (data
+          (loop for file in files
+                for file-data = (with-open-file (stream file :direction :input)
+                                  (read stream))
+                for scenes-and-answers = (random-elts (rest (assoc :answers file-data))
+                                                      scenes-per-questions)
+                collect (list (assoc :question file-data)
+                              (cons :answers scenes-and-answers)))))
+    (setf (question-data experiment) data)))
+
+(defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
+                                                       (mode (eql :all)) &optional all-files)
+  (let* ((scenes-per-questions
+          (get-configuration experiment :scenes-per-question))
+         (data
+          (loop for file in all-files
+                for file-data = (with-open-file (stream file :direction :input)
+                                  (read stream))
+                for scenes-and-answers = (random-elts (rest (assoc :answers file-data))
+                                                      scenes-per-questions)
+                collect (list (assoc :question file-data)
+                              (cons :answers scenes-and-answers)))))
+    (setf (question-data experiment) data)))
 
 (defmethod tutor ((experiment clevr-learning-experiment))
   (find 'tutor (population experiment) :key #'role))

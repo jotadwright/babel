@@ -28,16 +28,15 @@
   (scene clevr-scene) (question string) (answer t))
 
 (defun sample (experiment)
-  ;; !!!!!!!!!!! This is an ugly temporary solution
-  ;; Needs to be fixed in the future...
-  (let* ((random-file (random-elt (question-files experiment)))
-         (file-data (decode-json-from-source random-file))
-         (question (rest (assoc :question file-data)))
-         (random-scene-and-answer (random-elt (rest (assoc :answers file-data))))
+  (let* ((random-sample (random-elt (question-data experiment)))
+         (question (rest (assoc :question random-sample)))
+         (random-scene-and-answer (random-elt (rest (assoc :answers random-sample))))
          (clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
                                           (world experiment)))
          (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
                                            *clevr-ontology*)))
+    ;; !!!!!!!!!!! This is an ugly temporary solution
+    ;; Needs to be fixed in the future...
     (if (search "How big" question)
       (sample experiment)
       (values question clevr-scene answer-entity))))
@@ -94,6 +93,7 @@
                        (1+ (get-configuration experiment :current-challenge-level))
                        :replace t)
     (setf (confidence-buffer experiment) nil)
-    (load-questions-for-current-challenge-level experiment)
+    (load-questions-for-current-challenge-level
+     experiment (get-configuration experiment :question-sample-mode))
     (set-primitives-for-current-challenge-level (learner experiment))
     (update-composer-chunks-w-primitive-inventory (learner experiment))))

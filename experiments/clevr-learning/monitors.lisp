@@ -47,7 +47,7 @@
 (define-monitor export-communicative-success
                 :class 'lisp-data-file-writer
                 :documentation "Exports communicative success"
-                :data-sources '(record-communicative-success)
+                :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
@@ -136,7 +136,7 @@
 ;;;; # meanings per form for lexical cxns
 (define-monitor record-lexical-meanings-per-form
                 :class 'data-recorder
-                :average-window 1000
+                :average-window 1
                 :documentation "records avg nr of meanings per form")
 
 (define-monitor export-lexical-meanings-per-form
@@ -171,7 +171,7 @@
 ;;;; # forms per meaning for lexical cxns
 (define-monitor record-lexical-forms-per-meaning
                 :class 'data-recorder
-                :average-window 1000
+                :average-window 1
                 :documentation "records avg nr of forms per meaning")
 
 (define-monitor export-lexical-forms-per-meaning
@@ -229,7 +229,7 @@
 (define-monitor export-avg-cxn-score
                 :class 'lisp-data-file-writer
                 :documentation "exports avg cxn score"
-                :data-sources '(record-avg-cxn-score)
+                :data-sources '((average record-avg-cxn-score))
                 :file-name (babel-pathname :name "avg-cxn-score" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
@@ -248,7 +248,7 @@
 (define-monitor export-avg-holophrase-cxn-score
                 :class 'lisp-data-file-writer
                 :documentation "exports avg cxn score"
-                :data-sources '(record-avg-holophrase-cxn-score)
+                :data-sources '((average record-avg-holophrase-cxn-score))
                 :file-name (babel-pathname :name "avg-holophrase-cxn-score" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
@@ -267,7 +267,7 @@
 (define-monitor export-avg-item-based-cxn-score
                 :class 'lisp-data-file-writer
                 :documentation "exports avg cxn score"
-                :data-sources '(record-avg-item-based-cxn-score)
+                :data-sources '((average record-avg-item-based-cxn-score))
                 :file-name (babel-pathname :name "avg-item-based-cxn-score" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
@@ -286,7 +286,7 @@
 (define-monitor export-avg-lexical-cxn-score
                 :class 'lisp-data-file-writer
                 :documentation "exports avg cxn score"
-                :data-sources '(record-avg-lexical-cxn-score)
+                :data-sources '((average record-avg-lexical-cxn-score))
                 :file-name (babel-pathname :name "avg-lexical-cxn-score" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
@@ -305,7 +305,7 @@
 (define-monitor export-confidence-level
                 :class 'lisp-data-file-writer
                 :documentation "exports confidence level"
-                :data-sources '(record-confidence-level)
+                :data-sources '((average record-confidence-level))
                 :file-name (babel-pathname :name "confidence-level" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
@@ -381,7 +381,7 @@
 (define-monitor export-holophrase-cxn-usage
                 :class 'lisp-data-file-writer
                 :documentation "Exports how often the lexicon changes"
-                :data-sources '(record-holophrase-cxn-usage)
+                :data-sources '((average record-holophrase-cxn-usage))
                 :file-name (babel-pathname :name "holophrase-cxn-usage" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
@@ -402,7 +402,7 @@
 (define-monitor export-item-based-cxn-usage
                 :class 'lisp-data-file-writer
                 :documentation "Exports how often the lexicon changes"
-                :data-sources '(record-item-based-cxn-usage)
+                :data-sources '((average record-item-based-cxn-usage))
                 :file-name (babel-pathname :name "item-based-cxn-usage" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
