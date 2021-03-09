@@ -537,9 +537,10 @@
        :all-constructions-of-current-label (all-constructions-of-current-label (cxn-supplier parent)))
       ;; there is no parent, start from first label
       (let* ((labels (get-configuration (construction-inventory (cip node))
-                                       (if (eq (direction (cip node)) '->)
-                                         :production-order :parse-order)))
-             (all-constructions-of-current-label (all-constructions-of-label-by-hash-and-score node (car labels))))
+                                        (if (eq (direction (cip node)) '->)
+                                          :production-order :parse-order)))
+             (all-constructions-of-current-label
+              (all-constructions-of-label-by-hash-and-score node (car labels))))
         (make-instance 
          'cxn-supplier-hashed-scored-labeled
          :current-label (car labels)
@@ -549,14 +550,17 @@
 
 (defun all-constructions-of-label-by-hash-and-score (node label)
   "returns all constructions that of label 'label'"
-  (let ((constructions (loop for cxn in (remove-duplicates (append (loop
-                                                                    for hash in (hash node (get-configuration node :hash-mode))
-                                                                    append (gethash hash (constructions-hash-table (construction-inventory node))))
-                                                                   (gethash nil (constructions-hash-table (construction-inventory node)))))
-                             for cxn-label = (attr-val cxn :label)
-                             when (or (and (symbolp cxn-label) (equalp (symbol-name label) (symbol-name cxn-label)))
-                                      (and (listp cxn-label) (member label cxn-label)))
-                             collect cxn)))
+  (let ((constructions
+         (loop for cxn in (remove-duplicates
+                           (append
+                            (loop for hash in (hash node (get-configuration node :hash-mode))
+                                  append (gethash hash (constructions-hash-table (construction-inventory node))))
+                            (gethash nil (constructions-hash-table (construction-inventory node)))))
+               for cxn-label = (attr-val cxn :label)
+               when (or (and (symbolp cxn-label) (equalp (symbol-name label) (symbol-name cxn-label)))
+                        (and (listp cxn-label) (member label cxn-label)))
+               collect cxn)))
+    ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setf constructions 
             (shuffle constructions)))
