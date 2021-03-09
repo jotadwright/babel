@@ -27,18 +27,6 @@
 (define-event interaction-before-finished
   (scene clevr-scene) (question string) (answer t))
 
-(defun sample-scene-answer-pair (experiment question scenes-and-answers)
-  ;; !!!!!!!!!!! This is an ugly temporary solution
-  ;; Needs to be fixed in the future...
-  (let* ((random-scene-and-answer (random-elt scenes-and-answers))
-         (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
-                                           *clevr-ontology*)))
-    (if (and (numberp answer-entity) (= answer-entity 0))
-      (sample-scene-answer-pair experiment question scenes-and-answers)
-      (let ((clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
-                                             (world experiment))))
-        (values question clevr-scene answer-entity)))))
-
 (defun sample-question (experiment)
   ;; !!!!!!!!!!! This is an ugly temporary solution
   ;; Needs to be fixed in the future...
@@ -47,7 +35,12 @@
          (scenes-and-answers (rest (assoc :answers random-sample))))
     (if (search "How big" question)
       (sample-question experiment)
-      (sample-scene-answer-pair experiment question scenes-and-answers))))
+      (let* ((random-scene-and-answer (random-elt scenes-and-answers))
+             (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
+                                               *clevr-ontology*))
+             (clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
+                                             (world experiment))))
+        (values question clevr-scene answer-entity)))))
 
 
 (defmethod interact :before ((experiment clevr-learning-experiment)

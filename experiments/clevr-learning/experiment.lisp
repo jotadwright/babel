@@ -136,8 +136,14 @@
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for scenes-and-answers = (random-elts (rest (assoc :answers file-data))
-                                                      scenes-per-questions)
+                for count-question-p = (find 'count! (cadr (assoc :meaning file-data)) :key #'first)
+                for scenes-and-answers = (random-elts
+                                          (if count-question-p
+                                            (find-all-if-not #'(lambda (scene-answer-pair)
+                                                                 (= 0 (rest (assoc :answer scene-answer-pair))))
+                                                             (rest (assoc :answers file-data)))
+                                            (rest (assoc :answers file-data)))
+                                          scenes-per-questions)
                 collect (list (assoc :question file-data)
                               (cons :answers scenes-and-answers)))))
     (setf (question-data experiment) data)))
