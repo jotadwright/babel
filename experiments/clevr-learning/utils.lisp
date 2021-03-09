@@ -96,7 +96,8 @@
     :output-dir (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
-
+;;;; UTILS FOR PLOTTING
+;;;; ------------------
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names
                                               y-axis y1-max y2-max xlabel y1-label y2-label
@@ -147,6 +148,8 @@
   (format t "~%Graphs have been created"))
 
 
+;;;; UTILS FOR ALIST RECORDING
+;;;; -------------------------
 
 (defun create-num-cxns-per-type-graph (&key 
                                        (configurations nil)
@@ -157,8 +160,6 @@
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-num-cxns-per-type)
   (format t "~%Graphs have been created"))
-
-
 
 (defun create-cxn-scores-per-type-graph (&key 
                                          (configurations nil)

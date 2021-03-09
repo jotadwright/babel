@@ -366,11 +366,48 @@
                           (applied-cxns (mapcar #'get-original-cxn
                                                 (fcg::applied-constructions smf-node))))
                      (values smf-node applied-cxns)))
-                  ;; otherwise, just take a random one, we'll see!
-                  (t (let* ((random-node (random-elt all-leaf-nodes))
-                            (applied-cxns (mapcar #'get-original-cxn
-                                                (fcg::applied-constructions random-node))))
-                       (values random-node applied-cxns))))))))
+                  ;; otherwise, take the one that is most general (most slots in item-based)
+                  ;; or has the most lexical cxns (if no item-based could apply)
+                  ;; or just take one at random
+                  (t (let ((most-general-item-based-node
+                            (loop with best-node = nil
+                                  with best-nr-of-slots = nil
+                                  for node in all-leaf-nodes
+                                  for applied-cxns = (mapcar #'get-original-cxn
+                                                             (applied-constructions node))
+                                  for item-based-cxn = (find 'item-based applied-cxns :key #'get-cxn-type)
+                                  when (and item-based-cxn
+                                            (or (null best-nr-of-slots)
+                                                (> (item-based-number-of-slots item-based-cxn)
+                                                   best-nr-of-slots)))
+                                  do (setf best-node node
+                                           best-nr-of-slots (item-based-number-of-slots item-based-cxn))
+                                  finally (return best-node)))
+                           (most-lexical-cxns-node
+                            (loop with best-node = nil
+                                  with best-num-lex-cxns = nil
+                                  for node in all-leaf-nodes
+                                  for applied-cxns = (mapcar #'get-original-cxn
+                                                             (applied-constructions node))
+                                  for lexical-cxns = (find-all 'lexical applied-cxns :key #'get-cxn-type)
+                                  when (and lexical-cxns
+                                            (or (null best-num-lex-cxns)
+                                                (> (length lexical-cxns) best-num-lex-cxns)))
+                                  do (setf best-node node
+                                           best-num-lex-cxns (length lexical-cxns))
+                                  finally (return best-node)))
+                           (random-node (random-elt all-leaf-nodes)))
+                       (cond (most-general-item-based-node
+                              (values most-general-item-based-node
+                                 (mapcar #'get-original-cxn
+                                         (fcg::applied-constructions most-general-item-based-node))))
+                             (most-lexical-cxns-node
+                              (values most-lexical-cxns-node
+                                 (mapcar #'get-original-cxn
+                                         (fcg::applied-constructions most-lexical-cxns-node))))
+                             (t (values random-node
+                                        (mapcar #'get-original-cxn
+                                                (fcg::applied-constructions random-node))))))))))))
 
 
 (defmethod run-process (process

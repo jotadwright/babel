@@ -50,7 +50,10 @@
                                                            :no-strings-in-root)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours) ;:path-exists)
-                                        (:update-th-links . t))
+                                        (:update-th-links . t)
+                                        ;(:hash-mode . :hash-string-meaning-lex-id)
+                                        )
+                   ;:hashed t
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-type-hierarchy . ,(not hide-type-hierarchy)))))))
     cxn-inventory))

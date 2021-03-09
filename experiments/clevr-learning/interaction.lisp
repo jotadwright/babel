@@ -27,24 +27,33 @@
 (define-event interaction-before-finished
   (scene clevr-scene) (question string) (answer t))
 
-(defun sample (experiment)
-  (let* ((random-sample (random-elt (question-data experiment)))
-         (question (rest (assoc :question random-sample)))
-         (random-scene-and-answer (random-elt (rest (assoc :answers random-sample))))
-         (clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
-                                          (world experiment)))
+(defun sample-scene-answer-pair (experiment question scenes-and-answers)
+  ;; !!!!!!!!!!! This is an ugly temporary solution
+  ;; Needs to be fixed in the future...
+  (let* ((random-scene-and-answer (random-elt scenes-and-answers))
          (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
                                            *clevr-ontology*)))
-    ;; !!!!!!!!!!! This is an ugly temporary solution
-    ;; Needs to be fixed in the future...
+    (if (and (numberp answer-entity) (= answer-entity 0))
+      (sample-scene-answer-pair experiment question scenes-and-answers)
+      (let ((clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
+                                             (world experiment))))
+        (values question clevr-scene answer-entity)))))
+
+(defun sample-question (experiment)
+  ;; !!!!!!!!!!! This is an ugly temporary solution
+  ;; Needs to be fixed in the future...
+  (let* ((random-sample (random-elt (question-data experiment)))
+         (question (rest (assoc :question random-sample)))
+         (scenes-and-answers (rest (assoc :answers random-sample))))
     (if (search "How big" question)
-      (sample experiment)
-      (values question clevr-scene answer-entity))))
+      (sample-question experiment)
+      (sample-scene-answer-pair experiment question scenes-and-answers))))
+
 
 (defmethod interact :before ((experiment clevr-learning-experiment)
                              interaction &key)
   ;; Choose a random scene and a random question and initialize the agents
-  (multiple-value-bind (question clevr-scene answer-entity) (sample experiment)
+  (multiple-value-bind (question clevr-scene answer-entity) (sample-question experiment)
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent question clevr-scene answer-entity))
     (notify interaction-before-finished clevr-scene question answer-entity)))
