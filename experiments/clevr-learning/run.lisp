@@ -37,6 +37,7 @@
                                  "plot-nr-of-slots"
                                  ;; export data
                                  "export-learner-grammar-every-nth-interaction"
+                                 "export-type-hierarchy-every-nth-interaction"
                                  ;; print dots
                                  "print-a-dot-for-each-interaction"
                                  ))
