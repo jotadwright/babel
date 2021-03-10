@@ -134,7 +134,7 @@
       (compose-until
        composer (lambda (solution idx)
                   (check-past-programs solution idx past-programs agent)))
-      (random-elt (get-next-solutions composer)))))
+      (first (get-next-solutions composer)))))
 
 ;; + store past scenes +
 (define-event check-samples-started
@@ -152,9 +152,9 @@
         (success t))
     (notify check-samples-started list-of-samples solution-index)
     (setf success
-          (loop for sample in list-of-samples
+          (loop for (scene-index . stored-answer) in list-of-samples
                 for context
-                = (let* ((path (nth (first sample) (scenes world)))
+                = (let* ((path (nth scene-index (scenes world)))
                          (scene (load-clevr-scene path)))
                     (set-data (ontology agent) 'clevr-context scene)
                     scene)
@@ -163,7 +163,7 @@
                                         :silent t :primitive-inventory (available-primitives agent))
                 for solution = (when (length= solutions 1) (first solutions))
                 for found-answer = (when solution (get-target-value irl-program solution))
-                for correct = (equal-entity found-answer (third sample))
+                for correct = (equal-entity found-answer stored-answer)
                 always correct))
     (set-data (ontology agent) 'clevr-context clevr-context)
     success))
@@ -171,12 +171,15 @@
 (defmethod compose-program ((agent clevr-learning-learner) target-category
                             (strategy (eql :store-past-scenes))
                             &key partial-program)
-  (let ((composer (make-default-composer agent target-category
-                                         :partial-program partial-program))
-        (past-scenes (find-all (utterance agent) (find-data agent 'past-scenes)
-                               :key #'second :test #'string=)))
-    (if past-scenes
+  (let* ((composer
+          (make-default-composer agent target-category
+                                 :partial-program partial-program))
+         (utterance-hash-key
+          (sxhash (utterance agent)))
+         (past-scenes-with-same-utterance
+          (gethash utterance-hash-key (memory agent))))
+    (if past-scenes-with-same-utterance
       (compose-until
        composer (lambda (solution idx)
-                  (check-past-scenes solution idx past-scenes agent)))
-      (random-elt (get-next-solutions composer)))))
+                  (check-past-scenes solution idx past-scenes-with-same-utterance agent)))
+      (first (get-next-solutions composer)))))

@@ -17,7 +17,10 @@
                              question scene answer)
   (setf (utterance agent) question
         (topic agent) answer
-        (communicated-successfully agent) t)
+        (communicated-successfully agent) t
+        (task-result agent) nil
+        (tasks-and-processes::tasks agent) nil ; clear all previous tasks since we don't need these
+        )
   (set-data (ontology agent) 'clevr-context scene))
 
 ;; ---------------

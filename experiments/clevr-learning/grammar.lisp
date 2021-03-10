@@ -43,7 +43,7 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . :ordered-by-label-and-score)
+                   :fcg-configurations ((:cxn-supplier-mode . :ordered-by-label-and-score) ;:hashed-scored-labeled 
                                         (:parse-order lexical item-based holophrase)
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network
