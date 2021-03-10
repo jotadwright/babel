@@ -39,13 +39,25 @@
   (add-element '((hr))))
 
 ;; (header-page)
+(defparameter *meaning* (comprehend "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?"))
 
 (defun introduction ()
   (add-element '((a :name "1")))
   (add-element '((h2) "1. Introduction"))
   (add-element '((p) "This web demonstration presents full examples of the use of neural heuristics for optimizing the search processes involved in constructional language processing. In particular, it includes contrastive examples of the same utterance processed using the baseline depth-first search strategy with duplicate detection and hashing, and using the neural strategy, both in the comprehension and production direction."))
 
-  (add-element '((p) ""))
+  (add-element '((p) "We used the CLEVR dataset on visual question answering ("((a :href "https://cs.stanford.edu/people/jcjohns/clevr/") "Johnson et al. 2017")") and CLEVR construction grammar ("((a :href "https://ehai.ai.vub.ac.be/demos/clevr-grammar/") "Nevens et al. 2019")") to benchmark the effects of the neural heurstics that we introduced in the paper. The CLEVR grammar consists of 170 constructions, of which 55 are morphological and lexical constructions. Apart from these, the grammar also contains 115 grammatical constructions that capture phenomena including referential expressions, spatial relations, coordination and subordination structures, and a wide range of interrogative structures. On average, 25 constructions should be applied in order to successfully comprehend or produce an utterance from the dataset. This means that the average solution is found at depth 25 in the search tree."))
+  (add-element '((p) "The utterance from the dataset that we will explore in this web demonstration is the following question:"))
+
+  (add-element '((p) ((b) ((i) "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?"))))
+
+  (add-element '((p) "It has been annotated with the following procedural semantic meaning representation:"))
+
+  (add-element (predicate-network->svg *meaning*))
+
+  
+
+  ;(comprehend-and-formulate "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?")
   
   (add-element '((hr))))
 
