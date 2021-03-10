@@ -125,15 +125,17 @@
 (defmethod compose-program ((agent clevr-learning-learner) target-category
                             (strategy (eql :store-past-programs))
                             &key partial-program)
-  (let ((composer (make-default-composer agent target-category
-                                         :partial-program partial-program))
-        (past-programs (rest (assoc (utterance agent)
-                                    (find-data agent 'past-programs)
-                                    :test #'string=))))
-    (if past-programs
+  (let* ((composer
+          (make-default-composer agent target-category
+                                 :partial-program partial-program))
+         (utterance-hash-key
+          (sxhash (utterance agent)))
+         (past-programs-with-same-utterance
+          (gethash utterance-hash-key (memory agent))))
+    (if past-programs-with-same-utterance
       (compose-until
        composer (lambda (solution idx)
-                  (check-past-programs solution idx past-programs agent)))
+                  (check-past-programs solution idx past-programs-with-same-utterance agent)))
       (first (get-next-solutions composer)))))
 
 ;; + store past scenes +
