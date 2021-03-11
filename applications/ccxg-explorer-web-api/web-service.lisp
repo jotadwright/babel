@@ -45,7 +45,7 @@
                        (error (e)
                          (snooze:http-condition 500 "Error in construction explorer API!" e)))))
       (cl-json:encode-json-alist-to-string
-       `((:results . ,results))))))
+       (transform-results results)))))
 
 (defun transform-schema (schema order-matters)
   (loop for role in schema
@@ -78,8 +78,5 @@
 
 
 ;; curl -H "Content-Type: application/json" -d '{"corpus" : "ontonotes", "maxN":"100", "orderMatters":"T", "schema": [{"roleType":"arg0"},{"roleType":"v","roleset":"explain.01"},{"roleType":"arg2"},{"roleType":"arg1"}]}' http://localhost:8500/ccxg-explorer-api/by-schema
-
-
-;; curl -H "Content-Type: application/json" -d '{"utterances" : ["I believe in you.", "I think that you believe in me."]}' http://localhost:9007/propbank-frame-extractor/extract-frames-list
 
 

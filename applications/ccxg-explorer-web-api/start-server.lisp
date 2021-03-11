@@ -3,8 +3,20 @@
 (ql:quickload :propbank-english)
 (in-package :propbank-english)
 
+(load (babel-pathname :directory
+                      '("applications" "ccxg-explorer-web-api")
+                      :name "annotations" :type "lisp"))
+
+(load (babel-pathname :directory
+                      '("applications" "ccxg-explorer-web-api")
+                      :name "search" :type "lisp"))
+
+(load (babel-pathname :directory
+                      '("applications" "ccxg-explorer-web-api")
+                      :name "web-service" :type "lisp"))
+
 (restore-annotations)
-(load (babel-pathname :directory '("applications" "ccxg-explorer-web-api") :name "web-service" :type "lisp"))
+
 
 (in-package :hunchentoot)
 

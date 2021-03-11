@@ -13,6 +13,7 @@
 (defun store-annotations ()
   (store *CCxG-explorer-annotations* (make-pathname :directory (pathname-directory (or *load-truename*
                                                                                        *compile-file-truename*)) :name "annotations" :type "store")))
+
 (defun restore-annotations ()
   (setf *CCxG-explorer-annotations* (restore (make-pathname :directory (pathname-directory (or *load-truename*
                                                                                        *compile-file-truename*)) :name "annotations" :type "store"))))
