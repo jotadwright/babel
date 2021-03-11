@@ -1,0 +1,18 @@
+(in-package :propbank-english)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                  ;;
+;; Searching in PropBank annotations.                               ;;
+;;                                                                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun get-corpus (corpus-name)
+  (or (gethash corpus-name *ccxg-explorer-annotations*)
+      (error "Corpus not found.")))
+
+(defun find-by-schema (corpus-name schema &key (collect-fn #'identity) (max-n 100))
+  (loop for annotation in (get-corpus corpus-name)
+        if (unify schema (second (assoc :roles annotation)))
+        collect (funcall collect-fn annotation)))
+        
+
