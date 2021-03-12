@@ -20,6 +20,10 @@
 (defmethod print-object ((entity entity) stream)
   (format stream "<~(~a~) ~(~a~)>" (type-of entity) (id entity)))
 
+(defmethod copy-object-content ((entity entity) (copy entity))
+  (setf (id copy) (make-const (id entity)))
+  )
+
 (defun irl-equal (a b)
   (or (eq a b)
       (eql a b)
@@ -67,3 +71,5 @@
     (car cons)
     (or (find-entity-by-id (car cons) id)
         (find-entity-by-id (cdr cons) id))))
+
+
