@@ -52,5 +52,5 @@
           collect (if (eq role-type 'V)
                     `((:role-type ,role-type) (:pos ,pos) (:string ,string) (:indices ,indices) (:roleset ,roleset) (:lemma ,v-lemma))
                     `((:role-type ,role-type) (:pos ,pos) (:string ,string) (:indices ,indices))) into roles
-          finally return `((:utterance ,utterance)
-                           (:roles ,roles)))))
+          finally (return `((:utterance ,utterance)
+                           (:roles ,roles))))))

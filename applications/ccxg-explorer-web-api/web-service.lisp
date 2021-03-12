@@ -54,11 +54,11 @@
                                 (list role-part role-value)
                                 (list role-part (intern (upcase role-value))))
                       into roles
-                      finally return `(==1 ,@roles))
+                      finally (return `(==1 ,@roles)))
         into transformed-roles
-        finally return (if order-matters
+        finally (return (if order-matters
                          transformed-roles
-                         (append (list '==p) transformed-roles))))
+                         (append (list '==p) transformed-roles)))))
 
 (defun transform-results (results)
   `((:results . ,(loop for result in results collect (transform-result result)))))
