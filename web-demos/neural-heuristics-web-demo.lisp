@@ -120,32 +120,32 @@
   (add-element '((h2) "2. Comprehension"))
   (add-element '((p) "In this section, we demonstrate the impact of the neural heuristics on the comprehension process. The FCG web interface contains the following parts: the initial transient structure, the construction application process, a list of applied constructions, the resulting transient structure and finally the resulting meaning representation. Note that many of the boxes will reveil more information when you click on them. More information on how to use this demo can be found "((a :href "https://www.fcg-net.org/projects/web-demonstration-guide/" :target "_blank") "in the web demonstration guide.")))
 
-  (add-element '((p) "The baseline search strategy in FCG is depth-first search with backtracking. Backtracking occurs when a node has been fully expanded and does not satisfy all goal tests that have been specified for the current direction of processing (i.e. comprehension here). In the case of the CLEVR grammar the comprehension goal tests are: "))
+  (add-element '((p) "The baseline search strategy in FCG is depth-first search with backtracking and duplicate detection. Backtracking occurs when a node has been fully expanded and does not satisfy all goal tests that have been specified for the current direction of processing (i.e. comprehension here). In the case of the CLEVR grammar the comprehension goal tests are: "))
   (add-element '((ol)
                  ((li) "No applicable constructions")
                  ((li) "Connected semantic network")
                  ((li) "Connected syntactic structure")
                  ((li) "No strings in root unit")))
-  (add-element '((p) "If these four goal tests all succeed, the search process will stop and the final node is returned as the solution. From this final node, the resulting meaning representation is then extracted."))
+  (add-element '((p) "As soon as all four goal tests succeed, the search process will stop and the final node is returned as the solution. From this final node, the resulting meaning representation is then extracted."))
  
   (add-element '((a :name "21")))
   (add-element '((h3) ((b) "2.1 Depth-first strategy")))
     
-  (add-element '((p) "We will first demonstrate the comprehension process using the baseline depth-first search algorithm with backtracking and duplicate detection. The construction application process is visualised here below in the form of a search tree with nodes (green boxes) that get expanded from left to right on the screen. After the initial application of a series of morphological and lexical constructions, the first split in the search tree occurs after node 15. What happens here is that the same construction can apply to different parts of the transient structure. The algorithm then chooses to expand the first of the three children and to explores that branch in a depth-first manner."))
+  (add-element '((p) "We will first demonstrate the comprehension process using the baseline depth-first search algorithm with backtracking and duplicate detection. The construction application process is visualised here below in the form of a search tree with nodes (green boxes) that get expanded from left to right on the screen. After the initial application of a series of morphological and lexical constructions, the first split in the search tree occurs after node 15. What happens here is that the same construction can apply to different parts of the transient structure. The algorithm then chooses to expand the first of the three children and to explore that branch in a depth-first manner."))
 
-  (add-element '((p) "Scrolling further right, you will see that the search tree becomes more wide. These are areas where backtracking took place. This means that all goal tests failed on a certain leaf node, so that it could not be returned as a solution. In that case, potential sister nodes are explored of that node, before we move higher up to aunts, great aunts, etc. You can follow the exact order in which the search tree was explored by inspecting the numbers that precede the label of every node. The first number is the node's id, reflecting the relative moment at which it was created, whereas the second number is the node's score, which is in the case of the depth-first search algorithm equal to the depth of the node in the tree. You can click on the '+' sign in the tree to uncollapse branches that contain duplicate nodes."))
+  (add-element '((p) "Scrolling further right, you will see that the search tree becomes more wide. These are the areas where backtracking took place. This means that all goal tests failed on a certain leaf node, so that it could not be returned as a solution. In that case, potential sister nodes are explored of that node, before we move higher up to aunts, great aunts, etc. You can follow the exact order in which the search tree was explored by inspecting the numbers that precede the label of every node. The first number is the node's id, reflecting the relative moment at which it was created, whereas the second number is the node's score, which is in the case of the depth-first search algorithm equal to the depth of the node in the tree. You can click on the '+' sign in the tree to uncollapse branches that contain duplicate nodes."))
 
-  (add-element '((p) "The solution node is visualised in dark green with a boldface label. The first number in the label again indicates the number nodes that had to be created in order to get to the solution. You can keep this number in mind to compare it to the result that we obtain using the neural strategy."))
+  (add-element '((p) "The solution node is visualised in dark green with a boldface label. The first number in the label again indicates the number nodes that had to be created in order to get to the solution. You can keep this number in mind to compare it against the result that we obtain using the neural strategy."))
 
 
   (add-element '((h4) ((b) "Initial transient structure:")))
-  (add-element (make-html (initial-cfs (cip *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (initial-cfs (cip *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
   (add-element (fcg::make-tr-for-cip-tree (top-node (cip *baseline-solution-comprehension*)) "" :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
-  (add-element (make-html (car-resulting-cfs (cipn-car *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Resulting meaning representation:")))
   (add-element (predicate-network->svg *meaning*))
@@ -153,21 +153,21 @@
   (add-element '((hr)))
   (add-element '((a :name "22")))
   (add-element '((h3) ((b) "2.2 Neural strategy")))
-  (add-element '((p) "... "))
+  (add-element '((p) "This section demonstrates the impact of the neural heuristics on the search process that is involved in constructional language processing. Scrolling right on the screen, you "))
 
   (add-element '((h4) ((b) "Initial transient structure:")))
-  (add-element (make-html (initial-cfs (cip *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (initial-cfs (cip *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
   (add-element (fcg::make-tr-for-cip-tree (top-node (cip *neural-solution-comprehension*)) "" :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
-  (add-element (make-html (car-resulting-cfs (cipn-car *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Resulting meaning representation:")))
   (add-element (predicate-network->svg *meaning*))
   
-  
+  (add-element '((hr)))
 
   
   )
@@ -194,16 +194,16 @@
   (add-element '((p) ""))
 
   (add-element '((h4) ((b) "Initial transient structure:")))
-  (add-element (make-html (initial-cfs (cip *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (initial-cfs (cip *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
   (add-element (fcg::make-tr-for-cip-tree (top-node (cip *baseline-solution-production*)) "" :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
-  (add-element (make-html (car-resulting-cfs (cipn-car *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Resulting utterance:")))
-  (add-element (render (car-resulting-cfs (cipn-car *baseline-solution-production*)) (get-configuration *fcg-constructions* :render-mode)))
+  (add-element (make-html (render (car-resulting-cfs (cipn-car *baseline-solution-production*)) (get-configuration *fcg-constructions* :render-mode) :node *baseline-solution-production*)))
   
   (add-element '((hr)))
   (add-element '((a :name "32")))
@@ -211,16 +211,18 @@
   (add-element '((p) "... "))
 
   (add-element '((h4) ((b) "Initial transient structure:")))
-  (add-element (make-html (initial-cfs (cip *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (initial-cfs (cip *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
   (add-element (fcg::make-tr-for-cip-tree (top-node (cip *neural-solution-production*)) "" :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
-  (add-element (make-html (car-resulting-cfs (cipn-car *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Resulting utterance:")))
-  (add-element (render (car-resulting-cfs (cipn-car *neural-solution-production*)) (get-configuration *fcg-constructions* :render-mode)))
+  (add-element (make-html (render (car-resulting-cfs (cipn-car *neural-solution-production*)) (get-configuration *fcg-constructions* :render-mode) :node *baseline-solution-production*))))
+
+;(production)
   
   
 
@@ -234,6 +236,6 @@
   (header-page)
   (introduction)
   (comprehension)
-  (producation)
+  (production)
   
 )
