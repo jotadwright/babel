@@ -21,7 +21,7 @@
   (format stream "<~(~a~) ~(~a~)>" (type-of entity) (id entity)))
 
 (defmethod copy-object-content ((entity entity) (copy entity))
-  (setf (id copy) (make-const (id entity)))
+  (setf (id copy)  (id entity))
   )
 
 (defun irl-equal (a b)
