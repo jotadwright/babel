@@ -258,8 +258,9 @@
   "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
   (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
                     (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
-         (cxn-name (intern (upcase (format nil "~a-cxn" (frame-name gold-frame)))))
-         (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key (if (stringp lemma)
+         (cxn-name (intern (upcase (format nil "~a(~a)-cxn" (frame-name gold-frame) lemma))))
+         
+         (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key (if (stringp lemma) ;;WERKT NIET MEER!
                                                                       (intern (upcase lemma))
                                                                       lemma) :key #'name))
          (sense-category (intern (symbol-name (make-id (frame-name gold-frame))))))

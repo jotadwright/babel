@@ -432,11 +432,11 @@ that have a weight smaller than a given frequency."
    
 
 
-(defun spacy-benepar-compatible-sentences (list-of-sentences rolesets)
+(defun spacy-benepar-compatible-sentences (list-of-sentences rolesets &key (selected-role-types 'all))
   (remove-if-not #'(lambda (sentence)
                      (and (propbank-frames sentence)
                           (loop for roleset in (or rolesets (all-rolesets sentence))
-                                always (spacy-benepar-compatible-annotation sentence roleset))))
+                                always (spacy-benepar-compatible-annotation sentence roleset :selected-role-types selected-role-types))))
                  list-of-sentences))
 
 

@@ -26,13 +26,13 @@
 ;; Data  ;;
 ;;;;;;;;;;;
 
-(defparameter *opinion-sentences* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
+(defparameter *opinion-sentences-ontonotes* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
                                                  append (all-sentences-annotated-with-roleset roleset
                                                                                               :split #'train-split
                                                                                               :corpus *ontonotes-annotations*)
                                                  append (all-sentences-annotated-with-roleset roleset
                                                                                               :split #'dev-split
-                                                                                              :corpus *ontonotes-annotations*)
+                                                                                              :corpus *ontonotes-annotations*))))
                                                  append (all-sentences-annotated-with-roleset roleset
                                                                                               :split #'train-split
                                                                                               :corpus *ewt-annotations*)
@@ -54,11 +54,11 @@
                                                                                             :corpus *ontonotes-annotations*))
                                          nil)))
 (length *opinion-sentences-test*)
-(defparameter *believe-sentences* (shuffle (loop for roleset in '("BELIEVE.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split))))
+(defparameter *believe-sentences-ontonotes* (shuffle (loop for roleset in '("BELIEVE.01")
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split ))))
 
-(defparameter *believe-sentences-dev* (shuffle (loop for roleset in '("BELIEVE.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'dev-split))))
+(defparameter *believe-sentences-test* (shuffle (loop for roleset in '("BELIEVE.01")
+                                                 append (all-sentences-annotated-with-roleset roleset :split #'test-split))))
 
 
 (defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
@@ -90,12 +90,12 @@
 
 (cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-cleaned"
+                                :name "propbank-grammar-ontonotes-uncleaned"
                                 :type "fcg"))
 
 (defparameter *restored-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                           :name "propbank-grammar-partial"
+                           :name "propbank-grammar-ontonotes-ewt-cleaned-pron"
                            :type "fcg")))
 (size *restored-grammar*)
 
@@ -137,29 +137,52 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   *train-sentences-all*
+    (train-split *ontonotes-annotations*)
+         ;  (train-split *ewt-annotations*))
    :selected-rolesets nil
    :cxn-inventory '*propbank-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
 
 (activate-monitor trace-fcg)
-(comprehend-and-extract-frames (sentence-string (nth 4 (train-split *ewt-annotations*)))
+(comprehend-and-extract-frames "They don't mess with me"
                          :cxn-inventory *propbank-learned-cxn-inventory* )
 
 ;;>> Cleaning
 ;;--------------
+(length (dev-split *ontonotes-annotations*))
+(defparameter *sorted-cxns*
+  (sort-cxns-for-outliers *propbank-learned-cxn-inventory* (dev-split *ontonotes-annotations*)
+                          :timeout 10
+                          :nr-of-training-sentences (get-data (blackboard *propbank-learned-cxn-inventory*) :training-corpus-size)
+                          :nr-of-test-sentences 100))
 
-(sort-cxns-for-outliers *restored-grammar* (dev-split *ontonotes-annotations*)
-                        :timeout 10
-                        :nr-of-training-sentences (get-data (blackboard *restored-grammar*) :training-corpus-size)
-                        :nr-of-test-sentences 100)
+(defparameter *sorted-cxns* (cl-store:restore 
+                                              (babel-pathname :directory '("grammars" "propbank-english" "learning")
+                                                              :name "sorted-cxns"
+                                                              :type "store")))
+(loop for (cxn . dev/train-ratio) in *sorted-cxns*
+      when (> (eval dev/train-ratio) 1)
+      do (format t "~a : ~a ~%" (name cxn) (eval dev/train-ratio) ))
+
+(loop for (cxn . dev/train-ratio) in *sorted-cxns*
+        if (>= (eval dev/train-ratio) 3000)
+        do (with-disabled-monitor-notifications
+             (delete-cxn cxn *propbank-learned-cxn-inventory* :hash-key (attr-val cxn :lemma)))
+        else do (return *propbank-learned-cxn-inventory*))
+
 ;;*restored-grammar* ;111102 cxns ;;> <hashed-fcg-construction-set: 111099 cxns>
 (clean-grammar *restored-grammar* (dev-split *ontonotes-annotations*)
                :nr-of-test-sentences 500 :timeout 10)
 
 (add-element (make-html (find-cxn 'HAVE.03-CXN *propbank-learned-cxn-inventory* :hash-key 'have)))
+(size *propbank-learned-cxn-inventory*)
+(remhash '-pron- (constructions-hash-table *propbank-learned-cxn-inventory*))
+(remhash '-pron- (constructions-hash-table (processing-cxn-inventory *propbank-learned-cxn-inventory*)))
 
+(loop for key in '(\'s \'ve be had haqve hav hvae v ve \` {had?} \'m \'re \'s \'s** ai am ar are art being is m r re s wase)
+      do (remhash key (constructions-hash-table *propbank-learned-cxn-inventory*))
+      (remhash key (constructions-hash-table (processing-cxn-inventory *propbank-learned-cxn-inventory*))))
 ;(clean-type-hierarchy (get-type-hierarchy *restored-grammar*) :remove-edges-with-freq-smaller-than 2)
 
 
@@ -167,17 +190,19 @@
 ;; Evaluation  ;;
 ;;;;;;;;;;;;;;;;;
 
+
+
 (loop for i from 1
       for sentence in (subseq *train-sentences-ewt* 0 10)
       do (format t "~%~% Sentence: ~a ~%" i)
       (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil))
 
 (setf *stack-overflow-behaviour* nil)
-(comprehend-and-extract-frames (sentence-string (nth 47 *train-sentences-ewt*))
+(comprehend-and-extract-frames (sentence-string (nth 50 (test-split *ontonotes-annotations*)))
                          :cxn-inventory *propbank-learned-cxn-inventory* )
 
 
-(comprehend-and-evaluate (list (nth 1 *train-sentences-ewt*))
+(comprehend-and-evaluate (list (nth 1 (test-split *ontonotes-annotations*)))
                          *propbank-learned-cxn-inventory* :silent nil)
 
 (add-element (make-html (find-cxn  'break-up\(vp\)-cxn  *propbank-learned-cxn-inventory-small* :hash-key 'break-up)))
@@ -206,15 +231,27 @@
 
 (comprehend-and-extract-frames "Marinate overnight in the refrigerator." :cxn-inventory *propbank-learned-cxn-inventory*)
 
-(evaluate-propbank-corpus *train-sentences-all-frames* *cleaned-grammar* :timeout 60)
 
 
+
+(activate-monitor trace-fcg)
+(progn
+  (setf *selected-test-sentence* (nth 1 (shuffle (test-split *ontonotes-annotations*))))
+  (comprehend-and-evaluate (list *selected-test-sentence*)
+                           *propbank-learned-cxn-inventory* :silent nil))
+
+
+
+(comprehend-and-extract-frames "I give the roses to my sister ." :cxn-inventory *restored-grammar*)
+
+(evaluate-propbank-corpus *believe-sentences-test*
+                          *propbank-learned-cxn-inventory* :timeout 10)
 
 (defparameter *evaluation-result* (restore (babel-pathname :directory '(".tmp")
-                                                           :name "2020-11-23-20-58-05-evaluation"
+                                                           :name "2021-02-12-11-39-45-evaluation"
                                                            :type "store")))
 
-(evaluate-predictions *evaluation-result* :core-roles-only nil :include-timed-out-sentences nil :include-word-sense t)
+(evaluate-predictions *evaluation-result* :core-roles-only t :include-timed-out-sentences nil :include-word-sense nil)
 
 
 ;;;;;;;;;;;;;;;;;;;
@@ -253,7 +290,9 @@
 (comprehend-and-extract-frames "It is a Fabergé egg that Tsar Nicholas II gave his wife." :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He called his mother while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 
+
 (comprehend-and-extract-frames "Elise will not let the Pokemon escape" :cxn-inventory *propbank-learned-cxn-inventory*)
+
 (comprehend-and-extract-frames "He usually takes the bus to school" :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He listened to the radio while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 
@@ -267,10 +306,10 @@
 
 (defparameter *demo-grammar* *propbank-learned-cxn-inventory*)
 
-(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *demo-grammar*)
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-learned-cxn-inventory*)
 
 ;;threaten.01 niet gevonden (cxns met enkel core roles zouden dit oplossen)
-(comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *demo-grammar*)
+(comprehend-and-extract-frames "The depletion of oxygen in our oceans threatens future fish stocks and risks altering the habitat and behaviour of marine life, scientists have warned, after a new study found oceanic oxygen levels had fallen by 2% in 50 years." :cxn-inventory *propbank-learned-cxn-inventory*)
 
 (comprehend-and-extract-frames "This brings us to another problem that comes up when dealing with natural language . " :cxn-inventory *demo-grammar*)
 
