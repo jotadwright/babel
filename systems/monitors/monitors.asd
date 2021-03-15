@@ -32,5 +32,6 @@
    (:file "plot-monitors" :depends-on ("data-monitors"))
    (:file "alist-monitors" :depends-on ("plot-monitors"))
    (:file "3d-monitors" :depends-on ("alist-monitors"))
+   (:file "stream-monitor" :depends-on ("monitors"))
    ))
 
