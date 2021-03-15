@@ -6,8 +6,27 @@
 ;;                                                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun comprehend-and-evaluate (list-of-propbank-sentences cxn-inventory &key (timeout 60) (core-roles-only t)
+                                                           (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t)
+                                                           (silent nil))
+  (let ((output-file (babel-pathname :directory '(".tmp")
+                                     :name "results"
+                                     :type "store")))
 
-(defun evaluate-propbank-corpus (list-of-propbank-sentences cxn-inventory &key (output-file nil) (timeout 60))
+    (evaluate-propbank-corpus list-of-propbank-sentences cxn-inventory :output-file output-file :timeout timeout :silent silent)
+
+    (let ((predictions (restore (babel-pathname :directory '(".tmp")
+                                                :name "results"
+                                                :type "store"))))
+    
+      (evaluate-predictions predictions
+                            :core-roles-only core-roles-only
+                            :selected-rolesets selected-rolesets
+                            :include-word-sense include-word-sense 
+                            :include-timed-out-sentences include-timed-out-sentences))))
+ 
+
+(defun evaluate-propbank-corpus (list-of-propbank-sentences cxn-inventory &key (output-file nil) (timeout 60) (silent t))
   "Runs FCG comprehend on a corpus of sentences and stores the solutions to an external file."
   (let ((output-file (or output-file
                          (babel-pathname :directory '(".tmp")
@@ -19,7 +38,7 @@
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
           do (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence))
-          collect (let* ((cipn (second (multiple-value-list (comprehend sentence :cxn-inventory cxn-inventory :silent t :timeout timeout))))
+          collect (let* ((cipn (second (multiple-value-list (comprehend-and-extract-frames sentence :cxn-inventory cxn-inventory :silent silent :timeout timeout))))
                          (utterance (sentence-string sentence))
                          (annotation (propbank-frames sentence)))
                     (if (eql cipn 'time-out)
@@ -35,7 +54,7 @@
   "Computes precision, recall and F1 score for a given list of predictions."
   (loop for (nil annotation solution) in predictions
         when (or include-timed-out-sentences
-               (not (eql solution 'time-out)))
+                 (not (eql solution 'time-out)))
         ;;gold standard predictions
         sum (loop for frame in annotation
                   for frame-name = (if include-word-sense
@@ -53,28 +72,30 @@
         unless (eql solution 'time-out)
         sum (loop for predicted-frame in solution
                   for frame-name = (if include-word-sense
-                                     (frame-name predicted-frame)
-                                     (truncate-frame-name (frame-name predicted-frame)))
+                                     (symbol-name (frame-name predicted-frame))
+                                     (truncate-frame-name (symbol-name (frame-name predicted-frame))))
                   when (and frame-name
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp))
-                            (find (symbol-name (truncate-frame-name (frame-name predicted-frame)))
-                                  annotation :key #'(lambda (frame)
-                                                      (truncate-frame-name (frame-name frame)))
-                                  :test #'equalp))
+                           ; (if selected-rolesets
+                              (find (truncate-frame-name frame-name) annotation
+                                    :key #'(lambda (frame)
+                                             (truncate-frame-name (frame-name frame)))
+                                    :test #'equalp))
+                             ; t))
                   sum (+ (loop for role in (frame-elements predicted-frame)
                                if core-roles-only
                                sum (if (core-role-p role)
                                      (length (indices role)) 0)
                                else sum (length (indices role)))
-                         1)) ;;FEE
+                         (length (indices (frame-evoking-element predicted-frame))))) ;;FEE
         into number-of-grammar-predictions
         ;;correct predictions
         unless (eql solution 'time-out)
         sum (loop for predicted-frame in solution
                   for frame-name = (if include-word-sense
-                                     (frame-name predicted-frame)
-                                     (truncate-frame-name (frame-name predicted-frame)))
+                                     (symbol-name (frame-name predicted-frame))
+                                     (truncate-frame-name (symbol-name (frame-name predicted-frame))))
                   when (and frame-name
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp)))
@@ -91,9 +112,10 @@
                                            when (correctly-predicted-index-p index predicted-frame-element predicted-frame
                                                                              annotation include-word-sense)
                                            sum 1))
-                         (if (correctly-predicted-fee-index-p (index (frame-evoking-element predicted-frame)) ;;FEE
+                         (if (correctly-predicted-fee-index-p (indices (frame-evoking-element predicted-frame)) ;;FEE
                                                               predicted-frame annotation include-word-sense)
-                           1 0)))
+                           (length (indices (frame-evoking-element predicted-frame)))
+                           0)))
         into number-of-correct-predictions
         finally (let ((evaluation-result `((:precision . ,(compute-precision number-of-correct-predictions number-of-grammar-predictions))
                                            (:recall . ,(compute-recall number-of-correct-predictions number-of-gold-standard-predictions))
@@ -117,14 +139,15 @@
                                   (frame-name gold-frame)
                                   (truncate-frame-name (frame-name gold-frame)))
           if (when (and (equalp gold-frame-name (symbol-name predicted-frame-name))
-                        (eql (index (frame-evoking-element predicted-frame)) (first (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp)))))
+                        (equalp (indices (frame-evoking-element predicted-frame))
+                             (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp))))
                (loop for gold-role in (find-all (symbol-name predicted-role) (frame-roles gold-frame) :key #'role-type :test #'equalp)
                      if (find index (indices gold-role))
                      return t))
           do
           (return t))))
 
-(defun correctly-predicted-fee-index-p (index predicted-frame gold-frames include-word-sense)
+(defun correctly-predicted-fee-index-p (indices predicted-frame gold-frames include-word-sense)
   "Returns t if the index form the frame-evoking-element occurs in the same role of the same frame in the gold-standard annotation."
   (let ((predicted-frame-name (if include-word-sense
                                 (frame-name predicted-frame)
@@ -135,7 +158,7 @@
                                   (truncate-frame-name (frame-name gold-frame)))
           if (and (equalp gold-frame-name (symbol-name predicted-frame-name))
                   (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp)
-                  (find index (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp))))
+                  (equalp indices (indices (find "V" (frame-roles gold-frame) :key #'role-type :test #'equalp))))
           do
           (return t))))
 

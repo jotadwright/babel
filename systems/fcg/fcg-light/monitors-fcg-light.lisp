@@ -88,7 +88,7 @@
                 (size (original-cxn-set (construction-inventory cip))))
      (make-html (original-cxn-set (construction-inventory cip))))
      #+:type-hierarchies ,(if (and (type-hierarchies::get-type-hierarchy (original-cxn-set (construction-inventory cip)))
-                                   (get-configuration (visualization-configuration construction-inventory) :show-type-hierarchy))
+                                   (get-configuration (visualization-configuration (construction-inventory cip)) :show-categorial-network))
                             (make-html (type-hierarchies::get-type-hierarchy (original-cxn-set (construction-inventory cip)))
                                        :weights? t :render-program "circo")
                            "")

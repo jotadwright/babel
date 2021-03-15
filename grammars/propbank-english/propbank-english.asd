@@ -9,6 +9,7 @@
                :monitors
                :irl
                :fcg
+               :category-hierarchies
                :nlp-tools
                :web-interface
                :cl-propbank
@@ -24,8 +25,10 @@
                 :serial t
                 :components ((:file "visualisation")
                              (:file "utils")
-                             (:file "de-render")))
+                             (:file "de-render")
+                             (:file "cxn-supplier")))
                (:module learning
                 :serial t
                 :components ((:file "evaluation")
-                             (:file "learn-propbank-constructions")))))
+                             (:file "learn-propbank-constructions")))
+               (:file "categorial-network-metrics")))

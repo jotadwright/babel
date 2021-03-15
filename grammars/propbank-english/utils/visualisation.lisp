@@ -61,16 +61,15 @@
                :initarg :fel-string
                :initform nil
                :documentation "The string of the frame-evoking element.")
-   (index :type number
-            :accessor index
-            :initarg :index
+   (indices :accessor indices
+            :initarg :indices
             :initform nil
-            :documentation "The index of the frame-evoking-element in the utterance.")
+            :documentation "A list of indices.")
    (lemma :type symbol
           :accessor lemma
           :initarg :lemma
           :initform nil
-          :documentation "The lemma of de frame-evoking-element."))
+          :documentation "The lemma of the frame-evoking-element."))
   (:documentation "Class for representing frames."))
 
 
@@ -135,10 +134,18 @@
 
 (defun find-frame-evoking-element (unit)
   "Find frame evoking element in unit."
-  (make-instance 'frame-evoking-element
-                 :fel-string (second (find 'string (unit-body unit) :key #'feature-name))
-                 :index (first (second (find 'span (unit-body unit) :key #'feature-name)))
-                 :lemma (second (find 'lemma (unit-body unit) :key #'feature-name))))
+  (let ((fee-indices (second (find 'span (unit-body unit) :key #'feature-name))))
+    (make-instance 'frame-evoking-element
+                   :fel-string (second (find 'string (unit-body unit) :key #'feature-name))
+                   :indices (if (= (reduce #'- (reverse fee-indices)) 1)
+                              (list (first fee-indices))
+                              (loop for i from 0
+                                    for index in fee-indices
+                                    collect (if (= i 0)
+                                              index
+                                              (- index 1)))
+                              )
+                 :lemma (second (find 'lemma (unit-body unit) :key #'feature-name)))))
 
 (defun find-frame-elements (unit unit-list)
   "Find frame elements in transient structure."

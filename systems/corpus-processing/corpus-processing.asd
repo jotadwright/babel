@@ -17,6 +17,7 @@
 (defsystem :corpus-processing
   :depends-on (:utils)
   :components 
-  ((:file "corpus-processing")))
+  ((:file "corpus-processing-with-subprocesses")
+   (:file "corpus-processing-with-threads")))
 	
 

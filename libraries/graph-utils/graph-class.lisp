@@ -398,7 +398,9 @@ outbound neighbors for a directed graph."
 (defgeneric incf-edge-weight (graph n1 n2 &key edge-type delta))
 (defmethod incf-edge-weight ((graph graph) (n1 integer) (n2 integer)
                              &key (delta 1) &allow-other-keys)
-  (incf-sarray (matrix graph) (list n1 n2) delta))
+  (incf-sarray (matrix graph) (list n1 n2) delta)
+  (when (undirected? graph)
+    (incf-sarray (matrix graph) (list n2 n1) delta)))
 
 (defmethod incf-edge-weight ((graph graph) n1 n2 &key delta &allow-other-keys)
   (let ((id1 (gethash n1 (nodes graph)))

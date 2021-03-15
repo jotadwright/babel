@@ -3,7 +3,7 @@
 
 (in-package :utils)
 
-(export '(process-corpus run-client-process))
+(export '(process-corpus-with-subprocesses run-client-process))
 
 ;; if *max-nr-parallel-processes* is set to a number,
 ;; then a maximum of parallel processes is started
@@ -30,18 +30,18 @@
   "the standard inferior lisp used in run-client-processes")
 
 
-(defun process-corpus (&key asdf-system package
-                            (name (make-id "corpus"))
-                            function function-kwargs
-                            inputfile outputfile
-                            start end
-                            (tmpdir (babel-pathname :directory '(".tmp")))
-                            (number-of-processes
-                             *max-nr-parallel-processes*)
-                            (number-of-lines-per-process 2000)
-                            (write-empty-lines-p nil)
-                            (inferior-lisp *inferior-lisp*)
-                            (silent-processes nil))
+(defun process-corpus-with-subprocesses (&key asdf-system package
+                                              (name (make-id "corpus"))
+                                              function function-kwargs
+                                              inputfile outputfile
+                                              start end
+                                              (tmpdir (babel-pathname :directory '(".tmp")))
+                                              (number-of-processes
+                                               *max-nr-parallel-processes*)
+                                              (number-of-lines-per-process 2000)
+                                              (write-empty-lines-p nil)
+                                              (inferior-lisp *inferior-lisp*)
+                                              (silent-processes nil))
   "Applies function to every line in inputfile and writes the result in outputfile.
    A higher number-of-processes results in a higher speed (if these processes are available).
    A higher number-of-lines-per-process results in a higher speed, but also in a higher
