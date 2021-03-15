@@ -28,6 +28,15 @@
         (t (format t "."))))
 
 ;;;; Communicative success
+(define-monitor stream-communicative-success
+                :class 'stream-monitor
+                :file-name (babel-pathname :name "communicative-success" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data")))
+
+(define-event-handler (stream-communicative-success interaction-finished)
+  (record-value monitor (if (communicated-successfully interaction) 1 0)))
+                
+
 (define-monitor record-communicative-success
                 :class 'data-recorder
                 :average-window 100
