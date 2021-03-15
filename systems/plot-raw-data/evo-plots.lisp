@@ -144,7 +144,7 @@ x-axis."
      ;; error bars at nice positions
      for error-bar-distance =  (cond ((<= range 101) 10)
                                      ((<= range 201) 20)
-                                     ((<= range 501 50)) 
+                                     ((<= range 501) 50) 
                                      ((<= range 1001) 100)
                                      ((<= range 2001) 200)
                                      ((<= range 5001) 500)
