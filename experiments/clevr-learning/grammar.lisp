@@ -154,23 +154,7 @@
                                     :key #'name :test #'eql)
             append (loop for cxn in cipn-applied-cxns
                          unless (eql (get-cxn-type cxn) 'lexical)
-                         collect (get-original-cxn cxn)))))))
-
-#|
-  (let* ((holophrase-cxns
-          (find-all 'holophrase (constructions-list (grammar agent))
-                    :key #'get-cxn-type))
-         (processed-utterance
-          (list-of-strings->string
-           (fcg::tokenize (utterance agent))))
-         (competitors
-          (loop for cxn in holophrase-cxns
-                when (string= processed-utterance
-                              (extract-and-render cxn))
-                collect cxn)))
-    (when competitors
-      (progn competitors))))
-|#       
+                         collect (get-original-cxn cxn)))))))      
 
 (defun get-meaning-competitors (agent applied-cxns)
   "Get cxns with the same form as cxn"
