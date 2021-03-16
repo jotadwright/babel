@@ -59,9 +59,10 @@
   "Creates all TH links for matching lexical cxns using their original lex-class."
   (loop for lex-cxn-lex-class in lex-classes-lex-cxns
         for item-slot-lex-class in lex-classes-item-based-units
-        unless (type-hierarchies::neighbours-p lex-cxn-lex-class item-slot-lex-class type-hierarchy)
-        collect (list (cons lex-cxn-lex-class item-slot-lex-class)
-                      (cons item-slot-lex-class lex-cxn-lex-class))))
+        unless (neighbours-p lex-cxn-lex-class item-slot-lex-class type-hierarchy)
+        collect (cons lex-cxn-lex-class item-slot-lex-class)))
+        ;collect (list (cons lex-cxn-lex-class item-slot-lex-class)
+        ;              (cons item-slot-lex-class lex-cxn-lex-class))))
 
 
 (defun create-th-links (problem node)

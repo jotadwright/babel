@@ -114,8 +114,9 @@
         for placeholder = (when (< 1 (length placeholders))
                             (format nil "-(~a)" (nth (position lex-cxn lex-cxns) placeholders)))
         for item-slot-lex-class = (make-lex-class (concatenate 'string item-based-name placeholder))
-        collect (list (cons lex-cxn-lex-class item-slot-lex-class)
-                      (cons item-slot-lex-class lex-cxn-lex-class))))
+        collect (cons lex-cxn-lex-class item-slot-lex-class)))
+        ;collect (list (cons lex-cxn-lex-class item-slot-lex-class)
+        ;              (cons item-slot-lex-class lex-cxn-lex-class))))
 
 (defun create-item-based-cxn-from-lex (problem node)
   "Creates item-based construction and lexical constructions
