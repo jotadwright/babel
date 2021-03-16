@@ -50,4 +50,5 @@ either return a handler or neglect by returning NIL."
 (push *ccxg-explorer-app* hunchentoot:*dispatch-table*)
 (defvar *ccxg-explorer-acceptor* (make-instance 'hunchentoot:cors-acceptor :port 8500)) ;; Kortrijk
 (hunchentoot:start *ccxg-explorer-acceptor*)
+;(hunchentoot:stop *ccxg-explorer-acceptor*)
 

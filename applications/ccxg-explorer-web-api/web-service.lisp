@@ -25,7 +25,8 @@
      (:details . ,(apply #'format nil (simple-condition-format-control condition)
                          (simple-condition-format-arguments condition))))))
 
-(snooze:defroute ccxg-explorer-api (:post :application/json (op (eql 'by-schema)))
+;(snooze:defroute ccxg-explorer-api (:post :application/json (op (eql 'by-schema)))
+(snooze:defroute by-schema (:post :application/json)
   (let* ((json (handler-case
                    (cl-json:decode-json-from-string
                     (snooze:payload-as-string))
@@ -77,6 +78,6 @@
                                                  
 
 
-;; curl -H "Content-Type: application/json" -d '{"corpus" : "ontonotes", "maxN":"100", "orderMatters":"T", "schema": [{"roleType":"arg0"},{"roleType":"v","roleset":"explain.01"},{"roleType":"arg2"},{"roleType":"arg1"}]}' http://localhost:8500/ccxg-explorer-api/by-schema
+;; curl -H "Content-Type: application/json" -d '{"corpus" : "ontonotes", "maxN":"100", "orderMatters":"T", "schema": [{"roleType":"arg0"},{"roleType":"v","roleset":"explain.01"},{"roleType":"arg2"},{"roleType":"arg1"}]}' http://localhost:8500/by-schema
 
 
