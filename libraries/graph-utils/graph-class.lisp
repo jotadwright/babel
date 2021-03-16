@@ -155,8 +155,8 @@ node-comparator is a valid hash table test."
   (let ((r nil))
     (maphash (lambda (node-name node-id)
                (if collect?
-                   (push (funcall fn node-name node-id) r)
-                  (funcall fn node-name node-id)))
+                 (push (funcall fn node-name node-id) r)
+                 (funcall fn node-name node-id)))
 	     (nodes graph))
     (when collect?
       (nreverse (if remove-nulls? (remove-if #'null r) r)))))
@@ -398,9 +398,7 @@ outbound neighbors for a directed graph."
 (defgeneric incf-edge-weight (graph n1 n2 &key edge-type delta))
 (defmethod incf-edge-weight ((graph graph) (n1 integer) (n2 integer)
                              &key (delta 1) &allow-other-keys)
-  (incf-sarray (matrix graph) (list n1 n2) delta)
-  (when (undirected? graph)
-    (incf-sarray (matrix graph) (list n2 n1) delta)))
+  (incf-sarray (matrix graph) (list n1 n2) delta))
 
 (defmethod incf-edge-weight ((graph graph) n1 n2 &key delta &allow-other-keys)
   (let ((id1 (gethash n1 (nodes graph)))
