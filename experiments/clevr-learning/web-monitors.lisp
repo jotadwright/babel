@@ -39,7 +39,7 @@
                 for edge-weight = (graph-utils::edge-weight g from-id to-id)
                 collect (graph-utils::type-hierarchy-edge->s-dot
                          from-id to-id
-                         :weight edge-weight :directedp t
+                         :weight edge-weight :directedp nil
                          :colored-edges-0-1 nil))))
     `(s-dot::graph ,graph-properties
                    ,@s-dot-nodes

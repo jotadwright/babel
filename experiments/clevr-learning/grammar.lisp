@@ -55,7 +55,7 @@
                                         )
                    ;:hashed t
                    :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                  (:show-type-hierarchy . ,(not hide-type-hierarchy)))))))
+                                                  (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))
 
 (define-event lexicon-changed)
@@ -89,9 +89,7 @@
     (delete-cxn cxn cxn-inventory)
     (notify lexicon-changed)
     (when lex-class
-      (graph-utils::delete-node
-       (type-hierarchies::graph type-hierarchy)
-       lex-class))))
+      (delete-category lex-class type-hierarchy))))
 
 ;;;;  COMPETITORS
 ;;;; -------------
