@@ -25,9 +25,11 @@
   (gl::form-predicates-with-variables
    (extract-string
     (get-root
-     (left-pole-structure
-      (car-resulting-cfs
-       (cipn-car node)))))))
+     (if (find 'fcg::second-merge-failed (fcg::statuses node))
+       (car-first-merge-structure (cipn-car node))
+       (left-pole-structure
+        (car-resulting-cfs
+         (cipn-car node))))))))
 
 (defun set-cxn-last-used (agent cxn)
   (let ((current-interaction-nr
@@ -41,7 +43,27 @@
    (render (extract-form-predicates cxn)
            (get-configuration (cxn-inventory cxn) :render-mode))))
 
-
+(defun find-equivalent-item-based-cxn (number-of-slots meaning-predicates form-predicates grammar)
+  "Look through the grammar for an item-based cxn that is equivalent
+   based on the number of slots, the meaning and the form"
+  (find-if #'(lambda (cxn)
+               (and ;; cxn has to be item-based
+                    (eql (get-cxn-type cxn) 'item-based)
+                    ;; with the same number of slots
+                    (= (item-based-number-of-slots cxn)
+                       number-of-slots)
+                    ;; an equivalent meaning
+                    (equivalent-irl-programs? (extract-meaning-predicates cxn)
+                                              meaning-predicates)
+                    ;; and the same form
+                    (string=
+                     (list-of-strings->string
+                      (gl::make-cxn-placeholder-name form-predicates grammar))
+                     (list-of-strings->string
+                      (gl::make-cxn-placeholder-name
+                       (extract-form-predicates cxn)
+                       grammar)))))
+           (constructions-list grammar)))
 
 
 ;;;; UTILS FOR RUNNING GAMES
