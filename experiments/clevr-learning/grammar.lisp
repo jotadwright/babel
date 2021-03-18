@@ -43,17 +43,14 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . :ordered-by-label-and-score) ;:hashed-scored-labeled 
+                   :fcg-configurations ((:cxn-supplier-mode . :ordered-by-label-and-score)
                                         (:parse-order lexical item-based holophrase)
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network
                                                            :no-strings-in-root)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
-                                        (:th-connected-mode . :neighbours) ;:path-exists)
-                                        (:update-th-links . t)
-                                        ;(:hash-mode . :hash-string-meaning-lex-id)
-                                        )
-                   ;:hashed t
+                                        (:th-connected-mode . :neighbours)
+                                        (:update-th-links . t))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))
@@ -96,7 +93,8 @@
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
-                                             (cxn-type (eql 'holophrase)))
+                                             (cxn-type (eql 'holophrase))
+                                             agent)
   ;; holophrase competitors have exactly the same form
   (let* ((all-cxns-of-type
           (remove cxn
@@ -111,7 +109,8 @@
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
-                                             (cxn-type (eql 'lexical)))
+                                             (cxn-type (eql 'lexical))
+                                             agent)
   ;; lexical competitors have exactly the same form
   (let* ((all-cxns-of-type
           (remove cxn
@@ -126,11 +125,50 @@
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
-                                             (cxn-type (eql 'item-based)))
-  ;; item-based cxns have no meaning competitors
-  nil)
+                                             (cxn-type (eql 'item-based))
+                                             agent)
+  ;; meaning competitors for item-based cxns are
+  ;; less general item-based cxns and holophrase cxns
+  ;; that also work for the current utterance
+  (let* ((cxn-name-with-placeholders
+         (gl::make-cxn-placeholder-name
+          (extract-form-predicates cxn)
+          cxn-inventory))
+        (de-rendered-utterance
+         (fcg::tokenize (utterance agent)))
+        (possible-item-based-competitors
+         (loop for other-cxn in (constructions-list cxn-inventory)
+               when (and (eql (get-cxn-type other-cxn) 'item-based)
+                         (< (item-based-number-of-slots other-cxn)
+                            (item-based-number-of-slots cxn)))
+               collect other-cxn))
+        (item-based-competitors
+         (loop for comp in possible-item-based-competitors
+               for comp-name-with-placeholders =
+               (gl::make-cxn-placeholder-name
+                (extract-form-predicates comp)
+                cxn-inventory)
+               when (and (length= cxn-name-with-placeholders
+                                  comp-name-with-placeholders)
+                         (loop for cxn-elem in cxn-name-with-placeholders
+                               for comp-elem in comp-name-with-placeholders
+                               for i from 0
+                               always (or (string= cxn-elem comp-elem)
+                                          (and (string= (subseq cxn-elem 0 1) "?")
+                                               (string= (subseq comp-elem 0 1) "?"))
+                                          (and (string= (subseq cxn-elem 0 1) "?")
+                                               (string= comp-elem (nth i de-rendered-utterance))))))
+               collect comp)) 
+        (holophrase-competitors
+         (loop for other-cxn in (constructions-list cxn-inventory)
+               when (and (eql (get-cxn-type other-cxn) 'holophrase)
+                         (string= (extract-and-render other-cxn)
+                                  (list-of-strings->string
+                                   (fcg::tokenize (utterance agent)))))
+               collect other-cxn)))
+    (append holophrase-competitors item-based-competitors)))
 
-
+#|
 (defun combined-meaning-competitors (agent applied-cxns)
   ;; the current set of applied cxns might have some less
   ;; general alternatives, e.g. an item-based with fewer
@@ -149,24 +187,20 @@
     (when (length> cipns 1)
       (remove-duplicates
        (loop for cipn in cipns
-            for cipn-applied-cxns = (applied-constructions cipn)
-            unless (permutation-of? applied-cxns cipn-applied-cxns
-                                    :key #'name :test #'eql)
-            append (loop for cxn in cipn-applied-cxns
-                         unless (eql (get-cxn-type cxn) 'lexical)
-                         collect (get-original-cxn cxn)))))))      
+             for cipn-applied-cxns = (applied-constructions cipn)
+             when (find 'fcg::succeeded (fcg:statuses cipn))
+             unless (permutation-of? applied-cxns cipn-applied-cxns
+                                     :key #'name :test #'eql)
+             append (loop for cxn in cipn-applied-cxns
+                          unless (eql (get-cxn-type cxn) 'lexical)
+                          collect (get-original-cxn cxn)))))))
+|#
 
 (defun get-meaning-competitors (agent applied-cxns)
   "Get cxns with the same form as cxn"
-  (append
-   ;; get competitors for each construction separately
-   (loop for cxn in applied-cxns
-         for cxn-type = (get-cxn-type cxn)
-         for competitors = (meaning-competitors-for-cxn-type
-                            cxn (grammar agent) cxn-type)
-         append competitors)
-   ;; get competitors for the combined applied cxns
-   ;; (item-based + lexical might have a holophrase competitor
-   ;;  or some item-based + lexical that is less general)
-   (when (length> applied-cxns 1)
-     (combined-meaning-competitors agent applied-cxns))))
+  (loop for cxn in applied-cxns
+        for cxn-type = (get-cxn-type cxn)
+        for competitors = (meaning-competitors-for-cxn-type
+                           cxn (grammar agent) cxn-type
+                           agent)
+        append competitors))

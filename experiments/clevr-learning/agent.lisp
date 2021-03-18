@@ -335,6 +335,47 @@
                      ;:restart-data holophrase-cxn
                      ))))
 
+
+
+
+
+
+(defun get-all-non-duplicate-leaf-nodes (cip)
+  (remove-if #'(lambda (node) (find 'fcg::duplicate (fcg::statuses node)))
+             (remove nil (traverse-depth-first
+                          cip  :collect-fn #'(lambda (node)
+                                               (when (null (children node))
+                                                 node))))))
+
+(defun get-node-with-matching-slots-and-lexical-cxns (nodes)
+  (loop for node in nodes
+        for applied-cxns = (mapcar #'get-original-cxn
+                                   (applied-constructions node))
+        for applied-lex-cxns = (find-all 'lexical applied-cxns
+                                         :key #'get-cxn-type)
+        for applied-item-based-cxn = (find 'item-based applied-cxns
+                                           :key #'get-cxn-type)
+        for strings-in-root = (get-strings-from-root node)
+        when (and applied-lex-cxns applied-item-based-cxn
+                  (length= applied-lex-cxns (item-based-number-of-slots applied-item-based-cxn))
+                  (null strings-in-root))
+        return node))
+
+(defun get-node-with-one-missing-lex-for-slots (nodes)
+  (loop for node in nodes
+        for applied-cxns = (mapcar #'get-original-cxn
+                                   (applied-constructions node))
+        for applied-lex-cxns = (find-all 'lexical applied-cxns
+                                         :key #'get-cxn-type)
+        for applied-item-based-cxn = (find 'item-based applied-cxns
+                                           :key #'get-cxn-type)
+        for strings-in-root = (get-strings-from-root node)
+        when (and applied-item-based-cxn
+                  (= (- (item-based-number-of-slots applied-item-based-cxn)
+                        (length applied-lex-cxns)) 1)
+                  (= (length strings-in-root) 1))
+        return node))
+
 (defun all-applied-cxns (cipn)
   (cond (;initial node
          (and (null (parent cipn))
@@ -346,11 +387,7 @@
                               (fcg::applied-constructions cipn))))
         (t ;otherwise, take all non-duplicate leaf nodes
          (let ((all-leaf-nodes
-                (remove-if #'(lambda (node) (find 'fcg::duplicate (fcg::statuses node)))
-                           (remove nil (traverse-depth-first (cip cipn)
-                                                             :collect-fn #'(lambda (node)
-                                                                             (when (null (children node))
-                                                                               node)))))))
+                (get-all-non-duplicate-leaf-nodes (cip cipn))))
            (if (length= all-leaf-nodes 1)
              ;; if there is only one, return that one
              (values (first all-leaf-nodes)
@@ -362,45 +399,30 @@
              ;; 2. number of slots - number of lexical cxns == 1
              ;; 3. random
              (let* ((matching-slots-and-lexical-cxns
-                    (loop for node in all-leaf-nodes
-                          for applied-cxns = (mapcar #'get-original-cxn
-                                                     (applied-constructions node))
-                          for applied-lex-cxns = (find-all 'lexical applied-cxns
-                                                           :key #'get-cxn-type)
-                          for applied-item-based-cxn = (find 'item-based applied-cxns
-                                                             :key #'get-cxn-type)
-                          when (and applied-lex-cxns applied-item-based-cxn
-                                    (length= applied-lex-cxns
-                                             (item-based-number-of-slots applied-item-based-cxn)))
-                          return node))
+                     (get-node-with-matching-slots-and-lexical-cxns all-leaf-nodes))
                    (one-missing-lex-for-slots
-                    (unless matching-slots-and-lexical-cxns
-                      (loop for node in all-leaf-nodes
-                            for applied-cxns = (mapcar #'get-original-cxn
-                                                       (applied-constructions node))
-                            for applied-lex-cxns = (find-all 'lexical applied-cxns
-                                                             :key #'get-cxn-type)
-                            for applied-item-based-cxn = (find 'item-based applied-cxns
-                                                               :key #'get-cxn-type)
-                            when (= (- (item-based-number-of-slots applied-item-based-cxn)
-                                       (length applied-lex-cxns)) 1)
-                            return node)))
+                    (get-node-with-one-missing-lex-for-slots all-leaf-nodes))
                    (random-node
-                    (unless (or matching-slots-and-lexical-cxns
-                                one-missing-lex-for-slots)
-                      (random-elt all-leaf-nodes))))
-               (cond (matching-slots-and-lexical-cxns
-                      (values matching-slots-and-lexical-cxns
-                              (mapcar #'get-original-cxn
-                                      (fcg::applied-constructions matching-slots-and-lexical-cxns))))
-                     (one-missing-lex-for-slots
-                      (values one-missing-lex-for-slots
-                              (mapcar #'get-original-cxn
-                                      (fcg::applied-constructions one-missing-lex-for-slots))))
-                     (t (values random-node
-                                (mapcar #'get-original-cxn
-                                        (fcg::applied-constructions random-node)))))))))))
-
+                    (random-elt all-leaf-nodes)))
+               (cond ((and matching-slots-and-lexical-cxns
+                           one-missing-lex-for-slots)
+                      (let ((n (random-elt (list matching-slots-and-lexical-cxns
+                                                 one-missing-lex-for-slots))))
+                        (values n (mapcar #'get-original-cxn
+                                          (applied-constructions n)))))
+                      (matching-slots-and-lexical-cxns
+                       (values matching-slots-and-lexical-cxns
+                               (mapcar #'get-original-cxn
+                                       (applied-constructions matching-slots-and-lexical-cxns))))
+                      (one-missing-lex-for-slots
+                       (values one-missing-lex-for-slots
+                               (mapcar #'get-original-cxn
+                                       (applied-constructions one-missing-lex-for-slots))))
+                      (t
+                       (values random-node
+                               (mapcar #'get-original-cxn
+                                       (applied-constructions random-node)))))))))))
+  
 
 (defmethod run-process (process
                         (process-label (eql 'parse))
@@ -487,7 +509,7 @@
 
 (defclass failed-interaction-problem (problem)
   () (:documentation "Problem created when the interaction was completed,
-                      but not successful"))
+but not successful"))
 
 (defmethod diagnose ((diagnostic diagnose-aligment-result)
                      process-result &key trigger)
@@ -499,7 +521,6 @@
   (if (find-data process-result 'success)
     (make-instance 'possible-generalisation-problem)
     (make-instance 'failed-interaction-problem)))
-
 
 (defmethod repair ((repair repair-make-holophrase-cxn)
                    (problem failed-interaction-problem)

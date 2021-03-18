@@ -24,20 +24,10 @@
         ((= (mod (interaction-number interaction)
                  (get-configuration experiment :dot-interval)) 0)
          (format t ". (~a)~%" (interaction-number interaction))
-         ;(wi:clear-page)
-         )
+         (wi:clear-page))
         (t (format t "."))))
 
-;;;; Communicative success
-(define-monitor stream-communicative-success
-                :class 'stream-monitor
-                :file-name (babel-pathname :name "communicative-success" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data")))
-
-(define-event-handler (stream-communicative-success interaction-finished)
-  (record-value monitor (if (communicated-successfully interaction) 1 0)))
-                
-
+;;;; Communicative success             
 (define-monitor record-communicative-success
                 :class 'data-recorder
                 :average-window 100
@@ -47,7 +37,7 @@
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
                 :data-sources '((average record-communicative-success))
-                :update-interval 1000
+                :update-interval 100
                 :caption '("communicative success")
                 :x-label "# Games" 
                 :y1-label "Communicative Success" 
