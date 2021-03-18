@@ -504,6 +504,9 @@ outbound neighbors for a directed graph."
                  id))
 	     graph :collect? t :remove-nulls? t))
 
+(defgeneric delete-node (graph thing)
+  (:documentation "Delete a node from the graph"))
+
 (defmethod delete-node ((graph graph) (id integer))
   (let ((value (lookup-node graph id)))
     (if (directed? graph)
