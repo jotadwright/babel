@@ -27,23 +27,6 @@
          (wi:clear-page))
         (t (format t "."))))
 
-;;;; Gnuplot Display monitor
-(define-monitor display-metrics
-                :class 'gnuplot-display
-                :documentation "Plots the communicative success."
-                :data-sources '((average record-communicative-success)
-                                (average record-lexicon-size))
-                :update-interval 100
-                :caption '("communicative success"
-                           "lexicon size")
-                :x-label "# Games"
-                :use-y-axis '(1 2)
-                :y1-label "Communicative Success" 
-                :y1-max 1.0 :y1-min 0
-                :y2-label "Lexicon Size"
-                :y2-min 0
-                :draw-y1-grid t)
-
 ;;;; Communicative success             
 (define-monitor record-communicative-success
                 :class 'data-recorder
@@ -81,6 +64,23 @@
 
 (define-event-handler (record-lexicon-size interaction-finished)
   (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
+
+;;;; Gnuplot Display monitor
+(define-monitor display-metrics
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-communicative-success)
+                                (average record-lexicon-size))
+                :update-interval 100
+                :caption '("communicative success"
+                           "lexicon size")
+                :x-label "# Games"
+                :use-y-axis '(1 2)
+                :y1-label "Communicative Success" 
+                :y1-max 1.0 :y1-min 0
+                :y2-label "Lexicon Size"
+                :y2-min 0
+                :draw-y1-grid t)
 
 ;;;; # meanings per form for lexical cxns
 (define-monitor record-lexical-meanings-per-form

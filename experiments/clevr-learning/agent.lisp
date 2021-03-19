@@ -21,7 +21,15 @@
   (:documentation "Base class for both agents"))
 
 (defclass clevr-learning-tutor (clevr-learning-agent)
-  () (:documentation "The tutor agent"))
+  ((question-index-table :initarg :table :initform nil
+                         :accessor question-index-table
+                         :type list
+                         :documentation "Tutor keeps track of which questions the
+                                         learner has seen, and how often it was
+                                         successful or not")
+   (current-question-index :initform -1 :accessor current-question-index
+                           :type number :documentation "Index of current question"))
+  (:documentation "The tutor agent"))
 
 (defclass clevr-learning-learner (clevr-learning-agent)
   ((task-result :initarg :task-result
@@ -52,15 +60,19 @@
     clevr-grammar))
 
 (defun make-clevr-learning-tutor (experiment)
-  (make-instance 'clevr-learning-tutor :role 'tutor :experiment experiment
+  (make-instance 'clevr-learning-tutor
+                 :role 'tutor :experiment experiment
                  :grammar (default-clevr-grammar)
-                 :ontology (copy-object *clevr-ontology*)))
+                 :ontology (copy-object *clevr-ontology*)
+                 :table (loop for i below (length (question-data experiment))
+                              collect (cons i nil))))
 
 (defun make-clevr-learning-learner (experiment)
   (let* ((hide-type-hierarchy
           (get-configuration experiment :hide-type-hierarchy))
          (learner
-          (make-instance 'clevr-learning-learner :role 'learner :experiment experiment
+          (make-instance 'clevr-learning-learner
+                         :role 'learner :experiment experiment
                          :grammar (empty-cxn-set hide-type-hierarchy)
                          :ontology (copy-object *clevr-ontology*))))
     (set-primitives-for-current-challenge-level learner)
