@@ -27,22 +27,28 @@
          (wi:clear-page))
         (t (format t "."))))
 
+;;;; Gnuplot Display monitor
+(define-monitor display-metrics
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-communicative-success)
+                                (average record-lexicon-size))
+                :update-interval 100
+                :caption '("communicative success"
+                           "lexicon size")
+                :x-label "# Games"
+                :use-y-axis '(1 2)
+                :y1-label "Communicative Success" 
+                :y1-max 1.0 :y1-min 0
+                :y2-label "Lexicon Size"
+                :y2-min 0
+                :draw-y1-grid t)
+
 ;;;; Communicative success             
 (define-monitor record-communicative-success
                 :class 'data-recorder
                 :average-window 100
                 :documentation "records the game outcome of each game (1 or 0).")
-
-(define-monitor display-communicative-success
-                :class 'gnuplot-display
-                :documentation "Plots the communicative success."
-                :data-sources '((average record-communicative-success))
-                :update-interval 100
-                :caption '("communicative success")
-                :x-label "# Games" 
-                :y1-label "Communicative Success" 
-                :y1-max 1.0 :y1-min 0 
-                :draw-y1-grid t)
 
 (define-monitor export-communicative-success
                 :class 'lisp-data-file-writer
@@ -354,9 +360,9 @@
     (cl-store:store cxn-inventory path)))
 
 (define-event-handler (export-learner-grammar run-series-finished)
-  (export-grammar (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
-                                      :name "learner-grammar" :type "store")
-                  (grammar (learner experiment))))
+  (export-grammar (grammar (learner experiment))
+                  (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                                  :name "learner-grammar" :type "store")))
 
 ;; export grammar every nth interaction
 (define-monitor export-learner-grammar-every-nth-interaction)

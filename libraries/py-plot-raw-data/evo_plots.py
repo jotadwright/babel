@@ -80,13 +80,13 @@ parser.add_argument('--use-y-axis', default=None, type=int,
                     help='''Which y-axis to use for each line.
                             The left y-axis is denoted by 1.
                             The right y-axis is denoted by 2.''')
-parser.add_argument('--y1-min', default=None, type=int,
+parser.add_argument('--y1-min', default=None, type=float,
                     help='Minimum value of the left y-axis.')
-parser.add_argument('--y1-max', default=None, type=int,
+parser.add_argument('--y1-max', default=None, type=float,
                     help='Maximum value of the left y-axis.')
-parser.add_argument('--y2-min', default=None, type=int,
+parser.add_argument('--y2-min', default=None, type=float,
                     help='Minimum value of the right y-axis.')
-parser.add_argument('--y2-max', default=None, type=int,
+parser.add_argument('--y2-max', default=None, type=float,
                     help='Maximum value of the right y-axis.')
 parser.add_argument('--draw-y1-grid', dest='draw_y1_grid', action='store_true',
                     help='Whether to draw the grid for the left y-axis.')
