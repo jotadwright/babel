@@ -1717,9 +1717,16 @@ div.cipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                        (when (and (all-parents node) (children node)
                                   (car-resulting-cfs (cipn-car node))
                                   (or (not label)
-                                      (eq (attr-val
+                                      (or (eq (attr-val
                                            (car-applied-cxn (cipn-car node)) :label)
-                                          label))
+                                          label)
+                                          (equalp (attr-val
+                                           (car-applied-cxn (cipn-car node)) :label)
+                                          label)
+                                          (and (listp (attr-val (car-applied-cxn (cipn-car node)) :label))
+                                               (listp label)
+                                               (eq (first (attr-val (car-applied-cxn (cipn-car node)) :label))
+                                                   (first label)))))
                                   (not (member (car (statuses node))
                                                '(succeeded goal-test-failed))))
                          (if (= 1 (length (children node)))
