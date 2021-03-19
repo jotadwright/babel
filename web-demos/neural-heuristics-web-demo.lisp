@@ -41,7 +41,7 @@
              (set-configurations *fcg-constructions* *baseline-configurations* :replace t)
              (comprehend *utterance*)))))
 
-;*baseline-solution-comprehension* ;;solution = 72
+;*baseline-solution-comprehension* ;;solution = 67
 
                            
 (defparameter *neural-solution-comprehension*
@@ -59,7 +59,7 @@
              (set-configurations *fcg-constructions* *baseline-configurations* :replace t)
              (formulate (fcg::instantiate-variables *meaning*))))))
 
-;*baseline-solution-production* ;; solution = 377
+;*baseline-solution-production* ;; solution = 250
 
 (defparameter *neural-solution-production*
   (second (multiple-value-list
@@ -126,7 +126,7 @@
                  ((li) "Connected semantic network")
                  ((li) "Connected syntactic structure")
                  ((li) "No strings in root unit")))
-  (add-element '((p) "As soon as all four goal tests succeed, the search process will stop and the final node is returned as the solution. From this final node, the resulting meaning representation is then extracted."))
+  (add-element '((p) "As soon as all four goal tests succeed, the search process will halt and the final transient structure is returned as the solution. The resulting meaning representation is then extracted from this transient structure."))
  
   (add-element '((a :name "21")))
   (add-element '((h3) ((b) "2.1 Depth-first strategy")))
@@ -142,7 +142,7 @@
   (add-element (make-html-fcg-light (initial-cfs (cip *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
-  (add-element (fcg::make-tr-for-cip-tree (top-node (cip *baseline-solution-comprehension*)) "" :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html (top-node (cip *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
   (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
@@ -153,13 +153,15 @@
   (add-element '((hr)))
   (add-element '((a :name "22")))
   (add-element '((h3) ((b) "2.2 Neural strategy")))
-  (add-element '((p) "This section demonstrates the impact of the neural heuristics on the search process that is involved in constructional language processing. Scrolling right on the screen, you "))
+  (add-element '((p) "This section demonstrates the impact of the neural heuristics on the search process that is involved in constructional language processing. Scrolling to the right of the screen, you will see that there was no backtracking needed to find a solution thanks to the neural heuristics that guided the construction application process. After the hashed constructions have been processed, starting from transient structure 16, the (comprehension) sequence-to-sequence model was queried every time a new transient structure needed to be expanded. Given the input utterance and the sequence of the names of constructions that already applied, our neural model returns the most likely construction to apply next, together with a probability score. The new transient structure that results from the application of the predicted construction receives a heuristic value, which is the sum of the mother's heuristic value and the probability score."))
+
+  (add-element '((p) "The only splits in the search tree occur when the same predicted construction can apply in multiple ways to a transient structure. The main reason as to why there was no backtracking needed here, lies in the early selection of the " ((tt) "the-same-t-as-compare-cxn") ". Our sequence-to-sequence model learned that applying this construction even before all nominal constructions is indeed a good strategy to find a solution in a fast way. If you scroll up again to the baseline construction application process, you will see that this construction had a number of competitor constructions, including " ((tt) "the-same-t-as-relate-cxn") " and " ((tt) "the-same-t-cxn") "."))
 
   (add-element '((h4) ((b) "Initial transient structure:")))
   (add-element (make-html-fcg-light (initial-cfs (cip *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
-  (add-element (fcg::make-tr-for-cip-tree (top-node (cip *neural-solution-comprehension*)) "" :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html (top-node (cip *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
   (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
@@ -171,7 +173,8 @@
 
   
   )
-
+(clear-page)
+(add-element (make-html (top-node (cip *neural-solution-comprehension*))  :configuration (visualization-configuration *fcg-constructions*) :within-linear-chain? t))
 ;; (comprehension)
 
 
@@ -197,7 +200,7 @@
   (add-element (make-html-fcg-light (initial-cfs (cip *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
-  (add-element (fcg::make-tr-for-cip-tree (top-node (cip *baseline-solution-production*)) "" :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html (top-node (cip *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
   (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
@@ -214,7 +217,7 @@
   (add-element (make-html-fcg-light (initial-cfs (cip *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
-  (add-element (fcg::make-tr-for-cip-tree (top-node (cip *neural-solution-production*)) "" :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html (top-node (cip *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
   (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
@@ -226,8 +229,6 @@
   
   
 
-  
-  )
 
 
 (clear-page)
