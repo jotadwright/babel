@@ -36,7 +36,7 @@
                 :accessor task-result
                 :initform nil
                 :documentation "Pointer to the result of the task in this interaction")
-   (memory :initarg :memory :accessor memory :initform (make-hash-table :test #'=)
+   (memory :initarg :memory :accessor memory :initform (make-hash-table :test #'eq)
            :documentation "The agent's memory (used by composer strategy)")
    (available-primitives :initarg :available-primitives
                          :accessor available-primitives
