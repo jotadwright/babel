@@ -48,9 +48,13 @@
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network
                                                            :no-strings-in-root)
+                                        (:production-order lexical item-based holophrase)
+                                        (:production-goal-tests :no-applicable-cxns
+                                                 :connected-structure
+                                                 :no-meaning-in-root)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
-                                        (:update-th-links . t))
+                                        (:update-th-links . nil))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))

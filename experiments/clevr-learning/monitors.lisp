@@ -34,13 +34,12 @@
                 :documentation "records the game outcome of each game (1 or 0).")
 
 (define-monitor export-communicative-success
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
-                :file-name (babel-pathname :name "communicative-success" :type "lisp"
+                :file-name (babel-pathname :name "communicative-success" :type "csv"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
                 :comment-string "#")
 
 (define-event-handler (record-communicative-success interaction-finished)
@@ -53,13 +52,12 @@
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-lexicon-size
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
-                :file-name (babel-pathname :name "lexicon-size" :type "lisp"
+                :file-name (babel-pathname :name "lexicon-size" :type "csv"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
                 :comment-string "#")
 
 (define-event-handler (record-lexicon-size interaction-finished)
@@ -89,13 +87,12 @@
                 :documentation "records avg nr of meanings per form")
 
 (define-monitor export-lexical-meanings-per-form
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "Exports nr of meanings per form for lexical cxns"
                 :data-sources '(record-lexical-meanings-per-form)
-                :file-name (babel-pathname :name "lexical-meanings-per-form" :type "lisp"
+                :file-name (babel-pathname :name "lexical-meanings-per-form" :type "csv"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
                 :comment-string "#")
 
 (defun compute-nr-of-lexical-meanings-per-form (agent)
@@ -124,13 +121,12 @@
                 :documentation "records avg nr of forms per meaning")
 
 (define-monitor export-lexical-forms-per-meaning
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "Exports nr of forms per meaning for lexical cxns"
                 :data-sources '(record-lexical-forms-per-meaning)
-                :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "lisp"
+                :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "csv"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
                 :comment-string "#")
 
 (defun compute-nr-of-lexical-forms-per-meaning (agent)
@@ -157,13 +153,12 @@
                 :documentation "records how often the lexicon changes")
 
 (define-monitor export-lexicon-change
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "Exports how often the lexicon changes"
                 :data-sources '(record-lexicon-change)
-                :file-name (babel-pathname :name "lexicon-change" :type "lisp"
+                :file-name (babel-pathname :name "lexicon-change" :type "csv"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
                 :comment-string "#")
 
 (define-event-handler (record-lexicon-change lexicon-changed)
@@ -176,13 +171,12 @@
                 :documentation "record the avg cxn score")
 
 (define-monitor export-avg-cxn-score
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "exports avg cxn score"
                 :data-sources '((average record-avg-cxn-score))
-                :file-name (babel-pathname :name "avg-cxn-score" :type "lisp"
+                :file-name (babel-pathname :name "avg-cxn-score" :type "csv"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
                 :comment-string "#")
 
 (define-event-handler (record-avg-cxn-score interaction-finished)
@@ -195,13 +189,12 @@
                 :documentation "record the confidence level")
 
 (define-monitor export-confidence-level
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "exports confidence level"
                 :data-sources '((average record-confidence-level))
-                :file-name (babel-pathname :name "confidence-level" :type "lisp"
+                :file-name (babel-pathname :name "confidence-level" :type "csv"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
                 :comment-string "#")
 
 (define-event-handler (record-confidence-level interaction-finished)
@@ -211,6 +204,15 @@
 (define-monitor record-lexicon-size-per-type
                 :class 'alist-recorder
                 :average-window 1)
+
+(define-monitor export-lexicon-size-per-type
+                :class 'alist-csv-file-writer
+                :documentation "Exports lexicon size per type"
+                :recorder 'record-lexicon-size-per-type
+                :file-name (babel-pathname :name "lexicon-size-per-type" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#")
 
 (define-event-handler (record-lexicon-size-per-type interaction-finished)
   (let ((all-constructions
@@ -236,6 +238,15 @@
 (define-monitor record-cxn-score-per-type
                 :class 'alist-recorder
                 :average-window 100)
+
+(define-monitor export-cxn-score-per-type
+                :class 'alist-csv-file-writer
+                :documentation "Exports cxn score per type"
+                :recorder 'record-cxn-score-per-type
+                :file-name (babel-pathname :name "cxn-score-per-type" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#")
 
 (define-event-handler (record-cxn-score-per-type interaction-finished)
   (let ((all-constructions
@@ -265,6 +276,15 @@
                 :average-window 100
                 :keep-previous-values t)
 
+(define-monitor export-cxn-usage-per-type
+                :class 'alist-csv-file-writer
+                :documentation "Exports cxn usage per type"
+                :recorder 'record-cxn-usage-per-type
+                :file-name (babel-pathname :name "cxn-usage-per-type" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#")
+
 (define-event-handler (record-cxn-usage-per-type interaction-finished)
   (let ((applied-cxns (find-data (task-result (learner experiment)) 'applied-cxns)))
     (when applied-cxns
@@ -290,6 +310,15 @@
 (define-monitor record-nr-of-slots
                 :class 'alist-recorder
                 :average-window 1)
+
+(define-monitor export-nr-of-slots
+                :class 'alist-csv-file-writer
+                :documentation "Exports cxn usage per type"
+                :recorder 'record-nr-of-slots
+                :file-name (babel-pathname :name "item-based-nr-of-slots" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#")
 
 (define-event-handler (record-nr-of-slots interaction-finished)
   (let* ((all-constructions
