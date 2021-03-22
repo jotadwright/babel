@@ -117,14 +117,15 @@
          (get-configuration experiment :composer-strategy)))
     ;; add the success to the table of the tutor
     (let* ((current-index (current-question-index (tutor experiment)))
-           (entry (rest (assoc current-index (question-index-table (tutor experiment))))))
+           (entry (rest (assoc current-index (question-index-table (tutor experiment)))))
+           (failure-count (get-configuration experiment :tutor-counts-failure-as)))
       (if (null entry)
         (setf (rest (assoc current-index (question-index-table (tutor experiment))))
-              (if successp (cons 1 0) (cons 0 3)))
+              (if successp (cons 1 0) (cons 0 failure-count)))
         (setf (rest (assoc current-index (question-index-table (tutor experiment))))
               (if successp
                 (cons (1+ (car entry)) (cdr entry))
-                (cons (car entry) (+ (cdr entry) 3))))))
+                (cons (car entry) (+ (cdr entry) failure-count))))))
     ;; add the success to the confidence buffer of the learner
     (if (= (length (confidence-buffer experiment))
            (get-configuration experiment :evaluation-window-size))

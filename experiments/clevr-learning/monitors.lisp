@@ -34,7 +34,7 @@
                 :documentation "records the game outcome of each game (1 or 0).")
 
 (define-monitor export-communicative-success
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "csv"
@@ -52,7 +52,7 @@
                 :documentation "records the avg lexicon size.")
 
 (define-monitor export-lexicon-size
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
                 :file-name (babel-pathname :name "lexicon-size" :type "csv"
@@ -87,7 +87,7 @@
                 :documentation "records avg nr of meanings per form")
 
 (define-monitor export-lexical-meanings-per-form
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :documentation "Exports nr of meanings per form for lexical cxns"
                 :data-sources '(record-lexical-meanings-per-form)
                 :file-name (babel-pathname :name "lexical-meanings-per-form" :type "csv"
@@ -121,7 +121,7 @@
                 :documentation "records avg nr of forms per meaning")
 
 (define-monitor export-lexical-forms-per-meaning
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :documentation "Exports nr of forms per meaning for lexical cxns"
                 :data-sources '(record-lexical-forms-per-meaning)
                 :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "csv"
@@ -153,7 +153,7 @@
                 :documentation "records how often the lexicon changes")
 
 (define-monitor export-lexicon-change
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :documentation "Exports how often the lexicon changes"
                 :data-sources '(record-lexicon-change)
                 :file-name (babel-pathname :name "lexicon-change" :type "csv"
@@ -171,7 +171,7 @@
                 :documentation "record the avg cxn score")
 
 (define-monitor export-avg-cxn-score
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :documentation "exports avg cxn score"
                 :data-sources '((average record-avg-cxn-score))
                 :file-name (babel-pathname :name "avg-cxn-score" :type "csv"
@@ -181,24 +181,6 @@
 
 (define-event-handler (record-avg-cxn-score interaction-finished)
   (record-value monitor (average (mapcar #'cxn-score (get-cxns-of-type (learner experiment) 'all)))))
-
-;;;; learner confidence level
-(define-monitor record-confidence-level
-                :class 'data-recorder
-                :average-window 100
-                :documentation "record the confidence level")
-
-(define-monitor export-confidence-level
-                :class 'csv-data-file-writer
-                :documentation "exports confidence level"
-                :data-sources '((average record-confidence-level))
-                :file-name (babel-pathname :name "confidence-level" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil
-                :comment-string "#")
-
-(define-event-handler (record-confidence-level interaction-finished)
-  (record-value monitor (average (confidence-buffer experiment))))
 
 ;;;; lexicon size per cxn type (alist monitor)
 (define-monitor record-lexicon-size-per-type
@@ -223,7 +205,7 @@
           when all-cxns-of-type
           do (set-value-for-symbol monitor cxn-type (length all-cxns-of-type)))))
 
-(define-monitor plot-num-cxns-per-type
+(define-monitor plot-lexicon-size-per-type
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-lexicon-size-per-type
     :average-windows 1

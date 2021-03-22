@@ -5,7 +5,7 @@
 ;; use this file to run experiments (possibly on the cluster)
 
 (run-experiments '(
-                   (5k_questions+30k_games+smart_tutor+decf_04
+                   (5-series
                     ((:question-sample-method . :first)
                      (:questions-per-challenge . 5000)
                      (:scenes-per-question . 20)
@@ -15,10 +15,11 @@
                      (:confidence-threshold . 1.1)
                      (:export-interval . 5000)
                      (:cxn-decf-score . 0.4)
-                     (:tutor-mode . :smart)))
+                     (:tutor-mode . :smart)
+                     (:tutor-counts-failure-as . 3)))
                    )
-                 :number-of-interactions 30000
-                 :number-of-series 1
+                 :number-of-interactions 10000
+                 :number-of-series 5
                  :monitors (list ;; success
                                  "export-communicative-success" 
                                  ;; overall lexicon size

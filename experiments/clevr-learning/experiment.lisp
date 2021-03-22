@@ -42,6 +42,7 @@
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :tutor-mode :smart) ; :random or :smart
+(define-configuration-default-value :tutor-counts-failure-as 1)
 
 ;; Autotelic principle
 (define-configuration-default-value :current-challenge-level 1)
