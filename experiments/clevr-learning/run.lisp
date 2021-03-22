@@ -21,13 +21,13 @@
                  :number-of-interactions 10000
                  :number-of-series 5
                  :monitors (list ;; success
-                                 "export-communicative-success" 
+                                 "export-communicative-success"
                                  ;; overall lexicon size
                                  "export-lexicon-size"
-                                 ;; lexical size per type
-                                 "plot-num-cxns-per-type"
                                  ;; overall cxn scores
                                  "export-avg-cxn-score"
+                                 ;; lexical size per type
+                                 "plot-lexicon-size-per-type" 
                                  ;; cxn scores per type
                                  "plot-cxn-score-per-type"
                                  ;; type of applied cxns
@@ -38,7 +38,8 @@
                                  ;; nr of item based cxns with nr of slots
                                  "plot-nr-of-slots"
                                  ;; export data
-                                 "export-learner-grammar"
+                                 ;"export-learner-grammar-every-nth-interaction"
+                                 ;"export-type-hierarchy-every-nth-interaction"
                                  ;; print dots
                                  "print-a-dot-for-each-interaction"
                                  ))

@@ -208,13 +208,13 @@
 (define-monitor plot-lexicon-size-per-type
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-lexicon-size-per-type
-    :average-windows 1
     :draw-y-grid t
     :y-label "Number of constructions"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
                                :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf")
+    :graphic-type "pdf"
+    :error-bars t)
 
 ;;;; avg cxn score per cxn type (alist monitor)
 (define-monitor record-cxn-score-per-type
@@ -243,14 +243,14 @@
 (define-monitor plot-cxn-score-per-type
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-cxn-score-per-type
-    :average-windows 100
     :draw-y-grid t
     :y-min 0 :y-max 1
     :y-label "Construction Score"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "avg-cxn-score-per-type" :type "pdf"
                                :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf")
+    :graphic-type "pdf"
+    :error-bars t)
 
 ;; cxn usage per type (alist monitor)
 (define-monitor record-cxn-usage-per-type
@@ -279,14 +279,14 @@
 (define-monitor plot-cxn-usage-per-type
         :class 'alist-gnuplot-graphic-generator
         :recorder 'record-cxn-usage-per-type
-        :average-windows 100
         :draw-y-grid t
         :y-min 0 :y-max 1
         :y-label "Usage"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "cxn-usage-per-type" :type "pdf"
                                    :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf")
+        :graphic-type "pdf"
+        :error-bars t)
 
 ;; nr of item-based cxns with slots (alist monitor)
 (define-monitor record-nr-of-slots
@@ -325,7 +325,8 @@
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "nr-of-item-based-cxns-with-slots" :type "pdf"
                                    :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf")
+        :graphic-type "pdf"
+        :error-bars t)
 
 ;; export type hierarchy after series
 (define-monitor export-type-hierarchy)
