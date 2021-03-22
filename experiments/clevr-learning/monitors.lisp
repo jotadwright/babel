@@ -78,7 +78,8 @@
                 :y1-max 1.0 :y1-min 0
                 :y2-label "Lexicon Size"
                 :y2-min 0
-                :draw-y1-grid t)
+                :draw-y1-grid t
+                :error-bars nil)
 
 ;;;; # meanings per form for lexical cxns
 (define-monitor record-lexical-meanings-per-form

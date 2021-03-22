@@ -40,7 +40,7 @@
              (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
                                                *clevr-ontology*))
              (clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
-                                             (world (experiment tutor)))))
+                                              (world (experiment tutor)))))
         (values question clevr-scene answer-entity)))))
 
 (defgeneric sample-question (tutor mode)
