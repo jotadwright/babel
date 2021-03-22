@@ -272,7 +272,11 @@
    (colors :documentation "A list of line colors to use for plotting." 
 	   :accessor colors :initform *great-gnuplot-colors*)
    (divide-indices-by :documentation "A constant by which the indices (x-values) are divided by."
-		      :accessor divide-indices-by :initform 1 :initarg :divide-indices-by))
+		      :accessor divide-indices-by :initform 1 :initarg :divide-indices-by)
+   (dashed 
+    :documentation "When t, different data lines have different dashes. 
+                    Only has effect in some terminals"
+    :initform t :initarg :dashed :accessor dashed))
   (:documentation "A gnuplotter based on the alist-recorder"))
 
 
@@ -317,10 +321,11 @@
     (loop for source in data 
        for source-number from 0
        for color = (nth (mod source-number (length (colors monitor))) (colors monitor))
-       do (format stream "~:[~*~*~;'-' axes x1y1 notitle with errorbars ps 0.01 lw ~a lc rgb ~s,~] '-' axes x1y1 title \"~(~a~)\" with lines lw ~a lc rgb ~s~:[~;, ~]" 
-		  (third source) (line-width monitor) color
+       do (format stream "~:[~*~*~;'-' axes x1y1 notitle with errorbars ps 0.01 lw ~a dt ~a lc rgb ~s,~] '-' axes x1y1 title \"~(~a~)\" with lines lw ~a dt ~a lc rgb ~s~:[~;, ~]" 
+		  (third source) (line-width monitor)
+                  (if (dashed monitor) (+ 2 source-number) 1) color
 		  (nth source-number (reverse (mapcar #'car (car (data monitor)))))
-		  (line-width monitor)
+		  (line-width monitor) (if (dashed monitor) (+ 2 source-number) 1)
 		  color (< source-number (- (length data) 1))))
     (loop for source in data
        do (when (third source)
@@ -396,10 +401,6 @@
     :documentation "When t, different data lines have different colors. 
                     Only has effect in some terminals"
     :initform t :initarg :colored :accessor colored)
-   (dashed 
-    :documentation "When t, different data lines have different dashes. 
-                    Only has effect in some terminals"
-    :initform t :initarg :dashed :accessor dashed)
    (add-time-and-experiment-to-file-name
     :documentation "When t, the file name is prefixed with the name of the experiment class
                     and a yyyy-mm-dd-hh-mm-ss string"
@@ -424,7 +425,6 @@
   (subscribe-to-event id 'batch-finished)
   (setf (error-occured-during-initialization monitor) nil))
 
- 
 
 (defmethod handle-batch-finished-event ((monitor alist-gnuplot-graphic-generator)
 					(monitor-id symbol) (event (eql 'batch-finished))
@@ -439,9 +439,9 @@
       (close-pipe (slot-value monitor 'stream)))
     (setf (slot-value monitor 'stream) (pipe-to-gnuplot))
     (format (plot-stream monitor) "~cset output \"~a\"" #\linefeed file-name)
-    (format (plot-stream monitor) "~cset terminal ~a font \"Helvetica\" linewidth ~a rounded ~:[solid~;dashed~] ~:[monochrome~;color~]"
+    (format (plot-stream monitor) "~cset terminal ~a font 'Helvetica, 10' linewidth ~a rounded ~a"
 	    #\linefeed (graphic-type monitor) (line-width monitor) 
-	    (dashed monitor) (colored monitor))
+	    (if (colored monitor) "color" "mono"))
     (plot-data monitor)
     (format (plot-stream monitor) "~cexit~c"  #\linefeed #\linefeed)
     (finish-output (plot-stream monitor))
