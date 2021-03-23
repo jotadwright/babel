@@ -394,7 +394,8 @@
   () (:documentation "Writes the data in columns to a csv file"))
 
 (defmethod write-data-to-file ((monitor csv-data-file-writer) stream)
-  (let ((number-of-rows (length (cadaar (sources monitor)))) 
+  (let ((number-of-rows (length (cadaar (sources monitor))))
+        (number-of-columns (length (cdaar (sources monitor))))
         ;; (first (rest (first (first (sources ... which will indeed
         ;; give you the data for the first series
         (columns nil))
@@ -421,9 +422,13 @@
     (format stream "~%~a This file was created by the~%~a csv-data-file-writer ~a."
 	    (comment-string monitor) (comment-string monitor) (id monitor))
     (loop 
-       with reversed-columns = (reverse columns)
-       for row from number-of-rows downto 0  ; long
-	do (format stream "~%") 
-	 (loop for column in reversed-columns ;short
-	    do (format stream "~f~a" (aref column row) (column-separator monitor))))))
+     with reversed-columns = (reverse columns)
+     for row from number-of-rows downto 0  ; long
+     do (format stream "~%") 
+     (loop for column in reversed-columns ;short
+           for i from 1
+           if (= i number-of-columns)
+           do (format stream "~f" (aref column row))
+           else
+           do (format stream "~f~a" (aref column row) (column-separator monitor))))))
 
