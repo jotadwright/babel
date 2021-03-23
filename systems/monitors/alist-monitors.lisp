@@ -439,7 +439,7 @@
       (close-pipe (slot-value monitor 'stream)))
     (setf (slot-value monitor 'stream) (pipe-to-gnuplot))
     (format (plot-stream monitor) "~cset output \"~a\"" #\linefeed file-name)
-    (format (plot-stream monitor) "~cset terminal ~a font 'Helvetica, 10' linewidth ~a rounded ~a"
+    (format (plot-stream monitor) "~cset terminal ~a font 'Helvetica' linewidth ~a rounded ~a"
 	    #\linefeed (graphic-type monitor) (line-width monitor) 
 	    (if (colored monitor) "color" "mono"))
     (plot-data monitor)

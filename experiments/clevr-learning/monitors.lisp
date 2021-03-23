@@ -221,8 +221,8 @@
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
                                :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf"
-    :error-bars t)
+    :graphic-type "pdf" :error-bars t
+    :add-time-and-experiment-to-file-name nil)
 
 ;;;; avg cxn score per cxn type (alist monitor)
 (define-monitor record-cxn-score-per-type
@@ -257,8 +257,8 @@
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "avg-cxn-score-per-type" :type "pdf"
                                :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf"
-    :error-bars t)
+    :graphic-type "pdf" :error-bars t
+    :add-time-and-experiment-to-file-name nil)
 
 ;; cxn usage per type (alist monitor)
 (define-monitor record-cxn-usage-per-type
@@ -293,8 +293,8 @@
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "cxn-usage-per-type" :type "pdf"
                                    :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf"
-        :error-bars t)
+        :graphic-type "pdf" :error-bars t
+        :add-time-and-experiment-to-file-name nil)
 
 ;; nr of item-based cxns with slots (alist monitor)
 (define-monitor record-nr-of-slots
@@ -333,8 +333,8 @@
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "nr-of-item-based-cxns-with-slots" :type "pdf"
                                    :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf"
-        :error-bars t)
+        :graphic-type "pdf" :error-bars t
+        :add-time-and-experiment-to-file-name nil)
 
 ;; export type hierarchy after series
 (define-monitor export-type-hierarchy)
@@ -376,8 +376,8 @@
 (define-monitor export-learner-grammar)
 
 (defun export-grammar (cxn-inventory pathname)
-  (let ((path (make-file-name-with-time pathname)))
-    (cl-store:store cxn-inventory path)))
+  #-ccl (let ((path (make-file-name-with-time pathname)))
+          (cl-store:store cxn-inventory path)))
 
 (define-event-handler (export-learner-grammar run-series-finished)
   (export-grammar (grammar (learner experiment))

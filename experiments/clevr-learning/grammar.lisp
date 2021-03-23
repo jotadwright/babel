@@ -172,34 +172,6 @@
                collect other-cxn)))
     (append holophrase-competitors item-based-competitors)))
 
-#|
-(defun combined-meaning-competitors (agent applied-cxns)
-  ;; the current set of applied cxns might have some less
-  ;; general alternatives, e.g. an item-based with fewer
-  ;; slots or a holophrase cxn. These can be punished as
-  ;; well. We find them through comprehend-all with a
-  ;; simple queue as cxn supplier
-  (set-configuration (grammar agent) :cxn-supplier-mode
-                     :simple-queue :replace t)
-  (multiple-value-bind (meanings cipns)
-      (comprehend-all (utterance agent)
-                      :cxn-inventory (grammar agent)
-                      :silent t)
-    (declare (ignorable meanings))
-    (set-configuration (grammar agent) :cxn-supplier-mode
-                       :ordered-by-label-and-score :replace t)
-    (when (length> cipns 1)
-      (remove-duplicates
-       (loop for cipn in cipns
-             for cipn-applied-cxns = (applied-constructions cipn)
-             when (find 'fcg::succeeded (fcg:statuses cipn))
-             unless (permutation-of? applied-cxns cipn-applied-cxns
-                                     :key #'name :test #'eql)
-             append (loop for cxn in cipn-applied-cxns
-                          unless (eql (get-cxn-type cxn) 'lexical)
-                          collect (get-original-cxn cxn)))))))
-|#
-
 (defun get-meaning-competitors (agent applied-cxns)
   "Get cxns with the same form as cxn"
   (loop for cxn in applied-cxns

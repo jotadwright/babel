@@ -53,36 +53,6 @@
     (when target-binding
       (value target-binding))))
 
-#|
-(defun solution->chunk (agent solution &key (initial-score 0.5))
-  "Store the irl-program AND the bind statements in a chunk"
-  (make-instance 'chunk
-                 :irl-program (append (bind-statements solution)
-                                      (irl-program (chunk solution)))
-                 :target-var (let* ((program (irl-program (chunk solution)))
-                                    (target-var (get-target-var program)))
-                               (cons target-var
-                                     (get-type-of-var target-var program
-                                                      :primitive-inventory
-                                                      (available-primitives agent))))
-                 :open-vars (let* ((program (irl-program (chunk solution)))
-                                   (all-vars
-                                    (find-all-anywhere-if
-                                     #'variable-p
-                                     (append (bind-statements solution)
-                                             program)))
-                                   (open-vars
-                                    (set-difference
-                                     (get-open-vars program)
-                                     all-vars)))
-                              (mapcar #'(lambda (var)
-                                          (cons var (get-type-of-var var program
-                                                                     :primitive-inventory
-                                                                     (available-primitives agent))))
-                                      open-vars))
-                 :score initial-score))
-|#
-
 (defun add-composer-chunk (agent irl-program)
   ;; add a chunk to the ontology's composer-chunks
   ;; unless when an identical chunk is already there
