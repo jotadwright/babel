@@ -46,24 +46,29 @@
 (defun find-equivalent-item-based-cxn (number-of-slots meaning-predicates form-predicates grammar)
   "Look through the grammar for an item-based cxn that is equivalent
    based on the number of slots, the meaning and the form"
-  (find-if #'(lambda (cxn)
-               (and ;; cxn has to be item-based
-                    (eql (get-cxn-type cxn) 'item-based)
-                    ;; with the same number of slots
-                    (= (item-based-number-of-slots cxn)
-                       number-of-slots)
-                    ;; an equivalent meaning
-                    (equivalent-irl-programs? (extract-meaning-predicates cxn)
-                                              meaning-predicates)
-                    ;; and the same form
-                    (string=
-                     (list-of-strings->string
-                      (gl::make-cxn-placeholder-name form-predicates grammar))
-                     (list-of-strings->string
-                      (gl::make-cxn-placeholder-name
-                       (extract-form-predicates cxn)
-                       grammar)))))
-           (constructions-list grammar)))
+  (let ((equivalent
+         (find-all-if #'(lambda (cxn)
+                          (and ;; cxn has to be item-based
+                               (eql (get-cxn-type cxn) 'item-based)
+                               ;; with the same number of slots
+                               (= (item-based-number-of-slots cxn)
+                                  number-of-slots)
+                               ;; an equivalent meaning
+                               (equivalent-irl-programs?
+                                (extract-meaning-predicates cxn)
+                                meaning-predicates)
+                               ;; and the same form
+                               (string=
+                                (list-of-strings->string
+                                 (gl::make-cxn-placeholder-name
+                                  form-predicates grammar))
+                                (list-of-strings->string
+                                 (gl::make-cxn-placeholder-name
+                                  (extract-form-predicates cxn)
+                                  grammar)))))
+                      (constructions-list grammar))))
+    (when equivalent
+      (random-elt equivalent))))
 
 
 ;;;; UTILS FOR RUNNING GAMES

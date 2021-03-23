@@ -47,8 +47,8 @@
 ;; Autotelic principle
 (define-configuration-default-value :current-challenge-level 1)
 (define-configuration-default-value :max-challenge-level 3)
-(define-configuration-default-value :evaluation-window-size 100)
-(define-configuration-default-value :confidence-threshold 0.95)
+(define-configuration-default-value :evaluation-window-size 1000)
+(define-configuration-default-value :confidence-threshold 1.00)
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)

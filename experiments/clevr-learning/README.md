@@ -18,7 +18,6 @@ An tutor-learner experiment for learning the CLEVR grammar.
 
  - th links now start at 0.1 and only get rewarded
 	-> is it useful to punish th links?
-        -> when cxns get punished and eventually removed, the associated nodes in the th are removed as well
 
 ## To Do 
 
@@ -29,7 +28,9 @@ An tutor-learner experiment for learning the CLEVR grammar.
    why not try to compose a program using subsets of the applied cxns instead of making a new holophrase directly?
 	-> There is no way of knowing which of the cxns are actually good? Maybe via the score?
 
- - Try out the learner's grammar in formulation. What would be necessary to make the learner also speak during the game? Could the learner actively choose a particular question in a particular scene to fill a knowledge gap?
+ - Try out the learner's grammar in formulation. What would be necessary to make the learner also speak during the game?
+	-> a small change to the item-based cxns
+ - Could the learner actively choose a particular question in a particular scene to fill a knowledge gap?
 
 ## Assumptions
 

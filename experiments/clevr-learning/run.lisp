@@ -5,7 +5,7 @@
 ;; use this file to run experiments (possibly on the cluster)
 
 (run-experiments '(
-                   (5-series
+                   (5-series-v2
                     ((:question-sample-method . :first)
                      (:questions-per-challenge . 5000)
                      (:scenes-per-question . 20)
@@ -13,7 +13,6 @@
                      (:composer-strategy . :store-past-scenes)
                      (:hide-type-hierarchy . t)
                      (:confidence-threshold . 1.1)
-                     (:export-interval . 5000)
                      (:cxn-decf-score . 0.4)
                      (:tutor-mode . :smart)
                      (:tutor-counts-failure-as . 3)))
@@ -38,8 +37,8 @@
                                  ;; nr of item based cxns with nr of slots
                                  "plot-nr-of-slots"
                                  ;; export data
-                                 ;"export-learner-grammar-every-nth-interaction"
-                                 ;"export-type-hierarchy-every-nth-interaction"
+                                 "export-learner-grammar"
+                                 "export-type-hierarchy"
                                  ;; print dots
                                  "print-a-dot-for-each-interaction"
                                  ))

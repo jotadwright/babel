@@ -37,10 +37,11 @@
                 :class 'lisp-data-file-writer
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
-                :file-name (babel-pathname :name "communicative-success" :type "csv"
+                :file-name (babel-pathname :name "communicative-success" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
@@ -55,10 +56,11 @@
                 :class 'lisp-data-file-writer
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
-                :file-name (babel-pathname :name "lexicon-size" :type "csv"
+                :file-name (babel-pathname :name "lexicon-size" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-lexicon-size interaction-finished)
   (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
@@ -91,10 +93,11 @@
                 :class 'lisp-data-file-writer
                 :documentation "Exports nr of meanings per form for lexical cxns"
                 :data-sources '(record-lexical-meanings-per-form)
-                :file-name (babel-pathname :name "lexical-meanings-per-form" :type "csv"
+                :file-name (babel-pathname :name "lexical-meanings-per-form" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (defun compute-nr-of-lexical-meanings-per-form (agent)
   (loop with form-count = nil
@@ -125,10 +128,11 @@
                 :class 'lisp-data-file-writer
                 :documentation "Exports nr of forms per meaning for lexical cxns"
                 :data-sources '(record-lexical-forms-per-meaning)
-                :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "csv"
+                :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (defun compute-nr-of-lexical-forms-per-meaning (agent)
   (loop with meaning-count = nil
@@ -157,10 +161,11 @@
                 :class 'lisp-data-file-writer
                 :documentation "Exports how often the lexicon changes"
                 :data-sources '(record-lexicon-change)
-                :file-name (babel-pathname :name "lexicon-change" :type "csv"
+                :file-name (babel-pathname :name "lexicon-change" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-lexicon-change lexicon-changed)
   (record-value monitor 1))
@@ -175,10 +180,12 @@
                 :class 'lisp-data-file-writer
                 :documentation "exports avg cxn score"
                 :data-sources '((average record-avg-cxn-score))
-                :file-name (babel-pathname :name "avg-cxn-score" :type "csv"
+                :file-name (babel-pathname :name "avg-cxn-score" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#")
+                :comment-string "%"
+                :column-separator ",")
+                
 
 (define-event-handler (record-avg-cxn-score interaction-finished)
   (record-value monitor (average (mapcar #'cxn-score (get-cxns-of-type (learner experiment) 'all)))))
@@ -209,7 +216,7 @@
 (define-monitor plot-lexicon-size-per-type
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-lexicon-size-per-type
-    :draw-y-grid t
+    :draw-y-grid t :y-min 0
     :y-label "Number of constructions"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
@@ -321,7 +328,7 @@
 (define-monitor plot-nr-of-slots
         :class 'alist-gnuplot-graphic-generator
         :recorder 'record-nr-of-slots
-        :draw-y-grid t
+        :draw-y-grid t :y-min 0
         :y-label "Number of constructions"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "nr-of-item-based-cxns-with-slots" :type "pdf"
@@ -336,7 +343,7 @@
   (let ((th (get-type-hierarchy (grammar agent)))
         (filename (pathname-name
                    (parse-namestring
-                    (make-file-name-with-time "learned-type-hierarchy-~a")))))
+                    (make-file-name-with-time "type-hierarchy")))))
     (type-hierarchy->image th :render-program "circo" :weights? t
                            :path (babel-pathname :directory '("experiments" "clevr-learning" "graphs"))
                            :file-name filename :format "pdf")))
