@@ -5,7 +5,7 @@
 ;; use this file to run experiments (possibly on the cluster)
 
 (run-experiments '(
-                   (5-series-v2
+                   (cxn-decf-03
                     ((:question-sample-method . :first)
                      (:questions-per-challenge . 5000)
                      (:scenes-per-question . 20)
@@ -13,12 +13,34 @@
                      (:composer-strategy . :store-past-scenes)
                      (:hide-type-hierarchy . t)
                      (:confidence-threshold . 1.1)
-                     (:cxn-decf-score . 0.4)
+                     (:cxn-decf-score . 0.3)
+                     (:tutor-mode . :smart)
+                     (:tutor-counts-failure-as . 3)))
+                   (cxn-decf-02
+                    ((:question-sample-method . :first)
+                     (:questions-per-challenge . 5000)
+                     (:scenes-per-question . 20)
+                     (:alignment-strategy . :minimal-holophrases+lateral-inhibition)
+                     (:composer-strategy . :store-past-scenes)
+                     (:hide-type-hierarchy . t)
+                     (:confidence-threshold . 1.1)
+                     (:cxn-decf-score . 0.2)
+                     (:tutor-mode . :smart)
+                     (:tutor-counts-failure-as . 3)))
+                   (cxn-decf-01
+                    ((:question-sample-method . :first)
+                     (:questions-per-challenge . 5000)
+                     (:scenes-per-question . 20)
+                     (:alignment-strategy . :minimal-holophrases+lateral-inhibition)
+                     (:composer-strategy . :store-past-scenes)
+                     (:hide-type-hierarchy . t)
+                     (:confidence-threshold . 1.1)
+                     (:cxn-decf-score . 0.1)
                      (:tutor-mode . :smart)
                      (:tutor-counts-failure-as . 3)))
                    )
                  :number-of-interactions 10000
-                 :number-of-series 5
+                 :number-of-series 2
                  :monitors (list ;; success
                                  "export-communicative-success"
                                  ;; overall lexicon size

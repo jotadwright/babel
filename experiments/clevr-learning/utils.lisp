@@ -70,6 +70,25 @@
     (when equivalent
       (random-elt equivalent))))
 
+(defun find-equivalent-lexical-cxn (meaning-predicates form-predicates grammar)
+  "Look through the grammar for a lexical cxn that is equivalent
+   based on the meaning and the form"
+  (let ((equivalent
+         (find-all-if #'(lambda (cxn)
+                          (and ;; cxn has to be lexical
+                               (eql (get-cxn-type cxn) 'lexical)
+                               ;; with an equivalent meaning
+                               (equivalent-irl-programs?
+                                (extract-meaning-predicates cxn)
+                                meaning-predicates)
+                               ;; and the same form
+                               (string=
+                                (third (first form-predicates))
+                                (third (first (extract-form-predicates cxn))))))
+                      (constructions-list grammar))))
+    (when equivalent
+      (random-elt equivalent))))
+
 
 ;;;; UTILS FOR RUNNING GAMES
 ;;;; -----------------------
@@ -172,28 +191,4 @@
     :x-label (if xlabel xlabel "Number of Games")
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label))
-  (format t "~%Graphs have been created"))
-
-
-;;;; UTILS FOR ALIST RECORDING
-;;;; -------------------------
-
-(defun create-num-cxns-per-type-graph (&key 
-                                       (configurations nil)
-                                       (nr-of-interactions 2000))
-  (format t "~%Running ~a interactions in order to create the graph. Please be patient." nr-of-interactions)
-  (activate-monitor plot-num-cxns-per-type)
-  (run-batch 'clevr-learning-experiment nr-of-interactions 1
-             :configuration (make-configuration :entries configurations))
-  (deactivate-monitor plot-num-cxns-per-type)
-  (format t "~%Graphs have been created"))
-
-(defun create-cxn-scores-per-type-graph (&key 
-                                         (configurations nil)
-                                         (nr-of-interactions 2000))
-  (format t "~%Running ~a interactions in order to create the graph. Please be patient." nr-of-interactions)
-  (activate-monitor plot-cxn-score-per-type)
-  (run-batch 'clevr-learning-experiment nr-of-interactions 1
-             :configuration (make-configuration :entries configurations))
-  (deactivate-monitor plot-cxn-score-per-type)
   (format t "~%Graphs have been created"))
