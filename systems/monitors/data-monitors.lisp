@@ -336,14 +336,15 @@
 ;; ----------------------------------------------------------------------------
 
 (defclass text-data-file-writer (data-file-writer)
-  ((colum-separator :initarg :column-separator :accessor column-separator
+  ((column-separator :initarg :column-separator :accessor column-separator
 		    :initform " " :documentation "a string used to separate columns")
    (comment-string :initarg :comment-string :accessor comment-string
 		   :initform "#" :documentation "how to start a comment line"))
   (:documentation "Writes the data in columns to a text file"))
 
 (defmethod initialize-instance :around ((monitor text-data-file-writer)
-					&key column-separator comment-string &allow-other-keys)
+					&key column-separator comment-string
+                                        &allow-other-keys)
   (setf (error-occured-during-initialization monitor) t)
   (when column-separator (check-type column-separator string))
   (when comment-string (check-type comment-string string))
@@ -390,18 +391,7 @@
 ;; ----------------------------------------------------------------------------
 
 (defclass csv-data-file-writer (text-data-file-writer)
-  ((colum-separator :initarg :column-separator :accessor column-separator
-		    :initform ";"
-                    :documentation "a string used to separate columns"))
-  (:documentation "Writes the data in columns to a csv file"))
-
-(defmethod initialize-instance :around ((monitor csv-data-file-writer)
-					&key column-separator comment-string &allow-other-keys)
-  (setf (error-occured-during-initialization monitor) t)
-  (when column-separator (check-type column-separator string))
-  (when comment-string (check-type comment-string string))
-  (setf (error-occured-during-initialization monitor) nil)
-  (call-next-method))
+  () (:documentation "Writes the data in columns to a csv file"))
 
 (defmethod write-data-to-file ((monitor csv-data-file-writer) stream)
   (let ((number-of-rows (length (cadaar (sources monitor)))) 
