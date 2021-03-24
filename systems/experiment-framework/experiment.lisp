@@ -242,7 +242,7 @@ shared-configration, should there be a conflict. output-dir can be set
 to the directory of (or subdir in) your experiment. If it is set then
 all data-outputting monitors will be overridden to output there. For
 each named configuration a subdir will be made there with the given
-name."
+name. The configuration can be exported as a lisp file to that subdir."
   (loop for configuration in named-configurations
         unless (and (listp configuration) 
                     (symbolp (first configuration)) 
@@ -258,21 +258,21 @@ name."
        
         ;; adapt file-writing monitors so they output in the correct output-dir
        (monitors::deactivate-all-monitors)
-        (loop for monitor-string in monitors
-              for monitor = (monitors::get-monitor (read-from-string monitor-string))
-              do (monitors::activate-monitor-method (read-from-string monitor-string))
-              when (slot-exists-p monitor 'file-name)
-              do (setf (slot-value monitor 'file-name)
-                       (ensure-directories-exist
-                        (merge-pathnames (make-pathname :directory 
-                                                        `(:relative ,(string-downcase (symbol-name (first configuration))))
-                                                        :name (pathname-name (file-name monitor)) 
-                                                        :type (pathname-type (file-name monitor)))
-                                         output-dir))))
+       (loop for monitor-string in monitors
+             for monitor = (monitors::get-monitor (read-from-string monitor-string))
+             do (monitors::activate-monitor-method (read-from-string monitor-string))
+             when (slot-exists-p monitor 'file-name)
+             do (setf (slot-value monitor 'file-name)
+                      (ensure-directories-exist
+                       (merge-pathnames (make-pathname :directory 
+                                                       `(:relative ,(string-downcase (symbol-name (first configuration))))
+                                                       :name (pathname-name (file-name monitor)) 
+                                                       :type (pathname-type (file-name monitor)))
+                                        output-dir))))
        
-        ;; run the actual batch for the current configuration
-         (run-batch experiment-class number-of-interactions number-of-series
-                    :configuration (make-configuration :entries (second configuration)))))
+       ;; run the actual batch for the current configuration
+       (run-batch experiment-class number-of-interactions number-of-series
+                  :configuration (make-configuration :entries (second configuration)))))
 
 
 ;; ----------------------------------------------------------------------------
