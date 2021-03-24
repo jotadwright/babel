@@ -168,7 +168,7 @@
     (loop for cxn-type in '(holophrase lexical item-based)
           for all-cxns-of-type = (find-all cxn-type all-constructions
                                            :key #'get-cxn-type)
-          for cxn-scores = (mapcar #'(lambda (cxn) (attr-val cxn :score)) all-cxns-of-type)
+          for cxn-scores = (mapcar #'cxn-score all-cxns-of-type)
           when all-cxns-of-type
           do (set-value-for-symbol monitor cxn-type (average cxn-scores)))))
 

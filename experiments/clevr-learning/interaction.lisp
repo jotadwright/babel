@@ -34,14 +34,14 @@
   ;; Needs to be fixed in the future...
   (let* ((question (rest (assoc :question sample)))
          (scenes-and-answers (rest (assoc :answers sample))))
-    ;(if (search "How big" question)
-    ;  (sample-question tutor (get-configuration tutor :tutor-mode))
+    (if (search "How big" question)
+      (sample-question tutor (get-configuration tutor :tutor-mode))
     (let* ((random-scene-and-answer (random-elt scenes-and-answers))
            (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
                                              *clevr-ontology*))
            (clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
                                             (world (experiment tutor)))))
-      (values question clevr-scene answer-entity))))
+      (values question clevr-scene answer-entity)))))
 
 (defgeneric sample-question (tutor mode)
   (:documentation "The tutor samples a question from the dataset according to mode"))

@@ -43,72 +43,6 @@
    (render (extract-form-predicates cxn)
            (get-configuration (cxn-inventory cxn) :render-mode))))
 
-(defun find-equivalent-item-based-cxn (number-of-slots meaning-predicates form-predicates grammar)
-  "Look through the grammar for an item-based cxn that is equivalent
-   based on the number of slots, the meaning and the form"
-  (let ((equivalent
-         (find-all-if #'(lambda (cxn)
-                          (and ;; cxn has to be item-based
-                               (eql (get-cxn-type cxn) 'item-based)
-                               ;; with the same number of slots
-                               (= (item-based-number-of-slots cxn)
-                                  number-of-slots)
-                               ;; an equivalent meaning
-                               (equivalent-irl-programs?
-                                (extract-meaning-predicates cxn)
-                                meaning-predicates)
-                               ;; and the same form
-                               (string=
-                                (list-of-strings->string
-                                 (gl::make-cxn-placeholder-name
-                                  form-predicates grammar))
-                                (list-of-strings->string
-                                 (gl::make-cxn-placeholder-name
-                                  (extract-form-predicates cxn)
-                                  grammar)))))
-                      (constructions-list grammar))))
-    (when equivalent
-      (random-elt equivalent))))
-
-(defun find-equivalent-lexical-cxn (meaning-predicates form-predicates grammar)
-  "Look through the grammar for a lexical cxn that is equivalent
-   based on the meaning and the form"
-  (let ((equivalent
-         (find-all-if #'(lambda (cxn)
-                          (and ;; cxn has to be lexical
-                               (eql (get-cxn-type cxn) 'lexical)
-                               ;; with an equivalent meaning
-                               (equivalent-irl-programs?
-                                (extract-meaning-predicates cxn)
-                                meaning-predicates)
-                               ;; and the same form
-                               (string=
-                                (third (first form-predicates))
-                                (third (first (extract-form-predicates cxn))))))
-                      (constructions-list grammar))))
-    (when equivalent
-      (random-elt equivalent))))
-
-(defun equal-item-based-cxns-p (cxn-a cxn-b)
-  (and
-   ;; with the same number of slots
-   (= (item-based-number-of-slots cxn-a)
-      (item-based-number-of-slots cxn-b))
-   ;; an equivalent meaning
-   (equivalent-irl-programs?
-    (extract-meaning-predicates cxn-a)
-    (extract-meaning-predicates cxn-b))
-   ;; and the same form
-   (string=
-    (list-of-strings->string
-     (gl::make-cxn-placeholder-name
-      (extract-form-predicates cxn-a)
-      (cxn-inventory cxn-a)))
-    (list-of-strings->string
-     (gl::make-cxn-placeholder-name
-      (extract-form-predicates cxn-b)
-      (cxn-inventory cxn-a))))))
-
 (defun get-cxns-of-type (agent type)
   (if (eql type 'all)
     (constructions-list (grammar agent))
@@ -117,6 +51,13 @@
 
 (defun cxn-score (cxn)
   (attr-val cxn :score))
+
+(defun find-cxn-by-type-form-and-meaning (type form meaning cxn-inventory)
+  "returns a cxn with the same meaning and form if it's in the cxn-inventory"
+  (loop for cxn in (find-all type (constructions-list cxn-inventory) :key #'get-cxn-type)
+        when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
+                  (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
+        return cxn))
 
 
 ;;;; UTILS FOR RUNNING GAMES
@@ -189,3 +130,22 @@
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label))
   (format t "~%Graphs have been created"))
+
+
+
+(in-package :monitors)
+
+(export '(store-monitor))
+
+;;;; store-monitor
+(defclass store-monitor (monitor)
+  ((file-name :documentation "The file name of the file to write"
+              :initarg :file-name
+              :reader file-name))
+  (:documentation "Monitor that stores data using cl-store"))
+
+(defmethod initialize-instance :around ((monitor store-monitor)
+					&key &allow-other-keys)
+  (setf (error-occured-during-initialization monitor) t)
+  (setf (error-occured-during-initialization monitor) nil)
+  (call-next-method))
