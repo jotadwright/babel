@@ -2134,7 +2134,11 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                                   (or (not label)
                                       (eq (attr-val
                                            (car-applied-cxn (cipn-car node)) :label)
-                                          label))
+                                          label)
+                                      (and (listp (attr-val (car-applied-cxn (cipn-car node)) :label))
+                                               (listp label)
+                                               (eq (first (attr-val (car-applied-cxn (cipn-car node)) :label))
+                                                   (first label))))
                                   (not (member (car (statuses node))
                                                '(succeeded goal-test-failed))))
                          (if (= 1 (length (children node)))
