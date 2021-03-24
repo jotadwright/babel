@@ -89,6 +89,35 @@
     (when equivalent
       (random-elt equivalent))))
 
+(defun equal-item-based-cxns-p (cxn-a cxn-b)
+  (and
+   ;; with the same number of slots
+   (= (item-based-number-of-slots cxn-a)
+      (item-based-number-of-slots cxn-b))
+   ;; an equivalent meaning
+   (equivalent-irl-programs?
+    (extract-meaning-predicates cxn-a)
+    (extract-meaning-predicates cxn-b))
+   ;; and the same form
+   (string=
+    (list-of-strings->string
+     (gl::make-cxn-placeholder-name
+      (extract-form-predicates cxn-a)
+      (cxn-inventory cxn-a)))
+    (list-of-strings->string
+     (gl::make-cxn-placeholder-name
+      (extract-form-predicates cxn-b)
+      (cxn-inventory cxn-a))))))
+
+(defun get-cxns-of-type (agent type)
+  (if (eql type 'all)
+    (constructions-list (grammar agent))
+    (find-all type (constructions-list (grammar agent))
+              :key #'get-cxn-type)))
+
+(defun cxn-score (cxn)
+  (attr-val cxn :score))
+
 
 ;;;; UTILS FOR RUNNING GAMES
 ;;;; -----------------------
@@ -97,47 +126,14 @@
                          &key
                          (number-of-interactions 5)
                          (number-of-series 1)
-                         (monitors
-                           (list ;; success
-                                 "export-communicative-success"
-                                 ;; lexicon size
-                                 "export-lexicon-size"
-                                 "export-nr-of-holophrase-cxns"
-                                 "export-nr-of-item-based-cxns"
-                                 "export-nr-of-lexical-cxns"
-                                 ;; cxn scores
-                                 "export-avg-cxn-score"
-                                 "export-avg-holophrase-cxn-score"
-                                 "export-avg-item-based-cxn-score"
-                                 "export-avg-lexical-cxn-score"
-                                 ;; type of applied cxns
-                                 "export-holophrase-cxn-usage"
-                                 "export-item-based-cxn-usage"
-                                 ;; others
-                                 "export-lexicon-change"
-                                 "export-confidence-level"
-                                 "export-type-hierarchy"
-                                 "export-learner-grammar"
-                                 "print-a-dot-for-each-interaction"
-                                 ))
-                         (determine-interacting-agents-mode :tutor-learner)
-                         (questions-per-challenge 500)
-                         (alignment-strategy :minimal-holophrases+lateral-inhibition)
-                         (composer-strategy :store-past-scenes)
-                         (hide-type-hierarchy t)
-                         (question-sample-method :first))
+                         (monitors (get-all-lisp-monitors)))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
     :experiment-class 'clevr-learning-experiment 
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :named-configurations strategies
-    :shared-configuration `((:determine-interacting-agents-mode . ,determine-interacting-agents-mode)
-                            (:alignment-strategy . ,alignment-strategy)
-                            (:composer-strategy . ,composer-strategy)
-                            (:questions-per-challenge . ,questions-per-challenge)
-                            (:hide-type-hierarchy . ,hide-type-hierarchy)
-                            (:question-sample-method . ,question-sample-method))
+    :shared-configuration nil
     :monitors monitors
     :output-dir (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
@@ -173,7 +169,7 @@
 
 (defun create-graph-comparing-strategies (&key experiment-names measure-name
                                                (y-min 0) (y-max 1) xlabel y1-label y2-label
-                                               captions)
+                                               captions title)
   ;; This function allows you to compare a given measure accross different
   ;; experiments, e.g. comparing lexicon size
   (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
@@ -183,6 +179,7 @@
           collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
     :average-windows 500
     :captions (if captions captions experiment-names)
+    :title (if title title "")
     :plot-directory '("experiments" "clevr-learning" "graphs")
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)

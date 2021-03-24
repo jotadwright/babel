@@ -54,7 +54,7 @@
                                                  :no-meaning-in-root)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
-                                        (:update-th-links . nil))
+                                        (:update-th-links . t))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))
@@ -77,17 +77,17 @@
     (if remove-on-lower-bound
       (progn (notify lexicon-changed)
         (with-disabled-monitor-notifications
-          (delete-cxn-and-th-node cxn (grammar agent))))
+          (delete-cxn-and-th-node cxn agent)))
       (setf (attr-val cxn :score) lower-bound)))
   (grammar agent))
 
-(defun delete-cxn-and-th-node (cxn cxn-inventory)
+(defun delete-cxn-and-th-node (cxn agent)
   (let ((lex-class
          (loop for unit in (contributing-part cxn)
                for lex-class = (gl::lex-class-item-based unit)
                when lex-class return lex-class))
-        (type-hierarchy (get-type-hierarchy cxn-inventory)))
-    (delete-cxn cxn cxn-inventory)
+        (type-hierarchy (get-type-hierarchy (grammar agent))))
+    (delete-cxn cxn (grammar agent))
     (notify lexicon-changed)
     (when lex-class
       (delete-category lex-class type-hierarchy))))

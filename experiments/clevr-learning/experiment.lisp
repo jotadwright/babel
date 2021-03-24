@@ -20,9 +20,9 @@
 (define-configuration-default-value :challenge-3-files
                                     (make-pathname :directory '(:relative "stage-3")
                                                    :name :wild :type "lisp"))
-(define-configuration-default-value :questions-per-challenge 1000)
-(define-configuration-default-value :scenes-per-question 100)
-(define-configuration-default-value :question-sample-mode :random) ; random or first
+(define-configuration-default-value :questions-per-challenge 5000)
+(define-configuration-default-value :scenes-per-question 20)
+(define-configuration-default-value :question-sample-mode :first) ; random or first
 (define-configuration-default-value :clevr-world-data-sets '("val"))
 
 ;; Strategies and scores
@@ -38,7 +38,7 @@
 (define-configuration-default-value :cxn-forgetting-rate 0.05)
 (define-configuration-default-value :cxn-forgetting-threshold 1000)
 
-(define-configuration-default-value :alignment-strategy :lateral-inhibition)
+(define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :tutor-mode :smart) ; :random or :smart
@@ -52,7 +52,7 @@
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)
-(define-configuration-default-value :hide-type-hierarchy nil)
+(define-configuration-default-value :hide-type-hierarchy t)
 
 ;; --------------
 ;; + Experiment +
