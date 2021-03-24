@@ -13,7 +13,7 @@
 
 (in-package :clevr-grammar)
 (use-package :web-interface)
-(activate-monitor trace-fcg)
+(activate-monitor  trace-fcg)
 
 (progn
 (defparameter *baseline-configurations*
@@ -65,7 +65,9 @@
   (second (multiple-value-list
            (progn
              (set-configurations *fcg-constructions* *neural-configurations* :replace t)
-             (formulate (fcg::instantiate-variables *meaning*))))))
+             (formulate (fcg::instantiate-variables *meaning*) )))))
+
+
 
 ;*neural-solution-production* ;; solution = 37 (optimaal)
 
@@ -102,12 +104,12 @@
   (add-element '((h2) "1. Introduction"))
   (add-element '((p) "This web demonstration presents full examples of the use of neural heuristics for optimizing the search processes involved in constructional language processing. In particular, it includes contrastive examples of the same utterance processed using the baseline depth-first search strategy with duplicate detection and hashing, and using the neural strategy, both in the comprehension and production direction."))
 
-  (add-element '((p) "We used the CLEVR dataset on visual question answering ("((a :href "https://cs.stanford.edu/people/jcjohns/clevr/") "Johnson et al. 2017")") and CLEVR construction grammar ("((a :href "https://ehai.ai.vub.ac.be/demos/clevr-grammar/") "Nevens et al. 2019")") to benchmark the effects of the neural heurstics that we introduced in the paper. The CLEVR grammar consists of 170 constructions, of which 55 are morphological and lexical constructions. Apart from these, the grammar also contains 115 grammatical constructions that capture phenomena including referential expressions, spatial relations, coordination and subordination structures, and a wide range of interrogative structures. On average, 25 constructions should be applied in order to successfully comprehend or produce an utterance from the dataset. This means that the average solution is found at depth 25 in the search tree."))
+  (add-element '((p) "We used the CLEVR dataset on visual question answering ("((a :href "https://cs.stanford.edu/people/jcjohns/clevr/") "Johnson et al. 2017")") and the CLEVR construction grammar ("((a :href "https://ehai.ai.vub.ac.be/demos/clevr-grammar/") "Nevens et al. 2019")") to benchmark the effects of the neural heurstics that we introduced in the paper. The CLEVR grammar consists of 170 constructions, of which 55 are morphological and lexical constructions. Apart from these, the grammar also contains 115 grammatical constructions that capture phenomena including referential expressions, spatial relations, coordination and subordination structures, and a wide range of interrogative structures. On average, 25 constructions should be applied in order to successfully comprehend or produce an utterance from the dataset. This means that the average solution is found at depth 25 in the search tree."))
   (add-element '((p) "The utterance from the dataset that we will explore in this web demonstration is the following question:"))
 
   (add-element `((p) ((b) ((i) ,*utterance*))))
 
-  (add-element '((p) "It has been annotated with the following procedural semantic meaning representation:"))
+  (add-element '((p) "It has been annotated with the following procedural semantic representation. For an explanation about this meaning representation, see "((a :href "https://ehai.ai.vub.ac.be/assets/pdfs/ccxg-for-vqa.pdf") "here") "."))
 
   (add-element (predicate-network->svg *meaning*)) ;;INSTANTIATE VARIABLES????????
   
@@ -118,7 +120,7 @@
 (defun comprehension ()
   (add-element '((a :name "2")))
   (add-element '((h2) "2. Comprehension"))
-  (add-element '((p) "In this section, we demonstrate the impact of the neural heuristics on the comprehension process. The FCG web interface contains the following parts: the initial transient structure, the construction application process, a list of applied constructions, the resulting transient structure and finally the resulting meaning representation. Note that many of the boxes will reveil more information when you click on them. More information on how to use this demo can be found "((a :href "https://www.fcg-net.org/projects/web-demonstration-guide/" :target "_blank") "in the web demonstration guide.")))
+  (add-element '((p) "In this section, we demonstrate the impact of the neural heuristics on the comprehension process. The FCG web interface contains the following parts: the initial transient structure, the construction application process, the resulting transient structure and finally the resulting meaning representation. Note that many of the boxes will reveil more information when you click on them. More information on how to use this demo can be found "((a :href "https://www.fcg-net.org/projects/web-demonstration-guide/" :target "_blank") "in the web demonstration guide.")))
 
   (add-element '((p) "The baseline search strategy in FCG is depth-first search with backtracking and duplicate detection. Backtracking occurs when a node has been fully expanded and does not satisfy all goal tests that have been specified for the current direction of processing (i.e. comprehension here). In the case of the CLEVR grammar the comprehension goal tests are: "))
   (add-element '((ol)
@@ -126,26 +128,27 @@
                  ((li) "Connected semantic network")
                  ((li) "Connected syntactic structure")
                  ((li) "No strings in root unit")))
-  (add-element '((p) "As soon as all four goal tests succeed, the search process will halt and the final transient structure is returned as the solution. The resulting meaning representation is then extracted from this transient structure."))
- 
+  (add-element '((p) "As soon as all four goal tests succeed, the search process will halt and the final transient structure is returned as the solution. The resulting meaning representation is then extracted from this transient structure and displayed."))
+
+  (add-element '((hr)))
   (add-element '((a :name "21")))
   (add-element '((h3) ((b) "2.1 Depth-first strategy")))
     
   (add-element '((p) "We will first demonstrate the comprehension process using the baseline depth-first search algorithm with backtracking and duplicate detection. The construction application process is visualised here below in the form of a search tree with nodes (green boxes) that get expanded from left to right on the screen. After the initial application of a series of morphological and lexical constructions, the first split in the search tree occurs after node 15. What happens here is that the same construction can apply to different parts of the transient structure. The algorithm then chooses to expand the first of the three children and to explore that branch in a depth-first manner."))
 
-  (add-element '((p) "Scrolling further right, you will see that the search tree becomes more wide. These are the areas where backtracking took place. This means that all goal tests failed on a certain leaf node, so that it could not be returned as a solution. In that case, potential sister nodes are explored of that node, before we move higher up to aunts, great aunts, etc. You can follow the exact order in which the search tree was explored by inspecting the numbers that precede the label of every node. The first number is the node's id, reflecting the relative moment at which it was created, whereas the second number is the node's score, which is in the case of the depth-first search algorithm equal to the depth of the node in the tree. You can click on the '+' sign in the tree to uncollapse branches that contain duplicate nodes."))
+  (add-element '((p) "Scrolling further right, you will see that the search tree becomes more wide. These are the areas where backtracking took place. This means that all goal tests failed on a certain leaf node, so that it could not be returned as a solution. In that case, potential sister nodes of that node are explored, before we move higher up to aunts, great aunts, etc. You can follow the exact order in which the search tree was explored by inspecting the numbers that precede the label of every node. The first number is the node's id, reflecting the relative moment at which it was created, whereas the second number is the node's score, which is in the case of the depth-first search algorithm equal to the depth of the node in the tree. You can click on the '+' sign in the tree to uncollapse branches that contain duplicate nodes. Sometimes you will see that a number of sequential nodes have been grouped together into one chunk (indicated by an asterisk). You can ungroup these by clicking on the chunk's label. "))
 
-  (add-element '((p) "The solution node is visualised in dark green with a boldface label. The first number in the label again indicates the number nodes that had to be created in order to get to the solution. You can keep this number in mind to compare it against the result that we obtain using the neural strategy."))
+  (add-element '((p) "The solution node is visualised in dark green with a boldface label. The first number in the label again indicates the number nodes that had to be created in order to get to the solution. You can keep this number in mind to compare it against the result that we obtain using the neural strategy. The second number indicates the depth of the solution, i.e. the number of construction applications in the solution branch, in this case 28."))
 
 
   (add-element '((h4) ((b) "Initial transient structure:")))
-  (add-element (make-html-fcg-light (initial-cfs (cip *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (initial-cfs (cip *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*) :feature-types (feature-types *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
-  (add-element (make-html (top-node (cip *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (top-node (cip *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
-  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *baseline-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*) :feature-types (feature-types *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Resulting meaning representation:")))
   (add-element (predicate-network->svg *meaning*))
@@ -155,16 +158,16 @@
   (add-element '((h3) ((b) "2.2 Neural strategy")))
   (add-element '((p) "This section demonstrates the impact of the neural heuristics on the search process that is involved in constructional language processing. Scrolling to the right of the screen, you will see that there was no backtracking needed to find a solution thanks to the neural heuristics that guided the construction application process. After the hashed constructions have been processed, starting from transient structure 16, the (comprehension) sequence-to-sequence model was queried every time a new transient structure needed to be expanded. Given the input utterance and the sequence of the names of constructions that already applied, our neural model returns the most likely construction to apply next, together with a probability score. The new transient structure that results from the application of the predicted construction receives a heuristic value, which is the sum of the mother's heuristic value and the probability score."))
 
-  (add-element '((p) "The only splits in the search tree occur when the same predicted construction can apply in multiple ways to a transient structure. The main reason as to why there was no backtracking needed here, lies in the early selection of the " ((tt) "the-same-t-as-compare-cxn") ". Our sequence-to-sequence model learned that applying this construction even before all nominal constructions is indeed a good strategy to find a solution in a fast way. If you scroll up again to the baseline construction application process, you will see that this construction had a number of competitor constructions, including " ((tt) "the-same-t-as-relate-cxn") " and " ((tt) "the-same-t-cxn") "."))
+  (add-element '((p) "The only splits in the search tree occur when the same predicted construction can apply in multiple ways to a transient structure. The main reason as to why there was no backtracking needed here, lies in the early selection of the " ((tt) "the-same-t-as-compare-cxn")" (in node 16). Our sequence-to-sequence model learned that applying this construction even before all nominal constructions is indeed a good strategy to find a solution in a fast way. If you scroll up again to the baseline construction application process, you will see that this construction had a number of competitor constructions, including " ((tt) "the-same-t-as-relate-cxn") " and " ((tt) "the-same-t-cxn") "."))
 
   (add-element '((h4) ((b) "Initial transient structure:")))
-  (add-element (make-html-fcg-light (initial-cfs (cip *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (initial-cfs (cip *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*) :feature-types (feature-types *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
-  (add-element (make-html (top-node (cip *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (top-node (cip *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
-  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *neural-solution-comprehension*)) :configuration (visualization-configuration *fcg-constructions*) :feature-types (feature-types *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Resulting meaning representation:")))
   (add-element (predicate-network->svg *meaning*))
@@ -173,57 +176,76 @@
 
   
   )
+
 (clear-page)
-(add-element (make-html (top-node (cip *neural-solution-comprehension*))  :configuration (visualization-configuration *fcg-constructions*) :within-linear-chain? t))
+
 ;; (comprehension)
 
 
 (defun production ()
   (add-element '((a :name "3")))
   (add-element '((h2) "3. Production"))
-  (add-element '((p) "In this section, we demonstrate the impact of the neural heuristics on the production process."))
 
-  ;(add-element '((p) "The baseline search strategy in FCG is depth-first search with backtracking. Backtracking occurs when a node has been fully expanded and does not satisfy all goal tests that have been specified for the current direction of processing (i.e. comprehension here). In the case of the CLEVR grammar the comprehension goal tests are: "))
-  ;(add-element '((ol)
-  ;               ((li) "No applicable constructions")
-  ;               ((li) "Connected semantic network")
-   ;              ((li) "Connected syntactic structure")
-  ;               ((li) "No strings in root unit")))
+  (add-element '((p) "In this section, we demonstrate the impact of the neural heuristics on the production process. The FCG web interface contains the following parts: the initial transient structure, the construction application process, the resulting transient structure and finally the utterance that has been constructed based on the form predicates that were present in the final transient structure."))
+
+  (add-element '((p) "The importance of good heuristics is even more important in the production direction. Whereas in comprehension, a search tree comprises on average more than 3.5 times the number of construction applications that was needed to find a solution, this number grows to more than 29 in production. The main reason is the fact the same meaning representation can be expressed in a multitude of ways, which makes finding the correct combination of constructions a much harder problem. In practice, this means that many solutions cannot be found in a reasonable time without the use of suitable heuristics."))
+
+
+  (add-element '((p) "The first twelve utterances that the meaning representation that we use in this demonstration can be mapped onto, are included here below. You will see that there is lexical variation (e.g. ``big'' as a synonym for ``large'') as well as syntactic variation (e.g. ``there is a X ; is it Y ?'' vs. ``is the X made of Y ?'')."))
+  (add-element `((ol)
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("there is a" "big" "yellow" "sphere" ";" "is it" "the same" "material" "as" "the" "ball" "that is" "in front of" "the" "small" "blue" "object")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("there is a" "big" "yellow" "sphere" ";" "is it" "the same" "material" "as" "the" "ball" "that is" "in front of" "the" "tiny" "blue" "object")) "?&quot;")
+                 
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("there is a" "big" "yellow" "sphere" ";" "does it have" "the same" "material" "as" "the" "ball" "that is" "in front of" "the" "small" "blue" "object")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("there is a" "large" "yellow" "sphere" ";" "is its" "material" "the same as" "the" "sphere" "that is" "in front of" "the" "tiny" "blue" "thing")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("there is a" "big" "yellow" "sphere" ";" "is it" "the same" "material" "as" "the" "ball" "in front of" "the" "small" "blue" "thing")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("there is a" "big" "yellow" "sphere" ";" "does it have" "the same" "material" "as" "the" "ball" "in front of" "the" "small" "blue" "object")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("is" "the" "large" "yellow" "sphere" "made of" "the same" "material" "as" "the" "ball" "that is" "in front of" "the" "small" "blue" "thing")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("does" "the" "large" "yellow" "sphere" "have" "the same" "material" "as" "the" "ball" "that is" "in front of" "the" "small" "blue" "object")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("is" "the" "big" "yellow" "sphere" "the same" "material" "as" "the" "ball" "that is" "in front of" "the" "small" "blue" "thing")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("does" "the" "big" "yellow" "ball" "have" "the same" "material" "as" "the" "ball" "in front of" "the" "tiny" "blue" "thing")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("is" "the" "big" "yellow" "sphere" "made of" "the same" "material" "as" "the" "sphere" "in front of" "the" "tiny" "blue" "thing")) "?&quot;")
+                 ((li) "&quot;",(format nil "~{~a~^ ~}" '("is" "the" "large" "yellow" "sphere" "the same" "material" "as" "the" "ball" "in front of" "the" "small" "blue" "object")) "?&quot;")
+                 
+                 ))
+                
+      
   
- 
+  (add-element '((hr)))
   (add-element '((a :name "31")))
   (add-element '((h3) ((b) "3.1 Depth-first strategy")))
     
-  (add-element '((p) ""))
+  (add-element '((p) "Let us first get an idea of the size of the search space using the depth-first baseline strategy with duplicate detection and backtracking. The solution is found here after a long exploration of branches that were initiated as a result of the application of the " ((tt) "has-what-t-cxn") ". Once we have backtracked over this choice point, there is more search evoked by a number of different determination constructions that can apply in a mutually exclusive manner (``there is a X'' vs. ``the X''). The solution is ultimately found at depth 28 in the search tree after 259 construction application operations have taken place."))
 
   (add-element '((h4) ((b) "Initial transient structure:")))
-  (add-element (make-html-fcg-light (initial-cfs (cip *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (initial-cfs (cip *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*) :feature-types (feature-types *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
-  (add-element (make-html (top-node (cip *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (top-node (cip *baseline-solution-production*))
+                                    :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
-  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *baseline-solution-production*)) :configuration (visualization-configuration *fcg-constructions*) :feature-types (feature-types *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Resulting utterance:")))
-  (add-element (make-html (render (car-resulting-cfs (cipn-car *baseline-solution-production*)) (get-configuration *fcg-constructions* :render-mode) :node *baseline-solution-production*)))
+  (add-element `((h3) "&quot;",(format nil "~{~a~^ ~}" (render (car-resulting-cfs (cipn-car *baseline-solution-production*)) (get-configuration *fcg-constructions* :render-mode) :node *baseline-solution-production*)) "&quot;"))
   
   (add-element '((hr)))
   (add-element '((a :name "32")))
   (add-element '((h3) ((b) "3.2 Neural strategy")))
-  (add-element '((p) "... "))
+  (add-element '((p) "When we now compare the baseline search strategy with the neural heuristic search, we see that there was no backtracking needed in the example production process depicted here below. The solution is found after only 36 construction applications. If we take a closer look at what the seq2seq model seems to have learnt, we see that it first builds determined noun phrases (after having constructed nominal units) before any interrogative constructions are tried. In a sense, the solution can thus be compared to the use of construction sets as explained in the paper, with the only difference that the set membership of a construction and the order of sets is not imposed here by the grammar engineer, but discovered during the training of the neural model."))
 
   (add-element '((h4) ((b) "Initial transient structure:")))
-  (add-element (make-html-fcg-light (initial-cfs (cip *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (initial-cfs (cip *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*) :feature-types (feature-types *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Search process:")))
-  (add-element (make-html (top-node (cip *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (top-node (cip *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Final transient structure (solution):")))
-  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*)))
+  (add-element (make-html-fcg-light (car-resulting-cfs (cipn-car *neural-solution-production*)) :configuration (visualization-configuration *fcg-constructions*) :feature-types (feature-types *fcg-constructions*)))
 
   (add-element '((h4) ((b) "Resulting utterance:")))
-  (add-element (make-html (render (car-resulting-cfs (cipn-car *neural-solution-production*)) (get-configuration *fcg-constructions* :render-mode) :node *baseline-solution-production*))))
+  (add-element `((h3) "&quot;",(format nil "~{~a~^ ~}" (render (car-resulting-cfs (cipn-car *neural-solution-production*)) (get-configuration *fcg-constructions* :render-mode) :node *neural-solution-production*)) "&quot;")))
 
 ;(production)
   
@@ -239,4 +261,4 @@
   (comprehension)
   (production)
   
-)
+))
