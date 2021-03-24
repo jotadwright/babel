@@ -804,7 +804,7 @@ solution."
                       (when (and lex-class-cxn lex-class-ts)
                         (cond
                          ((eql lex-class-cxn lex-class-ts))
-                         ((type-hierarchies::undirected-path lex-class-cxn lex-class-ts type-hierarchy)
+                         ((type-hierarchies::connected-p lex-class-cxn lex-class-ts type-hierarchy)
                           (type-hierarchies:incf-link-weight lex-class-cxn lex-class-ts type-hierarchy 0.1)
                           (type-hierarchies:incf-link-weight lex-class-ts lex-class-cxn type-hierarchy 0.1))
                          (t
