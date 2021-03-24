@@ -41,12 +41,14 @@
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
+(define-configuration-default-value :tutor-mode :smart) ; :random or :smart
+(define-configuration-default-value :tutor-counts-failure-as 1)
 
 ;; Autotelic principle
 (define-configuration-default-value :current-challenge-level 1)
 (define-configuration-default-value :max-challenge-level 3)
-(define-configuration-default-value :evaluation-window-size 100)
-(define-configuration-default-value :confidence-threshold 0.95)
+(define-configuration-default-value :evaluation-window-size 1000)
+(define-configuration-default-value :confidence-threshold 1.00)
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)

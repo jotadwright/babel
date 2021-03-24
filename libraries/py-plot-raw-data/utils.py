@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import pandas as pd
 
 # The same gnuplot colors as used in plot-raw-data
 global GREAT_GNUPLOT_COLORS
@@ -52,24 +51,17 @@ def pathname_directory(path):
     return os.path.dirname(path)
 
 
-def read_raw_data(path, file_type):
+def get_error_bar_distance(n):
     """
-    Read in the raw data at path. If no file type is specified
-    in path, the file_type argument is used.
-    The raw data is returned as a Pandas DataFrame, where each
-    interaction is a row and each series is a column. The column
-    names are integers starting from 0.
+    Compute an appropriate spacing for the error bars, depending
+    on the number of data points
 
-    :param path: a pathname
-    :param file_type: a file type
-    :returns: a Pandas DataFrame
+    :param n: Number of data points
+    :returns: The spacing for the error bars
     """
-    if '.' in path:
-        data_path = os.path.join(BABEL_PATHNAME, path)
-    else:
-        data_path = os.path.join(BABEL_PATHNAME, f'{path}.{file_type}')
-    data = pd.read_csv(data_path, header=None).T
-    return data
+    for x in range(0, 1000000, 100):
+        if n <= x+1:
+            return round(x/10)
 
 
 def apply_window_over_each_series(data, window):
@@ -141,73 +133,3 @@ def apply_average_across_series(data, average_mode, error_mode,
                             are: 'stdev', 'min_max' and 'percentile'""")
 
     return data
-
-
-def collect_data_for_evo_plot(raw_file_paths, file_type='dat', windows=None,
-                              only_x_last_interactions=None,
-                              start=None, end=None, series_numbers=None,
-                              average_mode='mean', error_mode='stdev',
-                              percentiles=[5, 95]):
-    """
-    Collect all data for the evo plot.
-
-    :param raw_file_paths: The paths to the data
-    :param file_type: The file type of the data files. Default='dat'
-    :param windows: The window for the rolling mean,
-        specified for each data file.
-    :param only_x_last_interactions: Only keep the 'x' last interactions.
-    :param start: Only keep interactions after 'start'
-    :param end: Only keep interactions before 'end'
-    :param series_numbers: Only keep these series.
-        Series start counting from 1.
-    :param average_mode: Use this average mode across the series.
-    :param error_mode: Use this error mode across the series.
-    :param percentiles: Use this percentiles for the error mode (if necessary).
-    :returns: A list of Pandas DataFrames containing all data for the evo plot.
-    """
-    result = []
-    for path, window in zip(raw_file_paths, windows):
-        data = read_raw_data(path, file_type)
-        series_length = len(data)
-
-        if window is not None:
-            data = apply_window_over_each_series(data, window)
-
-        if only_x_last_interactions is not None:
-            x = series_length - only_x_last_interactions
-            data = data.iloc[x:,:]
-            data = data.reset_index(drop=True)
-
-        if start is not None or end is not None:
-            s = start if start is not None else 0
-            e = end if end is not None else len(data)
-            data = data.iloc[s:e,:]
-            data = data.reset_index(drop=True)
-
-        if series_numbers is not None:
-            if type(series_numbers) is not list:
-                raise Exception(f'''series_numbers should be a list,
-                                    got {series_numbers}''')
-            else:
-                series_indexes = [s-1 for s in series_numbers]
-                data = data.iloc[:, series_indexes]
-
-        if len(data.columns) > 1:
-            data = apply_average_across_series(data, average_mode, error_mode,
-                                               percentiles)
-
-        result.append(data)
-    return result
-
-
-def get_error_bar_distance(n):
-    """
-    Compute an appropriate spacing for the error bars, depending
-    on the number of data points
-
-    :param n: Number of data points
-    :returns: The spacing for the error bars
-    """
-    for x in range(0, 1000000, 100):
-        if n <= x+1:
-            return round(x/10)

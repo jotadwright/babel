@@ -5,10 +5,11 @@ import argparse
 import matplotlib.pyplot as plt
 
 from matplotlib.figure import figaspect
-from plot_raw_data import GREAT_GNUPLOT_COLORS, BABEL_PATHNAME
-from plot_raw_data import pathname_name, pathname_directory
-from plot_raw_data import collect_data_for_evo_plot
-from plot_raw_data import get_error_bar_distance
+from utils import GREAT_GNUPLOT_COLORS, BABEL_PATHNAME
+from utils import pathname_name, pathname_directory
+from utils import get_error_bar_distance
+from plot_raw_evo_data import collect_data_for_evo_plot
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--raw-file-paths', required=True, nargs='+',
@@ -20,10 +21,11 @@ parser.add_argument('--captions', default=[], nargs='*',
                     help='''Captions for the lines on the plot.
                             Default: use the filenames of the
                             raw data files.''')
-parser.add_argument('--average-windows', default=100, nargs='*', type=int,
+parser.add_argument('--average-windows', default=100, nargs='*',
                     help='''The size of the windows used for the rolling mean.
                             Either specify a single number used for all lines,
-                            or specify a separate number per line.''')
+                            or specify a separate number per line or specify
+                            None if no averaging needs to be performed.''')
 parser.add_argument('--average-mode', default='mean', type=str,
                     choices=['mean', 'median'],
                     help='Mode used to compute the average across the series.')
@@ -204,6 +206,8 @@ def raw_files_to_evo_plot(raw_file_paths=None,
     if raw_file_paths is None:
         raise Exception('Please provide raw_file_paths!')
 
+    if average_windows is None:
+        average_windows = [None for path in raw_file_paths]
     if type(average_windows) is int:
         # Support for passing a single number to average_windows,
         # it is set to each raw_file_path
@@ -343,5 +347,8 @@ def raw_files_to_evo_plot(raw_file_paths=None,
 if __name__ == '__main__':
     args = parser.parse_args()
     if len(args.average_windows) == 1:
-        args.average_windows = args.average_windows[0]
+        if args.average_windows[0] == 'None':
+            args.average_windows = None
+        else:
+            args.average_windows = int(args.average_windows[0])
     raw_files_to_evo_plot(**vars(args))

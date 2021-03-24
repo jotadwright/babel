@@ -23,7 +23,9 @@
 (export '(alist-recorder set-value-for-symbol incf-value-for-symbol
 	  alist-printer
 	  alist-gnuplot-display alist-gnuplot-graphic-generator
-	  alist-gnuplot-display-and-graphic-generator))
+	  alist-gnuplot-display-and-graphic-generator
+          alist-lisp-file-writer
+          alist-csv-file-writer))
 
 ;; #####################################################################
 ;; alist-recorder
@@ -57,7 +59,6 @@
   
   (:documentation "Records averaged values for a alist"))
 
-
 (defmethod initialize-instance :around ((monitor alist-recorder) 
 					&key id &allow-other-keys)
   (let* ((previous-monitor (get-monitor id)))
@@ -74,43 +75,64 @@
     (subscribe-to-event id 'series-finished)
     (subscribe-to-event id 'reset-monitors)))
 
-(defmethod handle-interaction-started-event :before ((monitor alist-recorder) (monitor-id symbol)
-						     (event (eql 'interaction-started))
-						     (experiment t)(interaction t)(interaction-number number))
-  (declare (ignorable experiment interaction interaction-number))
-  ;; set the current values of each symbol to 0
-  (unless (keep-previous-values monitor)
-    (loop for cons in (current-values monitor)
-       do (setf (cdr cons) 0))))
 
-(defmethod handle-interaction-finished-event :after ((monitor alist-recorder) (monitor-id symbol)
+
+;; when a symbol is not yet encountered in the new series
+;; it should also be recorded as NIL, not 0
+(defmethod handle-interaction-started-event :before ((monitor alist-recorder)
+                                                     (monitor-id symbol)
+						     (event (eql 'interaction-started))
+						     (experiment t)
+                                                     (interaction t)
+                                                     (interaction-number number))
+  (declare (ignorable experiment interaction interaction-number))
+  ;; check for each symbol if it has been observed in this series
+  ;; if it has, set the current value of that symbol to 0
+  ;; except when keep-previous-values is activate
+  ;; otherwise, set the current value of that symbol to NIL
+  (loop for (symbol . fvp) in (first-value-positions monitor)
+        if (null (car fvp))
+        do (setf (cdr (assoc symbol (current-values monitor))) nil)
+        else
+        do (unless (keep-previous-values monitor)
+             (setf (cdr (assoc symbol (current-values monitor))) 0))))
+
+(defmethod handle-interaction-finished-event :after ((monitor alist-recorder)
+                                                     (monitor-id symbol)
 						     (event (eql 'interaction-finished))
-						     (experiment t) (interaction t)(interaction-number number))
+						     (experiment t)
+                                                     (interaction t)
+                                                     (interaction-number number))
   ;; store the current-values and compute average values
   (declare (ignorable experiment interaction interaction-number))
   (push nil (caar (empty-list monitor)))
   (loop for values-cons in (get-values monitor)
-     for average-values-cons in (car (average-values monitor))
-     for current-value-cons in (current-values monitor)
-     for first-value-position-cons in (first-value-positions monitor)
-     for range = (min (average-window monitor)
-		      (+ 1 (- (length (caar (cdr values-cons))) (cdr first-value-position-cons))))
-     do (push (cdr current-value-cons) (caar (cdr values-cons)))
-     (push (/ (apply #'+ (subseq (caar (cdr values-cons)) 0 range)) range)
-	   (caar (cdr average-values-cons)))))
+        for average-values-cons in (car (average-values monitor))
+        for current-value-cons in (current-values monitor)
+        for first-value-position-cons in (first-value-positions monitor)
+        for range = (min (average-window monitor)
+                         (+ 1 (- (length (caar (cdr values-cons)))
+                                 (if (null (cadr first-value-position-cons))
+                                   0 (cadr first-value-position-cons)))))
+        do (push (cdr current-value-cons) (caar (cdr values-cons)))
+        do (if (null (cadr first-value-position-cons))
+             (push nil (caar (cdr average-values-cons)))
+             (push (/ (apply #'+ (subseq (caar (cdr values-cons)) 0 range)) range)
+                   (caar (cdr average-values-cons))))))
 
 (defmethod handle-series-finished-event :after ((monitor alist-recorder) (monitor-id symbol)
 						(event (eql 'series-finished))
 						(series-number number))
   (push nil (car (empty-list monitor)))
   (loop for values-cons in (get-values monitor)
-     for average-values-cons in (car (average-values monitor))
-     for first-value-position-cons in (first-value-positions monitor)
-     do (push nil (car (cdr values-cons)))
-       (push nil (car (cdr average-values-cons)))
-       (push nil (cdr first-value-position-cons))))
+        for average-values-cons in (car (average-values monitor))
+        for first-value-position-cons in (first-value-positions monitor)
+        do (push nil (car (cdr values-cons)))
+        (push nil (car (cdr average-values-cons)))
+        (push nil (cdr first-value-position-cons))))
 
-(defmethod handle-reset-monitors-event :before ((monitor alist-recorder) (monitor-id symbol)
+(defmethod handle-reset-monitors-event :before ((monitor alist-recorder)
+                                                (monitor-id symbol)
 						(event (eql 'reset-monitors)))
   (setf (slot-value monitor 'values) nil)
   (setf (car (slot-value monitor 'average-values)) nil)
@@ -130,13 +152,16 @@
 (defmethod set-value-for-symbol ((monitor alist-recorder) (symbol symbol) (value number))
   (let ((current-value-cons (assoc symbol (current-values monitor))))
     (if current-value-cons
-	(setf (cdr current-value-cons) value)
+	(progn (setf (cdr current-value-cons) value)
+          (when (null (cadr (assoc symbol (slot-value monitor 'first-value-positions))))
+            (setf (cadr (assoc symbol (slot-value monitor 'first-value-positions)))
+                  (length (caar (empty-list monitor))))))
 	(progn
 	  (push (cons symbol (mapcar #'copy-list (empty-list monitor)))
                 (slot-value monitor 'values))
 	  (push (cons symbol (mapcar #'copy-list (empty-list monitor))) 
 		(car (slot-value monitor 'average-values)))
-	  (push (cons symbol (length (caar (empty-list monitor)))) 
+	  (push (cons symbol (list (length (caar (empty-list monitor)))))
 		(slot-value monitor 'first-value-positions))
 	  (push (cons symbol value) (slot-value monitor 'current-values))))))
 
@@ -146,8 +171,8 @@
 (defmethod incf-value-for-symbol ((monitor alist-recorder) (symbol symbol) (value number))
   (let ((current-value-cons (assoc symbol (current-values monitor))))
     (if current-value-cons
-	(incf (cdr current-value-cons) value)
-	(set-value-for-symbol monitor symbol value))))
+      (incf (cdr current-value-cons) value)
+      (set-value-for-symbol monitor symbol value))))
 
 
 ;; #####################################################################
@@ -164,14 +189,16 @@
 (defmethod initialize-instance :around ((monitor alist-handler) 
 					&key recorder &allow-other-keys)
   (setf (error-occured-during-initialization monitor) t)
-  (unless recorder (error "Please provide a :recorder."))
+  (unless recorder (error "Parameter :recorder not provided."))
   (setf (error-occured-during-initialization monitor) nil)
   (call-next-method)
   (setf (error-occured-during-initialization monitor) t)
   (let ((alist-recorder (get-monitor recorder)))
-    (unless alist-recorder (error "Monitor ~a is not defined" recorder))
-    (unless (typep alist-recorder 'alist-recorder)
-      (error "Monitor ~a is not of type alist-recorder" recorder))
+    (unless alist-recorder
+      (error "Monitor ~a is not defined" recorder))
+    (unless (subtypep (type-of alist-recorder) 'alist-recorder)
+      (error "Monitor ~a is not of type data-recorder" recorder))
+    (setf (slot-value monitor 'recorder) recorder)
     (setf (slot-value monitor 'data) (average-values alist-recorder)))
   (setf (error-occured-during-initialization monitor) nil))
 
@@ -187,7 +214,6 @@
 ;; #####################################################################
 ;; alist-printer
 ;; ---------------------------------------------------------------------
-
 
 (defclass alist-printer (alist-handler)
   ((interval :initarg :interval :accessor interval :initform 1
@@ -208,7 +234,7 @@
   (when (= (mod interaction-number (interval monitor)) 0)
     (format t "~%~a: " interaction-number)
     (loop for (symbol . average-values) in (reverse (car (data monitor)))
-       do (format t "~(~a~): ~,2f; " symbol (caaar average-values)))))
+          do (format t "~(~a~): ~,2f; " symbol (caaar average-values)))))
 
 
 ;; #####################################################################
@@ -246,7 +272,11 @@
    (colors :documentation "A list of line colors to use for plotting." 
 	   :accessor colors :initform *great-gnuplot-colors*)
    (divide-indices-by :documentation "A constant by which the indices (x-values) are divided by."
-		      :accessor divide-indices-by :initform 1 :initarg :divide-indices-by))
+		      :accessor divide-indices-by :initform 1 :initarg :divide-indices-by)
+   (dashed 
+    :documentation "When t, different data lines have different dashes. 
+                    Only has effect in some terminals"
+    :initform t :initarg :dashed :accessor dashed))
   (:documentation "A gnuplotter based on the alist-recorder"))
 
 
@@ -291,10 +321,11 @@
     (loop for source in data 
        for source-number from 0
        for color = (nth (mod source-number (length (colors monitor))) (colors monitor))
-       do (format stream "~:[~*~*~;'-' axes x1y1 notitle with errorbars ps 0.01 lw ~a lc rgb ~s,~] '-' axes x1y1 title \"~(~a~)\" with lines lw ~a lc rgb ~s~:[~;, ~]" 
-		  (third source) (line-width monitor) color
+       do (format stream "~:[~*~*~;'-' axes x1y1 notitle with errorbars ps 0.01 lw ~a dt ~a lc rgb ~s,~] '-' axes x1y1 title \"~(~a~)\" with lines lw ~a dt ~a lc rgb ~s~:[~;, ~]" 
+		  (third source) (line-width monitor)
+                  (if (dashed monitor) (+ 2 source-number) 1) color
 		  (nth source-number (reverse (mapcar #'car (car (data monitor)))))
-		  (line-width monitor)
+		  (line-width monitor) (if (dashed monitor) (+ 2 source-number) 1)
 		  color (< source-number (- (length data) 1))))
     (loop for source in data
        do (when (third source)
@@ -370,10 +401,6 @@
     :documentation "When t, different data lines have different colors. 
                     Only has effect in some terminals"
     :initform t :initarg :colored :accessor colored)
-   (dashed 
-    :documentation "When t, different data lines have different dashes. 
-                    Only has effect in some terminals"
-    :initform t :initarg :dashed :accessor dashed)
    (add-time-and-experiment-to-file-name
     :documentation "When t, the file name is prefixed with the name of the experiment class
                     and a yyyy-mm-dd-hh-mm-ss string"
@@ -398,7 +425,6 @@
   (subscribe-to-event id 'batch-finished)
   (setf (error-occured-during-initialization monitor) nil))
 
- 
 
 (defmethod handle-batch-finished-event ((monitor alist-gnuplot-graphic-generator)
 					(monitor-id symbol) (event (eql 'batch-finished))
@@ -413,9 +439,9 @@
       (close-pipe (slot-value monitor 'stream)))
     (setf (slot-value monitor 'stream) (pipe-to-gnuplot))
     (format (plot-stream monitor) "~cset output \"~a\"" #\linefeed file-name)
-    (format (plot-stream monitor) "~cset terminal ~a font \"Helvetica\" linewidth ~a rounded ~:[solid~;dashed~] ~:[monochrome~;color~]"
+    (format (plot-stream monitor) "~cset terminal ~a font 'Helvetica' linewidth ~a rounded ~a"
 	    #\linefeed (graphic-type monitor) (line-width monitor) 
-	    (dashed monitor) (colored monitor))
+	    (if (colored monitor) "color" "mono"))
     (plot-data monitor)
     (format (plot-stream monitor) "~cexit~c"  #\linefeed #\linefeed)
     (finish-output (plot-stream monitor))
@@ -432,4 +458,186 @@
   ()
   (:documentation "Both displays a graph and generates a graphic file in the end"))
 
+;; ############################################################################
+;; alist-data-file-writer
+;; ----------------------------------------------------------------------------
+
+(defclass alist-file-writer (alist-handler)
+  ((file-name
+    :documentation "The file name of the file to write"
+    :initarg :file-name
+    :reader file-name)
+   (add-experiment-to-file-name
+    :documentation "When t, the file name is prefixed with the name of the experiment
+                    class."
+    :initform nil
+    :initarg :add-experiment-to-file-name
+    :accessor add-experiment-to-file-name)
+   (add-time-and-experiment-to-file-name
+    :documentation "When t, the file name is prefixed with the name of the experiment
+                    class and a yyyy-mm-dd-hh-mm-ss string."
+    :initform t
+    :initarg :add-time-and-experiment-to-file-name
+    :accessor add-time-and-experiment-to-file-name)
+   (add-job-and-task-id-to-file-name
+    :documentation "Adds the job and task id to the file name of the file written by the monitor. ONLY WORKS FOR SBCL"
+    :initform nil
+    :initarg :add-job-and-task-id-to-file-name
+    :accessor add-job-and-task-id-to-file-name))
+  (:documentation "Writes the recorded data into a file"))
+
+
+(defgeneric write-alist-data-to-file (monitor stream)
+  (:documentation "Writes the sources of monitor to the stream"))
+
+(defmethod write-alist-data-to-file ((monitor alist-file-writer) (stream t))
+  (error "Please specialize the write-data-to-file method"))
+
+(defmethod initialize-instance :around ((monitor alist-file-writer)
+					&key id file-name 
+                                        &allow-other-keys)
+  (setf (error-occured-during-initialization monitor) t)
+  (unless file-name (error "Parameter :file-name not provided"))
+  (unless (pathnamep file-name)
+    (error ":file-name parameter ~a should be a pathname" file-name))
+  (setf (error-occured-during-initialization monitor) nil)
+  (call-next-method)
+  (subscribe-to-event id 'batch-finished))
+
+
+(defmethod handle-batch-finished-event ((monitor alist-file-writer)
+                                        (monitor-id symbol)
+					(event (eql 'batch-finished))
+					(experiment-class string))
+  (let ((file-name
+         (cond ((add-experiment-to-file-name monitor)
+                (make-file-name-with-experiment-class (file-name monitor)
+                                                      experiment-class))
+               ((add-time-and-experiment-to-file-name monitor)
+                (make-file-name-with-time-and-experiment-class (file-name monitor)
+                                                               experiment-class))
+               ((add-job-and-task-id-to-file-name monitor)
+                (make-file-name-with-job-and-task-id (file-name monitor)
+                                                               experiment-class))
+               (t (file-name monitor)))))
+    (with-open-file (file file-name :direction :output 
+			  :if-exists :supersede
+                          :if-does-not-exist :create)
+      (write-alist-data-to-file monitor file)
+      (format t "~%monitor ~(~a~):~%  wrote ~a"
+	      (id monitor) file-name))))
+
+;; ############################################################################
+;; alist-lisp-data-file-writer
+;; ----------------------------------------------------------------------------
+
+(defclass alist-lisp-file-writer (alist-file-writer)
+  ()
+  (:documentation "Writes the data as s-expressions to a lisp file"))
+
+(defmethod write-alist-data-to-file ((monitor alist-lisp-file-writer) stream)
+  (format stream "~%; This file was created by the alist-lisp-data-file-writer ~a" (id monitor))
+  (format stream "~%; The elements in the lists come from this source: ~a" (recorder monitor))
+  (format stream "~%(")
+  (loop for (symbol . average-values) in (reverse (car (data monitor)))
+        ;; make sure that the values are printed as floats
+        ;; and not as fractions
+        do (format stream "(~a ~{(~{~,2f~^ ~})~^ ~})"
+                   symbol (mapcar #'reverse
+                                  (remove nil
+                                          (car average-values)))))
+  (format stream ")"))
+
+;; ############################################################################
+;; alist-csv-data-file-writer
+;; ----------------------------------------------------------------------------
+
+(defclass alist-csv-file-writer (alist-file-writer)
+  ((colum-separator :initarg :column-separator :accessor column-separator
+		    :initform "," :documentation "a string used to separate columns")
+   (comment-string :initarg :comment-string :accessor comment-string
+		   :initform "#" :documentation "how to start a comment line")
+   (replace-nils :initarg :replace-nils :accessor replace-nils
+                 :initform "N/A" :documentation "how to encode nil values in the csv")
+   (column-name :initarg :column-name :accessor column-name
+                :initform nil :documentation "name used for csv columns"))
+  (:documentation "Writes the data in columns to a csv file"))
+
+(defmethod initialize-instance :around ((monitor alist-csv-file-writer)
+					&key column-separator
+                                        comment-string replace-nils
+                                        column-name
+                                        &allow-other-keys)
+  (setf (error-occured-during-initialization monitor) t)
+  (when column-separator (check-type column-separator string))
+  (when comment-string (check-type comment-string string))
+  (when replace-nils (check-type replace-nils string))
+  (when column-name (check-type column-name string))
+  (setf (error-occured-during-initialization monitor) nil)
+  (call-next-method))
+
+;; Alist monitor will result in a csv file with the following format:
+;; - first a header column with a column for the alist symbols
+;;   and one column per series
+;; - for each data points, there is one row per symbol
+;;   e.g. if there are 3 symbols, there will be 3 rows for
+;;   the first interactions, 3 rows for the second interaction, etc.
+
+;; # header
+;; symbol, series-1, series-2, series-3, ...
+;; # interaction 1
+;; x,      0,        0,        0,        ...
+;; y,      0,        0,        0,        ...
+;; z,      0,        0,        0,        ...
+;; # interaction 2
+;; x,      0,        1,        1,        ...
+;; y,      1,        1,        1,        ...
+;; z,      0,        0,        0,        ...
+
+(defmethod write-alist-data-to-file ((monitor alist-csv-file-writer) stream)
+  (let* ((monitor-data
+          (loop for (symbol . raw-values) in (reverse (car (data monitor)))
+                collect (cons symbol (mapcar #'reverse
+                                             (remove nil
+                                                     (car raw-values))))))
+         (number-of-rows (length (cadar monitor-data)))
+         (number-of-columns (length (cdar monitor-data)))
+         (rows nil))
+    ;; first, make the header row
+    (push (append '("SYMBOL")
+                  (loop for i below number-of-columns
+                        for series-number from 1
+                        collect (format nil "~a-~a"
+                                        (if (column-name monitor)
+                                          (column-name monitor)
+                                          (recorder monitor))
+                                        series-number)))     
+                  rows)
+    ;; then, make the other rows
+    (loop for i below number-of-rows
+          do (loop for (symbol . values) in monitor-data
+                   do (push (cons symbol
+                                  (mapcar #'(lambda (serie)
+                                              (nth i serie))
+                                          values))
+                            rows)))
+    ;; reverse the rows
+    (setf rows (reverse rows))
+    ;; write the rows to file
+    ;; and replace nils
+    (format stream "~%~a This file was created by the~%~a csv-data-file-writer ~a."
+            (comment-string monitor)
+            (comment-string monitor)
+            (id monitor))
+    (loop for raw-row in rows
+          for row = (substitute (replace-nils monitor) nil raw-row)
+          do (format stream "~%")
+          do (loop for elem in row
+                   for i from 0
+                   ;; is there a cleaner way of doing this?
+                   do (cond ((= i 0) ;; first element is a symbol
+                             (format stream "~a~a" elem (column-separator monitor)))
+                            ((= i (- (length row) 1)) ;; last element does not need a separator
+                             (format stream "~f" elem))
+                            (t (format stream "~f~a" elem (column-separator monitor))))))))
 

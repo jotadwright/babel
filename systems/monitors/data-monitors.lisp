@@ -30,10 +30,7 @@
  
 ;; ############################################################################
 ;; data-recorder
-;;;; --------------------------------------------------------------------------
-
-
-
+;; ----------------------------------------------------------------------------
 
 (defclass data-recorder (monitor)
   ((values :documentation "A batch of series of 'values' for each interaction"
@@ -64,7 +61,7 @@
       (setf (slot-value monitor 'values) (get-values previous-monitor))
       (setf (slot-value monitor 'average-values) (get-average-values previous-monitor)))
     (subscribe-to-event id 'interaction-started)
-   (subscribe-to-event id 'interaction-finished)
+    (subscribe-to-event id 'interaction-finished)
     (subscribe-to-event id 'series-finished)
     (subscribe-to-event id 'batch-finished)
     (subscribe-to-event id 'reset-monitors)))
@@ -139,6 +136,8 @@
 
 
 ;; ############################################################################
+;; data-handler
+;; ----------------------------------------------------------------------------
 
 (defclass data-handler (monitor)
   ((sources :documentation "Pointers to the 'values or
@@ -194,6 +193,8 @@
 	     
 
 ;; ############################################################################
+;; data-printer
+;; ----------------------------------------------------------------------------
 
 (defclass data-printer (data-handler)
   ((format-string :initarg :format-string :accessor format-string 
@@ -223,6 +224,8 @@
 
 
 ;; ############################################################################
+;; data-file-writer
+;; ----------------------------------------------------------------------------
 
 (defclass data-file-writer (data-handler)
   ((file-name
@@ -288,6 +291,8 @@
 	      (id monitor) file-name))))
 
 ;; ############################################################################
+;; lisp-data-file-writer
+;; ----------------------------------------------------------------------------
 
 (defclass lisp-data-file-writer (data-file-writer)
   ()
@@ -306,6 +311,8 @@
                   (sources monitor))))
 
 ;; ############################################################################
+;; lisp-data-file-writer-v2
+;; ----------------------------------------------------------------------------
 
 (export '(lisp-data-file-writer-v2))
 
@@ -325,16 +332,19 @@
             (mapcar #'cdar (sources monitor)))))
 
 ;; ############################################################################
+;; text-data-file-writer
+;; ----------------------------------------------------------------------------
 
 (defclass text-data-file-writer (data-file-writer)
-  ((colum-separator :initarg :column-separator :accessor column-separator
+  ((column-separator :initarg :column-separator :accessor column-separator
 		    :initform " " :documentation "a string used to separate columns")
    (comment-string :initarg :comment-string :accessor comment-string
 		   :initform "#" :documentation "how to start a comment line"))
   (:documentation "Writes the data in columns to a text file"))
 
 (defmethod initialize-instance :around ((monitor text-data-file-writer)
-					&key column-separator comment-string &allow-other-keys)
+					&key column-separator comment-string
+                                        &allow-other-keys)
   (setf (error-occured-during-initialization monitor) t)
   (when column-separator (check-type column-separator string))
   (when comment-string (check-type comment-string string))
@@ -377,23 +387,15 @@
   
 
 ;; ############################################################################
+;; csv-data-file-writer
+;; ----------------------------------------------------------------------------
 
 (defclass csv-data-file-writer (text-data-file-writer)
-  ((colum-separator :initarg :column-separator :accessor column-separator
-		    :initform ";"
-                    :documentation "a string used to separate columns"))
-  (:documentation "Writes the data in columns to a csv file"))
-
-(defmethod initialize-instance :around ((monitor csv-data-file-writer)
-					&key column-separator comment-string &allow-other-keys)
-  (setf (error-occured-during-initialization monitor) t)
-  (when column-separator (check-type column-separator string))
-  (when comment-string (check-type comment-string string))
-  (setf (error-occured-during-initialization monitor) nil)
-  (call-next-method))
+  () (:documentation "Writes the data in columns to a csv file"))
 
 (defmethod write-data-to-file ((monitor csv-data-file-writer) stream)
-  (let ((number-of-rows (length (cadaar (sources monitor)))) 
+  (let ((number-of-rows (length (cadaar (sources monitor))))
+        (number-of-columns (length (cdaar (sources monitor))))
         ;; (first (rest (first (first (sources ... which will indeed
         ;; give you the data for the first series
         (columns nil))
@@ -420,8 +422,13 @@
     (format stream "~%~a This file was created by the~%~a csv-data-file-writer ~a."
 	    (comment-string monitor) (comment-string monitor) (id monitor))
     (loop 
-       with reversed-columns = (reverse columns)
-       for row from number-of-rows downto 0  ; long
-	do (format stream "~%") 
-	 (loop for column in reversed-columns ;short
-	    do (format stream "~f~a" (aref column row) (column-separator monitor))))))
+     with reversed-columns = (reverse columns)
+     for row from number-of-rows downto 0  ; long
+     do (format stream "~%") 
+     (loop for column in reversed-columns ;short
+           for i from 1
+           if (= i number-of-columns)
+           do (format stream "~f" (aref column row))
+           else
+           do (format stream "~f~a" (aref column row) (column-separator monitor))))))
+

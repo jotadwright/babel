@@ -27,23 +27,6 @@
          (wi:clear-page))
         (t (format t "."))))
 
-;;;; Gnuplot Display monitor
-(define-monitor display-metrics
-                :class 'gnuplot-display
-                :documentation "Plots the communicative success."
-                :data-sources '((average record-communicative-success)
-                                (average record-lexicon-size))
-                :update-interval 100
-                :caption '("communicative success"
-                           "lexicon size")
-                :x-label "# Games"
-                :use-y-axis '(1 2)
-                :y1-label "Communicative Success" 
-                :y1-max 1.0 :y1-min 0
-                :y2-label "Lexicon Size"
-                :y2-min 0
-                :draw-y1-grid t)
-
 ;;;; Communicative success             
 (define-monitor record-communicative-success
                 :class 'data-recorder
@@ -57,8 +40,8 @@
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
@@ -76,11 +59,29 @@
                 :file-name (babel-pathname :name "lexicon-size" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-lexicon-size interaction-finished)
   (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
+
+;;;; Gnuplot Display monitor
+(define-monitor display-metrics
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-communicative-success)
+                                (average record-lexicon-size))
+                :update-interval 100
+                :caption '("communicative success"
+                           "lexicon size")
+                :x-label "# Games"
+                :use-y-axis '(1 2)
+                :y1-label "Communicative Success" 
+                :y1-max 1.0 :y1-min 0
+                :y2-label "Lexicon Size"
+                :y2-min 0
+                :draw-y1-grid t
+                :error-bars nil)
 
 ;;;; # meanings per form for lexical cxns
 (define-monitor record-lexical-meanings-per-form
@@ -95,8 +96,8 @@
                 :file-name (babel-pathname :name "lexical-meanings-per-form" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (defun compute-nr-of-lexical-meanings-per-form (agent)
   (loop with form-count = nil
@@ -130,8 +131,8 @@
                 :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (defun compute-nr-of-lexical-forms-per-meaning (agent)
   (loop with meaning-count = nil
@@ -163,8 +164,8 @@
                 :file-name (babel-pathname :name "lexicon-change" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-lexicon-change lexicon-changed)
   (record-value monitor 1))
@@ -182,35 +183,26 @@
                 :file-name (babel-pathname :name "avg-cxn-score" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :comment-string "%"
+                :column-separator ",")
+                
 
 (define-event-handler (record-avg-cxn-score interaction-finished)
   (record-value monitor (average (mapcar #'cxn-score (get-cxns-of-type (learner experiment) 'all)))))
-
-;;;; learner confidence level
-(define-monitor record-confidence-level
-                :class 'data-recorder
-                :average-window 100
-                :documentation "record the confidence level")
-
-(define-monitor export-confidence-level
-                :class 'lisp-data-file-writer
-                :documentation "exports confidence level"
-                :data-sources '((average record-confidence-level))
-                :file-name (babel-pathname :name "confidence-level" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
-
-(define-event-handler (record-confidence-level interaction-finished)
-  (record-value monitor (average (confidence-buffer experiment))))
 
 ;;;; lexicon size per cxn type (alist monitor)
 (define-monitor record-lexicon-size-per-type
                 :class 'alist-recorder
                 :average-window 1)
+
+(define-monitor export-lexicon-size-per-type
+                :class 'alist-csv-file-writer
+                :documentation "Exports lexicon size per type"
+                :recorder 'record-lexicon-size-per-type
+                :file-name (babel-pathname :name "lexicon-size-per-type" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#")
 
 (define-event-handler (record-lexicon-size-per-type interaction-finished)
   (let ((all-constructions
@@ -221,21 +213,30 @@
           when all-cxns-of-type
           do (set-value-for-symbol monitor cxn-type (length all-cxns-of-type)))))
 
-(define-monitor plot-num-cxns-per-type
+(define-monitor plot-lexicon-size-per-type
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-lexicon-size-per-type
-    :average-windows 1
-    :draw-y-grid t
+    :draw-y-grid t :y-min 0
     :y-label "Number of constructions"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
                                :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf")
+    :graphic-type "pdf" :error-bars t
+    :add-time-and-experiment-to-file-name nil)
 
 ;;;; avg cxn score per cxn type (alist monitor)
 (define-monitor record-cxn-score-per-type
                 :class 'alist-recorder
                 :average-window 100)
+
+(define-monitor export-cxn-score-per-type
+                :class 'alist-csv-file-writer
+                :documentation "Exports cxn score per type"
+                :recorder 'record-cxn-score-per-type
+                :file-name (babel-pathname :name "cxn-score-per-type" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#")
 
 (define-event-handler (record-cxn-score-per-type interaction-finished)
   (let ((all-constructions
@@ -250,20 +251,29 @@
 (define-monitor plot-cxn-score-per-type
     :class 'alist-gnuplot-graphic-generator
     :recorder 'record-cxn-score-per-type
-    :average-windows 100
     :draw-y-grid t
     :y-min 0 :y-max 1
     :y-label "Construction Score"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "avg-cxn-score-per-type" :type "pdf"
                                :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf")
+    :graphic-type "pdf" :error-bars t
+    :add-time-and-experiment-to-file-name nil)
 
 ;; cxn usage per type (alist monitor)
 (define-monitor record-cxn-usage-per-type
                 :class 'alist-recorder
                 :average-window 100
                 :keep-previous-values t)
+
+(define-monitor export-cxn-usage-per-type
+                :class 'alist-csv-file-writer
+                :documentation "Exports cxn usage per type"
+                :recorder 'record-cxn-usage-per-type
+                :file-name (babel-pathname :name "cxn-usage-per-type" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#")
 
 (define-event-handler (record-cxn-usage-per-type interaction-finished)
   (let ((applied-cxns (find-data (task-result (learner experiment)) 'applied-cxns)))
@@ -277,19 +287,28 @@
 (define-monitor plot-cxn-usage-per-type
         :class 'alist-gnuplot-graphic-generator
         :recorder 'record-cxn-usage-per-type
-        :average-windows 100
         :draw-y-grid t
         :y-min 0 :y-max 1
         :y-label "Usage"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "cxn-usage-per-type" :type "pdf"
                                    :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf")
+        :graphic-type "pdf" :error-bars t
+        :add-time-and-experiment-to-file-name nil)
 
 ;; nr of item-based cxns with slots (alist monitor)
 (define-monitor record-nr-of-slots
                 :class 'alist-recorder
                 :average-window 1)
+
+(define-monitor export-nr-of-slots
+                :class 'alist-csv-file-writer
+                :documentation "Exports cxn usage per type"
+                :recorder 'record-nr-of-slots
+                :file-name (babel-pathname :name "item-based-nr-of-slots" :type "csv"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#")
 
 (define-event-handler (record-nr-of-slots interaction-finished)
   (let* ((all-constructions
@@ -309,12 +328,13 @@
 (define-monitor plot-nr-of-slots
         :class 'alist-gnuplot-graphic-generator
         :recorder 'record-nr-of-slots
-        :draw-y-grid t
+        :draw-y-grid t :y-min 0
         :y-label "Number of constructions"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "nr-of-item-based-cxns-with-slots" :type "pdf"
                                    :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf")
+        :graphic-type "pdf" :error-bars t
+        :add-time-and-experiment-to-file-name nil)
 
 ;; export type hierarchy after series
 (define-monitor export-type-hierarchy)
@@ -323,7 +343,7 @@
   (let ((th (get-type-hierarchy (grammar agent)))
         (filename (pathname-name
                    (parse-namestring
-                    (make-file-name-with-time "learned-type-hierarchy-~a")))))
+                    (make-file-name-with-time "type-hierarchy")))))
     (type-hierarchy->image th :render-program "circo" :weights? t
                            :path (babel-pathname :directory '("experiments" "clevr-learning" "graphs"))
                            :file-name filename :format "pdf")))
@@ -356,8 +376,8 @@
 (define-monitor export-learner-grammar)
 
 (defun export-grammar (cxn-inventory pathname)
-  (let ((path (make-file-name-with-time pathname)))
-    (cl-store:store cxn-inventory path)))
+  #-ccl (let ((path (make-file-name-with-time pathname)))
+          (cl-store:store cxn-inventory path)))
 
 (define-event-handler (export-learner-grammar run-series-finished)
   (export-grammar (grammar (learner experiment))
