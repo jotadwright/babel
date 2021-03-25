@@ -98,10 +98,11 @@
           (loop for repair in '(repair-add-th-links
                                 repair-item-based->lexical
                                 repair-lexical->item-based
-                                repair-make-holophrase-cxn
                                 repair-holophrase->item-based-substitution
                                 repair-holophrase->item-based-addition
-                                repair-holophrase->item-based-deletion)
+                                repair-holophrase->item-based-deletion
+                                repair-make-hypotheses
+                                repair-make-holophrase-cxn)
                 collect (make-instance repair)))
          (task
           (make-instance 'learner-hearer-task
@@ -359,34 +360,32 @@
                                                (when (null (children node))
                                                  node))))))
 
-(defun get-node-with-matching-slots-and-lexical-cxns (nodes)
-  (loop for node in nodes
+(defun get-node-with-matching-slots-and-lexical-cxns (cipns)
+  (loop for cipn in cipns
         for applied-cxns = (mapcar #'get-original-cxn
-                                   (applied-constructions node))
+                                   (fcg::applied-constructions cipn))
         for applied-lex-cxns = (find-all 'lexical applied-cxns
                                          :key #'get-cxn-type)
         for applied-item-based-cxn = (find 'item-based applied-cxns
                                            :key #'get-cxn-type)
-        for strings-in-root = (get-strings-from-root node)
         when (and applied-lex-cxns applied-item-based-cxn
                   (length= applied-lex-cxns (item-based-number-of-slots applied-item-based-cxn))
-                  (null strings-in-root))
-        return node))
+                  (null (get-strings-from-root cipn)))
+        return (cons applied-cxns cipn)))
 
-(defun get-node-with-one-missing-lex-for-slots (nodes)
-  (loop for node in nodes
+(defun get-node-with-one-missing-lex-for-slots (cipns)
+  (loop for cipn in cipns
         for applied-cxns = (mapcar #'get-original-cxn
-                                   (applied-constructions node))
+                                   (fcg::applied-constructions cipn))
         for applied-lex-cxns = (find-all 'lexical applied-cxns
                                          :key #'get-cxn-type)
         for applied-item-based-cxn = (find 'item-based applied-cxns
                                            :key #'get-cxn-type)
-        for strings-in-root = (get-strings-from-root node)
         when (and applied-item-based-cxn
                   (= (- (item-based-number-of-slots applied-item-based-cxn)
                         (length applied-lex-cxns)) 1)
-                  (= (length strings-in-root) 1))
-        return node))
+                  (= (length (get-strings-from-root cipn)) 1))
+        return (cons applied-cxns cipn)))
 
 (defun all-applied-cxns (cipn)
   (cond (;initial node
@@ -395,16 +394,19 @@
          (values nil nil))
         (;success node
          (find 'fcg::succeeded (fcg::statuses cipn))
-         (values cipn (mapcar #'get-original-cxn
-                              (fcg::applied-constructions cipn))))
-        (t ;otherwise, take all non-duplicate leaf nodes
+         (values (mapcar #'get-original-cxn
+                         (fcg::applied-constructions cipn))
+                 cipn))
+        (t ;otherwise, take all non-duplicate leaf nodes and sort
+         ; them by depth (deepest first)
          (let ((all-leaf-nodes
-                (get-all-non-duplicate-leaf-nodes (cip cipn))))
+                (sort (get-all-non-duplicate-leaf-nodes (cip cipn))
+                      #'> :key #'(lambda (cipn) (length (all-parents cipn))))))
            (if (length= all-leaf-nodes 1)
              ;; if there is only one, return that one
-             (values (first all-leaf-nodes)
-                     (mapcar #'get-original-cxn
-                             (fcg::applied-constructions (first all-leaf-nodes))))
+             (values (mapcar #'get-original-cxn
+                             (fcg::applied-constructions (first all-leaf-nodes)))
+                     (first all-leaf-nodes))
              ;; else, look at the number of slots of the item-based cxns
              ;; and the applied lexical cxns
              ;; 1. number of slots == number of lexical cxns
@@ -412,28 +414,106 @@
              ;; 3. random
              (let* ((matching-slots-and-lexical-cxns
                      (get-node-with-matching-slots-and-lexical-cxns all-leaf-nodes))
-                   (one-missing-lex-for-slots
-                    (get-node-with-one-missing-lex-for-slots all-leaf-nodes))
-                   (random-node
-                    (random-elt all-leaf-nodes)))
-               (cond ((and matching-slots-and-lexical-cxns
-                           one-missing-lex-for-slots)
-                      (let ((n (random-elt (list matching-slots-and-lexical-cxns
-                                                 one-missing-lex-for-slots))))
-                        (values n (mapcar #'get-original-cxn
-                                          (applied-constructions n)))))
-                      (matching-slots-and-lexical-cxns
-                       (values matching-slots-and-lexical-cxns
-                               (mapcar #'get-original-cxn
-                                       (applied-constructions matching-slots-and-lexical-cxns))))
-                      (one-missing-lex-for-slots
-                       (values one-missing-lex-for-slots
-                               (mapcar #'get-original-cxn
-                                       (applied-constructions one-missing-lex-for-slots))))
-                      (t
-                       (values random-node
-                               (mapcar #'get-original-cxn
-                                       (applied-constructions random-node)))))))))))
+                    (one-missing-lex-for-slots
+                     (get-node-with-one-missing-lex-for-slots all-leaf-nodes))
+                    (random-node
+                     (random-elt all-leaf-nodes)))
+               (cond (one-missing-lex-for-slots
+                      (values (car one-missing-lex-for-slots)
+                              (cdr one-missing-lex-for-slots)))
+                     (matching-slots-and-lexical-cxns
+                      (values (car matching-slots-and-lexical-cxns)
+                              (cdr matching-slots-and-lexical-cxns)))
+                     (t
+                      (values (mapcar #'get-original-cxn
+                                      (fcg::applied-constructions random-node))
+                              random-node)))))))))
+
+#|
+(defun combine-cxns-and-cipns-from-siblings (second-merge-failed-node)
+  (let ((applied-cxns
+         (mapcar #'get-original-cxn
+                 (applied-constructions second-merge-failed-node)))
+        (strings-in-root
+         (get-strings-from-root second-merge-failed-node))
+        (root-form-no-strings
+         (remove 'string
+                 (unit-feature-value
+                  (get-root (car-first-merge-structure (cipn-car second-merge-failed-node)))
+                  'form) :key #'first))
+        (sibling-failed-nodes
+         (remove-if-not
+          #'(lambda (sibling)
+              (find 'fcg::second-merge-failed (fcg::statuses sibling)))
+          (siblings second-merge-failed-node))))
+    (loop for sibling in sibling-failed-nodes
+          for sibling-applied-cxn = (get-original-cxn (first (applied-constructions sibling)))
+          for sibling-cxn-strings = (find-all 'string (extract-form-predicates sibling-applied-cxn) :key #'first)
+          do (push sibling-applied-cxn applied-cxns)
+          do (setf strings-in-root (set-difference strings-in-root sibling-cxn-strings :test #'unify)))
+    ;; update the root of the node
+    (when sibling-failed-nodes
+      (setf (unit-feature-value
+             (get-root (car-first-merge-structure (cipn-car second-merge-failed-node)))
+             'form) (append root-form-no-strings strings-in-root)))
+    ;; return the visited siblings, the applied cxns and the node
+    (values sibling-failed-nodes (cons applied-cxns second-merge-failed-node))))
+  
+(defun extract-applicable-cxns-and-cipn (cipn)
+  "Returns a list of applied-cxns and remaining strings in root"
+  (cond (;initial node
+         (and (null (parent cipn))
+              (null (children cipn)))
+         (values nil nil))
+        (;success node
+         (find 'fcg::succeeded (fcg::statuses cipn))
+         (values (mapcar #'get-original-cxn (applied-constructions cipn))
+                 cipn))
+        (t
+         ; Otherwsie, take all non-duplicate leaf nodes
+         ; and extract information from them. Due to the
+         ; cxn supplier, some leaf nodes (second merge failed)
+         ; need to be combined.
+         (let ((all-leaf-nodes
+                (get-all-non-duplicate-leaf-nodes (cip cipn))))
+           (if (length= all-leaf-nodes 1)
+             (values (mapcar #'get-original-cxn (applied-constructions (first all-leaf-nodes)))
+                     (first all-leaf-nodes))
+             (let* ((sorted-leaf-nodes
+                     (sort all-leaf-nodes #'>
+                           :key #'(lambda (node)
+                                    (length (all-parents node)))))
+                    (cxns-and-cipns
+                     (loop with visited = nil
+                           for leaf-node in sorted-leaf-nodes
+                           unless (find leaf-node visited)
+                           if (find 'fcg::second-merge-failed (fcg::statuses leaf-node))
+                           collect (multiple-value-bind (visited-leafs cxn-and-cipn)
+                                       (combine-cxns-and-cipns-from-siblings leaf-node)
+                                     (setf visited (append visited-leafs visited))
+                                     cxn-and-cipn)
+                           else collect (cons (mapcar #'get-original-cxn (applied-constructions leaf-node))
+                                              leaf-node)))
+                    (sorted-cxns-and-cipns
+                     (sort cxns-and-cipns #'>
+                           :key #'(lambda (cxns-and-cipn-cons)
+                                    (length (car cxns-and-cipn-cons)))))
+                    (matching-slots-and-lexical-cxns
+                     (get-node-with-matching-slots-and-lexical-cxns sorted-cxns-and-cipns))
+                    (one-missing-lex-for-slots
+                     (get-node-with-one-missing-lex-for-slots sorted-cxns-and-cipns))
+                    (random-node
+                     (random-elt sorted-cxns-and-cipns)))
+               (cond (matching-slots-and-lexical-cxns
+                      (values (car matching-slots-and-lexical-cxns)
+                              (cdr matching-slots-and-lexical-cxns)))
+                     (one-missing-lex-for-slots
+                      (values (car one-missing-lex-for-slots)
+                              (cdr one-missing-lex-for-slots)))
+                     (t
+                      (values (car random-node) (cdr random-node))))))))))
+|#
+         
   
 
 (defmethod run-process (process
@@ -446,7 +526,7 @@
     ;; that further restricts the composer, so we always put this
     ;; in the process result
     (let* ((process-result-data
-            (multiple-value-bind (cipn applied-cxns) (all-applied-cxns cipn)
+            (multiple-value-bind (applied-cxns cipn) (all-applied-cxns cipn)
               `((cipn . ,cipn)
                 (applied-cxns . ,applied-cxns)
                 (irl-program . ,irl-program)
@@ -504,8 +584,7 @@
                         (process-label (eql 'align))
                         task agent)
   ;; run the alignment strategy
-  (run-alignment agent (input process)
-                 (get-configuration agent :alignment-strategy))
+  (run-alignment agent (input process) (get-configuration agent :alignment-strategy))
   (let ((process-result
          (make-process-result 1 nil :process process)))
     (notify-learning process-result :trigger 'alignment-finished)
@@ -525,14 +604,49 @@ but not successful"))
 
 (defmethod diagnose ((diagnostic diagnose-aligment-result)
                      process-result &key trigger)
-  ;; check if parsing succeeded
-  ;; a different repair is triggered depending on
-  ;; whether no cxns could apply
-  ;; or some cxns could apply
+  ;; check if the interaction succeeded
+  ;; a different repair is triggered depending on success
+  ;; when no success, a different repair is triggered
+  ;; depending on the applied cxns
   (declare (ignorable trigger))
   (if (find-data process-result 'success)
     (make-instance 'possible-generalisation-problem)
     (make-instance 'failed-interaction-problem)))
+
+
+
+
+(defclass repair-make-hypotheses (repair)
+  ((trigger :initform 'alignment-finished))
+  (:documentation "Repair created when the interaction was not successful"))
+
+(define-event make-hypotheses-repair-started)
+(define-event make-hypotheses-new-cxns-and-th-links
+  (new-cxns list) (th type-hierarchy) (new-links list))
+
+(defmethod repair ((repair repair-make-hypotheses)
+                   (problem failed-interaction-problem)
+                   (object process-result)
+                   &key trigger)
+  (declare (ignorable trigger))
+  (let ((agent (owner (task (process object)))))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent (get-data object 'applied-cxns)
+                    (get-data object 'cipn) :add-hypotheses)
+      (when (and cxns th-links)
+        (notify make-hypotheses-repair-started)
+        (loop for cxn in cxns
+              do (add-cxn cxn (grammar agent)))
+        (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
+              for th-link in th-links
+              do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
+        (notify make-hypotheses-new-cxns-and-th-links cxns
+                (get-type-hierarchy (grammar agent)) th-links)
+        (make-instance 'fix :issued-by repair :problem problem)))))
+
+
 
 (defmethod repair ((repair repair-make-holophrase-cxn)
                    (problem failed-interaction-problem)

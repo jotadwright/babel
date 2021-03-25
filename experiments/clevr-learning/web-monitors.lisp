@@ -190,6 +190,18 @@
    `((div) ,(s-dot->svg
              (new-th-links->s-dot th new-links)))))
 
+(define-event-handler (trace-interactions-in-wi make-hypotheses-repair-started)
+  (add-element '((h2) "Making hypotheses")))
+
+(define-event-handler (trace-interactions-in-wi make-hypotheses-new-cxns-and-th-links)
+  (add-element '((h3) "New constructions are created:"))
+  (loop for cxn in new-cxns
+        do (add-element (make-html cxn)))
+  (add-element '((h3) "New links are added to the type hierarchy:"))
+  (add-element
+   `((div) ,(s-dot->svg
+             (new-th-links->s-dot th new-links)))))
+
 (define-event-handler (trace-interactions-in-wi check-samples-started)
   (add-element `((h3) ,(format nil "Checking solution ~a against ~a past scenes"
                                solution-index (length list-of-samples)))))

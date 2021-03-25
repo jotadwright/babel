@@ -30,6 +30,61 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
+
+(defclass cxn-supplier-ordered-by-label-score-and-abstractness (cxn-supplier-ordered-by-label-and-score)
+  () (:documentation "ordered by label, score and abstractness"))
+
+(defun sort-by-abstractness (list-of-cxns)
+  "Abstractness can be defined as the number of units
+   on the contributing part. Holophrases and lexical cxns
+   all have one, item-based cxns have several"
+  (sort list-of-cxns #'>
+        :key #'(lambda (cxn)
+                 (length
+                  (contributing-part
+                   (original-cxn cxn))))))
+
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :ordered-by-label-score-and-abstractness)))
+  (let* ((parent (car (all-parents node))))
+    (if parent
+      ;; copy most of the stuff from the the pool of the parent
+      (make-instance 
+       'cxn-supplier-ordered-by-label-score-and-abstractness
+       :current-label (current-label (cxn-supplier parent))
+       :remaining-labels (remaining-labels (cxn-supplier parent))
+       :all-constructions-of-current-label (all-constructions-of-current-label (cxn-supplier parent)))
+      ;; there is no parent, start from first label
+      (let ((labels (get-configuration (construction-inventory (cip node))
+                                       (if (eq (direction (cip node)) '->)
+                                         :production-order :parse-order))))
+        (make-instance 
+         'cxn-supplier-ordered-by-label-score-and-abstractness
+         :current-label (car labels)
+         :remaining-labels (cdr labels)
+         :all-constructions-of-current-label
+         (sort-by-abstractness
+          (all-constructions-of-label-by-score node (car labels))))))))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-ordered-by-label-score-and-abstractness) (node cip-node))
+  (cond ((remaining-constructions cxn-supplier)
+         ;; there are remaining constructions. just return the next one
+         (pop (remaining-constructions cxn-supplier)))
+        ((loop for child in (children node)
+               thereis (cxn-applied child))
+         ;; when the node already has children where cxn application succeeded,
+         ;;  then we don't move to the next label
+         nil)
+        ((remaining-labels cxn-supplier)
+         ;; go to the next label
+         (setf (current-label cxn-supplier) (car (remaining-labels cxn-supplier)))
+         (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
+         (setf (all-constructions-of-current-label cxn-supplier)
+               (sort-by-abstractness
+                (all-constructions-of-label-by-score node (current-label cxn-supplier))))
+         (setf (remaining-constructions cxn-supplier)
+               (all-constructions-of-current-label cxn-supplier))
+         (next-cxn cxn-supplier node))))
+
 (in-package :clevr-learning)
 
 (defun empty-cxn-set (hide-type-hierarchy)
@@ -44,7 +99,7 @@
                                    (subunits set)
                                    (footprints set))
                    :fcg-configurations ((:cxn-supplier-mode . :ordered-by-label-and-score)
-                                        (:parse-order lexical item-based holophrase)
+                                        (:parse-order non-holophrase holophrase)
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network
                                                            :no-strings-in-root)
@@ -52,6 +107,7 @@
                                         (:production-goal-tests :no-applicable-cxns
                                                  :connected-structure
                                                  :no-meaning-in-root)
+                                        (:shuffle-cxns-before-application . t)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
                                         (:update-th-links . t))
