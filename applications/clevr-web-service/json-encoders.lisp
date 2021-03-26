@@ -83,7 +83,7 @@
           for node = (when list-of-nodes
                        (find the-predicate list-of-nodes
                              :key #'(lambda (node)
-                                      (first (primitives-evaluated node)))
+                                      (irl::primitive-under-evaluation node))
                              :test #'equal))
           for output-var = (second the-predicate)
           for output-value = (when node

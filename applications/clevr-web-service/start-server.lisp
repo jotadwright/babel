@@ -27,6 +27,14 @@ either return a handler or neglect by returning NIL."
 
 (in-package :clevr-web-service)
 
+;; need to set the *CLEVR* configurations to depth-first!
+(set-configurations *CLEVR*
+                    '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                      (:priority-mode . :nr-of-applied-cxns)
+                      (:parse-order hashed nom cxn)
+                      (:production-order hashed-lex nom cxn hashed-morph)
+                      (:max-nr-of-nodes . 10000)))
+
 (defvar *clevr-app* (snooze:make-hunchentoot-app))
 (push *clevr-app* hunchentoot:*dispatch-table*)
 (defvar *clevr-acceptor* (make-instance 'hunchentoot:cors-acceptor :port 9003))

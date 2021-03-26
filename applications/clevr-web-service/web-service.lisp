@@ -43,7 +43,7 @@
                                       :silent t)
           (error (e)
             (http-condition 500 "Error in language processing module!" e)))
-      (let ((fcg-status (first (statuses cipn))))
+      (let ((fcg-status (first (fcg::statuses cipn))))
         (encode-json-alist-to-string
          `((:meaning . ,(when (and irl-program
                                    (eql fcg-status 'fcg::succeeded))
@@ -55,11 +55,11 @@
                            ((string= irl-encoding "rpn")
                             (encode-irl-program-as-rpn irl-program)))))
            (:fcg--status . ,(downcase (mkstr fcg-status)))
-           (:applied--constructions . ,(when (applied-constructions cipn)
+           (:applied--constructions . ,(when (fcg:applied-constructions cipn)
                                          (mapcar #'downcase
                                                  (mapcar #'mkstr
                                                          (mapcar #'fcg::name
-                                                                 (applied-constructions cipn))))))))))))
+                                                                 (fcg:applied-constructions cipn))))))))))))
 (defroute comprehend (:post :application/json)
  (handle-comprehend-route
    (handler-case
@@ -166,8 +166,8 @@
                               :silent t)
             (error (e)
               (http-condition 500 "Error in language processing module!")))
-        (let ((fcg-status (first (statuses cipn)))
-              answers id-subs irl-evaluator)
+        (let ((fcg-status (first (fcg::statuses cipn)))
+              answers id-subs irl-nodes)
           (when (eql fcg-status 'fcg::succeeded)
             ;; ccl requires to intern the symbols manually (why?)
             #+ccl (setf irl-program
@@ -176,7 +176,7 @@
                                       collect (intern (mkstr symbol) 'clevr-world))))
             #+ccl (setf context (copy-and-intern-context context))
             (set-data *clevr-ontology* 'clevr-context context)
-            (multiple-value-bind (solutions evaluator)
+            (multiple-value-bind (solutions solution-nodes)
                 (handler-case
                     (evaluate-irl-program irl-program *clevr-ontology*
                                           :primitive-inventory *clevr-primitives*)
@@ -190,7 +190,7 @@
                           for i from 0
                           collect (cons (id object)
                                         (format nil "obj-~a" i))))
-              (setf irl-evaluator evaluator)))
+              (setf irl-nodes solution-nodes)))
           (encode-json-alist-to-string
            `((:meaning . ,(when (and irl-program
                                      (eql fcg-status 'fcg::succeeded))
@@ -198,13 +198,16 @@
                              ((string= irl-encoding "sexpr")
                               (mkstr irl-program id-subs))
                              ((string= irl-encoding "json")
-                              (encode-irl-program-as-json irl-program id-subs (nodes irl-evaluator))))))
+                              (encode-irl-program-as-json
+                               irl-program id-subs
+                               (cons (first irl-nodes)
+                                     (parents (first irl-nodes))))))))
              (:fcg--status . ,(downcase (mkstr fcg-status)))
-             (:applied--constructions . ,(when (applied-constructions cipn)
+             (:applied--constructions . ,(when (fcg:applied-constructions cipn)
                                            (mapcar #'downcase
                                                    (mapcar #'mkstr
                                                            (mapcar #'fcg::name
-                                                                   (applied-constructions cipn))))))
+                                                                   (fcg:applied-constructions cipn))))))
              (:irl--status . ,(if answers "succeeded" "failed"))
              (:solutions . ,(mapcar #'downcase answers)))))))))
 

@@ -13,9 +13,6 @@
                 :value
                 :primitives-evaluated
                 :bindings)
-  (:import-from :fcg
-                :statuses :size
-                :applied-constructions)
   (:import-from :snooze
                 :explain-condition
                 :http-condition
