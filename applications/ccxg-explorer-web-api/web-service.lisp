@@ -51,19 +51,22 @@
 (defun transform-schema (schema order-matters)
   (loop for role in schema
         collect (loop for (role-part . role-value) in role
-                      collect (if (equalp role-part "string")
-                                (list role-part role-value)
-                                (list role-part (intern (upcase role-value))))
+                      collect (cond ((eq role-part :string)
+                                     (list role-part role-value))
+                                    ((eq role-part :pos)
+                                     (list role-part
+                                     (append '(==) (mapcar #'intern (mapcar #'upcase role-value)))))
+                                    (t
+                                     (list role-part (intern (upcase role-value)))))
                       into roles
                       finally (return `(==1 ,@roles)))
         into transformed-roles
         finally (return (if order-matters
-                         transformed-roles
-                         (append (list '==p) transformed-roles)))))
+                          transformed-roles
+                          (append (list '==p) transformed-roles)))))
 
 (defun transform-results (results)
   `((:results . ,(loop for result in results collect (transform-result result)))))
-
   
 (defun transform-result (result)
   (let ((utterance (second (first result)))
@@ -74,9 +77,6 @@
 (defun transform-role (role)
   (loop for role-part in role
         collect (cons (first role-part) (second role-part))))
-
-                                                 
-
 
 ;; curl -H "Content-Type: application/json" -d '{"corpus" : "ontonotes", "maxN":"100", "orderMatters":"T", "schema": [{"roleType":"arg0"},{"roleType":"v","roleset":"explain.01"},{"roleType":"arg2"},{"roleType":"arg1"}]}' http://localhost:8500/by-schema
 
