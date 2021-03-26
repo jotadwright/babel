@@ -21,7 +21,7 @@
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
                             (babel-pathname :name "type-hierarchy" :type "pdf"
-                                            :directory '("experiments" "clevr-learning" "graphs"))))
+                                            :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (defun export-type-hierarchy (type-hierarchy path)
   (type-hierarchy->image
@@ -40,7 +40,7 @@
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
                             (babel-pathname :name "type-hierarchy" :type "pdf"
-                                            :directory '("experiments" "clevr-learning" "graphs"))))
+                                            :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (define-event-handler (export-type-hierarchy-every-nth-interaction interaction-finished)
   (let ((interaction-nr (interaction-number (current-interaction experiment)))
