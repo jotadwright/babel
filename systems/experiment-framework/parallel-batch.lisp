@@ -347,7 +347,7 @@
                                                 :type "lisp"))
                 experiment-class)))
           (with-open-file (stream file-name :direction :output :if-exists :supersede)
-            (pprint (entries experiment))
+            (pprint (entries experiment) stream)
             (finish-output stream)
             stream)
           (format t "~%.. created ~a.~%" file-name)))
