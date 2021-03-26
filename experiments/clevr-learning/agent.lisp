@@ -397,16 +397,23 @@
          (values (mapcar #'get-original-cxn
                          (fcg::applied-constructions cipn))
                  cipn))
-        (t ;otherwise, take all non-duplicate leaf nodes and sort
-         ; them by depth (deepest first)
+        (t ;otherwise, take all non-duplicate leaf nodes
          (let ((all-leaf-nodes
-                (sort (get-all-non-duplicate-leaf-nodes (cip cipn))
-                      #'> :key #'(lambda (cipn) (length (all-parents cipn))))))
+                (get-all-non-duplicate-leaf-nodes (cip cipn))))
            (if (length= all-leaf-nodes 1)
              ;; if there is only one, return that one
              (values (mapcar #'get-original-cxn
                              (fcg::applied-constructions (first all-leaf-nodes)))
                      (first all-leaf-nodes))
+             ;; else, take the deepest one (i.e. most cxns, i.e. most abstract)
+             (let* ((node-depth #'(lambda (node) (length (all-parents node))))
+                    (deepest-node (the-biggest node-depth all-leaf-nodes)))
+               (values (mapcar #'get-original-cxn
+                               (fcg::applied-constructions deepest-node))
+                       deepest-node)))))))
+
+
+#|
              ;; else, look at the number of slots of the item-based cxns
              ;; and the applied lexical cxns
              ;; 1. number of slots == number of lexical cxns
@@ -428,90 +435,6 @@
                       (values (mapcar #'get-original-cxn
                                       (fcg::applied-constructions random-node))
                               random-node)))))))))
-
-#|
-(defun combine-cxns-and-cipns-from-siblings (second-merge-failed-node)
-  (let ((applied-cxns
-         (mapcar #'get-original-cxn
-                 (applied-constructions second-merge-failed-node)))
-        (strings-in-root
-         (get-strings-from-root second-merge-failed-node))
-        (root-form-no-strings
-         (remove 'string
-                 (unit-feature-value
-                  (get-root (car-first-merge-structure (cipn-car second-merge-failed-node)))
-                  'form) :key #'first))
-        (sibling-failed-nodes
-         (remove-if-not
-          #'(lambda (sibling)
-              (find 'fcg::second-merge-failed (fcg::statuses sibling)))
-          (siblings second-merge-failed-node))))
-    (loop for sibling in sibling-failed-nodes
-          for sibling-applied-cxn = (get-original-cxn (first (applied-constructions sibling)))
-          for sibling-cxn-strings = (find-all 'string (extract-form-predicates sibling-applied-cxn) :key #'first)
-          do (push sibling-applied-cxn applied-cxns)
-          do (setf strings-in-root (set-difference strings-in-root sibling-cxn-strings :test #'unify)))
-    ;; update the root of the node
-    (when sibling-failed-nodes
-      (setf (unit-feature-value
-             (get-root (car-first-merge-structure (cipn-car second-merge-failed-node)))
-             'form) (append root-form-no-strings strings-in-root)))
-    ;; return the visited siblings, the applied cxns and the node
-    (values sibling-failed-nodes (cons applied-cxns second-merge-failed-node))))
-  
-(defun extract-applicable-cxns-and-cipn (cipn)
-  "Returns a list of applied-cxns and remaining strings in root"
-  (cond (;initial node
-         (and (null (parent cipn))
-              (null (children cipn)))
-         (values nil nil))
-        (;success node
-         (find 'fcg::succeeded (fcg::statuses cipn))
-         (values (mapcar #'get-original-cxn (applied-constructions cipn))
-                 cipn))
-        (t
-         ; Otherwsie, take all non-duplicate leaf nodes
-         ; and extract information from them. Due to the
-         ; cxn supplier, some leaf nodes (second merge failed)
-         ; need to be combined.
-         (let ((all-leaf-nodes
-                (get-all-non-duplicate-leaf-nodes (cip cipn))))
-           (if (length= all-leaf-nodes 1)
-             (values (mapcar #'get-original-cxn (applied-constructions (first all-leaf-nodes)))
-                     (first all-leaf-nodes))
-             (let* ((sorted-leaf-nodes
-                     (sort all-leaf-nodes #'>
-                           :key #'(lambda (node)
-                                    (length (all-parents node)))))
-                    (cxns-and-cipns
-                     (loop with visited = nil
-                           for leaf-node in sorted-leaf-nodes
-                           unless (find leaf-node visited)
-                           if (find 'fcg::second-merge-failed (fcg::statuses leaf-node))
-                           collect (multiple-value-bind (visited-leafs cxn-and-cipn)
-                                       (combine-cxns-and-cipns-from-siblings leaf-node)
-                                     (setf visited (append visited-leafs visited))
-                                     cxn-and-cipn)
-                           else collect (cons (mapcar #'get-original-cxn (applied-constructions leaf-node))
-                                              leaf-node)))
-                    (sorted-cxns-and-cipns
-                     (sort cxns-and-cipns #'>
-                           :key #'(lambda (cxns-and-cipn-cons)
-                                    (length (car cxns-and-cipn-cons)))))
-                    (matching-slots-and-lexical-cxns
-                     (get-node-with-matching-slots-and-lexical-cxns sorted-cxns-and-cipns))
-                    (one-missing-lex-for-slots
-                     (get-node-with-one-missing-lex-for-slots sorted-cxns-and-cipns))
-                    (random-node
-                     (random-elt sorted-cxns-and-cipns)))
-               (cond (matching-slots-and-lexical-cxns
-                      (values (car matching-slots-and-lexical-cxns)
-                              (cdr matching-slots-and-lexical-cxns)))
-                     (one-missing-lex-for-slots
-                      (values (car one-missing-lex-for-slots)
-                              (cdr one-missing-lex-for-slots)))
-                     (t
-                      (values (car random-node) (cdr random-node))))))))))
 |#
          
   
