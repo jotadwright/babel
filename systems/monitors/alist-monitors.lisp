@@ -16,6 +16,18 @@
 ;;;; File alist-monitors.lisp
 ;;;;
 ;;;; Monitors for plotting unspecified alists
+;;;;
+;;;; These are typically used for form-meaning competition plots
+;;;; or meaning-form competition plots in language games. In such
+;;;; a case, only use an alist monitor for a single series.
+;;;;
+;;;; However, support for alists that average over multiple series
+;;;; has also been added. For the aforementioned plots, this makes
+;;;; no sense as e.g. the forms will most likely be different in
+;;;; every series. However, if you want to gather data about related
+;;;; items in a single plot AND you are absolutely sure that all
+;;;; of these items will appear in each of the series, then you
+;;;; can use an alist monitor for multiple series.
 ;;;; 
 
 (in-package :monitors)

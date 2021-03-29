@@ -244,21 +244,42 @@
     (force-output t)
     (sleep 0.1)
     (loop
-       with series-number = 0
-       with results = nil
-       for file-name in temp-file-names
-       do (with-open-file (stream file-name :direction :input)
-            (unless stream (error "could not open ~s" file-name))
-            (let ((*package* (find-package (read-from-string package))))
-              (setf results (read stream)))
-            (loop for result in results
-               for monitor = (monitors::get-monitor (first result))
-               do (loop for x in (reverse (second result))
-                     do (push x (caar (slot-value monitor 'monitors::values))))
-               (loop for x in (reverse (third result))
-                  do (push x (caar (slot-value monitor 'monitors::average-values)))))
-            (setf series-number (incf series-number))
-            (monitors:notify monitors:series-finished series-number)))))
+     with series-number = 0
+     with results = nil
+     with monitor-names = nil
+     for file-name in temp-file-names
+     do (with-open-file (stream file-name :direction :input)
+          (unless stream (error "could not open ~s" file-name))
+          (let ((*package* (find-package (read-from-string package))))
+            (setf results (read stream)))
+          (loop for result in results
+                for monitor = (monitors::get-monitor (first result))
+                do
+                (push (first result) monitor-names)
+                (cond ((subtypep (type-of monitor) 'monitors:data-recorder)
+                       (loop for x in (reverse (second result))
+                             do (push x (caar (slot-value monitor 'monitors::values))))
+                       (loop for x in (reverse (third result))
+                             do (push x (caar (slot-value monitor 'monitors::average-values)))))
+                      ((subtypep (type-of monitor) 'monitors:alist-recorder)
+                       (loop for (symbol values) in (reverse (second result))
+                             if (assoc symbol (slot-value monitor 'monitors::values))
+                             do (push (car values) (cadr (assoc symbol (slot-value monitor 'monitors::values))))
+                             else do (push (list symbol values) (slot-value monitor 'monitors::values)))
+                       (loop for (symbol average-values) in (reverse (car (third result)))
+                             if (assoc symbol (car (slot-value monitor 'monitors::average-values)))
+                             do (push (car average-values) (cadr (assoc symbol (car (slot-value monitor 'monitors::average-values)))))
+                             else do (push (list symbol average-values) (car (slot-value monitor 'monitors::average-values)))))))
+          (setf series-number (incf series-number))
+          (monitors:notify monitors:series-finished series-number))
+    finally
+    (loop for monitor-name in monitor-names
+          for monitor = (monitors::get-monitor monitor-name)
+          when (subtypep (type-of monitor) 'monitors:alist-recorder)
+          do (loop for (symbol average-values) in (reverse (car (slot-value monitor 'monitors::average-values)))
+                   unless (length= average-values number-of-series)
+                   do (push (make-list number-of-interactions)
+                            (cadr (assoc symbol (car (slot-value monitor 'monitors::average-values))))))))))
 
 ;; this is the function that is run by the inferior/client lisp
 (defun parallel-batch-run-client-process (&key asdf-system package experiment-class 
@@ -311,7 +332,8 @@
     (let* ((number-of-data-points-parsed (read-from-string number-of-data-points))
            (recorded-data
             (loop for monitor being the hash-value of monitors::*monitors*
-               when (and (subtypep (class-of monitor) 'monitors:data-recorder)
+               when (and (or (subtypep (class-of monitor) 'monitors:data-recorder)
+                             (subtypep (class-of monitor) 'monitors:alist-recorder))
                          (monitors::active monitor))
                collect 
                  (list (monitors::id monitor) 
@@ -321,14 +343,18 @@
                               for index = (round (* (/ number-of-interactions
                                                        number-of-data-points-parsed) i))
                               collect (nth index source))
-                           (caar (slot-value monitor 'monitors::values)))
+                           (if (subtypep (class-of monitor) 'monitors:data-recorder)
+                             (caar (slot-value monitor 'monitors::values))
+                             (slot-value monitor 'monitors::values)))
                        (if number-of-data-points-parsed
                            (loop with source = (caar (slot-value monitor 'monitors::average-values))
                               for i from 0 to (- number-of-data-points-parsed 1)
                               for index = (round (* (/ number-of-interactions
                                                        number-of-data-points-parsed) i))
                               collect (nth index source))
-                           (caar (slot-value monitor 'monitors::average-values)))))))
+                           (if (subtypep (class-of monitor) 'monitors:data-recorder)
+                             (caar (slot-value monitor 'monitors::average-values))
+                             (slot-value monitor 'monitors::average-values)))))))
       (format t ".. writing recorded data to ~s.~%" file-name)
       (force-output t)
       (ensure-directories-exist file-name)
@@ -425,14 +451,14 @@ name."
         (monitors::deactivate-all-monitors)
         (loop for monitor-string in monitors
               for monitor = (monitors::get-monitor (read-from-string monitor-string))
+              do (monitors::activate-monitor-method (read-from-string monitor-string))
               when (slot-exists-p monitor 'file-name)
               do (setf (slot-value monitor 'file-name)
                        (ensure-directories-exist
                         (merge-pathnames (make-pathname :directory `(:relative ,(string-downcase (symbol-name (first configuration))))
                                                         :name (pathname-name (file-name monitor)) 
                                                         :type (pathname-type (file-name monitor)))
-                                         output-dir)))
-              (monitors::activate-monitor-method (read-from-string monitor-string)))
+                                         output-dir))))
        
         ;; run the actual batch for the current configuration
         (run-parallel-batch :asdf-system asdf-system 
