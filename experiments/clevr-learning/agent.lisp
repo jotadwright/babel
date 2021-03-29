@@ -395,7 +395,7 @@
         (;success node
          (find 'fcg::succeeded (fcg::statuses cipn))
          (values (mapcar #'get-original-cxn
-                         (fcg::applied-constructions cipn))
+                         (applied-constructions cipn))
                  cipn))
         (t ;otherwise, take all non-duplicate leaf nodes
          (let ((all-leaf-nodes
@@ -403,39 +403,27 @@
            (if (length= all-leaf-nodes 1)
              ;; if there is only one, return that one
              (values (mapcar #'get-original-cxn
-                             (fcg::applied-constructions (first all-leaf-nodes)))
+                             (applied-constructions (first all-leaf-nodes)))
                      (first all-leaf-nodes))
              ;; else, take the deepest one (i.e. most cxns, i.e. most abstract)
-             (let* ((node-depth #'(lambda (node) (length (all-parents node))))
-                    (deepest-node (the-biggest node-depth all-leaf-nodes)))
-               (values (mapcar #'get-original-cxn
-                               (fcg::applied-constructions deepest-node))
-                       deepest-node)))))))
-
-
-#|
-             ;; else, look at the number of slots of the item-based cxns
-             ;; and the applied lexical cxns
-             ;; 1. number of slots == number of lexical cxns
-             ;; 2. number of slots - number of lexical cxns == 1
-             ;; 3. random
-             (let* ((matching-slots-and-lexical-cxns
-                     (get-node-with-matching-slots-and-lexical-cxns all-leaf-nodes))
-                    (one-missing-lex-for-slots
-                     (get-node-with-one-missing-lex-for-slots all-leaf-nodes))
-                    (random-node
-                     (random-elt all-leaf-nodes)))
-               (cond (one-missing-lex-for-slots
-                      (values (car one-missing-lex-for-slots)
-                              (cdr one-missing-lex-for-slots)))
-                     (matching-slots-and-lexical-cxns
-                      (values (car matching-slots-and-lexical-cxns)
-                              (cdr matching-slots-and-lexical-cxns)))
-                     (t
-                      (values (mapcar #'get-original-cxn
-                                      (fcg::applied-constructions random-node))
-                              random-node)))))))))
-|#
+             (flet ((node-depth (node)
+                      (length (all-parents node)))
+                    (number-of-item-based-slots (node)
+                      (let* ((applied-cxns
+                              (mapcar #'get-original-cxn
+                                      (applied-constructions node)))
+                             (ib-cxn
+                              (find 'item-based applied-cxns :key #'get-cxn-type)))
+                        (if ib-cxn (item-based-number-of-slots ib-cxn) 0))))
+               (let* ((deepest-nodes
+                       (all-biggest #'node-depth all-leaf-nodes))
+                      (deepest-most-abstract-node
+                       (if (length= deepest-nodes 1)
+                         (first deepest-nodes)
+                         (the-biggest #'number-of-item-based-slots deepest-nodes))))
+                 (values (mapcar #'get-original-cxn
+                                 (applied-constructions deepest-most-abstract-node))
+                         deepest-most-abstract-node))))))))
          
   
 

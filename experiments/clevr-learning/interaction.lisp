@@ -29,18 +29,20 @@
 (define-event interaction-before-finished
   (scene clevr-scene) (question string) (answer t))
 
-(defun load-clevr-scene-and-answer (tutor sample)
+(defun load-clevr-scene-and-answer (tutor question-answers-cons)
   ;; !!!!!!!!!!! This is an ugly temporary solution
   ;; Needs to be fixed in the future...
-  (let* ((question (rest (assoc :question sample)))
-         (scenes-and-answers (rest (assoc :answers sample))))
+  (let* ((question (car question-answers-cons))
+         (scenes-and-answers (cdr question-answers-cons)))
     ;(if (search "How big" question)
     ;  (sample-question tutor (get-configuration tutor :tutor-mode))
     (let* ((random-scene-and-answer (random-elt scenes-and-answers))
-           (answer-entity (find-clevr-entity (rest (assoc :answer random-scene-and-answer))
-                                             *clevr-ontology*))
-           (clevr-scene (find-scene-by-name (rest (assoc :scene random-scene-and-answer))
-                                            (world (experiment tutor)))))
+           (answer-entity (find-clevr-entity
+                           (cdr random-scene-and-answer)
+                           *clevr-ontology*))
+           (clevr-scene (find-scene-by-name
+                         (car random-scene-and-answer)
+                         (world (experiment tutor)))))
       (values question clevr-scene answer-entity))))
 
 (defgeneric sample-question (tutor mode)
@@ -115,9 +117,6 @@
                always (communicated-successfully agent)))
         (composer-strategy
          (get-configuration experiment :composer-strategy)))
-    ;(when (and (search "How big" (utterance (learner experiment)))
-    ;           (null successp))
-    ;  (format t "!"))
     ;; add the success to the table of the tutor
     (let* ((current-index (current-question-index (tutor experiment)))
            (entry (rest (assoc current-index (question-index-table (tutor experiment)))))
