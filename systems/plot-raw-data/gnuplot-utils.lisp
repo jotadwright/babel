@@ -31,7 +31,8 @@ set-x-tic-labels set-x-labels set-range set-gnuplot-parameters))
 	  (if dashed "dashed" "solid") font))
 
 (defun set-title (stream title)
-  (format stream "~cset title ~s" #\linefeed title))
+  (when title ; don't want to set NIL as title
+    (format stream "~cset title ~s" #\linefeed title)))
 
 (defun set-histogram (stream &key (error-bars nil) (gap 1) (line-width 2))
   (format stream "~cset style histogram ~a gap ~a lw ~a" 
