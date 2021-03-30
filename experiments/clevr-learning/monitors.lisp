@@ -20,7 +20,7 @@
 (define-monitor export-type-hierarchy
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
-                            (babel-pathname :name "type-hierarchy" :type "pdf"
+                            (babel-pathname :name (format nil "type-hierarchy-~a" (make-random-string 5)) :type "pdf"
                                             :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (defun export-type-hierarchy (type-hierarchy path)
@@ -63,7 +63,7 @@
 (define-monitor export-learner-grammar
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
-                            (babel-pathname :name "learner-grammar" :type "store"
+                            (babel-pathname :name (format nil "learner-grammar-~a" (make-random-string 5)) :type "store"
                                             :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (defun export-grammar (cxn-inventory path)
