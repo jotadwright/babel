@@ -59,6 +59,18 @@
                   (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
         return cxn))
 
+(defun subunit-blocks-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
+  (loop for lex-cxn in lex-cxns
+        for arg in args
+        for lex-cxn-unit-name in lex-subunit-names
+        for th-link in th-links
+        for lex-slot-lex-class = (cdr th-link)
+        collect `(,lex-cxn-unit-name
+                  (syn-cat (gl::lex-class ,lex-slot-lex-class))) into contributing-units
+        collect `(,lex-cxn-unit-name
+                  (args (,arg))
+                  --) into conditional-units
+        finally (return (values conditional-units contributing-units))))
 
 ;;;; UTILS FOR RUNNING GAMES
 ;;;; -----------------------
