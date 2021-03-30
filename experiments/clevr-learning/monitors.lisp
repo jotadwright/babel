@@ -2,6 +2,8 @@
 
 (in-package :clevr-learning)
 
+(defvar random-str (make-random-string 5))
+
 ;;;; Printing dots
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
@@ -16,11 +18,44 @@
          (wi:clear-page))
         (t (format t "."))))
 
+;;;; export failed sentences and applied cxns
+(define-monitor trace-failed-sentences-and-cxns)
+
+(defvar *trace-file* nil)
+
+(define-event-handler (trace-failed-sentences-and-cxns interaction-finished)
+  (let ((interaction-nr (interaction-number (current-interaction experiment))))
+    (when (> interaction-nr 15000)
+      (let* ((agent (learner experiment))
+             (success (find-data (task-result agent) 'success)))
+        (unless success
+          (unless *trace-file*
+            (setf *trace-file*
+                  (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                                  :name (format nil "failed-questions-~a" clevr-learning::random-str)
+                                  :type "txt")))
+          (let* ((utterance (utterance agent))
+                 (applied-cxns (find-data (task-result agent) 'applied-cxns))
+                 (applied-cxn-names
+                  (when applied-cxns
+                    (mapcar (compose #'downcase #'mkstr #'name) applied-cxns))))
+            (with-open-file (stream *trace-file* :direction :output
+                                    :if-exists :append
+                                    :if-does-not-exist :create)
+              (write-line
+               (format nil "~%Interaction ~a: \"~a\" - ~{~a~^, ~}"
+                       interaction-nr utterance
+                       (if applied-cxn-names
+                         applied-cxn-names '(nil)))
+               stream))))))))
+          
+
+
 ;;;; export type hierarchy after series
 (define-monitor export-type-hierarchy
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
-                            (babel-pathname :name (format nil "type-hierarchy-~a" (make-random-string 5)) :type "pdf"
+                            (babel-pathname :name (format nil "type-hierarchy-~a" clevr-learning::random-str) :type "pdf"
                                             :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (defun export-type-hierarchy (type-hierarchy path)
@@ -63,7 +98,7 @@
 (define-monitor export-learner-grammar
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
-                            (babel-pathname :name (format nil "learner-grammar-~a" (make-random-string 5)) :type "store"
+                            (babel-pathname :name (format nil "learner-grammar-~a" clevr-learning::random-str) :type "store"
                                             :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (defun export-grammar (cxn-inventory path)
