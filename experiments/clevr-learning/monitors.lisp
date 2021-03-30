@@ -2,8 +2,6 @@
 
 (in-package :clevr-learning)
 
-(defvar random-str (make-random-string 5))
-
 ;;;; Printing dots
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
@@ -32,7 +30,7 @@
           (unless *trace-file*
             (setf *trace-file*
                   (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
-                                  :name (format nil "failed-questions-~a" clevr-learning::random-str)
+                                  :name (format nil "failed-questions-~a" (make-random-string 5))
                                   :type "txt")))
           (let* ((utterance (utterance agent))
                  (applied-cxns (find-data (task-result agent) 'applied-cxns))
@@ -55,7 +53,9 @@
 (define-monitor export-type-hierarchy
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
-                            (babel-pathname :name (format nil "type-hierarchy-~a" clevr-learning::random-str) :type "pdf"
+                            (babel-pathname :name (format nil "type-hierarchy-~a"
+                                                          (make-random-string 5))
+                                            :type "pdf"
                                             :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (defun export-type-hierarchy (type-hierarchy path)
@@ -98,7 +98,9 @@
 (define-monitor export-learner-grammar
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
-                            (babel-pathname :name (format nil "learner-grammar-~a" clevr-learning::random-str) :type "store"
+                            (babel-pathname :name (format nil "learner-grammar-~a"
+                                                          (make-random-string 5))
+                                            :type "store"
                                             :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (defun export-grammar (cxn-inventory path)
