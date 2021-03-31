@@ -353,13 +353,7 @@
 
 
 
-(defun get-all-non-duplicate-leaf-nodes (cip)
-  (remove-if #'(lambda (node) (find 'fcg::duplicate (fcg::statuses node)))
-             (remove nil (traverse-depth-first
-                          cip  :collect-fn #'(lambda (node)
-                                               (when (null (children node))
-                                                 node))))))
-
+#|
 (defun get-node-with-matching-slots-and-lexical-cxns (cipns)
   (loop for cipn in cipns
         for applied-cxns = (mapcar #'get-original-cxn
@@ -386,6 +380,36 @@
                         (length applied-lex-cxns)) 1)
                   (= (length (get-strings-from-root cipn)) 1))
         return (cons applied-cxns cipn)))
+|#
+
+(defun get-all-non-duplicate-leaf-nodes (cip)
+  (remove-if #'(lambda (node) (find 'fcg::duplicate (fcg::statuses node)))
+             (remove nil (traverse-depth-first
+                          cip  :collect-fn #'(lambda (node)
+                                               (when (null (children node))
+                                                 node))))))
+
+(defun separate-nodes (leaf-nodes)
+  ;; remove node if item-based can never cover the current utterance
+  ;; look at the number of slots, the number of applied lex cxns
+  ;; and the number of strings in root
+  ;; when nr-of-slots < applied lex + strings in root, skip this node
+  ;; when nr-of-slots > applied lex + 1, skip this node
+  (loop for node in leaf-nodes
+        for applied-cxns = (mapcar #'get-original-cxn
+                                   (applied-constructions node))
+        for applied-lex-cxns = (find-all 'lexical applied-cxns :key #'get-cxn-type)
+        for applied-item-based-cxn = (find 'item-based applied-cxns :key #'get-cxn-type)
+        for strings-in-root = (get-strings-from-root node)
+        when (and applied-item-based-cxn
+                  (or (< (item-based-number-of-slots applied-item-based-cxn)
+                         (+ (length applied-lex-cxns)
+                            (length strings-in-root)))
+                      (> (item-based-number-of-slots applied-item-based-cxn)
+                         (1+ (length applied-lex-cxns)))))
+        collect node into impossible-nodes
+        else collect node into possible-nodes
+        finally (return (values possible-nodes impossible-nodes))))
 
 (defun all-applied-cxns (cipn)
   (cond (;initial node
@@ -405,27 +429,58 @@
              (values (mapcar #'get-original-cxn
                              (applied-constructions (first all-leaf-nodes)))
                      (first all-leaf-nodes))
-             ;; else, take the deepest one (i.e. most cxns, i.e. most abstract)
-             (flet ((node-depth (node)
-                      (length (all-parents node)))
-                    (number-of-item-based-slots (node)
-                      (let* ((applied-cxns
-                              (mapcar #'get-original-cxn
-                                      (applied-constructions node)))
-                             (ib-cxn
-                              (find 'item-based applied-cxns :key #'get-cxn-type)))
-                        (if ib-cxn (item-based-number-of-slots ib-cxn) 0))))
-               (let* ((deepest-nodes
-                       (all-biggest #'node-depth all-leaf-nodes))
-                      (deepest-most-abstract-node
-                       (if (length= deepest-nodes 1)
-                         (first deepest-nodes)
-                         (the-biggest #'number-of-item-based-slots deepest-nodes))))
-                 (values (mapcar #'get-original-cxn
-                                 (applied-constructions deepest-most-abstract-node))
-                         deepest-most-abstract-node))))))))
+             ;; else, ...
+             (flet ((avg-cxn-scores (node)
+                      (average (mapcar #'cxn-score
+                                       (mapcar #'get-original-cxn
+                                               (applied-constructions node)))))
+                    (sum-cxn-scores (node)
+                      (reduce #'+ (mapcar #'cxn-score
+                                       (mapcar #'get-original-cxn
+                                               (applied-constructions node))))))
+               (multiple-value-bind (possible-nodes impossible-nodes)
+                   (separate-nodes all-leaf-nodes)
+                 (let* ((set-to-consider
+                         (if possible-nodes possible-nodes impossible-nodes))
+                        (high-score-node
+                         (the-biggest #'sum-cxn-scores set-to-consider)))
+                   (values (mapcar #'get-original-cxn
+                                   (applied-constructions high-score-node))
+                           high-score-node)))))))))
+
+#|
+(flet ((remove-fn (node)
+         (let* ((applied-cxns
+                 (mapcar #'get-original-cxn
+                         (applied-constructions node)))
+                (applied-lex-cxns
+                 (find-all 'lexical applied-cxns :key #'get-cxn-type))
+                (applied-item-based-cxn
+                 (find 'item-based applied-cxns :key #'get-cxn-type)))
+           (and applied-lex-cxns applied-item-based-cxn
+                (< (item-based-number-of-slots applied-item-based-cxn)
+                   (length applied-lex-cxns)))))
+       (node-depth (node)
+         (length (all-parents node)))
+       (number-of-item-based-slots (node)
+         (let* ((applied-cxns
+                 (mapcar #'get-original-cxn
+                         (applied-constructions node)))
+                (ib-cxn
+                 (find 'item-based applied-cxns :key #'get-cxn-type)))
+           (if ib-cxn (item-based-number-of-slots ib-cxn) 0))))
+  (let* ((deepest-nodes
+          (all-biggest #'node-depth all-leaf-nodes))
+         (deepest-most-abstract-node
+          (if (length= deepest-nodes 1)
+            (first deepest-nodes)
+            (the-biggest #'number-of-item-based-slots deepest-nodes))))
+    (values (mapcar #'get-original-cxn
+                    (applied-constructions deepest-most-abstract-node))
+            deepest-most-abstract-node)))
+|#
          
-  
+(define-event constructions-chosen (constructions list))
 
 (defmethod run-process (process
                         (process-label (eql 'parse))
@@ -444,6 +499,8 @@
                 (restart-occurred-p . ,(find 'restart (status process))))))
            (process-result
             (make-process-result 1 process-result-data :process process)))
+      ;; notify which cxns will be used
+      (notify constructions-chosen (rest (assoc 'applied-cxns process-result-data)))
       ;; update the :last-used property of the cxns
       (loop for cxn in (rest (assoc 'applied-cxns process-result-data))
             do (set-cxn-last-used agent cxn))

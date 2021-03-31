@@ -82,6 +82,11 @@
 (define-event-handler (trace-interactions-in-wi parsing-succeeded)
   (add-element '((h2) "Parsing succeeded")))
 
+(define-event-handler (trace-interactions-in-wi constructions-chosen)
+  (add-element '((h3) "Agent considers the following cxns:"))
+  (loop for cxn in constructions
+        do (add-element (make-html cxn))))
+
 (define-event-handler (trace-interactions-in-wi add-holophrase-repair-started)
   (add-element '((h2) "Parsing failed. Composing a new program")))
 
