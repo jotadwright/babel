@@ -50,12 +50,18 @@
 (defun default-clevr-grammar ()
   (let ((clevr-grammar (copy-object *CLEVR*)))
     (set-configurations clevr-grammar
-                        '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                          (:priority-mode . :depth-first))
+                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                          (:priority-mode . :nr-of-applied-cxns)
+                          (:parse-order hashed nom cxn)
+                          (:production-order hashed-lex nom cxn hashed-morph)
+                          (:max-nr-of-nodes . 10000))
                         :replace t)
     (set-configurations (processing-cxn-inventory clevr-grammar)
-                        '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                          (:priority-mode . :depth-first))
+                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                          (:priority-mode . :nr-of-applied-cxns)
+                          (:parse-order hashed nom cxn)
+                          (:production-order hashed-lex nom cxn hashed-morph)
+                          (:max-nr-of-nodes . 10000))
                         :replace t)
     clevr-grammar))
 
@@ -79,6 +85,15 @@
     (update-composer-chunks-w-primitive-inventory learner)
     learner))
 
+(defmethod clear-question-index-table ((agent clevr-learning-tutor))
+  (setf (question-index-table agent)
+        (loop for i below (length (question-data (experiment agent)))
+              collect (cons i nil))))
+
+(defmethod clear-memory ((agent clevr-learning-learner))
+  (setf (memory agent)
+        (make-hash-table :test #'eq)))
+
 ;; -----------------------
 ;; + Learner Hearer Task +
 ;; -----------------------
@@ -101,6 +116,7 @@
                                 repair-holophrase->item-based-substitution
                                 repair-holophrase->item-based-addition
                                 repair-holophrase->item-based-deletion
+                                repair-item-based+lexical->item-based
                                 repair-make-hypotheses
                                 repair-make-holophrase-cxn)
                 collect (make-instance repair)))
@@ -635,6 +651,41 @@ but not successful"))
             do (add-cxn cxn (grammar agent)))
       (notify add-holophrase-new-cxn (first cxns))
       (make-instance 'fix :issued-by repair :problem problem))))
+
+(defclass repair-item-based+lexical->item-based (repair)
+  ((trigger :initform 'alignment-finished))
+  (:documentation "Repair created when a generalisation is possible.
+                   This repair tries to generalise over holophrases using substitution."))
+
+(define-event item-based+lexical->item-based-repair-started)
+(define-event item-based+lexical->item-based-new-cxns-and-th-links
+  (new-cxns list) (th type-hierarchy) (new-links list))
+
+
+(defmethod repair ((repair repair-item-based+lexical->item-based)
+                   (problem possible-generalisation-problem)
+                   (object process-result)
+                   &key trigger)
+  (declare (ignorable trigger))
+  ;; item-based + lexical -> item-based
+  (let* ((agent (owner (task (process object))))
+         (applied-cxns
+          (find-data object 'applied-cxns))
+         (cipn (find-data object 'cipn)))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent applied-cxns cipn :item-based+lexical->item-based)
+      (when (and cxns th-links)
+        (notify item-based+lexical->item-based-repair-started)
+        (loop for cxn in cxns
+              do (add-cxn cxn (grammar agent)))
+        (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
+              for th-link in th-links
+              do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
+        (notify item-based+lexical->item-based-new-cxns-and-th-links
+                cxns (get-type-hierarchy (grammar agent)) th-links)
+        (make-instance 'fix :issued-by repair :problem problem)))))
 
 
 

@@ -65,10 +65,20 @@
    :file-name (pathname-name path)
    :format "pdf"))
 
+(defun remove-non-connected-nodes (th)
+  (let ((graph (type-hierarchies::graph th)))
+    (loop for category being each hash-key of (graph-utils::nodes graph)
+          when (= (graph-utils::degree graph category) 0)
+          do (graph-utils::delete-node graph category))
+    th))
+
 (define-event-handler (export-type-hierarchy run-series-finished)
-  (let ((th (get-type-hierarchy (grammar (learner experiment))))
-        (path (file-name monitor)))
-    (export-type-hierarchy th path)))
+  (let* ((th (get-type-hierarchy (grammar (learner experiment))))
+         (th-copy (copy-object th))
+         (path (file-name monitor)))
+    (export-type-hierarchy
+     (remove-non-connected-nodes th-copy)
+     path)))
 
 ;;;; export type hierarchy every nth interaction
 (define-monitor export-type-hierarchy-every-nth-interaction

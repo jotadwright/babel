@@ -120,20 +120,16 @@
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (cadr (assoc :meaning file-data)) :key #'first)
+                for count-question-p = (find 'count! (second file-data) :key #'first)
                 for scenes-and-answers
                 = (random-elts
                    (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-pair)
-                                          (= 0 (rest (assoc :answer scene-answer-pair))))
-                                      (rest (assoc :answers file-data)))
-                     (rest (assoc :answers file-data)))
+                     (find-all-if-not #'(lambda (scene-answer-cons)
+                                          (= 0 (cdr scene-answer-cons)))
+                                      (third file-data))
+                     (third file-data))
                    scenes-per-questions)
-                for scenes-and-answers-cons
-                = (loop for alist in scenes-and-answers
-                        collect (cons (rest (assoc :scene alist))
-                                      (rest (assoc :answer alist))))
-                collect (cons (rest (assoc :question file-data)) scenes-and-answers-cons))))
+                collect (cons (first file-data) scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
@@ -148,20 +144,16 @@
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (cadr (assoc :meaning file-data)) :key #'first)
+                for count-question-p = (find 'count! (second file-data) :key #'first)
                 for scenes-and-answers
                 = (random-elts
                    (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-pair)
-                                          (= 0 (rest (assoc :answer scene-answer-pair))))
-                                      (rest (assoc :answers file-data)))
-                     (rest (assoc :answers file-data)))
+                     (find-all-if-not #'(lambda (scene-answer-cons)
+                                          (= 0 (cdr scene-answer-cons)))
+                                      (third file-data))
+                     (third file-data))
                    scenes-per-questions)
-                for scenes-and-answers-cons
-                = (loop for alist in scenes-and-answers
-                        collect (cons (rest (assoc :scene alist))
-                                      (rest (assoc :answer alist))))
-                collect (cons (rest (assoc :question file-data)) scenes-and-answers-cons))))
+                collect (cons (first file-data) scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
@@ -172,20 +164,16 @@
           (loop for file in all-files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (cadr (assoc :meaning file-data)) :key #'first)
+                for count-question-p = (find 'count! (second file-data) :key #'first)
                 for scenes-and-answers
                 = (random-elts
                    (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-pair)
-                                          (= 0 (rest (assoc :answer scene-answer-pair))))
-                                      (rest (assoc :answers file-data)))
-                     (rest (assoc :answers file-data)))
+                     (find-all-if-not #'(lambda (scene-answer-cons)
+                                          (= 0 (cdr scene-answer-cons)))
+                                      (third file-data))
+                     (third file-data))
                    scenes-per-questions)
-                for scenes-and-answers-cons
-                = (loop for alist in scenes-and-answers
-                        collect (cons (rest (assoc :scene alist))
-                                      (rest (assoc :answer alist))))
-                collect (cons (rest (assoc :question file-data)) scenes-and-answers-cons))))
+                collect (cons (first file-data) scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod tutor ((experiment clevr-learning-experiment))

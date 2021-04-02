@@ -29,21 +29,19 @@
 (define-event interaction-before-finished
   (scene clevr-scene) (question string) (answer t))
 
-(defun load-clevr-scene-and-answer (tutor question-answers-cons)
+(defun load-clevr-scene-and-answer (tutor question-scenes-answers-cons)
   ;; !!!!!!!!!!! This is an ugly temporary solution
   ;; Needs to be fixed in the future...
-  (let* ((question (car question-answers-cons))
-         (scenes-and-answers (cdr question-answers-cons)))
-    ;(if (search "How big" question)
-    ;  (sample-question tutor (get-configuration tutor :tutor-mode))
-    (let* ((random-scene-and-answer (random-elt scenes-and-answers))
-           (answer-entity (find-clevr-entity
-                           (cdr random-scene-and-answer)
-                           *clevr-ontology*))
-           (clevr-scene (find-scene-by-name
-                         (car random-scene-and-answer)
-                         (world (experiment tutor)))))
-      (values question clevr-scene answer-entity))))
+  (let* ((question (car question-scenes-answers-cons))
+         (scenes-and-answers (cdr question-scenes-answers-cons))
+         (random-scene-and-answer (random-elt scenes-and-answers))
+         (answer-entity (find-clevr-entity
+                         (cdr random-scene-and-answer)
+                         *clevr-ontology*))
+         (clevr-scene (find-scene-by-name
+                       (car random-scene-and-answer)
+                       (world (experiment tutor)))))
+    (values question clevr-scene answer-entity)))
 
 (defgeneric sample-question (tutor mode)
   (:documentation "The tutor samples a question from the dataset according to mode"))
@@ -147,16 +145,28 @@
       (:store-past-scenes
        (add-past-scene (learner experiment)))))
   ;; check the confidence level and (maybe) transition to the next challenge
-  ;; clear the confidence buffer
   (when (and (> (average (confidence-buffer experiment))
                 (get-configuration experiment :confidence-threshold))
              (< (get-configuration experiment :current-challenge-level)
                 (get-configuration experiment :max-challenge-level)))
+    ;; increase the current challenge level
     (set-configuration experiment :current-challenge-level
                        (1+ (get-configuration experiment :current-challenge-level))
                        :replace t)
-    (setf (confidence-buffer experiment) nil)
+    ;; reset the confidence buffer to all zeros
+    (setf (confidence-buffer experiment)
+          (make-list (get-configuration experiment :evaluation-window-size)
+                     :initial-element 0))
+    ;; load the questions for the current challenge level
     (load-questions-for-current-challenge-level
      experiment (get-configuration experiment :question-sample-mode))
+    ;; set the available primitives for the learner agent
     (set-primitives-for-current-challenge-level (learner experiment))
-    (update-composer-chunks-w-primitive-inventory (learner experiment))))
+    ;; update the composer chunks for the learner agent
+    (update-composer-chunks-w-primitive-inventory (learner experiment))
+    ;; clear the tutor's question-index-table
+    (clear-question-index-table (tutor experiment))
+    ;; clear the learner's memory of scenes of the previous level
+    (clear-memory (learner experiment))
+    ))
+    
