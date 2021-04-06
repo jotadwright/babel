@@ -59,6 +59,18 @@
                   (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
         return cxn))
 
+(defun subunit-blocks-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
+  (loop for lex-cxn in lex-cxns
+        for arg in args
+        for lex-cxn-unit-name in lex-subunit-names
+        for th-link in th-links
+        for lex-slot-lex-class = (cdr th-link)
+        collect `(,lex-cxn-unit-name
+                  (syn-cat (gl::lex-class ,lex-slot-lex-class))) into contributing-units
+        collect `(,lex-cxn-unit-name
+                  (args (,arg))
+                  --) into conditional-units
+        finally (return (values conditional-units contributing-units))))
 
 ;;;; UTILS FOR RUNNING GAMES
 ;;;; -----------------------
@@ -83,7 +95,7 @@
 ;;;; ------------------
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names
-                                              y-axis y1-max y2-max xlabel y1-label y2-label
+                                              y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
                                               captions open)
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
@@ -98,7 +110,7 @@
     :error-bar-modes '(:lines)
     :captions captions
     :use-y-axis y-axis
-    :y1-min 0
+    :y1-min y1-min
     :y1-max y1-max
     :y2-min 0
     :y2-max y2-max
@@ -132,6 +144,9 @@
   (format t "~%Graphs have been created"))
 
 
+
+;; MONITOR UTILS
+;; -------------
 
 (in-package :monitors)
 

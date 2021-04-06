@@ -27,22 +27,21 @@
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
-(define-configuration-default-value :initial-chunk-score 0.5)
+;(define-configuration-default-value :initial-chunk-score 0.5)
 (define-configuration-default-value :initial-th-link-weight 0.1)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.2)
-(define-configuration-default-value :chunk-incf-score 0.1)
-(define-configuration-default-value :chunk-decf-score 0.1)
-(define-configuration-default-value :th-link-incf-score 0.1)
-(define-configuration-default-value :cxn-forgetting-rate 0.05)
-(define-configuration-default-value :cxn-forgetting-threshold 1000)
+;(define-configuration-default-value :chunk-incf-score 0.1)
+;(define-configuration-default-value :chunk-decf-score 0.1)
+;(define-configuration-default-value :th-link-incf-score 0.1)
+;(define-configuration-default-value :cxn-forgetting-rate 0.05)
+;(define-configuration-default-value :cxn-forgetting-threshold 1000)
 
 (define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
-(define-configuration-default-value :tutor-mode :smart) ; :random or :smart
-(define-configuration-default-value :tutor-counts-failure-as 1)
+(define-configuration-default-value :speaker-sample-mode :smart) ; :random or :smart
 
 ;; Autotelic principle
 (define-configuration-default-value :current-challenge-level 1)
@@ -120,20 +119,16 @@
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (cadr (assoc :meaning file-data)) :key #'first)
+                for count-question-p = (find 'count! (second file-data) :key #'first)
                 for scenes-and-answers
                 = (random-elts
                    (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-pair)
-                                          (= 0 (rest (assoc :answer scene-answer-pair))))
-                                      (rest (assoc :answers file-data)))
-                     (rest (assoc :answers file-data)))
+                     (find-all-if-not #'(lambda (scene-answer-cons)
+                                          (= 0 (cdr scene-answer-cons)))
+                                      (third file-data))
+                     (third file-data))
                    scenes-per-questions)
-                for scenes-and-answers-cons
-                = (loop for alist in scenes-and-answers
-                        collect (cons (rest (assoc :scene alist))
-                                      (rest (assoc :answer alist))))
-                collect (cons (rest (assoc :question file-data)) scenes-and-answers-cons))))
+                collect (cons (first file-data) scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
@@ -148,20 +143,16 @@
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (cadr (assoc :meaning file-data)) :key #'first)
+                for count-question-p = (find 'count! (second file-data) :key #'first)
                 for scenes-and-answers
                 = (random-elts
                    (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-pair)
-                                          (= 0 (rest (assoc :answer scene-answer-pair))))
-                                      (rest (assoc :answers file-data)))
-                     (rest (assoc :answers file-data)))
+                     (find-all-if-not #'(lambda (scene-answer-cons)
+                                          (= 0 (cdr scene-answer-cons)))
+                                      (third file-data))
+                     (third file-data))
                    scenes-per-questions)
-                for scenes-and-answers-cons
-                = (loop for alist in scenes-and-answers
-                        collect (cons (rest (assoc :scene alist))
-                                      (rest (assoc :answer alist))))
-                collect (cons (rest (assoc :question file-data)) scenes-and-answers-cons))))
+                collect (cons (first file-data) scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
@@ -172,20 +163,16 @@
           (loop for file in all-files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (cadr (assoc :meaning file-data)) :key #'first)
+                for count-question-p = (find 'count! (second file-data) :key #'first)
                 for scenes-and-answers
                 = (random-elts
                    (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-pair)
-                                          (= 0 (rest (assoc :answer scene-answer-pair))))
-                                      (rest (assoc :answers file-data)))
-                     (rest (assoc :answers file-data)))
+                     (find-all-if-not #'(lambda (scene-answer-cons)
+                                          (= 0 (cdr scene-answer-cons)))
+                                      (third file-data))
+                     (third file-data))
                    scenes-per-questions)
-                for scenes-and-answers-cons
-                = (loop for alist in scenes-and-answers
-                        collect (cons (rest (assoc :scene alist))
-                                      (rest (assoc :answer alist))))
-                collect (cons (rest (assoc :question file-data)) scenes-and-answers-cons))))
+                collect (cons (first file-data) scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod tutor ((experiment clevr-learning-experiment))
@@ -209,3 +196,16 @@
         do (setf (utterance agent) nil
                  (communicated-successfully agent) nil))
   (notify interacting-agents-determined experiment interaction))
+
+(defmethod determine-interacting-agents ((experiment clevr-learning-experiment)
+                                         interaction (mode (eql :default)) &key)
+  "This default implementation randomly chooses two interacting agents
+   and adds the discourse roles speaker and hearer to them"
+  (let ((agents (agents experiment)))
+    (setf (interacting-agents interaction) (shuffle agents))
+    (loop for a in (interacting-agents interaction)
+          for d in '(speaker hearer)
+          do (setf (discourse-role a) d)
+          (setf (utterance a) nil)
+          (setf (communicated-successfully a) nil))
+    (notify interacting-agents-determined experiment interaction)))

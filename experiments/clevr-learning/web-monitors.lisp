@@ -82,6 +82,11 @@
 (define-event-handler (trace-interactions-in-wi parsing-succeeded)
   (add-element '((h2) "Parsing succeeded")))
 
+(define-event-handler (trace-interactions-in-wi constructions-chosen)
+  (add-element '((h3) "Agent considers the following cxns:"))
+  (loop for cxn in constructions
+        do (add-element (make-html cxn))))
+
 (define-event-handler (trace-interactions-in-wi add-holophrase-repair-started)
   (add-element '((h2) "Parsing failed. Composing a new program")))
 
@@ -194,6 +199,18 @@
   (add-element '((h2) "Making hypotheses")))
 
 (define-event-handler (trace-interactions-in-wi make-hypotheses-new-cxns-and-th-links)
+  (add-element '((h3) "New constructions are created:"))
+  (loop for cxn in new-cxns
+        do (add-element (make-html cxn)))
+  (add-element '((h3) "New links are added to the type hierarchy:"))
+  (add-element
+   `((div) ,(s-dot->svg
+             (new-th-links->s-dot th new-links)))))
+
+(define-event-handler (trace-interactions-in-wi item-based+lexical->item-based-repair-started)
+  (add-element '((h2) "Generalising over the grammar")))
+
+(define-event-handler (trace-interactions-in-wi item-based+lexical->item-based-new-cxns-and-th-links)
   (add-element '((h3) "New constructions are created:"))
   (loop for cxn in new-cxns
         do (add-element (make-html cxn)))

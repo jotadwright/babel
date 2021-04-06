@@ -17,19 +17,19 @@
             :documentation "The agent's grammar")
    (ontology :initarg :ontology :accessor ontology :initform nil
              :type (or null blackboard)
-             :documentation "The agent's ontology"))
+             :documentation "The agent's ontology")
+   (question-success-table
+    :initarg :success-table :initform nil :type list
+    :accessor question-success-table
+    :documentation "Agent keeps track of which questions
+                               were seen, and how often it was
+                               successful or not")
+   (current-question-index :initform -1 :accessor current-question-index
+                           :type number :documentation "Index of current question"))
   (:documentation "Base class for both agents"))
 
 (defclass clevr-learning-tutor (clevr-learning-agent)
-  ((question-index-table :initarg :table :initform nil
-                         :accessor question-index-table
-                         :type list
-                         :documentation "Tutor keeps track of which questions the
-                                         learner has seen, and how often it was
-                                         successful or not")
-   (current-question-index :initform -1 :accessor current-question-index
-                           :type number :documentation "Index of current question"))
-  (:documentation "The tutor agent"))
+  () (:documentation "The tutor agent"))
 
 (defclass clevr-learning-learner (clevr-learning-agent)
   ((task-result :initarg :task-result
@@ -50,12 +50,18 @@
 (defun default-clevr-grammar ()
   (let ((clevr-grammar (copy-object *CLEVR*)))
     (set-configurations clevr-grammar
-                        '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                          (:priority-mode . :depth-first))
+                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                          (:priority-mode . :nr-of-applied-cxns)
+                          (:parse-order hashed nom cxn)
+                          (:production-order hashed-lex nom cxn hashed-morph)
+                          (:max-nr-of-nodes . 10000))
                         :replace t)
     (set-configurations (processing-cxn-inventory clevr-grammar)
-                        '((:cxn-supplier-mode . :all-cxns-except-incompatible-hashed-cxns)
-                          (:priority-mode . :depth-first))
+                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                          (:priority-mode . :nr-of-applied-cxns)
+                          (:parse-order hashed nom cxn)
+                          (:production-order hashed-lex nom cxn hashed-morph)
+                          (:max-nr-of-nodes . 10000))
                         :replace t)
     clevr-grammar))
 
@@ -64,20 +70,29 @@
                  :role 'tutor :experiment experiment
                  :grammar (default-clevr-grammar)
                  :ontology (copy-object *clevr-ontology*)
-                 :table (loop for i below (length (question-data experiment))
-                              collect (cons i nil))))
+                 :success-table (loop for i below (length (question-data experiment))
+                                      collect (cons i nil))))
 
 (defun make-clevr-learning-learner (experiment)
-  (let* ((hide-type-hierarchy
-          (get-configuration experiment :hide-type-hierarchy))
-         (learner
-          (make-instance 'clevr-learning-learner
-                         :role 'learner :experiment experiment
-                         :grammar (empty-cxn-set hide-type-hierarchy)
-                         :ontology (copy-object *clevr-ontology*))))
+  (let ((learner
+         (make-instance 'clevr-learning-learner
+                        :role 'learner :experiment experiment
+                        :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy))
+                        :ontology (copy-object *clevr-ontology*)
+                        :success-table (loop for i below (length (question-data experiment))
+                                             collect (cons i nil)))))
     (set-primitives-for-current-challenge-level learner)
     (update-composer-chunks-w-primitive-inventory learner)
     learner))
+
+(defmethod clear-question-success-table ((agent clevr-learning-agent))
+  (setf (question-success-table agent)
+        (loop for i below (length (question-data (experiment agent)))
+              collect (cons i nil))))
+
+(defmethod clear-memory ((agent clevr-learning-learner))
+  (setf (memory agent)
+        (make-hash-table :test #'eq)))
 
 ;; -----------------------
 ;; + Learner Hearer Task +
@@ -101,13 +116,14 @@
                                 repair-holophrase->item-based-substitution
                                 repair-holophrase->item-based-addition
                                 repair-holophrase->item-based-deletion
+                                repair-item-based+lexical->item-based
                                 repair-make-hypotheses
                                 repair-make-holophrase-cxn)
                 collect (make-instance repair)))
          (task
           (make-instance 'learner-hearer-task
                          :owner agent
-                         :label 'learner-hearer-task
+                         :label 'parse-interpret-and-align-task
                          :processes '(initial-process
                                       parse
                                       interpret
@@ -194,11 +210,7 @@
       (loop for cxn in cxns
             do (add-cxn cxn (grammar agent)))
       (notify add-holophrase-new-cxn (first cxns))
-      (make-instance 'fix
-                     :issued-by repair
-                     :problem problem
-                     ;:restart-data holophrase-cxn
-                     ))))
+      (make-instance 'fix :issued-by repair :problem problem))))
 
 
 (defclass repair-lexical->item-based (repair)
@@ -225,7 +237,6 @@
         (run-repair agent applied-cxns cipn :lexical->item-based)
       (when (and cxns th-links)
         (notify lexical->item-based-repair-started)
-        (notify lexicon-changed)
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
@@ -236,11 +247,7 @@
         (notify lexical->item-based-new-cxn-and-links
                 (first cxns) (get-type-hierarchy (grammar agent))
                 th-links)
-        (make-instance 'fix
-                       :issued-by repair
-                       :problem problem
-                       ;:restart-data item-based-cxn
-                       )))))
+        (make-instance 'fix :issued-by repair :problem problem)))))
 
 
 
@@ -268,7 +275,6 @@
         (run-repair agent applied-cxns cipn :item-based->lexical)
       (when cxns
         (notify item-based->lexical-repair-started)
-        (notify lexicon-changed)
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
@@ -279,11 +285,7 @@
         (notify item-based->lexical-new-cxn-and-th-links
                 (first cxns) (get-type-hierarchy (grammar agent))
                 th-links)
-        (make-instance 'fix
-                       :issued-by repair
-                       :problem problem
-                       ;:restart-data lex-cxn
-                       )))))
+        (make-instance 'fix :issued-by repair :problem problem)))))
 
 
 
@@ -317,11 +319,7 @@
               do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
               do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
         (notify add-th-links-new-th-links (get-type-hierarchy (grammar agent)) th-links)
-        (make-instance 'fix
-                       :issued-by repair
-                       :problem problem
-                       :restart-data t
-                       )))))
+        (make-instance 'fix :issued-by repair :problem problem :restart-data t)))))
 
 
 (defmethod repair ((repair repair-make-holophrase-cxn)
@@ -342,14 +340,7 @@
       (loop for cxn in cxns
             do (add-cxn cxn (grammar agent)))
       (notify add-holophrase-new-cxn (first cxns))
-      (make-instance 'fix
-                     :issued-by repair
-                     :problem problem
-                     ;:restart-data holophrase-cxn
-                     ))))
-
-
-
+      (make-instance 'fix :issued-by repair :problem problem))))
 
 
 
@@ -360,32 +351,27 @@
                                                (when (null (children node))
                                                  node))))))
 
-(defun get-node-with-matching-slots-and-lexical-cxns (cipns)
-  (loop for cipn in cipns
+(defun separate-nodes (leaf-nodes)
+  ;; remove node if item-based can never cover the current utterance
+  ;; look at the number of slots, the number of applied lex cxns
+  ;; and the number of strings in root
+  ;; when nr-of-slots < applied lex + strings in root, skip this node
+  ;; when nr-of-slots > applied lex + 1, skip this node
+  (loop for node in leaf-nodes
         for applied-cxns = (mapcar #'get-original-cxn
-                                   (fcg::applied-constructions cipn))
-        for applied-lex-cxns = (find-all 'lexical applied-cxns
-                                         :key #'get-cxn-type)
-        for applied-item-based-cxn = (find 'item-based applied-cxns
-                                           :key #'get-cxn-type)
-        when (and applied-lex-cxns applied-item-based-cxn
-                  (length= applied-lex-cxns (item-based-number-of-slots applied-item-based-cxn))
-                  (null (get-strings-from-root cipn)))
-        return (cons applied-cxns cipn)))
-
-(defun get-node-with-one-missing-lex-for-slots (cipns)
-  (loop for cipn in cipns
-        for applied-cxns = (mapcar #'get-original-cxn
-                                   (fcg::applied-constructions cipn))
-        for applied-lex-cxns = (find-all 'lexical applied-cxns
-                                         :key #'get-cxn-type)
-        for applied-item-based-cxn = (find 'item-based applied-cxns
-                                           :key #'get-cxn-type)
+                                   (applied-constructions node))
+        for applied-lex-cxns = (find-all 'lexical applied-cxns :key #'get-cxn-type)
+        for applied-item-based-cxn = (find 'item-based applied-cxns :key #'get-cxn-type)
+        for strings-in-root = (get-strings-from-root node)
         when (and applied-item-based-cxn
-                  (= (- (item-based-number-of-slots applied-item-based-cxn)
-                        (length applied-lex-cxns)) 1)
-                  (= (length (get-strings-from-root cipn)) 1))
-        return (cons applied-cxns cipn)))
+                  (or (< (item-based-number-of-slots applied-item-based-cxn)
+                         (+ (length applied-lex-cxns)
+                            (length strings-in-root)))
+                      (> (item-based-number-of-slots applied-item-based-cxn)
+                         (1+ (length applied-lex-cxns)))))
+        collect node into impossible-nodes
+        else collect node into possible-nodes
+        finally (return (values possible-nodes impossible-nodes))))
 
 (defun all-applied-cxns (cipn)
   (cond (;initial node
@@ -405,27 +391,29 @@
              (values (mapcar #'get-original-cxn
                              (applied-constructions (first all-leaf-nodes)))
                      (first all-leaf-nodes))
-             ;; else, take the deepest one (i.e. most cxns, i.e. most abstract)
-             (flet ((node-depth (node)
-                      (length (all-parents node)))
-                    (number-of-item-based-slots (node)
-                      (let* ((applied-cxns
-                              (mapcar #'get-original-cxn
-                                      (applied-constructions node)))
-                             (ib-cxn
-                              (find 'item-based applied-cxns :key #'get-cxn-type)))
-                        (if ib-cxn (item-based-number-of-slots ib-cxn) 0))))
-               (let* ((deepest-nodes
-                       (all-biggest #'node-depth all-leaf-nodes))
-                      (deepest-most-abstract-node
-                       (if (length= deepest-nodes 1)
-                         (first deepest-nodes)
-                         (the-biggest #'number-of-item-based-slots deepest-nodes))))
-                 (values (mapcar #'get-original-cxn
-                                 (applied-constructions deepest-most-abstract-node))
-                         deepest-most-abstract-node))))))))
+             ;; else, ...
+             (flet ((avg-cxn-scores (node)
+                      (average (mapcar #'cxn-score
+                                       (mapcar #'get-original-cxn
+                                               (applied-constructions node)))))
+                    (sum-cxn-scores (node)
+                      (reduce #'+ (mapcar #'cxn-score
+                                       (mapcar #'get-original-cxn
+                                               (applied-constructions node))))))
+               (multiple-value-bind (possible-nodes impossible-nodes)
+                   (separate-nodes all-leaf-nodes)
+                 (let* ((set-to-consider
+                         (if possible-nodes possible-nodes impossible-nodes))
+                        (high-score-node
+                         (the-biggest #'sum-cxn-scores set-to-consider)))
+                   (values (mapcar #'get-original-cxn
+                                   (applied-constructions high-score-node))
+                           high-score-node)))))))))
          
-  
+(define-event constructions-chosen (constructions list))
+(define-event log-parsing-finished
+  (agent clevr-learning-agent)
+  (process-result-data list))
 
 (defmethod run-process (process
                         (process-label (eql 'parse))
@@ -440,10 +428,13 @@
             (multiple-value-bind (applied-cxns cipn) (all-applied-cxns cipn)
               `((cipn . ,cipn)
                 (applied-cxns . ,applied-cxns)
-                (irl-program . ,irl-program)
-                (restart-occurred-p . ,(find 'restart (status process))))))
+                (irl-program . ,irl-program))))
            (process-result
             (make-process-result 1 process-result-data :process process)))
+      ;; notify the logging monitor
+      (notify log-parsing-finished agent process-result-data)
+      ;; notify which cxns will be used
+      (notify constructions-chosen (rest (assoc 'applied-cxns process-result-data)))
       ;; update the :last-used property of the cxns
       (loop for cxn in (rest (assoc 'applied-cxns process-result-data))
             do (set-cxn-last-used agent cxn))
@@ -478,6 +469,11 @@
 ;; + Determine success process +
 ;; -----------------------------
 
+(define-event log-interaction-finished
+  (agent clevr-learning-agent)
+  (process-input blackboard)
+  (success t))
+
 (defmethod run-process (process
                         (process-label (eql 'determine-success))
                         task agent)
@@ -485,6 +481,7 @@
   (let ((success (and (find-data (input process) 'found-topic)
                       (equal-entity (find-data (input process) 'found-topic)
                                     (topic agent)))))
+    (notify log-interaction-finished agent (input process) success)
     (make-process-result 1 `((success . ,success)) :process process)))
 
 ;; ---------------------
@@ -579,6 +576,41 @@ but not successful"))
       (notify add-holophrase-new-cxn (first cxns))
       (make-instance 'fix :issued-by repair :problem problem))))
 
+(defclass repair-item-based+lexical->item-based (repair)
+  ((trigger :initform 'alignment-finished))
+  (:documentation "Repair created when a generalisation is possible.
+                   This repair tries to generalise over holophrases using substitution."))
+
+(define-event item-based+lexical->item-based-repair-started)
+(define-event item-based+lexical->item-based-new-cxns-and-th-links
+  (new-cxns list) (th type-hierarchy) (new-links list))
+
+
+(defmethod repair ((repair repair-item-based+lexical->item-based)
+                   (problem possible-generalisation-problem)
+                   (object process-result)
+                   &key trigger)
+  (declare (ignorable trigger))
+  ;; item-based + lexical -> item-based
+  (let* ((agent (owner (task (process object))))
+         (applied-cxns
+          (find-data object 'applied-cxns))
+         (cipn (find-data object 'cipn)))
+    (multiple-value-bind (cxns th-links)
+        (run-repair agent applied-cxns cipn :item-based+lexical->item-based)
+      (when (and cxns th-links)
+        (notify item-based+lexical->item-based-repair-started)
+        (loop for cxn in cxns
+              do (add-cxn cxn (grammar agent)))
+        (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
+              with initial-weight = (get-configuration agent :initial-th-link-weight)
+              for th-link in th-links
+              do (add-categories (list (car th-link) (cdr th-link)) type-hierarchy)
+              do (add-link (car th-link) (cdr th-link) type-hierarchy :weight initial-weight))
+        (notify item-based+lexical->item-based-new-cxns-and-th-links
+                cxns (get-type-hierarchy (grammar agent)) th-links)
+        (make-instance 'fix :issued-by repair :problem problem)))))
+
 
 
 (defclass repair-holophrase->item-based-substitution (repair)
@@ -604,7 +636,6 @@ but not successful"))
         (run-repair agent applied-cxns cipn :holophrase->item-based--substitution)
       (when (and cxns th-links)
         (notify holophrase->item-based-substitution-repair-started)
-        (notify lexicon-changed)
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
@@ -640,7 +671,6 @@ but not successful"))
         (run-repair agent applied-cxns cipn :holophrase->item-based--addition)
       (when (and cxns th-links)
         (notify holophrase->item-based-addition-repair-started)
-        (notify lexicon-changed)
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
@@ -677,7 +707,6 @@ but not successful"))
         (run-repair agent applied-cxns cipn :holophrase->item-based--deletion)
       (when (and cxns th-links)
         (notify holophrase->item-based-deletion-repair-started)
-        (notify lexicon-changed)
         (loop for cxn in cxns
               do (add-cxn cxn (grammar agent)))
         (loop with type-hierarchy = (get-type-hierarchy (grammar agent))
