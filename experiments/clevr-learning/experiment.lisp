@@ -27,22 +27,21 @@
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
-(define-configuration-default-value :initial-chunk-score 0.5)
+;(define-configuration-default-value :initial-chunk-score 0.5)
 (define-configuration-default-value :initial-th-link-weight 0.1)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.2)
-(define-configuration-default-value :chunk-incf-score 0.1)
-(define-configuration-default-value :chunk-decf-score 0.1)
-(define-configuration-default-value :th-link-incf-score 0.1)
-(define-configuration-default-value :cxn-forgetting-rate 0.05)
-(define-configuration-default-value :cxn-forgetting-threshold 1000)
+;(define-configuration-default-value :chunk-incf-score 0.1)
+;(define-configuration-default-value :chunk-decf-score 0.1)
+;(define-configuration-default-value :th-link-incf-score 0.1)
+;(define-configuration-default-value :cxn-forgetting-rate 0.05)
+;(define-configuration-default-value :cxn-forgetting-threshold 1000)
 
 (define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
-(define-configuration-default-value :tutor-mode :smart) ; :random or :smart
-(define-configuration-default-value :tutor-counts-failure-as 1)
+(define-configuration-default-value :speaker-sample-mode :smart) ; :random or :smart
 
 ;; Autotelic principle
 (define-configuration-default-value :current-challenge-level 1)
@@ -197,3 +196,16 @@
         do (setf (utterance agent) nil
                  (communicated-successfully agent) nil))
   (notify interacting-agents-determined experiment interaction))
+
+(defmethod determine-interacting-agents ((experiment clevr-learning-experiment)
+                                         interaction (mode (eql :default)) &key)
+  "This default implementation randomly chooses two interacting agents
+   and adds the discourse roles speaker and hearer to them"
+  (let ((agents (agents experiment)))
+    (setf (interacting-agents interaction) (shuffle agents))
+    (loop for a in (interacting-agents interaction)
+          for d in '(speaker hearer)
+          do (setf (discourse-role a) d)
+          (setf (utterance a) nil)
+          (setf (communicated-successfully a) nil))
+    (notify interacting-agents-determined experiment interaction)))

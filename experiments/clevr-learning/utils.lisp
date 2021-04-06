@@ -95,7 +95,7 @@
 ;;;; ------------------
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names
-                                              y-axis y1-max y2-max xlabel y1-label y2-label
+                                              y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
                                               captions open)
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
@@ -110,7 +110,7 @@
     :error-bar-modes '(:lines)
     :captions captions
     :use-y-axis y-axis
-    :y1-min 0
+    :y1-min y1-min
     :y1-max y1-max
     :y2-min 0
     :y2-max y2-max
@@ -144,6 +144,9 @@
   (format t "~%Graphs have been created"))
 
 
+
+;; MONITOR UTILS
+;; -------------
 
 (in-package :monitors)
 

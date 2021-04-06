@@ -17,35 +17,63 @@
         (t (format t "."))))
 
 ;;;; export failed sentences and applied cxns
-(define-monitor trace-failed-sentences-and-cxns)
+(define-monitor log-interactions)
 
-(defvar *trace-file* nil)
+(defvar *log-file* nil)
 
-(define-event-handler (trace-failed-sentences-and-cxns interaction-finished)
-  (let ((interaction-nr (interaction-number (current-interaction experiment))))
-    (when (> interaction-nr 15000)
-      (let* ((agent (learner experiment))
-             (success (find-data (task-result agent) 'success)))
-        (unless success
-          (unless *trace-file*
-            (setf *trace-file*
-                  (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
-                                  :name (format nil "failed-questions-~a" (make-random-string 5))
-                                  :type "txt")))
-          (let* ((utterance (utterance agent))
-                 (applied-cxns (find-data (task-result agent) 'applied-cxns))
-                 (applied-cxn-names
-                  (when applied-cxns
-                    (mapcar (compose #'downcase #'mkstr #'name) applied-cxns))))
-            (with-open-file (stream *trace-file* :direction :output
-                                    :if-exists :append
-                                    :if-does-not-exist :create)
-              (write-line
-               (format nil "~%Interaction ~a: \"~a\" - ~{~a~^, ~}"
-                       interaction-nr utterance
-                       (if applied-cxn-names
-                         applied-cxn-names '(nil)))
-               stream))))))))
+(define-event-handler (log-interactions log-parsing-finished)
+  (unless *log-file*
+    (setf *log-file*
+          (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                          :name (format nil "log-~a" (make-random-string 5))
+                          :type "txt")))
+  (let ((succeededp
+         (when (rest (assoc 'cipn process-result-data))
+           (find 'fcg::succeeded
+                 (fcg::statuses
+                  (rest (assoc 'cipn process-result-data)))))))
+    (unless succeededp
+      (let* ((interaction-nr
+              (interaction-number (current-interaction (experiment agent))))
+             (applied-cxns
+              (when (rest (assoc 'applied-cxns process-result-data))
+                (mapcar (compose #'downcase #'mkstr #'name)
+                        (rest (assoc 'applied-cxns process-result-data)))))
+             (utterance (utterance agent)))
+        (with-open-file (stream *log-file* :direction :output
+                                :if-exists :append
+                                :if-does-not-exist :create)
+          (write-line
+           (format nil "~%Interaction ~a - Parsing failed - \"~a\" - ~{~a~^, ~}"
+                   interaction-nr
+                   utterance
+                   (if applied-cxns
+                     applied-cxns '(nil)))
+           stream))))))
+
+(define-event-handler (log-interactions log-interaction-finished)
+  (unless *log-file*
+    (setf *log-file*
+          (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                          :name (format nil "log-~a" (make-random-string 5))
+                          :type "txt")))
+  (unless success
+    (let* ((interaction-nr
+            (interaction-number (current-interaction (experiment agent))))
+           (applied-cxns
+            (mapcar (compose #'downcase #'mkstr #'name)
+                    (find-data process-input 'applied-cxns)))
+           (utterance (utterance agent)))
+      (with-open-file (stream *log-file* :direction :output
+                              :if-exists :append
+                              :if-does-not-exist :create)
+        (write-line
+         (format nil "~%Interaction ~a - Interpretation failed - \"~a\" - ~{~a~^, ~}"
+                 interaction-nr
+                 utterance
+                 (if applied-cxns
+                   applied-cxns '(nil)))
+         stream)))))
           
 
 

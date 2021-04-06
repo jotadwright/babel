@@ -29,9 +29,7 @@
 (define-event interaction-before-finished
   (scene clevr-scene) (question string) (answer t))
 
-(defun load-clevr-scene-and-answer (tutor question-scenes-answers-cons)
-  ;; !!!!!!!!!!! This is an ugly temporary solution
-  ;; Needs to be fixed in the future...
+(defun load-clevr-scene-and-answer (agent question-scenes-answers-cons)
   (let* ((question (car question-scenes-answers-cons))
          (scenes-and-answers (cdr question-scenes-answers-cons))
          (random-scene-and-answer (random-elt scenes-and-answers))
@@ -40,11 +38,11 @@
                          *clevr-ontology*))
          (clevr-scene (find-scene-by-name
                        (car random-scene-and-answer)
-                       (world (experiment tutor)))))
+                       (world (experiment agent)))))
     (values question clevr-scene answer-entity)))
 
-(defgeneric sample-question (tutor mode)
-  (:documentation "The tutor samples a question from the dataset according to mode"))
+(defgeneric sample-question (speaker speaker-sample-mode)
+  (:documentation "The speaker samples a question from the dataset according to mode"))
 
 (defmethod sample-question ((tutor clevr-learning-tutor) (mode (eql :random)))
   (load-clevr-scene-and-answer
@@ -55,7 +53,7 @@
 (defmethod sample-question ((tutor clevr-learning-tutor) (mode (eql :smart)))
   (let ((question-data (question-data (experiment tutor))))
     (multiple-value-bind (unseen-question-indices seen-question-indices)
-        (loop for (index . elem) in (question-index-table tutor)
+        (loop for (index . elem) in (question-success-table tutor)
               if (null elem) collect index into unseen
               else collect index into seen
               finally (return (values unseen seen)))
@@ -71,7 +69,7 @@
                     (load-clevr-scene-and-answer tutor sample)))
           (seen (let* ((failure-rates
                         (loop for index in seen-question-indices
-                              for elem = (rest (nth index (question-index-table tutor)))
+                              for elem = (rest (nth index (question-success-table tutor)))
                               collect (/ (cdr elem) (+ (car elem) (cdr elem)))))
                        (cumulative-weights
                         (loop with failure-sum = (reduce #'+ failure-rates)
@@ -88,23 +86,36 @@
                   (setf (current-question-index tutor) sample-index)
                   (load-clevr-scene-and-answer tutor sample))))))))
 
+(defmethod sample-question ((learer clevr-learning-learner) (mode (eql :random)))
+  (error "Not yet implemented"))
+
+(defmethod sample-question ((learer clevr-learning-learner) (mode (eql :smart)))
+  (error "Not yet implemented"))
+
 
 (defmethod interact :before ((experiment clevr-learning-experiment)
                              interaction &key)
   ;; Choose a random scene and a random question and initialize the agents
   (multiple-value-bind (question clevr-scene answer-entity)
-      (sample-question (tutor experiment) (get-configuration experiment :tutor-mode))
+      ;; speaker can be tutor or learner
+      (sample-question (speaker interaction) (get-configuration experiment :speaker-sample-mode))
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent question clevr-scene answer-entity))
     (notify interaction-before-finished clevr-scene question answer-entity)))
 
 (defmethod interact ((experiment clevr-learning-experiment)
                      interaction &key)
-  ;; The tutor is ran implicitely when choosing a random scene and question
-  ;; Now we only need to run the learner's part.
-  (let ((successp (run-learner-hearer-task (learner experiment))))
-    (loop for agent in (population experiment)
-          do (setf (communicated-successfully agent) successp))))
+  (case (role (speaker interaction))
+    (tutor
+     ;; if the tutor is the speaker, only need to run the learner's
+     ;; hearer task
+     (let ((successp (run-learner-hearer-task (learner experiment))))
+       (loop for agent in (population experiment)
+             do (setf (communicated-successfully agent) successp))))
+    (learner
+     ;; if the learner is the speaker, need to run both the learner's
+     ;; speaker task and the tutor's hearer task
+     (error "Not yet implemented"))))
 
 (define-event agent-confidence-level (level float))
 
@@ -112,39 +123,45 @@
                             interaction &key)
   (let ((successp
          (loop for agent in (population experiment)
-               always (communicated-successfully agent)))
-        (composer-strategy
-         (get-configuration experiment :composer-strategy)))
-    ;; add the success to the table of the tutor
-    (let* ((current-index (current-question-index (tutor experiment)))
-           (entry (rest (assoc current-index (question-index-table (tutor experiment)))))
-           (failure-count (get-configuration experiment :tutor-counts-failure-as)))
-      (if (null entry)
-        (setf (rest (assoc current-index (question-index-table (tutor experiment))))
-              (if successp (cons 1 0) (cons 0 failure-count)))
-        (setf (rest (assoc current-index (question-index-table (tutor experiment))))
-              (if successp
-                (cons (1+ (car entry)) (cdr entry))
-                (cons (car entry) (+ (cdr entry) failure-count))))))
+               always (communicated-successfully agent))))
+    ;; record the success of the current question
+    ;; used by 'smart' speaker mode
+    (loop for agent in (population experiment)
+          do (record-interaction-success-in-table agent successp))
     ;; add the success to the confidence buffer of the learner
-    (if (= (length (confidence-buffer experiment))
-           (get-configuration experiment :evaluation-window-size))
-      (setf (confidence-buffer experiment)
-            (cons (if successp 1 0)
-                  (butlast (confidence-buffer experiment))))
-      (push (if successp 1 0) (confidence-buffer experiment)))
+    (setf (confidence-buffer experiment)
+          (cons (if successp 1 0)
+                (butlast (confidence-buffer experiment))))
     (notify agent-confidence-level (average (confidence-buffer experiment)))
     ;; add the current scene/program to memory of the learner, 
     ;; depending on the composer strategy and the success
-    (case composer-strategy
+    (case (get-configuration experiment :composer-strategy)
       (:store-past-programs
        (unless successp
-         (add-past-program (learner experiment)
-                           (find-data (task-result (learner experiment))
-                                      'irl-program))))
+         (add-past-program
+          (learner experiment)
+          (find-data (task-result (learner experiment))
+                     'irl-program))))
       (:store-past-scenes
        (add-past-scene (learner experiment)))))
   ;; check the confidence level and (maybe) transition to the next challenge
+  (maybe-increase-level experiment))
+
+
+(defun record-interaction-success-in-table (agent success)
+  "The agent records the success for the current question in its memory"
+  (let ((index (current-question-index agent)))
+    (unless (= index -1)
+      (let ((entry (rest (assoc index (question-success-table agent)))))
+        (if (null entry)
+          (setf (rest (assoc index (question-success-table agent)))
+                (if success (cons 1 0) (cons 0 1)))
+          (setf (rest (assoc index (question-success-table agent)))
+                (if success
+                  (cons (1+ (car entry)) (cdr entry))
+                  (cons (car entry) (1+ (cdr entry))))))))))
+
+(defun maybe-increase-level (experiment)
   (when (and (> (average (confidence-buffer experiment))
                 (get-configuration experiment :confidence-threshold))
              (< (get-configuration experiment :current-challenge-level)
@@ -164,9 +181,9 @@
     (set-primitives-for-current-challenge-level (learner experiment))
     ;; update the composer chunks for the learner agent
     (update-composer-chunks-w-primitive-inventory (learner experiment))
-    ;; clear the tutor's question-index-table
-    (clear-question-index-table (tutor experiment))
+    ;; clear both agents' question-index-table
+    (loop for agent in (population experiment)
+          do (clear-question-success-table agent))
     ;; clear the learner's memory of scenes of the previous level
-    (clear-memory (learner experiment))
-    ))
+    (clear-memory (learner experiment))))
     
