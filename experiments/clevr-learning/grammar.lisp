@@ -52,6 +52,7 @@
                                         (:production-goal-tests :no-applicable-cxns
                                                  :connected-structure
                                                  :no-meaning-in-root)
+                                        (:max-nr-of-nodes . 1000) ;; !
                                         (:shuffle-cxns-before-application . t)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
