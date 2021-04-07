@@ -338,8 +338,9 @@ def raw_files_to_evo_plot(raw_file_paths=None,
         plt.show()
 
     if export:
-        output_path = os.path.join(BABEL_PATHNAME,
-                                   plot_directory,
+        output_dir = os.path.join(BABEL_PATHNAME, plot_directory)
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir,
                                    f'{plot_file_name}.{graphic_type}')
         fig.savefig(output_path, bbox_inches='tight')
 
