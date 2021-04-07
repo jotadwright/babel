@@ -21,6 +21,14 @@
                                         the corresponding slot is bound"))
   (:documentation "The primitive's evaluation spec (i.e. the primitive body)"))
 
+(defmethod copy-object-content ((source evaluation-spec)
+                                (target evaluation-spec))
+  (setf (pattern target) (copy-object (pattern source)))
+  (setf (bound-slot-names target) (copy-object (bound-slot-names source)))
+  (setf (unbound-slot-names target) (copy-object (unbound-slot-names source)))
+  (setf (evaluation-spec-function target) (copy-object (evaluation-spec-function source)))
+  (setf (bound-slots-pattern target) (copy-object (bound-slots-pattern source))))
+
 
 (defun check-evaluation-spec-syntax (evaluation-spec-defs slot-specs)
   (assert (listp evaluation-spec-defs) ()

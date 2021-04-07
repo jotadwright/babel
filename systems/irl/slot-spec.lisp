@@ -12,7 +12,7 @@
          :documentation "The name of the slot, which should be unique
                          in the scope of the primitive to which the
                          slot belongs")
-   (type :type t :reader slot-spec-type :initform nil :initarg :type
+   (type :type t :accessor slot-spec-type :initform nil :initarg :type
          :documentation "The type of the slot, a Lisp typespec"))
   (:documentation "The primitive's slot spec (i.e. the arguments of the primitive)"))
 
@@ -21,6 +21,13 @@
   (format stream "<slot-spec ~(~a~):~(~a~)>"
           (slot-spec-name slot-spec)
           (slot-spec-type slot-spec)))
+
+(defmethod copy-object-content ((source slot-spec)
+                                (target slot-spec))
+  (setf (slot-value target 'name)
+        (copy-object (slot-spec-name source)))
+  (setf (slot-spec-type target)
+        (copy-object (slot-spec-type source))))
 
 
 (defun check-slot-spec-syntax (slot-spec-defs)
