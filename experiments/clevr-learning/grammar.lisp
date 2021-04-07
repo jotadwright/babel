@@ -32,7 +32,7 @@
 
 (in-package :clevr-learning)
 
-(defun empty-cxn-set (hide-type-hierarchy)
+(defun empty-cxn-set (hide-type-hierarchy cxn-supplier)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions-with-type-hierarchy
@@ -43,7 +43,7 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . :ordered-by-label-and-score)
+                   :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
                                         (:parse-order non-holophrase holophrase)
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network

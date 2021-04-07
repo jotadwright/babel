@@ -77,7 +77,8 @@
   (let ((learner
          (make-instance 'clevr-learning-learner
                         :role 'learner :experiment experiment
-                        :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy))
+                        :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
+                                                (get-configuration experiment :learner-cxn-supplier))
                         :ontology (copy-object *clevr-ontology*)
                         :success-table (loop for i below (length (question-data experiment))
                                              collect (cons i nil)))))

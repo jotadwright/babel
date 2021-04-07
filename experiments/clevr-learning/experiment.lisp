@@ -22,7 +22,7 @@
                                                    :name :wild :type "lisp"))
 (define-configuration-default-value :questions-per-challenge 5000)
 (define-configuration-default-value :scenes-per-question 20)
-(define-configuration-default-value :question-sample-mode :first) ; random or first
+(define-configuration-default-value :question-sample-mode :first) ; random or first or all
 (define-configuration-default-value :clevr-world-data-sets '("val"))
 
 ;; Strategies and scores
@@ -42,6 +42,7 @@
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :speaker-sample-mode :smart) ; :random or :smart
+(define-configuration-default-value :learner-cxn-supplier :ordered-by-label-and-score)
 
 ;; Autotelic principle
 (define-configuration-default-value :current-challenge-level 1)
