@@ -49,6 +49,7 @@
 (define-configuration-default-value :max-challenge-level 3)
 (define-configuration-default-value :evaluation-window-size 1000)
 (define-configuration-default-value :confidence-threshold 1.00)
+(define-configuration-default-value :learner-speaks-confidence-threshold 0.5)
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)
@@ -202,11 +203,15 @@
                                          interaction (mode (eql :default)) &key)
   "This default implementation randomly chooses two interacting agents
    and adds the discourse roles speaker and hearer to them"
-  (let ((agents (agents experiment)))
-    (setf (interacting-agents interaction) (shuffle agents))
-    (loop for a in (interacting-agents interaction)
-          for d in '(speaker hearer)
-          do (setf (discourse-role a) d)
-          (setf (utterance a) nil)
-          (setf (communicated-successfully a) nil))
-    (notify interacting-agents-determined experiment interaction)))
+  (let ((threshold (get-configuration experiment :learner-speaks-confidence-threshold))
+        (confidence (average (confidence-buffer experiment))))
+    (if (> confidence threshold)
+      (let ((agents (agents experiment)))
+        (setf (interacting-agents interaction) (shuffle agents))
+        (loop for a in (interacting-agents interaction)
+              for d in '(speaker hearer)
+              do (setf (discourse-role a) d)
+              (setf (utterance a) nil)
+              (setf (communicated-successfully a) nil))
+        (notify interacting-agents-determined experiment interaction))
+      (determine-interacting-agents experiment interaction :tutor-learner))))

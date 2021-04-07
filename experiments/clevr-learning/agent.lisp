@@ -25,7 +25,11 @@
                                were seen, and how often it was
                                successful or not")
    (current-question-index :initform -1 :accessor current-question-index
-                           :type number :documentation "Index of current question"))
+                           :type number :documentation "Index of current question")
+   (available-primitives :initarg :available-primitives
+                         :accessor available-primitives
+                         :initform nil :type (or null primitive-inventory)
+                         :documentation "The primitives available for the agent"))
   (:documentation "Base class for both agents"))
 
 (defclass clevr-learning-tutor (clevr-learning-agent)
@@ -38,10 +42,6 @@
                 :documentation "Pointer to the result of the task in this interaction")
    (memory :initarg :memory :accessor memory :initform (make-hash-table :test #'eq)
            :documentation "The agent's memory (used by composer strategy)")
-   (available-primitives :initarg :available-primitives
-                         :accessor available-primitives
-                         :initform nil :type (or null primitive-inventory)
-                         :documentation "The primitives available for the agent")
    (composer-chunks :initarg :composer-chunks :accessor composer-chunks
                     :initform nil :type list
                     :documentation "The chunks the agent can use for composing"))
@@ -71,7 +71,8 @@
                  :grammar (default-clevr-grammar)
                  :ontology (copy-object *clevr-ontology*)
                  :success-table (loop for i below (length (question-data experiment))
-                                      collect (cons i nil))))
+                                      collect (cons i nil))
+                 :available-primitives (copy-object *clevr-primitives*)))
 
 (defun make-clevr-learning-learner (experiment)
   (let ((learner
@@ -418,7 +419,8 @@
 
 (defmethod run-process (process
                         (process-label (eql 'parse))
-                        task agent)
+                        task
+                        (agent clevr-learning-learner))
   ;; Try to parse the question
   (multiple-value-bind (irl-program cipn)
       (comprehend (utterance agent) :cxn-inventory (grammar agent))

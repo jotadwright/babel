@@ -7,19 +7,21 @@
 ;; --------------------
 
 (defmethod initialize-agent ((agent clevr-learning-tutor)
-                             question scene answer)
+                             question scene answer index)
   (setf (utterance agent) question
         (topic agent) answer
-        (communicated-successfully agent) t)
+        (communicated-successfully agent) t
+        (current-question-index agent) index)
   (set-data (ontology agent) 'clevr-context scene))
 
 (defmethod initialize-agent ((agent clevr-learning-learner)
-                             question scene answer)
+                             question scene answer index)
   (setf (utterance agent) question
         (topic agent) answer
         (communicated-successfully agent) t
         (task-result agent) nil
-        (tasks-and-processes::tasks agent) nil)
+        (tasks-and-processes::tasks agent) nil
+        (current-question-index agent) index)
   (set-data (ontology agent) 'clevr-context scene))
 
 ;; ---------------
@@ -29,7 +31,7 @@
 (define-event interaction-before-finished
   (scene clevr-scene) (question string) (answer t))
 
-(defun load-clevr-scene-and-answer (agent question-scenes-answers-cons)
+(defun load-clevr-scene-and-answer (agent question-scenes-answers-cons index)
   (let* ((question (car question-scenes-answers-cons))
          (scenes-and-answers (cdr question-scenes-answers-cons))
          (random-scene-and-answer (random-elt scenes-and-answers))
@@ -39,21 +41,21 @@
          (clevr-scene (find-scene-by-name
                        (car random-scene-and-answer)
                        (world (experiment agent)))))
-    (values question clevr-scene answer-entity)))
+    (values question clevr-scene answer-entity index)))
 
 (defgeneric sample-question (speaker speaker-sample-mode)
   (:documentation "The speaker samples a question from the dataset according to mode"))
 
-(defmethod sample-question ((tutor clevr-learning-tutor) (mode (eql :random)))
+(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :random)))
   (load-clevr-scene-and-answer
-   tutor (random-elt
+   agent (random-elt
           (question-data
-           (experiment tutor)))))
+           (experiment agent))) -1))
 
-(defmethod sample-question ((tutor clevr-learning-tutor) (mode (eql :smart)))
-  (let ((question-data (question-data (experiment tutor))))
+(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :smart)))
+  (let ((question-data (question-data (experiment agent))))
     (multiple-value-bind (unseen-question-indices seen-question-indices)
-        (loop for (index . elem) in (question-success-table tutor)
+        (loop for (index . elem) in (question-success-table agent)
               if (null elem) collect index into unseen
               else collect index into seen
               finally (return (values unseen seen)))
@@ -65,11 +67,10 @@
         (case set-to-consider
           (unseen (let* ((random-index (random-elt unseen-question-indices))
                          (sample (nth random-index question-data)))
-                    (setf (current-question-index tutor) random-index)
-                    (load-clevr-scene-and-answer tutor sample)))
+                    (load-clevr-scene-and-answer agent sample random-index)))
           (seen (let* ((failure-rates
                         (loop for index in seen-question-indices
-                              for elem = (rest (nth index (question-success-table tutor)))
+                              for elem = (rest (nth index (question-success-table agent)))
                               collect (/ (cdr elem) (+ (car elem) (cdr elem)))))
                        (cumulative-weights
                         (loop with failure-sum = (reduce #'+ failure-rates)
@@ -83,24 +84,18 @@
                               for index in seen-question-indices
                               when (> cw r) return index))
                        (sample (nth sample-index question-data)))
-                  (setf (current-question-index tutor) sample-index)
-                  (load-clevr-scene-and-answer tutor sample))))))))
-
-(defmethod sample-question ((learer clevr-learning-learner) (mode (eql :random)))
-  (error "Not yet implemented"))
-
-(defmethod sample-question ((learer clevr-learning-learner) (mode (eql :smart)))
-  (error "Not yet implemented"))
+                  (load-clevr-scene-and-answer agent sample sample-index))))))))
 
 
 (defmethod interact :before ((experiment clevr-learning-experiment)
                              interaction &key)
   ;; Choose a random scene and a random question and initialize the agents
-  (multiple-value-bind (question clevr-scene answer-entity)
+  (multiple-value-bind (question clevr-scene answer-entity index)
       ;; speaker can be tutor or learner
-      (sample-question (speaker interaction) (get-configuration experiment :speaker-sample-mode))
+      (sample-question (speaker interaction)
+                       (get-configuration experiment :speaker-sample-mode))
     (loop for agent in (interacting-agents experiment)
-          do (initialize-agent agent question clevr-scene answer-entity))
+          do (initialize-agent agent question clevr-scene answer-entity index))
     (notify interaction-before-finished clevr-scene question answer-entity)))
 
 (defmethod interact ((experiment clevr-learning-experiment)
@@ -115,8 +110,19 @@
     (learner
      ;; if the learner is the speaker, need to run both the learner's
      ;; speaker task and the tutor's hearer task
-     (error "Not yet implemented"))))
-
+     (let ((learner-speaks-task-result
+            (run-learner-speaker-task (learner experiment)))
+           successp)
+       (when learner-speaks-task-result
+         (let ((gold-answer
+                (run-tutor-hearer-task (tutor experiment) learner-speaks-task-result)))
+           (setf successp
+                 (run-learner-alignment-task (learner experiment)
+                                             learner-speaks-task-result
+                                             gold-answer))))
+       (loop for agent in (population experiment)
+             do (setf (communicated-successfully agent) successp))))))
+    
 (define-event agent-confidence-level (level float))
 
 (defmethod interact :after ((experiment clevr-learning-experiment)
