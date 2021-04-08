@@ -7,21 +7,19 @@
 ;; --------------------
 
 (defmethod initialize-agent ((agent clevr-learning-tutor)
-                             question scene answer index)
+                             question scene answer)
   (setf (utterance agent) question
         (topic agent) answer
-        (communicated-successfully agent) t
-        (current-question-index agent) index)
+        (communicated-successfully agent) t)
   (set-data (ontology agent) 'clevr-context scene))
 
 (defmethod initialize-agent ((agent clevr-learning-learner)
-                             question scene answer index)
+                             question scene answer)
   (setf (utterance agent) question
         (topic agent) answer
         (communicated-successfully agent) t
         (task-result agent) nil
-        (tasks-and-processes::tasks agent) nil
-        (current-question-index agent) index)
+        (tasks-and-processes::tasks agent) nil)
   (set-data (ontology agent) 'clevr-context scene))
 
 ;; ---------------
@@ -31,7 +29,7 @@
 (define-event interaction-before-finished
   (scene clevr-scene) (question string) (answer t))
 
-(defun load-clevr-scene-and-answer (agent question-scenes-answers-cons index)
+(defun load-clevr-scene-and-answer (agent question-scenes-answers-cons)
   (let* ((question (car question-scenes-answers-cons))
          (scenes-and-answers (cdr question-scenes-answers-cons))
          (random-scene-and-answer (random-elt scenes-and-answers))
@@ -41,7 +39,7 @@
          (clevr-scene (find-scene-by-name
                        (car random-scene-and-answer)
                        (world (experiment agent)))))
-    (values question clevr-scene answer-entity index)))
+    (values question clevr-scene answer-entity)))
 
 (defgeneric sample-question (speaker speaker-sample-mode)
   (:documentation "The speaker samples a question from the dataset according to mode"))
@@ -50,9 +48,9 @@
   (load-clevr-scene-and-answer
    agent (random-elt
           (question-data
-           (experiment agent))) -1))
+           (experiment agent)))))
 
-(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :smart)))
+(defmethod sample-question ((agent clevr-learning-tutor) (mode (eql :smart)))
   (let ((question-data (question-data (experiment agent))))
     (multiple-value-bind (unseen-question-indices seen-question-indices)
         (loop for (index . elem) in (question-success-table agent)
@@ -67,7 +65,8 @@
         (case set-to-consider
           (unseen (let* ((random-index (random-elt unseen-question-indices))
                          (sample (nth random-index question-data)))
-                    (load-clevr-scene-and-answer agent sample random-index)))
+                    (setf (current-question-index agent) random-index)
+                    (load-clevr-scene-and-answer agent sample)))
           (seen (let* ((failure-rates
                         (loop for index in seen-question-indices
                               for elem = (rest (nth index (question-success-table agent)))
@@ -84,18 +83,22 @@
                               for index in seen-question-indices
                               when (> cw r) return index))
                        (sample (nth sample-index question-data)))
-                  (load-clevr-scene-and-answer agent sample sample-index))))))))
+                  (setf (current-question-index agent) sample-index)
+                  (load-clevr-scene-and-answer agent sample))))))))
+
+(defmethod sample-question ((agent clevr-learning-learner) (mode (eql :smart)))
+  (sample-question agent :random))
 
 
 (defmethod interact :before ((experiment clevr-learning-experiment)
                              interaction &key)
   ;; Choose a random scene and a random question and initialize the agents
-  (multiple-value-bind (question clevr-scene answer-entity index)
+  (multiple-value-bind (question clevr-scene answer-entity)
       ;; speaker can be tutor or learner
       (sample-question (speaker interaction)
                        (get-configuration experiment :speaker-sample-mode))
     (loop for agent in (interacting-agents experiment)
-          do (initialize-agent agent question clevr-scene answer-entity index))
+          do (initialize-agent agent question clevr-scene answer-entity))
     (notify interaction-before-finished clevr-scene question answer-entity)))
 
 (defmethod interact ((experiment clevr-learning-experiment)
@@ -131,25 +134,28 @@
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
     ;; record the success of the current question
-    ;; used by 'smart' speaker mode
-    (loop for agent in (population experiment)
-          do (record-interaction-success-in-table agent successp))
+    ;; used by 'smart' speaker mode for the tutor
+    (when (eq (speaker interaction) (tutor interaction))
+      (record-interaction-success-in-table (tutor interaction) successp))
     ;; add the success to the confidence buffer of the learner
     (setf (confidence-buffer experiment)
           (cons (if successp 1 0)
                 (butlast (confidence-buffer experiment))))
     (notify agent-confidence-level (average (confidence-buffer experiment)))
     ;; add the current scene/program to memory of the learner, 
-    ;; depending on the composer strategy and the success
-    (case (get-configuration experiment :composer-strategy)
-      (:store-past-programs
-       (unless successp
-         (add-past-program
-          (learner experiment)
-          (find-data (task-result (learner experiment))
-                     'irl-program))))
-      (:store-past-scenes
-       (add-past-scene (learner experiment)))))
+    ;; depending on the composer strategy and the success,
+    ;; but only when being the hearer (when learner is speaker,
+    ;; we dont have access to the utterance)
+    (when (eq (hearer interaction) (learner interaction))
+      (case (get-configuration experiment :composer-strategy)
+        (:store-past-programs
+         (unless successp
+           (add-past-program
+            (learner experiment)
+            (find-data (task-result (learner experiment))
+                       'irl-program))))
+        (:store-past-scenes
+         (add-past-scene (learner experiment))))))
   ;; check the confidence level and (maybe) transition to the next challenge
   (maybe-increase-level experiment))
 
@@ -187,9 +193,8 @@
     (set-primitives-for-current-challenge-level (learner experiment))
     ;; update the composer chunks for the learner agent
     (update-composer-chunks-w-primitive-inventory (learner experiment))
-    ;; clear both agents' question-index-table
-    (loop for agent in (population experiment)
-          do (clear-question-success-table agent))
+    ;; clear the question-index-table
+    (clear-question-success-table (tutor experiment))
     ;; clear the learner's memory of scenes of the previous level
     (clear-memory (learner experiment))))
     

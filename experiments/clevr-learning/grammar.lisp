@@ -100,7 +100,8 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'holophrase))
-                                             agent)
+                                             agent utterance)
+  (declare (ignorable utterance))
   ;; holophrase competitors have exactly the same form
   (let* ((all-cxns-of-type
           (remove cxn
@@ -116,7 +117,8 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'lexical))
-                                             agent)
+                                             agent utterance)
+  (declare (ignorable utterance))
   ;; lexical competitors have exactly the same form
   (let* ((all-cxns-of-type
           (remove cxn
@@ -132,7 +134,7 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'item-based))
-                                             agent)
+                                             agent utterance)
   ;; meaning competitors for item-based cxns are
   ;; less general item-based cxns and holophrase cxns
   ;; that also work for the current utterance
@@ -141,7 +143,7 @@
           (extract-form-predicates cxn)
           cxn-inventory))
         (de-rendered-utterance
-         (fcg::tokenize (utterance agent)))
+         (fcg::tokenize utterance))
         (possible-item-based-competitors
          (loop for other-cxn in (constructions-list cxn-inventory)
                when (and (eql (get-cxn-type other-cxn) 'item-based)
@@ -174,11 +176,11 @@
                collect other-cxn)))
     (append holophrase-competitors item-based-competitors)))
 
-(defun get-meaning-competitors (agent applied-cxns)
+(defun get-meaning-competitors (agent applied-cxns utterance)
   "Get cxns with the same form as cxn"
   (loop for cxn in applied-cxns
         for cxn-type = (get-cxn-type cxn)
         for competitors = (meaning-competitors-for-cxn-type
                            cxn (grammar agent) cxn-type
-                           agent)
+                           agent utterance)
         append competitors))

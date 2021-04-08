@@ -180,8 +180,14 @@
 (defmethod tutor ((experiment clevr-learning-experiment))
   (find 'tutor (population experiment) :key #'role))
 
+(defmethod tutor ((interaction interaction))
+  (find 'tutor (interacting-agents interaction) :key #'role))
+
 (defmethod learner ((experiment clevr-learning-experiment))
   (find 'learner (population experiment) :key #'role))
+
+(defmethod learner ((interaction interaction))
+  (find 'learner (interacting-agents interaction) :key #'role))
 
 ;; ---------------------------
 ;; + Interacting Agents Mode +
