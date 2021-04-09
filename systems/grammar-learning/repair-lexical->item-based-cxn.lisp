@@ -173,11 +173,10 @@ based on existing construction with sufficient overlap."
            (orig-type-hierarchy (get-type-hierarchy (construction-inventory node)))
            (temp-type-hierarchy (copy-object (get-type-hierarchy (construction-inventory node))))
            (th-flat-list nil)
-           (th (loop for th-list in th-links
-                     do (loop for th-link in th-list
-                              do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy)
-                              (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5)
-                              (setf th-flat-list (append th-flat-list (list th-link))))
+           (th (loop for th-link in th-links
+                     do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy)
+                     (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5)
+                     (setf th-flat-list (append th-flat-list (list th-link)))
                      finally (set-type-hierarchy (construction-inventory node) temp-type-hierarchy)))
            (lex-nodes (loop for lex-cxn in lex-cxns
                             with last-node = (initial-node node)
