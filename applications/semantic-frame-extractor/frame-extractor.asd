@@ -6,6 +6,7 @@
                :cl-ppcre
                :xmls
                :nlp-tools
+               :irl
                ;;:type-hierarchies
                :tasks-and-processes
                :corpus-processing 

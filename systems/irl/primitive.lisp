@@ -29,6 +29,12 @@
 	(format stream "(~~primitive~~~:_ id: ~(~a~))" (id p)))
       (call-next-method)))
 
+(defmethod copy-object ((primitive primitive))
+  (let ((copy (make-instance
+               'primitive :id (id primitive)
+               :slot-specs (copy-object (slot-specs primitive))
+               :evaluation-specs (copy-object (evaluation-specs primitive)))))
+    copy))
 
 (defun primitive-p (obj)
   (typep obj 'primitive))

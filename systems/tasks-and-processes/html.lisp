@@ -38,7 +38,7 @@ process-result td.data { padding:0px;vertical-align:top;border-spacing:0px }
       ,(format nil "~(~a~):" field))
      ((td :class "data")
       ,(if (listp value)
-         (html-pprint value)
+         `((div) ,@(mapcar #'(lambda (v) (make-html v :expand/collapse-all-id expand/collapse-all-id)) value))
          (make-html value :expand/collapse-all-id expand/collapse-all-id))))))
 
 (defun make-table-for-blackboard (bb)

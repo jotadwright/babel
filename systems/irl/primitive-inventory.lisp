@@ -130,7 +130,10 @@
 
 (defmethod copy-object-content ((source primitive-inventory)
                                 (target primitive-inventory))
-  nil)
+  (setf (configuration target)
+        (copy-object (configuration source)))
+  (setf (primitives target)
+        (copy-object (primitives source))))
 
 
 (defmethod set-configuration ((primitive-inventory primitive-inventory)

@@ -122,14 +122,15 @@
           never (equivalent-irl-programs? past-program solution-irl-program))))
 
 
-(defmethod compose-program ((agent clevr-learning-learner) target-category
+(defmethod compose-program ((agent clevr-learning-learner)
+                            target-category utterance
                             (strategy (eql :store-past-programs))
                             &key partial-program)
   (let* ((composer
           (make-default-composer agent target-category
                                  :partial-program partial-program))
          (utterance-hash-key
-          (sxhash (utterance agent)))
+          (sxhash utterance))
          (past-programs-with-same-utterance
           (gethash utterance-hash-key (memory agent))))
     (if past-programs-with-same-utterance
@@ -170,14 +171,15 @@
     (set-data (ontology agent) 'clevr-context clevr-context)
     success))
 
-(defmethod compose-program ((agent clevr-learning-learner) target-category
+(defmethod compose-program ((agent clevr-learning-learner)
+                            target-category utterance
                             (strategy (eql :store-past-scenes))
                             &key partial-program)
   (let* ((composer
           (make-default-composer agent target-category
                                  :partial-program partial-program))
          (utterance-hash-key
-          (sxhash (utterance agent)))
+          (sxhash utterance))
          (past-scenes-with-same-utterance
           (gethash utterance-hash-key (memory agent))))
     (if past-scenes-with-same-utterance

@@ -9,6 +9,7 @@
 	:fcg
         :pie
         :nlp-tools
+        :irl
         #+:hunchentoot-available-on-this-platform :web-interface
         :monitors
         :meta-layer-learning

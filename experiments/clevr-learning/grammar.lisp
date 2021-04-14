@@ -30,64 +30,9 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
-
-(defclass cxn-supplier-ordered-by-label-score-and-abstractness (cxn-supplier-ordered-by-label-and-score)
-  () (:documentation "ordered by label, score and abstractness"))
-
-(defun sort-by-abstractness (list-of-cxns)
-  "Abstractness can be defined as the number of units
-   on the contributing part. Holophrases and lexical cxns
-   all have one, item-based cxns have several"
-  (sort list-of-cxns #'>
-        :key #'(lambda (cxn)
-                 (length
-                  (contributing-part
-                   (original-cxn cxn))))))
-
-(defmethod create-cxn-supplier ((node cip-node) (mode (eql :ordered-by-label-score-and-abstractness)))
-  (let* ((parent (car (all-parents node))))
-    (if parent
-      ;; copy most of the stuff from the the pool of the parent
-      (make-instance 
-       'cxn-supplier-ordered-by-label-score-and-abstractness
-       :current-label (current-label (cxn-supplier parent))
-       :remaining-labels (remaining-labels (cxn-supplier parent))
-       :all-constructions-of-current-label (all-constructions-of-current-label (cxn-supplier parent)))
-      ;; there is no parent, start from first label
-      (let ((labels (get-configuration (construction-inventory (cip node))
-                                       (if (eq (direction (cip node)) '->)
-                                         :production-order :parse-order))))
-        (make-instance 
-         'cxn-supplier-ordered-by-label-score-and-abstractness
-         :current-label (car labels)
-         :remaining-labels (cdr labels)
-         :all-constructions-of-current-label
-         (sort-by-abstractness
-          (all-constructions-of-label-by-score node (car labels))))))))
-
-(defmethod next-cxn ((cxn-supplier cxn-supplier-ordered-by-label-score-and-abstractness) (node cip-node))
-  (cond ((remaining-constructions cxn-supplier)
-         ;; there are remaining constructions. just return the next one
-         (pop (remaining-constructions cxn-supplier)))
-        ((loop for child in (children node)
-               thereis (cxn-applied child))
-         ;; when the node already has children where cxn application succeeded,
-         ;;  then we don't move to the next label
-         nil)
-        ((remaining-labels cxn-supplier)
-         ;; go to the next label
-         (setf (current-label cxn-supplier) (car (remaining-labels cxn-supplier)))
-         (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
-         (setf (all-constructions-of-current-label cxn-supplier)
-               (sort-by-abstractness
-                (all-constructions-of-label-by-score node (current-label cxn-supplier))))
-         (setf (remaining-constructions cxn-supplier)
-               (all-constructions-of-current-label cxn-supplier))
-         (next-cxn cxn-supplier node))))
-
 (in-package :clevr-learning)
 
-(defun empty-cxn-set (hide-type-hierarchy)
+(defun empty-cxn-set (hide-type-hierarchy cxn-supplier)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions-with-type-hierarchy
@@ -98,15 +43,16 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . :ordered-by-label-and-score)
+                   :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
                                         (:parse-order non-holophrase holophrase)
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network
                                                            :no-strings-in-root)
-                                        (:production-order lexical item-based holophrase)
+                                        (:production-order non-holophrase holophrase)
                                         (:production-goal-tests :no-applicable-cxns
-                                                 :connected-structure
-                                                 :no-meaning-in-root)
+                                                                :connected-structure
+                                                                :no-meaning-in-root)
+                                        (:max-nr-of-nodes . 1000) ;; !
                                         (:shuffle-cxns-before-application . t)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
@@ -154,7 +100,8 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'holophrase))
-                                             agent)
+                                             agent utterance)
+  (declare (ignorable utterance))
   ;; holophrase competitors have exactly the same form
   (let* ((all-cxns-of-type
           (remove cxn
@@ -170,7 +117,8 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'lexical))
-                                             agent)
+                                             agent utterance)
+  (declare (ignorable utterance))
   ;; lexical competitors have exactly the same form
   (let* ((all-cxns-of-type
           (remove cxn
@@ -186,7 +134,7 @@
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'item-based))
-                                             agent)
+                                             agent utterance)
   ;; meaning competitors for item-based cxns are
   ;; less general item-based cxns and holophrase cxns
   ;; that also work for the current utterance
@@ -195,7 +143,7 @@
           (extract-form-predicates cxn)
           cxn-inventory))
         (de-rendered-utterance
-         (fcg::tokenize (utterance agent)))
+         (fcg::tokenize utterance))
         (possible-item-based-competitors
          (loop for other-cxn in (constructions-list cxn-inventory)
                when (and (eql (get-cxn-type other-cxn) 'item-based)
@@ -228,11 +176,11 @@
                collect other-cxn)))
     (append holophrase-competitors item-based-competitors)))
 
-(defun get-meaning-competitors (agent applied-cxns)
+(defun get-meaning-competitors (agent applied-cxns utterance)
   "Get cxns with the same form as cxn"
   (loop for cxn in applied-cxns
         for cxn-type = (get-cxn-type cxn)
         for competitors = (meaning-competitors-for-cxn-type
                            cxn (grammar agent) cxn-type
-                           agent)
+                           agent utterance)
         append competitors))
