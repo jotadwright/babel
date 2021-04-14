@@ -234,7 +234,7 @@
          (check-for-invalid-not-operator feature-name (first feature-value) feature-type)
          (check-for-invalid-not-operator feature-name (rest feature-value) feature-type))))
 
-(defun convert-feature-to-fcg-2 (feature feature-types)
+(defun convert-feature-to-fcg-2 (feature feature-types &key (block-expansion nil))
   "converts an fcg-feature to a processing-feature"
  (cond
   
@@ -242,7 +242,10 @@
   ;; --> Return feature
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  ((and (null (cddr feature)) (atom (second feature)))
+  ((and (null (cddr feature))
+        (atom (second feature))
+        (or block-expansion (not (third (assoc (feature-name feature) feature-types)))) ;; check that expansion is not needed.
+        )
    feature)
 
   ;; Case 2: The feature starts with a hash: e.g. (hash form ((string ?x "x")))
@@ -260,8 +263,13 @@
   ;; --> Return feature expanded to ++ operator
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  ((third (assoc (feature-name feature) feature-types))
-   `(,(feature-name feature) (++ ,(third (assoc (feature-name feature) feature-types)) ,(second feature))))
+  ((and (null block-expansion) (third (assoc (feature-name feature) feature-types)))
+   `(,(feature-name feature) (++ ,(third (assoc (feature-name feature) feature-types))
+                                 ,(feature-value
+                                   (convert-feature-to-fcg-2
+                                    feature
+                                    feature-types
+                                    :block-expansion t)))))
 
  ;; Case 4: >> operator (overwrites)
  ;; --> Return feature with prefix special operator ->
