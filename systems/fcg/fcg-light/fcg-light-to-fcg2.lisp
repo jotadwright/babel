@@ -284,7 +284,7 @@
           (t
            `(,(feature-name feature) (-> ,old ,new))))))
  
- ;; Case 5: feature is a set of atoms
+ ;; Case 5a: feature is a set of atoms
  ;; --> cons == or ==0 to the set
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  
@@ -304,7 +304,7 @@
           (setf set-elements (cons value set-elements)))))
     (list (feature-name feature) (reverse set-elements))))
  
-  ;; Case 5: feature is a set-of-predicates
+  ;; Case 5b: feature is a set-of-predicates
   ;; --> cons == or ==0 to value
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -332,6 +332,20 @@
              `(tag ,tag1 (,(feature-name feature) ,feature-values)
                    ,tag2 (,(feature-name feature) ,feature-values-with-negation)))
            (list (feature-name feature) (or feature-values feature-values-with-negation)))))))
+
+  ;; Case 5c: feature is a set-of-feature-value-pairs
+  ;; --> cons == or ==0 to value
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  ((string= (second (assoc (feature-name feature) feature-types)) "SET-OF-FEATURE-VALUE-PAIRS")
+         (loop for set-of-feature-value-pairs in (rest feature)
+               collect (loop for fv-pair in set-of-feature-value-pairs
+                             collect (convert-feature-to-fcg-2 fv-pair feature-types)
+                             into fv-pairs
+                             finally return (cons '==1 fv-pairs))
+               into value
+               finally return (list (feature-name feature) (cons '== value))))
+             
 
 
   ;; Case 6: sequence-of-predicates

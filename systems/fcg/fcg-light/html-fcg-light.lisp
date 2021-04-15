@@ -256,6 +256,7 @@ is replaced with replacement."
            (format nil ""))))
     feature-values))
 
+
 (defun fcg-light-set-of-predicates-feature-type-for-root (feature-values &key rest)
   "returns the html for the feature-values of type set-of-predicates"
   (let ((elements-to-add (loop for element in feature-values
@@ -481,6 +482,46 @@ is replaced with replacement."
                              collect (fcg-light-set-of-predicates-feature-type element :rest rest)
                              when rest collect `((br)))
                      ,(format nil "}"))))))))
+         ((equalp (symbol-name feature-type) (symbol-name 'set-of-feature-value-pairs))
+          `((div :class "fcg-light-unit-feature")
+            ((span)
+             ((div :class "fcg-light-unit-feature-name") ,feature-name-string ,(format nil ":"))
+             ,(if (atom (car feature-values)) ;; For the case you want to use a variable to match a set-of-predicates
+                `((div :class "fcg-light-unit-default-feature-value")
+                  ,(get-highlighted-element (car feature-values)))
+                (progn
+                  `((br))
+                  `((div :class "fcg-light-unit-default-feature-value")
+                    ((tr)
+                     ((div) "{")
+                     ,@(loop for element in (car feature-values)
+                             collect
+                             `((span)
+                               ((div) "{")
+                               ,@(loop for el in element
+                                       collect
+                                       (get-format-feature-value-fcg-light-unit-feature (list el)
+                                                                                        feature-types :configuration configuration)
+                                       )
+                               ((div) "}")))
+                     "}")))))))
+                             
+
+                             
+                      ;       `((span)
+                      ;         ,(format nil "{")
+                      ;         ,(get-format-feature-value-fcg-light-unit-feature set-of-feature-value-pairs feature-types :configuration configuration)
+                      ;         ;,@(loop for (feature-value . rest) on set-of-feature-value-pairs
+                      ;         ;                  collect
+                      ;         ;                  (get-format-feature-value-fcg-light-unit-feature (list feature-value) feature-types :configuration configuration)
+                      ;         ;                  if rest collect '((br))
+                      ;         ;                  else collect (format nil "}"))
+                      ;         ((br))
+                      ;         ,(format nil "}")
+                      ;         )
+                             
+                    ;         when rest collect '((span) "," ((br))))
+                    ; ,(format nil "}"))))))))
          ((equalp (symbol-name feature-type) (symbol-name 'set))
           `((div :class "fcg-light-unit-feature")
             ((span)
