@@ -15,7 +15,7 @@
 
 (defmethod initialize-instance :around ((entity entity) &rest initargs &key id)
   "when :id was not passed, make a new one based on the (sub)class of entity"
-  (apply #'call-next-method entity :id (or id (make-id (type-of entity))) initargs))
+  (apply #'call-next-method entity :id (or id (internal-symb (make-id (type-of entity)))) initargs))
 
 (defmethod print-object ((entity entity) stream)
   (format stream "<~(~a~) ~(~a~)>" (type-of entity) (id entity)))
