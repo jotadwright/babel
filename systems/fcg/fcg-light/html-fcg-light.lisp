@@ -372,6 +372,35 @@ is replaced with replacement."
                                     collect (fcg-light-set-of-predicates-feature-type element :rest rest)
                                     when rest collect `((br)))
                             ,(format nil "}"))))))))
+                ((equalp (symbol-name feature-type) (symbol-name 'set-of-feature-value-pairs))
+                 `(,(if matching-background
+                      `(div :class "fcg-light-unit-feature-matched")
+                      `(div :class "fcg-light-unit-feature"))
+                   ((span)
+                    (,(if not-to-add?
+                        `(div :class "fcg-light-unit-feature-not")
+                        `(div :class "fcg-light-unit-feature-name")) ,symbol-to-add ,feature-name-string
+                                                                     ,(if expansion-operator
+                                                                        (draw-expansion-operator expansion-operator)
+                                                                        (format nil ":")))
+                    ,(if (atom (car feature-values)) ;; For the case you want to use a variable to match a set of predicates
+                       `((div :class "fcg-light-unit-default-feature-value")
+                         ,(get-highlighted-element (car feature-values)))
+                       (progn
+                         `((br))
+                         `((div :class "fcg-light-unit-default-feature-value")
+                           ((tr)
+                            ,(format nil "{")
+                            ,@(loop for (element . rest) on (car feature-values)
+                                    collect `((div)
+                                              "{"
+                                              ,(fcg-light-feature->html element
+                                                            feature-types
+                                                            :matching-background matching-background
+                                                            :configuration configuration)
+                                              "}")
+                                    when rest collect `((br)))
+                            ,(format nil "}"))))))))
                 ((equalp (symbol-name feature-type) (symbol-name 'set))
                  `(,(if matching-background
                       `(div :class "fcg-light-unit-feature-matched")
