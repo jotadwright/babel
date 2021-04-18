@@ -14,7 +14,7 @@
             id (mkstr "solution " index " "))
       ,@(loop for binding in solution
               collect (make-html binding :expand/collapse-all-id id
-                                 :expand-initially t)))))
+                                 :expand-initially nil)))))
 
 (defun make-remaining-solutions-expander (nr-of-solutions expand/collapse-all-solutions-id)
   "Create the link to expand the remainder of the solutions"
