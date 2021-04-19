@@ -59,6 +59,14 @@
   (add-element `((h1) ,(format nil "Level ~a primitives set"
                                level))))
 
+(define-event-handler (trace-interactions-in-wi interacting-agents-determined)
+  (let ((speaker (speaker interaction))
+        (hearer (hearer interaction)))
+    (add-element `((h3) ,(format nil "The ~a is the speaker."
+                                 (downcase (mkstr (role speaker))))))
+    (add-element `((h3) ,(format nil "The ~a is the hearer."
+                                 (downcase (mkstr (role hearer))))))))
+
 (define-event-handler (trace-interactions-in-wi interaction-started)
   (add-element `((h1) ,(format nil "Interaction ~a"
                                (interaction-number interaction)))))

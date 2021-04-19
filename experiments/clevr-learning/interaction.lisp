@@ -87,6 +87,7 @@
                   (load-clevr-scene-and-answer agent sample))))))))
 
 (defmethod sample-question ((agent clevr-learning-learner) (mode (eql :smart)))
+  ;; for the moment, there is no smart sample mode when the learner is the speaker
   (sample-question agent :random))
 
 
