@@ -342,9 +342,9 @@
                collect (loop for fv-pair in set-of-feature-value-pairs
                              collect (convert-feature-to-fcg-2 fv-pair feature-types)
                              into fv-pairs
-                             finally return (cons '==1 fv-pairs))
+                             finally (return (cons '==1 fv-pairs)))
                into value
-               finally return (list (feature-name feature) (cons '== value))))
+               finally (return (list (feature-name feature) (cons '== value)))))
              
 
 
