@@ -170,7 +170,7 @@
                          " :configurations " (format nil "~s" (format nil "~s" configurations))
                          " :number-of-data-points " (format nil "\"~a\"" number-of-data-points)
                          " :file-name \"" file-name 
-                         "\" :random-number " (+ 100 (random (get-universal-time))) 
+                         "\" :random-number " (+ (random 100) (random (get-universal-time)) counter)
                          (if (= counter 1)
                            (mkstr " :configuration-output-directory \"" 
                                   configuration-output-directory "\"") "")
