@@ -114,12 +114,14 @@
     (learner
      ;; if the learner is the speaker, need to run both the learner's
      ;; speaker task and the tutor's hearer task
-     (let ((learner-speaks-task-result
-            (run-learner-speaker-task (learner experiment)))
-           successp)
-       (when learner-speaks-task-result
-         (let ((gold-answer
-                (run-tutor-hearer-task (tutor experiment) learner-speaks-task-result)))
+     (let* ((learner-speaks-task-result
+             (run-learner-speaker-task (learner experiment)))
+            (utterance (find-data learner-speaks-task-result 'utterance))
+            successp)
+       (when utterance
+         (setf (utterance (learner experiment)) utterance)
+         (setf (utterance (tutor experiment)) utterance)
+         (let ((gold-answer (run-tutor-hearer-task (tutor experiment))))
            (setf successp
                  (run-learner-alignment-task (learner experiment)
                                              learner-speaks-task-result

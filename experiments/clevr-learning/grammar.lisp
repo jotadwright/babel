@@ -172,7 +172,7 @@
                when (and (eql (get-cxn-type other-cxn) 'holophrase)
                          (string= (extract-and-render other-cxn)
                                   (list-of-strings->string
-                                   (fcg::tokenize (utterance agent)))))
+                                   (fcg::tokenize utterance))))
                collect other-cxn)))
     (append holophrase-competitors item-based-competitors)))
 
