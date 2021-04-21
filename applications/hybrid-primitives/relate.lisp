@@ -41,7 +41,7 @@
                      (getf scores 'spatial-relation)
                      (find (intern (getf values 'spatial-relation)
                                    :hybrid-primitives)
-                           (get-data ontology 'spatial-relation)
+                           (get-data ontology 'spatial-relations)
                            :key #'spatial-relation))))))
 
   ;; third case; given source-object, compute pairs of target-set and spatial-relation
@@ -64,7 +64,7 @@
                      (getf scores 'spatial-relation)
                      (find (intern (getf values 'spatial-relation)
                                    :hybrid-primitives)
-                           (get-data ontology 'spatial-relation)
+                           (get-data ontology 'spatial-relations)
                            :key #'spatial-relation))))))
 
   ;; fourth case; given source-object, target-set and spatial-relation

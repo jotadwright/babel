@@ -64,11 +64,24 @@
                    do (request-attn (get-data (ontology processor) 'hybrid-primitives::server-address)
                                     (value binding))))))
 
+(defmethod irl::handle-chunk-composer-finished-event
+           :before ((monitor monitor)
+                    (monitor-id (eql 'irl::trace-irl))
+                    (event-id (eql 'irl::chunk-composer-finished))
+                    solutions composer)
+  (when (monitors::active monitor)
+    (loop for solution in solutions
+          do (loop for binding in (irl::bindings solution)
+                   when (and (eql (type-of (value binding)) 'attention)
+                             (null (img-path (value binding))))
+                   do (request-attn (get-data (ontology composer) 'hybrid-primitives::server-address)
+                                    (value binding))))))
+
 
 ;; comprehend the question with the grammar, optionally  using seq2seq heuristics
 ;; execute the IRL network with the neural modules
 ;; compare the prediction with the gold answer
-(defun main ()
+(defun evaluate-hybrid-irl-test ()
   (multiple-value-bind (scene question-set)
       (random-scene *CLEVR-val*)
       ;(get-scene-by-index *CLEVR-val* 0)
@@ -97,10 +110,39 @@
                                  "Correct!" "Incorrect!")))
           (compare-answers answer computed-answer))))))
 
+(defun hybrid-composer-test ()
+  (multiple-value-bind (scene question-set) (random-scene *CLEVR-val*)
+    (let* ((image-pathname (image scene))
+           (image-name (format nil "~a.~a"
+                               (pathname-name image-pathname)
+                               (pathname-type image-pathname))))
+      (load-image *neural-modules-server* image-name)
+      (let ((composer
+             (make-chunk-composer
+              :topic (second (find-data *clevr-ontology* 'shapes))
+              :initial-chunk (make-instance 'chunk :id 'initial
+                                            :target-var '(?topic . shape-category)
+                                            :open-vars '((?topic . shape-category)))
+              :chunks (mapcar #'create-chunk-from-primitive
+                              (list (find-primitive 'get-context *hybrid-primitives*)
+                                    (find-primitive 'filter *hybrid-primitives*)
+                                    (find-primitive 'query *hybrid-primitives*)
+                                    (find-primitive 'count! *hybrid-primitives*)
+                                    (find-primitive 'exist *hybrid-primitives*)
+                                    (find-primitive 'unique *hybrid-primitives*)))
+              :ontology *clevr-ontology* :primitive-inventory *hybrid-primitives*
+              :configurations '((:max-search-depth . 10)))))
+        (get-next-solutions composer)))))
+             
 ;; here goes!
 (activate-monitor trace-fcg)
 (activate-monitor trace-irl)
-(main)
+(evaluate-hybrid-irl-test)
+
+;; here goes!
+(activate-monitor trace-fcg)
+(activate-monitor trace-irl)
+(hybrid-composer-test)
 
 ;; Try to execute an IRL program in a different direction
 (evaluate-irl-program
