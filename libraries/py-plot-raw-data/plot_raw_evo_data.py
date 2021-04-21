@@ -25,6 +25,10 @@ def read_raw_evo_data(path, file_type):
     else:
         data_path = os.path.join(BABEL_PATHNAME, f'{path}.{file_type}')
     data = pd.read_csv(data_path, comment='#').dropna(how='all', axis=1)
+    # We duplicate the first row, to have a nicer plot...
+    data.loc[-1] = data.loc[0]
+    data.index = data.index + 1
+    data.sort_index(inplace=True)
     return data
 
 

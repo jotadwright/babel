@@ -20,6 +20,10 @@ def read_raw_alist_data(path, file_type):
         symbol = s.lower()
         if symbol not in data_set:
             df = all_data.loc[s, :].reset_index(drop=True).copy(deep=True)
+            # We duplicate the first row, to have a nicer plot...
+            df.loc[-1] = df.loc[0]
+            df.index = df.index + 1
+            df.sort_index(inplace=True)
             data_set[symbol] = df
     return data_set
 
