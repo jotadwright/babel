@@ -18,3 +18,17 @@
                                               instance
                                               slot)
     #+ccl (slot-value instance slot)))
+
+
+(defun class-all-subclasses (class)
+  "Returns all subclasses of a class (recursively), including class"
+  (let ((direct-subclasses (c2mop:class-direct-subclasses class)))
+    (cond ((null direct-subclasses)
+           (list class))
+          (t
+           (cons class
+                 (loop for subclass in direct-subclasses
+                       append (class-all-subclasses subclass)))))))
+
+
+
