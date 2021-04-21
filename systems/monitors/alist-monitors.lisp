@@ -105,9 +105,8 @@
   (loop for (symbol . fvp) in (first-value-positions monitor)
         if (null (car fvp))
         do (setf (cdr (assoc symbol (current-values monitor))) nil)
-        else
-        do (unless (keep-previous-values monitor)
-             (setf (cdr (assoc symbol (current-values monitor))) 0))))
+        else do (unless (keep-previous-values monitor)
+                  (setf (cdr (assoc symbol (current-values monitor))) 0))))
 
 (defmethod handle-interaction-finished-event :after ((monitor alist-recorder)
                                                      (monitor-id symbol)
@@ -258,8 +257,8 @@
     :documentation "At least that many values are plotted along the x-axis.
                     It can be more depending on the dynamically adapted step size."
     :initform 500 :initarg :minimum-number-of-data-points :accessor minimum-number-of-data-points)
-   (error-bars :documentation "When t, error bars are plotted"
-	       :type boolean :initarg :error-bars :accessor error-bars :initform nil)
+   (error-bars :documentation "can be set to :min-max, (:percentile min max), :stdev or nil for no error bars"
+	       :initarg :error-bars :accessor error-bars :initform nil)
    (key-location :documentation "Where the key is placed (this is directly passed to 'set key')"
 		 :type string :initform "below" :initarg :key-location :accessor key-location)
    (y-max :documentation "The maximum for the left y axis. Nil results in automatic scaling"

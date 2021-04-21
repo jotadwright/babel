@@ -69,7 +69,8 @@
 (defmethod handle-interaction-started-event :before ((monitor data-recorder)
                                                      (monitor-id symbol)
 						     (event (eql 'interaction-started)) 
-						     (experiment t)(interaction t)(interaction-number number))
+						     (experiment t) (interaction t)
+                                                     (interaction-number number))
   (declare (ignorable experiment interaction interaction-number))
   ;;set the current value of the monitor to the default value
   (with-slots (default-value current-value) monitor
@@ -79,7 +80,8 @@
 (defmethod handle-interaction-finished-event :after ((monitor data-recorder)
                                                      (monitor-id symbol)
 						     (event (eql 'interaction-finished))
-						     (experiment t)(interaction t)(interaction-number number))
+						     (experiment t) (interaction t)
+                                                     (interaction-number number))
   (declare (ignorable experiment interaction interaction-number))
   ;; store the current-value and compute an average value
   (with-slots (values average-values current-value default-value no-default-value
