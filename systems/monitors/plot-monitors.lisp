@@ -197,10 +197,10 @@
            (list (/ i divide-indices-by) average
                  (nth-percentile values (second error-bars))
                  (nth-percentile values (third error-bars))))
-          (t ;; default :stdev
-             (let ((stdev (stdev values :average average)))
-               (list (/ i divide-indices-by) average 
-                     (- average stdev) (+ average stdev)))))
+          (t
+           (let ((stdev (stdev values :average average)))
+             (list (/ i divide-indices-by) average 
+                   (- average stdev) (+ average stdev)))))
     into errorbars
     finally (return (list index average-values errorbars)))))
 
