@@ -154,7 +154,7 @@
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
                                :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf" :error-bars '(percentile 5 95)
+    :graphic-type "pdf" :error-bars '(:percentile 5 95)
     :add-time-and-experiment-to-file-name nil)
 
 ;;;; avg cxn score per cxn type (alist monitor)
@@ -181,7 +181,7 @@
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "avg-cxn-score-per-type" :type "pdf"
                                :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf" :error-bars '(percentile 5 95)
+    :graphic-type "pdf" :error-bars '(:percentile 5 95)
     :add-time-and-experiment-to-file-name nil)
 
 ;; cxn usage per type (alist monitor)
@@ -208,7 +208,7 @@
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "cxn-usage-per-type" :type "pdf"
                                    :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf" :error-bars '(percentile 5 95)
+        :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
 
 ;; nr of item-based cxns with slots (alist monitor)
@@ -239,7 +239,7 @@
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "nr-of-item-based-cxns-with-slots" :type "pdf"
                                    :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf" :error-bars '(percentile 5 95)
+        :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
 
 
