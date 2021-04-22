@@ -6,9 +6,9 @@
 ;; INTERSECT primtive ;;
 ;; ---------------------
 
-(defprimitive intersect ((target-attn attention)
-                         (source-attn-1 attention)
-                         (source-attn-2 attention))
+(defprimitive intersect ((target-attn attention-set)
+                         (source-attn-1 attention-set)
+                         (source-attn-2 attention-set))
   ;; first case; given both source sets, compute the target set
   ((source-attn-1 source-attn-2 => target-attn)
    (multiple-value-bind (bind-scores bind-values)
@@ -22,7 +22,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
 

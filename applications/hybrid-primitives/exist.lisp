@@ -7,7 +7,7 @@
 ;; -----------------
 
 (defprimitive exist ((target-bool boolean-category)
-                     (source-attn attention))
+                     (source-attn attention-set))
   ((source-attn => target-bool)
    ;; first case; give source-set, compute target-bool
    (multiple-value-bind (bind-scores bind-values)

@@ -6,8 +6,8 @@
 ;; RELATE primtive ;;
 ;; ------------------
 
-(defprimitive relate ((target-attn attention)
-                      (source-attn attention)
+(defprimitive relate ((target-attn attention-set)
+                      (source-attn attention-object)
                       (spatial-relation spatial-relation-category))
   ;; first case; given source-object and spatial relation, compute the target set
   ((source-attn spatial-relation => target-attn)
@@ -22,7 +22,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
   
@@ -57,7 +57,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))
                     (spatial-relation

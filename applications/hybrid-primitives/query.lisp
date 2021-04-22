@@ -7,7 +7,7 @@
 ;; -----------------
 
 (defprimitive query ((target-category attribute)
-                     (source-attn attention)
+                     (source-attn attention-object)
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
   ((source-attn attribute => target-category)

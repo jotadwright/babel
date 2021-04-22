@@ -7,7 +7,7 @@
 ;; -----------------
 
 (defprimitive count! ((target-num number)
-                      (source-attn attention))
+                      (source-attn attention-set))
   ;; first case; given source-set, compute target
   ((source-attn => target-num)
    (multiple-value-bind (bind-scores bind-values)

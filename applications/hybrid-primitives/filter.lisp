@@ -6,8 +6,8 @@
 ;; FILTER primtive ;;
 ;; ------------------
 
-(defprimitive filter ((target-attn attention)
-                      (source-attn attention)
+(defprimitive filter ((target-attn attention-set)
+                      (source-attn attention-set)
                       (category attribute))
   ;; first case: if given source-set and category, compute target-set
   ((source-attn category => target-attn)
@@ -22,7 +22,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
 
@@ -57,7 +57,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))
                     (category

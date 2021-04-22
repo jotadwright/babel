@@ -6,8 +6,8 @@
 ;; UNIQUE primtive ;;
 ;; ------------------
 
-(defprimitive unique ((target-attn attention)
-                      (source-attn attention))
+(defprimitive unique ((target-attn attention-object)
+                      (source-attn attention-set))
   ;; first case; given source set, compute target object
   ((source-attn => target-attn)
    (multiple-value-bind (bind-scores bind-values)
@@ -20,7 +20,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-object
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
 

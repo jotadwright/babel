@@ -6,8 +6,8 @@
 ;; SAME primtive ;;
 ;; ----------------
 
-(defprimitive same ((target-attn attention)
-                    (source-attn attention)
+(defprimitive same ((target-attn attention-set)
+                    (source-attn attention-object)
                     (attribute attribute-category))
   ;; first case; given source-object and attribute, compute the target-set
   ((source-attn attribute => target-attn)
@@ -22,7 +22,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
   
@@ -63,7 +63,7 @@
                            :key #'attribute))
                     (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
 
