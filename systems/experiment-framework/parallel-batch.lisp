@@ -46,7 +46,7 @@
 
 ;; the following two defparams are used for starting a particular 
 ;; client/inferior lisp 
-(defparameter *inferior-lisps* '((sbcl . ("sbcl" ("--dynamic-space-size" "4096" "--disable-debugger" "--noinform")))
+(defparameter *inferior-lisps* '((sbcl . ("sbcl" ("--dynamic-space-size" "6144" "--disable-debugger" "--noinform")))
                                  (ccl . ("ccl" ("--batch" "--quiet")))
                                  (lx86cl . ("lx86cl64" ("--batch" "--quiet")))
                                  (lispworks . ("lispworks" ())))
