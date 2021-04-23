@@ -187,17 +187,14 @@
 ;; cxn usage per type (alist monitor)
 (define-monitor record-cxn-usage-per-type
                 :class 'alist-recorder
-                :average-window 100
-                :keep-previous-values t)
+                :average-window 100)
 
-(define-event-handler (record-cxn-usage-per-type interaction-finished)
-  (let ((applied-cxns (find-data (task-result (learner experiment)) 'applied-cxns)))
-    (when applied-cxns
-      (if (find 'holophrase applied-cxns :key #'get-cxn-type)
-        (progn (set-value-for-symbol monitor 'holophrase 1)
-          (set-value-for-symbol monitor 'item-based+lexical 0))
-        (progn (set-value-for-symbol monitor 'holophrase 0)
-          (set-value-for-symbol monitor 'item-based+lexical 1))))))
+(define-event-handler (record-cxn-usage-per-type constructions-chosen)
+  (if (find 'holophrase constructions :key #'get-cxn-type)
+    (progn (set-value-for-symbol monitor 'holophrase 1)
+      (set-value-for-symbol monitor 'item-based+lexical 0))
+    (progn (set-value-for-symbol monitor 'holophrase 0)
+      (set-value-for-symbol monitor 'item-based+lexical 1))))
   
 (define-monitor plot-cxn-usage-per-type
         :class 'alist-gnuplot-graphic-generator
