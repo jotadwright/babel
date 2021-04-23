@@ -122,6 +122,7 @@
          (setf (utterance (learner experiment)) utterance)
          (setf (utterance (tutor experiment)) utterance)
          (let ((gold-answer (run-tutor-hearer-task (tutor experiment))))
+           ;; even if gold-answer is nil, need to run alignment
            (setf successp
                  (run-learner-alignment-task (learner experiment)
                                              learner-speaks-task-result

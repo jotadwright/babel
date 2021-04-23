@@ -72,6 +72,27 @@
                   --) into conditional-units
         finally (return (values conditional-units contributing-units))))
 
+(defun variablify-program (irl-program)
+  (let* ((all-arguments
+          (loop for predicate in irl-program
+                if (eql (first predicate) 'bind)
+                append (unless (variable-p (third predicate))
+                         (list (third predicate)))
+                else
+                append (loop for arg in (subseq predicate 1)
+                             unless (variable-p arg)
+                             collect arg)))
+         (unique-arguments
+          (remove-duplicates all-arguments))
+         (mappings
+          (loop for arg in unique-arguments
+                collect (cons arg (make-var arg)))))
+    (loop for predicate in irl-program
+          collect (loop for sym in predicate
+                        if (assoc sym mappings)
+                        append (list (cdr (assoc sym mappings)))
+                        else append (list sym)))))
+
 ;;;; UTILS FOR RUNNING GAMES
 ;;;; -----------------------
 
