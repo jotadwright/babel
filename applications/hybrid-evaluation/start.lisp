@@ -59,7 +59,7 @@
   (when (monitors::active monitor)
     (loop for solution in solutions
           do (loop for binding in solution
-                   when (and (eql (type-of (value binding)) 'attention)
+                   when (and (subtypep (type-of (value binding)) 'attention)
                              (null (img-path (value binding))))
                    do (request-attn (get-data (ontology processor) 'hybrid-primitives::server-address)
                                     (value binding))))))
@@ -72,7 +72,7 @@
   (when (monitors::active monitor)
     (loop for solution in solutions
           do (loop for binding in (irl::bindings solution)
-                   when (and (eql (type-of (value binding)) 'attention)
+                   when (and (subtypep (type-of (value binding)) 'attention)
                              (null (img-path (value binding))))
                    do (request-attn (get-data (ontology composer) 'hybrid-primitives::server-address)
                                     (value binding))))))
@@ -110,6 +110,17 @@
                                  "Correct!" "Incorrect!")))
           (compare-answers answer computed-answer))))))
 
+(defun show-image-on-wi (image-path)
+  (let ((img-dst-path
+         (make-pathname :directory `(:absolute "Users" ,(who-am-i) "Sites")
+                        :name (pathname-name image-path)
+                        :type (pathname-type image-path))))
+    (copy-file image-path img-dst-path)
+    (add-element '((h2) "Current Scene:"))
+    (add-element `((img :src ,(mkstr cl-user::*localhost-user-dir*
+                                     (pathname-name image-path)
+                                     "." (pathname-type image-path)))))))
+
 (defun hybrid-composer-test ()
   (multiple-value-bind (scene question-set) (random-scene *CLEVR-val*)
     (let* ((image-pathname (image scene))
@@ -117,6 +128,7 @@
                                (pathname-name image-pathname)
                                (pathname-type image-pathname))))
       (load-image *neural-modules-server* image-name)
+      (show-image-on-wi image-pathname)
       (let ((composer
              (make-chunk-composer
               :topic (second (find-data *clevr-ontology* 'shapes))
@@ -131,8 +143,8 @@
                                     (find-primitive 'exist *hybrid-primitives*)
                                     (find-primitive 'unique *hybrid-primitives*)))
               :ontology *clevr-ontology* :primitive-inventory *hybrid-primitives*
-              :configurations '((:max-search-depth . 10)))))
-        (get-next-solutions composer)))))
+              :configurations '((:max-search-depth . 8)))))
+        (get-all-solutions composer)))))
              
 ;; here goes!
 (activate-monitor trace-fcg)
