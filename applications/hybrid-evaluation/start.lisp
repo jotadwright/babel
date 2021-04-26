@@ -129,22 +129,30 @@
                                (pathname-type image-pathname))))
       (load-image *neural-modules-server* image-name)
       (show-image-on-wi image-pathname)
-      (let ((composer
-             (make-chunk-composer
-              :topic (second (find-data *clevr-ontology* 'shapes))
-              :initial-chunk (make-instance 'chunk :id 'initial
-                                            :target-var '(?topic . shape-category)
-                                            :open-vars '((?topic . shape-category)))
-              :chunks (mapcar #'create-chunk-from-primitive
-                              (list (find-primitive 'get-context *hybrid-primitives*)
-                                    (find-primitive 'filter *hybrid-primitives*)
-                                    (find-primitive 'query *hybrid-primitives*)
-                                    (find-primitive 'count! *hybrid-primitives*)
-                                    (find-primitive 'exist *hybrid-primitives*)
-                                    (find-primitive 'unique *hybrid-primitives*)))
-              :ontology *clevr-ontology* :primitive-inventory *hybrid-primitives*
-              :configurations '((:max-search-depth . 8)))))
-        (get-all-solutions composer)))))
+      (let* ((random-type
+              (random-elt '(shapes colors sizes materials booleans number)))
+             (possible-target
+              (if (eql random-type 'number)
+                (random-elt (iota 11))
+                (random-elt (find-data *clevr-ontology* random-type)))))
+        (add-element '((h2) "Current target:"))
+        (add-element (make-html possible-target))
+        (let ((composer
+              (make-chunk-composer
+               :topic possible-target
+               :initial-chunk (make-instance 'chunk :id 'initial
+                                             :target-var `(?topic . ,(type-of possible-target))
+                                             :open-vars `((?topic . ,(type-of possible-target))))
+               :chunks (mapcar #'create-chunk-from-primitive
+                               (list (find-primitive 'get-context *hybrid-primitives*)
+                                     (find-primitive 'filter *hybrid-primitives*)
+                                     (find-primitive 'query *hybrid-primitives*)
+                                     (find-primitive 'count! *hybrid-primitives*)
+                                     (find-primitive 'exist *hybrid-primitives*)
+                                     (find-primitive 'unique *hybrid-primitives*)))
+               :ontology *clevr-ontology* :primitive-inventory *hybrid-primitives*
+               :configurations '((:max-search-depth . 8)))))
+          (get-next-solutions composer))))))
              
 ;; here goes!
 (activate-monitor trace-fcg)
