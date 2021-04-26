@@ -34,7 +34,6 @@
 (define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
-(define-configuration-default-value :speaker-sample-mode :smart) ; :random or :smart
 (define-configuration-default-value :learner-cxn-supplier :ordered-by-label-and-score)
 
 ;; Autotelic principle

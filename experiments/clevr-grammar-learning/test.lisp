@@ -14,3 +14,4 @@
 (interacting-agents *experiment*)
 
 (length (question-data *experiment*))
+(cdr (first (question-data *experiment*)))
