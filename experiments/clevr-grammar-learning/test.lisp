@@ -4,7 +4,8 @@
 (defparameter *experiment*
    (make-instance 'clevr-grammar-learning-experiment
                   :entries '((:learner-cxn-supplier . :ordered-by-label-and-score)
-                             (:question-sample-mode . :random)
+                             (:questions-per-challenge . 100) ;; number of observations
+                             (:question-sample-mode . :random) ;; random first or all
                              (:determine-interacting-agents-mode . :tutor-learner)
                              )))
 
@@ -12,4 +13,4 @@
 
 (interacting-agents *experiment*)
 
-(question-data *experiment*)
+(length (question-data *experiment*))

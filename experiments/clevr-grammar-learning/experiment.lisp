@@ -25,16 +25,11 @@
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
-;(define-configuration-default-value :initial-chunk-score 0.5)
 (define-configuration-default-value :initial-th-link-weight 0.1)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.2)
-;(define-configuration-default-value :chunk-incf-score 0.1)
-;(define-configuration-default-value :chunk-decf-score 0.1)
-;(define-configuration-default-value :th-link-incf-score 0.1)
-;(define-configuration-default-value :cxn-forgetting-rate 0.05)
-;(define-configuration-default-value :cxn-forgetting-threshold 1000)
+
 
 (define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
@@ -111,48 +106,26 @@
                                                        (mode (eql :random)) &optional all-files)
   (let* ((number-of-questions
           (get-configuration experiment :questions-per-challenge))
-         (scenes-per-questions
-          (get-configuration experiment :scenes-per-question))
          (files
           (random-elts all-files number-of-questions))
          (data
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (second file-data) :key #'first)
-                for scenes-and-answers
-                = (random-elts
-                   (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-cons)
-                                          (= 0 (cdr scene-answer-cons)))
-                                      (third file-data))
-                     (third file-data))
-                   scenes-per-questions)
-                collect (cons (first file-data) scenes-and-answers))))
+                collect (cons (first file-data) (second file-data)))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
                                                        (mode (eql :first)) &optional all-files)
   (let* ((number-of-questions
           (get-configuration experiment :questions-per-challenge))
-         (scenes-per-questions
-          (get-configuration experiment :scenes-per-question))
          (files
           (subseq all-files 0 number-of-questions))
          (data
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (second file-data) :key #'first)
-                for scenes-and-answers
-                = (random-elts
-                   (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-cons)
-                                          (= 0 (cdr scene-answer-cons)))
-                                      (third file-data))
-                     (third file-data))
-                   scenes-per-questions)
-                collect (cons (first file-data) scenes-and-answers))))
+                collect (cons (first file-data) (second file-data)))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
@@ -163,16 +136,7 @@
           (loop for file in all-files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
-                for count-question-p = (find 'count! (second file-data) :key #'first)
-                for scenes-and-answers
-                = (random-elts
-                   (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-cons)
-                                          (= 0 (cdr scene-answer-cons)))
-                                      (third file-data))
-                     (third file-data))
-                   scenes-per-questions)
-                collect (cons (first file-data) scenes-and-answers))))
+                collect (cons (first file-data) (second file-data)))))
     (setf (question-data experiment) data)))
 
 (defmethod tutor ((experiment clevr-grammar-learning-experiment))
