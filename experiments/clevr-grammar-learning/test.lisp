@@ -15,18 +15,21 @@
 
 
 (defparameter *experiment*
-   (make-instance 'clevr-grammar-learning-experiment
-                  :entries '((:learner-cxn-supplier . :ordered-by-label-and-score)
-                             (:questions-per-challenge . 100) ;; number of observations
-                             (:question-sample-mode . :random) ;; random first or all
-                             (:determine-interacting-agents-mode . :tutor-learner)
-                             )))
+  (make-instance 'clevr-grammar-learning-experiment
+                 :entries '((:learner-cxn-supplier . :ordered-by-label-and-score)
+                            (:observation-sample-size . 500) ;; number of observations to sample
+                            (:observation-sample-mode . :random) ;; random first or all
+                            (:determine-interacting-agents-mode . :tutor-learner)
+                            (:learner-th-connected-mode . :path-exists))))
+                             
 
+
+;;; test single interaction
 (run-interaction *experiment*)
 
-(interacting-agents *experiment*)
 
-(length (question-data *experiment*))
-(cdr (first (question-data *experiment*)))
-(defparameter *curr* (current-interaction *experiment*))
-(get-interaction-data (current-interaction *experiment*))
+;;; test series of interactions
+(progn
+  (wi::reset)
+  (run-series *experiment* 20))
+

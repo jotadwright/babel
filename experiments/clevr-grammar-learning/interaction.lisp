@@ -28,7 +28,7 @@
   (utterance string) (gold-standard-meaning t))
 
 (defun get-interaction-data (interaction)
-  (let* ((interaction-data (nth (interaction-number interaction) (question-data (experiment interaction))))
+  (let* ((interaction-data (nth (- (interaction-number interaction) 1) (question-data (experiment interaction))))
          (utterance (first interaction-data))
          (gold-standard-meaning (cdr interaction-data)))
     (values utterance gold-standard-meaning)))
@@ -43,9 +43,11 @@
 (defmethod interact ((experiment clevr-grammar-learning-experiment)
                      interaction &key)
   "the learner attempts to comprehend the utterance with its grammar"
-  (let ((successp (run-learner-comprehension-task (learner experiment))))
+  (multiple-value-bind (learner-meaning cipn applied-cxns) (run-learner-comprehension-task (learner experiment))
+    (let ((successp (equivalent-irl-programs? learner-meaning (meaning (tutor experiment)))))
+         
     (loop for agent in (population experiment)
-          do (setf (communicated-successfully agent) successp))))
+          do (setf (communicated-successfully agent) successp)))))
     
 (define-event agent-confidence-level (level float))
 
@@ -60,10 +62,11 @@
     (setf (confidence-buffer experiment)
           (cons (if successp 1 0)
                 (butlast (confidence-buffer experiment))))
-    (notify agent-confidence-level (average (confidence-buffer experiment)))
+    (when (get-configuration experiment :enable-autotelic-levels)
+      (notify agent-confidence-level (average (confidence-buffer experiment))))
 
-  ;; check the confidence level and (maybe) transition to the next challenge
-  (maybe-increase-level experiment)))
+    ;; check the confidence level and (maybe) transition to the next challenge
+    (maybe-increase-level experiment)))
 
 
 (defun record-interaction-success-in-table (agent success)
@@ -80,7 +83,8 @@
                   (cons (car entry) (1+ (cdr entry))))))))))
 
 (defun maybe-increase-level (experiment)
-  (when (and (> (average (confidence-buffer experiment))
+  (when (and (get-configuration experiment :enable-autotelic-levels)
+             (> (average (confidence-buffer experiment))
                 (get-configuration experiment :confidence-threshold))
              (< (get-configuration experiment :current-challenge-level)
                 (get-configuration experiment :max-challenge-level)))
@@ -94,13 +98,5 @@
                      :initial-element 0))
     ;; load the questions for the current challenge level
     (load-questions-for-current-challenge-level
-     experiment (get-configuration experiment :question-sample-mode))
-    ;; set the available primitives for the learner agent
-    (set-primitives-for-current-challenge-level (learner experiment))
-    ;; update the composer chunks for the learner agent
-    (update-composer-chunks-w-primitive-inventory (learner experiment))
-    ;; clear the question-index-table
-    (clear-question-success-table (tutor experiment))
-    ;; clear the learner's memory of scenes of the previous level
-    (clear-memory (learner experiment))))
+     experiment (get-configuration experiment :observation-sample-mode))))
     

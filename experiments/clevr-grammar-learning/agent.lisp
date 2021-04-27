@@ -46,7 +46,8 @@
          (make-instance 'clevr-learning-learner
                         :role 'learner :experiment experiment
                         :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
-                                                (get-configuration experiment :learner-cxn-supplier)))))
+                                                (get-configuration experiment :learner-cxn-supplier)
+                                                (get-configuration experiment :learner-th-connected-mode)))))
     learner))
 
 (defmethod clear-question-success-table ((agent clevr-learning-tutor))

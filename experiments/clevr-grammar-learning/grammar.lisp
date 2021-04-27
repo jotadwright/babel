@@ -32,7 +32,7 @@
 
 (in-package :clevr-grammar-learning)
 
-(defun empty-cxn-set (hide-type-hierarchy cxn-supplier)
+(defun empty-cxn-set (hide-type-hierarchy cxn-supplier th-connected-mode)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions-with-type-hierarchy
@@ -48,15 +48,16 @@
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network
                                                            :no-strings-in-root)
-                                        (:production-order non-holophrase holophrase)
+                                        ;(:production-order non-holophrase holophrase)
                                         (:production-goal-tests :no-applicable-cxns
                                                                 :connected-structure
                                                                 :no-meaning-in-root)
-                                        (:max-nr-of-nodes . 1000) ;; !
-                                        (:shuffle-cxns-before-application . t)
+                                        ;(:max-nr-of-nodes . 1000) ;; !
+                                        ;(:shuffle-cxns-before-application . t)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
-                                        (:th-connected-mode . :neighbours)
-                                        (:update-th-links . t))
+                                        (:th-connected-mode . ,th-connected-mode)
+                                        (:update-th-links . t)
+                                        (:consolidate-repairs . t))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))

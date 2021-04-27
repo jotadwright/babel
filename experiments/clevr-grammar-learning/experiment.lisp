@@ -18,9 +18,8 @@
 (define-configuration-default-value :challenge-3-files
                                     (make-pathname :directory '(:relative "stage-3")
                                                    :name :wild :type "lisp"))
-(define-configuration-default-value :questions-per-challenge 5000)
-(define-configuration-default-value :scenes-per-question 20)
-(define-configuration-default-value :question-sample-mode :first) ; random or first or all
+(define-configuration-default-value :observation-sample-size 10000)
+(define-configuration-default-value :observation-sample-mode :first) ; random or first or all
 (define-configuration-default-value :clevr-world-data-sets '("val"))
 
 ;; Strategies and scores
@@ -32,11 +31,12 @@
 
 
 (define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
-(define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :learner-cxn-supplier :ordered-by-label-and-score)
+(define-configuration-default-value :learner-th-connected-mode :path-exists)
 
 ;; Autotelic principle
+(define-configuration-default-value :enable-autotelic-levels nil)
 (define-configuration-default-value :current-challenge-level 1)
 (define-configuration-default-value :max-challenge-level 3)
 (define-configuration-default-value :evaluation-window-size 1000)
@@ -68,7 +68,7 @@
                        :load-questions nil))
   ;; set the questions of the experiment
   (load-questions-for-current-challenge-level
-   experiment (get-configuration experiment :question-sample-mode))
+   experiment (get-configuration experiment :observation-sample-mode))
   ;; set the population of the experiment
   (setf (population experiment)
         (list (make-clevr-learning-tutor experiment)
@@ -91,8 +91,8 @@
             (merge-pathnames
              (case (get-configuration experiment :current-challenge-level)
                (1 (get-configuration experiment :challenge-1-files))
-               (2 (get-configuration experiment :challenge-2-files))
-               (3 (get-configuration experiment :challenge-3-files)))
+               (2 (get-configuration experiment :challenge-1-files));;dummy lvl 1 data: replace with actual data!
+               (3 (get-configuration experiment :challenge-1-files)));;dummy lvl 1 data: replace with actual data!
              (get-configuration experiment :challenge-files-root)))
            #'string< :key #'namestring)))
     (format t "~%Loading data...")
@@ -103,10 +103,10 @@
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
                                                        (mode (eql :random)) &optional all-files)
-  (let* ((number-of-questions
-          (get-configuration experiment :questions-per-challenge))
+  (let* ((number-of-observations
+          (get-configuration experiment :observation-sample-size))
          (files
-          (random-elts all-files number-of-questions))
+          (random-elts all-files number-of-observations))
          (data
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
@@ -116,10 +116,10 @@
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
                                                        (mode (eql :first)) &optional all-files)
-  (let* ((number-of-questions
-          (get-configuration experiment :questions-per-challenge))
+  (let* ((number-of-observations
+          (get-configuration experiment :observation-sample-size))
          (files
-          (subseq all-files 0 number-of-questions))
+          (subseq all-files 0 number-of-observations))
          (data
           (loop for file in files
                 for file-data = (with-open-file (stream file :direction :input)
@@ -129,9 +129,7 @@
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
                                                        (mode (eql :all)) &optional all-files)
-  (let* ((scenes-per-questions
-          (get-configuration experiment :scenes-per-question))
-         (data
+  (let* ((data
           (loop for file in all-files
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
@@ -164,4 +162,5 @@
   (loop for agent in (list (tutor experiment) (learner experiment))
         do (setf (utterance agent) nil
                  (communicated-successfully agent) nil))
-  (notify interacting-agents-determined experiment interaction))
+  ;(notify interacting-agents-determined experiment interaction)
+  )
