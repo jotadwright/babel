@@ -13,7 +13,7 @@
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-communicative-success interaction-finished)
@@ -29,7 +29,7 @@
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
                 :file-name (babel-pathname :name "lexicon-size" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-lexicon-size interaction-finished)
@@ -63,7 +63,7 @@
                 :documentation "Exports nr of meanings per form for lexical cxns"
                 :data-sources '(record-lexical-meanings-per-form)
                 :file-name (babel-pathname :name "lexical-meanings-per-form" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (defun compute-nr-of-lexical-meanings-per-form (agent)
@@ -95,7 +95,7 @@
                 :documentation "Exports nr of forms per meaning for lexical cxns"
                 :data-sources '(record-lexical-forms-per-meaning)
                 :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (defun compute-nr-of-lexical-forms-per-meaning (agent)
@@ -126,7 +126,7 @@
                 :documentation "exports avg cxn score"
                 :data-sources '((average record-avg-cxn-score))
                 :file-name (babel-pathname :name "avg-cxn-score" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
                 
 (define-event-handler (record-avg-cxn-score interaction-finished)
@@ -153,7 +153,7 @@
     :y-label "Number of constructions"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
-                               :directory '("experiments" "clevr-learning" "graphs"))
+                               :directory '("experiments" "clevr-grammar-learning" "graphs"))
     :graphic-type "pdf" :error-bars '(:percentile 5 95)
     :add-time-and-experiment-to-file-name nil)
 
@@ -180,7 +180,7 @@
     :y-label "Construction Score"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "avg-cxn-score-per-type" :type "pdf"
-                               :directory '("experiments" "clevr-learning" "graphs"))
+                               :directory '("experiments" "clevr-grammar-learning" "graphs"))
     :graphic-type "pdf" :error-bars '(:percentile 5 95)
     :add-time-and-experiment-to-file-name nil)
 
@@ -204,7 +204,7 @@
         :y-label "Usage"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "cxn-usage-per-type" :type "pdf"
-                                   :directory '("experiments" "clevr-learning" "graphs"))
+                                   :directory '("experiments" "clevr-grammar-learning" "graphs"))
         :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
 
@@ -235,7 +235,7 @@
         :y-label "Number of constructions"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "nr-of-item-based-cxns-with-slots" :type "pdf"
-                                   :directory '("experiments" "clevr-learning" "graphs"))
+                                   :directory '("experiments" "clevr-grammar-learning" "graphs"))
         :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
 

@@ -24,7 +24,7 @@
 (define-event-handler (log-interactions log-parsing-finished)
   (unless *log-file*
     (setf *log-file*
-          (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+          (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
                           :name (format nil "log-~a" (make-random-string 5))
                           :type "txt")))
   (let ((succeededp
@@ -54,7 +54,7 @@
 (define-event-handler (log-interactions log-interaction-finished)
   (unless *log-file*
     (setf *log-file*
-          (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+          (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
                           :name (format nil "log-~a" (make-random-string 5))
                           :type "txt")))
   (unless success
@@ -84,7 +84,7 @@
                             (babel-pathname :name (format nil "type-hierarchy-~a"
                                                           (make-random-string 5))
                                             :type "pdf"
-                                            :directory '("experiments" "clevr-learning" "raw-data"))))
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
 (defun export-type-hierarchy (type-hierarchy path)
   (type-hierarchy->image
@@ -113,7 +113,7 @@
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
                             (babel-pathname :name "type-hierarchy" :type "pdf"
-                                            :directory '("experiments" "clevr-learning" "raw-data"))))
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
 (define-event-handler (export-type-hierarchy-every-nth-interaction interaction-finished)
   (let ((interaction-nr (interaction-number (current-interaction experiment)))
@@ -139,7 +139,7 @@
                             (babel-pathname :name (format nil "learner-grammar-~a"
                                                           (make-random-string 5))
                                             :type "store"
-                                            :directory '("experiments" "clevr-learning" "raw-data"))))
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
 (defun export-grammar (cxn-inventory path)
   #-ccl (cl-store:store cxn-inventory path))
@@ -153,7 +153,7 @@
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
                             (babel-pathname :name "learner-grammar" :type "store"
-                                            :directory '("experiments" "clevr-learning" "raw-data"))))
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
 (define-event-handler (export-learner-grammar-every-nth-interaction interaction-finished)
   (let ((interaction-nr (interaction-number (current-interaction experiment)))

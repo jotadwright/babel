@@ -70,20 +70,9 @@
                                (interaction-number interaction)))))
 
 (define-event-handler (trace-interactions-in-wi interaction-before-finished)
-  (let* ((img-src-path (image scene))
-         (img-dst-path (make-pathname :directory `(:absolute "Users" ,(who-am-i) "Sites")
-                                      :name (pathname-name img-src-path)
-                                      :type (pathname-type img-src-path))))
-    (copy-file img-src-path img-dst-path)
-    (add-element '((h2) "Current Scene:"))
-    (add-element `((img :src ,(mkstr cl-user::*localhost-user-dir*
-                                     (pathname-name img-src-path)
-                                     "." (pathname-type img-src-path)))))
-    (add-element `((h2) ,(format nil "Current Question: \"~a\"" question)))
-    (add-element '((h2) "Expected Answer:"))
-    (if (subtypep (type-of answer) 'entity)
-      (add-element (make-html answer))
-      (add-element `((p) ,(format nil "\"~a\"" answer))))))
+    (add-element `((h2) ,(format nil "Current Utterance: \"~a\"" utterance)))
+    (add-element '((h2) "Expected Meaning Representation:"))
+    (add-element (make-html gold-standard-meaning)))
 
 (define-event-handler (trace-interactions-in-wi parsing-succeeded)
   (add-element '((h2) "Parsing succeeded")))

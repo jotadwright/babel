@@ -101,13 +101,13 @@
                          (monitors (get-all-lisp-monitors)))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
-    :experiment-class 'clevr-learning-experiment 
+    :experiment-class 'clevr-grammar-learning-experiment 
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :named-configurations strategies
     :shared-configuration nil
     :monitors monitors
-    :output-dir (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")))
+    :output-dir (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
 ;;;; UTILS FOR PLOTTING
@@ -122,9 +122,9 @@
   (raw-files->evo-plot
     :raw-file-paths
     (loop for measure-name in measure-names
-          collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
+          collect `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name ,measure-name))
     :average-windows 100
-    :plot-directory `("experiments" "clevr-learning" "raw-data" ,experiment-name)
+    :plot-directory `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name)
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
     :captions captions
@@ -148,11 +148,11 @@
   (raw-files->evo-plot
     :raw-file-paths
     (loop for experiment-name in experiment-names
-          collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
+          collect `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name ,measure-name))
     :average-windows 500
     :captions (if captions captions experiment-names)
     :title (if title title "")
-    :plot-directory '("experiments" "clevr-learning" "graphs")
+    :plot-directory '("experiments" "clevr-grammar-learning" "graphs")
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
     :y1-min y-min

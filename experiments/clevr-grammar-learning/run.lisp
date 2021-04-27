@@ -2,16 +2,39 @@
 (ql:quickload :clevr-grammar-learning)
 (in-package :clevr-grammar-learning)
 
+
+;;;; MONITORS
+;;;; --------
+(progn
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi)
+  (activate-monitor trace-tasks-and-processes)
+  (activate-monitor display-communicative-success))
+
+(progn
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor display-metrics))
+
+(deactivate-all-monitors)
+
+(progn
+  (deactivate-monitor trace-fcg)
+  (deactivate-monitor trace-irl)
+  (deactivate-monitor trace-interactions-in-wi))
+
+(progn
+  (deactivate-monitor display-communicative-success))
+
+
 (let ((experiment-name 'basic-function-test))
   (run-experiments `(
                      (,experiment-name
                       ((:determine-interacting-agents-mode . :tutor-learner)
-                       (:learner-speaks-confidence-threshold . 0.2)
-                       (:question-sample-mode . :first)
+                       (:question-sample-mode . :random)
                        (:questions-per-challenge . 100)
-                       (:scenes-per-question . 50)
                        (:confidence-threshold . 1.1)
-                       (:speaker-sample-mode . :random)
                        (:cxn-decf-score . 0.3)))
                      )
                    :number-of-interactions 100
