@@ -1,7 +1,7 @@
 (in-package :asdf)
 
 (defsystem #:clevr-grammar-learning
-  :description "Tutor-learner experiment to learn the clevr grammar"
+  :description "Tutor-learner experiment to learn the clevr grammar, based on clevr-learning by Jens Nevens"
   :author "Jonas Doumen & Paul Van Eecke <ehai@ai.vub.ac.be>"
   :maintainer "Jonas Doumen <jonas.doumen@kuleuven.be>"
   :license "to be decided on"
@@ -16,20 +16,15 @@
                :fcg
                :category-hierarchies
                :clevr-world
-               :clevr-primitives
-               :clevr-grammar
                :grammar-learning)
   :serial t
   :components ((:file "package")
                (:file "run-helpers")
                (:file "grammar")
-               (:file "ontology")
-               (:file "composer-utils") 
                (:file "agent")
                (:file "agent-tasks-and-processes")
-               (:file "hearer-tasks-and-processes")
-               (:file "speaker-tasks-and-processes")
-               (:file "composer")
+               (:file "learner-tasks-and-processes")
+               (:file "tutor-tasks-and-processes")
                (:file "alignment")
                (:file "repairs")
                (:file "experiment")

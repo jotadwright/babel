@@ -39,7 +39,7 @@
 
 (defmethod interact ((experiment clevr-grammar-learning-experiment)
                      interaction &key)
-  (let ((successp (run-learner-hearer-task (learner experiment))))
+  (let ((successp (run-learner-comprehension-task (learner experiment))))
     (loop for agent in (population experiment)
           do (setf (communicated-successfully agent) successp))))
     

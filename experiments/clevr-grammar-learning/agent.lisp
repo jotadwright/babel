@@ -33,28 +33,11 @@
                 :documentation "Pointer to the result of the task in this interaction"))
   (:documentation "The learner agent"))
 
-(defun default-clevr-grammar ()
-  (let ((clevr-grammar (copy-object *CLEVR*)))
-    (set-configurations clevr-grammar
-                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
-                          (:priority-mode . :nr-of-applied-cxns)
-                          (:parse-order hashed nom cxn)
-                          (:production-order hashed-lex nom cxn hashed-morph)
-                          (:max-nr-of-nodes . 10000))
-                        :replace t)
-    (set-configurations (processing-cxn-inventory clevr-grammar)
-                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
-                          (:priority-mode . :nr-of-applied-cxns)
-                          (:parse-order hashed nom cxn)
-                          (:production-order hashed-lex nom cxn hashed-morph)
-                          (:max-nr-of-nodes . 10000))
-                        :replace t)
-    clevr-grammar))
 
 (defun make-clevr-learning-tutor (experiment)
   (make-instance 'clevr-learning-tutor
                  :role 'tutor :experiment experiment
-                 :grammar (default-clevr-grammar)
+                 :grammar nil
                  :success-table (loop for i below (length (question-data experiment))
                                       collect (cons i nil))))
 
