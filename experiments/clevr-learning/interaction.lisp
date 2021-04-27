@@ -50,6 +50,8 @@
           (question-data
            (experiment agent)))))
 
+(define-event log-unseen-questions (n number))
+
 (defmethod sample-question ((agent clevr-learning-tutor) (mode (eql :smart)))
   (let ((question-data (question-data (experiment agent))))
     (multiple-value-bind (unseen-question-indices seen-question-indices)
@@ -57,6 +59,7 @@
               if (null elem) collect index into unseen
               else collect index into seen
               finally (return (values unseen seen)))
+      (notify log-unseen-questions (length unseen-question-indices))
       (let ((set-to-consider
              (cond ((and unseen-question-indices seen-question-indices)
                     (random-elt (list 'unseen 'seen)))
@@ -137,6 +140,8 @@
   (let ((successp
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
+    (unless successp
+      (format nil "break here!"))
     ;; record the success of the current question
     ;; used by 'smart' speaker mode for the tutor
     (when (eq (speaker interaction) (tutor interaction))

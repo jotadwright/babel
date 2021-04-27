@@ -239,6 +239,23 @@
         :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
 
+;;;; number of unseen questions       
+(define-monitor record-unseen-questions
+                :class 'data-recorder
+                :average-window 1
+                :default-value :keep-previous-value) 
+
+(define-monitor export-unseen-questions
+                :class 'lisp-data-file-writer
+                :documentation "Exports communicative success"
+                :data-sources '(record-unseen-questions)
+                :file-name (babel-pathname :name "number-of-unseen-questions" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-unseen-questions log-unseen-questions)
+  (record-value monitor n))
+
 
 
 ;; utilty function to get all of them
