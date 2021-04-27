@@ -98,18 +98,20 @@
     composer))
 
 ;; + compose-until +
-(defun compose-until (composer fn)
+(defun compose-until (composer fn &key (max-attempts nil))
   "Generate composer solutions until the
    function 'fn' returns t on the solution
    or the composer runs out of solutions"
   (loop with the-solution = nil
+        for attempt from 1
         for next-solutions = (get-next-solutions composer)
         do (loop for solution in next-solutions
                  for i from 1
                  when (funcall fn solution i)
                  do (progn (setf the-solution solution) (return)))
         until (or (null next-solutions)
-                  (not (null the-solution)))
+                  (not (null the-solution))
+                  (and max-attempts (> attempt max-attempts)))
         finally (return the-solution)))
 
 ;; + store past programs +

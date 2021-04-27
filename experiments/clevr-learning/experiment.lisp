@@ -206,6 +206,18 @@
   (notify interacting-agents-determined experiment interaction))
 
 (defmethod determine-interacting-agents ((experiment clevr-learning-experiment)
+                                         interaction (mode (eql :learner-always-speaks)) &key)
+  ;; Tutor is speaker, learner is hearer
+  (setf (interacting-agents interaction) (list (tutor experiment)
+                                               (learner experiment))
+        (discourse-role (tutor experiment)) 'hearer
+        (discourse-role (learner experiment)) 'speaker)
+  (loop for agent in (list (tutor experiment) (learner experiment))
+        do (setf (utterance agent) nil
+                 (communicated-successfully agent) nil))
+  (notify interacting-agents-determined experiment interaction))
+
+(defmethod determine-interacting-agents ((experiment clevr-learning-experiment)
                                          interaction (mode (eql :default)) &key)
   "This default implementation randomly chooses two interacting agents
    and adds the discourse roles speaker and hearer to them"
