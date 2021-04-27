@@ -140,8 +140,6 @@
   (let ((successp
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
-    (unless successp
-      (format nil "break here!"))
     ;; record the success of the current question
     ;; used by 'smart' speaker mode for the tutor
     (when (eq (speaker interaction) (tutor interaction))

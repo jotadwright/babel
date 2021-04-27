@@ -32,6 +32,24 @@
 
 (in-package :clevr-learning)
 
+(defun default-clevr-grammar ()
+  (let ((clevr-grammar (copy-object *CLEVR*)))
+    (set-configurations clevr-grammar
+                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                          (:priority-mode . :nr-of-applied-cxns)
+                          (:parse-order hashed nom cxn)
+                          (:production-order hashed-lex nom cxn hashed-morph)
+                          (:max-nr-of-nodes . 10000))
+                        :replace t)
+    (set-configurations (processing-cxn-inventory clevr-grammar)
+                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                          (:priority-mode . :nr-of-applied-cxns)
+                          (:parse-order hashed nom cxn)
+                          (:production-order hashed-lex nom cxn hashed-morph)
+                          (:max-nr-of-nodes . 10000))
+                        :replace t)
+    clevr-grammar))
+
 (defun empty-cxn-set (hide-type-hierarchy cxn-supplier)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
