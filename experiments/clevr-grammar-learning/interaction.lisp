@@ -27,18 +27,22 @@
 (define-event interaction-before-finished
   (utterance string) (gold-standard-meaning t))
 
-(defmethod interact :before ((experiment clevr-grammar-learning-experiment)
-                             interaction &key)
-  ;; Choose a question and initialize the agents
-  (let* ((interaction-data (nth (interaction-number interaction) (question-data experiment)))
+(defun get-interaction-data (interaction)
+  (let* ((interaction-data (nth (interaction-number interaction) (question-data (experiment interaction))))
          (utterance (first interaction-data))
          (gold-standard-meaning (cdr interaction-data)))
+    (values utterance gold-standard-meaning)))
+
+(defmethod interact :before ((experiment clevr-grammar-learning-experiment)
+                             interaction &key)
+  (multiple-value-bind (utterance gold-standard-meaning) (get-interaction-data interaction)
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent utterance gold-standard-meaning))
     (notify interaction-before-finished utterance gold-standard-meaning)))
 
 (defmethod interact ((experiment clevr-grammar-learning-experiment)
                      interaction &key)
+  "the learner attempts to comprehend the utterance with its grammar"
   (let ((successp (run-learner-comprehension-task (learner experiment))))
     (loop for agent in (population experiment)
           do (setf (communicated-successfully agent) successp))))
@@ -47,34 +51,19 @@
 
 (defmethod interact :after ((experiment clevr-grammar-learning-experiment)
                             interaction &key)
+  "the tutor gives the answer, the learner learns from the gold standard"
   (let ((successp
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
-    ;; record the success of the current question
-    ;; used by 'smart' speaker mode for the tutor
-    (when (eq (speaker interaction) (tutor interaction))
-      (record-interaction-success-in-table (tutor interaction) successp))
-    ;; add the success to the confidence buffer of the learner
+    ;; record the success of the current utterance
+    ;; by adding the success to the confidence buffer of the learner
     (setf (confidence-buffer experiment)
           (cons (if successp 1 0)
                 (butlast (confidence-buffer experiment))))
     (notify agent-confidence-level (average (confidence-buffer experiment)))
-    ;; add the current scene/program to memory of the learner, 
-    ;; depending on the composer strategy and the success,
-    ;; but only when being the hearer (when learner is speaker,
-    ;; we dont have access to the utterance)
-    (when (eq (hearer interaction) (learner interaction))
-      (case (get-configuration experiment :composer-strategy)
-        (:store-past-programs
-         (unless successp
-           (add-past-program
-            (learner experiment)
-            (find-data (task-result (learner experiment))
-                       'irl-program))))
-        (:store-past-scenes
-         (add-past-scene (learner experiment))))))
+
   ;; check the confidence level and (maybe) transition to the next challenge
-  (maybe-increase-level experiment))
+  (maybe-increase-level experiment)))
 
 
 (defun record-interaction-success-in-table (agent success)

@@ -15,3 +15,5 @@
 
 (length (question-data *experiment*))
 (cdr (first (question-data *experiment*)))
+(defparameter *curr* (current-interaction *experiment*))
+(get-interaction-data (current-interaction *experiment*))

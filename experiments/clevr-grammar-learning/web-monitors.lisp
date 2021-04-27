@@ -225,6 +225,4 @@
    `((div) ,(s-dot->svg
              (new-th-links->s-dot th new-links)))))
 
-(define-event-handler (trace-interactions-in-wi check-samples-started)
-  (add-element `((h3) ,(format nil "Checking solution ~a against ~a past scenes"
-                               solution-index (length list-of-samples)))))
+

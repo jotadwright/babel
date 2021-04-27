@@ -26,7 +26,6 @@
                (:file "learner-tasks-and-processes")
                (:file "tutor-tasks-and-processes")
                (:file "alignment")
-               (:file "repairs")
                (:file "experiment")
                (:file "interaction")
                (:file "web-monitors")
