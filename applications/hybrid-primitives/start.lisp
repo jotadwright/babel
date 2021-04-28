@@ -2,9 +2,16 @@
 (ql:quickload :hybrid-primitives)
 (in-package :hybrid-primitives)
 
+;; make a cookie jar!
+(defparameter *cookie-jar*
+  (make-instance 'drakma:cookie-jar))
+
 ;; initialize the server by loading a scene (i.e. an image)
-(load-image "http://localhost:8888/"
-            "CLEVR_val_000000.png")
+(load-image "http://localhost:8888/" *cookie-jar* "CLEVR_val_000002.png")
+
+;; close the session
+(do-irl-request "http://localhost:8888/" "clear_session" nil *cookie-jar*)
+
 (setf context-attn-id
   (multiple-value-bind (bind-scores bind-values)
       (evaluate-neural-primitive

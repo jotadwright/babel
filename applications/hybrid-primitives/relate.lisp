@@ -14,6 +14,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive relate
           :slots (:source-attn ,(id source-attn)
                   :spatial-relation ,(spatial-relation spatial-relation)
@@ -31,6 +32,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive relate
           :slots (:source-attn ,(id source-attn)
                   :spatial-relation nil
@@ -49,6 +51,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive relate
           :slots (:source-attn ,(id source-attn)
                   :spatial-relation nil
@@ -73,6 +76,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitive relate
              :slots (:source-attn ,(id source-attn)
                      :spatial-relation ,(spatial-relation spatial-relation)

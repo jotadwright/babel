@@ -12,6 +12,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitive get-context
              :slots (:context ,(id context))))))
      consistentp))
@@ -21,6 +22,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive get-context
           :slots (:context nil)))
      (loop for scores in bind-scores

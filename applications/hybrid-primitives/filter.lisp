@@ -14,6 +14,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive filter
           :slots (:source-attn ,(id source-attn)
                   :category  ,(category-value category)
@@ -31,6 +32,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive filter
           :slots (:source-attn ,(id source-attn)
                   :category  nil
@@ -49,6 +51,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive filter
           :slots (:source-attn ,(id source-attn)
                   :category nil
@@ -72,6 +75,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitve filter
              :slots (:source-attn ,(id source-attn)
                      :category ,(category-value category)
