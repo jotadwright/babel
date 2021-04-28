@@ -45,6 +45,14 @@
   (:documentation "The speaker samples a question from the dataset according to mode"))
 
 (defmethod sample-question ((agent clevr-learning-agent) (mode (eql :random)))
+  (when (eql (role agent) 'tutor)
+    (multiple-value-bind (unseen-question-indices seen-question-indices)
+        (loop for (index . elem) in (question-success-table agent)
+              if (null elem) collect index into unseen
+              else collect index into seen
+              finally (return (values unseen seen)))
+      (declare (ignorable seen-question-indices))
+      (notify log-unseen-questions (length unseen-question-indices))))
   (load-clevr-scene-and-answer
    agent (random-elt
           (question-data
