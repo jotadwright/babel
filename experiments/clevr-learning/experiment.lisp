@@ -51,6 +51,11 @@
 (define-configuration-default-value :confidence-threshold 1.00)
 (define-configuration-default-value :learner-speaks-confidence-threshold 0.5)
 
+;; Hybrid or symbolic primitives
+(define-configuration-default-value :primitives :symbolic) ; :symbolic or hybrid
+(define-configuration-default-value :hybrid-server-address "http://localhost")
+(define-configuration-default-value :hybrid-server-port 8888)
+
 ;; Misc
 (define-configuration-default-value :dot-interval 100)
 (define-configuration-default-value :hide-type-hierarchy t)

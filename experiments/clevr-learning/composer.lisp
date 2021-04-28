@@ -144,33 +144,54 @@
 ;; + store past scenes +
 (define-event check-samples-started
   (list-of-samples list)
-  (solution-index number))              
+  (solution-index number))
+
+(defun check-past-scene (scene-index answer irl-program agent)
+  (let* ((world (world (experiment agent)))
+         (path (nth scene-index (scenes world)))
+         (scene (load-clevr-scene path))
+         (image-filename (file-namestring (image scene)))
+         (server-address
+          (find-data (ontology agent) 'hybrid-primitives::server-address))
+         (cookie-jar
+          (find-data (ontology agent) 'hybrid-primitives::cookie-jar)))
+    (set-data (ontology agent) 'clevr-context scene)
+    (when (eql (get-configuration agent :primitives) :hybrid)
+      (load-image server-address cookie-jar image-filename))
+    (let* ((all-solutions
+            (evaluate-irl-program irl-program (ontology agent) :silent t
+                                  :primitive-inventory (available-primitives agent)))
+           (solution
+            (when (length= all-solutions 1)
+              (first all-solutions)))
+           (found-answer
+            (when solution
+              (get-target-value irl-program solution))))
+      (equal-entity found-answer answer))))
 
 (defun check-past-scenes (solution solution-index list-of-samples agent)
   "A sample is a triple of (context-id utterance answer). The irl-program
   of the evaluation result has to return the correct answer for all samples
   of the same utterance."
-  (let ((clevr-context (find-data (ontology agent) 'clevr-context))
-        (irl-program (append (irl-program (chunk solution))
-                             (bind-statements solution)))
-        (world (world (experiment agent)))
-        (success t))
+  (let* ((current-clevr-context (find-data (ontology agent) 'clevr-context))
+         (current-image-filename
+          (file-namestring (image current-clevr-context)))
+         (irl-program (append (irl-program (chunk solution))
+                              (bind-statements solution)))
+         (success t))
     (notify check-samples-started list-of-samples solution-index)
+    ;; check the list of samples
     (setf success
           (loop for (scene-index . stored-answer) in list-of-samples
-                for context
-                = (let* ((path (nth scene-index (scenes world)))
-                         (scene (load-clevr-scene path)))
-                    (set-data (ontology agent) 'clevr-context scene)
-                    scene)
-                for solutions
-                = (evaluate-irl-program irl-program (ontology agent)
-                                        :silent t :primitive-inventory (available-primitives agent))
-                for solution = (when (length= solutions 1) (first solutions))
-                for found-answer = (when solution (get-target-value irl-program solution))
-                for correct = (equal-entity found-answer stored-answer)
-                always correct))
-    (set-data (ontology agent) 'clevr-context clevr-context)
+                always (check-past-scene scene-index stored-answer irl-program agent)))
+    ;; afterwards, restore the data for the current scene
+    (set-data (ontology agent) 'clevr-context current-clevr-context)
+    (when (eql (get-configuration agent :primitives) :hybrid)
+      (let ((server-address
+             (find-data (ontology agent) 'hybrid-primitives::server-address))
+            (cookie-jar
+             (find-data (ontology agent) 'hybrid-primitives::cookie-jar)))
+        (load-image server-address cookie-jar current-image-filename)))
     success))
 
 (defmethod compose-program ((agent clevr-learning-learner)

@@ -174,5 +174,41 @@
 (defun get-all-export-monitors ()
   '("export-type-hierarchy"
     "export-learner-grammar"))
+
+
+;; download attentions from server when using hybrid primitives
+;; both when evaluating irl programs and when using the composer
+(defmethod irl::handle-evaluate-irl-program-finished-event
+           :before ((monitor monitor)
+                    (monitor-id (eql 'irl::trace-irl))
+                    (event-id (eql 'irl::evaluate-irl-program-finished))
+                    solutions solution-nodes
+                    processor primitive-inventory)
+  ;; when the monitor is active
+  ;; download all attention images
+  ;; also check if the slot is bound
+  ;; such that the same attention is not downloaded twice
+  (when (monitors::active monitor)
+    (loop for solution in solutions
+          do (loop for binding in solution
+                   when (and (subtypep (type-of (value binding)) 'attention)
+                             (null (img-path (value binding))))
+                   do (request-attn (get-data (ontology processor) 'hybrid-primitives::server-address)
+                                    (get-data (ontology processor) 'hybrid-primitives::cookie-jar)
+                                    (value binding))))))
+
+(defmethod irl::handle-chunk-composer-finished-event
+           :before ((monitor monitor)
+                    (monitor-id (eql 'irl::trace-irl))
+                    (event-id (eql 'irl::chunk-composer-finished))
+                    solutions composer)
+  (when (monitors::active monitor)
+    (loop for solution in solutions
+          do (loop for binding in (irl::bindings solution)
+                   when (and (subtypep (type-of (value binding)) 'attention)
+                             (null (img-path (value binding))))
+                   do (request-attn (get-data (ontology composer) 'hybrid-primitives::server-address)
+                                    (get-data (ontology composer) 'hybrid-primitives::cookie-jar)
+                                    (value binding))))))
   
     

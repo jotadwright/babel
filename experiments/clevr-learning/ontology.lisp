@@ -5,21 +5,30 @@
 (defparameter *challenge-level-primitive-dict*
   '((1 count! exist filter get-context query unique)
     (2 count! exist filter get-context query unique relate same)
-    (3 count! exist filter get-context query unique relate same equal? intersect union! equal-integer less-than greater-than)))
+    (3 count! exist filter get-context query unique relate same
+       equal? intersect union! equal-integer less-than greater-than)))
 
 (define-event challenge-level-primitives-set (level number))
 
-(defun set-primitives-for-current-challenge-level (agent)
-  (let ((primitive-inventory
+(defun set-primitives-for-current-challenge-level (agent mode)
+  (let (;; create a primitive inventory
+        (primitive-inventory
          (def-irl-primitives clevr-learning-primitives
            :primitive-inventory *clevr-learning-primitives*))
+        ;; get the primitives for the current challenge level
         (available-primitives
          (rest (assoc (get-configuration agent :current-challenge-level)
                       *challenge-level-primitive-dict*))))
-    (loop for p in available-primitives
+    ;; add them to the new primitive inventory
+    (loop with source-inventory
+          = (case mode
+              (:symbolic *clevr-primitives*)
+              (:hybrid *hybrid-primitives*))
+          for p in available-primitives
           do (add-primitive
-              (find-primitive p *clevr-primitives*)
+              (find-primitive p source-inventory)
               primitive-inventory))
+    ;; store them in the agent
     (setf (available-primitives agent) primitive-inventory)
     (notify challenge-level-primitives-set
             (get-configuration agent :current-challenge-level))))

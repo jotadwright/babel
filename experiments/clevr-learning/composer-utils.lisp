@@ -141,6 +141,7 @@
                        (setf prev-was-filter nil)))))
     filter-groups))
 
+#|
 (defun all-different-bind-types (chunk-evaluation-result filter-group)
   ;; collect all bind-statements that belong with the filter-group
   ;; check if the types are all different
@@ -168,6 +169,7 @@
               always (all-different-bind-types result group))
         t))
     t))
+|#
 
 
 (defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
@@ -294,7 +296,8 @@
                (new-permutation-p
                 (loop for permut in processed-permutations
                       never (and (length= permut filter-bindings)
-                                 (permutation-of? permut filter-bindings)))))
+                                 (permutation-of? permut filter-bindings
+                                                  :test #'equal-entity)))))
           (if new-permutation-p
             (progn (push-data (blackboard (processor node))
                               'processed-permutations filter-bindings)
