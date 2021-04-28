@@ -7,7 +7,7 @@
         :plot-raw-data :monitors :web-interface
         :tasks-and-processes :meta-layer-learning
         :irl :fcg :type-hierarchies :clevr-world
-        :gl)
+        :grammar-learning)
   (:shadowing-import-from :fcg :size :attributes))
 
 

@@ -38,29 +38,35 @@
           (eval `(def-fcg-constructions-with-type-hierarchy
                      ,grammar-name
                    :cxn-inventory ,grammar-name
-                   :feature-types ((args sequence)
+                   :feature-types ((args sequence) ; was sequence in Jens's version
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
                    :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
-                                        (:parse-order non-holophrase holophrase)
-                                        (:parse-goal-tests :no-applicable-cxns
-                                                           :connected-semantic-network
-                                                           :no-strings-in-root)
-                                        ;(:production-order non-holophrase holophrase)
-                                        (:production-goal-tests :no-applicable-cxns
-                                                                :connected-structure
-                                                                :no-meaning-in-root)
-                                        ;(:max-nr-of-nodes . 1000) ;; !
-                                        ;(:shuffle-cxns-before-application . t)
+                                        (:parse-goal-tests :non-gold-standard-meaning)
+                                        (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
+                                        (:render-mode . :generate-and-test)
                                         (:th-connected-mode . ,th-connected-mode)
                                         (:update-th-links . t)
                                         (:consolidate-repairs . t))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                  (:show-categorial-network . ,(not hide-type-hierarchy)))))))
+                                                  (:show-categorial-network . ,(not hide-type-hierarchy)))
+                   :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
+                                 :repairs (;gl::add-th-links
+                                           gl::item-based->lexical
+                                           gl::holophrase->item-based+lexical+lexical--substitution
+                                           gl::holophrase->item-based+lexical--addition
+                                           gl::holophrase->item-based+lexical+holophrase--deletion
+                                           gl::repair-lexical->item-based-cxn
+                                           gl::nothing->holophrase)))))
     cxn-inventory))
+
+
+                                 
+                                 
+
 
 (define-event lexicon-changed)
 

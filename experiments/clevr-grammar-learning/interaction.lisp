@@ -15,7 +15,7 @@
 (defmethod initialize-agent ((agent clevr-learning-learner)
                              utterance gold-standard-meaning)
   (setf (utterance agent) utterance
-        (meaning agent) nil
+        (meaning agent) gold-standard-meaning
         (communicated-successfully agent) t
         (task-result agent) nil
         (tasks-and-processes::tasks agent) nil))
@@ -42,11 +42,10 @@
 
 (defmethod interact ((experiment clevr-grammar-learning-experiment)
                      interaction &key)
-  "the learner attempts to comprehend the utterance with its grammar"
-  (multiple-value-bind (learner-meaning cipn applied-cxns) (run-learner-comprehension-task (learner experiment))
+  "the learner attempts to comprehend the utterance with its grammar, and applies any repairs if necessary"
+  (multiple-value-bind (learner-meaning solution cip) (run-learner-comprehension-task (learner experiment))
     (let ((successp (equivalent-irl-programs? learner-meaning (meaning (tutor experiment)))))
-         
-    (loop for agent in (population experiment)
+         (loop for agent in (population experiment)
           do (setf (communicated-successfully agent) successp)))))
     
 (define-event agent-confidence-level (level float))
