@@ -44,6 +44,8 @@
 (defgeneric sample-question (speaker speaker-sample-mode)
   (:documentation "The speaker samples a question from the dataset according to mode"))
 
+(define-event log-unseen-questions (n number))
+
 (defmethod sample-question ((agent clevr-learning-agent) (mode (eql :random)))
   (when (eql (role agent) 'tutor)
     (multiple-value-bind (unseen-question-indices seen-question-indices)
@@ -57,8 +59,6 @@
    agent (random-elt
           (question-data
            (experiment agent)))))
-
-(define-event log-unseen-questions (n number))
 
 (defmethod sample-question ((agent clevr-learning-tutor) (mode (eql :smart)))
   (let ((question-data (question-data (experiment agent))))
