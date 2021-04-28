@@ -17,8 +17,7 @@
   (setf (utterance agent) utterance
         (meaning agent) gold-standard-meaning
         (communicated-successfully agent) t
-        (task-result agent) nil
-        (tasks-and-processes::tasks agent) nil))
+        (task-result agent) nil))
 
 ;; ---------------
 ;; + Interaction +
@@ -35,7 +34,8 @@
 
 (defmethod interact :before ((experiment clevr-grammar-learning-experiment)
                              interaction &key)
-  (multiple-value-bind (utterance gold-standard-meaning) (get-interaction-data interaction)
+  (multiple-value-bind (utterance gold-standard-meaning)
+      (get-interaction-data interaction)
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent utterance gold-standard-meaning))
     (notify interaction-before-finished utterance gold-standard-meaning)))

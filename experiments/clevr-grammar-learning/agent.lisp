@@ -4,7 +4,7 @@
 ;; + Agent Classes +
 ;; -----------------
 
-(defclass clevr-learning-agent (agent object-w-tasks)
+(defclass clevr-learning-agent (agent)
   ((meaning :initarg :meaning :initform nil
           :accessor meaning :type (or null entity number)
           :documentation "The meaning representation for the current utterance")

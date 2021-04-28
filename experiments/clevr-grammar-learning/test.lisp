@@ -31,5 +31,5 @@
 ;;; test series of interactions
 (progn
   (wi::reset)
-  (run-series *experiment* 20))
+  (run-series *experiment* 200))
 

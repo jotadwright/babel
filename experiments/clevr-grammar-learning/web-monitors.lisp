@@ -2,14 +2,6 @@
 
 (in-package :clevr-grammar-learning)
 
-(define-monitor trace-tasks-and-processes)
-
-(define-event-handler (trace-tasks-and-processes object-run-task-finished)
-  (add-element `((h3) ,(format nil "The ~a finished running the ~a"
-                               (downcase (mkstr (role tasks-and-processes::object)))
-                               (downcase (mkstr (label task))))))
-  (add-element (make-html task)))
-
 
 (defun new-th-links->s-dot (type-hierarchy new-links)
   (let* ((g (type-hierarchies::graph type-hierarchy))
@@ -119,7 +111,7 @@
   (add-element
    `((div) ,(s-dot->svg
              (new-th-links->s-dot th new-links)))))
-
+#|
 (define-event-handler (trace-interactions-in-wi interpretation-succeeded)
   (add-element '((h2) "Interpretation succeeded"))
   (add-element '((h3) "Computed answer:"))
@@ -214,4 +206,4 @@
    `((div) ,(s-dot->svg
              (new-th-links->s-dot th new-links)))))
 
-
+|#

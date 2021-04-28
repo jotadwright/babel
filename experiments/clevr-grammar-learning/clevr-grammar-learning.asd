@@ -10,7 +10,6 @@
                :plot-raw-data
                :monitors
                :web-interface
-               :tasks-and-processes
                :meta-layer-learning
                :irl
                :fcg
@@ -22,10 +21,7 @@
                (:file "run-helpers")
                (:file "grammar")
                (:file "agent")
-               (:file "agent-tasks-and-processes")
-               (:file "learner-tasks-and-processes")
-               (:file "tutor-tasks-and-processes")
-               (:file "alignment")
+               (:file "learner")
                (:file "experiment")
                (:file "interaction")
                (:file "web-monitors")

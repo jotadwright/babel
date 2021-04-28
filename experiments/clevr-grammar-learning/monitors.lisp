@@ -50,7 +50,7 @@
                    (if applied-cxns
                      applied-cxns '(nil)))
            stream))))))
-
+#|
 (define-event-handler (log-interactions log-interaction-finished)
   (unless *log-file*
     (setf *log-file*
@@ -76,7 +76,7 @@
          stream)))))
           
 
-
+|#
 ;;;; export type hierarchy after series
 (define-monitor export-type-hierarchy
                 :class 'store-monitor
