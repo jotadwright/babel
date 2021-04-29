@@ -9,16 +9,12 @@
                                     (merge-pathnames
                                      (make-pathname :directory '(:relative "clevr-learning-data"))
                                      cl-user:*babel-corpora*))
-(define-configuration-default-value :challenge-1-files
-                                    (make-pathname :directory '(:relative "stage-1")
-                                                   :name :wild :type "lisp"))
-(define-configuration-default-value :challenge-2-files
-                                    (make-pathname :directory '(:relative "stage-2")
-                                                   :name :wild :type "lisp"))
-(define-configuration-default-value :challenge-3-files
-                                    (make-pathname :directory '(:relative "stage-3")
-                                                   :name :wild :type "lisp"))
-(define-configuration-default-value :observation-sample-size 10000)
+(define-configuration-default-value :challenge-1-data
+                                    (make-pathname :directory '(:relative "json")
+                                                   :name "stage-1-questions-sorted" :type "txt"))
+(define-configuration-default-value :challenge-2-data
+                                    (make-pathname :directory '(:relative "json")
+                                                   :name "stage-2-questions-sorted" :type "txt"))
 (define-configuration-default-value :observation-sample-mode :first) ; random or first or all
 (define-configuration-default-value :clevr-world-data-sets '("val"))
 
@@ -29,8 +25,6 @@
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.2)
 
-
-(define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :learner-cxn-supplier :ordered-by-label-and-score)
 (define-configuration-default-value :learner-th-connected-mode :path-exists)
@@ -45,7 +39,7 @@
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)
-(define-configuration-default-value :hide-type-hierarchy t)
+(define-configuration-default-value :hide-type-hierarchy nil)
 
 ;; --------------
 ;; + Experiment +
@@ -80,61 +74,50 @@
 
 (define-event challenge-level-questions-loaded (level number))
 
-(defgeneric load-questions-for-current-challenge-level (experiment  mode &optional all-files)
+(defgeneric load-questions-for-current-challenge-level (experiment  mode &optional challenge-file)
   (:documentation "Load all data for the current challenge level"))
 
 (defmethod load-questions-for-current-challenge-level :around ((experiment clevr-grammar-learning-experiment)
-                                                               mode &optional all-files)
-  (let ((all-challenge-files
-          (sort
-           (directory
-            (merge-pathnames
+                                                               mode &optional challenge-file)
+  (format t "~%Loading data...")
+  (let* ((challenge-file (merge-pathnames
              (case (get-configuration experiment :current-challenge-level)
-               (1 (get-configuration experiment :challenge-1-files))
-               (2 (get-configuration experiment :challenge-1-files));;dummy lvl 1 data: replace with actual data!
-               (3 (get-configuration experiment :challenge-1-files)));;dummy lvl 1 data: replace with actual data!
-             (get-configuration experiment :challenge-files-root)))
-           #'string< :key #'namestring)))
-    (format t "~%Loading data...")
-    (call-next-method experiment mode all-challenge-files)
+               (1 (get-configuration experiment :challenge-1-data))
+               (2 (get-configuration experiment :challenge-2-data))
+               (3 (get-configuration experiment :challenge-1-data)));;dummy lvl 1 data: replace with actual data!
+             (get-configuration experiment :challenge-files-root))))
+    
+    (call-next-method experiment mode challenge-file)
     (format t "~%Done!")
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
-                                                       (mode (eql :random)) &optional all-files)
-  (let* ((number-of-observations
-          (get-configuration experiment :observation-sample-size))
-         (files
-          (random-elts all-files number-of-observations))
-         (data
-          (loop for file in files
-                for file-data = (with-open-file (stream file :direction :input)
-                                  (read stream))
-                collect (cons (first file-data) (second file-data)))))
-    (setf (question-data experiment) data)))
+                                                       (mode (eql :random)) &optional challenge-file)
+  (with-open-file (stream challenge-file)
+    (let* ((stage-data (loop for line = (read-line stream nil)
+                             for data = (when line (cl-json:decode-json-from-string line))
+                             while data
+                             collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
+    (setf (question-data experiment) stage-data))))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
-                                                       (mode (eql :first)) &optional all-files)
-  (let* ((number-of-observations
-          (get-configuration experiment :observation-sample-size))
-         (files
-          (subseq all-files 0 number-of-observations))
-         (data
-          (loop for file in files
-                for file-data = (with-open-file (stream file :direction :input)
-                                  (read stream))
-                collect (cons (first file-data) (second file-data)))))
-    (setf (question-data experiment) data)))
+                                                       (mode (eql :first)) &optional challenge-file)
+  (with-open-file (stream challenge-file)
+    (let* ((stage-data (loop for line = (read-line stream nil)
+                             for data = (when line (cl-json:decode-json-from-string line))
+                             while data
+                             collect (cons (cdr (assoc :question data)) (cdr (assoc :meaning data))))))
+    (setf (question-data experiment) stage-data))))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
-                                                       (mode (eql :all)) &optional all-files)
-  (let* ((data
-          (loop for file in all-files
-                for file-data = (with-open-file (stream file :direction :input)
-                                  (read stream))
-                collect (cons (first file-data) (second file-data)))))
-    (setf (question-data experiment) data)))
+                                                       (mode (eql :all)) &optional challenge-file)
+  (with-open-file (stream challenge-file)
+    (let* ((stage-data (loop for line = (read-line stream nil)
+                             for data = (when line (cl-json:decode-json-from-string line))
+                             while data
+                             collect (cons (cdr (assoc :question data)) (cdr (assoc :meaning data))))))
+    (setf (question-data experiment) stage-data))))
 
 (defmethod tutor ((experiment clevr-grammar-learning-experiment))
   (find 'tutor (population experiment) :key #'role))
@@ -147,6 +130,7 @@
 
 (defmethod learner ((interaction interaction))
   (find 'learner (interacting-agents interaction) :key #'role))
+
 
 ;; ---------------------------
 ;; + Interacting Agents Mode +

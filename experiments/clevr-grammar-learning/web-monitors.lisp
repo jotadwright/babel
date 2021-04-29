@@ -3,6 +3,13 @@
 (in-package :clevr-grammar-learning)
 
 
+;;;;;; EVENTS ;;;;;;
+
+(define-event log-parsing-finished
+  (agent clevr-learning-agent)
+  (process-result-data list))
+
+
 (defun new-th-links->s-dot (type-hierarchy new-links)
   (let* ((g (type-hierarchies::graph type-hierarchy))
          (graph-properties '((s-dot::fontcolor "#000000")
@@ -47,8 +54,6 @@
   (add-element `((h1) ,(format nil "Level ~a questions loaded"
                                level))))
 
-
-
 (define-event-handler (trace-interactions-in-wi interacting-agents-determined)
   (let ((speaker (speaker interaction))
         (hearer (hearer interaction)))
@@ -66,17 +71,11 @@
     (add-element '((h2) "Expected Meaning Representation:"))
     (add-element (make-html gold-standard-meaning)))
 
-(define-event-handler (trace-interactions-in-wi parsing-succeeded)
-  (add-element '((h2) "Parsing succeeded")))
-
 (define-event-handler (trace-interactions-in-wi constructions-chosen)
   (add-element '((h3) "Agent considers the following cxns:"))
   (loop for cxn in constructions
         do (add-element (make-html cxn))))
-
-(define-event-handler (trace-interactions-in-wi add-holophrase-repair-started)
-  (add-element '((h2) "Parsing failed. Composing a new program")))
-
+#|
 (define-event-handler (trace-interactions-in-wi add-holophrase-new-cxn)
   (add-element '((h3) "New holophrase construction:"))
   (add-element (make-html cxn)))
@@ -111,7 +110,7 @@
   (add-element
    `((div) ,(s-dot->svg
              (new-th-links->s-dot th new-links)))))
-#|
+
 (define-event-handler (trace-interactions-in-wi interpretation-succeeded)
   (add-element '((h2) "Interpretation succeeded"))
   (add-element '((h3) "Computed answer:"))

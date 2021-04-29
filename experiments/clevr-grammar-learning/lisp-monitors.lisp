@@ -43,12 +43,12 @@
                                 (average record-lexicon-size))
                 :update-interval 100
                 :caption '("communicative success"
-                           "lexicon size")
+                           "grammar size")
                 :x-label "# Games"
                 :use-y-axis '(1 2)
                 :y1-label "Communicative Success" 
                 :y1-max 1.0 :y1-min 0
-                :y2-label "Lexicon Size"
+                :y2-label "Grammar Size"
                 :y2-min 0
                 :draw-y1-grid t
                 :error-bars nil)

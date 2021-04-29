@@ -15,7 +15,8 @@
                :fcg
                :category-hierarchies
                :clevr-world
-               :grammar-learning)
+               :grammar-learning
+               :clevr-learning)
   :serial t
   :components ((:file "package")
                (:file "run-helpers")
@@ -28,4 +29,3 @@
                (:file "monitors")
                (:file "lisp-monitors")
                (:file "csv-monitors")))
-               

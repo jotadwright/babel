@@ -27,6 +27,7 @@
   (utterance string) (gold-standard-meaning t))
 
 (defun get-interaction-data (interaction)
+  "retrieve the nth utterance and gold standard meaning from the dataset"
   (let* ((interaction-data (nth (- (interaction-number interaction) 1) (question-data (experiment interaction))))
          (utterance (first interaction-data))
          (gold-standard-meaning (cdr interaction-data)))
@@ -43,8 +44,12 @@
 (defmethod interact ((experiment clevr-grammar-learning-experiment)
                      interaction &key)
   "the learner attempts to comprehend the utterance with its grammar, and applies any repairs if necessary"
-  (multiple-value-bind (learner-meaning solution cip) (run-learner-comprehension-task (learner experiment))
-    (let ((successp (equivalent-irl-programs? learner-meaning (meaning (tutor experiment)))))
+  (multiple-value-bind (learner-meaning cipn) (run-learner-comprehension-task (learner experiment))
+    (let* ((repair (third (statuses cipn)))
+           (car-status (second (statuses cipn)))
+           (successp (when cipn (or (equal car-status 'CXN-APPLIED) (equal repair 'ADD-TH-LINKS)))))
+      (when successp
+        (format t "!"))
          (loop for agent in (population experiment)
           do (setf (communicated-successfully agent) successp)))))
     
@@ -66,20 +71,6 @@
 
     ;; check the confidence level and (maybe) transition to the next challenge
     (maybe-increase-level experiment)))
-
-
-(defun record-interaction-success-in-table (agent success)
-  "The agent records the success for the current question in its memory"
-  (let ((index (current-question-index agent)))
-    (unless (= index -1)
-      (let ((entry (rest (assoc index (question-success-table agent)))))
-        (if (null entry)
-          (setf (rest (assoc index (question-success-table agent)))
-                (if success (cons 1 0) (cons 0 1)))
-          (setf (rest (assoc index (question-success-table agent)))
-                (if success
-                  (cons (1+ (car entry)) (cdr entry))
-                  (cons (car entry) (1+ (cdr entry))))))))))
 
 (defun maybe-increase-level (experiment)
   (when (and (get-configuration experiment :enable-autotelic-levels)

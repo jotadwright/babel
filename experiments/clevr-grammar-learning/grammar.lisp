@@ -54,7 +54,7 @@
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
-                                 :repairs (;gl::add-th-links
+                                 :repairs (gl::add-th-links
                                            gl::item-based->lexical
                                            gl::holophrase->item-based+lexical+lexical--substitution
                                            gl::holophrase->item-based+lexical--addition
