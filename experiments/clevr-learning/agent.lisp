@@ -47,24 +47,6 @@
                     :documentation "The chunks the agent can use for composing"))
   (:documentation "The learner agent"))
 
-(defun default-clevr-grammar ()
-  (let ((clevr-grammar (copy-object *CLEVR*)))
-    (set-configurations clevr-grammar
-                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
-                          (:priority-mode . :nr-of-applied-cxns)
-                          (:parse-order hashed nom cxn)
-                          (:production-order hashed-lex nom cxn hashed-morph)
-                          (:max-nr-of-nodes . 10000))
-                        :replace t)
-    (set-configurations (processing-cxn-inventory clevr-grammar)
-                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
-                          (:priority-mode . :nr-of-applied-cxns)
-                          (:parse-order hashed nom cxn)
-                          (:production-order hashed-lex nom cxn hashed-morph)
-                          (:max-nr-of-nodes . 10000))
-                        :replace t)
-    clevr-grammar))
-
 (defun make-clevr-learning-tutor (experiment)
   (make-instance 'clevr-learning-tutor
                  :role 'tutor :experiment experiment
@@ -81,8 +63,20 @@
                         :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
                                                 (get-configuration experiment :learner-cxn-supplier))
                         :ontology (copy-object *clevr-ontology*))))
-    (set-primitives-for-current-challenge-level learner)
+    (set-primitives-for-current-challenge-level
+     learner (get-configuration experiment :primitives))
     (update-composer-chunks-w-primitive-inventory learner)
+    ;; when running the experiment in :hybrid mode
+    ;; store the server address and the cookie jar in the ontology
+    (when (eql (get-configuration experiment :primitives) :hybrid)
+      (let ((server-address
+             (format nil "~a:~a/"
+                     (get-configuration experiment :hybrid-server-address)
+                     (get-configuration experiment :hybrid-server-port)))
+            (cookie-jar
+             (make-instance 'drakma:cookie-jar)))
+        (set-data (ontology learner) 'hybrid-primitives::server-address server-address)
+        (set-data (ontology learner) 'hybrid-primitives::cookie-jar cookie-jar)))
     learner))
 
 (defmethod clear-question-success-table ((agent clevr-learning-tutor))

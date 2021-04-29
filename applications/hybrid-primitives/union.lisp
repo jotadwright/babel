@@ -14,6 +14,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive union
           :slots (:target-attn nil
                   :source-attn-1 ,(id source-attn-1)
@@ -32,6 +33,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitive union
              :slots (:target-attn ,(id target-attn)
                      :source-attn-1 ,(id source-attn-1)

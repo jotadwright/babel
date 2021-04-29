@@ -1,38 +1,56 @@
 
 (in-package :hybrid-primitives)
 
-(export '(load-image request-attn))
+(export '(load-image request-attn clear-session))
 
-(defun do-irl-request (server-address endpoint data)
+(defun do-irl-request (server-address endpoint data cookie-jar)
   (multiple-value-bind (response code headers
                                  uri stream must-close
                                  reason-phrase)
       (http-request (mkstr server-address endpoint)
                     :method :post :content-type "application/json"
-                    :content (replace-char (downcase (to-json data)) #\- #\_))
+                    :content (replace-char (downcase (to-json data)) #\- #\_)
+                    :cookie-jar cookie-jar)
     (declare (ignorable headers uri stream must-close reason-phrase))
     (values (parse (upcase (replace-char response #\_ #\-))) code)))
 
 
-(defun load-image (server-address image-name)
+(defun load-image (server-address cookie-jar image-name)
   "Load a CLEVR image before starting
    the IRL program evaluation"
   (multiple-value-bind (response code)
       (do-irl-request server-address
                       "init_image"
-                      `(:name ,image-name))
+                      `(:name ,image-name)
+                      cookie-jar)
     (declare (ignorable response))
     (unless (= code 200)
       (error "Something went wrong while loading ~a" image-name))))
 
 
-(defun evaluate-neural-primitive (server-address data)
+(defun clear-session (server-address cookie-jar)
+  (multiple-value-bind (response code)
+      (do-irl-request server-address
+                      "clear_session"
+                      nil cookie-jar)
+    (declare (ignorable response))
+    (unless (= code 200)
+      (error "Something went wrong while clearing the session"))
+    (when (= code 200)
+      ;; the session is cleared on the server and the
+      ;; cookie is set to expired and sent back.
+      ;; Drakma detects this and removes the cookie
+      ;; from the jar. Amazing!
+      (drakma:delete-old-cookies cookie-jar))))
+
+
+(defun evaluate-neural-primitive (server-address cookie-jar data)
   "Evaluate a neural primitive. Check if the response
    status code is ok and return the relevant data"
   (multiple-value-bind (response code)
       (do-irl-request server-address
                       "evaluate_neural_primitive"
-                      data)
+                      data cookie-jar)
     (cond
      ((= code 400) ; something went wrong
       (let ((error-type (getf response :error-type))
@@ -76,7 +94,7 @@
     (values bind-scores bind-values)))
 
 
-(defun request-attn (server-address attention)
+(defun request-attn (server-address cookie-jar attention)
   (multiple-value-bind (byte-array code headers
                                    uri stream must-close
                                    reason-phrase)
@@ -86,7 +104,8 @@
                              (format nil "attn/~a"
                                      (id attention))))
                      #\- #\_)
-                    :method :get)
+                    :method :get
+                    :cookie-jar cookie-jar)
     (declare (ignorable headers uri stream must-close reason-phrase))
     (when (= code 200)
       (let ((filepath (babel-pathname :directory '(".tmp" "attn") :type "png"
