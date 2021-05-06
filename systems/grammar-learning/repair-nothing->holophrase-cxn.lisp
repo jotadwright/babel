@@ -37,6 +37,10 @@
          (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
          (cxn-name (make-cxn-name utterance cxn-inventory))
          (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
+         (hash-string (loop for fc in form-constraints
+                        when (equalp (first fc) 'string)
+                        collect (third fc) into hash-strings
+                        finally (return (last-elt hash-strings))))
          (holophrase-cxn (second (multiple-value-list  (eval
                                                         `(def-fcg-cxn ,cxn-name
                                                                       ((?holophrase-unit
@@ -47,7 +51,8 @@
                                                                         --
                                                                         (HASH form ,form-constraints)))
                                                                       :attributes (:cxn-type holophrase
-                                                                                   :repair nothing->holophrase)
+                                                                                   :repair nothing->holophrase
+                                                                                   :string ,hash-string)
                                                                       :cxn-inventory ,(copy-object cxn-inventory)))))))
     holophrase-cxn))
 

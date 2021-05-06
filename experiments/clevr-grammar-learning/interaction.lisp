@@ -33,6 +33,12 @@
          (gold-standard-meaning (cdr interaction-data)))
     (values utterance gold-standard-meaning)))
 
+(defun determine-communicative-success (cipn)
+  (and (find 'SUCCEEDED (statuses cipn))
+       (loop for node in (cons cipn (all-parents cipn))
+             for node-statuses = (statuses node)
+             never (find 'ADDED-BY-REPAIR node-statuses))))
+
 (defmethod interact :before ((experiment clevr-grammar-learning-experiment)
                              interaction &key)
   (multiple-value-bind (utterance gold-standard-meaning)
@@ -45,11 +51,7 @@
                      interaction &key)
   "the learner attempts to comprehend the utterance with its grammar, and applies any repairs if necessary"
   (multiple-value-bind (learner-meaning cipn) (run-learner-comprehension-task (learner experiment))
-    (let* ((repair (third (statuses cipn)))
-           (car-status (second (statuses cipn)))
-           (successp (when cipn (or (equal car-status 'CXN-APPLIED) (equal repair 'ADD-TH-LINKS)))))
-      (when successp
-        (format t "!"))
+    (let* ((successp (determine-communicative-success cipn)))
          (loop for agent in (population experiment)
           do (setf (communicated-successfully agent) successp)))))
     

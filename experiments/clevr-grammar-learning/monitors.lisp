@@ -8,13 +8,14 @@
                  and prints the number after :dot-interval")
 
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (cond ((= (interaction-number interaction) 1)
-         (format t "~%."))
-        ((= (mod (interaction-number interaction)
-                 (get-configuration experiment :dot-interval)) 0)
-         (format t ". (~a)~%" (interaction-number interaction))
-         (wi:clear-page))
-        (t (format t "."))))
+  (let ((symbol-to-print (if (communicated-successfully (first (interacting-agents interaction))) "." "x")))
+    (cond ((= (interaction-number interaction) 1)
+           (format t "~%~a" symbol-to-print))
+          ((= (mod (interaction-number interaction)
+                   (get-configuration experiment :dot-interval)) 0)
+           (format t "~a (~a)~%" symbol-to-print (interaction-number interaction)))
+         ;(wi:clear-page))
+          (t (format t "~a" symbol-to-print)))))
 
 ;;;; export failed sentences and applied cxns
 (define-monitor log-interactions)

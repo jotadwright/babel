@@ -17,7 +17,7 @@
 
 (defun tokenize (utterance)
   "Split the utterance in words, downcase every word,
-   remove the punctuation from the word"
+    the punctuation from the word"
   (let ((words (split (remove-spurious-spaces utterance) #\space)))
     (loop for word in words
           append (detach-punctuation (downcase word)))))
@@ -38,7 +38,8 @@
           (eval `(def-fcg-constructions-with-type-hierarchy
                      ,grammar-name
                    :cxn-inventory ,grammar-name
-                   :feature-types ((args sequence) ; was sequence in Jens's version
+                   :hashed t
+                   :feature-types ((args set) ; was sequence in Jens's version
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
                                    (subunits set)
@@ -50,16 +51,15 @@
                                         (:render-mode . :generate-and-test)
                                         (:th-connected-mode . ,th-connected-mode)
                                         (:update-th-links . t)
-                                        (:consolidate-repairs . t))
-                   :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                  (:show-categorial-network . ,(not hide-type-hierarchy)))
+                                        (:consolidate-repairs . t)
+                                        (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
-                                 :repairs (gl::add-th-links
-                                           gl::item-based->lexical
-                                           gl::holophrase->item-based+lexical+lexical--substitution
-                                           gl::holophrase->item-based+lexical--addition
-                                           gl::holophrase->item-based+lexical+holophrase--deletion
-                                           gl::repair-lexical->item-based-cxn
+                                 :repairs (;gl::add-th-links
+                                           ;gl::item-based->lexical
+                                           ;gl::holophrase->item-based+lexical+lexical--substitution
+                                           ;gl::holophrase->item-based+lexical--addition
+                                           ;gl::holophrase->item-based+lexical+holophrase--deletion
+                                           ;gl::repair-lexical->item-based-cxn
                                            gl::nothing->holophrase)))))
     cxn-inventory))
 

@@ -132,9 +132,9 @@
 (defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
-  (make-const (substitute #\- #\Space (upcase (if add-cxn-suffix
+  (intern (symbol-name (make-const (substitute #\- #\Space (upcase (if add-cxn-suffix
                                                  (string-append string "-cxn")
-                                                 string)))))
+                                                 string)))))))
 
 ;; (make-cxn-name "What is the color of the cube" *fcg-constructions*) 
 

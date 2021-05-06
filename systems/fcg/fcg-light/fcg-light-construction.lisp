@@ -441,7 +441,7 @@ construction on the fly."
                     &key
                     (replace-when-equivalent t)
                     (equivalent-test #'eql)
-                    (equivalent-key #'name) (processing-cxn-inventory nil)
+                    (equivalent-key #'identity) (processing-cxn-inventory nil)
                     (recover-from-trash nil)
                     &allow-other-keys)
   (let ((processing-construction (fcg-light-cxn->fcg-2-cxn
