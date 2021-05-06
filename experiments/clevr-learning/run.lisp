@@ -3,23 +3,24 @@
 (in-package :clevr-learning)
 
 ;; run an experiment and immediately create the missing plots
-(let ((experiment-name 'learner-speaks-confidence-02))
+(let ((experiment-name 'learner-speaks-best-strategy))
   (run-experiments `(
                      (,experiment-name
-                      ((:determine-interacting-agents-mode . :default)
-                       (:learner-speaks-confidence-threshold . 0.2)
-                       (:question-sample-mode . :first)
-                       (:questions-per-challenge . 100)
+                      ((:speaker-sample-mode . :random)
+                       (:learner-cxn-supplier . :scores)
+                       (:alignment-strategy . :lateral-inhibition)
+                       (:determine-interacting-agents-mode . :default)
+                       (:question-sample-mode . :all)
                        (:scenes-per-question . 50)
                        (:confidence-threshold . 1.1)
-                       (:speaker-sample-mode . :random)
-                       (:cxn-decf-score . 0.3)))
+                       (:primitives . :symbolic)
+                       (:cxn-decf-score . 0.3)
+                       (:learner-speaks-confidence-threshold . 0.2)))
                      )
-                   :number-of-interactions 100
-                   :number-of-series 2
-                   :monitors (append (get-all-lisp-monitors)
-                                     (get-all-csv-monitors)
-                                     (list "print-a-dot-for-each-interaction")))
+                   :number-of-interactions 50000
+                   :number-of-series 10
+                   :monitors (cons "print-a-dot-for-each-interaction"
+                                   (get-all-export-monitors)))
   #|
   (create-graph-for-single-strategy
    :experiment-name (mkstr experiment-name)
