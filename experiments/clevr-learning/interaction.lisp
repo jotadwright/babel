@@ -209,6 +209,7 @@
                   (cons (1+ (car entry)) (cdr entry))
                   (cons (car entry) (1+ (cdr entry))))))))))
 
+
 (defun maybe-increase-level (experiment)
   (when (and (>= (average (confidence-buffer experiment))
                 (get-configuration experiment :confidence-threshold))

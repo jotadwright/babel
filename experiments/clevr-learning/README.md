@@ -2,10 +2,6 @@
 
 An tutor-learner experiment for learning the CLEVR grammar.
 
-## Evaluation
-
- - Run coherence measures on resulting type hierarchy? 
-
 ## Technical issues
 
  - (DONE) Find a solution against hopeless composer searches?
@@ -16,14 +12,12 @@ An tutor-learner experiment for learning the CLEVR grammar.
 	-> For the moment, drastic and domain specific node tests have been added. These speed up things significantly!
 	-> However, these will probably no longer work when entering the level 3 questions!
 
- - th links now start at 0.1 and only get rewarded
-	-> is it useful to punish th links?
+ - th links start at 0.1 and are currently not rewarded (despite :update-th-links being set to t) and not punished.
 
 ## To Do 
 
  - Do something with multiple composer solutions? Make hypotheses?
  - Do something with multiple comprehension branches? Make hypotheses?
- - Could the learner actively choose a particular question in a particular scene to fill a knowledge gap?
 
 ## Assumptions
 
@@ -32,6 +26,6 @@ Here is an attempt to list them.
 
  - In all counting questions, examples with the answer '0' are left out. These are just carte blanche to learn something useless.
 
- - When faced with a parsing issue (i.e. comprehension yields no solution, but one or more leaf nodes), the agent also has some preference. See the function 'all-applied-cxns' in agent.lisp.
+ - When faced with a parsing issue (i.e. comprehension yields no solution, but one or more leaf nodes), the agent also has some preference. See the function 'all-applied-cxns'.
 
  - When composing a new program, there could be multiple solutions. These solutions are ordered according to the default :chunk-evaluation-result-scoring-mode which is :chunk-and-binding-score-with-few-duplicates. When the composer strategy is being used (e.g. check past scenes), the chunk evaluation results are provided in this order. Otherwise, when the composer strategy is not active (because it was the first time encountering this utterance), the first solution is returned. This would indicate that the default scoring mode is appropriate. But is it? The composer could rank its solutions based on how good the chunks involved are (these are all scored uniformly for the moment) and how good the cxns involved are (these do have scores reflecting their success). IN SHORT: should there be a chunk scoring mechanism? And how would it work?
