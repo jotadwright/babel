@@ -61,7 +61,7 @@
    ;                    :data-sets (get-configuration experiment :clevr-world-data-sets)
   ;                     :load-questions nil))
   ;; set the questions of the experiment
-  (load-questions-for-current-challenge-level experiment)
+  (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
   ;; set the population of the experiment
   (setf (population experiment)
         (list (make-clevr-learning-learner experiment)))
@@ -72,10 +72,11 @@
 
 (define-event challenge-level-questions-loaded (level number))
 
-(defgeneric load-questions-for-current-challenge-level (experiment)
+(defgeneric load-questions-for-current-challenge-level (experiment mode)
   (:documentation "Load all data for the current challenge level"))
-#|
-(defmethod load-questions-for-current-challenge-level (experiment)
+
+(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+                                                       (mode (eql :random)))
   (format t "~%Loading data...")
   (let* ((challenge-file (merge-pathnames
                           (case (get-configuration experiment :current-challenge-level)
@@ -93,9 +94,10 @@
     (format t "~%Done!")
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))
-|#
 
-(defmethod load-questions-for-current-challenge-level (experiment)
+
+(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+                                                       (mode (eql :sequential)))
   (format t "~%Loading data...")
   (let* ((challenge-file (merge-pathnames
                           (case (get-configuration experiment :current-challenge-level)

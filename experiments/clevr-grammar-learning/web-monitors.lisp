@@ -54,27 +54,41 @@
   (add-element `((h1) ,(format nil "Level ~a questions loaded"
                                level))))
 
-(define-event-handler (trace-interactions-in-wi interacting-agents-determined)
-  (let ((speaker (speaker interaction))
-        (hearer (hearer interaction)))
-    (add-element `((h3) ,(format nil "The ~a is the speaker."
-                                 (downcase (mkstr (role speaker))))))
-    (add-element `((h3) ,(format nil "The ~a is the hearer."
-                                 (downcase (mkstr (role hearer))))))))
-
 (define-event-handler (trace-interactions-in-wi interaction-started)
   (add-element `((h1) ,(format nil "Interaction ~a"
                                (interaction-number interaction)))))
 
 (define-event-handler (trace-interactions-in-wi interaction-before-finished)
-    (add-element `((h2) ,(format nil "Current Utterance: \"~a\"" utterance)))
-    (add-element '((h2) "Expected Meaning Representation:"))
+    (add-element `((h3) ,(format nil "Utterance: ") ,(format nil "\"~a\"" utterance)))
+    (add-element `((h3) ,(format nil "Meaning: ")))
     (add-element (make-html gold-standard-meaning)))
 
+(define-event-handler (trace-interactions-in-wi cipn-statuses)
+  (add-element '((h3) "CIPN statuses:"))
+  (add-element (make-html cipn-statuses)))
+
+(define-event-handler (trace-interactions-in-wi windowed-success)
+  (let ((average (caaar (get-average-values (monitors::get-monitor 'record-communicative-success)))))
+  (add-element `((h3) ,(format nil  "Windowed success: ~a%" (* 100 (float (if average average 0))))))))
+
+(define-event-handler (trace-interactions-in-wi grammar-size)
+  (add-element `((h3) ,(format nil  "Grammar size: ~a" (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment)))))))))
+
+
 (define-event-handler (trace-interactions-in-wi constructions-chosen)
-  (add-element '((h3) "Agent considers the following cxns:"))
+  (add-element '((h3) "Applied cxns:"))
   (loop for cxn in constructions
         do (add-element (make-html cxn))))
+
+(define-event-handler (trace-interactions-in-wi interaction-finished)
+  (notify windowed-success)
+  (add-element `((h3) "Communicative success: "
+                 ,(if (communicated-successfully interaction)
+                    `((b :style "color:green") "yes")
+                    `((b :style "color:red") "no"))))
+  (add-element '((hr))))
+
+
 #|
 (define-event-handler (trace-interactions-in-wi add-holophrase-new-cxn)
   (add-element '((h3) "New holophrase construction:"))
@@ -138,12 +152,7 @@
   (add-element `((h2) ,(format nil "The agent is ~,2f% confident"
                                (* 100.0 level)))))
 
-(define-event-handler (trace-interactions-in-wi interaction-finished)
-  (add-element `((h1) "Interaction "
-                 ,(if (communicated-successfully interaction)
-                    `((b :style "color:green") "succeeded")
-                    `((b :style "color:red") "failed"))))
-  (add-element '((hr))))
+
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-substitution-repair-started)
   (add-element '((h2) "Generalising over the grammar (substitution)")))

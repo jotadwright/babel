@@ -1,7 +1,7 @@
 (in-package :clevr-grammar-learning)
 
 (define-event constructions-chosen (constructions list))
-
+(define-event cipn-statuses (cipn-statuses list))
 
 (defgeneric run-learner-comprehension-task (agent)
   (:documentation "Entry point for the learner's comprehension task"))
@@ -14,6 +14,7 @@
       ;; notify the logging monitor
       ;; notify which cxns will be used
       (notify constructions-chosen applied-cxns)
+      (notify cipn-statuses (statuses cipn))
       ;; update the :last-used property of the cxns
       (loop for cxn in applied-cxns
             do (set-cxn-last-used agent cxn))
