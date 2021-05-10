@@ -178,6 +178,10 @@
           (file-namestring (image current-clevr-context)))
          (irl-program (append (irl-program (chunk solution))
                               (bind-statements solution)))
+         (server-address
+          (find-data (ontology agent) 'hybrid-primitives::server-address))
+         (cookie-jar
+          (find-data (ontology agent) 'hybrid-primitives::cookie-jar))
          (success t))
     (notify check-samples-started list-of-samples solution-index)
     ;; check the list of samples
@@ -187,11 +191,7 @@
     ;; afterwards, restore the data for the current scene
     (set-data (ontology agent) 'clevr-context current-clevr-context)
     (when (eql (get-configuration agent :primitives) :hybrid)
-      (let ((server-address
-             (find-data (ontology agent) 'hybrid-primitives::server-address))
-            (cookie-jar
-             (find-data (ontology agent) 'hybrid-primitives::cookie-jar)))
-        (load-image server-address cookie-jar current-image-filename)))
+      (load-image server-address cookie-jar current-image-filename))
     success))
 
 (defmethod compose-program ((agent clevr-learning-learner)

@@ -49,7 +49,6 @@
 (define-configuration-default-value :max-challenge-level 3)
 (define-configuration-default-value :evaluation-window-size 1000)
 (define-configuration-default-value :confidence-threshold 1.00)
-(define-configuration-default-value :learner-speaks-confidence-threshold 0.5)
 
 ;; Hybrid or symbolic primitives
 (define-configuration-default-value :primitives :symbolic) ; :symbolic or hybrid
@@ -127,15 +126,17 @@
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
                 for count-question-p = (find 'count! (second file-data) :key #'first)
-                for scenes-and-answers
-                = (random-elts
-                   (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-cons)
-                                          (= 0 (cdr scene-answer-cons)))
-                                      (third file-data))
-                     (third file-data))
-                   scenes-per-questions)
-                collect (cons (first file-data) scenes-and-answers))))
+                for available-scenes-and-answers
+                = (if count-question-p
+                    (find-all-if-not #'(lambda (scene-answer-cons)
+                                         (= 0 (cdr scene-answer-cons)))
+                                     (third file-data))
+                    (third file-data))
+                for sampled-scenes-and-answers
+                = (if (> (length available-scenes-and-answers) scenes-per-questions)
+                    (random-elts available-scenes-and-answers scenes-per-questions)
+                    available-scenes-and-answers)
+                collect (cons (first file-data) sampled-scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
@@ -151,15 +152,17 @@
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
                 for count-question-p = (find 'count! (second file-data) :key #'first)
-                for scenes-and-answers
-                = (random-elts
-                   (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-cons)
-                                          (= 0 (cdr scene-answer-cons)))
-                                      (third file-data))
-                     (third file-data))
-                   scenes-per-questions)
-                collect (cons (first file-data) scenes-and-answers))))
+                for available-scenes-and-answers
+                = (if count-question-p
+                    (find-all-if-not #'(lambda (scene-answer-cons)
+                                         (= 0 (cdr scene-answer-cons)))
+                                     (third file-data))
+                    (third file-data))
+                for sampled-scenes-and-answers
+                = (if (> (length available-scenes-and-answers) scenes-per-questions)
+                    (random-elts available-scenes-and-answers scenes-per-questions)
+                    available-scenes-and-answers)
+                collect (cons (first file-data) sampled-scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
@@ -171,15 +174,17 @@
                 for file-data = (with-open-file (stream file :direction :input)
                                   (read stream))
                 for count-question-p = (find 'count! (second file-data) :key #'first)
-                for scenes-and-answers
-                = (random-elts
-                   (if count-question-p
-                     (find-all-if-not #'(lambda (scene-answer-cons)
-                                          (= 0 (cdr scene-answer-cons)))
-                                      (third file-data))
-                     (third file-data))
-                   scenes-per-questions)
-                collect (cons (first file-data) scenes-and-answers))))
+                for available-scenes-and-answers
+                = (if count-question-p
+                    (find-all-if-not #'(lambda (scene-answer-cons)
+                                         (= 0 (cdr scene-answer-cons)))
+                                     (third file-data))
+                    (third file-data))
+                for sampled-scenes-and-answers
+                = (if (> (length available-scenes-and-answers) scenes-per-questions)
+                    (random-elts available-scenes-and-answers scenes-per-questions)
+                    available-scenes-and-answers)
+                collect (cons (first file-data) sampled-scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod tutor ((experiment clevr-learning-experiment))
@@ -226,15 +231,11 @@
                                          interaction (mode (eql :default)) &key)
   "This default implementation randomly chooses two interacting agents
    and adds the discourse roles speaker and hearer to them"
-  (let ((threshold (get-configuration experiment :learner-speaks-confidence-threshold))
-        (confidence (average (confidence-buffer experiment))))
-    (if (> confidence threshold)
-      (let ((agents (agents experiment)))
-        (setf (interacting-agents interaction) (shuffle agents))
-        (loop for a in (interacting-agents interaction)
-              for d in '(speaker hearer)
-              do (setf (discourse-role a) d)
-              (setf (utterance a) nil)
-              (setf (communicated-successfully a) nil))
-        (notify interacting-agents-determined experiment interaction))
-      (determine-interacting-agents experiment interaction :tutor-learner))))
+  (let ((agents (agents experiment)))
+    (setf (interacting-agents interaction) (shuffle agents))
+    (loop for a in (interacting-agents interaction)
+          for d in '(speaker hearer)
+          do (setf (discourse-role a) d)
+          (setf (utterance a) nil)
+          (setf (communicated-successfully a) nil))
+    (notify interacting-agents-determined experiment interaction)))

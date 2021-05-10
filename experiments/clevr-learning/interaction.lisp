@@ -209,11 +209,13 @@
                   (cons (1+ (car entry)) (cdr entry))
                   (cons (car entry) (1+ (cdr entry))))))))))
 
+
 (defun maybe-increase-level (experiment)
-  (when (and (> (average (confidence-buffer experiment))
+  (when (and (>= (average (confidence-buffer experiment))
                 (get-configuration experiment :confidence-threshold))
              (< (get-configuration experiment :current-challenge-level)
                 (get-configuration experiment :max-challenge-level)))
+    (format t "~%Increasing the challenge level!!")
     ;; increase the current challenge level
     (set-configuration experiment :current-challenge-level
                        (1+ (get-configuration experiment :current-challenge-level))

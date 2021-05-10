@@ -85,6 +85,73 @@
                                 (not (equivalent-irl-programs? (irl-program new-chunk)
                                                                (irl-program other-chunk))))))))
     (when add-chunk-p
-      (push new-chunk (composer-chunks agent))
-      ;(notify composer-chunk-added composer-chunk)
-      )))
+      (push new-chunk (composer-chunks agent)))))
+
+#|
+(defun all-linked-predicates (predicate var irl-program)
+  "Find the next predicate, given a variable"
+  (when (member var predicate)
+    (remove predicate (find-all var irl-program :test #'member) :test #'equal)))
+
+(defun linked-bind-statement (predicate irl-program)
+  "Get the bind-predicate linked to the given predicate"
+  (let* ((var (binding-var predicate))
+         (all-linked (all-linked-predicates predicate var irl-program))
+         (binding-list (remove-if-not #'(lambda (pred)
+                                          (eql (first pred) 'bind))
+                                      all-linked)))
+    (when binding-list
+      (first binding-list))))
+
+(defun binding-var (predicate)
+  "Get the binding variable of a predicate"
+  (unless (eql (first predicate) 'bind)
+    (when (member (first predicate) '(filter query same equal? relate))
+      (last-elt predicate))))
+
+(defun add-composer-chunks (agent irl-program)
+  (let* ((program-without-context
+          (remove 'get-context irl-program :key #'first))
+         (all-predicates
+          (remove 'bind program-without-context :key #'first))
+         (all-possible-chunk-predicates
+          (remove-if
+           #'(lambda (len) (= len 1))
+           (remove-duplicates
+            (loop with len = (length all-predicates)
+                  for i below len
+                  append (list (subseq all-predicates i len)
+                               (reverse (subseq (reverse program) i len))))
+            :test #'equal)
+           :key #'length))
+         (all-possible-chunk-programs
+          (loop for predicates in all-possible-chunk-predicates
+                collect (loop for predicate in predicates
+                              for linked-bind = (linked-bind-statement predicate irl-program)
+                              if linked-bind
+                              append (list predicate
+                                           (substitute (make-var 'binding)
+                                                       (last-elt linked-bind)
+                                                       linked-bind))
+                              else collect predicate))))
+    (loop for chunk-program in all-possible-chunk-programs
+          unless (find chunk-program (composer-chunks agent)
+                       :key #'irl-program
+                       :test #'equivalent-irl-programs?)
+          do (let* ((chunk-id
+                     (make-id
+                      (list-of-strings->string
+                       (loop for predicate in chunk-program
+                             for linked-bind = (linked-bind-statement predicate chunk-program)
+                             if linked-bind
+                             collect (format nil "~a-~a" (first predicate)
+                                             (second linked-bind))
+                             else collect (mkstr (first predicate)))
+                       :separator "+")))
+                    (chunk
+                     (create-chunk-from-irl-program
+                      chunk-program  :id chunk-id
+                      :target-var (get-target-var chunk-program)
+                      :primitive-inventory (available-primitives agent))))
+               (push chunk (composer-chunks agent))))))
+|#         

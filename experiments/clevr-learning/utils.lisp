@@ -143,7 +143,7 @@
 
 (defun create-graph-comparing-strategies (&key experiment-names measure-name
                                                (y-min 0) (y-max 1) xlabel y1-label y2-label
-                                               captions title open)
+                                               captions title open end)
   ;; This function allows you to compare a given measure accross different
   ;; experiments, e.g. comparing lexicon size
   (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
@@ -162,7 +162,7 @@
     :x-label (if xlabel xlabel "Number of Games")
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
-    :open open)
+    :open open :end end)
   (format t "~%Graphs have been created"))
 
 

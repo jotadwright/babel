@@ -262,11 +262,12 @@
 (defun get-all-lisp-monitors ()
   '("export-communicative-success"
     "export-lexicon-size"
-    "export-lexical-meanings-per-form"
-    "export-lexical-forms-per-meaning"
+    ;"export-lexical-meanings-per-form"
+    ;"export-lexical-forms-per-meaning"
     "export-avg-cxn-score"
     "plot-lexicon-size-per-type"
     "plot-cxn-score-per-type"
-    "plot-cxn-usage-per-type"
+    ;"plot-cxn-usage-per-type"
     "plot-nr-of-slots"
-    "export-unseen-questions"))
+    ;"export-unseen-questions"
+    ))
