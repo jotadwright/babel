@@ -45,7 +45,7 @@
       (get-interaction-data interaction)
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent utterance gold-standard-meaning))
-    (notify interaction-before-finished utterance gold-standard-meaning)))
+    (notify interaction-before-finished utterance gold-standard-meaning)))           
 
 (defmethod interact ((experiment clevr-grammar-learning-experiment)
                      interaction &key)

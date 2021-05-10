@@ -5,6 +5,7 @@
 
 ;;;;;; EVENTS ;;;;;;
 
+
 (define-event log-parsing-finished
   (agent clevr-learning-agent)
   (process-result-data list))
@@ -46,9 +47,31 @@
 
 
 
-
+(define-monitor summarize-results-after-n-interactions)
 
 (define-monitor trace-interactions-in-wi)
+
+(define-event-handler (summarize-results-after-n-interactions interaction-finished)
+  (when (= (mod (interaction-number interaction)
+                (get-configuration experiment :result-display-interval)) 0)
+    (let* ((average-success (caaar (get-average-values (monitors::get-monitor 'record-communicative-success))))
+           (overall-success (count 1 (caar (monitors::get-values (monitors::get-monitor 'record-communicative-success)))))
+           (current-interaction (first (interactions experiment)))
+           (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
+           (consistency-checksum (- (interaction-number current-interaction) overall-success grammar-size))
+           (consistent-p (= 0 consistency-checksum)))
+      (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
+      (add-element `((h3) ,(format nil  "Windowed success: ~a%" (* 100 (float (if average-success average-success 0))))))
+      (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
+      (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
+      (add-element `((h3) ,(format nil  "Consistency checksum: ~a" consistency-checksum)))
+      (add-element `((h3) "Consistency: "
+                     ,(if consistent-p
+                        `((b :style "color:green") "ok")
+                        `((b :style "color:red") "error"))))
+      (add-element '((hr)))
+      )))
+
 
 (define-event-handler (trace-interactions-in-wi challenge-level-questions-loaded)
   (add-element `((h1) ,(format nil "Level ~a questions loaded"
@@ -80,12 +103,13 @@
          (consistency-checksum (- (interaction-number current-interaction) overall-success grammar-size))
          (consistent-p (= 0 consistency-checksum)))
     (add-element `((h3) ,(format nil  "Windowed success: ~a%" (* 100 (float (if average-success average-success 0))))))
+    (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
     (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
     (add-element `((h3) ,(format nil  "Consistency checksum: ~a" consistency-checksum)))
     (add-element `((h3) "Consistency: "
                    ,(if consistent-p
-                      `((b :style "color:green") "OK!")
-                      `((b :style "color:red") "ERROR!"))))
+                      `((b :style "color:green") "ok")
+                      `((b :style "color:red") "error"))))
     (add-element `((h3) "Communicative success: "
                    ,(if (communicated-successfully interaction)
                       `((b :style "color:green") "yes")

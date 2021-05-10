@@ -1,14 +1,20 @@
 (ql:quickload :clevr-grammar-learning)
 (in-package :clevr-grammar-learning)
 
+
 (progn
-  ;(activate-monitor trace-fcg)
-  ;(activate-monitor trace-irl)
   (activate-monitor display-metrics)
+  (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interactions-in-wi))
 
-;(deactivate-all-monitors)
+(deactivate-all-monitors)
+
+(progn
+  (activate-monitor display-metrics)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor print-a-dot-for-each-interaction))
+ 
 
 (progn
   (wi::reset)
@@ -25,6 +31,8 @@
 
 ;;; test series of interactions
 ;(run-series *experiment* 200)
+;; modulo 100
+;(with-activated-monitor 
 
 
 #|
