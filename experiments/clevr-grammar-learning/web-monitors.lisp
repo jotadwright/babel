@@ -67,26 +67,30 @@
   (add-element '((h3) "CIPN statuses:"))
   (add-element (make-html cipn-statuses)))
 
-(define-event-handler (trace-interactions-in-wi windowed-success)
-  (let ((average (caaar (get-average-values (monitors::get-monitor 'record-communicative-success)))))
-  (add-element `((h3) ,(format nil  "Windowed success: ~a%" (* 100 (float (if average average 0))))))))
-
-(define-event-handler (trace-interactions-in-wi grammar-size)
-  (add-element `((h3) ,(format nil  "Grammar size: ~a" (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment)))))))))
-
-
 (define-event-handler (trace-interactions-in-wi constructions-chosen)
   (add-element '((h3) "Applied cxns:"))
   (loop for cxn in constructions
         do (add-element (make-html cxn))))
 
 (define-event-handler (trace-interactions-in-wi interaction-finished)
-  (notify windowed-success)
-  (add-element `((h3) "Communicative success: "
-                 ,(if (communicated-successfully interaction)
-                    `((b :style "color:green") "yes")
-                    `((b :style "color:red") "no"))))
-  (add-element '((hr))))
+  (let* ((average-success (caaar (get-average-values (monitors::get-monitor 'record-communicative-success))))
+         (overall-success (count 1 (caar (monitors::get-values (monitors::get-monitor 'record-communicative-success)))))
+         (current-interaction (first (interactions experiment)))
+         (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
+         (consistency-checksum (- (interaction-number current-interaction) overall-success grammar-size))
+         (consistent-p (= 0 consistency-checksum)))
+    (add-element `((h3) ,(format nil  "Windowed success: ~a%" (* 100 (float (if average-success average-success 0))))))
+    (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
+    (add-element `((h3) ,(format nil  "Consistency checksum: ~a" consistency-checksum)))
+    (add-element `((h3) "Consistency: "
+                   ,(if consistent-p
+                      `((b :style "color:green") "OK!")
+                      `((b :style "color:red") "ERROR!"))))
+    (add-element `((h3) "Communicative success: "
+                   ,(if (communicated-successfully interaction)
+                      `((b :style "color:green") "yes")
+                      `((b :style "color:red") "no"))))
+    (add-element '((hr)))))
 
 
 #|

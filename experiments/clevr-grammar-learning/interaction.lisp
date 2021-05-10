@@ -25,9 +25,6 @@
 
 (define-event interaction-before-finished
   (utterance string) (gold-standard-meaning t))
-(define-event windowed-success)
-(define-event grammar-size (experiment clevr-grammar-learning-experiment))
-
 
 (defun get-interaction-data (interaction)
   "retrieve the nth utterance and gold standard meaning from the dataset"
@@ -66,7 +63,6 @@
   (let ((successp
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
-    (notify grammar-size experiment)
     ;; record the success of the current utterance
     ;; by adding the success to the confidence buffer of the learner
     (setf (confidence-buffer experiment)

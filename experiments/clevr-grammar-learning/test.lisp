@@ -34,4 +34,12 @@ score loopt een iteratie achter!
 
 |#
 
-(defparameter *bla* (monitors::get-monitor 'record-communicative-success))
+
+
+#|
+TODO
+----
+- maak monitor die de integriteit checkt: is het totaal aantal cxns gelijk aan het interactienummer - het totaal aantal successes?
+
+
+|#
