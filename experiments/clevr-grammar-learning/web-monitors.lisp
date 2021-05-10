@@ -82,14 +82,15 @@
                                                             (length (success-buffer experiment)))))))
          (overall-success (count 1 (success-buffer experiment)))
          (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
-         (consistency-checksum (- (interaction-number interaction) overall-success grammar-size))
-         (consistent-p (= 0 consistency-checksum))
-         (overall-consistent-p (loop for val in (consistency-buffer experiment)
-                                always (= 1 val))))
+         (consistency-checksum (- (interaction-number interaction) overall-success grammar-size)))
+         ;(consistent-p (= 0 consistency-checksum))
+         ;(overall-consistent-p (loop for val in (consistency-buffer experiment)
+         ;                       always (= 1 val))))
     (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
     (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
     (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
     (add-element `((h3) ,(format nil  "Consistency checksum: ~a" consistency-checksum)))
+#|
     (add-element `((h3) "Consistency: "
                    ,(if consistent-p
                       `((b :style "color:green") "ok")
@@ -98,6 +99,7 @@
                      ,(if overall-consistent-p
                         `((b :style "color:green") "ok")
                         `((b :style "color:red") "error"))))
+    |#
     (add-element `((h3) "Communicative success: "
                    ,(if (communicated-successfully interaction)
                       `((b :style "color:green") "yes")
@@ -112,16 +114,17 @@
                                                             (length (success-buffer experiment)))))))
            (overall-success (count 1 (success-buffer experiment)))
            (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
-           (consistent-p (loop for val in (consistency-buffer experiment)
-                                always (= 1 val))))
+           ;(consistent-p (loop for val in (consistency-buffer experiment)
+                                ;always (= 1 val)))
+           )
       (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
       (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
       (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
       (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
-      (add-element `((h3) "Overall consistency: "
-                     ,(if consistent-p
-                        `((b :style "color:green") "ok")
-                        `((b :style "color:red") "error"))))
+      ;(add-element `((h3) "Overall consistency: "
+      ;               ,(if consistent-p
+      ;                  `((b :style "color:green") "ok")
+      ;                  `((b :style "color:red") "error"))))
       (add-element (make-html (grammar (first (interacting-agents experiment)))))
       (add-element '((hr)))
       )))

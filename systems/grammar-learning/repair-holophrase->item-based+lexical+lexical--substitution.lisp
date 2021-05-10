@@ -146,7 +146,7 @@ based on existing construction with sufficient overlap."
                                                                                     :cxn-inventory (construction-inventory node))))))
       ;; ignore
       ;; Reset type hierarchy
-      (set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
+      ;(set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (subseq (restart-data fix) 0 3))
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links (subseq (restart-data fix) 3))
