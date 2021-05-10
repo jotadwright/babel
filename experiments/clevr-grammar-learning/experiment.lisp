@@ -52,7 +52,14 @@
                    :documentation "A list of samples for the current challenge level")
    (confidence-buffer :initarg :confidence-buffer :initform nil
                       :accessor confidence-buffer :type list
-                      :documentation "A buffer to keep track of outcomes of games"))
+                      :documentation "A buffer to keep track of outcomes of games")
+   (success-buffer :initarg :success-buffer :initform nil
+                      :accessor success-buffer :type list
+                      :documentation "A buffer to keep track of communicative success")
+   (consistency-buffer :initarg :consistency-buffer :initform nil
+                      :accessor consistency-buffer :type list
+                      :documentation "A buffer to keep track of learning consistency, interaction number - grammar size - successful interactions should be 0")
+   )
   (:documentation "The CLEVR learning experiment"))
 
 (defmethod initialize-instance :after ((experiment clevr-grammar-learning-experiment) &key)

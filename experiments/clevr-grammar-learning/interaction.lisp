@@ -52,8 +52,17 @@
   "the learner attempts to comprehend the utterance with its grammar, and applies any repairs if necessary"
   (multiple-value-bind (learner-meaning cipn) (run-learner-comprehension-task (learner experiment))
     (let* ((successp (determine-communicative-success cipn)))
-         (loop for agent in (population experiment)
-          do (setf (communicated-successfully agent) successp)))))
+      (setf (success-buffer experiment) (append (success-buffer experiment)
+                                                (list (if successp 1 0))))
+      (let* ((overall-success (count 1 (success-buffer experiment)))
+             (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
+             (consistency-checksum (- (interaction-number interaction) grammar-size overall-success))
+             (consistentp (= 0 consistency-checksum)))
+             
+      (setf (consistency-buffer experiment) (append (consistency-buffer experiment)
+                                                (list (if consistentp 1 0))))
+      (loop for agent in (population experiment)
+            do (setf (communicated-successfully agent) successp))))))
     
 (define-event agent-confidence-level (level float))
 

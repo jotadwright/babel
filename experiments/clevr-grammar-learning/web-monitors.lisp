@@ -47,30 +47,11 @@
 
 
 
-(define-monitor summarize-results-after-n-interactions)
+
 
 (define-monitor trace-interactions-in-wi)
+(define-monitor summarize-results-after-n-interactions)
 
-(define-event-handler (summarize-results-after-n-interactions interaction-finished)
-  (when (= (mod (interaction-number interaction)
-                (get-configuration experiment :result-display-interval)) 0)
-    (let* ((average-success (caaar (get-average-values (monitors::get-monitor 'record-communicative-success))))
-           (overall-success (count 1 (caar (monitors::get-values (monitors::get-monitor 'record-communicative-success)))))
-           (current-interaction (first (interactions experiment)))
-           (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
-           (consistency-checksum (- (interaction-number current-interaction) overall-success grammar-size))
-           (consistent-p (= 0 consistency-checksum)))
-      (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
-      (add-element `((h3) ,(format nil  "Windowed success: ~a%" (* 100 (float (if average-success average-success 0))))))
-      (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
-      (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
-      (add-element `((h3) ,(format nil  "Consistency checksum: ~a" consistency-checksum)))
-      (add-element `((h3) "Consistency: "
-                     ,(if consistent-p
-                        `((b :style "color:green") "ok")
-                        `((b :style "color:red") "error"))))
-      (add-element '((hr)))
-      )))
 
 
 (define-event-handler (trace-interactions-in-wi challenge-level-questions-loaded)
@@ -94,15 +75,16 @@
   (add-element '((h3) "Applied cxns:"))
   (loop for cxn in constructions
         do (add-element (make-html cxn))))
-
 (define-event-handler (trace-interactions-in-wi interaction-finished)
-  (let* ((average-success (caaar (get-average-values (monitors::get-monitor 'record-communicative-success))))
-         (overall-success (count 1 (caar (monitors::get-values (monitors::get-monitor 'record-communicative-success)))))
-         (current-interaction (first (interactions experiment)))
+  (let* ((windowed-success (* 100 (average (subseq (success-buffer experiment)
+                                                            (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
+                                                            (length (success-buffer experiment))))))
+         (overall-success (count 1 (success-buffer experiment)))
          (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
-         (consistency-checksum (- (interaction-number current-interaction) overall-success grammar-size))
-         (consistent-p (= 0 consistency-checksum)))
-    (add-element `((h3) ,(format nil  "Windowed success: ~a%" (* 100 (float (if average-success average-success 0))))))
+         (consistency-checksum (- (interaction-number interaction) overall-success grammar-size))
+         (consistent-p (= 0 consistency-checksum))
+         (overall-consistent-p (always 1 (consistency-buffer experiment))))
+    (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
     (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
     (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
     (add-element `((h3) ,(format nil  "Consistency checksum: ~a" consistency-checksum)))
@@ -110,12 +92,35 @@
                    ,(if consistent-p
                       `((b :style "color:green") "ok")
                       `((b :style "color:red") "error"))))
+    (add-element `((h3) "Overall consistency: "
+                     ,(if overall-consistent-p
+                        `((b :style "color:green") "ok")
+                        `((b :style "color:red") "error"))))
     (add-element `((h3) "Communicative success: "
                    ,(if (communicated-successfully interaction)
                       `((b :style "color:green") "yes")
                       `((b :style "color:red") "no"))))
     (add-element '((hr)))))
 
+(define-event-handler (summarize-results-after-n-interactions interaction-finished)
+  (when (= (mod (interaction-number interaction)
+                (get-configuration experiment :result-display-interval)) 0)
+    (let* ((windowed-success (* 100 (average (subseq (success-buffer experiment)
+                                                            (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
+                                                            (length (success-buffer experiment))))))
+           (overall-success (count 1 (success-buffer experiment)))
+           (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
+           (consistent-p (always 1 (consistency-buffer experiment))))
+      (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
+      (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
+      (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
+      (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
+      (add-element `((h3) "Overall consistency: "
+                     ,(if consistent-p
+                        `((b :style "color:green") "ok")
+                        `((b :style "color:red") "error"))))
+      (add-element '((hr)))
+      )))
 
 #|
 (define-event-handler (trace-interactions-in-wi add-holophrase-new-cxn)
