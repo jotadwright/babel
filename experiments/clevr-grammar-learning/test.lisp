@@ -3,6 +3,7 @@
 
 (progn
   (activate-monitor display-metrics)
+  (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
@@ -11,7 +12,6 @@
 
 (progn
   (activate-monitor display-metrics)
-  (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
@@ -39,17 +39,7 @@
 
 
 ;;; test series of interactions
-;(run-series *experiment* 50)
-;; modulo 100
-;(with-activated-monitor 
-
-
-#|
-problems:
-
-score loopt een iteratie achter!
-
-|#
+;(run-series *experiment* 10000)
 
 
 
@@ -57,6 +47,6 @@ score loopt een iteratie achter!
 TODO
 ----
 - maak monitor die de integriteit checkt: is het totaal aantal cxns gelijk aan het interactienummer - het totaal aantal successes? OK
-
+- repairs testen individueel
 
 |#

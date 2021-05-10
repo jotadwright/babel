@@ -39,7 +39,7 @@
                      ,grammar-name
                    :cxn-inventory ,grammar-name
                    :hashed t
-                   :feature-types ((args set) ; was sequence in Jens's version
+                   :feature-types ((args set)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
                                    (subunits set)
@@ -56,7 +56,7 @@
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                                  :repairs (;gl::add-th-links
                                            ;gl::item-based->lexical
-                                           ;gl::holophrase->item-based+lexical+lexical--substitution
+                                           gl::holophrase->item-based+lexical+lexical--substitution
                                            ;gl::holophrase->item-based+lexical--addition
                                            ;gl::holophrase->item-based+lexical+holophrase--deletion
                                            ;gl::repair-lexical->item-based-cxn
