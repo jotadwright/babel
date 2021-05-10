@@ -24,7 +24,7 @@
 
 ;; minimal logging after 100 interactions
 (progn
-  ;(activate-monitor display-metrics)
+  (activate-monitor display-metrics)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor print-a-dot-for-each-interaction))
  
@@ -46,7 +46,7 @@
 
 
 ;;; test series of interactions
-;(run-series *experiment* 5)
+;(run-series *experiment* 200)
 
 
 
@@ -54,16 +54,17 @@
 #|
 ISSUES
 ------
-- type hierarchy werkt niet, test eens de 6 eerste sequentieel, een gemaakte item-based past niet toe.
-- hij werkt wel binnen de repair, maar wordt nadien gewist, test eens een repair, met de debugger zie je de th links, maar eens de interactie voorbij is zijn ze weg!
-
+integrity check werkt alleen voor holophrases
 |#
 
 
 #|
 TODO
 ----
-- maak monitor die de integriteit checkt: is het totaal aantal cxns gelijk aan het interactienummer - het totaal aantal successes? OK
+- maak monitor die de integriteit checkt: is het totaal aantal cxns gelijk aan het interactienummer - het totaal aantal successes? OK voor holophrases tot 10K
 - repairs individueel testen
+- in alle repairs zit een lijn die de type hierarchy reset in handle fix, verwijder deze
+- score cxns na interaction in :after method, willen we een upper bound?
+- lengte opnemen in hash key? op basis van aantal meets constraints
 
 |#

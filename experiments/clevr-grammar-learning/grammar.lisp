@@ -72,6 +72,12 @@
 
 (define-event lexicon-changed)
 
+(defun inc-cxn-score-no-bounds (cxn &key (delta 0.1))
+  "increase the score of the cxn"
+  (incf (attr-val cxn :score) delta)
+  cxn)
+
+
 (defun inc-cxn-score (cxn &key (delta 0.1) (upper-bound 1.0))
   "increase the score of the cxn"
   (incf (attr-val cxn :score) delta)

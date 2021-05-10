@@ -109,6 +109,7 @@
 (define-event-handler (summarize-results-after-n-interactions interaction-finished)
   (when (= (mod (interaction-number interaction)
                 (get-configuration experiment :result-display-interval)) 0)
+    
     (let* ((windowed-success (* 100 (float (average (subseq (success-buffer experiment)
                                                             (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
                                                             (length (success-buffer experiment)))))))
@@ -117,6 +118,7 @@
            ;(consistent-p (loop for val in (consistency-buffer experiment)
                                 ;always (= 1 val)))
            )
+      ;(sort (constructions (grammar (first (interacting-agents experiment)))) #'> :key (lambda (cxn) (attr-val cxn :score))) ;; useless for hashed cxn set
       (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
       (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
       (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
@@ -125,6 +127,7 @@
       ;               ,(if consistent-p
       ;                  `((b :style "color:green") "ok")
       ;                  `((b :style "color:red") "error"))))
+
       (add-element (make-html (grammar (first (interacting-agents experiment)))))
       (add-element '((hr)))
       )))
