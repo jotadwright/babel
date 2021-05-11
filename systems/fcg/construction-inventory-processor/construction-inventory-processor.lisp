@@ -1133,7 +1133,7 @@ added here. Preprocessing is only used in parsing currently."
   (loop with fcg-cxn-set = (original-cxn-set (construction-inventory node))
         for cxn in (applied-constructions node)
         for fcg-cxn = (get-original-cxn cxn)
-        unless (find-cxn fcg-cxn fcg-cxn-set)
+        unless (find-cxn fcg-cxn fcg-cxn-set :key #'identity)
         do (add-cxn fcg-cxn fcg-cxn-set)))
 
 (defun solution-p (node)

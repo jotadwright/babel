@@ -245,6 +245,12 @@
   "return the constructions of an fcg-light-construction-set"
   (slot-value fcg-construction-set 'constructions))
 
+(defmethod constructions ((hashed-fcg-construction-set hashed-fcg-construction-set) &key &allow-other-keys)
+  "retrieve all cxns in the hashed cxn set"
+  (loop for construction-hash-list being the hash-value in (constructions-hash-table hashed-fcg-construction-set)
+        append construction-hash-list))
+      
+
 (defmethod (setf constructions) ((construction-list list)
                                  (construction-set fcg-construction-set))
   (setf (slot-value construction-set 'constructions) construction-list))
@@ -441,7 +447,7 @@ construction on the fly."
                     &key
                     (replace-when-equivalent t)
                     (equivalent-test #'eql)
-                    (equivalent-key #'name) (processing-cxn-inventory nil)
+                    (equivalent-key #'identity) (processing-cxn-inventory nil)
                     (recover-from-trash nil)
                     &allow-other-keys)
   (let ((processing-construction (fcg-light-cxn->fcg-2-cxn

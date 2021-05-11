@@ -70,10 +70,11 @@
   (let* ((utterance (random-elt (get-data problem :utterances)))
          (gold-standard-meaning (random-elt (get-data problem :meanings)))
          (cxn-inventory (construction-inventory node))
+         (orig-cxn-set (original-cxn-set cxn-inventory))
          (type-hierarchy (get-type-hierarchy cxn-inventory)))
     (disable-meta-layer-configuration cxn-inventory)
     (with-disabled-monitor-notifications
-      (let* ((comprehension-result (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning)))
+      (let* ((comprehension-result (multiple-value-list (comprehend utterance :cxn-inventory orig-cxn-set :gold-standard-meaning gold-standard-meaning)))
              (meaning-network (first comprehension-result))
              (cip-node (second comprehension-result))
              (cip (third comprehension-result)))
