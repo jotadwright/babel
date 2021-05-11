@@ -256,6 +256,26 @@
 (define-event-handler (record-unseen-questions log-unseen-questions)
   (record-value monitor n))
 
+;;;; Number of chunks
+(define-monitor record-number-of-chunks
+                :class 'data-recorder
+                :documentation "records the number of chunks.")
+
+(define-monitor export-number-of-chunks
+                :class 'lisp-data-file-writer
+                :documentation "Exports the number of chunks."
+                :data-sources '(record-number-of-chunks)
+                :file-name (babel-pathname :name "number-of-chunks" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-number-of-chunks interaction-finished)
+  (record-value monitor (length (composer-chunks (learner experiment)))))
+
+
+
+
+
 
 
 ;; utilty function to get all of them
@@ -270,4 +290,5 @@
     ;"plot-cxn-usage-per-type"
     "plot-nr-of-slots"
     ;"export-unseen-questions"
+    "export-number-of-chunks"
     ))

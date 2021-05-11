@@ -27,22 +27,21 @@
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
-;(define-configuration-default-value :initial-chunk-score 0.5)
+(define-configuration-default-value :initial-chunk-score 0.5)
 (define-configuration-default-value :initial-th-link-weight 0.1)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.2)
-;(define-configuration-default-value :chunk-incf-score 0.1)
-;(define-configuration-default-value :chunk-decf-score 0.1)
+(define-configuration-default-value :chunk-incf-score 0.1)
+(define-configuration-default-value :chunk-decf-score 0.1)
 ;(define-configuration-default-value :th-link-incf-score 0.1)
-;(define-configuration-default-value :cxn-forgetting-rate 0.05)
-;(define-configuration-default-value :cxn-forgetting-threshold 1000)
 
 (define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
-(define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
 (define-configuration-default-value :speaker-sample-mode :smart) ; :random or :smart
 (define-configuration-default-value :learner-cxn-supplier :ordered-by-label-and-score)
+(define-configuration-default-value :composer-strategy :store-past-scenes)
+(define-configuration-default-value :composer-past-scenes-window 10)
 
 ;; Autotelic principle
 (define-configuration-default-value :current-challenge-level 1)

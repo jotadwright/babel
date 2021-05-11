@@ -169,6 +169,11 @@
   (let ((successp
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
+
+    (unless successp
+      (format nil "break here"))
+
+    
     ;; record the success of the current question
     ;; used by 'smart' speaker mode for the tutor
     (when (eq (speaker interaction) (tutor interaction))
@@ -184,12 +189,6 @@
     ;; we dont have access to the utterance)
     (when (eq (hearer interaction) (learner interaction))
       (case (get-configuration experiment :composer-strategy)
-        (:store-past-programs
-         (unless successp
-           (add-past-program
-            (learner experiment)
-            (find-data (task-result (learner experiment))
-                       'irl-program))))
         (:store-past-scenes
          (add-past-scene (learner experiment))))))
   ;; check the confidence level and (maybe) transition to the next challenge

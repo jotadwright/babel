@@ -114,6 +114,7 @@
                   (and max-attempts (> attempt max-attempts)))
         finally (return the-solution)))
 
+#|
 ;; + store past programs +
 (defun check-past-programs (solution solution-index list-of-past-programs agent)
   (declare (ignorable solution-index agent))
@@ -140,6 +141,7 @@
        composer (lambda (solution idx)
                   (check-past-programs solution idx past-programs-with-same-utterance agent)))
       (first (get-next-solutions composer)))))
+|#
 
 ;; + store past scenes +
 (define-event check-samples-started
@@ -207,6 +209,9 @@
           (gethash utterance-hash-key (memory agent))))
     (if past-scenes-with-same-utterance
       (compose-until
-       composer (lambda (solution idx)
-                  (check-past-scenes solution idx past-scenes-with-same-utterance agent)))
+       composer
+       (lambda (solution idx)
+         (check-past-scenes solution idx
+                            past-scenes-with-same-utterance
+                            agent)))
       (first (get-next-solutions composer)))))
