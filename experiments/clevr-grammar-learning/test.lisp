@@ -3,6 +3,7 @@
 
 ;; full logging
 (progn
+  (deactivate-all-monitors)
   (activate-monitor display-metrics)
   (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
@@ -14,16 +15,18 @@
 
 ;; full logging except trace-fcg
 (progn
+  (deactivate-all-monitors)
   (activate-monitor display-metrics)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
-(deactivate-all-monitors)
+
 
 
 ;; minimal logging after 100 interactions
 (progn
+  (deactivate-all-monitors)
   (activate-monitor display-metrics)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor print-a-dot-for-each-interaction))
@@ -34,19 +37,17 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :sequential) ;; random or sequential
+                   :entries '((:observation-sample-mode . :random) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
 
-(progn
-  (defparameter *type-hierarchy* (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))))
-  (add-element (make-html *type-hierarchy*)))
+(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*))))))
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
 
 ;;; test series of interactions
-;(run-series *experiment* 200)
+;(run-series *experiment* 900)
 
 
 
@@ -55,6 +56,7 @@
 ISSUES
 ------
 integrity check werkt alleen voor holophrases
+duplicate item-based cxns want add th links is niet actief, test eens met andere th mode
 |#
 
 

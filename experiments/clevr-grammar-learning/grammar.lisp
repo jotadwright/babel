@@ -57,8 +57,8 @@
                    :repairs (;gl::add-th-links
                                            ;gl::item-based->lexical
                              gl::holophrase->item-based+lexical+lexical--substitution
-                                           ;gl::holophrase->item-based+lexical--addition
-                                           ;gl::holophrase->item-based+lexical+holophrase--deletion
+                             gl::holophrase->item-based+lexical--addition
+                             gl::holophrase->item-based+lexical+holophrase--deletion
                                            ;gl::repair-lexical->item-based-cxn
                              gl::nothing->holophrase)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
