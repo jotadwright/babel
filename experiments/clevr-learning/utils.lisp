@@ -17,6 +17,9 @@
 (defun get-cxn-type (cxn)
   (attr-val cxn :cxn-type))
 
+(defun get-cxn-chunk (cxn)
+  (attr-val cxn :chunk))
+
 (defun item-based-number-of-slots (cxn)
   (when (eql (get-cxn-type cxn) 'item-based)
     (1- (length (contributing-part cxn)))))

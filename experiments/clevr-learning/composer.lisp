@@ -59,20 +59,26 @@
                              (:max-search-depth . ,max-composer-depth)
                              (:check-node-modes ;; no duplicates
                                                 :check-duplicate
+                                                
                                                 ;; no predicates with multiple times
                                                 ;; the same variable
                                                 :no-circular-primitives
+                                                
                                                 ;; meaning has to be fully connected
                                                 :fully-connected-meaning
+                                                
                                                 ;; limit on the nr of times each primitive
                                                 ;; can occur (clevr specific)
                                                 :clevr-primitive-occurrence-count
+                                                
                                                 ;; limit to which primitives get-context
                                                 ;; can connect (clevr specific)
                                                 :clevr-context-links
+                                                
                                                 ;; the last variable of certain predicates
                                                 ;; has to be an open variable (clevr specific)
                                                 :clevr-open-vars
+                                                
                                                 ;; a filter group can be maximally 4 long
                                                 ;; (clevr specific)
                                                 :clevr-filter-group-length)
