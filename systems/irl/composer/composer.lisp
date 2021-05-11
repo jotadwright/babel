@@ -31,7 +31,7 @@
    (meaning :initarg :meaning :accessor meaning :initform nil
             :documentation "The meaning the composer starts from")
    (node-counter :initarg :node-counter :accessor node-counter
-                 :initform 0 :type number)))
+                 :initform 1 :type number)))
 
   
 (defmethod set-configuration ((composer chunk-composer) key value
@@ -63,10 +63,10 @@
                              :documentation "The evaluation results of this node")
    (node-number :documentation "The number of the node"
                 :accessor node-number :initarg :node-number
-                :type number :initform 0)
+                :type number :initform 1)
    (node-depth :documentation "The depth of the node"
                :accessor node-depth :initarg :node-depth
-               :type number :initform 0)
+               :type number :initform 1)
    (node-rating :documentation "The rating of the node; lower == better"
                 :accessor node-rating :initarg :node-rating
                 :type float :initform 1.0)))
