@@ -242,8 +242,7 @@
 ;;;; number of unseen questions       
 (define-monitor record-unseen-questions
                 :class 'data-recorder
-                :average-window 1
-                :default-value :keep-previous-value) 
+                :average-window 1) 
 
 (define-monitor export-unseen-questions
                 :class 'lisp-data-file-writer
@@ -272,6 +271,27 @@
 (define-event-handler (record-number-of-chunks interaction-finished)
   (record-value monitor (length (composer-chunks (learner experiment)))))
 
+;;;; Composer search space size
+(define-monitor record-composer-search-space-size
+                :class 'data-recorder
+                :average-window 1
+                :documentation "records the size of the composer search space")
+
+(define-monitor export-composer-search-space-size
+                :class 'lisp-data-file-writer
+                :documentation "exports the size of the composer search space"
+                :data-sources '(record-composer-search-space-size)
+                :file-name (babel-pathname :name "composer-search-space" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-composer-search-space-size composer-solution-found)
+  (record-value monitor (float
+                         (/ (irl::node-counter composer)
+                            (irl::node-depth (irl::node solution))))))
+                           
+
+
 
 
 
@@ -291,4 +311,5 @@
     "plot-nr-of-slots"
     ;"export-unseen-questions"
     "export-number-of-chunks"
+    "export-composer-search-space-size"
     ))

@@ -202,6 +202,9 @@
       (load-image server-address cookie-jar current-image-filename))
     success))
 
+(define-event composer-solution-found (composer irl::chunk-composer)
+  (solution chunk-evaluation-result))
+
 (defmethod compose-program ((agent clevr-learning-learner)
                             target-category utterance
                             (strategy (eql :store-past-scenes))
@@ -212,12 +215,16 @@
          (utterance-hash-key
           (sxhash utterance))
          (past-scenes-with-same-utterance
-          (gethash utterance-hash-key (memory agent))))
-    (if past-scenes-with-same-utterance
-      (compose-until
-       composer
-       (lambda (solution idx)
-         (check-past-scenes solution idx
-                            past-scenes-with-same-utterance
-                            agent)))
-      (first (get-next-solutions composer)))))
+          (gethash utterance-hash-key (memory agent)))
+         (composer-solution
+          (if past-scenes-with-same-utterance
+            (compose-until
+             composer
+             (lambda (solution idx)
+               (check-past-scenes solution idx
+                                  past-scenes-with-same-utterance
+                                  agent)))
+            (first (get-next-solutions composer)))))
+    (when composer-solution
+      (notify composer-solution-found composer composer-solution))
+    composer-solution))
