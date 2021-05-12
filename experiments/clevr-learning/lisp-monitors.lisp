@@ -310,6 +310,6 @@
     ;"plot-cxn-usage-per-type"
     "plot-nr-of-slots"
     ;"export-unseen-questions"
-    "export-number-of-chunks"
+    ;"export-number-of-chunks"
     "export-composer-search-space-size"
     ))

@@ -55,9 +55,11 @@
            :chunks (composer-chunks agent)
            :ontology (ontology agent)
            :primitive-inventory (available-primitives agent)
-           :configurations `(;; max depth = max length of irl program
-                             (:max-search-depth . ,max-composer-depth)
-                             (:check-node-modes ;; no duplicates
+           :configurations `((:max-irl-program-length . ,max-composer-depth)
+                             (:check-node-modes ;; limit the length of the irl program
+                                                :limit-irl-program-length
+                                                
+                                                ;; no duplicates
                                                 :check-duplicate
                                                 
                                                 ;; no predicates with multiple times

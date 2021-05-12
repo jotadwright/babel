@@ -110,18 +110,22 @@
        (equivalent-open-vars?
         (irl::open-vars chunk-1) (irl::open-vars chunk-2))))
 
+
 (defun add-composer-chunk (agent irl-program)
   (let* ((all-bind-statements
           (find-all 'bind irl-program :key #'first))
          (all-predicates
           (set-difference irl-program all-bind-statements
                           :test #'equal))
-         (new-chunk-id (make-id 'composer-chunk))
-         (target-var (get-target-var all-predicates))
+         (new-chunk-id
+          (make-id 'composer-chunk))
+         (target-var
+          (get-target-var all-predicates))
          (target-var-type
           (get-type-of-var target-var all-predicates
                            :primitive-inventory (available-primitives agent)))
-         (open-vars (get-open-vars all-predicates))
+         (open-vars
+          (get-open-vars all-predicates))
          (open-var-types
           (loop for open-var in open-vars
                 for found-bind-statement
@@ -129,8 +133,10 @@
                 if found-bind-statement
                 collect (second found-bind-statement)
                 else
-                collect (get-type-of-var open-var all-predicates
-                                        :primitive-inventory (available-primitives agent))))
+                collect (get-type-of-var
+                         open-var all-predicates
+                         :primitive-inventory
+                         (available-primitives agent))))
          (new-chunk
           (make-instance 'chunk :id new-chunk-id
                          :irl-program all-predicates
@@ -146,31 +152,6 @@
     (or existing-chunk new-chunk)))
 
 
-#|  
-  (let* ((program-without-context
-          (remove 'get-context irl-program :key #'first))
-         (chunk-id (make-id
-                    (format nil "~{~a~^+~}"
-                            (reverse
-                             (mapcar #'first
-                                     program-without-context)))))
-         (new-chunk
-          (create-chunk-from-irl-program program-without-context
-                                         :id chunk-id
-                                         :target-var (get-target-var irl-program)
-                                         :primitive-inventory (available-primitives agent)))
-         (add-chunk-p
-          (and (> (length (irl-program new-chunk)) 1)
-               (loop for other-chunk in (composer-chunks agent)
-                     always (or (= (length (irl-program other-chunk)) 1)
-                                (not (equivalent-irl-programs? (irl-program new-chunk)
-                                                               (irl-program other-chunk))))))))
-    (when add-chunk-p
-      (push new-chunk (composer-chunks agent)))))
-|#
-
-
-
 
 (defun inc-chunk-score (chunk &key (delta 0.1)
                                (upper-bound 1.0))
@@ -180,7 +161,7 @@
   (score chunk))
 
 (defun dec-chunk-score (chunk &key (delta 0.1)
-                               (lower-bound 0.0))
+                               (lower-bound 0.1))
   (decf (score chunk) delta)
   (when (< (score chunk) lower-bound)
     (setf (score chunk) lower-bound))
