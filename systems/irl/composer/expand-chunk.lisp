@@ -37,7 +37,8 @@
                                                     (open-vars other-chunk-2))
                                  :irl-program (append (irl-program chunk)
                                                       (irl-program other-chunk-2))
-                                 :score (/ (+ (score chunk) (score other-chunk)) 2)))))
+                                 :score -1.0 ; score of new chunk will be set later
+                                 ))))
 
 (defmethod expand-chunk ((chunk chunk) (composer chunk-composer)
                          (mode (eql :combine-program)))
@@ -74,7 +75,7 @@
                                                     (substitute-variables
                                                      (open-vars other-chunk)
                                                      substitutions))
-                                 :score (/ (+ (score chunk) (score other-chunk)) 2)))))
+                                 :score -1.0))))
 
 (defmethod expand-chunk ((chunk chunk) (composer chunk-composer)
                          (mode (eql :combine-call-pattern)))
