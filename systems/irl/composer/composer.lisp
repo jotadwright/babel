@@ -88,7 +88,7 @@
   ;; A list of functions that is called whenever a new
   ;; node is created to filter out bad nodes.
   (set-configuration composer :check-node-modes
-                     '(:check-duplicate))
+                     '(:limit-depth :check-duplicate))
   ;; A function that is called whenever a new node is
   ;; created to rate the node. Returns a float.
   ;; lower == better

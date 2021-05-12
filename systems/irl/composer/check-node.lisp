@@ -45,6 +45,22 @@
 
 (defmethod check-node ((node chunk-composer-node)
                        (composer chunk-composer)
+                       (mode (eql :limit-depth)))
+  (let ((max-depth (get-configuration composer :max-search-depth)))
+    (when (> (node-depth node) max-depth)
+      (push 'max-depth-reached (statuses node)))
+    (<= (node-depth node) max-depth)))
+
+(defmethod check-node ((node chunk-composer-node)
+                       (composer chunk-composer)
+                       (mode (eql :limit-irl-program-length)))
+  (let ((max-program-length (get-configuration composer :max-irl-program-length)))
+    (when (> (length (irl-program (chunk node))) max-program-length)
+      (push 'max-irl-program-length-reached (statuses node)))
+    (<= (length (irl-program (chunk node))) max-program-length)))
+
+(defmethod check-node ((node chunk-composer-node)
+                       (composer chunk-composer)
                        (mode (eql :check-duplicate)))
   (let ((duplicate (find-node-with-equivalent-chunk (chunk node) composer)))
     (if duplicate
