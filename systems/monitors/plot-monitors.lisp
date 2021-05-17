@@ -187,15 +187,20 @@
               (> (length source) 1)
               (> i 0) (= (mod i error-bar-distance) 0)
               (> (length values) 1))
-    collect (if (eq error-bars :min-max)
-              (let ((max (loop for el in values maximize el))
-                    (min (loop for el in values minimize el)))
-                (list (/ i divide-indices-by) average 
-                      min max))
-              ;; default :stdev
-              (let ((stdev (stdev values :average average)))
-                (list (/ i divide-indices-by) average 
-                      (- average stdev) (+ average stdev))))
+    collect
+    (cond ((eq error-bars :min-max)
+           (list (/ i divide-indices-by) average
+                 (loop for el in values minimize el)
+                 (loop for el in values maximize el)))
+          ((and (consp error-bars) 
+                (eq (first error-bars) :percentile))
+           (list (/ i divide-indices-by) average
+                 (nth-percentile values (second error-bars))
+                 (nth-percentile values (third error-bars))))
+          (t
+           (let ((stdev (stdev values :average average)))
+             (list (/ i divide-indices-by) average 
+                   (- average stdev) (+ average stdev)))))
     into errorbars
     finally (return (list index average-values errorbars)))))
 

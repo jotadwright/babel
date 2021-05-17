@@ -7,12 +7,13 @@
 ;; -----------------
 
 (defprimitive count! ((target-num number)
-                      (source-attn attention))
+                      (source-attn attention-set))
   ;; first case; given source-set, compute target
   ((source-attn => target-num)
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive count
           :slots (:source-attn ,(id source-attn)
                   :target-num nil)))
@@ -27,6 +28,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitive count
              :slots (:source-attn ,(id source-attn)
                      :target-num  ,target-num)))))

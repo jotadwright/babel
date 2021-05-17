@@ -1,6 +1,4 @@
-;;;; utils.lisp
-
-(in-package :clevr-learning)
+(in-package :clevr-grammar-learning)
 
 (defun extract-meanings-from-cipn (cipn)
   (extract-meanings
@@ -16,9 +14,6 @@
 
 (defun get-cxn-type (cxn)
   (attr-val cxn :cxn-type))
-
-(defun get-cxn-chunk (cxn)
-  (attr-val cxn :chunk))
 
 (defun item-based-number-of-slots (cxn)
   (when (eql (get-cxn-type cxn) 'item-based)
@@ -106,13 +101,13 @@
                          (monitors (get-all-lisp-monitors)))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
-    :experiment-class 'clevr-learning-experiment 
+    :experiment-class 'clevr-grammar-learning-experiment 
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :named-configurations strategies
     :shared-configuration nil
     :monitors monitors
-    :output-dir (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")))
+    :output-dir (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
 ;;;; UTILS FOR PLOTTING
@@ -120,16 +115,16 @@
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names
                                               y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
-                                              captions open points series-numbers)
+                                              captions open)
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
   (raw-files->evo-plot
     :raw-file-paths
     (loop for measure-name in measure-names
-          collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
+          collect `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name ,measure-name))
     :average-windows 100
-    :plot-directory `("experiments" "clevr-learning" "raw-data" ,experiment-name)
+    :plot-directory `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name)
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
     :captions captions
@@ -141,25 +136,23 @@
     :x-label (if xlabel xlabel "Number of Games")
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
-    :points points
-    :series-numbers series-numbers
     :open open)
   (format t "~%Graphs have been created"))
 
 (defun create-graph-comparing-strategies (&key experiment-names measure-name
                                                (y-min 0) (y-max 1) xlabel y1-label y2-label
-                                               captions title open end)
+                                               captions title open)
   ;; This function allows you to compare a given measure accross different
   ;; experiments, e.g. comparing lexicon size
   (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
   (raw-files->evo-plot
     :raw-file-paths
     (loop for experiment-name in experiment-names
-          collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
+          collect `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name ,measure-name))
     :average-windows 500
     :captions (if captions captions experiment-names)
     :title (if title title "")
-    :plot-directory '("experiments" "clevr-learning" "graphs")
+    :plot-directory '("experiments" "clevr-grammar-learning" "graphs")
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
     :y1-min y-min
@@ -167,7 +160,7 @@
     :x-label (if xlabel xlabel "Number of Games")
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
-    :open open :end end)
+    :open open)
   (format t "~%Graphs have been created"))
 
 

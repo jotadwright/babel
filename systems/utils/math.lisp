@@ -8,6 +8,7 @@
 	  average
           median
 	  stdev
+          nth-percentile
 	  correlation
 	  combination
           permutations
@@ -123,6 +124,24 @@
           (equal key '(quote identity)))
     `(%fast-stdev ,list ,average)
     w))
+
+(defun nth-percentile (list n)
+  ;; formula taken from definition 3 on http://cnx.org/content/m10805/latest/
+  ;;; It uses interpolation to estimate the percentile
+  (flet ((limit (nr low high)
+           (cond ((< nr low) low)
+                 ((> nr high) high)
+                 (t nr))))
+    (let* ((sorted-list (sort list #'<))
+           (len (length sorted-list))
+           (rank (limit (* (/ n 100) (+ 1 len)) 1 len)))
+      (multiple-value-bind (ir fr) (floor rank)
+        (cond ((= ir rank)
+               (nth (- rank 1) sorted-list))
+              (t
+               (+ (* fr (- (nth ir sorted-list)
+                           (nth (- ir 1) sorted-list)))
+                  (nth (- ir 1) sorted-list))))))))
 
 (defun correlation (datapoints)
   "Datapoints should be a list of (x . y) pairs. Returns values a,b,r**2 for

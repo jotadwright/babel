@@ -6,14 +6,15 @@
 ;; FILTER primtive ;;
 ;; ------------------
 
-(defprimitive filter ((target-attn attention)
-                      (source-attn attention)
+(defprimitive filter ((target-attn attention-set)
+                      (source-attn attention-set)
                       (category attribute))
   ;; first case: if given source-set and category, compute target-set
   ((source-attn category => target-attn)
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive filter
           :slots (:source-attn ,(id source-attn)
                   :category  ,(category-value category)
@@ -22,7 +23,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
 
@@ -31,6 +32,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive filter
           :slots (:source-attn ,(id source-attn)
                   :category  nil
@@ -49,6 +51,7 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive filter
           :slots (:source-attn ,(id source-attn)
                   :category nil
@@ -57,7 +60,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))
                     (category
@@ -72,6 +75,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitve filter
              :slots (:source-attn ,(id source-attn)
                      :category ,(category-value category)

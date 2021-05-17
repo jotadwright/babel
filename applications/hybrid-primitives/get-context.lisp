@@ -6,12 +6,13 @@
 ;; GET-CONTEXT primtive ;;
 ;; -----------------------
 
-(defprimitive get-context ((context attention))
+(defprimitive get-context ((context attention-set))
   ;; first case; consistency check
   ((context =>)
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitive get-context
              :slots (:context ,(id context))))))
      consistentp))
@@ -21,13 +22,14 @@
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive get-context
           :slots (:context nil)))
      (loop for scores in bind-scores
            for values in bind-values
            do (bind (context
                      (getf scores 'context)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'context)
                                                 :hybrid-primitives)))))))
   :primitive-inventory *hybrid-primitives*)

@@ -6,14 +6,15 @@
 ;; INTERSECT primtive ;;
 ;; ---------------------
 
-(defprimitive intersect ((target-attn attention)
-                         (source-attn-1 attention)
-                         (source-attn-2 attention))
+(defprimitive intersect ((target-attn attention-set)
+                         (source-attn-1 attention-set)
+                         (source-attn-2 attention-set))
   ;; first case; given both source sets, compute the target set
   ((source-attn-1 source-attn-2 => target-attn)
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive intersect
           :slots (:target-attn nil
                   :source-attn-1 ,(id source-attn-1)
@@ -22,7 +23,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-set
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
 
@@ -32,6 +33,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitive intersect
              :slots (:target-attn ,(id target-attn)
                      :source-attn-1 ,(id source-attn-1)

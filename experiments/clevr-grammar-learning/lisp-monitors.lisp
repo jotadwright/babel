@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :clevr-learning)
+(in-package :clevr-grammar-learning)
 
 ;;;; Communicative success             
 (define-monitor record-communicative-success
@@ -13,7 +13,7 @@
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-communicative-success interaction-finished)
@@ -29,7 +29,7 @@
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
                 :file-name (babel-pathname :name "lexicon-size" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-lexicon-size interaction-finished)
@@ -43,12 +43,12 @@
                                 (average record-lexicon-size))
                 :update-interval 100
                 :caption '("communicative success"
-                           "lexicon size")
+                           "grammar size")
                 :x-label "# Games"
                 :use-y-axis '(1 2)
                 :y1-label "Communicative Success" 
                 :y1-max 1.0 :y1-min 0
-                :y2-label "Lexicon Size"
+                :y2-label "Grammar Size"
                 :y2-min 0
                 :draw-y1-grid t
                 :error-bars nil)
@@ -63,7 +63,7 @@
                 :documentation "Exports nr of meanings per form for lexical cxns"
                 :data-sources '(record-lexical-meanings-per-form)
                 :file-name (babel-pathname :name "lexical-meanings-per-form" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (defun compute-nr-of-lexical-meanings-per-form (agent)
@@ -95,7 +95,7 @@
                 :documentation "Exports nr of forms per meaning for lexical cxns"
                 :data-sources '(record-lexical-forms-per-meaning)
                 :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (defun compute-nr-of-lexical-forms-per-meaning (agent)
@@ -126,7 +126,7 @@
                 :documentation "exports avg cxn score"
                 :data-sources '((average record-avg-cxn-score))
                 :file-name (babel-pathname :name "avg-cxn-score" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
                 
 (define-event-handler (record-avg-cxn-score interaction-finished)
@@ -153,7 +153,7 @@
     :y-label "Number of constructions"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
-                               :directory '("experiments" "clevr-learning" "graphs"))
+                               :directory '("experiments" "clevr-grammar-learning" "graphs"))
     :graphic-type "pdf" :error-bars '(:percentile 5 95)
     :add-time-and-experiment-to-file-name nil)
 
@@ -180,7 +180,7 @@
     :y-label "Construction Score"
     :x-label "Total number of interactions"
     :file-name (babel-pathname :name "avg-cxn-score-per-type" :type "pdf"
-                               :directory '("experiments" "clevr-learning" "graphs"))
+                               :directory '("experiments" "clevr-grammar-learning" "graphs"))
     :graphic-type "pdf" :error-bars '(:percentile 5 95)
     :add-time-and-experiment-to-file-name nil)
 
@@ -204,7 +204,7 @@
         :y-label "Usage"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "cxn-usage-per-type" :type "pdf"
-                                   :directory '("experiments" "clevr-learning" "graphs"))
+                                   :directory '("experiments" "clevr-grammar-learning" "graphs"))
         :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
 
@@ -235,66 +235,9 @@
         :y-label "Number of constructions"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "nr-of-item-based-cxns-with-slots" :type "pdf"
-                                   :directory '("experiments" "clevr-learning" "graphs"))
+                                   :directory '("experiments" "clevr-grammar-learning" "graphs"))
         :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
-
-;;;; number of unseen questions       
-(define-monitor record-unseen-questions
-                :class 'data-recorder
-                :average-window 1) 
-
-(define-monitor export-unseen-questions
-                :class 'lisp-data-file-writer
-                :documentation "Exports communicative success"
-                :data-sources '(record-unseen-questions)
-                :file-name (babel-pathname :name "number-of-unseen-questions" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-unseen-questions log-unseen-questions)
-  (record-value monitor n))
-
-;;;; Number of chunks
-(define-monitor record-number-of-chunks
-                :class 'data-recorder
-                :documentation "records the number of chunks.")
-
-(define-monitor export-number-of-chunks
-                :class 'lisp-data-file-writer
-                :documentation "Exports the number of chunks."
-                :data-sources '(record-number-of-chunks)
-                :file-name (babel-pathname :name "number-of-chunks" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-number-of-chunks interaction-finished)
-  (record-value monitor (length (composer-chunks (learner experiment)))))
-
-;;;; Composer search space size
-(define-monitor record-composer-search-space-size
-                :class 'data-recorder
-                :average-window 1
-                :documentation "records the size of the composer search space")
-
-(define-monitor export-composer-search-space-size
-                :class 'lisp-data-file-writer
-                :documentation "exports the size of the composer search space"
-                :data-sources '(record-composer-search-space-size)
-                :file-name (babel-pathname :name "composer-search-space" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-composer-search-space-size composer-solution-found)
-  (record-value monitor (float
-                         (/ (irl::node-counter composer)
-                            (irl::node-depth (irl::node solution))))))
-                           
-
-
-
-
-
 
 
 
@@ -302,14 +245,10 @@
 (defun get-all-lisp-monitors ()
   '("export-communicative-success"
     "export-lexicon-size"
-    ;"export-lexical-meanings-per-form"
-    ;"export-lexical-forms-per-meaning"
+    "export-lexical-meanings-per-form"
+    "export-lexical-forms-per-meaning"
     "export-avg-cxn-score"
     "plot-lexicon-size-per-type"
     "plot-cxn-score-per-type"
-    ;"plot-cxn-usage-per-type"
-    "plot-nr-of-slots"
-    ;"export-unseen-questions"
-    ;"export-number-of-chunks"
-    "export-composer-search-space-size"
-    ))
+    "plot-cxn-usage-per-type"
+    "plot-nr-of-slots"))

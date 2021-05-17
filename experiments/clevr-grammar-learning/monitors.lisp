@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :clevr-learning)
+(in-package :clevr-grammar-learning)
 
 ;;;; Printing dots
 (define-monitor print-a-dot-for-each-interaction
@@ -8,13 +8,14 @@
                  and prints the number after :dot-interval")
 
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (cond ((= (interaction-number interaction) 1)
-         (format t "~%."))
-        ((= (mod (interaction-number interaction)
-                 (get-configuration experiment :dot-interval)) 0)
-         (format t ". (~a)~%" (interaction-number interaction))
-         (wi:clear-page))
-        (t (format t "."))))
+  (let ((symbol-to-print (if (communicated-successfully (first (interacting-agents interaction))) "." "x")))
+    (cond ((= (interaction-number interaction) 1)
+           (format t "~%~a" symbol-to-print))
+          ((= (mod (interaction-number interaction)
+                   (get-configuration experiment :dot-interval)) 0)
+           (format t "~a (~a)~%" symbol-to-print (interaction-number interaction)))
+         ;(wi:clear-page))
+          (t (format t "~a" symbol-to-print)))))
 
 ;;;; export failed sentences and applied cxns
 (define-monitor log-interactions)
@@ -24,7 +25,7 @@
 (define-event-handler (log-interactions log-parsing-finished)
   (unless *log-file*
     (setf *log-file*
-          (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+          (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
                           :name (format nil "log-~a" (make-random-string 5))
                           :type "txt")))
   (let ((succeededp
@@ -50,11 +51,11 @@
                    (if applied-cxns
                      applied-cxns '(nil)))
            stream))))))
-
+#|
 (define-event-handler (log-interactions log-interaction-finished)
   (unless *log-file*
     (setf *log-file*
-          (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+          (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
                           :name (format nil "log-~a" (make-random-string 5))
                           :type "txt")))
   (unless success
@@ -76,7 +77,7 @@
          stream)))))
           
 
-
+|#
 ;;;; export type hierarchy after series
 (define-monitor export-type-hierarchy
                 :class 'store-monitor
@@ -84,7 +85,7 @@
                             (babel-pathname :name (format nil "type-hierarchy-~a"
                                                           (make-random-string 5))
                                             :type "pdf"
-                                            :directory '("experiments" "clevr-learning" "raw-data"))))
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
 (defun export-type-hierarchy (type-hierarchy path)
   (type-hierarchy->image
@@ -113,7 +114,7 @@
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
                             (babel-pathname :name "type-hierarchy" :type "pdf"
-                                            :directory '("experiments" "clevr-learning" "raw-data"))))
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
 (define-event-handler (export-type-hierarchy-every-nth-interaction interaction-finished)
   (let ((interaction-nr (interaction-number (current-interaction experiment)))
@@ -139,7 +140,7 @@
                             (babel-pathname :name (format nil "learner-grammar-~a"
                                                           (make-random-string 5))
                                             :type "store"
-                                            :directory '("experiments" "clevr-learning" "raw-data"))))
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
 (defun export-grammar (cxn-inventory path)
   #-ccl (cl-store:store cxn-inventory path))
@@ -153,7 +154,7 @@
                 :class 'store-monitor
                 :file-name (make-file-name-with-time
                             (babel-pathname :name "learner-grammar" :type "store"
-                                            :directory '("experiments" "clevr-learning" "raw-data"))))
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
 (define-event-handler (export-learner-grammar-every-nth-interaction interaction-finished)
   (let ((interaction-nr (interaction-number (current-interaction experiment)))
@@ -174,41 +175,5 @@
 (defun get-all-export-monitors ()
   '("export-type-hierarchy"
     "export-learner-grammar"))
-
-
-;; download attentions from server when using hybrid primitives
-;; both when evaluating irl programs and when using the composer
-(defmethod irl::handle-evaluate-irl-program-finished-event
-           :before ((monitor monitor)
-                    (monitor-id (eql 'irl::trace-irl))
-                    (event-id (eql 'irl::evaluate-irl-program-finished))
-                    solutions solution-nodes
-                    processor primitive-inventory)
-  ;; when the monitor is active
-  ;; download all attention images
-  ;; also check if the slot is bound
-  ;; such that the same attention is not downloaded twice
-  (when (monitors::active monitor)
-    (loop for solution in solutions
-          do (loop for binding in solution
-                   when (and (subtypep (type-of (value binding)) 'attention)
-                             (null (img-path (value binding))))
-                   do (request-attn (get-data (ontology processor) 'hybrid-primitives::server-address)
-                                    (get-data (ontology processor) 'hybrid-primitives::cookie-jar)
-                                    (value binding))))))
-
-(defmethod irl::handle-chunk-composer-finished-event
-           :before ((monitor monitor)
-                    (monitor-id (eql 'irl::trace-irl))
-                    (event-id (eql 'irl::chunk-composer-finished))
-                    solutions composer)
-  (when (monitors::active monitor)
-    (loop for solution in solutions
-          do (loop for binding in (irl::bindings solution)
-                   when (and (subtypep (type-of (value binding)) 'attention)
-                             (null (img-path (value binding))))
-                   do (request-attn (get-data (ontology composer) 'hybrid-primitives::server-address)
-                                    (get-data (ontology composer) 'hybrid-primitives::cookie-jar)
-                                    (value binding))))))
   
     

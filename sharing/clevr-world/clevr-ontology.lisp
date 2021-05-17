@@ -7,7 +7,8 @@
 (export '(category attribute shape-category size-category
           color-category material-category spatial-relation-category
           spatial-relation boolean-category bool
-          attribute-category attribute attention img-path
+          attribute-category attribute attention attention-set
+          attention-object img-path
           shapes sizes colors materials spatial-relations attributes
           category-value))
 
@@ -50,6 +51,12 @@
              :accessor img-path :initform nil))
   (:documentation "A symbolic representation of an intermediate attention"))
 
+(defclass attention-set (attention) ()
+  (:documentation "Attention intended for object sets"))
+
+(defclass attention-object (attention) ()
+  (:documentation "Attention intended for single objects"))
+
 ;; ################################
 ;; category-value
 ;; ################################
@@ -72,6 +79,10 @@
 (defmethod category-value ((attribute-category attribute-category))
   (attribute attribute-category))
 (defmethod category-value ((attention attention))
+  (id attention))
+(defmethod category-value ((attention attention-set))
+  (id attention))
+(defmethod category-value ((attention attention-object))
   (id attention))
 
 ;; ################################
@@ -167,3 +178,9 @@
 
 (defmethod copy-object ((attention attention))
   (make-instance 'attention :id (id attention)))
+
+(defmethod copy-object ((attention attention-set))
+  (make-instance 'attention-set :id (id attention)))
+
+(defmethod copy-object ((attention attention-object))
+  (make-instance 'attention-object :id (id attention)))

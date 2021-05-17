@@ -131,7 +131,8 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
     (match-chunk-failed . "#822")
     (no-evaluation-results . "#337")
     (expanded . "#480")
-    (max-depth-reached . "#888")))
+    (max-depth-reached . "#888")
+    (max-irl-program-length-reached . "#888")))
 
 (define-css 'ccn "
 div.ccn { display:inline-block;margin-right:0px;margin-top:10px;
@@ -158,9 +159,9 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 ")
 
 (defun ccn->title-text (node)
-  (if (= (node-number node) 0)
-    "initial"
-    (format nil "~{~a~^ ~} (~a, ~a)"
+  (if (= (node-number node) 1)
+    "initial (1)"
+    (format nil "~{~a~^ ~} (~a, ~,2f)"
             (mapcar (compose #'mkstr #'downcase)
                     (remove 'initial
                             (mapcar #'id
@@ -253,7 +254,7 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
                       (expand/collapse-all-id (make-id 'ccn)))
   (let* ((element-id (make-id 'ccn))
          (node-color
-          (or (when (= (node-number node) 0) "#444")
+          (or (when (= (node-number node) 1) "#444")
               (assqv (first (statuses node)) *chunk-composer-node-status-colors*)
               (error "no status color defined for status ~a" (first (statuses node)))))
          (node-div

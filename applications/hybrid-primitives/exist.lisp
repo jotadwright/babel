@@ -7,12 +7,13 @@
 ;; -----------------
 
 (defprimitive exist ((target-bool boolean-category)
-                     (source-attn attention))
+                     (source-attn attention-set))
   ((source-attn => target-bool)
    ;; first case; give source-set, compute target-bool
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive exist
           :slots (:target-bool nil
                   :source-attn ,(id source-attn))))
@@ -30,6 +31,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitive exist
              :slots (:target-bool ,(bool target-bool)
                      :source-attn ,(id source-attn))))))

@@ -6,13 +6,14 @@
 ;; UNIQUE primtive ;;
 ;; ------------------
 
-(defprimitive unique ((target-attn attention)
-                      (source-attn attention))
+(defprimitive unique ((target-attn attention-object)
+                      (source-attn attention-set))
   ;; first case; given source set, compute target object
   ((source-attn => target-attn)
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
+        (get-data ontology 'cookie-jar)
         `(:primitive unique
           :slots (:source-attn ,(id source-attn)
                   :target-attn nil)))
@@ -20,7 +21,7 @@
            for values in bind-values
            do (bind (target-attn
                      (getf scores 'target-attn)
-                     (make-instance 'attention
+                     (make-instance 'attention-object
                                     :id (intern (getf values 'target-attn)
                                                 :hybrid-primitives)))))))
 
@@ -30,6 +31,7 @@
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
+           (get-data ontology 'cookie-jar)
            `(:primitive unique
              :slots (:source-attn ,(id source-attn)
                      :target-attn ,(id target-attn))))))

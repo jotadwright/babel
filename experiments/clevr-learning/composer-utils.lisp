@@ -141,6 +141,7 @@
                        (setf prev-was-filter nil)))))
     filter-groups))
 
+#|
 (defun all-different-bind-types (chunk-evaluation-result filter-group)
   ;; collect all bind-statements that belong with the filter-group
   ;; check if the types are all different
@@ -168,6 +169,23 @@
               always (all-different-bind-types result group))
         t))
     t))
+|#
+
+#|
+(defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
+                                          (composer chunk-composer)
+                                          (mode (eql :check-open-var-types)))
+  ;; checks if the bindings in the chunk evaluation result
+  ;; match with the types specified in the open variables
+  ;; of the chunk (this is a special case due to the general
+  ;; filter primitive)
+  (let ((open-vars (open-vars (chunk result))))
+    (loop for (var . open-var-type) in open-vars
+          for binding = (find var (bindings result) :key #'var)
+          for type-of-value = (type-of (value binding))
+          always (or (eql open-var-type type-of-value)
+                     (subtypep type-of-value open-var-type)))))
+|#
 
 
 (defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
@@ -294,7 +312,8 @@
                (new-permutation-p
                 (loop for permut in processed-permutations
                       never (and (length= permut filter-bindings)
-                                 (permutation-of? permut filter-bindings)))))
+                                 (permutation-of? permut filter-bindings
+                                                  :test #'equal-entity)))))
           (if new-permutation-p
             (progn (push-data (blackboard (processor node))
                               'processed-permutations filter-bindings)

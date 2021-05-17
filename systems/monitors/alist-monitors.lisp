@@ -105,9 +105,8 @@
   (loop for (symbol . fvp) in (first-value-positions monitor)
         if (null (car fvp))
         do (setf (cdr (assoc symbol (current-values monitor))) nil)
-        else
-        do (unless (keep-previous-values monitor)
-             (setf (cdr (assoc symbol (current-values monitor))) 0))))
+        else do (unless (keep-previous-values monitor)
+                  (setf (cdr (assoc symbol (current-values monitor))) 0))))
 
 (defmethod handle-interaction-finished-event :after ((monitor alist-recorder)
                                                      (monitor-id symbol)
@@ -258,8 +257,9 @@
     :documentation "At least that many values are plotted along the x-axis.
                     It can be more depending on the dynamically adapted step size."
     :initform 500 :initarg :minimum-number-of-data-points :accessor minimum-number-of-data-points)
-   (error-bars :documentation "When t, error bars are plotted"
-	       :type boolean :initarg :error-bars :accessor error-bars :initform nil)
+   (error-bars :documentation "can be set to :min-max, (:percentile min max),
+                               :stdev or nil for no error bars"
+	       :initarg :error-bars :accessor error-bars :initform nil)
    (key-location :documentation "Where the key is placed (this is directly passed to 'set key')"
 		 :type string :initform "below" :initarg :key-location :accessor key-location)
    (y-max :documentation "The maximum for the left y axis. Nil results in automatic scaling"
@@ -315,40 +315,40 @@
     (assert stream)
     (format stream "~cset grid back noxtics" #\linefeed)
     (format stream "~cset grid back ~:[noytics~;ytics lt 4 lc rgb \"#aaaaaa\" lw 0.5~]" 
-	    #\linefeed (draw-y-grid monitor))
+            #\linefeed (draw-y-grid monitor))
     (format stream "~cset key ~a" #\linefeed (key-location monitor))
     (when (hide-legend monitor)
       (format stream "~cunset key" #\linefeed ))
     (format stream "~cset xlabel ~:[~;~:*~s~]" #\linefeed (x-label monitor))
     (format stream "~cset ylabel ~:[~;~:*~s~]" #\linefeed (y-label monitor))
     (format stream "~cset ytics nomirror~cset xrange [0:*]~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
-	    #\linefeed #\linefeed #\linefeed (y-min monitor) (y-max monitor))
+            #\linefeed #\linefeed #\linefeed (y-min monitor) (y-max monitor))
     (format stream "~cunset y2tics" #\linefeed)
     (format stream "~cplot " #\linefeed)
     (setf data
-	  (remove-if #'(lambda (source)
-			(< (average (remove nil (second source))) (display-threshold monitor)))
-		     data))
+          (remove-if #'(lambda (source)
+                         (< (average (remove nil (second source))) (display-threshold monitor)))
+                     data))
     
     (loop for source in data 
-       for source-number from 0
-       for color = (nth (mod source-number (length (colors monitor))) (colors monitor))
-       do (format stream "~:[~*~*~;'-' axes x1y1 notitle with errorbars ps 0.01 lw ~a dt ~a lc rgb ~s,~] '-' axes x1y1 title \"~(~a~)\" with lines lw ~a dt ~a lc rgb ~s~:[~;, ~]" 
-		  (third source) (line-width monitor)
-                  (if (dashed monitor) (+ 2 source-number) 1) color
-		  (nth source-number (reverse (mapcar #'car (car (data monitor)))))
-		  (line-width monitor) (if (dashed monitor) (+ 2 source-number) 1)
-		  color (< source-number (- (length data) 1))))
+          for source-number from 0
+          for color = (nth (mod source-number (length (colors monitor))) (colors monitor))
+          do (format stream "~:[~*~*~;'-' axes x1y1 notitle with errorbars ps 0.01 lw ~a dt ~a lc rgb ~s,~] '-' axes x1y1 title \"~(~a~)\" with lines lw ~a dt ~a lc rgb ~s~:[~;, ~]" 
+                     (third source) (line-width monitor)
+                     (if (dashed monitor) (+ 2 source-number) 1) color
+                     (nth source-number (reverse (mapcar #'car (car (data monitor)))))
+                     (line-width monitor) (if (dashed monitor) (+ 2 source-number) 1)
+                     color (< source-number (- (length data) 1))))
     (loop for source in data
-       do (when (third source)
-	    (loop for error-bar in (third source) 
-	       do (format stream "~c~{~d ~,3f ~,3f ~,3f~}"  #\linefeed error-bar))
-	    (format stream "~ce"  #\linefeed))
-	 (mapcar #'(lambda (index average-value) 
-		     (when average-value
-		       (format stream "~c~d ~,3f"  #\linefeed index average-value)))
-		 (first source) (second source))
-	 (format stream "~ce~c" #\linefeed #\linefeed))))
+          do (when (third source)
+               (loop for error-bar in (third source) 
+                     do (format stream "~c~{~d ~,3f ~,3f ~,3f~}"  #\linefeed error-bar))
+               (format stream "~ce"  #\linefeed))
+          (mapcar #'(lambda (index average-value) 
+                      (when average-value
+                        (format stream "~c~d ~,3f"  #\linefeed index average-value)))
+                  (first source) (second source))
+          (format stream "~ce~c" #\linefeed #\linefeed))))
 
 
 ;; ############################################################################

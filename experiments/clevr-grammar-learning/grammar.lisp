@@ -17,7 +17,7 @@
 
 (defun tokenize (utterance)
   "Split the utterance in words, downcase every word,
-   remove the punctuation from the word"
+    the punctuation from the word"
   (let ((words (split (remove-spurious-spaces utterance) #\space)))
     (loop for word in words
           append (detach-punctuation (downcase word)))))
@@ -30,56 +30,53 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
-(in-package :clevr-learning)
+(in-package :clevr-grammar-learning)
 
-(defun default-clevr-grammar ()
-  (let ((clevr-grammar (copy-object *CLEVR*)))
-    (set-configurations clevr-grammar
-                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
-                          (:priority-mode . :nr-of-applied-cxns)
-                          (:parse-order hashed nom cxn)
-                          (:production-order hashed-lex nom cxn hashed-morph)
-                          (:max-nr-of-nodes . 10000))
-                        :replace t)
-    (set-configurations (processing-cxn-inventory clevr-grammar)
-                        '((:cxn-supplier-mode . :ordered-by-label-hashed)
-                          (:priority-mode . :nr-of-applied-cxns)
-                          (:parse-order hashed nom cxn)
-                          (:production-order hashed-lex nom cxn hashed-morph)
-                          (:max-nr-of-nodes . 10000))
-                        :replace t)
-    clevr-grammar))
-
-(defun empty-cxn-set (hide-type-hierarchy cxn-supplier)
+(defun empty-cxn-set (hide-type-hierarchy cxn-supplier th-connected-mode)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions-with-type-hierarchy
                      ,grammar-name
                    :cxn-inventory ,grammar-name
+                   :hashed t
                    :feature-types ((args set)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
                    :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
-                                        (:parse-order non-holophrase holophrase)
-                                        (:parse-goal-tests :no-applicable-cxns
-                                                           :connected-semantic-network
-                                                           :no-strings-in-root)
-                                        (:production-order non-holophrase holophrase)
-                                        (:production-goal-tests :no-applicable-cxns
-                                                                :connected-structure
-                                                                :no-meaning-in-root)
-                                        (:max-nr-of-nodes . 1000) ;; !
-                                        (:shuffle-cxns-before-application . t)
+                                        (:parse-goal-tests :non-gold-standard-meaning)
+                                        (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
-                                        (:th-connected-mode . :neighbours)
-                                        (:update-th-links . t))
+                                        (:render-mode . :generate-and-test)
+                                        (:th-connected-mode . ,th-connected-mode)
+                                        (:update-th-links . t)
+                                        (:consolidate-repairs . t)
+                                        (:hash-mode . :hash-string-meaning-lex-id))
+                   :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
+                   :repairs (;gl::add-th-links
+                                           ;gl::item-based->lexical
+                             gl::holophrase->item-based+lexical+lexical--substitution
+                             gl::holophrase->item-based+lexical--addition
+                             gl::holophrase->item-based+lexical+holophrase--deletion
+                                           ;gl::repair-lexical->item-based-cxn
+                             gl::nothing->holophrase)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))
 
+
+                                 
+                                 
+
+
 (define-event lexicon-changed)
+
+(defun inc-cxn-score-no-bounds (cxn &key (delta 0.1))
+  "increase the score of the cxn"
+  (incf (attr-val cxn :score) delta)
+  cxn)
+
 
 (defun inc-cxn-score (cxn &key (delta 0.1) (upper-bound 1.0))
   "increase the score of the cxn"

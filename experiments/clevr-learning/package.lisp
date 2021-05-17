@@ -7,7 +7,9 @@
   (:use :common-lisp :utils :experiment-framework
         :plot-raw-data :monitors :web-interface
         :tasks-and-processes :meta-layer-learning
-        :irl :fcg :type-hierarchies :clevr-world
-        :clevr-primitives :gl)
+        :irl :fcg :type-hierarchies :clevr-world :gl)
   (:import-from :clevr-grammar :*CLEVR*)
+  (:import-from :clevr-primitives :*clevr-primitives*)
+  (:import-from :hybrid-primitives :*hybrid-primitives*
+                :load-image :request-attn :clear-session)
   (:shadowing-import-from :fcg :size :attributes))
