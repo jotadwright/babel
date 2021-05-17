@@ -40,14 +40,14 @@
                    :entries '((:observation-sample-mode . :random) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
-
-(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*))))))
+;(all-constructions-of-current-label 
+;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*))))))
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
 
 ;;; test series of interactions
-;(run-series *experiment* 900)
+;(run-series *experiment* 100)
 
 
 
@@ -65,8 +65,11 @@ TODO
 ----
 - maak monitor die de integriteit checkt: is het totaal aantal cxns gelijk aan het interactienummer - het totaal aantal successes? OK voor holophrases tot 10K
 - repairs individueel testen
+- vervang (constructions cipn door all-constructions --> waar zit deze functie?
 - in alle repairs zit een lijn die de type hierarchy reset in handle fix, verwijder deze
 - score cxns na interaction in :after method, willen we een upper bound?
 - lengte opnemen in hash key? op basis van aantal meets constraints
+- maak eens een repair monitor (zie Jens)
+
 
 |#
