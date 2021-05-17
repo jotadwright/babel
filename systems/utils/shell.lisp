@@ -211,7 +211,8 @@ Useful for re-using the &REST arg after removing some options."
 
 (defun program-installed-p (program)
   "uses 'which' to check if a given program is installed and in the PATH"
-  (first (exec-and-return "which" (mkstr program))))
+  (let ((command #+linux "which" #+Darwin "which" #+mswindows "where"))
+    (first (exec-and-return command (mkstr program)))))
 
 (defun number-of-lines (file)
   "Returns the number of lines in a file"
