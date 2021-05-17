@@ -230,14 +230,24 @@ div.predicate-network-svg > svg { margin-left:-8px;margin-right:-8px;margin-top:
                                                  (extensional-meanings nil))
   "renders predicate networks, i.e., irl programs,
    into an svg that can be readily used in the web interface"
-  `((div :class "predicate-network-svg")
-    ,(s-dot->svg (predicate-network->s-dot predicate-network :draw-arrows draw-arrows :topic topic :only-variables only-variables :extensional-meanings extensional-meanings))))
+  (if (program-installed-p "dot")
+    `((div :class "predicate-network-svg")
+      ,(s-dot->svg (predicate-network->s-dot predicate-network :draw-arrows draw-arrows
+                                             :topic topic :only-variables only-variables :extensional-meanings extensional-meanings)))
+    (progn
+      (warn "Could not draw predicate networks - Graphviz-Dot not installed.")
+      (html-pprint predicate-network))))
 
 
 (defun predicate-network-with-wiki-links->svg (predicate-network &key draw-arrows (topic nil) (only-variables t)
-                                                 (extensional-meanings nil))
+                                                                 (extensional-meanings nil))
   "renders predicate networks, i.e., irl programs,
    into an svg that can be readily used in the web interface"
-  `((div :class "predicate-network-svg")
-    ,(s-dot->svg (predicate-network-with-wikilinks->s-dot predicate-network :draw-arrows draw-arrows :topic topic :only-variables only-variables :extensional-meanings extensional-meanings))))
+  (if (program-installed-p "dot")
+    `((div :class "predicate-network-svg")
+      ,(s-dot->svg (predicate-network-with-wikilinks->s-dot predicate-network :draw-arrows draw-arrows
+                                                            :topic topic :only-variables only-variables :extensional-meanings extensional-meanings)))
+    (progn
+      (warn "Could not draw predicate networks - Graphviz-Dot not installed.")
+      (html-pprint predicate-network))))
 
