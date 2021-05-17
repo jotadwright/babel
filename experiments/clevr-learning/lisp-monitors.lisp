@@ -242,8 +242,7 @@
 ;;;; number of unseen questions       
 (define-monitor record-unseen-questions
                 :class 'data-recorder
-                :average-window 1
-                :default-value :keep-previous-value) 
+                :average-window 1) 
 
 (define-monitor export-unseen-questions
                 :class 'lisp-data-file-writer
@@ -255,6 +254,47 @@
 
 (define-event-handler (record-unseen-questions log-unseen-questions)
   (record-value monitor n))
+
+;;;; Number of chunks
+(define-monitor record-number-of-chunks
+                :class 'data-recorder
+                :documentation "records the number of chunks.")
+
+(define-monitor export-number-of-chunks
+                :class 'lisp-data-file-writer
+                :documentation "Exports the number of chunks."
+                :data-sources '(record-number-of-chunks)
+                :file-name (babel-pathname :name "number-of-chunks" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-number-of-chunks interaction-finished)
+  (record-value monitor (length (composer-chunks (learner experiment)))))
+
+;;;; Composer search space size
+(define-monitor record-composer-search-space-size
+                :class 'data-recorder
+                :average-window 1
+                :documentation "records the size of the composer search space")
+
+(define-monitor export-composer-search-space-size
+                :class 'lisp-data-file-writer
+                :documentation "exports the size of the composer search space"
+                :data-sources '(record-composer-search-space-size)
+                :file-name (babel-pathname :name "composer-search-space" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-composer-search-space-size composer-solution-found)
+  (record-value monitor (float
+                         (/ (irl::node-counter composer)
+                            (irl::node-depth (irl::node solution))))))
+                           
+
+
+
+
+
 
 
 
@@ -270,4 +310,6 @@
     ;"plot-cxn-usage-per-type"
     "plot-nr-of-slots"
     ;"export-unseen-questions"
+    ;"export-number-of-chunks"
+    "export-composer-search-space-size"
     ))

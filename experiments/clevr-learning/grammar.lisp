@@ -56,7 +56,7 @@
           (eval `(def-fcg-constructions-with-type-hierarchy
                      ,grammar-name
                    :cxn-inventory ,grammar-name
-                   :feature-types ((args sequence)
+                   :feature-types ((args set)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
                                    (subunits set)

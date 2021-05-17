@@ -17,6 +17,9 @@
 (defun get-cxn-type (cxn)
   (attr-val cxn :cxn-type))
 
+(defun get-cxn-chunk (cxn)
+  (attr-val cxn :chunk))
+
 (defun item-based-number-of-slots (cxn)
   (when (eql (get-cxn-type cxn) 'item-based)
     (1- (length (contributing-part cxn)))))
@@ -117,7 +120,7 @@
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names
                                               y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
-                                              captions open)
+                                              captions open points series-numbers)
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
@@ -138,6 +141,8 @@
     :x-label (if xlabel xlabel "Number of Games")
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
+    :points points
+    :series-numbers series-numbers
     :open open)
   (format t "~%Graphs have been created"))
 

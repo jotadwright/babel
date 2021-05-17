@@ -55,24 +55,32 @@
            :chunks (composer-chunks agent)
            :ontology (ontology agent)
            :primitive-inventory (available-primitives agent)
-           :configurations `(;; max depth = max length of irl program
-                             (:max-search-depth . ,max-composer-depth)
-                             (:check-node-modes ;; no duplicates
+           :configurations `((:max-irl-program-length . ,max-composer-depth)
+                             (:check-node-modes ;; limit the length of the irl program
+                                                :limit-irl-program-length
+                                                
+                                                ;; no duplicates
                                                 :check-duplicate
+                                                
                                                 ;; no predicates with multiple times
                                                 ;; the same variable
                                                 :no-circular-primitives
+                                                
                                                 ;; meaning has to be fully connected
                                                 :fully-connected-meaning
+                                                
                                                 ;; limit on the nr of times each primitive
                                                 ;; can occur (clevr specific)
                                                 :clevr-primitive-occurrence-count
+                                                
                                                 ;; limit to which primitives get-context
                                                 ;; can connect (clevr specific)
                                                 :clevr-context-links
+                                                
                                                 ;; the last variable of certain predicates
                                                 ;; has to be an open variable (clevr specific)
                                                 :clevr-open-vars
+                                                
                                                 ;; a filter group can be maximally 4 long
                                                 ;; (clevr specific)
                                                 :clevr-filter-group-length)
@@ -114,6 +122,7 @@
                   (and max-attempts (> attempt max-attempts)))
         finally (return the-solution)))
 
+#|
 ;; + store past programs +
 (defun check-past-programs (solution solution-index list-of-past-programs agent)
   (declare (ignorable solution-index agent))
@@ -140,6 +149,7 @@
        composer (lambda (solution idx)
                   (check-past-programs solution idx past-programs-with-same-utterance agent)))
       (first (get-next-solutions composer)))))
+|#
 
 ;; + store past scenes +
 (define-event check-samples-started
@@ -194,6 +204,9 @@
       (load-image server-address cookie-jar current-image-filename))
     success))
 
+(define-event composer-solution-found (composer irl::chunk-composer)
+  (solution chunk-evaluation-result))
+
 (defmethod compose-program ((agent clevr-learning-learner)
                             target-category utterance
                             (strategy (eql :store-past-scenes))
@@ -204,9 +217,16 @@
          (utterance-hash-key
           (sxhash utterance))
          (past-scenes-with-same-utterance
-          (gethash utterance-hash-key (memory agent))))
-    (if past-scenes-with-same-utterance
-      (compose-until
-       composer (lambda (solution idx)
-                  (check-past-scenes solution idx past-scenes-with-same-utterance agent)))
-      (first (get-next-solutions composer)))))
+          (gethash utterance-hash-key (memory agent)))
+         (composer-solution
+          (if past-scenes-with-same-utterance
+            (compose-until
+             composer
+             (lambda (solution idx)
+               (check-past-scenes solution idx
+                                  past-scenes-with-same-utterance
+                                  agent)))
+            (first (get-next-solutions composer)))))
+    (when composer-solution
+      (notify composer-solution-found composer composer-solution))
+    composer-solution))

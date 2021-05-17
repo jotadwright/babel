@@ -82,42 +82,29 @@
                         (handler (eql 'expand))
                         (composer chunk-composer))
   (setf (next-handler node) nil)
-  ;; as long as max depth is not reached, expand the current node
-  ;; using the expand-chunk-fns
-  ;; when using max depth, users might expects this to refer to
-  ;; the number of primitives instead of the number of nodes
-  ;; however, with chunking, this can be different
-  ;; so also check the length of the program
-  (let* ((max-depth (get-configuration composer :max-search-depth))
-         (children
-          (when (and (> max-depth (node-depth node))
-                     (> max-depth (length (irl-program (chunk node)))))
-            (loop for (new-chunk . source-chunks) in (run-expand-chunk-fns (chunk node) composer)
-                  collect (make-instance 'chunk-composer-node :composer composer
-                                         :source-chunks (append source-chunks (source-chunks node))
-                                         :chunk new-chunk
-                                         :node-number (incf (node-counter composer))
-                                         :node-depth (1+ (node-depth node)))))))
-    (when (and (null children)
-               (or (<= max-depth (node-depth node))
-                   (<= max-depth (length (irl-program (chunk node))))))
-      (push 'max-depth-reached (statuses node)))
+  (let ((children
+         (loop for (new-chunk . source-chunks) in (run-expand-chunk-fns (chunk node) composer)
+               collect (make-instance 'chunk-composer-node :composer composer
+                                      :source-chunks (append source-chunks (source-chunks node))
+                                      :chunk new-chunk
+                                      :node-depth (1+ (node-depth node))))))
     (notify chunk-composer-node-changed-status node)
     (loop for child in children
-          ;; run the check node functions
-          ;; these can alter the status of the child node
+          ;; assign a score to the chunk of the child
+          do (setf (score (chunk child))
+                   (run-chunk-scoring-fn child composer))
+          ;; assign a rating to the new node (uses chunk score)
+          do (setf (node-rating child)
+                   (run-node-rating-fn child composer))
+          ;; run the node tests
           if (not (run-check-node-fns child composer))
+          ;; if not ok, set next handler to nil
           do (setf (next-handler child) nil)
-          ;; for the good nodes, give a rating
-          ;; add to hash table and give a score
-          ;; to the new chunk
-          else
-          do (progn
-               (add-to-hash child composer)
-               (setf (node-rating child)
-                     (run-node-rating-fn child composer))
-               (setf (score (chunk child))
-                     (run-chunk-scoring-fn child composer))))
+          ;; otherwise, add to hash for duplicate detection
+          ;; and assign a node number
+          else do (progn (add-to-hash child composer)
+                    (setf (node-number child)
+                          (incf (node-counter composer)))))
     (let ((valid-children
            (remove-if #'null children :key #'next-handler)))
       (when valid-children
