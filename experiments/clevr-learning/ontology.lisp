@@ -85,7 +85,7 @@
     (when (member (first predicate) '(filter query same equal? relate))
       (last-elt predicate))))
 
-
+#|
 (defun get-composer-chunk (agent chunk-id)
   (find chunk-id (composer-chunks agent) :key #'id))
 
@@ -109,6 +109,7 @@
         (irl-program chunk-1) (irl-program chunk-2))
        (equivalent-open-vars?
         (irl::open-vars chunk-1) (irl::open-vars chunk-2))))
+
 
 
 (defun add-composer-chunk (agent irl-program)
@@ -150,6 +151,32 @@
     (unless existing-chunk
       (push new-chunk (composer-chunks agent)))
     (or existing-chunk new-chunk)))
+|#
+
+
+(defun predicates->chunk-id (predicates)
+  (list-of-strings->string
+   (mapcar #'downcase
+           (mapcar #'mkstr
+                   (mapcar #'first predicates)))
+   :separator "+"))
+
+(defun add-composer-chunk (agent irl-program)
+  (let* ((all-predicates
+          (remove 'bind irl-program :key #'first))
+         (chunk-predicates
+          (remove 'get-context all-predicates :key #'first))
+         (chunk-exists-p
+          (loop for chunk in (composer-chunks agent)
+                thereis (equivalent-irl-programs? chunk-predicates (irl-program chunk)))))
+    (unless chunk-exists-p
+      (let ((new-chunk
+             (create-chunk-from-irl-program
+              chunk-predicates :id (predicates->chunk-id (reverse chunk-predicates))
+              :target-var (get-target-var chunk-predicates)
+              :primitive-inventory (available-primitives agent))))
+        (push new-chunk (composer-chunks agent))
+        new-chunk))))
 
 
 
