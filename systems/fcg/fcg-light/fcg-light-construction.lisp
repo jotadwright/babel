@@ -961,16 +961,33 @@ construction on the fly."
 (defun print-skeleton-cxn-for-string (string cxn-inventory &key (stream t))
   (let* ((hierarchy-feature (first (get-configuration (visualization-configuration cxn-inventory) :hierarchy-features)))
          (string-list (split-string string " "))
-         (cxn-name (format nil "~{~a~^-~}-cxn" string-list))
-         (subunit-names (mapcar #'(lambda (s) (make-var (format nil "~a-unit" s))) string-list))
-         (words-with-subunit-names (loop for s1 in string-list
-                                         for s2 in subunit-names
-                                         append (list s2 s2 s1)))
-         (meets-constraints (loop for (subunit . rest) on subunit-names
-                                  if rest
-                                  append `(meets ,subunit ,(first rest))))
-         (unit-name (format nil "?~{~a~^-~}-unit" string-list)))
-    (format stream "
+         (cxn-name (format nil "~{~a~^-~}-cxn" string-list)))
+    (if (= 1 (length string-list))
+      ;; Only one string (lexical cxn)
+      (let* ((unit-name (format nil "?~a-unit" (first string-list))))
+        (format stream "
+(def-fcg-cxn ~a
+             ((~a
+               (lex-class ?lex-class))
+              <-
+              (~a
+               --
+               (HASH form ((string ~(~a~) ~s))))))"
+                cxn-name
+                unit-name
+                unit-name
+                unit-name
+                (first string-list)))
+           ;; Multiple strings
+           (let* ((subunit-names (mapcar #'(lambda (s) (make-var (format nil "~a-unit" s))) string-list))
+                  (words-with-subunit-names (loop for s1 in string-list
+                                                  for s2 in subunit-names
+                                                  append (list s2 s2 s1)))
+                  (meets-constraints (loop for (subunit . rest) on subunit-names
+                                           if rest
+                                           append `(meets ,subunit ,(first rest))))
+                  (unit-name (format nil "?~{~a~^-~}-unit" string-list)))
+             (format stream "
 (def-fcg-cxn ~a
              ((~a
                (~(~a~) (~{~(~a~^ ~)~})))
@@ -984,13 +1001,13 @@ construction on the fly."
                (HASH form (~{(~(~a~) ~(~a~) ~(~a~))~^
                            ~})))))
              "
-            cxn-name
-            unit-name
-            hierarchy-feature
-            subunit-names
-            words-with-subunit-names
-            unit-name
-            meets-constraints)))
+                     cxn-name
+                     unit-name
+                     hierarchy-feature
+                     subunit-names
+                     words-with-subunit-names
+                     unit-name
+                     meets-constraints)))))
 
 ;; (print-skeleton-cxn-for-string "until light and fluffy" *fcg-constructions*)
 
