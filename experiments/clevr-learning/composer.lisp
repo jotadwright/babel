@@ -126,6 +126,26 @@
                   (and max-attempts (> attempt max-attempts)))
         finally (return the-solution)))
 
+(defun compose-minimize (composer fn)
+  "Run 'fn' on the composer solutions and choose
+   the one that minimizes the result. If there is
+   no result, compose the next solution."
+  (loop with the-solution = nil
+        for next-solutions = (get-next-solutions composer)
+        do (loop with minimum-solution = nil
+                 with minimum-value = nil
+                 for solution in next-solutions
+                 for i from 1
+                 for result = (funcall fn solution i)
+                 when (and result (or (null minimum-solution) (< result minimum-value)))
+                 do (setf minimum-solution solution)
+                 (setf minimum-value result)
+                 finally (setf the-solution minimum-solution))
+        until (or (null next-solutions)
+                  (not (null the-solution)))
+        finally (return the-solution)))
+                 
+
 #|
 ;; + store past programs +
 (defun check-past-programs (solution solution-index list-of-past-programs agent)
@@ -188,14 +208,8 @@
   of the evaluation result has to return the correct answer for all samples
   of the same utterance."
   (let* ((current-clevr-context (find-data (ontology agent) 'clevr-context))
-         (current-image-filename
-          (file-namestring (image current-clevr-context)))
          (irl-program (append (irl-program (chunk solution))
                               (bind-statements solution)))
-         (server-address
-          (find-data (ontology agent) 'hybrid-primitives::server-address))
-         (cookie-jar
-          (find-data (ontology agent) 'hybrid-primitives::cookie-jar))
          (success t))
     (notify check-samples-started list-of-samples solution-index)
     ;; check the list of samples
@@ -204,9 +218,37 @@
                 always (check-past-scene scene-index stored-answer irl-program agent)))
     ;; afterwards, restore the data for the current scene
     (set-data (ontology agent) 'clevr-context current-clevr-context)
-    (when (eql (get-configuration agent :primitives) :hybrid)
-      (load-image server-address cookie-jar current-image-filename))
     success))
+
+(defun hybrid-check-past-scenes (solution solution-index list-of-samples agent)
+  (let* ((current-clevr-context (find-data (ontology agent) 'clevr-context))
+         (current-image-filename
+          (file-namestring (image current-clevr-context)))
+         (irl-program (append (irl-program (chunk solution))
+                              (bind-statements solution)))
+         (server-address
+          (find-data (ontology agent) 'hybrid-primitives::server-address))
+         (cookie-jar
+          (find-data (ontology agent) 'hybrid-primitives::cookie-jar))
+         (max-failed-past-scenes
+          (get-configuration agent :hybrid-check-past-scenes-errors-allowed))
+         (actual-limit
+          (if (> (length list-of-samples) max-failed-past-scenes)
+            max-failed-past-scenes
+            0))
+         (failed-past-scenes 0))
+    (notify check-samples-started list-of-samples solution-index)
+    (loop for (scene-index . stored-answer) in list-of-samples
+          for scene-ok? = (check-past-scene scene-index stored-answer irl-program agent)
+          unless scene-ok?
+          do (incf failed-past-scenes)
+          when (> failed-past-scenes actual-limit)
+          do (setf failed-past-scenes nil) (return nil))
+    ;; afterwards, restore the data for the current scene
+    (set-data (ontology agent) 'clevr-context current-clevr-context)
+    (load-image server-address cookie-jar current-image-filename)
+    failed-past-scenes))
+  
 
 (define-event composer-solution-found (composer irl::chunk-composer)
   (solution chunk-evaluation-result))
@@ -224,12 +266,19 @@
           (gethash utterance-hash-key (memory agent)))
          (composer-solution
           (if past-scenes-with-same-utterance
-            (compose-until
-             composer
-             (lambda (solution idx)
-               (check-past-scenes solution idx
-                                  past-scenes-with-same-utterance
-                                  agent)))
+            (if (eql (get-configuration agent :primitives) :hybrid)
+              (compose-minimize
+               composer (lambda (solution idx)
+                          (hybrid-check-past-scenes
+                           solution idx
+                           past-scenes-with-same-utterance
+                           agent)))
+              (compose-until
+               composer (lambda (solution idx)
+                          (check-past-scenes
+                           solution idx
+                           past-scenes-with-same-utterance
+                           agent))))
             (first (get-next-solutions composer)))))
     (when composer-solution
       (notify composer-solution-found composer composer-solution))
