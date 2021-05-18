@@ -6,14 +6,18 @@
 ;; + Composer +
 ;; ------------
 
-(defparameter *max-composer-depth-per-challenge-level*
+(defparameter *max-irl-program-length-per-challenge-level*
   '((1 . 8) (2 . 25) (3 . 25)))
 
-(defun make-default-composer (agent target-category &key (partial-program nil))
+(defun make-default-composer (agent target-category
+                              &key partial-program
+                              max-program-length)
   (let* ((current-challenge-level
           (get-configuration agent :current-challenge-level))
-         (max-composer-depth
-          (rest (assoc current-challenge-level *max-composer-depth-per-challenge-level*)))
+         (max-irl-program-length
+          (if max-program-length max-program-length
+            (rest (assoc current-challenge-level
+                         *max-irl-program-length-per-challenge-level*))))
          (target-category-type
           #+lispworks (type-of target-category)
           #-lispworks (if (numberp target-category)
@@ -55,7 +59,7 @@
            :chunks (composer-chunks agent)
            :ontology (ontology agent)
            :primitive-inventory (available-primitives agent)
-           :configurations `((:max-irl-program-length . ,max-composer-depth)
+           :configurations `((:max-irl-program-length . ,max-irl-program-length)
                              (:check-node-modes ;; limit the length of the irl program
                                                 :limit-irl-program-length
                                                 
