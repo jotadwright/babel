@@ -112,9 +112,9 @@
 
 (defvar *my-server* nil)
 
-(defun start-web-interface (&key (port *port*) (address *address*))
+(defun start-web-interface (&key (port *port*) (address *address*) (stream t))
   (if *my-server* 
-      (format t "~% ***** web interface already running at http://~a:~d *****~%"
+      (format stream "~% ***** web interface already running at http://~a:~d *****~%"
               address port)
       (progn
 	(setf *my-server* 
@@ -125,7 +125,7 @@
                                     :document-root (babel-pathname :directory '("systems" "web-interface"))
                                     :message-log-destination nil
                                     :access-log-destination nil)))
-	(format t "~% ***** started web interface at http://~a:~d *****~%"
+	(format stream "~% ***** started web interface at http://~a:~d *****~%"
                 address port))))
   
 ;; automatically start the server when the asdf system is loaded

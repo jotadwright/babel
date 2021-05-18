@@ -2548,7 +2548,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                                        :configuration configuration :feature-types feature-types)))
           ,(make-tr-for-cip-tree-fcg-light (top-node cip) "application process"
                                            :configuration configuration)
-          ,(if (get-configuration configuration :show-constructional-dependencies)
+          ,(if (and (program-installed-p "dot") (get-configuration configuration :show-constructional-dependencies))
              `((tr)
                ((td) "constructional dependencies")
                ((td) ,(make-html (analyse-solution (first solutions) (direction cip))
