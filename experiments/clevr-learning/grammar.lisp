@@ -30,6 +30,30 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
+;; cxn supplier simple queue with inverse scores
+;; (worst cxns first!)
+;; ---------------------------------------------
+
+(defclass cxn-supplier-simple-queue-with-inverse-scores ()
+  ((remaining-constructions 
+    :type list :initarg :remaining-constructions :accessor remaining-constructions
+    :documentation "A list of constructions that are still to try")))
+
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :simple-queue-inverse-scores)))
+  (let ((applicable-cxns
+         (constructions-for-application
+          (construction-inventory
+           (cip node)))))
+    (make-instance 'cxn-supplier-simple-queue-with-inverse-scores
+                   :remaining-constructions
+                   (sort applicable-cxns #'< 
+                         :key #'(lambda (x)
+                                  (attr-val x :score))))))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-simple-queue-with-inverse-scores)
+                     (node cip-node))
+  (pop (remaining-constructions cxn-supplier)))
+
 (in-package :clevr-learning)
 
 (defun default-clevr-grammar ()
