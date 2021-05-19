@@ -2360,8 +2360,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                                               (extract-meanings (left-pole-structure 
                                                                  (car-resulting-cfs
                                                                   (cipn-car cipn))))))
-                                        (if (and (get-configuration cipn :draw-meaning-as-network)
-                                                 (program-installed-p "dot"))
+                                        (if (get-configuration cipn :draw-meaning-as-network)
                                           (if (get-configuration configuration :show-wiki-links-in-predicate-networks)
                                             (predicate-network-with-wiki-links->svg meaning)
                                             (predicate-network->svg meaning))
@@ -2689,8 +2688,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                                       (extract-meanings (left-pole-structure 
                                                          (car-resulting-cfs
                                                           (cipn-car cipn))))))
-                                (if (and (get-configuration cipn :draw-meaning-as-network)
-                                         (program-installed-p "dot"))
+                                (if (get-configuration cipn :draw-meaning-as-network)
                                   (if (get-configuration configuration :show-wiki-links-in-predicate-networks)
                                     (predicate-network-with-wiki-links->svg meaning)
                                     (predicate-network->svg meaning))
