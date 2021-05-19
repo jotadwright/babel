@@ -110,6 +110,12 @@
     composer))
 
 ;; + compose-until +
+#|(defun compose-until (composer key-fn test-fn
+                      before-fn after-fn
+                      &key (max-attempts nil))
+  ...)|#
+
+
 (defun compose-until (composer fn &key (max-attempts nil))
   "Generate composer solutions until the
    function 'fn' returns t on the solution
@@ -221,11 +227,13 @@
     success))
 
 (defun hybrid-check-past-scenes (solution solution-index list-of-samples agent)
-  (let* ((current-clevr-context (find-data (ontology agent) 'clevr-context))
-         (current-image-filename
-          (file-namestring (image current-clevr-context)))
-         (irl-program (append (irl-program (chunk solution))
-                              (bind-statements solution)))
+  (let* ((original-clevr-context
+          (find-data (ontology agent) 'clevr-context))
+         (original-image-filename
+          (file-namestring (image original-clevr-context)))
+         (irl-program
+          (append (irl-program (chunk solution))
+                  (bind-statements solution)))
          (server-address
           (find-data (ontology agent) 'hybrid-primitives::server-address))
          (cookie-jar
@@ -245,8 +253,8 @@
           when (> failed-past-scenes actual-limit)
           do (setf failed-past-scenes nil) (return nil))
     ;; afterwards, restore the data for the current scene
-    (set-data (ontology agent) 'clevr-context current-clevr-context)
-    (load-image server-address cookie-jar current-image-filename)
+    (set-data (ontology agent) 'clevr-context original-clevr-context)
+    (load-image server-address cookie-jar original-image-filename)
     failed-past-scenes))
   
 
