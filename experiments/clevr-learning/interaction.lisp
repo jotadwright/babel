@@ -46,7 +46,7 @@
 
 (define-event log-unseen-questions (n number))
 
-(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :random)))
+(defmethod sample-question ((agent clevr-learning-agent) mode)
   (when (eql (role agent) 'tutor)
     (multiple-value-bind (unseen-question-indices seen-question-indices)
         (loop for (index . elem) in (question-success-table agent)
