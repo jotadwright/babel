@@ -110,12 +110,6 @@
     composer))
 
 ;; + compose-until +
-#|(defun compose-until (composer key-fn test-fn
-                      before-fn after-fn
-                      &key (max-attempts nil))
-  ...)|#
-
-
 (defun compose-until (composer fn &key (max-attempts nil))
   "Generate composer solutions until the
    function 'fn' returns t on the solution
@@ -150,36 +144,7 @@
         until (or (null next-solutions)
                   (not (null the-solution)))
         finally (return the-solution)))
-                 
-
-#|
-;; + store past programs +
-(defun check-past-programs (solution solution-index list-of-past-programs agent)
-  (declare (ignorable solution-index agent))
-  (let ((solution-irl-program
-         (append (irl-program (chunk solution))
-                 (bind-statements solution))))
-    (loop for past-program in list-of-past-programs
-          never (equivalent-irl-programs? past-program solution-irl-program))))
-
-
-(defmethod compose-program ((agent clevr-learning-learner)
-                            target-category utterance
-                            (strategy (eql :store-past-programs))
-                            &key partial-program)
-  (let* ((composer
-          (make-default-composer agent target-category
-                                 :partial-program partial-program))
-         (utterance-hash-key
-          (sxhash utterance))
-         (past-programs-with-same-utterance
-          (gethash utterance-hash-key (memory agent))))
-    (if past-programs-with-same-utterance
-      (compose-until
-       composer (lambda (solution idx)
-                  (check-past-programs solution idx past-programs-with-same-utterance agent)))
-      (first (get-next-solutions composer)))))
-|#
+                
 
 ;; + store past scenes +
 (define-event check-samples-started
@@ -274,7 +239,7 @@
           (gethash utterance-hash-key (memory agent)))
          (composer-solution
           (if past-scenes-with-same-utterance
-            (if (eql (get-configuration agent :primitives) :hybrid)
+            (if (eql (get-configuration agent :primitives) :hybrid)    
               (compose-minimize
                composer (lambda (solution idx)
                           (hybrid-check-past-scenes

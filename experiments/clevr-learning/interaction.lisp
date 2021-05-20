@@ -97,10 +97,6 @@
                   (setf (current-question-index agent) sample-index)
                   (load-clevr-scene-and-answer agent sample))))))))
 
-(defmethod sample-question ((agent clevr-learning-learner) (mode (eql :smart)))
-  ;; for the moment, there is no smart sample mode when the learner is the speaker
-  (sample-question agent :random))
-
 
 (defmethod interact :before ((experiment clevr-learning-experiment)
                              interaction &key)
@@ -108,7 +104,7 @@
   (multiple-value-bind (question clevr-scene answer-entity)
       ;; speaker can be tutor or learner
       (sample-question (speaker interaction)
-                       (get-configuration experiment :speaker-sample-mode))
+                       (get-configuration experiment :tutor-sample-mode))
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent question clevr-scene answer-entity))
     ;; when the game is in :hybrid mode, also make sure the current
