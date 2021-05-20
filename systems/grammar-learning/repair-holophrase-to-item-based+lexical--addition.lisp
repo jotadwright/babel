@@ -171,7 +171,7 @@
                                                                                    :cxn-inventory (construction-inventory node))))))
       ;; ignore
       ;; Reset type hierarchy
-      ;(set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
+      (set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (list (original-cxn lexical-cxn) (original-cxn item-based-cxn)))
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links th-links)

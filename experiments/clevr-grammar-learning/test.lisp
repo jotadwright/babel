@@ -10,8 +10,6 @@
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
-(deactivate-all-monitors)
-
 
 ;; full logging except trace-fcg
 (progn
@@ -37,17 +35,19 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :random) ;; random or sequential
+                   :entries '((:observation-sample-mode . :sequential) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
+
 ;(all-constructions-of-current-label 
 ;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*))))))
+
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
 
 ;;; test series of interactions
-;(run-series *experiment* 100)
+;(run-series *experiment* 10)
 
 
 
@@ -57,6 +57,15 @@ ISSUES
 ------
 integrity check werkt alleen voor holophrases
 duplicate item-based cxns want add th links is niet actief, test eens met andere th mode
+lexical-> item based maakt duplicate item-based cxns, er is geen check om te kijken of er al een bestaat, dan moet eigenlijk add-th-links al toegepast hebben
+substitution repair maakt ook duplicates, bijv.
+are there any cubes? --> holophrase
+are there any spheres --> are there any x, spheres, cubes
+new observation: are there any things?
+==> hier had eigenlijk item-based -> lexical moeten toepassen, maar deze skipt
+    dan komt hij in substitution, en maakt hij een nieuwe item-based die al bestaat!
+
+
 |#
 
 
@@ -64,12 +73,22 @@ duplicate item-based cxns want add th links is niet actief, test eens met andere
 TODO
 ----
 - maak monitor die de integriteit checkt: is het totaal aantal cxns gelijk aan het interactienummer - het totaal aantal successes? OK voor holophrases tot 10K
-- repairs individueel testen
-- vervang (constructions cipn door all-constructions --> waar zit deze functie?
-- in alle repairs zit een lijn die de type hierarchy reset in handle fix, verwijder deze
-- score cxns na interaction in :after method, willen we een upper bound?
-- lengte opnemen in hash key? op basis van aantal meets constraints
+- repairs individueel testen, nadat je die add-cxn condition hebt ingevoegd
+- score cxns na interaction in :after method, willen we een upper bound? belangrijk als je wereld verandert, je zal niet dezelfde score halen!
 - maak eens een repair monitor (zie Jens)
+- constructiesoortmonitor invoegen: punishment toevoegen
+- check handle fix! fix cxns en th-links moeten doorgegeven worden
+- 
+
+
+--
+verwijder de unique identifier
+zoek de cxn op basis van naam voordat je ze aanmaakt! 
+(let* ((cxn-name (name cxn))
+       ...
+(unless (find cxn-name (constructions original-cxn-inventory) :key #'name :test #'eql))
+ (add-cxn ...
+
 
 
 |#

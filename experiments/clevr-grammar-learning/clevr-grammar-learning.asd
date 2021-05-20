@@ -15,8 +15,8 @@
                :fcg
                :category-hierarchies
                :clevr-world
-               :grammar-learning
-               :clevr-learning)
+               :cl-json
+               :grammar-learning)
   :serial t
   :components ((:file "package")
                (:file "run-helpers")

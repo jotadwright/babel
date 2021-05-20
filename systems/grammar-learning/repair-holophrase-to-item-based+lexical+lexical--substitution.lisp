@@ -146,10 +146,10 @@ based on existing construction with sufficient overlap."
                                                                                     :cxn-inventory (construction-inventory node))))))
       ;; ignore
       ;; Reset type hierarchy
-      ;(set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
+      (set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
-      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (subseq (restart-data fix) 0 3))
-      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links (subseq (restart-data fix) 3))
+      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (subseq (restart-data fix) 0 3)) ;; add all learned cxns for consolidation
+      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links (subseq (restart-data fix) 3)) ;; add all th links for consolidation
       ;; set cxn-supplier to second new node
       (setf (cxn-supplier new-node-item-based) (cxn-supplier node))
       ;; set statuses (colors in web interface)
@@ -160,21 +160,3 @@ based on existing construction with sufficient overlap."
       ;; enqueue only second new node; never backtrack over the first applied lexical construction, we applied them as a block
       (cip-enqueue new-node-item-based (cip node) (get-configuration node :queue-mode)))))
 
-(defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance meaning) ;; todo: put the when condition to check for a 'holophrase first!
-  (loop for cxn in (constructions cxn-inventory)
-        do (when (eql (phrase-type cxn) 'holophrase)
-             (let* ((non-overlapping-meaning-observation (non-overlapping-meaning meaning cxn :nom-observation t))
-                    (non-overlapping-meaning-cxn (non-overlapping-meaning meaning cxn :nom-cxn t))
-                    (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
-                    (non-overlapping-form-observation (non-overlapping-form utterance cxn :nof-observation t))
-                    (non-overlapping-form-cxn (non-overlapping-form utterance cxn :nof-cxn t))
-                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)))
-        (when (and
-              (= 1 (length non-overlapping-meaning-observation))
-              (= 1 (length non-overlapping-meaning-cxn))
-              (= 1 (length non-overlapping-form-observation))
-              (= 1 (length non-overlapping-form-cxn)))
-        (return (values non-overlapping-meaning-observation non-overlapping-meaning-cxn
-                       non-overlapping-form-observation non-overlapping-form-cxn
-                       overlapping-meaning-cxn overlapping-form-cxn
-                       cxn)))))))
