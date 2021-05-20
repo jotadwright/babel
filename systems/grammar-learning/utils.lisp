@@ -131,18 +131,18 @@
 
 (defun make-lex-class (&optional cat-name)
   (if cat-name
-    (intern (symbol-name (make-const cat-name)) :type-hierarchies)
-    (intern (symbol-name (make-const "CAT")) :type-hierarchies)))
+    (intern (symbol-name (make-symbol cat-name)) :type-hierarchies)
+    (intern (symbol-name (make-symbol "CAT")) :type-hierarchies)))
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix))
 (defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
-  (intern (symbol-name (make-const (substitute #\- #\Space (upcase (if add-cxn-suffix
+  (intern (symbol-name (make-symbol (substitute #\- #\Space (upcase (if add-cxn-suffix
                                                  (string-append string "-cxn")
                                                  string)))))))
 
-;; (make-cxn-name "What is the color of the cube" *fcg-constructions*) 
+;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
 
 (defmethod make-cxn-name ((form list) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"

@@ -71,8 +71,8 @@
                  ;; lex-class
                  (lex-class-lex-cxn (if existing-lex-cxn
                                       (lex-class-cxn existing-lex-cxn)
-                                      (intern (symbol-name (make-const unit-name-lex-cxn)) :type-hierarchies)))
-                 (lex-class-item-based-cxn (intern (symbol-name (make-const cxn-name-item-based-cxn)) :type-hierarchies))
+                                      (intern (get-base-name unit-name-lex-cxn) :type-hierarchies)))
+                 (lex-class-item-based-cxn (intern (symbol-name cxn-name-item-based-cxn) :type-hierarchies))
                  ;; type hierachy links
                  (th-link-1 (cons lex-class-lex-cxn lex-class-item-based-cxn))
                  (th-link-2 (cons lex-class-item-based-cxn lex-class-lex-cxn))

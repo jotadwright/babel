@@ -96,8 +96,8 @@
                  ;; lex-class
                  (lex-class-lex-cxn (if existing-lex-cxn
                                       (lex-class-cxn existing-lex-cxn)
-                                      (intern (symbol-name (make-const unit-name-lex-cxn)) :type-hierarchies)))
-                 (lex-class-item-based-cxn (intern (symbol-name (make-const cxn-name-item-based-cxn)) :type-hierarchies))
+                                      (intern (get-base-name unit-name-lex-cxn) :type-hierarchies)))
+                 (lex-class-item-based-cxn (intern (symbol-name cxn-name-item-based-cxn) :type-hierarchies))
                  ;; type hierachy links
                  (th-link-1 (cons lex-class-lex-cxn lex-class-item-based-cxn))
                  (th-link-2 (cons lex-class-item-based-cxn lex-class-lex-cxn))
@@ -135,11 +135,6 @@
                                                                              :attributes (:cxn-type item-based
                                                                                           :repair holophrase->item-based+lexical--addition)
                                                                              :cxn-inventory ,(copy-object cxn-inventory)))))))
-
-            ;; return the item-based and lexical cxn
-            ;;(wi:add-element (make-html lex-cxn))
-            ;;(wi:add-element (make-html item-based-cxn))
-         
             (list lex-cxn item-based-cxn th-link-1 th-link-2)
             
           )))))         ;; if no subset-holophrase is found, when returns nil and the repair is skipped

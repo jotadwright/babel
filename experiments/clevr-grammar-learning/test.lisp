@@ -47,14 +47,15 @@
 
 
 ;;; test series of interactions
-;(run-series *experiment* 10)
-
+;(run-series *experiment* 100)
 
 
 
 #|
 ISSUES
 ------
+bug in interactie 77; 2 th links ontbreken, maar bestaan indirect (is there a x y, cyan, block), add th links geeft error
+
 integrity check werkt alleen voor holophrases
 duplicate item-based cxns want add th links is niet actief, test eens met andere th mode
 lexical-> item based maakt duplicate item-based cxns, er is geen check om te kijken of er al een bestaat, dan moet eigenlijk add-th-links al toegepast hebben
@@ -78,7 +79,7 @@ TODO
 - maak eens een repair monitor (zie Jens)
 - constructiesoortmonitor invoegen: punishment toevoegen
 - check handle fix! fix cxns en th-links moeten doorgegeven worden
-- 
+- th links moeten niet meer in twee richtingen, mag in een richting
 
 
 --

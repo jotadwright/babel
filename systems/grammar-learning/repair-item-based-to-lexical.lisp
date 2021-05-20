@@ -77,7 +77,7 @@
                  (unit-name (second (first form-predicates-lex-cxn)))
                  (lex-class (if existing-lex-cxn
                               (lex-class-cxn existing-lex-cxn)
-                              (intern (symbol-name (make-const unit-name)) :type-hierarchies)))
+                              (intern (get-base-name unit-name) :type-hierarchies)))
                  (args (mapcar #'third meaning-predicates-lex-cxn))
                  (new-lex-cxn (or existing-lex-cxn (second (multiple-value-list (eval
                                                                                  `(def-fcg-cxn ,cxn-name

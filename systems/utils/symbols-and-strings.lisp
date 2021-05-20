@@ -57,7 +57,6 @@
       (if (and remove-question-mark (char-equal #\? (elt name 0)))
         (subseq name 1)
         name))))
-
 ;; ----------------------------------------------------------------------------
 ;; public utilities:
 

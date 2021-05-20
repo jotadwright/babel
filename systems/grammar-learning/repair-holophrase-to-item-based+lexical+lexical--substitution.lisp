@@ -60,11 +60,11 @@ based on existing construction with sufficient overlap."
                ;; args and syn-cat
                (lex-class-lex-cxn-1 (if lex-cxn-1
                                       (lex-class-cxn lex-cxn-1)
-                                      (intern (symbol-name (make-const unit-name-lex-cxn-1)) :type-hierarchies)))
+                                      (intern (get-base-name unit-name-lex-cxn-1) :type-hierarchies)))
                (lex-class-lex-cxn-2 (if lex-cxn-2
                                       (lex-class-cxn lex-cxn-2)
-                                      (intern (symbol-name (make-const unit-name-lex-cxn-2)) :type-hierarchies)))
-               (lex-class-item-based-cxn (intern (symbol-name (make-const cxn-name-item-based-cxn)) :type-hierarchies))
+                                      (intern (get-base-name unit-name-lex-cxn-2) :type-hierarchies)))
+               (lex-class-item-based-cxn (intern (symbol-name cxn-name-item-based-cxn) :type-hierarchies))
                ;; Type hierachy links
                (th-link-1 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
                (th-link-2 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
