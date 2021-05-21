@@ -101,6 +101,7 @@
                                      (symbol-name (frame-name predicted-frame))
                                      (truncate-frame-name (symbol-name (frame-name predicted-frame))))
                   when (and frame-name
+                            (null (find frame-name excluded-rolesets :test #'equalp))
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp)))
                   sum (+ (loop for predicted-frame-element in (frame-elements predicted-frame) ;;frame elements
