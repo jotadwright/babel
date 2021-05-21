@@ -7,7 +7,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun comprehend-and-evaluate (list-of-propbank-sentences cxn-inventory &key (timeout 60) (core-roles-only t)
-                                                           (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t)
+                                                           (selected-rolesets nil) (excluded-rolesets nil)
+                                                           (include-word-sense t) (include-timed-out-sentences t)
                                                            (silent nil))
   (let ((output-file (babel-pathname :directory '(".tmp")
                                      :name "results"
@@ -22,6 +23,7 @@
       (evaluate-predictions predictions
                             :core-roles-only core-roles-only
                             :selected-rolesets selected-rolesets
+                            :excluded-rolesets excluded-rolesets
                             :include-word-sense include-word-sense 
                             :include-timed-out-sentences include-timed-out-sentences))))
  
@@ -50,7 +52,7 @@
           into evaluation
           finally (cl-store:store evaluation output-file))))
 
-(defun evaluate-predictions (predictions &key (core-roles-only t) (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t))
+(defun evaluate-predictions (predictions &key (core-roles-only t) (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t) (excluded-rolesets nil))
   "Computes precision, recall and F1 score for a given list of predictions."
   (loop for (nil annotation solution) in predictions
         when (or include-timed-out-sentences
@@ -60,8 +62,9 @@
                   for frame-name = (if include-word-sense
                                      (frame-name frame)
                                      (truncate-frame-name (frame-name frame)))
-                  if (or (null selected-rolesets)
-                         (find frame-name selected-rolesets :test #'equalp))
+                  if (and (null (find frame-name excluded-rolesets :test #'equalp))
+                          (or (null selected-rolesets)
+                              (find frame-name selected-rolesets :test #'equalp)))
                   sum (loop for role in (frame-roles frame)
                             if core-roles-only
                             sum (if (core-role-p role)
@@ -75,6 +78,7 @@
                                      (symbol-name (frame-name predicted-frame))
                                      (truncate-frame-name (symbol-name (frame-name predicted-frame))))
                   when (and frame-name
+                            (null (find frame-name excluded-rolesets :test #'equalp))
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp))
                            ; (if selected-rolesets
