@@ -24,6 +24,10 @@
                 do (when (and
                           (or
                            (= (+ i sub-length) (length utterance)) ;; end of utterance
+                           (string= "," utterance :start2 (+ i sub-length) :end2 (+ i sub-length 1)) ;; next char is ,
+                           (string= "?" utterance :start2 (+ i sub-length) :end2 (+ i sub-length 1)) ;; next char is ?
+                           (string= "!" utterance :start2 (+ i sub-length) :end2 (+ i sub-length 1)) ;; next char is !
+                           (string= "." utterance :start2 (+ i sub-length) :end2 (+ i sub-length 1)) ;; next char is .
                            (string= " " utterance :start2 (+ i sub-length) :end2 (+ i sub-length 1))) ;; next char is space
                           (or
                            (= i 0) ;; start of utterance

@@ -10,7 +10,6 @@
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
-
 ;; full logging except trace-fcg
 (progn
   (deactivate-all-monitors)
@@ -19,16 +18,12 @@
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
-
-
-
 ;; minimal logging after 100 interactions
 (progn
   (deactivate-all-monitors)
   (activate-monitor display-metrics)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor print-a-dot-for-each-interaction))
- 
 
 (progn
   (wi::reset)
@@ -37,7 +32,7 @@
     (make-instance 'clevr-grammar-learning-experiment
                    :entries '((:observation-sample-mode . :sequential) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
-                              (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
+                              (:learner-th-connected-mode . :path-exists))))) ;; :neighbours or :path-exists
 
 ;(all-constructions-of-current-label 
 ;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*))))))
@@ -47,7 +42,7 @@
 
 
 ;;; test series of interactions
-;(run-series *experiment* 100)
+;(run-series *experiment* 76)
 
 
 
@@ -73,13 +68,15 @@ new observation: are there any things?
 #|
 TODO
 ----
-- maak monitor die de integriteit checkt: is het totaal aantal cxns gelijk aan het interactienummer - het totaal aantal successes? OK voor holophrases tot 10K
 - repairs individueel testen, nadat je die add-cxn condition hebt ingevoegd
+- logica in lexical to item-based nakijken, dubbels gewoon skippen uit veiligheid, zie diff-non-overlapping-meaning functie in utils
 - score cxns na interaction in :after method, willen we een upper bound? belangrijk als je wereld verandert, je zal niet dezelfde score halen!
 - maak eens een repair monitor (zie Jens)
 - constructiesoortmonitor invoegen: punishment toevoegen
 - check handle fix! fix cxns en th-links moeten doorgegeven worden
 - th links moeten niet meer in twee richtingen, mag in een richting
+- visualisation configurations van th aanpassen clustering en gewichten weergeven
+cxn gewichten mogen vanaf 0
 
 
 --
