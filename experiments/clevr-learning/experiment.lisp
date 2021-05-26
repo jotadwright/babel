@@ -38,7 +38,7 @@
 
 (define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
 (define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
-(define-configuration-default-value :speaker-sample-mode :smart) ; :random or :smart
+(define-configuration-default-value :tutor-sample-mode :smart) ; :random or :smart
 (define-configuration-default-value :learner-cxn-supplier :ordered-by-label-and-score)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
 (define-configuration-default-value :composer-past-scenes-window 10)
@@ -53,6 +53,7 @@
 (define-configuration-default-value :primitives :symbolic) ; :symbolic or hybrid
 (define-configuration-default-value :hybrid-server-address "http://localhost")
 (define-configuration-default-value :hybrid-server-port 8888)
+(define-configuration-default-value :hybrid-check-past-scenes-errors-allowed 1)
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)

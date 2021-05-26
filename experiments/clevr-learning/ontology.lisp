@@ -86,70 +86,29 @@
       (last-elt predicate))))
 
 
-(defun get-composer-chunk (agent chunk-id)
-  (find chunk-id (composer-chunks agent) :key #'id))
-
-
-
-(defun equivalent-open-vars? (vars-1 vars-2)
-  (loop with remaining-vars = vars-2
-        for (var . var-type) in vars-1
-        for matching-var
-        = (loop for (other-var . other-var-type) in remaining-vars
-                when (eql var-type other-var-type)
-                return other-var)
-        when matching-var
-        do (setf remaining-vars
-                 (remove matching-var remaining-vars :key #'car))
-        finally (return (null remaining-vars))))
-
-
-(defun equivalent-chunk? (chunk-1 chunk-2)
-  (and (equivalent-irl-programs?
-        (irl-program chunk-1) (irl-program chunk-2))
-       (equivalent-open-vars?
-        (irl::open-vars chunk-1) (irl::open-vars chunk-2))))
-
+(defun predicates->chunk-id (predicates)
+  (list-of-strings->string
+   (mapcar #'downcase
+           (mapcar #'mkstr
+                   (mapcar #'first predicates)))
+   :separator "+"))
 
 (defun add-composer-chunk (agent irl-program)
-  (let* ((all-bind-statements
-          (find-all 'bind irl-program :key #'first))
-         (all-predicates
-          (set-difference irl-program all-bind-statements
-                          :test #'equal))
-         (new-chunk-id
-          (make-id 'composer-chunk))
-         (target-var
-          (get-target-var all-predicates))
-         (target-var-type
-          (get-type-of-var target-var all-predicates
-                           :primitive-inventory (available-primitives agent)))
-         (open-vars
-          (get-open-vars all-predicates))
-         (open-var-types
-          (loop for open-var in open-vars
-                for found-bind-statement
-                = (find open-var all-bind-statements :key #'third)
-                if found-bind-statement
-                collect (second found-bind-statement)
-                else
-                collect (get-type-of-var
-                         open-var all-predicates
-                         :primitive-inventory
-                         (available-primitives agent))))
-         (new-chunk
-          (make-instance 'chunk :id new-chunk-id
-                         :irl-program all-predicates
-                         :target-var (cons target-var target-var-type)
-                         :open-vars (mapcar #'cons open-vars open-var-types)
-                         :score (get-configuration agent :initial-chunk-score)))
-         (existing-chunk
-          (loop for other-chunk in (composer-chunks agent)
-                when (equivalent-chunk? new-chunk other-chunk)
-                return other-chunk)))
-    (unless existing-chunk
-      (push new-chunk (composer-chunks agent)))
-    (or existing-chunk new-chunk)))
+  (let* ((all-predicates
+          (remove 'bind irl-program :key #'first))
+         (chunk-predicates
+          (remove 'get-context all-predicates :key #'first))
+         (chunk-exists-p
+          (loop for chunk in (composer-chunks agent)
+                thereis (equivalent-irl-programs? chunk-predicates (irl-program chunk)))))
+    (unless chunk-exists-p
+      (let ((new-chunk
+             (create-chunk-from-irl-program
+              chunk-predicates :id (predicates->chunk-id (reverse chunk-predicates))
+              :target-var (get-target-var chunk-predicates)
+              :primitive-inventory (available-primitives agent))))
+        (push new-chunk (composer-chunks agent))
+        new-chunk))))
 
 
 

@@ -7,7 +7,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun comprehend-and-evaluate (list-of-propbank-sentences cxn-inventory &key (timeout 60) (core-roles-only t)
-                                                           (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t)
+                                                           (selected-rolesets nil) (excluded-rolesets nil)
+                                                           (include-word-sense t) (include-timed-out-sentences t)
+                                                           (include-sentences-with-incomplete-role-constituent-mapping t)
                                                            (silent nil))
   (let ((output-file (babel-pathname :directory '(".tmp")
                                      :name "results"
@@ -22,8 +24,10 @@
       (evaluate-predictions predictions
                             :core-roles-only core-roles-only
                             :selected-rolesets selected-rolesets
+                            :excluded-rolesets excluded-rolesets
                             :include-word-sense include-word-sense 
-                            :include-timed-out-sentences include-timed-out-sentences))))
+                            :include-timed-out-sentences include-timed-out-sentences
+                            :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping))))
  
 
 (defun evaluate-propbank-corpus (list-of-propbank-sentences cxn-inventory &key (output-file nil) (timeout 60) (silent t))
@@ -39,29 +43,34 @@
           for sentence-number from 1
           do (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence))
           collect (let* ((cipn (second (multiple-value-list (comprehend-and-extract-frames sentence :cxn-inventory cxn-inventory :silent silent :timeout timeout))))
-                         (utterance (sentence-string sentence))
                          (annotation (propbank-frames sentence)))
                     (if (eql cipn 'time-out)
                       (progn (format t " --> timed out .~%")
-                        (list utterance annotation 'time-out))
+                        (list sentence annotation 'time-out))
                       (let ((solution (remove-if-not #'frame-with-name (frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))))
                         (format t " --> done .~%")
-                        (list utterance annotation solution))))
+                        (list sentence annotation solution))))
           into evaluation
           finally (cl-store:store evaluation output-file))))
 
-(defun evaluate-predictions (predictions &key (core-roles-only t) (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t))
+(defun evaluate-predictions (predictions &key (core-roles-only t) (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping t))
   "Computes precision, recall and F1 score for a given list of predictions."
-  (loop for (nil annotation solution) in predictions
-        when (or include-timed-out-sentences
-                 (not (eql solution 'time-out)))
+  (loop for (sentence annotation solution) in predictions
+        when (and (or include-timed-out-sentences
+                      (not (eql solution 'time-out)))
+                  (or include-sentences-with-incomplete-role-constituent-mapping
+                      (loop for gold-frame in annotation
+                            always (spacy-benepar-compatible-annotation sentence (frame-name gold-frame)
+                                                                        :selected-role-types (if core-roles-only
+                                                                                               'core-only 'all)))))
         ;;gold standard predictions
         sum (loop for frame in annotation
                   for frame-name = (if include-word-sense
                                      (frame-name frame)
                                      (truncate-frame-name (frame-name frame)))
-                  if (or (null selected-rolesets)
-                         (find frame-name selected-rolesets :test #'equalp))
+                  if (and (null (find frame-name excluded-rolesets :test #'equalp))
+                          (or (null selected-rolesets)
+                              (find frame-name selected-rolesets :test #'equalp)))
                   sum (loop for role in (frame-roles frame)
                             if core-roles-only
                             sum (if (core-role-p role)
@@ -69,20 +78,24 @@
                             else sum (length (indices role))))
         into number-of-gold-standard-predictions
         ;;grammar predictions
-        unless (eql solution 'time-out)
+        when (and (not (eql solution 'time-out))
+                  (or include-sentences-with-incomplete-role-constituent-mapping
+                      (loop for gold-frame in annotation
+                            always (spacy-benepar-compatible-annotation sentence (frame-name gold-frame)
+                                                                        :selected-role-types (if core-roles-only
+                                                                                               'core-only 'all)))))
         sum (loop for predicted-frame in solution
                   for frame-name = (if include-word-sense
                                      (symbol-name (frame-name predicted-frame))
                                      (truncate-frame-name (symbol-name (frame-name predicted-frame))))
                   when (and frame-name
+                            (null (find frame-name excluded-rolesets :test #'equalp))
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp))
-                           ; (if selected-rolesets
-                              (find (truncate-frame-name frame-name) annotation
+                            (find (truncate-frame-name frame-name) annotation
                                     :key #'(lambda (frame)
                                              (truncate-frame-name (frame-name frame)))
                                     :test #'equalp))
-                             ; t))
                   sum (+ (loop for role in (frame-elements predicted-frame)
                                if core-roles-only
                                sum (if (core-role-p role)
@@ -91,12 +104,18 @@
                          (length (indices (frame-evoking-element predicted-frame))))) ;;FEE
         into number-of-grammar-predictions
         ;;correct predictions
-        unless (eql solution 'time-out)
+        when (and (not (eql solution 'time-out))
+                  (or include-sentences-with-incomplete-role-constituent-mapping
+                      (loop for gold-frame in annotation
+                            always (spacy-benepar-compatible-annotation sentence (frame-name gold-frame)
+                                                                        :selected-role-types (if core-roles-only
+                                                                                               'core-only 'all)))))
         sum (loop for predicted-frame in solution
                   for frame-name = (if include-word-sense
                                      (symbol-name (frame-name predicted-frame))
                                      (truncate-frame-name (symbol-name (frame-name predicted-frame))))
                   when (and frame-name
+                            (null (find frame-name excluded-rolesets :test #'equalp))
                             (or (null selected-rolesets)
                                 (find frame-name selected-rolesets :test #'equalp)))
                   sum (+ (loop for predicted-frame-element in (frame-elements predicted-frame) ;;frame elements
@@ -186,7 +205,9 @@
 (defun compute-recall (nr-of-correct-predictions nr-of-gold-standard-predictions)
   "Computes Recall."
   (when (> nr-of-gold-standard-predictions 0)
-    (float (/ nr-of-correct-predictions nr-of-gold-standard-predictions))))
+   ; (if (> nr-of-correct-predictions nr-of-gold-standard-predictions)
+   ;   1.0
+      (float (/ nr-of-correct-predictions nr-of-gold-standard-predictions))))
 
 (defun compute-f1-score (nr-of-correct-predictions total-nr-of-predictions nr-of-gold-standard-predictions)
   "Computes F1-Score."
