@@ -129,7 +129,7 @@
       ;                  `((b :style "color:red") "error"))))
 
       (add-element (make-html (grammar (first (interacting-agents experiment)))))
-      (add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents experiment))))))
+      (add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents experiment)))) :weights? t))
 
       (add-element '((hr)))
       )))
