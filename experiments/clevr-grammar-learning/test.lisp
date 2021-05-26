@@ -41,19 +41,21 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :sequential) ;; random or sequential
+                   :entries '((:observation-sample-mode . :random) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:learner-th-connected-mode . :path-exists))))) ;; :neighbours or :path-exists
 
  
 ;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))) :weights t))
+;(add-element (make-html (grammar (first (interacting-agents *experiment*)))))
+
 
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
 
 ;;; test series of interactions
-;(run-series *experiment* 10000)
+;(run-series *experiment* 8507)
 
 
 
