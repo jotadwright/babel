@@ -8,6 +8,7 @@
   (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
 ;; full logging except trace-fcg
@@ -16,7 +17,17 @@
   (activate-monitor display-metrics)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
+
+;; minimal logging after 100 interactions with type hierarchy
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor display-metrics)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
+  (activate-monitor print-a-dot-for-each-interaction))
+
 
 ;; minimal logging after 100 interactions
 (progn
@@ -34,25 +45,22 @@
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:learner-th-connected-mode . :path-exists))))) ;; :neighbours or :path-exists
 
-;(all-constructions-of-current-label 
-;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*))))))
+ 
+;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))) :weights t))
 
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
 
 ;;; test series of interactions
-;(run-series *experiment* 76)
+;(run-series *experiment* 10000)
 
 
 
 #|
 ISSUES
 ------
-bug in interactie 77; 2 th links ontbreken, maar bestaan indirect (is there a x y, cyan, block), add th links geeft error
 
-integrity check werkt alleen voor holophrases
-duplicate item-based cxns want add th links is niet actief, test eens met andere th mode
 lexical-> item based maakt duplicate item-based cxns, er is geen check om te kijken of er al een bestaat, dan moet eigenlijk add-th-links al toegepast hebben
 substitution repair maakt ook duplicates, bijv.
 are there any cubes? --> holophrase
@@ -60,8 +68,6 @@ are there any spheres --> are there any x, spheres, cubes
 new observation: are there any things?
 ==> hier had eigenlijk item-based -> lexical moeten toepassen, maar deze skipt
     dan komt hij in substitution, en maakt hij een nieuwe item-based die al bestaat!
-
-
 |#
 
 
@@ -75,8 +81,9 @@ TODO
 - constructiesoortmonitor invoegen: punishment toevoegen
 - check handle fix! fix cxns en th-links moeten doorgegeven worden
 - th links moeten niet meer in twee richtingen, mag in een richting
-- visualisation configurations van th aanpassen clustering en gewichten weergeven
-cxn gewichten mogen vanaf 0
+- visualisation configurations van th aanpassen: clustering weergeven
+- cxn gewichten mogen vanaf 0
+- herschrijven van functie die de volgorde van variabelen in cxns bepaalt
 
 
 --

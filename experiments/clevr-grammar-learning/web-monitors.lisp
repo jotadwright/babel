@@ -51,7 +51,7 @@
 
 (define-monitor trace-interactions-in-wi)
 (define-monitor summarize-results-after-n-interactions)
-
+(define-monitor show-type-hierarchy-after-n-interactions)
 
 
 (define-event-handler (trace-interactions-in-wi challenge-level-questions-loaded)
@@ -83,23 +83,12 @@
          (overall-success (count 1 (success-buffer experiment)))
          (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
          (consistency-checksum (- (interaction-number interaction) overall-success grammar-size)))
-         ;(consistent-p (= 0 consistency-checksum))
-         ;(overall-consistent-p (loop for val in (consistency-buffer experiment)
-         ;                       always (= 1 val))))
+
     (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
     (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
     (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
     (add-element `((h3) ,(format nil  "Consistency checksum: ~a" consistency-checksum)))
-#|
-    (add-element `((h3) "Consistency: "
-                   ,(if consistent-p
-                      `((b :style "color:green") "ok")
-                      `((b :style "color:red") "error"))))
-    (add-element `((h3) "Overall consistency: "
-                     ,(if overall-consistent-p
-                        `((b :style "color:green") "ok")
-                        `((b :style "color:red") "error"))))
-    |#
+
     (add-element `((h3) "Communicative success: "
                    ,(if (communicated-successfully interaction)
                       `((b :style "color:green") "yes")
@@ -114,25 +103,19 @@
                                                             (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
                                                             (length (success-buffer experiment)))))))
            (overall-success (count 1 (success-buffer experiment)))
-           (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
-           ;(consistent-p (loop for val in (consistency-buffer experiment)
-                                ;always (= 1 val)))
-           )
-      ;(sort (constructions (grammar (first (interacting-agents experiment)))) #'> :key (lambda (cxn) (attr-val cxn :score))) ;; useless for hashed cxn set
+           (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment)))))))
       (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
       (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
       (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
       (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
-      ;(add-element `((h3) "Overall consistency: "
-      ;               ,(if consistent-p
-      ;                  `((b :style "color:green") "ok")
-      ;                  `((b :style "color:red") "error"))))
-
       (add-element (make-html (grammar (first (interacting-agents experiment)))))
-      (add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents experiment)))) :weights? t))
+      (add-element '((hr))))))
 
-      (add-element '((hr)))
-      )))
+(define-event-handler (show-type-hierarchy-after-n-interactions interaction-finished)
+  (when (= (mod (interaction-number interaction)
+                (get-configuration experiment :result-display-interval)) 0)
+    (add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents experiment)))) :weights? t))
+    (add-element '((hr)))))
 
 #|
 (define-event-handler (trace-interactions-in-wi add-holophrase-new-cxn)
