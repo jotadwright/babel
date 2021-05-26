@@ -43,7 +43,7 @@
     (make-instance 'clevr-grammar-learning-experiment
                    :entries '((:observation-sample-mode . :random) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
-                              (:learner-th-connected-mode . :path-exists))))) ;; :neighbours or :path-exists
+                              (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
 
  
 ;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))) :weights t))
@@ -55,13 +55,14 @@
 
 
 ;;; test series of interactions
-;(run-series *experiment* 8507)
+;(run-series *experiment* 10000)
 
 
 
 #|
 ISSUES
 ------
+- de score van th-connected-mode
 
 lexical-> item based maakt duplicate item-based cxns, er is geen check om te kijken of er al een bestaat, dan moet eigenlijk add-th-links al toegepast hebben
 substitution repair maakt ook duplicates, bijv.
@@ -80,12 +81,13 @@ TODO
 - logica in lexical to item-based nakijken, dubbels gewoon skippen uit veiligheid, zie diff-non-overlapping-meaning functie in utils
 - score cxns na interaction in :after method, willen we een upper bound? belangrijk als je wereld verandert, je zal niet dezelfde score halen!
 - maak eens een repair monitor (zie Jens)
-- constructiesoortmonitor invoegen: punishment toevoegen
+- constructiesoortmonitor invoegen: punishment toevoegen cfr jens
 - check handle fix! fix cxns en th-links moeten doorgegeven worden
 - th links moeten niet meer in twee richtingen, mag in een richting
 - visualisation configurations van th aanpassen: clustering weergeven
 - cxn gewichten mogen vanaf 0
 - herschrijven van functie die de volgorde van variabelen in cxns bepaalt
+
 
 
 --
