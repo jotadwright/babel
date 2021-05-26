@@ -24,7 +24,8 @@
                 do (when (and
                           (or
                            (= (+ i sub-length) (length utterance)) ;; end of utterance
-                           (loop for punct across ".;,!?: " thereis (string= punct utterance :start2 (+ i sub-length) :end2 (+ i sub-length 1))))
+                           (loop for punct across ".;,!?: "
+                                 thereis (string= punct utterance :start2 (+ i sub-length) :end2 (+ i sub-length 1))))
                           (or
                            (= i 0) ;; start of utterance
                            (string= " " utterance :start2 (- i 1) :end2 i))) ;; prev char is space
