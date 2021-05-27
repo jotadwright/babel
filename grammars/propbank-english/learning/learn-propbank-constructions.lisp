@@ -167,13 +167,16 @@
          (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category 'fee))
          (cxn-units-without-role (make-propbank-conditional-units-without-role core-units-with-role
                                                                                cxn-units-with-role ts-unit-structure))
+         (passive (loop for unit in cxn-units-without-role
+                        when (eql '+ (unit-feature-value (cdr unit) 'passive))
+                        return t))
          (cxn-preposition-units (loop for pp-unit in pp-units-with-role
                                       collect (make-preposition-unit pp-unit ts-unit-structure)))
          (cxn-s-bar-units (loop for s-bar-unit in s-bar-units-with-role
                                  collect (make-subclause-word-unit s-bar-unit ts-unit-structure)))
          (cxn-name (make-cxn-name core-units-with-role cxn-units-with-role cxn-units-without-role cxn-preposition-units cxn-s-bar-units nil))
          (cxn-preposition-units-flat (loop for unit in cxn-preposition-units append unit))
-         (schema (make-cxn-schema core-units-with-role cxn-units-with-role :cxn-preposition-units cxn-preposition-units :cxn-s-bar-units cxn-s-bar-units))
+         (schema (make-cxn-schema core-units-with-role cxn-units-with-role :cxn-preposition-units cxn-preposition-units :cxn-s-bar-units cxn-s-bar-units :passive? passive))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role
@@ -449,7 +452,7 @@
             (second (find 'lemma (nthcdr 2 (third cxn-preposition-units))
                                           :key #'feature-name))))
          (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role (list cxn-preposition-units) nil preposition-lemma))
-         (schema (make-cxn-schema units-with-role cxn-units-with-role :cxn-preposition-units (list cxn-preposition-units)))
+         (schema (make-cxn-schema units-with-role cxn-units-with-role  :cxn-preposition-units (list cxn-preposition-units)))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role
@@ -564,7 +567,7 @@
          (sbar-lemma (second (or (find 'lemma (nthcdr 2 cxn-sbar-unit) :key #'feature-name)
                                  (find 'string (nthcdr 2 cxn-sbar-unit) :key #'feature-name))))
          (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role nil (list cxn-sbar-unit) sbar-lemma))
-         (schema (make-cxn-schema units-with-role cxn-units-with-role :cxn-s-bar-units (list cxn-sbar-unit)))
+         (schema (make-cxn-schema units-with-role cxn-units-with-role :cxn-s-bar-units (list cxn-sbar-unit) ))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role
@@ -891,7 +894,8 @@
                                 (loop for (r . nil) in units-with-role
                                       collect (format nil "~a" (role-type r)))))))
 
-(defmethod make-cxn-schema (core-units-with-role cxn-units-with-role &key cxn-preposition-units cxn-s-bar-units)
+(defmethod make-cxn-schema (core-units-with-role cxn-units-with-role 
+                                                 &key cxn-preposition-units cxn-s-bar-units passive?)
   (loop with pp-unit-number = 0
         with s-bar-unit-number = 0
         for (role . unit) in core-units-with-role
@@ -924,6 +928,9 @@
                        ;; Unit contains a lemma
                        ((feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)))
                        ;; unit contains a phrase-type
+                       ((and passive?
+                             (find 'v (feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))))
+                        (intern (format nil "~{~a~}(pass)" (unit-feature-value unit 'syn-class))))
                        ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name)))))))
 
 
@@ -1224,6 +1231,7 @@ start to end(v-unit)"
                   (equalp syn-classes
                           (mapcar #'(lambda (unit)
                                       (second (find 'syn-class (comprehension-lock unit) :key #'first)))
-                                  (conditional-part cxn))))
+                                  (conditional-part cxn)))
+                  )
         return cxn))
 
