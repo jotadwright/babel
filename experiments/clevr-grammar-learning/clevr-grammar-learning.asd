@@ -23,6 +23,7 @@
                (:file "grammar")
                (:file "agent")
                (:file "learner")
+               (:file "alignment")
                (:file "experiment")
                (:file "interaction")
                (:file "web-monitors")

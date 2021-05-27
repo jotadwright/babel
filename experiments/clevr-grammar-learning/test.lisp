@@ -28,7 +28,6 @@
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor print-a-dot-for-each-interaction))
 
-
 ;; minimal logging after 100 interactions
 (progn
   (deactivate-all-monitors)
@@ -45,7 +44,6 @@
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
 
- 
 ;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))) :weights t))
 ;(add-element (make-html (grammar (first (interacting-agents *experiment*)))))
 
@@ -55,14 +53,11 @@
 
 
 ;;; test series of interactions
-;(run-series *experiment* 10000)
-
-
+;(run-series *experiment* 100)
 
 #|
 ISSUES
 ------
-- de score van th-connected-mode
 
 lexical-> item based maakt duplicate item-based cxns, er is geen check om te kijken of er al een bestaat, dan moet eigenlijk add-th-links al toegepast hebben
 substitution repair maakt ook duplicates, bijv.
@@ -79,15 +74,13 @@ TODO
 ----
 - repairs individueel testen, nadat je die add-cxn condition hebt ingevoegd
 - logica in lexical to item-based nakijken, dubbels gewoon skippen uit veiligheid, zie diff-non-overlapping-meaning functie in utils
-- score cxns na interaction in :after method, willen we een upper bound? belangrijk als je wereld verandert, je zal niet dezelfde score halen!
 - maak eens een repair monitor (zie Jens)
 - constructiesoortmonitor invoegen: punishment toevoegen cfr jens
 - check handle fix! fix cxns en th-links moeten doorgegeven worden
 - th links moeten niet meer in twee richtingen, mag in een richting
 - visualisation configurations van th aanpassen: clustering weergeven
-- cxn gewichten mogen vanaf 0
 - herschrijven van functie die de volgorde van variabelen in cxns bepaalt
-
+- num th links ook weergeven in overview
 
 
 --
@@ -98,6 +91,15 @@ zoek de cxn op basis van naam voordat je ze aanmaakt!
 (unless (find cxn-name (constructions original-cxn-inventory) :key #'name :test #'eql))
  (add-cxn ...
 
+
+
+|#
+
+#| ABSTRACT CXNS:
+als er twee opeenvolgende slots zijn, maak er een slot van, bijvoorbeeld:
+Is there a X? "is there a cube?"
+Is there a X Y? "is there a large cube?"
+--> Is there a X? + X--> Y Z cxn "large cube" (determined noun phrase)
 
 
 |#

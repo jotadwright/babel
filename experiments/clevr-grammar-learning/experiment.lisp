@@ -25,9 +25,11 @@
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.2)
 
-(define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
+(define-configuration-default-value :alignment-strategy :lateral-inhibition)
+
+(define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
-(define-configuration-default-value :learner-th-connected-mode :path-exists)
+(define-configuration-default-value :learner-th-connected-mode :neighbours)
 
 ;; Autotelic principle
 (define-configuration-default-value :enable-autotelic-levels nil)

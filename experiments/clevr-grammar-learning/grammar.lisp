@@ -68,12 +68,6 @@
 
 (define-event lexicon-changed)
 
-(defun inc-cxn-score-no-bounds (cxn &key (delta 0.1))
-  "increase the score of the cxn"
-  (incf (attr-val cxn :score) delta)
-  cxn)
-
-
 (defun inc-cxn-score (cxn &key (delta 0.1) (upper-bound 1.0))
   "increase the score of the cxn"
   (incf (attr-val cxn :score) delta)
@@ -109,42 +103,8 @@
 ;;;; -------------
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
-                                             (cxn-inventory construction-inventory)
-                                             (cxn-type (eql 'holophrase))
-                                             agent utterance)
-  (declare (ignorable utterance))
-  ;; holophrase competitors have exactly the same form
-  (let* ((all-cxns-of-type
-          (remove cxn
-                  (find-all cxn-type (constructions-list cxn-inventory)
-                            :key #'get-cxn-type)))
-         (cxn-form (extract-and-render cxn))
-         (competitors
-          (find-all cxn-form all-cxns-of-type
-                    :key #'extract-and-render
-                    :test #'string=)))
-    competitors))
-
-(defmethod meaning-competitors-for-cxn-type ((cxn construction)
-                                             (cxn-inventory construction-inventory)
-                                             (cxn-type (eql 'lexical))
-                                             agent utterance)
-  (declare (ignorable utterance))
-  ;; lexical competitors have exactly the same form
-  (let* ((all-cxns-of-type
-          (remove cxn
-                  (find-all cxn-type (constructions-list cxn-inventory)
-                            :key #'get-cxn-type)))
-         (cxn-form (extract-and-render cxn))
-         (competitors
-          (find-all cxn-form all-cxns-of-type
-                    :key #'extract-and-render
-                    :test #'string=)))
-    competitors))
-
-(defmethod meaning-competitors-for-cxn-type ((cxn construction)
-                                             (cxn-inventory construction-inventory)
-                                             (cxn-type (eql 'item-based))
+                                             (cxn-inventory hashed-fcg-construction-set)
+                                             (cxn-type (eql 'gl::item-based))
                                              agent utterance)
   ;; meaning competitors for item-based cxns are
   ;; less general item-based cxns and holophrase cxns
@@ -191,7 +151,8 @@
   "Get cxns with the same form as cxn"
   (loop for cxn in applied-cxns
         for cxn-type = (get-cxn-type cxn)
-        for competitors = (meaning-competitors-for-cxn-type
-                           cxn (grammar agent) cxn-type
-                           agent utterance)
+        for competitors = (when (eql cxn-type 'gl::item-based)
+                            (meaning-competitors-for-cxn-type
+                             cxn (grammar agent) cxn-type
+                             agent utterance))
         append competitors))

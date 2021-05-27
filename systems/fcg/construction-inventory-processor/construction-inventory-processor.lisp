@@ -90,7 +90,7 @@
   (get-configuration (construction-inventory cip) key))
 
 (export '(cip-node statuses cxn-supplier cipn-car cxn-applied
-          applied-constructions priority goal-test-data all-parents
+          applied-constructions original-applied-constructions priority goal-test-data all-parents
           children cip fully-expanded?  duplicate created-at
           traverse-depth-first siblings))
 
@@ -146,6 +146,10 @@
     :documentation "the number of previous search tree expansions when
                     this node was created. only used for debugging"))
   (:documentation "Represents a node in the search tree"))
+
+(defmethod original-applied-constructions ((node cip-node))
+  (mapcar #'get-original-cxn
+          (applied-constructions node)))
 
 (defmethod parent ((node cip-node))
   (first (all-parents node)))
