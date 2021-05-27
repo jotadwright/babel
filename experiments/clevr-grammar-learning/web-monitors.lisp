@@ -114,7 +114,7 @@
 (define-event-handler (show-type-hierarchy-after-n-interactions interaction-finished)
   (when (= (mod (interaction-number interaction)
                 (get-configuration experiment :result-display-interval)) 0)
-    (add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents experiment)))) :weights? t))
+    (add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents experiment)))) :weights? t :render-program "circo"))
     (add-element '((hr)))))
 
 (define-event-handler (trace-interactions-in-wi alignment-started)
