@@ -78,15 +78,20 @@
 
 (define-event-handler (trace-interactions-in-wi interaction-finished)
   (let* ((windowed-success (* 100 (float (average (subseq (success-buffer experiment)
-                                                            (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
-                                                            (length (success-buffer experiment)))))))
+                                                          (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
+                                                          (length (success-buffer experiment)))))))
          (overall-success (count 1 (success-buffer experiment)))
-         (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
+         (grammar (grammar (first (interacting-agents experiment))))
+         (grammar-size (hash-table-count (cxn-pathnames grammar)))
+         (num-th-nodes (hash-table-count (graph-utils::nodes (graph-utils::graph (get-type-hierarchy grammar)))))
+         (num-th-edges (graph-utils::edges (graph-utils::graph (get-type-hierarchy grammar))))
          (consistency-checksum (- (interaction-number interaction) overall-success grammar-size)))
 
     (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
     (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
     (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
+    (add-element `((h3) ,(format nil  "Type hierarchy nodes: ~a" num-th-nodes)))
+    (add-element `((h3) ,(format nil  "Type hierarchy edges: ~a" num-th-edges)))
     (add-element `((h3) ,(format nil  "Consistency checksum: ~a" consistency-checksum)))
 
     (add-element `((h3) "Communicative success: "
@@ -103,11 +108,17 @@
                                                             (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
                                                             (length (success-buffer experiment)))))))
            (overall-success (count 1 (success-buffer experiment)))
-           (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment)))))))
+           (grammar (grammar (first (interacting-agents experiment))))
+           (num-th-nodes (hash-table-count (graph-utils::nodes (graph-utils::graph (get-type-hierarchy grammar)))))
+           (num-th-edges (graph-utils::edges (graph-utils::graph (get-type-hierarchy grammar))))
+           (grammar-size (hash-table-count (cxn-pathnames grammar))))
       (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
       (add-element `((h3) ,(format nil  "Windowed success: ~a%" windowed-success)))
       (add-element `((h3) ,(format nil  "Overall success: ~a" overall-success)))
       (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
+      (add-element `((h3) ,(format nil  "Type hierarchy nodes: ~a" num-th-nodes)))
+      (add-element `((h3) ,(format nil  "Type hierarchy edges: ~a" num-th-edges)))
+
       (add-element (make-html (grammar (first (interacting-agents experiment)))))
       (add-element '((hr))))))
 

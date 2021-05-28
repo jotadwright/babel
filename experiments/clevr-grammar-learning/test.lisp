@@ -42,6 +42,7 @@
     (make-instance 'clevr-grammar-learning-experiment
                    :entries '((:observation-sample-mode . :random) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
+                              (:remove-cxn-on-lower-bound . t)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
 
 ;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))) :weights t))
@@ -58,7 +59,7 @@
 #|
 ISSUES
 ------
-
+test sequential: 1-5 met monitors
 lexical-> item based maakt duplicate item-based cxns, er is geen check om te kijken of er al een bestaat, dan moet eigenlijk add-th-links al toegepast hebben
 substitution repair maakt ook duplicates, bijv.
 are there any cubes? --> holophrase
@@ -72,15 +73,14 @@ new observation: are there any things?
 #|
 TODO
 ----
+- constructiesoortmonitor invoegen, zie code jens
+- repair monitor (zie Jens): welke repair heeft toegepast in een interactie?
+
 - repairs individueel testen, nadat je die add-cxn condition hebt ingevoegd
 - logica in lexical to item-based nakijken, dubbels gewoon skippen uit veiligheid, zie diff-non-overlapping-meaning functie in utils
-- maak eens een repair monitor (zie Jens)
-- constructiesoortmonitor invoegen: punishment toevoegen cfr jens
+- constructiesoortmonitor invoegen: 
 - check handle fix! fix cxns en th-links moeten doorgegeven worden
 - th links moeten niet meer in twee richtingen, mag in een richting
-- visualisation configurations van th aanpassen: clustering weergeven
-- herschrijven van functie die de volgorde van variabelen in cxns bepaalt
-- num th links ook weergeven in overview
 
 
 --
@@ -96,10 +96,22 @@ zoek de cxn op basis van naam voordat je ze aanmaakt!
 |#
 
 #| ABSTRACT CXNS:
+PISTE 1
+-------
 als er twee opeenvolgende slots zijn, maak er een slot van, bijvoorbeeld:
 Is there a X? "is there a cube?"
 Is there a X Y? "is there a large cube?"
 --> Is there a X? + X--> Y Z cxn "large cube" (determined noun phrase)
 
+PISTE 2
+-------
+laat ook langere chunks toe bij diffs, niet enkel single lex items!
+bijv: how many large cubes are there? vs how many small spheres are there?
+==> large cubes cxn
+==> small spheres cxn
+==> how many x are there?
 
+dan als we large of small leren krijgen we X cubes, x spheres, en X Y.
+
+==> zo zou je ook X or Y kunnen leren!
 |#

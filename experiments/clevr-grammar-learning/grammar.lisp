@@ -81,7 +81,7 @@
    remove it when it reaches 0"
   (decf (attr-val cxn :score) delta)
   (when (<= (attr-val cxn :score) lower-bound)
-    (if remove-on-lower-bound
+    (if (get-configuration (experiment agent) :remove-cxn-on-lower-bound) 
       (progn (notify lexicon-changed)
         (with-disabled-monitor-notifications
           (delete-cxn-and-th-node cxn agent)))
@@ -117,7 +117,7 @@
          (fcg::tokenize utterance))
         (possible-item-based-competitors
          (loop for other-cxn in (constructions-list cxn-inventory)
-               when (and (eql (get-cxn-type other-cxn) 'item-based)
+               when (and (eql (get-cxn-type other-cxn) 'gl::item-based)
                          (< (item-based-number-of-slots other-cxn)
                             (item-based-number-of-slots cxn)))
                collect other-cxn))
@@ -140,7 +140,7 @@
                collect comp)) 
         (holophrase-competitors
          (loop for other-cxn in (constructions-list cxn-inventory)
-               when (and (eql (get-cxn-type other-cxn) 'holophrase)
+               when (and (eql (get-cxn-type other-cxn) 'gl::holophrase)
                          (string= (extract-and-render other-cxn)
                                   (list-of-strings->string
                                    (fcg::tokenize utterance))))

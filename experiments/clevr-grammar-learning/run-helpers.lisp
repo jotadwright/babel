@@ -16,7 +16,7 @@
   (attr-val cxn :cxn-type))
 
 (defun item-based-number-of-slots (cxn)
-  (when (eql (get-cxn-type cxn) 'item-based)
+  (when (eql (get-cxn-type cxn) 'gl::item-based)
     (1- (length (contributing-part cxn)))))
 
 (defun get-strings-from-root (node)
