@@ -1,12 +1,6 @@
 
 (in-package :grammar-learning)
 
-;; fix loading of consolidate-repairs after type-hierarchy package has been loaded;;
-(load (babel-pathname
-       :directory '("systems" "fcg" "construction-inventory-processor")
-       :name "construction-inventory-processor"
-       :type "lisp"))
-
 (defun sort-cxns-by-form-string (cxns-to-sort utterance)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
   ;; warning, this function depends on space separation without further punctuation!
