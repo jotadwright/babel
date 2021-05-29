@@ -54,7 +54,7 @@
 
 
 ;;; test series of interactions
-;(run-series *experiment* 1000)
+;(run-series *experiment* 10)
 
 #|
 ISSUES
