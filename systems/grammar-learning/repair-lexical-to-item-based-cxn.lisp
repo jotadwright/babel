@@ -71,6 +71,7 @@ based on existing construction with sufficient overlap."
                                                                            (HASH form ,non-overlapping-form)))
                                                                          :attributes (:cxn-type item-based
                                                                                       :repair lexical->item-based)
+                                                                                      
                                                                          :cxn-inventory ,(copy-object cxn-inventory)))))))
         (list item-based-cxn matching-lex-cxns th-links)))))
 

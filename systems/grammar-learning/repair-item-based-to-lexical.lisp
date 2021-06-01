@@ -91,7 +91,8 @@
                                                                                                  --
                                                                                                  (HASH form ,form-predicates-lex-cxn)))
                                                                                                :attributes (:cxn-type lexical
-                                                                                                            :repair item-based->lexical)
+                                                                                                            :repair item-based->lexical
+                                                                                                            :string ,(third (find 'string form-predicates-lex-cxn :key #'first)))
                                                                                                :cxn-inventory ,(copy-object original-cxn-inventory)))))))
                  ;; make a list of all cxns, sort them
                  (applied-lex-cxns (filter-by-phrase-type 'lexical (applied-constructions node)))

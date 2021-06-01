@@ -117,7 +117,8 @@
                                                                         --
                                                                         (HASH form ,non-overlapping-form)))
                                                                       :attributes (:cxn-type lexical
-                                                                                   :repair holophrase->item-based+lexical--addition)
+                                                                                   :repair holophrase->item-based+lexical--addition
+                                                                                   :string ,(third (find 'string non-overlapping-form :key #'first)))
                                                                       :cxn-inventory ,(copy-object cxn-inventory)))))));; trick to get the cxn without adding it to the cxn-inventory: make a copy of the cxn-inventory, make the cxn, get it, then forget about the copy
                  (item-based-cxn (second (multiple-value-list (eval
                                                                `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)

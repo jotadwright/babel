@@ -86,7 +86,8 @@ based on existing construction with sufficient overlap."
                                                                                           --
                                                                                           (HASH form ,non-overlapping-form-cxn)))
                                                                                         :attributes (:cxn-type lexical
-                                                                                                     :repair holophrase->item-based+lexical+lexical--substitution)
+                                                                                                     :repair holophrase->item-based+lexical+lexical--substitution
+                                                                                                     :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
                                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-lex-cxn-2 (or lex-cxn-2 (second (multiple-value-list (eval
                                                                           `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-observation cxn-inventory)
@@ -100,7 +101,8 @@ based on existing construction with sufficient overlap."
                                                                                           --
                                                                                           (HASH form ,non-overlapping-form-observation)))
                                                                                         :attributes (:cxn-type lexical
-                                                                                                     :repair holophrase->item-based+lexical+lexical--substitution)
+                                                                                                     :repair holophrase->item-based+lexical+lexical--substitution
+                                                                                                     :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
                                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))
                (item-based-cxn (second (multiple-value-list (eval
                                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)

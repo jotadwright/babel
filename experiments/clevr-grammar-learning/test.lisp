@@ -45,29 +45,25 @@
                               (:remove-cxn-on-lower-bound . t)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
 
-;(defparameter *test* (def-fcg-constructions abc))
-
 ;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))) :weights t))
 ;(add-element (make-html (grammar (first (interacting-agents *experiment*)))))
-;(comprehend "Are there any cylinders?" :cxn-inventory (grammar (first (interacting-agents *experiment*))))
+
 ;(defparameter *th* (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))))
+
 ;;; test single interaction
 ;(run-interaction *experiment*)
-;(neighbours-p 'type-hierarchies::cylinders 'TYPE-HIERARCHIES::ARE-THERE-ANY-?X (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))))
 
 ;;; test series of interactions
-;(run-series *experiment* 13)
+;(run-series *experiment* 100)
 
 #|
 ISSUES
 ------
-grammar size is niet juist!
-interactie 13: second merge failed error in are there any cylinders? terwijl hij deze al 1 als holophrase, en 2 als subst. item-based heeft gezien
-|#
+OVERAL ORIGINAL behalve in FCG apply!|#
 #|
 TODO
 ----
-- rename web monitor title: interaction--> observation
+- lexical cxns hashen
 - constructiesoortmonitor invoegen, zie code jens
 - repair monitor (zie Jens): welke repair heeft toegepast in een interactie?
 
@@ -76,6 +72,9 @@ TODO
 - constructiesoortmonitor invoegen: 
 - check handle fix! fix cxns en th-links moeten doorgegeven worden
 - th links moeten niet meer in twee richtingen, mag in een richting
+ ok voor subst
+ ok voor add lex
+ nok voor addition
 
 
 --
