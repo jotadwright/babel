@@ -37,6 +37,9 @@
     (last-elt (all-parents node))
     node))
 
+;; to do: split into method with type specification for processing cxn vs original cxn
+;fcg-construction
+;construction
 (defun get-all-unit-lex-classes (cxn)
   (loop for unit in (subseq (contributing-part cxn) 1)
         for lex-class = (lex-class-item-based unit)

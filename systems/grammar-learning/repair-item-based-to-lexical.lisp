@@ -100,7 +100,7 @@
                                                       matching-lex-cxns
                                                       applied-lex-cxns) utterance))
                  (lex-classes-lex-cxns (when lex-cxns (map 'list #'lex-class-cxn lex-cxns)))
-                 (lex-classes-item-based-units (when item-based-cxn (get-all-unit-lex-classes item-based-cxn)))
+                 (lex-classes-item-based-units (when item-based-cxn (get-all-unit-lex-classes (original-cxn item-based-cxn))))
                  ;; assign all th links
                  (th-links (when (and lex-classes-lex-cxns
                                       lex-classes-item-based-units
@@ -108,7 +108,7 @@
                              (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
             ;; return
             (when th-links
-              (list new-lex-cxn (append (list (get-processing-cxn item-based-cxn))
+              (list new-lex-cxn (append (list item-based-cxn)
                                         (list (get-processing-cxn new-lex-cxn))
                                         (unless (= 1 (length string-predicates-in-root))
                                           (map 'list #'get-processing-cxn matching-lex-cxns))

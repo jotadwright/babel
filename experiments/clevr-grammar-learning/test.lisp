@@ -40,39 +40,34 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :random) ;; random or sequential
+                   :entries '((:observation-sample-mode . :sequential) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:remove-cxn-on-lower-bound . t)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
 
+;(defparameter *test* (def-fcg-constructions abc))
+
 ;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))) :weights t))
 ;(add-element (make-html (grammar (first (interacting-agents *experiment*)))))
-
-
+;(comprehend "Are there any cylinders?" :cxn-inventory (grammar (first (interacting-agents *experiment*))))
+;(defparameter *th* (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))))
 ;;; test single interaction
 ;(run-interaction *experiment*)
-
+;(neighbours-p 'type-hierarchies::cylinders 'TYPE-HIERARCHIES::ARE-THERE-ANY-?X (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))))
 
 ;;; test series of interactions
-;(run-series *experiment* 10)
+;(run-series *experiment* 13)
 
 #|
 ISSUES
 ------
-test sequential: 1-5 met monitors
-lexical-> item based maakt duplicate item-based cxns, er is geen check om te kijken of er al een bestaat, dan moet eigenlijk add-th-links al toegepast hebben
-substitution repair maakt ook duplicates, bijv.
-are there any cubes? --> holophrase
-are there any spheres --> are there any x, spheres, cubes
-new observation: are there any things?
-==> hier had eigenlijk item-based -> lexical moeten toepassen, maar deze skipt
-    dan komt hij in substitution, en maakt hij een nieuwe item-based die al bestaat!
+grammar size is niet juist!
+interactie 13: second merge failed error in are there any cylinders? terwijl hij deze al 1 als holophrase, en 2 als subst. item-based heeft gezien
 |#
-
-
 #|
 TODO
 ----
+- rename web monitor title: interaction--> observation
 - constructiesoortmonitor invoegen, zie code jens
 - repair monitor (zie Jens): welke repair heeft toegepast in een interactie?
 

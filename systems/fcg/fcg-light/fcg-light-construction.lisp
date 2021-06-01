@@ -249,6 +249,10 @@
   "retrieve all cxns in the hashed cxn set"
   (constructions-list hashed-fcg-construction-set))
 
+(defmethod constructions ((hashed-construction-set hashed-construction-set) &key &allow-other-keys)
+  "retrieve all cxns in the hashed cxn set"
+  (constructions-list hashed-construction-set))
+
 (defmethod (setf constructions) ((construction-list list)
                                  (construction-set fcg-construction-set))
   (setf (slot-value construction-set 'constructions) construction-list))
