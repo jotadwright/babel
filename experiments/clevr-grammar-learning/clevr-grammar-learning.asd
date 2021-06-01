@@ -15,14 +15,15 @@
                :fcg
                :category-hierarchies
                :clevr-world
-               :grammar-learning
-               :clevr-learning)
+               :cl-json
+               :grammar-learning)
   :serial t
   :components ((:file "package")
                (:file "run-helpers")
                (:file "grammar")
                (:file "agent")
                (:file "learner")
+               (:file "alignment")
                (:file "experiment")
                (:file "interaction")
                (:file "web-monitors")

@@ -33,90 +33,6 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-(defun find-matching-lex-cxns (cxn-inventory observed-form gold-standard-meaning utterance)
-  "return all lexical cxns that can apply by checking whether they are a subset of the observed form and meaning"
-  ;; if a certain item matches twice, we'll discard it to avoid ambiguity
-  ;; e.g.: is there a cylinder next to the blue cylinders? '(blue cylinder)
-  (let ((remaining-form (form-predicates-with-variables observed-form)))
-    (sort (loop for cxn in (constructions cxn-inventory)
-                when (and (eql (phrase-type cxn) 'lexical) 
-                          (irl:unify-irl-programs (extract-form-predicates cxn) remaining-form)
-                          (setf remaining-form (set-difference remaining-form (extract-form-predicates cxn) :test #'irl:unify-irl-programs))
-                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning)
-                          ;;we need to check if a cxn could match twice based on the meaning and discard these cases,
-                          ;; if it matches multiple times, the size of the set diff will be larger than 1
-                          (= 1 (- (length gold-standard-meaning)
-                                  (length (set-difference gold-standard-meaning (extract-meaning-predicates cxn) :test #'irl:unify-irl-programs)))))   
-                collect cxn)
-          #'(lambda (x y)
-              (<
-               (search (third (first (extract-form-predicates x))) utterance)
-               (search (third (first (extract-form-predicates y))) utterance))))))
-  
-#|
-(defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
-  "subtract all lexical meanings from the gold standard"
-  (let ((resulting-meaning gold-standard-meaning))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-meaning = (extract-meaning-predicates lex-cxn)
-          do (setf resulting-meaning (set-difference resulting-meaning lex-cxn-meaning :test #'irl:unify-irl-programs)))
-    resulting-meaning))
-|#
-
-(defun diff-non-overlapping-form (observed-form matching-lex-cxns)
-  "subtract all lexical forms from the gold standard"
-  (let ((resulting-form observed-form)
-        (lex-unit-names nil))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-form = (extract-form-predicates lex-cxn)
-          do (let ((prev-res-form resulting-form))
-               (setf resulting-form (set-difference resulting-form lex-cxn-form :test #'irl:unify-irl-programs))
-               (setf lex-unit-names (append lex-unit-names (list (second (find 'string (set-difference prev-res-form resulting-form :test #'irl:unify-irl-programs) :key #'first)))))))
-    (values lex-unit-names resulting-form)))
-
-(defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
-    "subtract all lexical meanings (bind statements) from the gold standard"
-  (let ((resulting-meaning gold-standard-meaning)
-        (args nil))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-meaning = (first (extract-meaning-predicates lex-cxn))
-          do (let ((prev-res-meaning resulting-meaning))
-               ;; problem! set difference will remove both instances if there are identical meanings (e.g cylinder & cylinders)
-               ;; solution: take only one e.g with find and remove by index
-               ;(setf resulting-meaning (remove lex-cxn-meaning resulting-meaning :test #'equal :count 1))
-               (setf resulting-meaning (set-difference resulting-meaning (list lex-cxn-meaning) :test #'irl:unify-irl-programs))
-               ;(setf args (append args (list (third lex-cxn-meaning))))))
-               (setf args (append args (list (third (find 'bind (set-difference prev-res-meaning resulting-meaning :test #'irl:unify-irl-programs) :key #'first)))))))
-    (values args resulting-meaning)))
-
-
- 
-(defun subunit-names-for-lex-cxns (lex-cxns)
-  (loop for lex-cxn in lex-cxns
-        for lex-cxn-form = (extract-form-predicates lex-cxn)
-        for lex-cxn-unit-name = (second (find 'string lex-cxn-form :key #'first))
-        collect lex-cxn-unit-name))
-
-(defun subunit-block-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
-  (loop for lex-cxn in lex-cxns
-        for arg in args
-        for lex-cxn-unit-name in lex-subunit-names
-        for th-link in th-links
-        for lex-slot-lex-class = (cdr th-link)
-        collect `(,lex-cxn-unit-name
-                  (args (,arg))
-                  (syn-cat (lex-class ,lex-slot-lex-class)))))
-
-(defun create-type-hierarchy-links (lex-cxns item-based-name placeholders)
-  "Creates all TH links for matching lexical cxns using their original lex-class."
-  (loop for lex-cxn in lex-cxns
-        for lex-cxn-lex-class = (lex-class-cxn lex-cxn)
-        for placeholder = (when (< 1 (length placeholders))
-                            (format nil "-(~a)" (nth (position lex-cxn lex-cxns) placeholders)))
-        for item-slot-lex-class = (make-lex-class (concatenate 'string item-based-name placeholder))
-        collect (cons lex-cxn-lex-class item-slot-lex-class)))
-        ;collect (list (cons lex-cxn-lex-class item-slot-lex-class)
-        ;              (cons item-slot-lex-class lex-cxn-lex-class))))
 
 (defun create-item-based-cxn-from-lex (problem node)
   "Creates item-based construction and lexical constructions
@@ -134,33 +50,30 @@ based on existing construction with sufficient overlap."
              (subunit-names-and-non-overlapping-form (multiple-value-list (diff-non-overlapping-form var-form matching-lex-cxns)))
              (subunit-names (first subunit-names-and-non-overlapping-form))
              (non-overlapping-form (second subunit-names-and-non-overlapping-form))
-             ;(non-overlapping-meaning (diff-non-overlapping-meaning gold-standard-meaning matching-lex-cxns))
              (args-and-non-overlapping-meaning (multiple-value-list (diff-non-overlapping-meaning gold-standard-meaning matching-lex-cxns)))
              (args (first args-and-non-overlapping-meaning))
              (non-overlapping-meaning (second args-and-non-overlapping-meaning))
-
              (cxn-name-item-based-cxn (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
-               (rendered-cxn-name-list (make-cxn-placeholder-name non-overlapping-form cxn-inventory))
-               (placeholder-list (extract-placeholder-var-list rendered-cxn-name-list))
-               (th-links (create-type-hierarchy-links matching-lex-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
-               (lex-cxn-subunit-blocks (subunit-block-for-lex-cxns matching-lex-cxns subunit-names args th-links))
-               (item-based-cxn (second (multiple-value-list (eval
-                                                             `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
-                                                                           ((?item-based-unit
-                                                                             (syn-cat (phrase-type item-based))
-                                                                             (subunits ,subunit-names))
-                                                                            ,@lex-cxn-subunit-blocks
-                                                                            <-
-                                                                            (?item-based-unit
-                                                                             (HASH meaning ,non-overlapping-meaning)
-                                                                             --
-                                                                             (HASH form ,non-overlapping-form)))
-                                                                           :attributes (:cxn-type item-based
-                                                                                   :repair lexical->item-based)
-                                                                           :cxn-inventory ,(copy-object cxn-inventory))))))
-               )
-            ;;(wi:add-element (make-html item-based-cxn))
-            (list item-based-cxn matching-lex-cxns th-links)))))
+             (rendered-cxn-name-list (make-cxn-placeholder-name non-overlapping-form cxn-inventory))
+             (placeholder-list (extract-placeholder-var-list rendered-cxn-name-list))
+             (th-links (create-type-hierarchy-links matching-lex-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
+             (lex-cxn-subunit-blocks (subunit-block-for-lex-cxns matching-lex-cxns subunit-names args th-links))
+             (item-based-cxn (second (multiple-value-list (eval
+                                                           `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
+                                                                         ((?item-based-unit
+                                                                           (syn-cat (phrase-type item-based))
+                                                                           (subunits ,subunit-names))
+                                                                          ,@lex-cxn-subunit-blocks
+                                                                          <-
+                                                                          (?item-based-unit
+                                                                           (HASH meaning ,non-overlapping-meaning)
+                                                                           --
+                                                                           (HASH form ,non-overlapping-form)))
+                                                                         :attributes (:cxn-type item-based
+                                                                                      :repair lexical->item-based)
+                                                                                      
+                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))
+        (list item-based-cxn matching-lex-cxns th-links)))))
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-lexical->item-based-cxn) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"

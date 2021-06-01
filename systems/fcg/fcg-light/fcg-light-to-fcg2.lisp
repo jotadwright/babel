@@ -25,6 +25,9 @@
 ;; These macros are based on original code from the functions by Paul and avoid
 ;; code duplication.
 ;; ---------------------------------------------------------------------------------------------
+
+(export '(set set-of-predicates sequence set-of-feature-value-pairs sequence-of-predicates))
+
 (defun cons-or-extend-fcg-tag (tag prior-tags)
   "Pushes a new tag or merges the tag with a previous one in the list of tags."
   (let* ((tagged-feature-name (tag-feature-name tag))

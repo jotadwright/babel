@@ -15,10 +15,14 @@
       ;; notify which cxns will be used
       (notify constructions-chosen applied-cxns)
       (notify cipn-statuses (statuses cipn))
+
+      ;; do alignment
+      (run-alignment agent cipn (get-configuration (experiment agent) :alignment-strategy))
+      ;(notify-learning process-result :trigger 'alignment-finished)
+      
       ;; update the :last-used property of the cxns
       (loop for cxn in applied-cxns
-            do (set-cxn-last-used agent cxn)
-            (inc-cxn-score-no-bounds cxn))
+            do (set-cxn-last-used agent cxn))
     (values comprehended-meaning cipn))))
 
 (defun all-applied-cxns (cipn)

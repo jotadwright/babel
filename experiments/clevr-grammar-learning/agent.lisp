@@ -26,20 +26,13 @@
                            :type number :documentation "Index of current question"))
    (:documentation "The tutor agent"))
 
+
 (defclass clevr-learning-learner (clevr-learning-agent)
   ((task-result :initarg :task-result
                 :accessor task-result
                 :initform nil
                 :documentation "Pointer to the result of the task in this interaction"))
   (:documentation "The learner agent"))
-
-
-(defun make-clevr-learning-tutor (experiment)
-  (make-instance 'clevr-learning-tutor
-                 :role 'tutor :experiment experiment
-                 :grammar nil
-                 :success-table (loop for i below (length (question-data experiment))
-                                      collect (cons i nil))))
 
 (defun make-clevr-learning-learner (experiment)
   (let ((learner
@@ -49,9 +42,3 @@
                                                 (get-configuration experiment :learner-cxn-supplier)
                                                 (get-configuration experiment :learner-th-connected-mode)))))
     learner))
-
-(defmethod clear-question-success-table ((agent clevr-learning-tutor))
-  (setf (question-success-table agent)
-        (loop for i below (length (question-data (experiment agent)))
-              collect (cons i nil))))
-

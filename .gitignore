@@ -21,7 +21,7 @@
 *.ps
 *.64xfasl
 *.lisp#
-
+*.pdf
 .DS_Store
 **/.tmp
 init-babel-user.lisp

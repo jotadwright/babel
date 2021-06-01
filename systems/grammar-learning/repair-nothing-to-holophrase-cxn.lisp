@@ -37,6 +37,7 @@
          (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
          (cxn-name (make-cxn-name utterance cxn-inventory))
          (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
+         ;; take the last element of the form constraints (the last word) and use it for hashing
          (hash-string (loop for fc in form-constraints
                         when (equalp (first fc) 'string)
                         collect (third fc) into hash-strings

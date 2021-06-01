@@ -60,7 +60,7 @@
              (consistentp (= 0 consistency-checksum)))
              
       (setf (consistency-buffer experiment) (append (consistency-buffer experiment)
-                                                (list (if consistentp 1 0))))
+                                                (list (if consistentp 1 0))))              
       (loop for agent in (population experiment)
             do (setf (communicated-successfully agent) successp))))))
     

@@ -96,8 +96,8 @@
                  ;; lex-class
                  (lex-class-lex-cxn (if existing-lex-cxn
                                       (lex-class-cxn existing-lex-cxn)
-                                      (intern (symbol-name (make-const unit-name-lex-cxn)) :type-hierarchies)))
-                 (lex-class-item-based-cxn (intern (symbol-name (make-const cxn-name-item-based-cxn)) :type-hierarchies))
+                                      (intern (get-base-name unit-name-lex-cxn) :type-hierarchies)))
+                 (lex-class-item-based-cxn (intern (symbol-name cxn-name-item-based-cxn) :type-hierarchies))
                  ;; type hierachy links
                  (th-link-1 (cons lex-class-lex-cxn lex-class-item-based-cxn))
                  (th-link-2 (cons lex-class-item-based-cxn lex-class-lex-cxn))
@@ -117,7 +117,8 @@
                                                                         --
                                                                         (HASH form ,non-overlapping-form)))
                                                                       :attributes (:cxn-type lexical
-                                                                                   :repair holophrase->item-based+lexical--addition)
+                                                                                   :repair holophrase->item-based+lexical--addition
+                                                                                   :string ,(third (find 'string non-overlapping-form :key #'first)))
                                                                       :cxn-inventory ,(copy-object cxn-inventory)))))));; trick to get the cxn without adding it to the cxn-inventory: make a copy of the cxn-inventory, make the cxn, get it, then forget about the copy
                  (item-based-cxn (second (multiple-value-list (eval
                                                                `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
@@ -135,11 +136,6 @@
                                                                              :attributes (:cxn-type item-based
                                                                                           :repair holophrase->item-based+lexical--addition)
                                                                              :cxn-inventory ,(copy-object cxn-inventory)))))))
-
-            ;; return the item-based and lexical cxn
-            ;;(wi:add-element (make-html lex-cxn))
-            ;;(wi:add-element (make-html item-based-cxn))
-         
             (list lex-cxn item-based-cxn th-link-1 th-link-2)
             
           )))))         ;; if no subset-holophrase is found, when returns nil and the repair is skipped
@@ -171,7 +167,7 @@
                                                                                    :cxn-inventory (construction-inventory node))))))
       ;; ignore
       ;; Reset type hierarchy
-      ;(set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
+      (set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (list (original-cxn lexical-cxn) (original-cxn item-based-cxn)))
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links th-links)

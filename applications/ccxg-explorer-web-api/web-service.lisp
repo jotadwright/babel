@@ -48,6 +48,11 @@
       (cl-json:encode-json-alist-to-string
        (transform-results results)))))
 
+
+;; OPTIONS preflight check
+(snooze:defroute by-schema(:options :text/*))
+
+
 (defun transform-schema (schema order-matters)
   (loop for role in schema
         collect (loop for (role-part . role-value) in role
