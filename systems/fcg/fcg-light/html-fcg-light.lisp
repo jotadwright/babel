@@ -1954,7 +1954,10 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
       (let ((dropped-cxn (find-cxn (get-wi-object id-cxn) (processing-cxn-inventory (cxn-inventory dropped-fcg-cxn)) :test #'string=)))
         (multiple-value-bind (succeeded-cars failed-cars)
             (fcg-apply dropped-cxn (car-resulting-cfs (cipn-car cip-node))
-                       (car-direction (cipn-car cip-node)) :notify nil)
+                       (car-direction (cipn-car cip-node))
+                       :configuration (configuration (cxn-inventory dropped-fcg-cxn))
+                       :cxn-inventory (cxn-inventory dropped-fcg-cxn)
+                       :notify nil)
           (cond ((and succeeded-cars
                       (not (check-if-children-already-present (write-to-string (first succeeded-cars)) cip-node)))
                  (cip-enqueue (cip-add-child cip-node (first succeeded-cars))
