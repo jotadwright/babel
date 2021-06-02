@@ -26,8 +26,8 @@
            (distribution (get-data (first (all-parents node)) :seq2seq-prediction))
            (applied-cxn (first (applied-constructions node)))
            (cxn-probability (cdr
-                             (assoc (name applied-cxn) distribution
-                                    :key #'(lambda (n) (intern (mkstr n) :clevr-grammar))
+                             (assoc (intern (symbol-name (name applied-cxn))) distribution
+                                    :key (compose #'intern #'symbol-name)
                                     :test #'equal))))
       (+ cxn-probability (priority (first (all-parents node)))))
     0))

@@ -30,9 +30,9 @@
     (make-instance
      'cxn-supplier-with-seq2seq-heuristics
      :remaining-constructions (loop for cxn-and-prob in distribution
-                                    if (find (internal-symb (car cxn-and-prob))
-                                             (constructions-list cxn-inventory)
-                                             :test #'equal :key #'name )
+                                    if (find (intern (symbol-name (car cxn-and-prob)))
+                                              (constructions-list cxn-inventory)
+                                              :test #'eq :key (compose #'intern #'symbol-name #'name))
                                     collect it))))
 
 (defmethod next-cxn ((cxn-supplier cxn-supplier-with-seq2seq-heuristics)
