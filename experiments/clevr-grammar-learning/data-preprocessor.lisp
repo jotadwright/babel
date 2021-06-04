@@ -8,11 +8,11 @@
   (parse-namestring "/Users/u0077062/Box/CLEVR_data/CLEVR_val.csv"))
 
 (defparameter *stage-1-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/train/stage-1.txt"))
+  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/validation/stage-1.txt"))
 (defparameter *stage-2-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/train/stage-2.txt"))
+  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/validation/stage-2.txt"))
 (defparameter *stage-3-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/train/stage-3.txt"))
+  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/validation/stage-3.txt"))
 
 
 (defparameter *stage-1-primitives*
@@ -64,4 +64,4 @@
                             ;; move to stage-3 file
                             (write-line json s3))))))))))
 
-(main *train-file*)
+(main *validation-file*)
