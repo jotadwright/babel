@@ -72,10 +72,9 @@
                  (lex-class-lex-cxn (if existing-lex-cxn
                                       (lex-class-cxn existing-lex-cxn)
                                       (intern (get-base-name unit-name-lex-cxn) :type-hierarchies)))
-                 (lex-class-item-based-cxn (intern (symbol-name cxn-name-item-based-cxn) :type-hierarchies))
+                 (lex-class-item-based-cxn (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :type-hierarchies)) 
                  ;; type hierachy links
-                 (th-link-1 (cons lex-class-lex-cxn lex-class-item-based-cxn))
-                 (th-link-2 (cons lex-class-item-based-cxn lex-class-lex-cxn))
+                 (th-link (cons lex-class-lex-cxn lex-class-item-based-cxn))
                  ;; args: 
                  (args-lex-cxn (third (first non-overlapping-meaning))) ;; third if bind
                  (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
@@ -129,7 +128,7 @@
                                                                              :cxn-inventory ,(copy-object cxn-inventory)))))))
 
             ;; return the holophrase-cxn, item-based and lexical cxns
-            (list holophrase-cxn lex-cxn item-based-cxn th-link-1 th-link-2)
+            (list holophrase-cxn lex-cxn item-based-cxn th-link)
             
           )))));; if no superset-holophrase is found, when returns nil and the repair is skipped
 
