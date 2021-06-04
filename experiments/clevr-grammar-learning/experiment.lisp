@@ -7,14 +7,17 @@
 ;; Finding the data
 (define-configuration-default-value :challenge-files-root
                                     (merge-pathnames
-                                     (make-pathname :directory '(:relative "clevr-learning-data"))
+                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :challenge-1-data
-                                    (make-pathname :directory '(:relative "json")
-                                                   :name "stage-1-questions-sorted" :type "txt"))
+                                    (make-pathname :directory '(:relative "train")
+                                                   :name "stage-1" :type "txt"))
 (define-configuration-default-value :challenge-2-data
-                                    (make-pathname :directory '(:relative "json")
-                                                   :name "stage-2-questions-sorted" :type "txt"))
+                                    (make-pathname :directory '(:relative "train")
+                                                   :name "stage-2" :type "txt"))
+(define-configuration-default-value :challenge-3-data
+                                    (make-pathname :directory '(:relative "train")
+                                                   :name "stage-3" :type "txt"))
 (define-configuration-default-value :observation-sample-mode :first) ; random or first or all
 (define-configuration-default-value :clevr-world-data-sets '("val"))
 
@@ -23,10 +26,10 @@
 (define-configuration-default-value :initial-th-link-weight 0.1)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
-(define-configuration-default-value :cxn-decf-score 0.2)
+(define-configuration-default-value :cxn-decf-score 0.3)
 
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
-(define-configuration-default-value :remove-cxn-on-lower-bound t)
+(define-configuration-default-value :remove-cxn-on-lower-bound nil)
 
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
@@ -93,7 +96,7 @@
                           (case (get-configuration experiment :current-challenge-level)
                             (1 (get-configuration experiment :challenge-1-data))
                             (2 (get-configuration experiment :challenge-2-data))
-                            (3 (get-configuration experiment :challenge-1-data)));;dummy lvl 1 data: replace with actual data!
+                            (3 (get-configuration experiment :challenge-3-data)))
                           (get-configuration experiment :challenge-files-root))))
     
     (with-open-file (stream challenge-file)
@@ -114,7 +117,7 @@
                           (case (get-configuration experiment :current-challenge-level)
                             (1 (get-configuration experiment :challenge-1-data))
                             (2 (get-configuration experiment :challenge-2-data))
-                            (3 (get-configuration experiment :challenge-1-data)));;dummy lvl 1 data: replace with actual data!
+                            (3 (get-configuration experiment :challenge-3-data)))
                           (get-configuration experiment :challenge-files-root))))
     
     (with-open-file (stream challenge-file)

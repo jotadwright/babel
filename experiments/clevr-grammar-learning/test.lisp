@@ -40,13 +40,15 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :sequential) ;; random or sequential
+                   :entries '((:observation-sample-mode . :random) ;; random or sequential
                               (:determine-interacting-agents-mode . :corpus-learner)
-                              (:remove-cxn-on-lower-bound . t)
+                              (:remove-cxn-on-lower-bound . nil)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
 
-;(add-element (make-html (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))) :weights t))
-;(add-element (make-html (grammar (first (interacting-agents *experiment*)))))
+;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-sequential" :type "store"))
+
+;(add-element (make-html (get-type-hierarchy (grammar (first (agents *experiment*)))) :weights t))
+;(add-element (make-html (grammar (first (agents *experiment*)))))
 
 ;(defparameter *th* (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))))
 
@@ -54,40 +56,51 @@
 ;(run-interaction *experiment*)
 
 ;;; test series of interactions
-;(run-series *experiment* 100)
+;(run-series *experiment* (length (question-data *experiment*)))
+
+;(run-series *experiment* 50)
+
+
+;
+
+(formulate '((get-context ?source-1) (query ?target-51 ?target-object-1 ?attribute-15) (bind attribute-category ?attribute-15 material) (filter ?target-2 ?target-1 ?size-2) (unique ?target-object-1 ?target-2) (bind shape-category ?shape-2 cube) (filter ?target-1 ?source-1 ?shape-2) (bind size-category ?size-2 small)) :gold-standard-utterance "What is the small cube made of?" :cxn-inventory (grammar (first (interacting-agents *experiment*))))
+
 
 #|
+NOTES
+------
+OVERAL ORIGINAL behalve in FCG apply!
+
+meerdere runs over geshufflede data met behouden grammatica mag geen verschil geven!
+
+ 
 ISSUES
 ------
-OVERAL ORIGINAL behalve in FCG apply!|#
-#|
+-niets weggooien bij lateral inhibition
+-en bij score berekenen de 0 scores niet meetellen
+-bidirectional (formulation en comprehension)
+met en zonder lateral inhibition
+repair evo plot
+cxn type evo plot
+num type hierarchy links / comm success
+
+
 TODO
 ----
-- lexical cxns hashen
+- testcase per repair
 - constructiesoortmonitor invoegen, zie code jens
 - repair monitor (zie Jens): welke repair heeft toegepast in een interactie?
 
-- repairs individueel testen, nadat je die add-cxn condition hebt ingevoegd
+- item based based repairs updaten en terug invoegen
 - logica in lexical to item-based nakijken, dubbels gewoon skippen uit veiligheid, zie diff-non-overlapping-meaning functie in utils
 - constructiesoortmonitor invoegen: 
 - check handle fix! fix cxns en th-links moeten doorgegeven worden
-- th links moeten niet meer in twee richtingen, mag in een richting
- ok voor subst
- ok voor add lex
- nok voor addition
-
-
---
-verwijder de unique identifier
-zoek de cxn op basis van naam voordat je ze aanmaakt! 
-(let* ((cxn-name (name cxn))
-       ...
-(unless (find cxn-name (constructions original-cxn-inventory) :key #'name :test #'eql))
- (add-cxn ...
-
-
-
+- series run duration
 |#
+
+
+
+
 
 #| ABSTRACT CXNS:
 PISTE 1
