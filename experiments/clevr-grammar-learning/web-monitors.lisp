@@ -51,6 +51,7 @@
 
 (define-monitor trace-interactions-in-wi)
 (define-monitor summarize-results-after-n-interactions)
+(define-monitor evaluation-after-n-interactions)
 (define-monitor show-type-hierarchy-after-n-interactions)
 
 
@@ -96,9 +97,21 @@
                       `((b :style "color:red") "no"))))
     (add-element '((hr)))))
 
-(define-event-handler (summarize-results-after-n-interactions interaction-finished)
-  (when (= (mod (interaction-number interaction)
+(define-event-handler (evaluation-after-n-interactions interaction-finished)
+  (when (or (= (mod (interaction-number interaction)
                 (get-configuration experiment :result-display-interval)) 0)
+            (= (interaction-number interaction) (length (question-data experiment))))
+    (let* ((overall-success (count 1 (success-buffer experiment)))
+           (accuracy ( / overall-success (interaction-number interaction))))
+      (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
+      (add-element `((h3) ,(format nil  "Overall accuracy: ~a" accuracy)))
+      (add-element '((hr))))))
+
+
+(define-event-handler (summarize-results-after-n-interactions interaction-finished)
+  (when (or (= (mod (interaction-number interaction)
+                (get-configuration experiment :result-display-interval)) 0)
+            (= (interaction-number interaction) (length (question-data experiment))))
     
     (let* ((windowed-success (* 100 (float (average (subseq (success-buffer experiment)
                                                             (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
@@ -139,117 +152,5 @@
                 (add-element (make-html cxn)))
             cxns)))
 
-#|
-(define-event-handler (trace-interactions-in-wi add-holophrase-new-cxn)
-  (add-element '((h3) "New holophrase construction:"))
-  (add-element (make-html cxn)))
-
-(define-event-handler (trace-interactions-in-wi item-based->lexical-repair-started)
-  (add-element '((h2) "Parsing failed. Composing a new program using the partial program")))
-
-(define-event-handler (trace-interactions-in-wi item-based->lexical-new-cxn-and-th-links)
-  (add-element '((h3) "New lexical construction:"))
-  (add-element (make-html cxn))
-  (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element
-   `((div) ,(s-dot->svg
-             (new-th-links->s-dot th new-links)))))
-
-(define-event-handler (trace-interactions-in-wi lexical->item-based-repair-started)
-  (add-element '((h2) "Parsing failed. Composing a new program using the partial program")))
-
-(define-event-handler (trace-interactions-in-wi lexical->item-based-new-cxn-and-links)
-  (add-element '((h3) "New item-based construction:"))
-  (add-element (make-html cxn))
-  (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element
-   `((div) ,(s-dot->svg
-             (new-th-links->s-dot th new-links)))))
-
-(define-event-handler (trace-interactions-in-wi add-th-links-repair-started)
-  (add-element '((h2) "Parsing failed. Adding type hierarchy links")))
-
-(define-event-handler (trace-interactions-in-wi add-th-links-new-th-links)
-  (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element
-   `((div) ,(s-dot->svg
-             (new-th-links->s-dot th new-links)))))
-
-(define-event-handler (trace-interactions-in-wi interpretation-succeeded)
-  (add-element '((h2) "Interpretation succeeded"))
-  (add-element '((h3) "Computed answer:"))
-  (if (subtypep (type-of answer) 'entity)
-    (add-element (make-html answer))
-    (add-element `((p) ,(format nil "\"~a\"" answer)))))
-
-
-
-(define-event-handler (trace-interactions-in-wi agent-confidence-level)
-  (add-element `((h2) ,(format nil "The agent is ~,2f% confident"
-                               (* 100.0 level)))))
-
-
-
-(define-event-handler (trace-interactions-in-wi holophrase->item-based-substitution-repair-started)
-  (add-element '((h2) "Generalising over the grammar (substitution)")))
-
-(define-event-handler (trace-interactions-in-wi holophrase->item-based-subsititution-new-cxn-and-th-links)
-  (add-element '((h3) "New constructions are created:"))
-  (loop for cxn in new-cxns
-        do (add-element (make-html cxn)))
-  (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element
-   `((div) ,(s-dot->svg
-             (new-th-links->s-dot th new-links)))))
-
-(define-event-handler (trace-interactions-in-wi holophrase->item-based-addition-repair-started)
-  (add-element '((h2) "Generalising over the grammar (addition)")))
-
-(define-event-handler (trace-interactions-in-wi holophrase->item-based-addition-new-cxn-and-th-links)
-  (add-element '((h3) "New constructions are created:"))
-  (loop for cxn in new-cxns
-        do (add-element (make-html cxn)))
-  (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element
-   `((div) ,(s-dot->svg
-             (new-th-links->s-dot th new-links)))))
-
-(define-event-handler (trace-interactions-in-wi holophrase->item-based-deletion-repair-started)
-  (add-element '((h2) "Generalising over the grammar (deletion)")))
-
-(define-event-handler (trace-interactions-in-wi holophrase->item-based-deletion-new-cxn-and-th-links)
-  (add-element '((h3) "New constructions are created:"))
-  (loop for cxn in new-cxns
-        do (add-element (make-html cxn)))
-  (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element
-   `((div) ,(s-dot->svg
-             (new-th-links->s-dot th new-links)))))
-
-(define-event-handler (trace-interactions-in-wi make-hypotheses-repair-started)
-  (add-element '((h2) "Making hypotheses")))
-
-(define-event-handler (trace-interactions-in-wi make-hypotheses-new-cxns-and-th-links)
-  (add-element '((h3) "New constructions are created:"))
-  (loop for cxn in new-cxns
-        do (add-element (make-html cxn)))
-  (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element
-   `((div) ,(s-dot->svg
-             (new-th-links->s-dot th new-links)))))
-
-(define-event-handler (trace-interactions-in-wi item-based+lexical->item-based-repair-started)
-  (add-element '((h2) "Generalising over the grammar")))
-
-(define-event-handler (trace-interactions-in-wi item-based+lexical->item-based-new-cxns-and-th-links)
-  (add-element '((h3) "New constructions are created:"))
-  (loop for cxn in new-cxns
-        do (add-element (make-html cxn)))
-  (add-element '((h3) "New links are added to the type hierarchy:"))
-  (add-element
-   `((div) ,(s-dot->svg
-             (new-th-links->s-dot th new-links)))))
-
-|#
 
 

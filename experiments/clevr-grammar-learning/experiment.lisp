@@ -18,8 +18,17 @@
 (define-configuration-default-value :challenge-3-data
                                     (make-pathname :directory '(:relative "train")
                                                    :name "stage-3" :type "txt"))
-(define-configuration-default-value :observation-sample-mode :first) ; random or first or all
-(define-configuration-default-value :clevr-world-data-sets '("val"))
+(define-configuration-default-value :challenge-1-data-evaluation
+                                    (make-pathname :directory '(:relative "val")
+                                                   :name "stage-1" :type "txt"))
+(define-configuration-default-value :challenge-2-data-evaluation
+                                    (make-pathname :directory '(:relative "val")
+                                                   :name "stage-2" :type "txt"))
+(define-configuration-default-value :challenge-3-data-evaluation
+                                    (make-pathname :directory '(:relative "val")
+                                                   :name "stage-3" :type "txt"))
+
+(define-configuration-default-value :observation-sample-mode :random) ; random, sequential or evaluation
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
@@ -28,6 +37,7 @@
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.3)
 
+(define-configuration-default-value :evaluation-grammar nil)
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
 
@@ -69,16 +79,18 @@
   (:documentation "The CLEVR learning experiment"))
 
 (defmethod initialize-instance :after ((experiment clevr-grammar-learning-experiment) &key)
-  ;; set the world of the experiment
-  ;(setf (world experiment)
-  ;      (make-instance 'clevr-world
-   ;                    :data-sets (get-configuration experiment :clevr-world-data-sets)
-  ;                     :load-questions nil))
   ;; set the questions of the experiment
   (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
   ;; set the population of the experiment
   (setf (population experiment)
         (list (make-clevr-learning-learner experiment)))
+  ;; set configurations for evaluation
+  (when (get-configuration experiment :evaluation-grammar)
+    (setf (grammar (first (agents experiment))) (get-configuration experiment :evaluation-grammar))
+    (set-configuration (grammar (first (agents experiment))) :update-th-links nil)
+    (set-configuration (grammar (first (agents experiment))) :use-meta-layer nil)
+    (set-configuration (grammar (first (agents experiment))) :consolidate-repairs nil))
+  
   ;; fill the confidence buffer with zeros
   (setf (confidence-buffer experiment)
         (make-list (get-configuration experiment :evaluation-window-size)
@@ -130,6 +142,25 @@
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))
 
+(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+                                                       (mode (eql :evaluation)))
+  (format t "~%Loading evaluation data...")
+  (let* ((challenge-file (merge-pathnames
+                          (case (get-configuration experiment :current-challenge-level)
+                            (1 (get-configuration experiment :challenge-1-data-evaluation))
+                            (2 (get-configuration experiment :challenge-2-data-evaluation))
+                            (3 (get-configuration experiment :challenge-3-data-evaluation)))
+                          (get-configuration experiment :challenge-files-root))))
+    
+    (with-open-file (stream challenge-file)
+      (let* ((stage-data (shuffle (loop for line = (read-line stream nil)
+                                        for data = (when line (cl-json:decode-json-from-string line))
+                                        while data
+                                        collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal))))))
+        (setf (question-data experiment) stage-data)))
+    (format t "~%Done!")
+    (notify challenge-level-questions-loaded
+            (get-configuration experiment :current-challenge-level))))
 
 (defmethod tutor ((experiment clevr-grammar-learning-experiment))
   (find 'tutor (population experiment) :key #'role))

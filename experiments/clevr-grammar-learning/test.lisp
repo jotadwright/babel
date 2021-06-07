@@ -45,7 +45,7 @@
                               (:remove-cxn-on-lower-bound . nil)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
 
-;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-sequential" :type "store"))
+;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
 ;(add-element (make-html (get-type-hierarchy (grammar (first (agents *experiment*)))) :weights t))
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
