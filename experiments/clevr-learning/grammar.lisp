@@ -56,7 +56,8 @@
           (eval `(def-fcg-constructions-with-type-hierarchy
                      ,grammar-name
                    :cxn-inventory ,grammar-name
-                   :feature-types ((args set)
+                   :hashed t
+                   :feature-types ((args sequence)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
                                    (subunits set)
@@ -74,7 +75,8 @@
                                         (:shuffle-cxns-before-application . t)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
-                                        (:update-th-links . t))
+                                        (:update-th-links . t)
+                                        (:hash-mode . :hash-string-meaning-lex-id))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))
