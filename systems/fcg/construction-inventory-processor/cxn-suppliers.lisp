@@ -567,7 +567,7 @@
     ;; sort 
     (setf constructions
           (sort constructions #'(lambda (cxn-1 cxn-2)
-                                  (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
+                                  (cond ((>= (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
                                         ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
                                          nil)
                                         ((>= (attr-val cxn-1 :frequency) (attr-val cxn-2 :frequency)))))))
