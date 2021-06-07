@@ -125,24 +125,35 @@
   (null (all-parents node)))
 
 (defun add-cxn-suffix (string)
-  (intern (string-append string "-cxn")))
+  (intern (string-append string "-CXN")))
 
-(defun make-lex-class (&optional cat-name)
-  (if cat-name
-    (intern (symbol-name (make-symbol cat-name)) :type-hierarchies)
-    (intern (symbol-name (make-symbol "CAT")) :type-hierarchies)))
+(defun make-lex-class (cat-name &key add-numeric-tail)
+  (intern
+   (symbol-name
+    (funcall (if add-numeric-tail #'make-const #'make-symbol)
+             (upcase
+              (if cat-name cat-name "CAT"))))
+   :type-hierarchies))
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix))
-(defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
+
+(defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
-  (intern (symbol-name (make-symbol (substitute #\- #\Space (upcase (if add-cxn-suffix
-                                                 (string-append string "-cxn")
-                                                 string)))))))
+  (intern
+   (symbol-name
+    (make-symbol
+     (substitute #\- #\Space
+                 (upcase
+                  (if add-cxn-suffix
+                    (string-append string "-cxn")
+                    string)))))))
 
 ;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
 
-(defmethod make-cxn-name ((form list) (cxn-inventory fcg-construction-set) &key (add-cxn-suffix t))
+(defmethod make-cxn-name ((form list) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)
         with placeholders = '("?X" "?Y" "?Z" "?U" "?V" "?W")
@@ -160,7 +171,11 @@
                     (find second-word-var new-string-constraints :key #'second))
           (push `(string ,second-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
           (incf placeholder-index))
-        finally (return (make-cxn-name (format nil "~{~a~^-~}" (render (append form new-string-constraints) (get-configuration cxn-inventory :render-mode))) cxn-inventory :add-cxn-suffix add-cxn-suffix))))
+        finally (return
+                 (make-cxn-name (format nil "~{~a~^-~}"
+                                        (render (append form new-string-constraints)
+                                                (get-configuration cxn-inventory :render-mode)))
+                                cxn-inventory :add-cxn-suffix add-cxn-suffix))))
 
 (defun make-cxn-placeholder-name (form cxn-inventory)
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)
@@ -453,13 +468,15 @@
                   (args (,arg))
                   (syn-cat (lex-class ,lex-slot-lex-class)))))
 
-(defun create-type-hierarchy-links (lex-cxns item-based-name placeholders)
+(defun create-type-hierarchy-links (lex-cxns item-based-name placeholders
+                                             &key item-based-numeric-tail)
   "Creates all TH links for matching lexical cxns using their original lex-class."
   (loop for lex-cxn in lex-cxns
         for lex-cxn-lex-class = (lex-class-cxn lex-cxn)
         for placeholder = (when (< 1 (length placeholders))
                             (format nil "-(~a)" (nth (position lex-cxn lex-cxns) placeholders)))
-        for item-slot-lex-class = (make-lex-class (concatenate 'string item-based-name placeholder))
+        for item-slot-lex-class = (make-lex-class (concatenate 'string item-based-name placeholder)
+                                                  :add-numeric-tail item-based-numeric-tail)
         collect (cons lex-cxn-lex-class item-slot-lex-class)))
 
 (defun find-matching-lex-cxns-in-root (cxn-inventory root-strings)
