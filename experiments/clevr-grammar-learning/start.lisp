@@ -24,30 +24,57 @@
     (add-element '((hr)))
     (add-element '((hr)))))
 
-#|
-(defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-sequential" :type "store")))
 
-(add-element (make-html *saved-inventory*))
+(defun run-training ()
+  (wi::reset)
+  (let ((experiment-name 'training))
+    (run-experiments `(
+                       (,experiment-name
+                        ((:determine-interacting-agents-mode . :corpus-learner)
+                         (:observation-sample-mode . :random)
+                         (:learner-th-connected-mode . :neighbours)
+                         ))
+                       )
+                     :number-of-interactions 47134
+                     :number-of-series 1
+                     :monitors (append '("print-a-dot-for-each-interaction"
+                                         "summarize-results-after-n-interactions")
+                                       (get-all-lisp-monitors)
+                                       (get-all-export-monitors)))))
 
-(summarize-cxn-types *saved-inventory*)
+(defun run-evaluation (stored-grammar-path)
+  (wi::reset)
+  (let ((learned-grammar (cl-store:restore stored-grammar-path))
+        (experiment-name 'evaluation))
+    (run-experiments `(
+                       (,experiment-name
+                        ((:determine-interacting-agents-mode . :corpus-learner)
+                         (:observation-sample-mode . :evaluation)
+                         (:evaluation-grammar . ,learned-grammar)
+                         (:learner-th-connected-mode . :neighbours)
+                         ))
+                       )
+                     :number-of-interactions 10044
+                     :number-of-series 1
+                     :monitors (append '("print-a-dot-for-each-interaction"
+                                         "evaluation-after-n-interactions")
+                                       (get-all-lisp-monitors)
+                                       (get-all-export-monitors)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; train, load the exported grammar and evaluate it.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; (run-training)
+; (defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-latest" :type "store")))
+; (run-evaluation *saved-inventory*)
 
 
-(add-element (make-html (get-type-hierarchy *saved-inventory*)))
 
-|#
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; visualise all constructions per type in web interface.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun run-experiment ()
-(let ((experiment-name 'basic-function-test))
-  (run-experiments `(
-                     (,experiment-name
-                      ((:determine-interacting-agents-mode . :corpus-learner)
-                       (:observation-sample-mode . :random)
-                       (:learner-th-connected-mode . :neighbours)
-                       ))
-                     )
-                   :number-of-interactions 47134
-                   :number-of-series 1
-                   :monitors (append '("print-a-dot-for-each-interaction"
-                                       "summarize-results-after-n-interactions")
-                                   (get-all-lisp-monitors)
-                                   (get-all-export-monitors))))
+; (add-element (make-html *saved-inventory*))
+; (summarize-cxn-types *saved-inventory*)
+; (add-element (make-html (get-type-hierarchy *saved-inventory*)))

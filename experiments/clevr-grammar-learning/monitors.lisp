@@ -142,6 +142,15 @@
                                             :type "store"
                                             :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
 
+(define-monitor export-latest-grammar
+                :class 'store-monitor
+                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-latest" :type "store"))
+
+(define-event-handler (export-latest-grammar run-series-finished)
+  (export-grammar (grammar (learner experiment))
+                  (file-name monitor)))
+
+
 (defun export-grammar (cxn-inventory path)
   #-ccl (cl-store:store cxn-inventory path))
 
@@ -174,6 +183,7 @@
 
 (defun get-all-export-monitors ()
   '("export-type-hierarchy"
-    "export-learner-grammar"))
+    "export-learner-grammar"
+    "export-latest-grammar"))
   
     

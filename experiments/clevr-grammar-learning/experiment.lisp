@@ -153,10 +153,10 @@
                           (get-configuration experiment :challenge-files-root))))
     
     (with-open-file (stream challenge-file)
-      (let* ((stage-data (shuffle (loop for line = (read-line stream nil)
+      (let* ((stage-data (loop for line = (read-line stream nil)
                                         for data = (when line (cl-json:decode-json-from-string line))
                                         while data
-                                        collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal))))))
+                                        collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
         (setf (question-data experiment) stage-data)))
     (format t "~%Done!")
     (notify challenge-level-questions-loaded
