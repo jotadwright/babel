@@ -97,10 +97,9 @@
                  (lex-class-lex-cxn (if existing-lex-cxn
                                       (lex-class-cxn existing-lex-cxn)
                                       (intern (get-base-name unit-name-lex-cxn) :type-hierarchies)))
-                 (lex-class-item-based-cxn (intern (symbol-name cxn-name-item-based-cxn) :type-hierarchies))
+                 (lex-class-item-based-cxn (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :type-hierarchies)) 
                  ;; type hierachy links
-                 (th-link-1 (cons lex-class-lex-cxn lex-class-item-based-cxn))
-                 (th-link-2 (cons lex-class-item-based-cxn lex-class-lex-cxn))
+                 (th-link (cons lex-class-item-based-cxn lex-class-lex-cxn))
                  ;; args: 
                  (args-lex-cxn (third (first non-overlapping-meaning))) ;; third if bind
                  ;; unit names
@@ -136,7 +135,7 @@
                                                                              :attributes (:cxn-type item-based
                                                                                           :repair holophrase->item-based+lexical--addition)
                                                                              :cxn-inventory ,(copy-object cxn-inventory)))))))
-            (list lex-cxn item-based-cxn th-link-1 th-link-2)
+            (list lex-cxn item-based-cxn th-link)
             
           )))))         ;; if no subset-holophrase is found, when returns nil and the repair is skipped
 
@@ -150,14 +149,15 @@
            (th-links (subseq (restart-data fix) 2))
            ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
            (orig-type-hierarchy (get-type-hierarchy (construction-inventory node)))
-           (temp-type-hierarchy (copy-object (get-type-hierarchy (construction-inventory node))))
-           (th (loop for th-link in th-links
+           (temp-type-hierarchy (copy-object (get-type-hierarchy (construction-inventory node)))))
+      ;; add th-links
+      (loop for th-link in th-links
                      do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy)
                      (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5)
-                     finally (set-type-hierarchy (construction-inventory node) temp-type-hierarchy))) 
+                     finally (set-type-hierarchy (construction-inventory node) temp-type-hierarchy))
            ;; apply lexical-cxn and add node
            ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application
-           (new-node-lex (fcg::cip-add-child (initial-node node) (first (fcg-apply lexical-cxn (car-source-cfs (cipn-car (initial-node node))) (direction (cip node))
+           (let* ((new-node-lex (fcg::cip-add-child (initial-node node) (first (fcg-apply lexical-cxn (car-source-cfs (cipn-car (initial-node node))) (direction (cip node))
                                                                     :configuration (configuration (construction-inventory node))
                                                                     :cxn-inventory (construction-inventory node)))))
            
@@ -179,4 +179,4 @@
       (push 'added-by-repair (statuses new-node-lex))
       (push 'added-by-repair (statuses new-node-item-based))
       ;; enqueue only second new node; never backtrack over the first applied lexical construction, we applied them as a block
-      (cip-enqueue new-node-item-based (cip node) (get-configuration node :queue-mode)))))
+      (cip-enqueue new-node-item-based (cip node) (get-configuration node :queue-mode))))))

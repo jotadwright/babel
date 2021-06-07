@@ -54,9 +54,9 @@
                                         (:consolidate-repairs . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
-                   :repairs (gl::add-th-links ;tested
-                             gl::item-based->lexical ;tested
-                             gl::holophrase->item-based+lexical+lexical--substitution ;tested
+                   :repairs (gl::add-th-links
+                             gl::item-based->lexical
+                             gl::holophrase->item-based+lexical+lexical--substitution
                              gl::holophrase->item-based+lexical--addition
                              gl::holophrase->item-based+lexical+holophrase--deletion
                              gl::repair-lexical->item-based-cxn
