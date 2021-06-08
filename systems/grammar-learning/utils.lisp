@@ -156,7 +156,7 @@
                           &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)
-        with placeholders = '("?X" "?Y" "?Z" "?U" "?V" "?W")
+        with placeholders = '("?X" "?Y" "?Z" "?U" "?V" "?W" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T")
         with placeholder-index = 0
         with new-string-constraints = '()
         for order-constraint in (set-difference form string-constraints)
