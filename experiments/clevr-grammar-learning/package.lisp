@@ -1,7 +1,5 @@
 (in-package :cl-user)
 
-(defvar *web-server-port* 9090)
-
 (defpackage clevr-grammar-learning
   (:documentation "Tutor-learner experiment to learn the clevr grammar")
   (:nicknames :cgl)
