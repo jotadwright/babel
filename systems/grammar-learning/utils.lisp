@@ -443,15 +443,18 @@
         for lex-cxn-unit-name = (second (find 'string lex-cxn-form :key #'first))
         collect lex-cxn-unit-name))
 
-(defun subunit-block-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
+(defun subunit-blocks-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
   (loop for lex-cxn in lex-cxns
         for arg in args
         for lex-cxn-unit-name in lex-subunit-names
         for th-link in th-links
         for lex-slot-lex-class = (cdr th-link)
         collect `(,lex-cxn-unit-name
+                  (syn-cat (gl::lex-class ,lex-slot-lex-class))) into contributing-units
+        collect `(,lex-cxn-unit-name
                   (args (,arg))
-                  (syn-cat (lex-class ,lex-slot-lex-class)))))
+                  --) into conditional-units
+        finally (return (values conditional-units contributing-units))))
 
 (defun create-type-hierarchy-links (lex-cxns item-based-name placeholders)
   "Creates all TH links for matching lexical cxns using their original lex-class."
