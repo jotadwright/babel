@@ -34,13 +34,33 @@
 
 (defun run-training ()
   (wi::reset)
-  (let ((experiment-name 'training))
+  (let ((experiment-name 'training-stage-1))
     (run-experiments `(
                        (,experiment-name
                         ((:determine-interacting-agents-mode . :corpus-learner)
                          (:observation-sample-mode . :train)
                          (:learner-th-connected-mode . :neighbours)
                          (:run-mode :training)
+                         (:current-challenge-level . 1)
+                         ))
+                       )
+                     :number-of-interactions 47133
+                     :number-of-series 1
+                     :monitors (append '("print-a-dot-for-each-interaction"
+                                         "summarize-results-after-n-interactions")
+                                       (get-all-lisp-monitors)
+                                       (get-all-export-monitors)))))
+
+(defun run-training-stage-2 ()
+  (wi::reset)
+  (let ((experiment-name 'training-stage-2))
+    (run-experiments `(
+                       (,experiment-name
+                        ((:determine-interacting-agents-mode . :corpus-learner)
+                         (:observation-sample-mode . :train)
+                         (:learner-th-connected-mode . :neighbours)
+                         (:run-mode :training)
+                         (:current-challenge-level . 2)
                          ))
                        )
                      :number-of-interactions 47133
