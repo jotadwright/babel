@@ -56,7 +56,8 @@
           (eval `(def-fcg-constructions-with-type-hierarchy
                      ,grammar-name
                    :cxn-inventory ,grammar-name
-                   :feature-types ((args set)
+                   :hashed t
+                   :feature-types ((args sequence)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
                                    (subunits set)
@@ -74,7 +75,8 @@
                                         (:shuffle-cxns-before-application . t)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
-                                        (:update-th-links . t))
+                                        (:update-th-links . t)
+                                        (:hash-mode . :hash-string-meaning-lex-id))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))
@@ -149,6 +151,9 @@
                     :test #'string=)))
     competitors))
 
+(defun placeholderp (str)
+  (eql (char str 0) #\?))
+
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'item-based))
@@ -165,8 +170,8 @@
         (possible-item-based-competitors
          (loop for other-cxn in (constructions-list cxn-inventory)
                when (and (eql (get-cxn-type other-cxn) 'item-based)
-                         (< (item-based-number-of-slots other-cxn)
-                            (item-based-number-of-slots cxn)))
+                         (<= (item-based-number-of-slots other-cxn)
+                             (item-based-number-of-slots cxn)))
                collect other-cxn))
         (item-based-competitors
          (loop for comp in possible-item-based-competitors
@@ -180,9 +185,9 @@
                                for comp-elem in comp-name-with-placeholders
                                for i from 0
                                always (or (string= cxn-elem comp-elem)
-                                          (and (string= (subseq cxn-elem 0 1) "?")
-                                               (string= (subseq comp-elem 0 1) "?"))
-                                          (and (string= (subseq cxn-elem 0 1) "?")
+                                          (and (placeholderp cxn-elem)
+                                               (placeholderp comp-elem))
+                                          (and (placeholderp cxn-elem)
                                                (string= comp-elem (nth i de-rendered-utterance))))))
                collect comp)) 
         (holophrase-competitors
@@ -192,7 +197,7 @@
                                   (list-of-strings->string
                                    (fcg::tokenize utterance))))
                collect other-cxn)))
-    (append holophrase-competitors item-based-competitors)))
+    (remove cxn (append holophrase-competitors item-based-competitors))))
 
 (defun get-meaning-competitors (agent applied-cxns utterance)
   "Get cxns with the same form as cxn"

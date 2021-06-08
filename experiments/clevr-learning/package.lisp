@@ -13,3 +13,10 @@
   (:import-from :hybrid-primitives :*hybrid-primitives*
                 :load-image :request-attn :clear-session)
   (:shadowing-import-from :fcg :size :attributes))
+
+;; fix circular dependecy between fcg and type hierarchies
+(load
+ (babel-pathname
+  :directory '("systems" "fcg" "construction-inventory-processor")
+  :name "construction-inventory-processor"
+  :type "lisp"))

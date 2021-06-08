@@ -1,7 +1,8 @@
 
 (in-package :hybrid-primitives)
 
-(export '(load-image request-attn clear-session))
+(export '(load-image request-attn
+          clear-session clear-attentions))
 
 (defun do-irl-request (server-address endpoint data cookie-jar)
   (multiple-value-bind (response code headers
@@ -42,6 +43,17 @@
       ;; Drakma detects this and removes the cookie
       ;; from the jar. Amazing!
       (drakma:delete-old-cookies cookie-jar))))
+
+
+(defun clear-attentions (server-address cookie-jar)
+  (multiple-value-bind (response code)
+      (do-irl-request server-address
+                      "clear_attentions"
+                      nil cookie-jar)
+    (declare (ignorable response))
+    (unless (= code 200)
+      (error "Something went wrong while clearing the attentions"))
+    t))
 
 
 (defun evaluate-neural-primitive (server-address cookie-jar data)
