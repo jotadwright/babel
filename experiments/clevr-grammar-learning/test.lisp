@@ -58,12 +58,12 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 50)
+;(run-series *experiment* 100)
 
 
 ;
 
-;(formulate '((get-context ?source-1) (query ?target-51 ?target-object-1 ?attribute-15) (bind attribute-category ?attribute-15 material) (filter ?target-2 ?target-1 ?size-2) (unique ?target-object-1 ?target-2) (bind shape-category ?shape-2 cube) (filter ?target-1 ?source-1 ?shape-2) (bind size-category ?size-2 small)) :gold-standard-utterance "What is the small cube made of?" :cxn-inventory (grammar (first (interacting-agents *experiment*))))
+;(formulate '((get-context ?source-1) (filter ?target-2 ?target-1 ?color-6) (unique ?target-object-1 ?target-2) (bind shape-category ?shape-8 thing) (bind attribute-category ?attribute-2 shape) (filter ?target-1 ?source-1 ?shape-8) (bind color-category ?color-6 blue) (query ?target-3 ?target-object-1 ?attribute-2)) :gold-standard-utterance "What shape is the blue object?" :cxn-inventory (grammar (first (interacting-agents *experiment*))))
 
 
 #|

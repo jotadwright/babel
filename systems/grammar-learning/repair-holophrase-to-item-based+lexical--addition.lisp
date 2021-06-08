@@ -136,13 +136,15 @@
                                                               (syn-cat (phrase-type item-based))
                                                               (subunits (,unit-name-lex-cxn)))
                                                              (,unit-name-lex-cxn
-                                                              (args (,args-lex-cxn)) 
                                                               (syn-cat (lex-class ,lex-class-item-based-cxn)))
                                                              <-
                                                              (?item-based-unit
                                                               (HASH meaning ,overlapping-meaning)
                                                               --
-                                                              (HASH form ,overlapping-form)))
+                                                              (HASH form ,overlapping-form))
+                                                             (,unit-name-lex-cxn
+                                                              (args (,args-lex-cxn))
+                                                              --))
                                                             :attributes (:cxn-type item-based
                                                                          :repair holophrase->item-based+lexical--addition)
                                                             :cxn-inventory ,(copy-object cxn-inventory)))))))
