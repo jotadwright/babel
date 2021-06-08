@@ -469,7 +469,7 @@
         collect `(,lex-cxn-unit-name
                   (args (,arg))
                   --) into conditional-units
-        finally (return (list conditional-units contributing-units))))
+        finally (return (values conditional-units contributing-units))))
 
 (defun create-type-hierarchy-links (lex-cxns item-based-name placeholders
                                              &key item-based-numeric-tail)
