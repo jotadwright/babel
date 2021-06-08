@@ -74,7 +74,7 @@ based on existing construction with sufficient overlap."
              (th-links
               (create-type-hierarchy-links matching-lex-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
              (lex-cxn-subunit-blocks
-              (subunit-block-for-lex-cxns matching-lex-cxns subunit-names args th-links))
+              (subunit-blocks-for-lex-cxns matching-lex-cxns subunit-names args th-links))
              (lex-cxn-conditional-units
               (first lex-cxn-subunit-blocks))
              (lex-cxn-contributing-units

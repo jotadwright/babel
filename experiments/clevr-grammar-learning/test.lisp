@@ -40,7 +40,7 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :train) ;; train, debug, evaluation, development
+                   :entries '((:observation-sample-mode . :debug) ;; train, debug, evaluation, development
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:remove-cxn-on-lower-bound . nil)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
