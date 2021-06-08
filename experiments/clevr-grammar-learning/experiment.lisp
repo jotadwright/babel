@@ -27,8 +27,17 @@
 (define-configuration-default-value :challenge-3-data-evaluation
                                     (make-pathname :directory '(:relative "val")
                                                    :name "stage-3" :type "txt"))
+(define-configuration-default-value :challenge-1-data-development
+                                    (make-pathname :directory '(:relative "test")
+                                                   :name "stage-1" :type "txt"))
+(define-configuration-default-value :challenge-2-data-development
+                                    (make-pathname :directory '(:relative "test")
+                                                   :name "stage-2" :type "txt"))
+(define-configuration-default-value :challenge-3-data-development
+                                    (make-pathname :directory '(:relative "test")
+                                                   :name "stage-3" :type "txt"))
 
-(define-configuration-default-value :observation-sample-mode :random) ; random, sequential or evaluation
+(define-configuration-default-value :observation-sample-mode :train) ; train, debug, development or evaluation
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
@@ -66,6 +75,9 @@
   ((question-data :initarg :question-data :initform nil 
                    :accessor question-data :type list
                    :documentation "A list of samples for the current challenge level")
+   (failed-question-data :initarg :failed-question-data :initform nil 
+                   :accessor failed-question-data :type list
+                   :documentation "A list of unsuccessful observations")
    (confidence-buffer :initarg :confidence-buffer :initform nil
                       :accessor confidence-buffer :type list
                       :documentation "A buffer to keep track of outcomes of games")
@@ -102,7 +114,7 @@
   (:documentation "Load all data for the current challenge level"))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
-                                                       (mode (eql :random)))
+                                                       (mode (eql :train)))
   (format t "~%Loading data...")
   (let* ((challenge-file (merge-pathnames
                           (case (get-configuration experiment :current-challenge-level)
@@ -123,7 +135,7 @@
 
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
-                                                       (mode (eql :sequential)))
+                                                       (mode (eql :debug)))
   (format t "~%Loading data...")
   (let* ((challenge-file (merge-pathnames
                           (case (get-configuration experiment :current-challenge-level)
@@ -161,6 +173,27 @@
     (format t "~%Done!")
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))
+
+(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+                                                       (mode (eql :development)))
+  (format t "~%Loading evaluation data...")
+  (let* ((challenge-file (merge-pathnames
+                          (case (get-configuration experiment :current-challenge-level)
+                            (1 (get-configuration experiment :challenge-1-data-development))
+                            (2 (get-configuration experiment :challenge-2-data-development))
+                            (3 (get-configuration experiment :challenge-3-data-development)))
+                          (get-configuration experiment :challenge-files-root))))
+    
+    (with-open-file (stream challenge-file)
+      (let* ((stage-data (loop for line = (read-line stream nil)
+                                        for data = (when line (cl-json:decode-json-from-string line))
+                                        while data
+                                        collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
+        (setf (question-data experiment) stage-data)))
+    (format t "~%Done!")
+    (notify challenge-level-questions-loaded
+            (get-configuration experiment :current-challenge-level))))
+
 
 (defmethod tutor ((experiment clevr-grammar-learning-experiment))
   (find 'tutor (population experiment) :key #'role))

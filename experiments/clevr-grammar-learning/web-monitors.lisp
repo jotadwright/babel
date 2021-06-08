@@ -128,7 +128,7 @@
       (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
       (add-element `((h3) ,(format nil  "Type hierarchy nodes: ~a" num-th-nodes)))
       (add-element `((h3) ,(format nil  "Type hierarchy edges: ~a" num-th-edges)))
-      (add-element (make-html (grammar (first (interacting-agents experiment)))))
+      (add-element (make-html (grammar (first (interacting-agents experiment))) :sorted-by-score t))
       (add-element '((hr))))))
 
 (define-event-handler (show-type-hierarchy-after-n-interactions interaction-finished)

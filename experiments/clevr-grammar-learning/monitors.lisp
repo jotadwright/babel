@@ -144,11 +144,18 @@
 
 (define-monitor export-latest-grammar
                 :class 'store-monitor
-                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-latest" :type "store"))
+                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-training-latest" :type "store"))
 
 (define-event-handler (export-latest-grammar run-series-finished)
   (export-grammar (grammar (learner experiment))
                   (file-name monitor)))
+
+(define-monitor export-latest-errors
+                :class 'store-monitor
+                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "errors-training-latest" :type "store"))
+
+(define-event-handler (export-latest-errors run-series-finished)
+  #-ccl (cl-store:store (failed-question-data experiment) (file-name monitor)))
 
 
 (defun export-grammar (cxn-inventory path)
@@ -184,6 +191,7 @@
 (defun get-all-export-monitors ()
   '("export-type-hierarchy"
     "export-learner-grammar"
-    "export-latest-grammar"))
+    "export-latest-grammar"
+    "export-latest-errors"))
   
     

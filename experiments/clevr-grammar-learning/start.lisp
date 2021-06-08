@@ -25,49 +25,97 @@
     (add-element '((hr)))))
 
 
+(defun failure-analysis (error-file cxn-inventory)
+  (activate-monitor trace-fcg)
+  (loop for (utterance meaning) in error-file
+        do (comprehend utterance :gold-standard-meaning meaning :cxn-inventory cxn-inventory))
+  (deactivate-monitor trace-fcg))
+        
+
 (defun run-training ()
   (wi::reset)
   (let ((experiment-name 'training))
     (run-experiments `(
                        (,experiment-name
                         ((:determine-interacting-agents-mode . :corpus-learner)
-                         (:observation-sample-mode . :random)
+                         (:observation-sample-mode . :train)
                          (:learner-th-connected-mode . :neighbours)
+                         (:run-mode :training)
                          ))
                        )
-                     :number-of-interactions 47134
+                     :number-of-interactions 47133
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-lisp-monitors)
                                        (get-all-export-monitors)))))
 
-(defun run-evaluation (stored-grammar-path)
+(defun run-evaluation (stored-grammar)
   (wi::reset)
-  (let ((learned-grammar (cl-store:restore stored-grammar-path))
-        (experiment-name 'evaluation))
+  (let ((experiment-name 'evaluation))
     (run-experiments `(
                        (,experiment-name
                         ((:determine-interacting-agents-mode . :corpus-learner)
                          (:observation-sample-mode . :evaluation)
-                         (:evaluation-grammar . ,learned-grammar)
+                         (:evaluation-grammar . ,stored-grammar)
                          (:learner-th-connected-mode . :neighbours)
+                         (:run-mode :evaluation)
                          ))
                        )
-                     :number-of-interactions 10044
+                     :number-of-interactions 10043
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "evaluation-after-n-interactions")
                                        (get-all-lisp-monitors)
                                        (get-all-export-monitors)))))
 
+(defun run-dev-set (stored-grammar)
+  (wi::reset)
+  (let ((experiment-name 'development))
+    (run-experiments `(
+                       (,experiment-name
+                        ((:determine-interacting-agents-mode . :corpus-learner)
+                         (:observation-sample-mode . :development)
+                         (:evaluation-grammar . ,stored-grammar)
+                         (:learner-th-connected-mode . :neighbours)
+                         (:run-mode :test)
+                         ))
+                       )
+                     :number-of-interactions 10181
+                     :number-of-series 1
+                     :monitors (append '("print-a-dot-for-each-interaction"
+                                         "evaluation-after-n-interactions")
+                                       (get-all-lisp-monitors)
+                                       (get-all-export-monitors)))))
+
+#|
+(progn
+  (activate-monitor trace-fcg)
+  (formulate '((get-context ?source-1)
+               (query ?target-51 ?target-object-1 ?attribute-15)
+               (bind attribute-category ?attribute-15 material)
+               (filter ?target-2 ?target-1 ?size-2)
+               (unique ?target-object-1 ?target-2)
+               (bind shape-category ?shape-2 cube)
+               (filter ?target-1 ?source-1 ?shape-2)
+               (bind size-category ?size-2 small))
+             :gold-standard-utterance "What is the small cube made of?"
+             :cxn-inventory *saved-inventory*))
+
+|#
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; train, load the exported grammar and evaluate it.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; (run-training)
-; (defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-latest" :type "store")))
+; (defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data" "training") :name "cxn-inventory-training-latest" :type "store")))
 ; (run-evaluation *saved-inventory*)
+; (run-dev-set *saved-inventory*)
+; (defparameter *error-file* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data" "development") :name "errors-training-latest" :type "store")))
+; (failure-analysis *error-file* *saved-inventory*)
+
 
 
 
@@ -78,3 +126,20 @@
 ; (add-element (make-html *saved-inventory*))
 ; (summarize-cxn-types *saved-inventory*)
 ; (add-element (make-html (get-type-hierarchy *saved-inventory*)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TODO
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; configuraties
+; - bidirectional (trainen in formulation en comprehension)
+; - met en zonder lateral inhibition
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DONE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; - th-connected mode op path-exists (enkel bij evaluatie) levert slechtere resultaten!
+; --> 99.26 ipv 99.29% accuracy

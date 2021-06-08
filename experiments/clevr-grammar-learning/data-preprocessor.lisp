@@ -2,17 +2,20 @@
 (ql:quickload :cl-json)
 
 (defparameter *train-file*
-  (parse-namestring "/Users/u0077062/Box/CLEVR_data/CLEVR_train.csv"))
+  (parse-namestring "/Users/u0077062/OneDrive - KU Leuven/CLEVR_data/clevr-grammar-learning/source/CLEVR_train_corpus_comprehension.csv"))
 
 (defparameter *validation-file*
-  (parse-namestring "/Users/u0077062/Box/CLEVR_data/CLEVR_val.csv"))
+  (parse-namestring "/Users/u0077062/OneDrive - KU Leuven/CLEVR_data/clevr-grammar-learning/source/CLEVR_val_corpus_comprehension.csv"))
+
+(defparameter *test-file*
+  (parse-namestring "/Users/u0077062/OneDrive - KU Leuven/CLEVR_data/clevr-grammar-learning/source/CLEVR_test_corpus_comprehension.csv"))
 
 (defparameter *stage-1-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/validation/stage-1.txt"))
+  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/test/stage-1.txt"))
 (defparameter *stage-2-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/validation/stage-2.txt"))
+  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/test/stage-2.txt"))
 (defparameter *stage-3-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/validation/stage-3.txt"))
+  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/test/stage-3.txt"))
 
 
 (defparameter *stage-1-primitives*
@@ -42,7 +45,7 @@
                 while line
                 do (let* ((fields (split-sequence "," line))
                           (question (second fields))
-                          (meaning-string (first (last fields)))
+                          (meaning-string (third fields))
                           (meaning (read-from-string meaning-string))
                           (predicates (remove 'bind (mapcar #'car meaning)))
                           (len (count #\space question))
@@ -64,4 +67,4 @@
                             ;; move to stage-3 file
                             (write-line json s3))))))))))
 
-(main *validation-file*)
+(main *test-file*)

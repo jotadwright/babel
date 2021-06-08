@@ -53,68 +53,6 @@
                 :draw-y1-grid t
                 :error-bars nil)
 
-;;;; # meanings per form for lexical cxns
-(define-monitor record-lexical-meanings-per-form
-                :class 'data-recorder
-                :documentation "records avg nr of meanings per form")
-
-(define-monitor export-lexical-meanings-per-form
-                :class 'lisp-data-file-writer
-                :documentation "Exports nr of meanings per form for lexical cxns"
-                :data-sources '(record-lexical-meanings-per-form)
-                :file-name (babel-pathname :name "lexical-meanings-per-form" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(defun compute-nr-of-lexical-meanings-per-form (agent)
-  (loop with form-count = nil
-        with lexical-cxns = (find-all 'lexical (constructions-list (grammar agent))
-                                      :key #'get-cxn-type)
-        for cxn in lexical-cxns
-        for cxn-form = (list-of-strings->string
-                        (render (extract-form-predicates cxn)
-                                (get-configuration (grammar agent) :render-mode)))
-        for found = (assoc cxn-form form-count :test #'string=)
-        if found do (incf (cdr found))
-        else do (push (cons cxn-form 1) form-count)
-        finally
-        (return (average (mapcar #'cdr form-count)))))
-
-(define-event-handler (record-lexical-meanings-per-form interaction-finished)
-   (record-value monitor
-                 (compute-nr-of-lexical-meanings-per-form
-                  (learner experiment))))
-
-;;;; # forms per meaning for lexical cxns
-(define-monitor record-lexical-forms-per-meaning
-                :class 'data-recorder
-                :documentation "records avg nr of forms per meaning")
-
-(define-monitor export-lexical-forms-per-meaning
-                :class 'lisp-data-file-writer
-                :documentation "Exports nr of forms per meaning for lexical cxns"
-                :data-sources '(record-lexical-forms-per-meaning)
-                :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(defun compute-nr-of-lexical-forms-per-meaning (agent)
-  (loop with meaning-count = nil
-        with lexical-cxns = (find-all 'lexical (constructions-list (grammar agent))
-                                      :key #'get-cxn-type)
-        for cxn in lexical-cxns
-        for cxn-meaning = (last-elt (first (extract-meaning-predicates cxn)))
-        for found = (assoc cxn-meaning meaning-count)
-        if found do (incf (cdr found))
-        else do (push (cons cxn-meaning 1) meaning-count)
-        finally
-        (return (average (mapcar #'cdr meaning-count)))))
-
-(define-event-handler (record-lexical-forms-per-meaning interaction-finished)
-   (record-value monitor
-                 (compute-nr-of-lexical-forms-per-meaning
-                  (learner experiment))))
-
 ;;;; Avg cxn score
 (define-monitor record-avg-cxn-score
                 :class 'data-recorder
@@ -140,7 +78,7 @@
 (define-event-handler (record-lexicon-size-per-type interaction-finished)
   (let ((all-constructions
          (constructions-list (grammar (learner experiment)))))
-    (loop for cxn-type in '(holophrase lexical item-based)
+    (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
           for all-cxns-of-type = (find-all cxn-type all-constructions
                                            :key #'get-cxn-type)
           when all-cxns-of-type
@@ -165,7 +103,7 @@
 (define-event-handler (record-cxn-score-per-type interaction-finished)
   (let ((all-constructions
          (constructions-list (grammar (learner experiment)))))
-    (loop for cxn-type in '(holophrase lexical item-based)
+    (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
           for all-cxns-of-type = (find-all cxn-type all-constructions
                                            :key #'get-cxn-type)
           for cxn-scores = (mapcar #'cxn-score all-cxns-of-type)
@@ -217,7 +155,7 @@
   (let* ((all-constructions
           (constructions-list (grammar (learner experiment))))
          (item-based-cxns
-          (find-all 'item-based all-constructions :key #'get-cxn-type)))
+          (find-all 'gl::item-based all-constructions :key #'get-cxn-type)))
     (loop with counts = nil
           for cxn in item-based-cxns
           for nr-of-slots = (item-based-number-of-slots cxn)
@@ -245,8 +183,6 @@
 (defun get-all-lisp-monitors ()
   '("export-communicative-success"
     "export-lexicon-size"
-    "export-lexical-meanings-per-form"
-    "export-lexical-forms-per-meaning"
     "export-avg-cxn-score"
     "plot-lexicon-size-per-type"
     "plot-cxn-score-per-type"
