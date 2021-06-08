@@ -46,34 +46,84 @@ based on existing construction with sufficient overlap."
     ;; we need at least one matching lex cxn
     (when (< 0 (length matching-lex-cxns))
       (let* (
-             (var-form (form-constraints-with-variables utterance (get-configuration (cxn-inventory (first matching-lex-cxns)) :de-render-mode)))
-             (subunit-names-and-non-overlapping-form (multiple-value-list (diff-non-overlapping-form var-form matching-lex-cxns)))
-             (subunit-names (first subunit-names-and-non-overlapping-form))
-             (non-overlapping-form (second subunit-names-and-non-overlapping-form))
-             (args-and-non-overlapping-meaning (multiple-value-list (diff-non-overlapping-meaning gold-standard-meaning matching-lex-cxns)))
-             (args (first args-and-non-overlapping-meaning))
-             (non-overlapping-meaning (second args-and-non-overlapping-meaning))
-             (cxn-name-item-based-cxn (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
-             (rendered-cxn-name-list (make-cxn-placeholder-name non-overlapping-form cxn-inventory))
-             (placeholder-list (extract-placeholder-var-list rendered-cxn-name-list))
-             (th-links (create-type-hierarchy-links matching-lex-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
-             (lex-cxn-subunit-blocks (subunit-block-for-lex-cxns matching-lex-cxns subunit-names args th-links))
+             (var-form
+              (form-constraints-with-variables utterance (get-configuration (cxn-inventory (first matching-lex-cxns)) :de-render-mode)))
+             (subunit-names-and-non-overlapping-form
+              (multiple-value-list (diff-non-overlapping-form var-form matching-lex-cxns)))
+             (subunit-names
+              (first subunit-names-and-non-overlapping-form))
+             (non-overlapping-form
+              (second subunit-names-and-non-overlapping-form))
+             (args-and-non-overlapping-meaning
+              (multiple-value-list (diff-non-overlapping-meaning gold-standard-meaning matching-lex-cxns)))
+             (args
+              (first args-and-non-overlapping-meaning))
+             (non-overlapping-meaning
+              (second args-and-non-overlapping-meaning))
+             ;(existing-item-based-cxn
+             ;     (find-cxn-by-type-form-and-meaning 'item-based
+             ;                                        non-overlapping-form
+             ;                                        non-overlapping-meaning
+             ;                                        cxn-inventory))
+             (cxn-name-item-based-cxn
+              (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
+             (rendered-cxn-name-list
+              (make-cxn-placeholder-name non-overlapping-form cxn-inventory))
+             (placeholder-list
+              (extract-placeholder-var-list rendered-cxn-name-list))
+             (th-links
+              (create-type-hierarchy-links matching-lex-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
+             (lex-cxn-subunit-blocks
+              (subunit-block-for-lex-cxns matching-lex-cxns subunit-names args th-links))
+             (lex-cxn-conditional-units
+              (first lex-cxn-subunit-blocks))
+             (lex-cxn-contributing-units
+              (second lex-cxn-subunit-blocks))
              (item-based-cxn (second (multiple-value-list (eval
                                                            `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                          ((?item-based-unit
                                                                            (syn-cat (phrase-type item-based))
                                                                            (subunits ,subunit-names))
-                                                                          ,@lex-cxn-subunit-blocks
+                                                                          ,@lex-cxn-contributing-units
                                                                           <-
                                                                           (?item-based-unit
                                                                            (HASH meaning ,non-overlapping-meaning)
                                                                            --
-                                                                           (HASH form ,non-overlapping-form)))
+                                                                           (HASH form ,non-overlapping-form))
+                                                                          ,@lex-cxn-conditional-units)
                                                                          :attributes (:cxn-type item-based
                                                                                       :repair lexical->item-based)
                                                                                       
                                                                          :cxn-inventory ,(copy-object cxn-inventory)))))))
         (list item-based-cxn matching-lex-cxns th-links)))))
+#|
+(item-based-cxn
+                  (or existing-item-based-cxn
+                      (second
+                       (multiple-value-list
+                        (eval
+                         `(def-fcg-cxn ,(gl::add-cxn-suffix cxn-name-item-based-cxn)
+                                       ((?item-based-unit
+                                         (syn-cat (gl::phrase-type item-based))
+                                         (subunits ,subunit-names))
+                                        ,@lex-cxn-contributing-units
+                                        <-
+                                        (?item-based-unit
+                                         (HASH meaning ,non-overlapping-meaning)
+                                         --
+                                         (HASH form ,non-overlapping-form))
+                                        ,@lex-cxn-conditional-units)
+                                       :attributes (:cxn-type item-based
+                                                    :repair item+lex->item
+                                                    :score ,initial-cxn-score
+                                                    :added-at ,current-interaction-nr
+                                                    :last-used ,current-interaction-nr)
+                                       :cxn-inventory ,(copy-object cxn-inventory)
+                                       :cxn-set non-holophrase)))))))
+ |#
+
+
+
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-lexical->item-based-cxn) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"

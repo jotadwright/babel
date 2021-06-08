@@ -82,63 +82,72 @@
                           non-overlapping-meaning)
         (find-subset-holophrase-cxn initial-transient-structure cxn-inventory gold-standard-meaning utterance)
 
-    (when subset-holophrase-cxn
+      (when subset-holophrase-cxn
       
       
         ;;(when (and non-overlapping-form non-overlapping-meaning) ;; this check needs to happen while selecting cxns
-          (let* (
-                 (overlapping-form (set-difference superset-form non-overlapping-form :test #'irl:unify-irl-programs))
-                 (overlapping-meaning (set-difference gold-standard-meaning non-overlapping-meaning :test #'equal))
-                 (existing-lex-cxn (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
-                 (lex-cxn-name (make-cxn-name non-overlapping-form cxn-inventory))
-                 (cxn-name-item-based-cxn (make-cxn-name overlapping-form cxn-inventory :add-cxn-suffix nil))
-                 (unit-name-lex-cxn (second (find 'string non-overlapping-form :key #'first)))
-                 ;; lex-class
-                 (lex-class-lex-cxn (if existing-lex-cxn
-                                      (lex-class-cxn existing-lex-cxn)
-                                      (intern (get-base-name unit-name-lex-cxn) :type-hierarchies)))
-                 (lex-class-item-based-cxn (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :type-hierarchies)) 
-                 ;; type hierachy links
-                 (th-link (cons lex-class-item-based-cxn lex-class-lex-cxn))
-                 ;; args: 
-                 (args-lex-cxn (third (first non-overlapping-meaning))) ;; third if bind
-                 ;; unit names
-                 (lex-cxn (or existing-lex-cxn
-                              (second (multiple-value-list (eval
-                                                        `(def-fcg-cxn ,lex-cxn-name
-                                                                      ((,unit-name-lex-cxn
-                                                                        (args (,args-lex-cxn))
-                                                                        (syn-cat (phrase-type lexical)
-                                                                                 (lex-class ,lex-class-lex-cxn)))
-                                                                       <-
-                                                                       (,unit-name-lex-cxn
-                                                                        (HASH meaning ,non-overlapping-meaning)
-                                                                        --
-                                                                        (HASH form ,non-overlapping-form)))
-                                                                      :attributes (:cxn-type lexical
-                                                                                   :repair holophrase->item-based+lexical--addition
-                                                                                   :string ,(third (find 'string non-overlapping-form :key #'first)))
-                                                                      :cxn-inventory ,(copy-object cxn-inventory)))))));; trick to get the cxn without adding it to the cxn-inventory: make a copy of the cxn-inventory, make the cxn, get it, then forget about the copy
-                 (item-based-cxn (second (multiple-value-list (eval
-                                                               `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
-                                                                             ((?item-based-unit
-                                                                               (syn-cat (phrase-type item-based))
-                                                                               (subunits (,unit-name-lex-cxn)))
-                                                                              (,unit-name-lex-cxn
-                                                                               (args (,args-lex-cxn)) 
-                                                                               (syn-cat (lex-class ,lex-class-item-based-cxn)))
-                                                                              <-
-                                                                              (?item-based-unit
-                                                                               (HASH meaning ,overlapping-meaning)
-                                                                               --
-                                                                               (HASH form ,overlapping-form)))
-                                                                             :attributes (:cxn-type item-based
-                                                                                          :repair holophrase->item-based+lexical--addition)
-                                                                             :cxn-inventory ,(copy-object cxn-inventory)))))))
-            (list lex-cxn item-based-cxn th-link)
+        (let* ((overlapping-form
+                (set-difference superset-form non-overlapping-form :test #'irl:unify-irl-programs))
+               (overlapping-meaning
+                (set-difference gold-standard-meaning non-overlapping-meaning :test #'equal))
+               (existing-lex-cxn
+                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
+               (lex-cxn-name
+                (make-cxn-name non-overlapping-form cxn-inventory))
+               (cxn-name-item-based-cxn
+                (make-cxn-name overlapping-form cxn-inventory :add-cxn-suffix nil))
+               (unit-name-lex-cxn
+                (second (find 'string non-overlapping-form :key #'first)))
+               ;; lex-class
+               (lex-class-lex-cxn
+                (if existing-lex-cxn
+                  (lex-class-cxn existing-lex-cxn)
+                  (intern (get-base-name unit-name-lex-cxn) :type-hierarchies)))
+               (lex-class-item-based-cxn
+                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :type-hierarchies)) 
+               ;; type hierachy links
+               (th-link
+                (cons lex-class-item-based-cxn lex-class-lex-cxn))
+               ;; args: 
+               (args-lex-cxn
+                (third (first non-overlapping-meaning))) ;; third if bind
+               ;; unit names
+               (lex-cxn
+                (or existing-lex-cxn
+                    (second (multiple-value-list (eval
+                                                  `(def-fcg-cxn ,lex-cxn-name
+                                                                ((,unit-name-lex-cxn
+                                                                  (args (,args-lex-cxn))
+                                                                  (syn-cat (phrase-type lexical)
+                                                                           (lex-class ,lex-class-lex-cxn)))
+                                                                 <-
+                                                                 (,unit-name-lex-cxn
+                                                                  (HASH meaning ,non-overlapping-meaning)
+                                                                  --
+                                                                  (HASH form ,non-overlapping-form)))
+                                                                :attributes (:cxn-type lexical
+                                                                             :repair holophrase->item-based+lexical--addition
+                                                                             :string ,(third (find 'string non-overlapping-form :key #'first)))
+                                                                :cxn-inventory ,(copy-object cxn-inventory)))))));; trick to get the cxn without adding it to the cxn-inventory: make a copy of the cxn-inventory, make the cxn, get it, then forget about the copy
+               (item-based-cxn
+                (second (multiple-value-list (eval
+                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
+                                                            ((?item-based-unit
+                                                              (syn-cat (phrase-type item-based))
+                                                              (subunits (,unit-name-lex-cxn)))
+                                                             (,unit-name-lex-cxn
+                                                              (args (,args-lex-cxn)) 
+                                                              (syn-cat (lex-class ,lex-class-item-based-cxn)))
+                                                             <-
+                                                             (?item-based-unit
+                                                              (HASH meaning ,overlapping-meaning)
+                                                              --
+                                                              (HASH form ,overlapping-form)))
+                                                            :attributes (:cxn-type item-based
+                                                                         :repair holophrase->item-based+lexical--addition)
+                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
+          (list lex-cxn item-based-cxn th-link))))))
             
-          )))))         ;; if no subset-holophrase is found, when returns nil and the repair is skipped
-
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair holophrase->item-based+lexical--addition) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
