@@ -1,7 +1,6 @@
 (ql:quickload :clevr-grammar-learning)
 (in-package :clevr-grammar-learning)
 
-
 (defun summarize-cxn-types (cxn-inventory)
   (let ((holophrase-cxns (sort (find-all 'gl::holophrase (constructions-list cxn-inventory)
                                          :key #'get-cxn-type)  #'> :key (lambda (cxn) (attr-val cxn :score))))
