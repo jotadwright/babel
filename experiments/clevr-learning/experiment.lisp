@@ -108,6 +108,8 @@
                (3 (get-configuration experiment :challenge-3-files)))
              (get-configuration experiment :challenge-files-root)))
            #'string< :key #'namestring)))
+    (when (null all-challenge-files)
+      (warn "~%~%No data found. You probably specified the wrong path...~%~%"))
     (format t "~%Loading data...")
     (call-next-method experiment mode all-challenge-files)
     (format t "~%Done!")

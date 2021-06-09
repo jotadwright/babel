@@ -74,3 +74,15 @@
                   (args (,arg))
                   --) into conditional-units
         finally (return (values conditional-units contributing-units))))
+
+(defun form-predicates->hash-string (form-predicates)
+  (last-elt
+   (mapcar #'third
+           (find-all 'string form-predicates :key #'first))))
+
+(defun meaning-predicates->hash-meaning (meaning-predicates)
+  (loop for predicate in meaning-predicates
+        if (and (length= predicate 4)
+                (eql (first predicate) 'bind))
+        collect (fourth predicate)
+        else collect (first predicate)))
