@@ -973,17 +973,31 @@ is replaced with replacement."
     nil))
 
 (defmethod make-html-construction-title ((construction fcg-construction))
-  `((span) 
-    ,(format nil "~(~a~)" (name construction)) 
-    ,@(when (attributes construction)
-        `(" "
-          ((span :style "white-space:nowrap")
-           ,(format nil "(~{~(~a~)~^ ~})" 
-                    (loop for x in (attributes construction)
-                          when (cdr x)
-                          if (floatp (cdr x))
-                          collect (format nil "~,2f" (cdr x))
-                          else collect (mkstr (cdr x)))))))))
+  (let* ((hide-attributes-p
+          (get-configuration (visualization-configuration
+                              (cxn-inventory construction))
+                             :hide-attributes))
+         (attributes-to-show
+          (if hide-attributes-p
+            ;; only show :label and :score
+            (loop for x in (attributes construction)
+                  when (and
+                        (or (eql (car x) :label)
+                            (eql (car x) :score))
+                        (cdr x))
+                  collect x)
+            ;; show all attributes that have a non-nil value
+            (find-all-if-not #'null (attributes construction) :key #'cdr))))
+    `((span) 
+      ,(format nil "~(~a~)" (name construction)) 
+      ,@(when (attributes construction)
+          `(" "
+            ((span :style "white-space:nowrap")
+             ,(format nil "(~{~(~a~)~^ ~})" 
+                      (loop for x in attributes-to-show
+                            if (floatp (cdr x))
+                            collect (format nil "~,2f" (cdr x))
+                            else collect (mkstr (cdr x))))))))))
 
 (defmethod make-html ((construction fcg-construction)
                       &key
