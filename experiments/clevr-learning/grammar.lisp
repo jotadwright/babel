@@ -50,13 +50,13 @@
                         :replace t)
     clevr-grammar))
 
-(defun empty-cxn-set (hide-type-hierarchy cxn-supplier)
+(defun empty-cxn-set (hide-type-hierarchy cxn-supplier hashing)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions-with-type-hierarchy
                      ,grammar-name
                    :cxn-inventory ,grammar-name
-                   :hashed t
+                   :hashed ,hashing
                    :feature-types ((args sequence)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
