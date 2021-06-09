@@ -77,6 +77,11 @@
     (setf (confidence-buffer experiment)
           (cons (if successp 1 0)
                 (butlast (confidence-buffer experiment))))
+    (unless successp
+      (setf (failed-question-data experiment) (append (list (list
+                                                       (utterance (first (agents experiment)))
+                                                       (meaning (first (agents experiment)))))
+                                                      (failed-question-data experiment))))
     (when (get-configuration experiment :enable-autotelic-levels)
       (notify agent-confidence-level (average (confidence-buffer experiment))))
 

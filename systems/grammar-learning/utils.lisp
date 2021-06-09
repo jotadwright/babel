@@ -156,7 +156,7 @@
                           &key (add-cxn-suffix t))
   "Transform an utterance into a suitable construction name"
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)
-        with placeholders = '("?X" "?Y" "?Z" "?U" "?V" "?W")
+        with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
         with placeholder-index = 0
         with new-string-constraints = '()
         for order-constraint in (set-difference form string-constraints)
@@ -179,7 +179,7 @@
 
 (defun make-cxn-placeholder-name (form cxn-inventory)
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)
-        with placeholders = '("?X" "?Y" "?Z" "?U" "?V" "?W")
+        with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
         with placeholder-index = 0
         with new-string-constraints = '()
         for order-constraint in (set-difference form string-constraints)
@@ -458,15 +458,18 @@
         for lex-cxn-unit-name = (second (find 'string lex-cxn-form :key #'first))
         collect lex-cxn-unit-name))
 
-(defun subunit-block-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
+(defun subunit-blocks-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
   (loop for lex-cxn in lex-cxns
         for arg in args
         for lex-cxn-unit-name in lex-subunit-names
         for th-link in th-links
         for lex-slot-lex-class = (cdr th-link)
         collect `(,lex-cxn-unit-name
+                  (syn-cat (gl::lex-class ,lex-slot-lex-class))) into contributing-units
+        collect `(,lex-cxn-unit-name
                   (args (,arg))
-                  (syn-cat (lex-class ,lex-slot-lex-class)))))
+                  --) into conditional-units
+        finally (return (values conditional-units contributing-units))))
 
 (defun create-type-hierarchy-links (lex-cxns item-based-name placeholders
                                              &key item-based-numeric-tail)

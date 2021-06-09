@@ -40,7 +40,7 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :random) ;; random or sequential
+                   :entries '((:observation-sample-mode . :debug) ;; train, debug, evaluation, development
                               (:determine-interacting-agents-mode . :corpus-learner)
                               (:remove-cxn-on-lower-bound . nil)
                               (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
@@ -58,12 +58,12 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 50)
+;(run-series *experiment* 100)
 
 
 ;
 
-(formulate '((get-context ?source-1) (query ?target-51 ?target-object-1 ?attribute-15) (bind attribute-category ?attribute-15 material) (filter ?target-2 ?target-1 ?size-2) (unique ?target-object-1 ?target-2) (bind shape-category ?shape-2 cube) (filter ?target-1 ?source-1 ?shape-2) (bind size-category ?size-2 small)) :gold-standard-utterance "What is the small cube made of?" :cxn-inventory (grammar (first (interacting-agents *experiment*))))
+;(formulate '((get-context ?source-1) (filter ?target-2 ?target-1 ?color-6) (unique ?target-object-1 ?target-2) (bind shape-category ?shape-8 thing) (bind attribute-category ?attribute-2 shape) (filter ?target-1 ?source-1 ?shape-8) (bind color-category ?color-6 blue) (query ?target-3 ?target-object-1 ?attribute-2)) :gold-standard-utterance "What shape is the blue object?" :cxn-inventory (grammar (first (interacting-agents *experiment*))))
 
 
 #|
@@ -71,31 +71,33 @@ NOTES
 ------
 OVERAL ORIGINAL behalve in FCG apply!
 
-meerdere runs over geshufflede data met behouden grammatica mag geen verschil geven!
-
  
 ISSUES
 ------
--niets weggooien bij lateral inhibition
--en bij score berekenen de 0 scores niet meetellen
--bidirectional (formulation en comprehension)
-met en zonder lateral inhibition
-repair evo plot
-cxn type evo plot
-num type hierarchy links / comm success
+- niets weggooien bij lateral inhibition = OK, maar grammar size berekening moet 0-cxns eruitlaten, visualisatie ook (skip-0 keyword maken)
+- sorting in make-html werkt niet, maar waarom???
 
 
 TODO
 ----
-- testcase per repair
-- constructiesoortmonitor invoegen, zie code jens
-- repair monitor (zie Jens): welke repair heeft toegepast in een interactie?
 
-- item based based repairs updaten en terug invoegen
+1. monitors
+- cxns per type
+- repairs
+- th links / comm success
+
+2. test production!
+
+3. unit tests
+- testcase per repair, ook production
+
+4. item based based repairs updaten en terug invoegen
+
+5. dingen om te dubbelchecken
 - logica in lexical to item-based nakijken, dubbels gewoon skippen uit veiligheid, zie diff-non-overlapping-meaning functie in utils
-- constructiesoortmonitor invoegen: 
-- check handle fix! fix cxns en th-links moeten doorgegeven worden
-- series run duration
+
+
+
 |#
 
 

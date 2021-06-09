@@ -1162,7 +1162,8 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
 
 (defmethod make-html ((ci fcg-construction-set)
                       &key
-                      (expand-initially nil))
+                      (expand-initially nil)
+                      (sorted-by-score nil))
   (let* ((ci-id (make-id (type-of ci)))
          (element-id-1 (make-id 'construction-inventory))
 	 (element-id-2 (make-id 'construction-inventory))
@@ -1171,7 +1172,9 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
          (form-name-1 (replace-all (string (make-id "form")) "-" ""))
          (form-name-2 (replace-all (string (make-id "form")) "-" ""))
          (datalist-id (replace-all (string (make-id "datalist")) "-" ""))
-         (cxnlist (mapcar #'downcase (mapcar #'name (constructions ci))))
+         (cxnlist (mapcar #'downcase (mapcar #'name (if sorted-by-score
+                                                      (sort (constructions ci) #'> :key (lambda (cxn) (attr-val cxn :score)))
+                                                      (constructions ci)))))
 	 (title (make-html-construction-inventory-title ci))
          (outer-div
           (lambda (expanded? children)

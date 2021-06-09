@@ -51,72 +51,90 @@ based on existing construction with sufficient overlap."
       
       (when cxn
         
-        (let* ((cxn-name-item-based-cxn (make-cxn-name overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))
-               (lex-cxn-1 (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
-               (lex-cxn-2 (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
+        (let* ((cxn-name-item-based-cxn
+                (make-cxn-name overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))
+               (lex-cxn-1
+                (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
+               (lex-cxn-2
+                (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
                ;; unit names
-               (unit-name-lex-cxn-1 (second (find 'string non-overlapping-form-cxn :key #'first)))
-               (unit-name-lex-cxn-2 (second (find 'string non-overlapping-form-observation :key #'first)))
+               (unit-name-lex-cxn-1
+                (second (find 'string non-overlapping-form-cxn :key #'first)))
+               (unit-name-lex-cxn-2
+                (second (find 'string non-overlapping-form-observation :key #'first)))
                ;; args and syn-cat
-               (lex-class-lex-cxn-1 (if lex-cxn-1
-                                      (lex-class-cxn lex-cxn-1)
-                                      (intern (get-base-name unit-name-lex-cxn-1) :type-hierarchies)))
-               (lex-class-lex-cxn-2 (if lex-cxn-2
-                                      (lex-class-cxn lex-cxn-2)
-                                      (intern (get-base-name unit-name-lex-cxn-2) :type-hierarchies)))
-               (lex-class-item-based-cxn (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :type-hierarchies)) 
+               (lex-class-lex-cxn-1
+                (if lex-cxn-1
+                  (lex-class-cxn lex-cxn-1)
+                  (intern (get-base-name unit-name-lex-cxn-1) :type-hierarchies)))
+               (lex-class-lex-cxn-2
+                (if lex-cxn-2
+                  (lex-class-cxn lex-cxn-2)
+                  (intern (get-base-name unit-name-lex-cxn-2) :type-hierarchies)))
+               (lex-class-item-based-cxn
+                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :type-hierarchies)) 
                ;; Type hierachy links
-               (th-link-1 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
-               (th-link-2 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
+               (th-link-1
+                (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
+               (th-link-2
+                (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
                ;; Args
-               (args-lex-cxn-1 (third (first non-overlapping-meaning-cxn))) ;; third if bind
-               (args-lex-cxn-2 (third (first non-overlapping-meaning-observation))) ;; third if bind
+               (args-lex-cxn-1
+                (third (first non-overlapping-meaning-cxn))) ;; third if bind
+               (args-lex-cxn-2
+                (third (first non-overlapping-meaning-observation))) ;; third if bind
                
                ;; CXNs
                
-               (new-lex-cxn-1 (or lex-cxn-1 (second (multiple-value-list (eval
-                                                                          `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-cxn cxn-inventory)
-                                                                                        ((,unit-name-lex-cxn-1
-                                                                                          (args (,args-lex-cxn-1))
-                                                                                          (syn-cat (phrase-type lexical)
-                                                                                                   (lex-class ,lex-class-lex-cxn-1)))
-                                                                                         <-
-                                                                                         (,unit-name-lex-cxn-1
-                                                                                          (HASH meaning ,non-overlapping-meaning-cxn)
-                                                                                          --
-                                                                                          (HASH form ,non-overlapping-form-cxn)))
-                                                                                        :attributes (:cxn-type lexical
-                                                                                                     :repair holophrase->item-based+lexical+lexical--substitution
-                                                                                                     :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
-                                                                                        :cxn-inventory ,(copy-object cxn-inventory)))))))
-               (new-lex-cxn-2 (or lex-cxn-2 (second (multiple-value-list (eval
-                                                                          `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-observation cxn-inventory)
-                                                                                        ((,unit-name-lex-cxn-2
-                                                                                          (args (,args-lex-cxn-2))
-                                                                                          (syn-cat (phrase-type lexical)
-                                                                                                   (lex-class ,lex-class-lex-cxn-2)))
-                                                                                         <-
-                                                                                         (,unit-name-lex-cxn-2
-                                                                                          (HASH meaning ,non-overlapping-meaning-observation)
-                                                                                          --
-                                                                                          (HASH form ,non-overlapping-form-observation)))
-                                                                                        :attributes (:cxn-type lexical
-                                                                                                     :repair holophrase->item-based+lexical+lexical--substitution
-                                                                                                     :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
-                                                                                        :cxn-inventory ,(copy-object cxn-inventory)))))))
+               (new-lex-cxn-1
+                (or lex-cxn-1
+                    (second (multiple-value-list (eval
+                                                  `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-cxn cxn-inventory)
+                                                                ((,unit-name-lex-cxn-1
+                                                                  (args (,args-lex-cxn-1))
+                                                                  (syn-cat (phrase-type lexical)
+                                                                           (lex-class ,lex-class-lex-cxn-1)))
+                                                                 <-
+                                                                 (,unit-name-lex-cxn-1
+                                                                  (HASH meaning ,non-overlapping-meaning-cxn)
+                                                                  --
+                                                                  (HASH form ,non-overlapping-form-cxn)))
+                                                                :attributes (:cxn-type lexical
+                                                                             :repair holophrase->item-based+lexical+lexical--substitution
+                                                                             :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
+                                                                :cxn-inventory ,(copy-object cxn-inventory)))))))
+               (new-lex-cxn-2
+                (or lex-cxn-2
+                    (second (multiple-value-list (eval
+                                                  `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-observation cxn-inventory)
+                                                                ((,unit-name-lex-cxn-2
+                                                                  (args (,args-lex-cxn-2))
+                                                                  (syn-cat (phrase-type lexical)
+                                                                           (lex-class ,lex-class-lex-cxn-2)))
+                                                                 <-
+                                                                 (,unit-name-lex-cxn-2
+                                                                  (HASH meaning ,non-overlapping-meaning-observation)
+                                                                  --
+                                                                  (HASH form ,non-overlapping-form-observation)))
+                                                                :attributes (:cxn-type lexical
+                                                                             :repair holophrase->item-based+lexical+lexical--substitution
+                                                                             :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
+                                                                :cxn-inventory ,(copy-object cxn-inventory)))))))
                (item-based-cxn (second (multiple-value-list (eval
                                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                            ((?item-based-unit
                                                                              (syn-cat (phrase-type item-based))
                                                                              (subunits (,unit-name-lex-cxn-1)))
                                                                             (,unit-name-lex-cxn-1
-                                                                             (args (,args-lex-cxn-1))
                                                                              (syn-cat (lex-class ,lex-class-item-based-cxn)))
                                                                             <-
                                                                             (?item-based-unit
                                                                              (HASH meaning ,overlapping-meaning-cxn)
                                                                              --
-                                                                             (HASH form ,overlapping-form-cxn)))
+                                                                             (HASH form ,overlapping-form-cxn))
+                                                                            (,unit-name-lex-cxn-1
+                                                                             (args (,args-lex-cxn-1))
+                                                                             --))
                                                                            :attributes (:cxn-type item-based
                                                                                         :repair holophrase->item-based+lexical+lexical--substitution)
                                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
