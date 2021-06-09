@@ -78,7 +78,8 @@
                                         (:update-th-links . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                  (:show-categorial-network . ,(not hide-type-hierarchy)))))))
+                                                  (:show-categorial-network . ,(not hide-type-hierarchy))
+                                                  (:hide-attributes . t))))))
     cxn-inventory))
 
 (define-event lexicon-changed)
