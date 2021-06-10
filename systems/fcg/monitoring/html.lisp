@@ -54,6 +54,10 @@
                                   (:colored-paths . nil)
                                   ;; Type hierarchy:
                                   (:show-type-hierarchy . t)
+                                  ;; show/hide attributes in cxn title and cipn
+                                  ;; this will hide all attributes EXCEPT
+                                  ;; score and label
+                                  (:hide-attributes . nil)
                                   )))
 
 ;;hash table where all the nodes of the application process
@@ -959,17 +963,31 @@ div.construction > div.title { border:1px solid #008; background-color: #008;}
   (:documentation "returns some html for displaying the title of a construction"))
 
 (defmethod make-html-construction-title ((construction construction))
-  `((span) 
-    ,(format nil "~(~a~)" (name construction)) 
-    ,@(when (attributes construction)
-        `(" "
-          ((span :style "white-space:nowrap")
-           ,(format nil "(~{~(~a~)~^ ~})" 
-                    (loop for x in (attributes construction)
-                          when (cdr x)
-                          if (floatp (cdr x))
-                          collect (format nil "~,2f" (cdr x))
-                          else collect (mkstr (cdr x)))))))))
+  (let* ((hide-attributes-p
+          (get-configuration (visualization-configuration
+                              (cxn-inventory construction))
+                             :hide-attributes))
+         (attributes-to-show
+          (if hide-attributes-p
+            ;; Only show :label and :score, which are present
+            ;; in every cxn by default. Hide all other attributes.
+            (loop for x in (attributes construction)
+                  when (and (or (eql (car x) :label)
+                                (eql (car x) :score))
+                            (cdr x))
+                  collect x)
+            ;; Show all attributes that have a non-nil value
+            (find-all-if-not #'null (attributes construction) :key #'cdr))))
+    `((span) 
+      ,(format nil "~(~a~)" (name construction)) 
+      ,@(when (attributes construction)
+          `(" "
+            ((span :style "white-space:nowrap")
+             ,(format nil "(~{~(~a~)~^ ~})" 
+                      (loop for x in attributes-to-show
+                            if (floatp (cdr x))
+                            collect (format nil "~,2f" (cdr x))
+                            else collect (mkstr (cdr x))))))))))
 
 (defmethod make-html ((construction construction) &key (expand-initially t)
 		      (expand/collapse-all-id (make-id 'construction))
