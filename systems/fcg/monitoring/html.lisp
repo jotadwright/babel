@@ -1235,12 +1235,14 @@ table.car > tbody > tr > td:first-child { padding-right:15px; }
   (substitute #\space #\-
               (symbol-name (type-of construction-inventory))))
 
-(defgeneric make-html-construction-inventory-title (construction-inventory &key)
+(defgeneric make-html-construction-inventory-title (construction-inventory &key &allow-other-keys)
   (:documentation "returns some html for displaying the title of a construction set"))
 
-(defmethod make-html-construction-inventory-title ((ci construction-inventory) &key &allow-other-keys)
+(defmethod make-html-construction-inventory-title ((ci construction-inventory) &key (hide-zero-scored-cxns nil) &allow-other-keys)
   `((span) ,(get-construction-inventory-title-string ci)
-    ,(format nil " (~a)" (size ci))))
+    ,(format nil " (~a)" (if hide-zero-scored-cxns
+                           (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
+                           (size ci)))))
 
 (defgeneric make-html-construction-inventory-body (cs &key)
   (:documentation "returns some html for the body of a construction set"))
@@ -1255,10 +1257,15 @@ table.car > tbody > tr > td:first-child { padding-right:15px; }
                     :wrap-in-paragraph nil
                     :configuration configuration)))))
 
-(defmethod make-html-construction-inventory-body ((ci hashed-construction-set) &key (configuration nil))
-  (let ((configuration (or configuration (visualization-configuration ci))))
+(defmethod make-html-construction-inventory-body ((ci hashed-construction-set) &key (configuration nil) (sort-by-type-and-score nil) (hide-zero-scored-cxns nil))
+  (let ((configuration (or configuration (visualization-configuration ci)))
+        (cxns-list (if hide-zero-scored-cxns
+                     (hide-zero-scored-cxns (constructions ci))
+                     (constructions ci))))
     (html-hide-rest-of-long-list 
-     (constructions-list ci) 50
+     (if sort-by-type-and-score
+       (sort cxns-list #'> :key (lambda (cxn) (attr-val cxn :score)))
+       cxns-list) 50
      #'(lambda (construction)
          (make-html construction
                     :expand-initially nil

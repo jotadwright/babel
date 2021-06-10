@@ -47,6 +47,9 @@
     (find-all type (constructions-list (grammar agent))
               :key #'get-cxn-type)))
 
+(defun non-zero-cxn-p (cxn)
+  (> (attr-val cxn :score) 0))
+
 (defun cxn-score (cxn)
   (attr-val cxn :score))
 

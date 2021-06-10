@@ -92,6 +92,7 @@
                                                                                                  (HASH form ,form-predicates-lex-cxn)))
                                                                                                :attributes (:cxn-type lexical
                                                                                                             :repair item-based->lexical
+                                                                                                            :meaning ,(fourth (find 'bind meaning-predicates-lex-cxn :key #'first))
                                                                                                             :string ,(third (find 'string form-predicates-lex-cxn :key #'first)))
                                                                                                :cxn-inventory ,(copy-object original-cxn-inventory)))))))
                  ;; make a list of all cxns, sort them
