@@ -65,7 +65,6 @@
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
     cxn-inventory))
 
-
 (define-event lexicon-changed)
 
 (defun inc-cxn-score (cxn &key (delta 0.1) (upper-bound 1.0))

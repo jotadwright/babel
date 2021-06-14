@@ -88,6 +88,8 @@
                                                  (get-all-unit-lex-classes item-based-cxn)))
                  (th-links (when (and lex-classes-lex-cxns lex-classes-item-based-units (= (length lex-classes-lex-cxns) (length lex-classes-item-based-units)))
                              (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
+            (when (filter-by-phrase-type 'holophrase applied-cxns)
+                   (format t "Something has gone horribly wrong!"))
             (list applied-cxns th-links)))))))
 
 

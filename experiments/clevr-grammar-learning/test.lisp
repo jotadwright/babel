@@ -58,8 +58,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 100)
-
+;(run-series *experiment* 40000)
 
 ;
 
@@ -67,6 +66,13 @@
 
 
 #|
+
+QUESTIONS
+---------
+- hoe werkt de hashfunctie? waar zit de functie die gebruikt w bij opzoeken?
+- 
+
+ 
 NOTES
 ------
 OVERAL ORIGINAL behalve in FCG apply!
@@ -76,6 +82,7 @@ ISSUES
 ------
 - niets weggooien bij lateral inhibition = OK, maar grammar size berekening moet 0-cxns eruitlaten, visualisatie ook (skip-0 keyword maken)
 - sorting in make-html werkt niet, maar waarom???
+- hij komt in add-th links repair terwijl er een holophrase is!!!! maak een testcase met een holophrase, check of hij kan toepassen zonder terug in de metalayer te springen!
 
 
 TODO

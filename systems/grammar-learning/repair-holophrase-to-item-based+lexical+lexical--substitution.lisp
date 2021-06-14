@@ -101,6 +101,7 @@ based on existing construction with sufficient overlap."
                                                                   (HASH form ,non-overlapping-form-cxn)))
                                                                 :attributes (:cxn-type lexical
                                                                              :repair holophrase->item-based+lexical+lexical--substitution
+                                                                             :meaning ,(fourth (find 'bind non-overlapping-meaning-cxn :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-lex-cxn-2
@@ -118,6 +119,7 @@ based on existing construction with sufficient overlap."
                                                                   (HASH form ,non-overlapping-form-observation)))
                                                                 :attributes (:cxn-type lexical
                                                                              :repair holophrase->item-based+lexical+lexical--substitution
+                                                                             :meaning ,(fourth (find 'bind non-overlapping-meaning-observation :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (item-based-cxn (second (multiple-value-list (eval

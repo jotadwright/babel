@@ -33,7 +33,7 @@
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-lexicon-size interaction-finished)
-  (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
+  (record-value monitor (count-if #'non-zero-cxn-p (get-cxns-of-type (learner experiment) 'all))))
 
 ;;;; Gnuplot Display monitor
 (define-monitor display-metrics

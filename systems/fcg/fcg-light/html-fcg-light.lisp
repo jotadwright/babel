@@ -1174,10 +1174,23 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
       (add-element `((h4) ,(format nil (concatenate 'string "Construction " cxn-name " not found"))))))
   nil)
 
+(defun sort-cxns-list-by-type-and-score (constructions-list)
+  (let* ((cxns-list-by-type (sort constructions-list #'string> :key #'(lambda (cxn)
+                                                                             (attr-val cxn :cxn-type)))))
+    (sort cxns-list-by-type #'> :key #'(lambda (cxn) (attr-val cxn :score)))))
+
+(defun hide-zero-scored-cxns (constructions-list)
+  (loop for cxn in constructions-list
+        for score = (attr-val cxn :score)
+        for non-zero = (> score 0)
+        when non-zero
+        collect cxn))
+
 (defmethod make-html ((ci fcg-construction-set)
                       &key
                       (expand-initially nil)
-                      (sorted-by-score nil))
+                      (sort-by-type-and-score nil)
+                      (hide-zero-scored-cxns nil))
   (let* ((ci-id (make-id (type-of ci)))
          (element-id-1 (make-id 'construction-inventory))
 	 (element-id-2 (make-id 'construction-inventory))
@@ -1186,10 +1199,13 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
          (form-name-1 (replace-all (string (make-id "form")) "-" ""))
          (form-name-2 (replace-all (string (make-id "form")) "-" ""))
          (datalist-id (replace-all (string (make-id "datalist")) "-" ""))
-         (cxnlist (mapcar #'downcase (mapcar #'name (if sorted-by-score
-                                                      (sort (constructions ci) #'> :key (lambda (cxn) (attr-val cxn :score)))
-                                                      (constructions ci)))))
-	 (title (make-html-construction-inventory-title ci))
+         (constructions-list (if hide-zero-scored-cxns
+                               (hide-zero-scored-cxns (constructions ci))
+                               (constructions ci)))
+         (cxnlist (mapcar #'downcase (mapcar #'name (if sort-by-type-and-score
+                                                      (sort-cxns-list-by-type-and-score constructions-list)
+                                                      constructions-list))))
+	 (title (make-html-construction-inventory-title ci :hide-zero-scored-cxns hide-zero-scored-cxns))
          (outer-div
           (lambda (expanded? children)
             (make-div-with-menu 
@@ -1227,7 +1243,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                   ((table :class "two-col")
                    ((tbody)
                     ((tr)
-                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci)))))))))
+                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns)))))))))
             ;; non-static html
             (lambda ()
               (funcall 
@@ -1256,7 +1272,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                   ((table :class "two-col")
                    ((tbody)
                     ((tr)
-                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci)))))))))))
+                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns)))))))))))
          (expanded-version-2
           (if wi::*static-html*
             (lambda ()
@@ -1277,7 +1293,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                   ((table :class "two-col")
                    ((tbody)
                     ((tr) 
-                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci)))))))))
+                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns)))))))))
             (lambda ()
               (funcall 
                outer-div t
@@ -1311,7 +1327,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                   ((table :class "two-col")
                    ((tbody)
                     ((tr) 
-                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci))))))))))))
+                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns))))))))))))
     (store-wi-object ci ci-id)
     (make-expandable/collapsable-element 
      element-id-1 (make-id 'cs) collapsed-version
