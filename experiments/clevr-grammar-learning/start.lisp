@@ -153,25 +153,6 @@
 ; (failure-analysis *error-file* *saved-inventory*)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; plot graphs
-(create-graph-for-single-strategy
- :experiment-name "training-stage-1" :measure-names '("communicative-success" "lexicon-size")
- :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
- :xlabel "Number of games"
- :y1-label "Communicative Success"
- :y2-label "Grammar size"
- :captions '("communicative success" "grammar size")
- :open t)
-
-(create-graph-for-single-strategy
- :experiment-name "training-stage-1" :measure-names '("communicative-success" "avg-cxn-score")
- :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
- :xlabel "Number of games"
- :y1-label "Communicative Success"
- :y2-label "Average Construction Score"
- :captions '("communicative success" "average construction score")
- :open t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
