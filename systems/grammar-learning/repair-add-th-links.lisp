@@ -69,7 +69,7 @@
          (cxn-inventory (construction-inventory node))
          (orig-cxn-set (original-cxn-set cxn-inventory))
          (type-hierarchy (get-type-hierarchy cxn-inventory)))
-    (disable-meta-layer-configuration cxn-inventory)
+    (disable-meta-layer-configuration cxn-inventory) ;(fcg::unify-atom
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend utterance :cxn-inventory orig-cxn-set :gold-standard-meaning gold-standard-meaning)))
              (meaning-network (first comprehension-result))

@@ -800,20 +800,22 @@ solution."
         do (loop for unit in (remove-root-unit transient-structure)
                  for unit-name = (unit-name unit)
                  for cxn-unit-name = (car (rassoc  unit-name bindings))
-                 for cxn-unit = (find cxn-unit-name (left-pole-structure applied-cxn)
-                                      :key #'(lambda (unit) (unit-name unit :maybe-j-unit t)))
+                 for cxn-unit = (find-if #'(lambda (left-pole-unit)
+                                             (and (equal cxn-unit-name (unit-name left-pole-unit :maybe-j-unit t))
+                                                  (find 'lex-class (cdr (unit-feature-value left-pole-unit 'syn-cat t))
+                                                        :key #'first :test #'(lambda (el1 el2) (equalp (symbol-name el1) (symbol-name el2))))))
+                                         (left-pole-structure applied-cxn))
+                                      
                  when cxn-unit
                  do (let ((lex-class-cxn (second (find 'lex-class (cdr (unit-feature-value cxn-unit 'syn-cat t)) :key #'first :test #'(lambda (el1 el2) (equalp (symbol-name el1) (symbol-name el2))))))
                           (lex-class-ts (second (find 'lex-class (unit-feature-value unit 'syn-cat) :key #'first :test #'(lambda (el1 el2) (equalp (symbol-name el1) (symbol-name el2)))))))
                       (when (and lex-class-cxn lex-class-ts)
                         (cond
                          ((eql lex-class-cxn lex-class-ts))
-                         ((type-hierarchies::connected-p lex-class-cxn lex-class-ts type-hierarchy)
-                          (type-hierarchies:incf-link-weight lex-class-cxn lex-class-ts type-hierarchy 0.1)
-                          (type-hierarchies:incf-link-weight lex-class-ts lex-class-cxn type-hierarchy 0.1))
+                         ((type-hierarchies:neighbours-p lex-class-cxn lex-class-ts type-hierarchy)
+                          (type-hierarchies:incf-link-weight lex-class-cxn lex-class-ts type-hierarchy 0.1))
                          (t
-                          (type-hierarchies:add-link lex-class-cxn lex-class-ts type-hierarchy :weight 0.1)
-                          (type-hierarchies:add-link lex-class-ts lex-class-cxn type-hierarchy :weight 0.1))))))))
+                          (type-hierarchies:add-link lex-class-cxn lex-class-ts type-hierarchy :weight 0.1))))))))
 
 (defun inform-search-heuristics (solution-node processing-direction) ;;should become a method later
   "Extract useful information from the solution to inform future
