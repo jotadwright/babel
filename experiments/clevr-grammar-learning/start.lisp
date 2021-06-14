@@ -43,12 +43,29 @@
                          (:current-challenge-level . 1)
                          ))
                        )
-                     :number-of-interactions 47133
-                     :number-of-series 1
+                     :number-of-interactions 99;47133
+                     :number-of-series 2
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-lisp-monitors)
-                                       (get-all-export-monitors)))))
+                                       (get-all-export-monitors))))
+  (create-graph-for-single-strategy
+   :experiment-name "training-stage-1" :measure-names '("communicative-success" "lexicon-size")
+   :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
+   :xlabel "Number of games"
+   :y1-label "Communicative Success"
+   :y2-label "Grammar size"
+   :captions '("communicative success" "grammar size")
+   :open t)
+
+  (create-graph-for-single-strategy
+   :experiment-name "training-stage-1" :measure-names '("communicative-success" "avg-cxn-score")
+   :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
+   :xlabel "Number of games"
+   :y1-label "Communicative Success"
+   :y2-label "Average Construction Score"
+   :captions '("communicative success" "average construction score")
+   :open t))
 
 (defun run-training-stage-2 ()
   (wi::reset)
@@ -136,6 +153,25 @@
 ; (failure-analysis *error-file* *saved-inventory*)
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; plot graphs
+(create-graph-for-single-strategy
+ :experiment-name "training-stage-1" :measure-names '("communicative-success" "lexicon-size")
+ :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
+ :xlabel "Number of games"
+ :y1-label "Communicative Success"
+ :y2-label "Grammar size"
+ :captions '("communicative success" "grammar size")
+ :open t)
+
+(create-graph-for-single-strategy
+ :experiment-name "training-stage-1" :measure-names '("communicative-success" "avg-cxn-score")
+ :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
+ :xlabel "Number of games"
+ :y1-label "Communicative Success"
+ :y2-label "Average Construction Score"
+ :captions '("communicative success" "average construction score")
+ :open t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

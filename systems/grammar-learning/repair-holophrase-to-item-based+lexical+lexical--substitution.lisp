@@ -138,7 +138,14 @@ based on existing construction with sufficient overlap."
                                                                              (args (,args-lex-cxn-1))
                                                                              --))
                                                                            :attributes (:cxn-type item-based
-                                                                                        :repair holophrase->item-based+lexical+lexical--substitution)
+                                                                                        :repair holophrase->item-based+lexical+lexical--substitution
+                                                                                        :meaning ,(loop for predicate in overlapping-meaning-cxn
+                                                                                                        unless (or
+                                                                                                                (equal (first predicate) 'get-context)
+                                                                                                                (equal (first predicate) 'bind))
+                                                                                                        return (first predicate))
+                                                                                        :string ,(third (find 'string overlapping-form-cxn :key #'first)))
+                                                                           
                                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
           (list new-lex-cxn-1 new-lex-cxn-2 item-based-cxn
                 th-link-1 th-link-2 (cons (cdr th-link-1) (car th-link-1))

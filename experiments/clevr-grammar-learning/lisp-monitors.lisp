@@ -75,7 +75,7 @@
                 :class 'alist-recorder
                 :average-window 1)
 
-(define-event-handler (record-lexicon-size-per-type interaction-finished)
+(defun debug-record-lexicon-size-per-type (experiment monitor)
   (let ((all-constructions
          (constructions-list (grammar (learner experiment)))))
     (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
@@ -83,6 +83,9 @@
                                            :key #'get-cxn-type)
           when all-cxns-of-type
           do (set-value-for-symbol monitor cxn-type (length all-cxns-of-type)))))
+
+(define-event-handler (record-lexicon-size-per-type interaction-finished)
+  (debug-record-lexicon-size-per-type experiment monitor))
 
 (define-monitor plot-lexicon-size-per-type
     :class 'alist-gnuplot-graphic-generator

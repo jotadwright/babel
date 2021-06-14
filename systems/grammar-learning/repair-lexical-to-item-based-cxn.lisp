@@ -92,38 +92,16 @@ based on existing construction with sufficient overlap."
                                                                            (HASH form ,non-overlapping-form))
                                                                           ,@lex-cxn-conditional-units)
                                                                          :attributes (:cxn-type item-based
-                                                                                      :repair lexical->item-based)
+                                                                                      :repair lexical->item-based
+                                                                                      :meaning ,(loop for predicate in non-overlapping-meaning
+                                                                                         unless (or
+                                                                                                 (equal (first predicate) 'get-context)
+                                                                                                 (equal (first predicate) 'bind))
+                                                                                         return (first predicate))
+                                                                         :string ,(third (find 'string non-overlapping-form :key #'first)))
                                                                                       
                                                                          :cxn-inventory ,(copy-object cxn-inventory)))))))
         (list item-based-cxn matching-lex-cxns th-links)))))
-#|
-(item-based-cxn
-                  (or existing-item-based-cxn
-                      (second
-                       (multiple-value-list
-                        (eval
-                         `(def-fcg-cxn ,(gl::add-cxn-suffix cxn-name-item-based-cxn)
-                                       ((?item-based-unit
-                                         (syn-cat (gl::phrase-type item-based))
-                                         (subunits ,subunit-names))
-                                        ,@lex-cxn-contributing-units
-                                        <-
-                                        (?item-based-unit
-                                         (HASH meaning ,non-overlapping-meaning)
-                                         --
-                                         (HASH form ,non-overlapping-form))
-                                        ,@lex-cxn-conditional-units)
-                                       :attributes (:cxn-type item-based
-                                                    :repair item+lex->item
-                                                    :score ,initial-cxn-score
-                                                    :added-at ,current-interaction-nr
-                                                    :last-used ,current-interaction-nr)
-                                       :cxn-inventory ,(copy-object cxn-inventory)
-                                       :cxn-set non-holophrase)))))))
- |#
-
-
-
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-lexical->item-based-cxn) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"

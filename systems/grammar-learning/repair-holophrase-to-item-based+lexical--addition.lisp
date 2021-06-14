@@ -147,7 +147,13 @@
                                                               (args (,args-lex-cxn))
                                                               --))
                                                             :attributes (:cxn-type item-based
-                                                                         :repair holophrase->item-based+lexical--addition)
+                                                                         :repair holophrase->item-based+lexical--addition
+                                                                         :meaning ,(loop for predicate in overlapping-meaning
+                                                                                         unless (or
+                                                                                                 (equal (first predicate) 'get-context)
+                                                                                                 (equal (first predicate) 'bind))
+                                                                                         return (first predicate))
+                                                                         :string ,(third (find 'string overlapping-form :key #'first)))
                                                             :cxn-inventory ,(copy-object cxn-inventory)))))))
           (list lex-cxn item-based-cxn th-link))))))
             
