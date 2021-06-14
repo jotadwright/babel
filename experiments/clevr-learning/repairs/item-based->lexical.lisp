@@ -76,24 +76,27 @@
                           (second
                            (multiple-value-list
                             (eval
-                             `(def-fcg-cxn ,cxn-name
-                                           ((,unit-name
-                                             (syn-cat (gl::phrase-type lexical)
-                                                      (gl::lex-class ,lex-class))
-                                             (args ,args))
-                                            <-
-                                            (,unit-name
-                                             (HASH meaning ,meaning-predicates-lex-cxn)
-                                             --
-                                             (HASH form ,form-predicates-lex-cxn)))
-                                           :attributes (:score ,initial-cxn-score
-                                                        :cxn-type lexical
-                                                        :repair item->lex
-                                                        :added-at ,current-interaction-nr
-                                                        :last-used ,current-interaction-nr
-                                                        :string ,(third (find 'string form-predicates-lex-cxn :key #'first)))
-                                           :cxn-inventory ,(copy-object cxn-inventory)
-                                           :cxn-set non-holophrase))))))
+                             `(def-fcg-cxn
+                               ,cxn-name
+                               ((,unit-name
+                                 (syn-cat (gl::phrase-type lexical)
+                                          (gl::lex-class ,lex-class))
+                                 (args ,args))
+                                <-
+                                (,unit-name
+                                 (HASH meaning ,meaning-predicates-lex-cxn)
+                                 --
+                                 (HASH form ,form-predicates-lex-cxn)))
+                               :attributes (:score ,initial-cxn-score
+                                            :cxn-type lexical
+                                            :repair item->lex
+                                            :added-at ,current-interaction-nr
+                                            :last-used ,current-interaction-nr
+                                            ;:string ,(form-predicates->hash-string form-predicates-lex-cxn)
+                                            ;:meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn)
+                                            )
+                               :cxn-inventory ,(copy-object cxn-inventory)
+                               :cxn-set non-holophrase))))))
                      ;; make a list of all cxns, sort them
                      (lex-cxns
                       (gl::sort-cxns-by-form-string
