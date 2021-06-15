@@ -35,6 +35,22 @@
 (define-event-handler (record-lexicon-size interaction-finished)
   (record-value monitor (count-if #'non-zero-cxn-p (get-cxns-of-type (learner experiment) 'all))))
 
+;;;; Type hierarchy size
+(define-monitor record-th-size
+                :class 'data-recorder
+                :documentation "records the type hierarchy size.")
+
+(define-monitor export-th-size
+                :class 'lisp-data-file-writer
+                :documentation "Exports type hierarchy size"
+                :data-sources '(record-th-size)
+                :file-name (babel-pathname :name "th-size" :type "lisp"
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-th-size interaction-finished)
+  (record-value monitor (graph-utils::edge-count (graph-utils::graph (get-type-hierarchy (grammar (learner experiment)))))))
+
 ;;;; Gnuplot Display monitor
 (define-monitor display-metrics
                 :class 'gnuplot-display
@@ -269,6 +285,7 @@
   '("export-communicative-success"
     "export-lexicon-size"
     "export-avg-cxn-score"
+    "export-th-size"
     "plot-lexicon-size-per-type"
     "plot-cxn-score-per-type"
     "plot-cxn-usage-per-type"
