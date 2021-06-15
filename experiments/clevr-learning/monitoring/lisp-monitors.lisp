@@ -289,6 +289,52 @@
   (record-value monitor (float
                          (/ (irl::node-counter composer)
                             (irl::node-depth (irl::node solution))))))
+
+
+;;;; Number of nodes in the type hierarchy
+(define-monitor record-number-of-nodes-in-th
+                :class 'data-recorder
+                :average-window 1
+                :documentation "records the number of nodes in the type hierarchy")
+
+(define-monitor export-number-of-nodes-in-th
+                :class 'lisp-data-file-writer
+                :documentation "exports the number of nodes in the type hierarchy"
+                :data-sources '(record-number-of-nodes-in-th)
+                :file-name (babel-pathname :name "number-of-th-nodes" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-number-of-nodes-in-th interaction-finished)
+  (record-value monitor
+                (graph-utils::node-count
+                 (type-hierarchies::graph
+                  (get-type-hierarchy
+                   (grammar
+                    (learner experiment)))))))
+
+
+;;;; Number of edges in the type hierarchy
+(define-monitor record-number-of-edges-in-th
+                :class 'data-recorder
+                :average-window 1
+                :documentation "records the number of edgesd in the type hierarchy")
+
+(define-monitor export-number-of-edges-in-th
+                :class 'lisp-data-file-writer
+                :documentation "exports the number of edges in the type hierarchy"
+                :data-sources '(record-number-of-edges-in-th)
+                :file-name (babel-pathname :name "number-of-th-edges" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-number-of-edges-in-th interaction-finished)
+  (record-value monitor
+                (graph-utils::edge-count
+                 (type-hierarchies::graph
+                  (get-type-hierarchy
+                   (grammar
+                    (learner experiment)))))))
                            
 
 
@@ -312,4 +358,6 @@
     ;"export-unseen-questions"
     ;"export-number-of-chunks"
     "export-composer-search-space-size"
+    "export-number-of-nodes-in-th"
+    "export-number-of-edges-in-th"
     ))
