@@ -33,20 +33,20 @@
          (gold-standard-meaning (cdr interaction-data)))
     (values utterance gold-standard-meaning)))
 
+
 (defun determine-communicative-success (cipn)
+  (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
-    (when (and
-           (find 'SUCCEEDED (statuses cipn) :test #'string=) ;; only used to test in evaluation mode, without meta layer
-           (or
-            (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
-            (find 'add-th-links node-statuses :test #'string=))
-           t))))
+    (when (or
+           (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
+           (find 'add-th-links node-statuses :test #'string=))
+      t)))
 
 
 (defun get-last-repair-symbol (cipn)
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (if (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
-      "." ; return a dot     
+      (if (determine-communicative-success cipn) "." "x") ; return a dot or x in evaluation mode
       (cond ((find 'nothing->holophrase node-statuses :test #'string=) "h")
             ((find 'repair-lexical->item-based-cxn node-statuses :test #'string=) "i")
             ((find 'item-based->lexical node-statuses :test #'string=) "l")

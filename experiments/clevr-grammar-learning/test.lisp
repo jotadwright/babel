@@ -86,7 +86,7 @@ TODO
 - nullen niet meetellen in avg cxn score
 -2 epochs: plak de data 2x aan elkaar (geshuffeld)
 - 10 series
-- parallel batch
+- run parallel batch
 
 - stage 1 en dan stage 2 met dezelfde grammatica
 - stage 2 loopt vast!

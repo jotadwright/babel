@@ -44,7 +44,7 @@
                          ))
                        )
                      :number-of-interactions 47133
-                     :number-of-series 2
+                     :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-lisp-monitors)
@@ -57,16 +57,7 @@
    :y2-label "# Constructions"
    :captions '("communicative success" "grammar size")
    :open t)
-#|
-  (create-graph-for-single-strategy
-   :experiment-name "training-stage-1" :measure-names '("communicative-success" "avg-cxn-score")
-   :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
-   :xlabel "# Observations"
-   :y1-label "Communicative Success"
-   :y2-label "Average Construction Score"
-   :captions '("communicative success" "average construction score")
-   :open t)
-|#
+
   (create-graph-for-single-strategy
    :experiment-name "training-stage-1" :measure-names '("communicative-success" "th-size")
    :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
@@ -103,7 +94,7 @@
                         ((:determine-interacting-agents-mode . :corpus-learner)
                          (:observation-sample-mode . :evaluation)
                          (:evaluation-grammar . ,stored-grammar)
-                         (:learner-th-connected-mode . :neighbours)
+                         (:learner-th-connected-mode . :path-exists)
                          (:run-mode :evaluation)
                          ))
                        )
@@ -156,7 +147,7 @@
 
 ; (run-training)
 ;(run-training-stage-2)
-; (defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data" "training") :name "cxn-inventory-training-latest" :type "store")))
+; (defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data" "mac-pro-stage-1") :name "cxn-inventory-training-latest" :type "store")))
 ; (run-evaluation *saved-inventory*)
 ; (run-dev-set *saved-inventory*)
 ; (defparameter *error-file* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data" "development") :name "errors-training-latest" :type "store")))
