@@ -100,7 +100,8 @@
   (when (get-configuration experiment :evaluation-grammar)
     (setf (grammar (first (agents experiment))) (get-configuration experiment :evaluation-grammar))
     (set-configuration (grammar (first (agents experiment))) :update-th-links nil)
-    (set-configuration (grammar (first (agents experiment))) :use-meta-layer nil)
+    ;(set-configuration (grammar (first (agents experiment))) :use-meta-layer nil)
+    ;(set-configuration (grammar (first (agents experiment))) :th-connected-mode :path-exists)
     (set-configuration (grammar (first (agents experiment))) :consolidate-repairs nil))
   
   ;; fill the confidence buffer with zeros
@@ -128,7 +129,9 @@
                                         for data = (when line (cl-json:decode-json-from-string line))
                                         while data
                                         collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal))))))
-        (setf (question-data experiment) stage-data)))
+        (setf (question-data experiment) (append
+                                          stage-data ;; 2 epochs
+                                          (shuffle stage-data)))))
     (format t "~%Done!")
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))
