@@ -166,8 +166,9 @@
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
 
-    (unless successp
-      (format nil "break here"))
+    ;; useful for debugging
+    ;(unless successp
+    ;  (format nil "break here"))
 
     
     ;; record the success of the current question
