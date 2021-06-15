@@ -327,9 +327,10 @@
     (format stream "~cplot " #\linefeed)
     (setf data
           (remove-if #'(lambda (source)
-                         (< (average (remove nil (second source))) (display-threshold monitor)))
+                         (< (average (remove nil (second source)))
+                            (display-threshold monitor)))
                      data))
-    
+
     (loop for source in data 
           for source-number from 0
           for color = (nth (mod source-number (length (colors monitor))) (colors monitor))

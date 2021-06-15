@@ -186,7 +186,12 @@
               error-bars
               (> (length source) 1)
               (> i 0) (= (mod i error-bar-distance) 0)
-              (> (length values) 1))
+              (>= (length values) 1))
+    ;; alist monitor was not creating plots for single series
+    ;; because the format strings that are send to gnuplot EXPECT
+    ;; error bar information. Instead of changing those format strings
+    ;; (too complicated), error bars are always created even when
+    ;; only a single series is ran...
     collect
     (cond ((eq error-bars :min-max)
            (list (/ i divide-indices-by) average
