@@ -4,13 +4,10 @@
 
 ;;;; Communicative success             
 (define-monitor record-communicative-success
-                :class 'data-recorder
-                :average-window 100
-                :documentation "records the game outcome of each game (1 or 0).")
+                :class 'data-recorder :average-window 100)
 
 (define-monitor export-communicative-success
                 :class 'lisp-data-file-writer
-                :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
@@ -26,7 +23,6 @@
 
 (define-monitor export-lexicon-size
                 :class 'lisp-data-file-writer
-                :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
                 :file-name (babel-pathname :name "lexicon-size" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
@@ -38,7 +34,6 @@
 ;;;; Gnuplot Display monitor
 (define-monitor display-metrics
                 :class 'gnuplot-display
-                :documentation "Plots the communicative success."
                 :data-sources '((average record-communicative-success)
                                 (average record-lexicon-size))
                 :update-interval 100
@@ -55,12 +50,10 @@
 
 ;;;; # meanings per form for lexical cxns
 (define-monitor record-lexical-meanings-per-form
-                :class 'data-recorder
-                :documentation "records avg nr of meanings per form")
+                :class 'data-recorder)
 
 (define-monitor export-lexical-meanings-per-form
                 :class 'lisp-data-file-writer
-                :documentation "Exports nr of meanings per form for lexical cxns"
                 :data-sources '(record-lexical-meanings-per-form)
                 :file-name (babel-pathname :name "lexical-meanings-per-form" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
@@ -87,12 +80,10 @@
 
 ;;;; # forms per meaning for lexical cxns
 (define-monitor record-lexical-forms-per-meaning
-                :class 'data-recorder
-                :documentation "records avg nr of forms per meaning")
+                :class 'data-recorder)
 
 (define-monitor export-lexical-forms-per-meaning
                 :class 'lisp-data-file-writer
-                :documentation "Exports nr of forms per meaning for lexical cxns"
                 :data-sources '(record-lexical-forms-per-meaning)
                 :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
@@ -117,13 +108,10 @@
 
 ;;;; Avg cxn score
 (define-monitor record-avg-cxn-score
-                :class 'data-recorder
-                :average-window 100
-                :documentation "record the avg cxn score")
+                :class 'data-recorder :average-window 100)
 
 (define-monitor export-avg-cxn-score
                 :class 'lisp-data-file-writer
-                :documentation "exports avg cxn score"
                 :data-sources '((average record-avg-cxn-score))
                 :file-name (babel-pathname :name "avg-cxn-score" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
@@ -133,6 +121,55 @@
   (record-value monitor (average (mapcar #'cxn-score (get-cxns-of-type (learner experiment) 'all)))))
 
 ;;;; lexicon size per cxn type (alist monitor)
+(define-monitor record-number-of-holophrase-cxns
+                :class 'data-recorder)
+
+(define-monitor export-number-of-holophrase-cxns
+                :class 'lisp-data-file-writer
+                :data-sources '(record-number-of-holophrase-cxns)
+                :file-name (babel-pathname :name "number-of-holophrase-cxns" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-number-of-holophrase-cxns interaction-finished)
+  (record-value
+   monitor
+   (count 'holophrase (constructions-list (grammar (learner experiment)))
+          :key #'get-cxn-type)))
+
+(define-monitor record-number-of-item-based-cxns
+                :class 'data-recorder)
+
+(define-monitor export-number-of-item-based-cxns
+                :class 'lisp-data-file-writer
+                :data-sources '(record-number-of-item-based-cxns)
+                :file-name (babel-pathname :name "number-of-item-based-cxns" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-number-of-item-based-cxns interaction-finished)
+  (record-value
+   monitor
+   (count 'item-based (constructions-list (grammar (learner experiment)))
+          :key #'get-cxn-type)))
+
+(define-monitor record-number-of-lexical-cxns
+                :class 'data-recorder)
+
+(define-monitor export-number-of-lexical-cxns
+                :class 'lisp-data-file-writer
+                :data-sources '(record-number-of-lexical-cxns)
+                :file-name (babel-pathname :name "number-of-lexical-cxns" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-number-of-lexical-cxns interaction-finished)
+  (record-value
+   monitor
+   (count 'item-based (constructions-list (grammar (learner experiment)))
+          :key #'get-cxn-type)))
+
+#|
 (define-monitor record-lexicon-size-per-type
                 :class 'alist-recorder
                 :average-window 1)
@@ -156,8 +193,64 @@
                                :directory '("experiments" "clevr-learning" "graphs"))
     :graphic-type "pdf" :error-bars '(:percentile 5 95)
     :add-time-and-experiment-to-file-name nil)
+|#
 
 ;;;; avg cxn score per cxn type (alist monitor)
+(define-monitor record-avg-holophrase-cxn-score
+                :class 'data-recorder :average-window 100)
+
+(define-monitor export-avg-holophrase-cxn-score
+                :class 'lisp-data-file-writer
+                :data-sources '((average record-avg-holophrase-cxn-score))
+                :file-name (babel-pathname :name "avg-holophrase-cxn-score" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-avg-holophrase-cxn-score interaction-finished)
+  (record-value
+   monitor
+   (average
+    (mapcar #'cxn-score
+            (find-all 'holophrase (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)))))
+
+(define-monitor record-avg-item-based-cxn-score
+                :class 'data-recorder :average-window 100)
+
+(define-monitor export-avg-item-based-cxn-score
+                :class 'lisp-data-file-writer
+                :data-sources '((average record-avg-item-based-cxn-score))
+                :file-name (babel-pathname :name "avg-item-based-cxn-score" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-avg-item-based-cxn-score interaction-finished)
+  (record-value
+   monitor
+   (average
+    (mapcar #'cxn-score
+            (find-all 'item-based (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)))))
+
+(define-monitor record-avg-lexical-cxn-score
+                :class 'data-recorder :average-window 100)
+
+(define-monitor export-avg-lexical-cxn-score
+                :class 'lisp-data-file-writer
+                :data-sources '((average record-avg-lexical-cxn-score))
+                :file-name (babel-pathname :name "avg-lexical-cxn-score" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-avg-lexical-cxn-score interaction-finished)
+  (record-value
+   monitor
+   (average
+    (mapcar #'cxn-score
+            (find-all 'lexical (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)))))
+
+#|
 (define-monitor record-cxn-score-per-type
                 :class 'alist-recorder
                 :average-window 100)
@@ -183,32 +276,112 @@
                                :directory '("experiments" "clevr-learning" "graphs"))
     :graphic-type "pdf" :error-bars '(:percentile 5 95)
     :add-time-and-experiment-to-file-name nil)
-
-;; cxn usage per type (alist monitor)
-(define-monitor record-cxn-usage-per-type
-                :class 'alist-recorder
-                :average-window 100)
-
-(define-event-handler (record-cxn-usage-per-type constructions-chosen)
-  (if (find 'holophrase constructions :key #'get-cxn-type)
-    (progn (set-value-for-symbol monitor 'holophrase 1)
-      (set-value-for-symbol monitor 'item-based+lexical 0))
-    (progn (set-value-for-symbol monitor 'holophrase 0)
-      (set-value-for-symbol monitor 'item-based+lexical 1))))
-  
-(define-monitor plot-cxn-usage-per-type
-        :class 'alist-gnuplot-graphic-generator
-        :recorder 'record-cxn-usage-per-type
-        :draw-y-grid t
-        :y-min 0 :y-max 1
-        :y-label "Usage"
-        :x-label "Total number of interactions"
-        :file-name (babel-pathname :name "cxn-usage-per-type" :type "pdf"
-                                   :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf" :error-bars '(:percentile 5 95)
-        :add-time-and-experiment-to-file-name nil)
+|#
 
 ;; nr of item-based cxns with slots (alist monitor)
+(define-monitor record-num-item-based-1
+                :class 'data-recorder)
+
+(define-monitor export-num-item-based-1
+                :class 'lisp-data-file-writer
+                :data-sources '(record-num-item-based-1)
+                :file-name (babel-pathname :name "num-item-based-1" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-num-item-based-1 interaction-finished)
+  (record-value
+   monitor
+   (count 1 (find-all 'item-based (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)
+          :key #'item-based-number-of-slots :test #'=)))
+
+(define-monitor record-num-item-based-2
+                :class 'data-recorder)
+
+(define-monitor export-num-item-based-2
+                :class 'lisp-data-file-writer
+                :data-sources '(record-num-item-based-2)
+                :file-name (babel-pathname :name "num-item-based-2" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-num-item-based-2 interaction-finished)
+  (record-value
+   monitor
+   (count 2 (find-all 'item-based (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)
+          :key #'item-based-number-of-slots :test #'=)))
+
+(define-monitor record-num-item-based-3
+                :class 'data-recorder)
+
+(define-monitor export-num-item-based-3
+                :class 'lisp-data-file-writer
+                :data-sources '(record-num-item-based-3)
+                :file-name (babel-pathname :name "num-item-based-3" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-num-item-based-3 interaction-finished)
+  (record-value
+   monitor
+   (count 3 (find-all 'item-based (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)
+          :key #'item-based-number-of-slots :test #'=)))
+
+(define-monitor record-num-item-based-4
+                :class 'data-recorder)
+
+(define-monitor export-num-item-based-4
+                :class 'lisp-data-file-writer
+                :data-sources '(record-num-item-based-4)
+                :file-name (babel-pathname :name "num-item-based-4" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-num-item-based-4 interaction-finished)
+  (record-value
+   monitor
+   (count 4 (find-all 'item-based (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)
+          :key #'item-based-number-of-slots :test #'=)))
+
+(define-monitor record-num-item-based-5
+                :class 'data-recorder)
+
+(define-monitor export-num-item-based-5
+                :class 'lisp-data-file-writer
+                :data-sources '(record-num-item-based-5)
+                :file-name (babel-pathname :name "num-item-based-5" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-num-item-based-5 interaction-finished)
+  (record-value
+   monitor
+   (count 5 (find-all 'item-based (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)
+          :key #'item-based-number-of-slots :test #'=)))
+
+(define-monitor record-num-item-based-6
+                :class 'data-recorder)
+
+(define-monitor export-num-item-based-6
+                :class 'lisp-data-file-writer
+                :data-sources '(record-num-item-based-6)
+                :file-name (babel-pathname :name "num-item-based-6" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-num-item-based-6 interaction-finished)
+  (record-value
+   monitor
+   (count 6 (find-all 'item-based (constructions-list (grammar (learner experiment)))
+                      :key #'get-cxn-type)
+          :key #'item-based-number-of-slots :test #'=)))
+
+#|
 (define-monitor record-nr-of-slots
                 :class 'alist-recorder
                 :average-window 1)
@@ -238,6 +411,7 @@
                                    :directory '("experiments" "clevr-learning" "graphs"))
         :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
+|#
 
 ;;;; number of unseen questions       
 (define-monitor record-unseen-questions
@@ -337,27 +511,27 @@
                     (learner experiment)))))))
                            
 
-
-
-
-
-
-
-
 ;; utilty function to get all of them
 (defun get-all-lisp-monitors ()
   '("export-communicative-success"
     "export-lexicon-size"
-    ;"export-lexical-meanings-per-form"
-    ;"export-lexical-forms-per-meaning"
+    "export-lexical-meanings-per-form"
+    "export-lexical-forms-per-meaning"
     "export-avg-cxn-score"
-    "plot-lexicon-size-per-type"
-    "plot-cxn-score-per-type"
-    ;"plot-cxn-usage-per-type"
-    "plot-nr-of-slots"
     ;"export-unseen-questions"
     ;"export-number-of-chunks"
     "export-composer-search-space-size"
     "export-number-of-nodes-in-th"
     "export-number-of-edges-in-th"
-    ))
+    "export-number-of-holophrase-cxns"
+    "export-number-of-item-based-cxns"
+    "export-number-of-lexical-cxns"
+    "export-avg-holophrase-cxn-score"
+    "export-avg-item-based-cxn-score"
+    "export-avg-lexical-cxn-score"
+    "export-num-item-based-1"
+    "export-num-item-based-2"
+    "export-num-item-based-3"
+    "export-num-item-based-4"
+    "export-num-item-based-5"
+    "export-num-item-based-6"))
