@@ -1262,7 +1262,7 @@ table.car > tbody > tr > td:first-child { padding-right:15px; }
                            (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
                            (size ci)))))
 
-(defgeneric make-html-construction-inventory-body (cs &key)
+(defgeneric make-html-construction-inventory-body (cs &key &allow-other-keys)
   (:documentation "returns some html for the body of a construction set"))
 
 (defmethod make-html-construction-inventory-body ((ci construction-inventory) &key (configuration nil))

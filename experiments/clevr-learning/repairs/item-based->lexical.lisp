@@ -92,9 +92,8 @@
                                             :repair item->lex
                                             :added-at ,current-interaction-nr
                                             :last-used ,current-interaction-nr
-                                            ;:string ,(form-predicates->hash-string form-predicates-lex-cxn)
-                                            ;:meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn)
-                                            )
+                                            :string ,(form-predicates->hash-string form-predicates-lex-cxn)
+                                            :meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn))
                                :cxn-inventory ,(copy-object cxn-inventory)
                                :cxn-set non-holophrase))))))
                      ;; make a list of all cxns, sort them

@@ -15,7 +15,7 @@
 (defmethod run-learner-hearer-task (agent)
   (let* ((diagnostics
           (loop for diagnostic in '(diagnose-parsing-result
-                                    diagnose-aligment-result)
+                                    diagnose-hearer-aligment-result)
                 collect (make-instance diagnostic)))
          (repairs
           (loop for repair in '(repair-add-th-links
@@ -25,7 +25,7 @@
                                 repair-holophrase->item-based-addition
                                 repair-holophrase->item-based-deletion
                                 repair-item-based+lexical->item-based
-                                repair-make-hypotheses
+                                repair-item-based->hypotheses
                                 repair-make-holophrase-cxn)
                 collect (make-instance repair)))
          (task
@@ -120,7 +120,7 @@
                                 repair-holophrase->item-based-addition
                                 repair-holophrase->item-based-deletion
                                 repair-item-based+lexical->item-based
-                                speaker-repair)
+                                repair-make-holophrase-cxn)
                 collect (make-instance repair)))
          (task
           (make-instance 'learner-alignment-task

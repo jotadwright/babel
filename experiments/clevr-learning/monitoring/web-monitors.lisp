@@ -203,10 +203,10 @@
    `((div) ,(s-dot->svg
              (new-th-links->s-dot th new-links)))))
 
-(define-event-handler (trace-interactions-in-wi make-hypotheses-repair-started)
+(define-event-handler (trace-interactions-in-wi item-based->hypotheses-repair-started)
   (add-element '((h2) "Making hypotheses")))
 
-(define-event-handler (trace-interactions-in-wi make-hypotheses-new-cxns-and-th-links)
+(define-event-handler (trace-interactions-in-wi item-based->hypotheses-new-cxns-and-th-links)
   (add-element '((h3) "New constructions are created:"))
   (loop for cxn in new-cxns
         do (add-element (make-html cxn)))

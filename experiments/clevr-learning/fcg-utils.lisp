@@ -20,6 +20,9 @@
 (defun get-cxn-chunk (cxn)
   (attr-val cxn :chunk))
 
+(defun cxn-score (cxn)
+  (attr-val cxn :score))
+
 (defun item-based-number-of-slots (cxn)
   (when (eql (get-cxn-type cxn) 'item-based)
     (1- (length (contributing-part cxn)))))
@@ -52,9 +55,6 @@
     (find-all type (constructions-list (grammar agent))
               :key #'get-cxn-type)))
 
-(defun cxn-score (cxn)
-  (attr-val cxn :score))
-
 (defun find-cxn-by-type-form-and-meaning (type form meaning cxn-inventory)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (find-all type (constructions-list cxn-inventory) :key #'get-cxn-type)
@@ -76,13 +76,17 @@
         finally (return (values conditional-units contributing-units))))
 
 (defun form-predicates->hash-string (form-predicates)
-  (last-elt
-   (mapcar #'third
-           (find-all 'string form-predicates :key #'first))))
+  ;; the last string predicate
+  (third
+   (last-elt
+    (find-all 'string form-predicates
+              :key #'first))))
 
 (defun meaning-predicates->hash-meaning (meaning-predicates)
-  (loop for predicate in meaning-predicates
-        if (and (length= predicate 4)
-                (eql (first predicate) 'bind))
-        collect (fourth predicate)
-        else collect (first predicate)))
+  ;; the last meaning predicate (excluding get-context)
+  (first
+   (first
+    (find-all-if-not #'(lambda (p)
+                         (or (eql p 'bind)
+                             (eql p 'get-context)))
+                     meaning-predicates :key #'first))))
