@@ -58,25 +58,21 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 100)
+;(run-series *experiment* 400)
 
-;
-
-;(formulate '((get-context ?source-1) (filter ?target-2 ?target-1 ?color-6) (unique ?target-object-1 ?target-2) (bind shape-category ?shape-8 thing) (bind attribute-category ?attribute-2 shape) (filter ?target-1 ?source-1 ?shape-8) (bind color-category ?color-6 blue) (query ?target-3 ?target-object-1 ?attribute-2)) :gold-standard-utterance "What shape is the blue object?" :cxn-inventory (grammar (first (interacting-agents *experiment*))))
 
 
 #|
 
 QUESTIONS
 ---------
-- hoe werkt de hashfunctie? waar zit de functie die gebruikt w bij opzoeken?
-- 
 
  
 NOTES
 ------
 OVERAL ORIGINAL behalve in FCG apply!
 
+NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van variantie
  
 ISSUES
 ------
@@ -85,15 +81,20 @@ ISSUES
 
 TODO
 ----
+- alist naar export monitors veranderen
 
-1. monitors
--- dot for each interaction: geef letters aan repairs en print de letter v d repair ipv een X
-- fix plots voor serie 1!
-- cxns per type OK
-- repairs
-- th links / comm success
-- dot for each interaction: geef letters aan repairs en print de letter v d repair ipv een X
+- nullen niet meetellen in avg cxn score
+-2 epochs: plak de data 2x aan elkaar (geshuffeld)
+- 10 series
+- parallel batch
+
 - stage 1 en dan stage 2 met dezelfde grammatica
 - stage 2 loopt vast!
+
+
+DONE
+----
+
+
 
 |#

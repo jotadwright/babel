@@ -35,6 +35,22 @@
 (define-event-handler (record-lexicon-size interaction-finished)
   (record-value monitor (count-if #'non-zero-cxn-p (get-cxns-of-type (learner experiment) 'all))))
 
+;;;; Type hierarchy size
+(define-monitor record-th-size
+                :class 'data-recorder
+                :documentation "records the type hierarchy size.")
+
+(define-monitor export-th-size
+                :class 'lisp-data-file-writer
+                :documentation "Exports type hierarchy size"
+                :data-sources '(record-th-size)
+                :file-name (babel-pathname :name "th-size" :type "lisp"
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-th-size interaction-finished)
+  (record-value monitor (graph-utils::edge-count (graph-utils::graph (get-type-hierarchy (grammar (learner experiment)))))))
+
 ;;;; Gnuplot Display monitor
 (define-monitor display-metrics
                 :class 'gnuplot-display
@@ -128,7 +144,7 @@
                 :average-window 100)
 
 (define-event-handler (record-cxn-usage-per-type constructions-chosen)
-  (if (find 'holophrase constructions :key #'get-cxn-type)
+  (if (find 'gl::holophrase constructions :key #'get-cxn-type)
     (progn (set-value-for-symbol monitor 'holophrase 1)
       (set-value-for-symbol monitor 'item-based+lexical 0))
     (progn (set-value-for-symbol monitor 'holophrase 0)
@@ -142,6 +158,91 @@
         :y-label "Usage"
         :x-label "Total number of interactions"
         :file-name (babel-pathname :name "cxn-usage-per-type" :type "pdf"
+                                   :directory '("experiments" "clevr-grammar-learning" "graphs"))
+        :graphic-type "pdf" :error-bars '(:percentile 5 95)
+        :add-time-and-experiment-to-file-name nil)
+
+
+;; cxn usage per type (alist monitor)
+(define-monitor record-repair-per-type
+                :class 'alist-recorder
+                :average-window 100)
+
+(define-event-handler (record-repair-per-type interaction-finished)
+  (let ((repair-symbol (last-elt (repair-buffer experiment))))
+    (cond ((string= repair-symbol "h")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 1)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "i")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 1)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "l")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 1)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "s")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 1)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "a")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 1)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "d")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 1)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "t")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 1))))))
+          
+  
+(define-monitor plot-repair-per-type
+        :class 'alist-gnuplot-graphic-generator
+        :recorder 'record-repair-per-type
+        :draw-y-grid t
+        :y-min 0 :y-max 1
+        :y-label "Repairs"
+        :x-label "Total number of interactions"
+        :file-name (babel-pathname :name "repairs-per-type" :type "pdf"
                                    :directory '("experiments" "clevr-grammar-learning" "graphs"))
         :graphic-type "pdf" :error-bars '(:percentile 5 95)
         :add-time-and-experiment-to-file-name nil)
@@ -184,7 +285,9 @@
   '("export-communicative-success"
     "export-lexicon-size"
     "export-avg-cxn-score"
+    "export-th-size"
     "plot-lexicon-size-per-type"
     "plot-cxn-score-per-type"
     "plot-cxn-usage-per-type"
-    "plot-nr-of-slots"))
+    "plot-nr-of-slots"
+    "plot-repair-per-type"))

@@ -43,7 +43,7 @@
                          (:current-challenge-level . 1)
                          ))
                        )
-                     :number-of-interactions 100;47133
+                     :number-of-interactions 47133
                      :number-of-series 2
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
@@ -52,19 +52,28 @@
   (create-graph-for-single-strategy
    :experiment-name "training-stage-1" :measure-names '("communicative-success" "lexicon-size")
    :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
-   :xlabel "Number of games"
+   :xlabel "# Observations"
    :y1-label "Communicative Success"
-   :y2-label "Grammar size"
+   :y2-label "# Constructions"
    :captions '("communicative success" "grammar size")
    :open t)
-
+#|
   (create-graph-for-single-strategy
    :experiment-name "training-stage-1" :measure-names '("communicative-success" "avg-cxn-score")
    :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
-   :xlabel "Number of games"
+   :xlabel "# Observations"
    :y1-label "Communicative Success"
    :y2-label "Average Construction Score"
    :captions '("communicative success" "average construction score")
+   :open t)
+|#
+  (create-graph-for-single-strategy
+   :experiment-name "training-stage-1" :measure-names '("communicative-success" "th-size")
+   :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
+   :xlabel "# Observations"
+   :y1-label "Communicative Success"
+   :y2-label "# Categorial Links"
+   :captions '("communicative success" "number of edges in categorial network")
    :open t))
 
 (defun run-training-stage-2 ()

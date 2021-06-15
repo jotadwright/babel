@@ -34,25 +34,27 @@
     (values utterance gold-standard-meaning)))
 
 (defun determine-communicative-success (cipn)
-  (and (find 'SUCCEEDED (statuses cipn) :test #'string=)
-       (loop for node in (cons cipn (all-parents cipn))
-             for node-statuses = (statuses node)
-             never (find 'ADDED-BY-REPAIR node-statuses :test #'string=))))
+  (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
+  (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
+    (when (or
+           (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
+           (find 'add-th-links node-statuses :test #'string=))
+      t)))
+
 
 (defun get-last-repair-symbol (cipn)
-  (if (determine-communicative-success cipn)
-    (list ".") ; return a dot
-    (loop for node in (cons cipn (all-parents cipn))
-                            for node-statuses = (statuses node)
-                            for index = (cond ((find 'nothing->holophrase node-statuses :test #'string=) "h")
-                                              ((find 'repair-lexical->item-based-cxn node-statuses :test #'string=) "l")
-                                              ((find 'item-based->lexical node-statuses :test #'string=) "i")
-                                              ((find 'holophrase->item-based+lexical+lexical--substitution node-statuses :test #'string=) "s")
-                                              ((find 'holophrase->item-based+lexical+lexical--addition node-statuses :test #'string=) "a")
-                                              ((find 'holophrase->item-based+lexical+lexical--deletion node-statuses :test #'string=) "d")
-                                              ((find 'add-th-links node-statuses :test #'string=) "t"))
-                            when index
-                            collect index)))
+  (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
+    (if (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
+      "." ; return a dot     
+      (cond ((find 'nothing->holophrase node-statuses :test #'string=) "h")
+            ((find 'repair-lexical->item-based-cxn node-statuses :test #'string=) "i")
+            ((find 'item-based->lexical node-statuses :test #'string=) "l")
+            ((find 'holophrase->item-based+lexical+lexical--substitution node-statuses :test #'string=) "s")
+            ((find 'holophrase->item-based+lexical--addition node-statuses :test #'string=) "a")
+            ((find 'holophrase->item-based+lexical+holophrase--deletion node-statuses :test #'string=) "d")
+            ((find 'add-th-links node-statuses :test #'string=) "t")
+            (t (error "Did not find any repair node statuses and no solution was found!"))))))
+         
 
 
 (defmethod interact :before ((experiment clevr-grammar-learning-experiment)
@@ -71,7 +73,7 @@
       (setf (success-buffer experiment) (append (success-buffer experiment)
                                                 (list (if successp 1 0))))
       (setf (repair-buffer experiment) (append (repair-buffer experiment)
-                                                (get-last-repair-symbol cipn)))              
+                                                (list (get-last-repair-symbol cipn))))            
       (loop for agent in (population experiment)
             do (setf (communicated-successfully agent) successp)))))
     
