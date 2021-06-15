@@ -85,7 +85,7 @@
 (defun meaning-predicates->hash-meaning (meaning-predicates)
   ;; the last meaning predicate (excluding get-context)
   (first
-   (last-elt
+   (first
     (find-all-if-not #'(lambda (p)
                          (or (eql p 'bind)
                              (eql p 'get-context)))
