@@ -34,12 +34,13 @@
     (values utterance gold-standard-meaning)))
 
 (defun determine-communicative-success (cipn)
-  (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
-    (when (or
-           (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
-           (find 'add-th-links node-statuses :test #'string=))
-      t)))
+    (when (and
+           (find 'SUCCEEDED (statuses cipn) :test #'string=) ;; only used to test in evaluation mode, without meta layer
+           (or
+            (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
+            (find 'add-th-links node-statuses :test #'string=))
+           t))))
 
 
 (defun get-last-repair-symbol (cipn)
