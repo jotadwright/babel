@@ -43,7 +43,7 @@
                          (:current-challenge-level . 1)
                          ))
                        )
-                     :number-of-interactions 47133
+                     :number-of-interactions 100;47133
                      :number-of-series 2
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
@@ -79,7 +79,7 @@
                          (:current-challenge-level . 2)
                          ))
                        )
-                     :number-of-interactions 408656
+                     :number-of-interactions 100;408656
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
@@ -146,6 +146,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; (run-training)
+;(run-training-stage-2)
 ; (defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data" "training") :name "cxn-inventory-training-latest" :type "store")))
 ; (run-evaluation *saved-inventory*)
 ; (run-dev-set *saved-inventory*)

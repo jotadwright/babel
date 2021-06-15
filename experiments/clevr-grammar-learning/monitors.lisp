@@ -8,7 +8,7 @@
                  and prints the number after :dot-interval")
 
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (let ((symbol-to-print (if (communicated-successfully (first (interacting-agents interaction))) "." "x")))
+  (let ((symbol-to-print (last-elt (repair-buffer experiment))))
     (cond ((= (interaction-number interaction) 1)
            (format t "~%~a" symbol-to-print))
           ((= (mod (interaction-number interaction)
