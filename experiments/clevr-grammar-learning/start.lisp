@@ -43,7 +43,7 @@
                          (:current-challenge-level . 1)
                          ))
                        )
-                     :number-of-interactions 2000;47133
+                     :number-of-interactions 47133
                      :number-of-series 2
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")

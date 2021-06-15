@@ -72,7 +72,7 @@ NOTES
 ------
 OVERAL ORIGINAL behalve in FCG apply!
 
-NOOIT AVERAGEN OVER SERIES! Error bars gebruiken
+NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van variantie
  
 ISSUES
 ------
@@ -81,23 +81,20 @@ ISSUES
 
 TODO
 ----
-
+- alist naar export monitors veranderen
 
 - nullen niet meetellen in avg cxn score
 -2 epochs: plak de data 2x aan elkaar (geshuffeld)
+- 10 series
+- parallel batch
 
-
-- fix plots voor serie 1!
 - stage 1 en dan stage 2 met dezelfde grammatica
 - stage 2 loopt vast!
 
 
 DONE
 ----
-- dot for each interaction: geef letters aan repairs en print de letter v d repair ipv een X
-- plot voor cxns per type
-- evoplot voor repairs per type
--- plot th links / comm success
+
 
 
 |#

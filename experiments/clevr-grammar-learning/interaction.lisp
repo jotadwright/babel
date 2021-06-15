@@ -43,13 +43,9 @@
 
 
 (defun get-last-repair-symbol (cipn)
-  (unless (find 'SUCCEEDED (statuses cipn) :test #'string=)
-    (break))
-  (if (determine-communicative-success cipn)
-    "." ; return a dot
-    
-    (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
-          
+  (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
+    (if (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
+      "." ; return a dot     
       (cond ((find 'nothing->holophrase node-statuses :test #'string=) "h")
             ((find 'repair-lexical->item-based-cxn node-statuses :test #'string=) "i")
             ((find 'item-based->lexical node-statuses :test #'string=) "l")
