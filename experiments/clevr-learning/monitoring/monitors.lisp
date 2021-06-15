@@ -3,18 +3,34 @@
 (in-package :clevr-learning)
 
 ;;;; Printing dots
+(defparameter *repair-to-id-map*
+  '((add-holophrase . "0")
+    (holophrase->item-based . "1")
+    (add-th-links . "2")
+    (lexical->item-based . "3")
+    (item-based->lexical . "4")
+    (item-based->hypotheses . "5")
+    (item-based+lexical->item-based . "6")))
+    
+
+
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
                  and prints the number after :dot-interval")
 
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (cond ((= (interaction-number interaction) 1)
-         (format t "~%."))
-        ((= (mod (interaction-number interaction)
-                 (get-configuration experiment :dot-interval)) 0)
-         (format t ". (~a)~%" (interaction-number interaction))
-         (wi:clear-page))
-        (t (format t "."))))
+  (let ((symbol-to-print
+         (cond ((find-data interaction :applied-repair)
+                (rest (assoc (find-data interaction :applied-repair) *repair-to-id-map*)))
+               ((communicated-successfully interaction) ".")
+               (t "x"))))
+    (cond ((= (interaction-number interaction) 1)
+           (format t "~%~a" symbol-to-print))
+          ((= (mod (interaction-number interaction)
+                   (get-configuration experiment :dot-interval)) 0)
+           (format t "~a (~a)~%" symbol-to-print (interaction-number interaction))
+           (wi:clear-page))
+          (t (format t "~a" symbol-to-print)))))
 
 ;;;; export failed sentences and applied cxns
 (define-monitor log-interactions)
