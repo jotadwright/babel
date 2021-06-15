@@ -84,9 +84,9 @@
    (success-buffer :initarg :success-buffer :initform nil
                       :accessor success-buffer :type list
                       :documentation "A buffer to keep track of communicative success")
-   (consistency-buffer :initarg :consistency-buffer :initform nil
-                      :accessor consistency-buffer :type list
-                      :documentation "A buffer to keep track of learning consistency, interaction number - grammar size - successful interactions should be 0")
+   (repair-buffer :initarg :repair-buffer :initform nil
+                      :accessor repair-buffer :type list
+                      :documentation "A buffer to keep track of all used repairs")
    )
   (:documentation "The CLEVR learning experiment"))
 

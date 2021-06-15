@@ -80,54 +80,20 @@ OVERAL ORIGINAL behalve in FCG apply!
  
 ISSUES
 ------
-- niets weggooien bij lateral inhibition = OK, maar grammar size berekening moet 0-cxns eruitlaten, visualisatie ook (skip-0 keyword maken)
-- sorting in make-html werkt niet, maar waarom???
-- hij komt in add-th links repair terwijl er een holophrase is!!!! maak een testcase met een holophrase, check of hij kan toepassen zonder terug in de metalayer te springen!
+
 
 
 TODO
 ----
 
 1. monitors
-- cxns per type
+-- dot for each interaction: geef letters aan repairs en print de letter v d repair ipv een X
+- fix plots voor serie 1!
+- cxns per type OK
 - repairs
 - th links / comm success
+- dot for each interaction: geef letters aan repairs en print de letter v d repair ipv een X
+- stage 1 en dan stage 2 met dezelfde grammatica
+- stage 2 loopt vast!
 
-2. test production!
-
-3. unit tests
-- testcase per repair, ook production
-
-4. item based based repairs updaten en terug invoegen
-
-5. dingen om te dubbelchecken
-- logica in lexical to item-based nakijken, dubbels gewoon skippen uit veiligheid, zie diff-non-overlapping-meaning functie in utils
-
-
-
-|#
-
-
-
-
-
-#| ABSTRACT CXNS:
-PISTE 1
--------
-als er twee opeenvolgende slots zijn, maak er een slot van, bijvoorbeeld:
-Is there a X? "is there a cube?"
-Is there a X Y? "is there a large cube?"
---> Is there a X? + X--> Y Z cxn "large cube" (determined noun phrase)
-
-PISTE 2
--------
-laat ook langere chunks toe bij diffs, niet enkel single lex items!
-bijv: how many large cubes are there? vs how many small spheres are there?
-==> large cubes cxn
-==> small spheres cxn
-==> how many x are there?
-
-dan als we large of small leren krijgen we X cubes, x spheres, en X Y.
-
-==> zo zou je ook X or Y kunnen leren!
 |#

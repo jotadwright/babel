@@ -39,6 +39,22 @@
              for node-statuses = (statuses node)
              never (find 'ADDED-BY-REPAIR node-statuses :test #'string=))))
 
+(defun get-last-repair-symbol (cipn)
+  (if (determine-communicative-success cipn)
+    (list ".") ; return a dot
+    (loop for node in (cons cipn (all-parents cipn))
+                            for node-statuses = (statuses node)
+                            for index = (cond ((find 'nothing->holophrase node-statuses :test #'string=) "h")
+                                              ((find 'repair-lexical->item-based-cxn node-statuses :test #'string=) "l")
+                                              ((find 'item-based->lexical node-statuses :test #'string=) "i")
+                                              ((find 'holophrase->item-based+lexical+lexical--substitution node-statuses :test #'string=) "s")
+                                              ((find 'holophrase->item-based+lexical+lexical--addition node-statuses :test #'string=) "a")
+                                              ((find 'holophrase->item-based+lexical+lexical--deletion node-statuses :test #'string=) "d")
+                                              ((find 'add-th-links node-statuses :test #'string=) "t"))
+                            when index
+                            collect index)))
+
+
 (defmethod interact :before ((experiment clevr-grammar-learning-experiment)
                              interaction &key)
   (multiple-value-bind (utterance gold-standard-meaning)
@@ -54,15 +70,10 @@
     (let* ((successp (determine-communicative-success cipn)))
       (setf (success-buffer experiment) (append (success-buffer experiment)
                                                 (list (if successp 1 0))))
-      (let* ((overall-success (count 1 (success-buffer experiment)))
-             (grammar-size (hash-table-count (cxn-pathnames (grammar (first (interacting-agents experiment))))))
-             (consistency-checksum (- (interaction-number interaction) grammar-size overall-success))
-             (consistentp (= 0 consistency-checksum)))
-             
-      (setf (consistency-buffer experiment) (append (consistency-buffer experiment)
-                                                (list (if consistentp 1 0))))              
+      (setf (repair-buffer experiment) (append (repair-buffer experiment)
+                                                (get-last-repair-symbol cipn)))              
       (loop for agent in (population experiment)
-            do (setf (communicated-successfully agent) successp))))))
+            do (setf (communicated-successfully agent) successp)))))
     
 (define-event agent-confidence-level (level float))
 
