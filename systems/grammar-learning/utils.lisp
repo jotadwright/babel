@@ -376,7 +376,7 @@
                   (equal 1 (length non-overlapping-meaning))
                   (equal 1 (length non-overlapping-form))
                   ;; check if all the strings in the form constraints are present in the superset
-                  ;; todo: include precedes relations
+                  ;; precedes relations are not important
                   (loop for ts-fc in ts-form-constraints
                         always (find (third ts-fc) cxn-form-constraints :key #'third :test #'equalp)) ;; loop returns true if all are true, the third elem is the string
                   (loop for predicate in gold-standard-meaning
