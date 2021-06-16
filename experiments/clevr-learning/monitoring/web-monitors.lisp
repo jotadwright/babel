@@ -93,9 +93,12 @@
                     "Production succeeded" "Production failed"))))
 
 (define-event-handler (trace-interactions-in-wi parsing-finished)
-  (add-element `((h2)
-                 ,(if (find 'fcg::succeeded (fcg:statuses (get-data process-result 'cipn)))
-                    "Parsing succeeded" "Parsing failed"))))
+  (let* ((cipn (get-data process-result 'cipn))
+         (succeeded (when cipn
+                      (find 'fcg::succeeded (fcg:statuses cipn)))))
+    (add-element `((h2)
+                   ,(format nil "Parsing ~a"
+                            (if succeeded "succeeded" "failed"))))))
 
 (define-event-handler (trace-interactions-in-wi interpretation-finished)
   (add-element '((h2) "Interpretation finished"))
