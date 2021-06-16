@@ -311,9 +311,9 @@
 
 
 (defun get-all-export-monitors ()
-  '("export-type-hierarchy-to-image"
+  '(;"export-type-hierarchy-to-image"
     "export-type-hierarchy-to-json"
-    "export-learner-grammar"
+    ;"export-learner-grammar"
     "export-weighted-lexical-coherence"))
 
 

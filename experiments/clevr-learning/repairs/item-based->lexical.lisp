@@ -6,15 +6,12 @@
 ;; -----------------------
 
 ;; This repair is applied when
-;; a) an item-based cxn has applied
-;; b) possibly one or more lexical cxns have applied,
-;; c) the root contains a single form.
-;; d) the number of slots in the item-based cxn is equal
+;; a) the number of slots in the item-based cxn is equal
 ;;    to the number of applied lex cxns + 1!
 ;; In this case, an additional lex cxn is required to parse the utterance.
 ;; In order to find out the meaning for that lex cxn, we
 ;; need to run the composer with the meaning of the applied
-;; cxns as partial program.
+;; item-based cxn (and possibly lex cxns) as partial program.
 
 (defmethod run-repair ((agent clevr-learning-learner)
                        (applied-cxns list) (node cip-node)
@@ -22,8 +19,10 @@
                        (repair-mode (eql :item-based->lexical))
                        &key &allow-other-keys)
   (let ((cxn-inventory (grammar agent))
-        (applied-lex-cxns (find-all 'lexical applied-cxns :key #'get-cxn-type))
-        (applied-item-based-cxn (find 'item-based applied-cxns :key #'get-cxn-type))
+        (applied-lex-cxns
+         (find-all 'lexical applied-cxns :key #'get-cxn-type))
+        (applied-item-based-cxn
+         (find 'item-based applied-cxns :key #'get-cxn-type))
         (remaining-strings-in-root
          (get-strings-from-root node)))
     (when (and (not (null applied-item-based-cxn))
@@ -69,8 +68,6 @@
                       (mapcar #'third meaning-predicates-lex-cxn))
                      (initial-cxn-score
                       (get-configuration agent :initial-cxn-score))
-                     (current-interaction-nr
-                      (interaction-number (current-interaction (experiment agent))))
                      (new-lex-cxn
                       (or existing-lex-cxn
                           (second
@@ -90,8 +87,6 @@
                                :attributes (:score ,initial-cxn-score
                                             :cxn-type lexical
                                             :repair item->lex
-                                            :added-at ,current-interaction-nr
-                                            :last-used ,current-interaction-nr
                                             :string ,(form-predicates->hash-string form-predicates-lex-cxn)
                                             :meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn))
                                :cxn-inventory ,(copy-object cxn-inventory)
