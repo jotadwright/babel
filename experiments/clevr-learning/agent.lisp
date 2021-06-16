@@ -47,6 +47,12 @@
                     :documentation "The chunks the agent can use for composing"))
   (:documentation "The learner agent"))
 
+(defmethod tutorp ((agent clevr-learning-agent))
+  (eql (role agent) 'tutor))
+
+(defmethod learnerp ((agent clevr-learning-agent))
+  (eql (role agent) 'learner))
+
 (defun make-clevr-learning-tutor (experiment)
   (make-instance 'clevr-learning-tutor
                  :role 'tutor :experiment experiment
