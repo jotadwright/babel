@@ -61,8 +61,7 @@
          (make-instance 'clevr-learning-learner
                         :role 'learner :experiment experiment
                         :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
-                                                (get-configuration experiment :learner-cxn-supplier)
-                                                (get-configuration experiment :learner-cxn-inventory-hashing))
+                                                (get-configuration experiment :learner-cxn-supplier))
                         :ontology (copy-object *clevr-ontology*))))
     (set-primitives-for-current-challenge-level
      learner (get-configuration experiment :primitives))
