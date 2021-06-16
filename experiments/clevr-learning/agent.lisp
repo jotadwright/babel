@@ -47,6 +47,12 @@
                     :documentation "The chunks the agent can use for composing"))
   (:documentation "The learner agent"))
 
+(defmethod tutorp ((agent clevr-learning-agent))
+  (eql (role agent) 'tutor))
+
+(defmethod learnerp ((agent clevr-learning-agent))
+  (eql (role agent) 'learner))
+
 (defun make-clevr-learning-tutor (experiment)
   (make-instance 'clevr-learning-tutor
                  :role 'tutor :experiment experiment
@@ -61,8 +67,7 @@
          (make-instance 'clevr-learning-learner
                         :role 'learner :experiment experiment
                         :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
-                                                (get-configuration experiment :learner-cxn-supplier)
-                                                (get-configuration experiment :learner-cxn-inventory-hashing))
+                                                (get-configuration experiment :learner-cxn-supplier))
                         :ontology (copy-object *clevr-ontology*))))
     (set-primitives-for-current-challenge-level
      learner (get-configuration experiment :primitives))

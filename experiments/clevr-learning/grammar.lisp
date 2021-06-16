@@ -50,13 +50,18 @@
                         :replace t)
     clevr-grammar))
 
-(defun empty-cxn-set (hide-type-hierarchy cxn-supplier hashing)
+(defun empty-cxn-set (hide-type-hierarchy cxn-supplier)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
+         (hashingp (member cxn-supplier
+                           '(:hashed-and-scored
+                             :hashed-ordered-by-label
+                             :hashed-scored-labeled
+                             :hashed-simple-queue)))
          (cxn-inventory
           (eval `(def-fcg-constructions-with-type-hierarchy
                      ,grammar-name
                    :cxn-inventory ,grammar-name
-                   :hashed ,hashing
+                   :hashed ,hashingp
                    :feature-types ((args sequence)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
