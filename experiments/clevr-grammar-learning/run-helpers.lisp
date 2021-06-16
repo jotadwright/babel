@@ -42,10 +42,13 @@
            (get-configuration (cxn-inventory cxn) :render-mode))))
 
 (defun get-cxns-of-type (agent type)
-  (if (eql type 'all)
-    (constructions-list (grammar agent))
-    (find-all type (constructions-list (grammar agent))
-              :key #'get-cxn-type)))
+  (let ((found-cxns (if (eql type 'all)
+                      (constructions-list (grammar agent))
+                      (find-all type (constructions-list (grammar agent))
+                                :key #'get-cxn-type))))
+    (loop for cxn in found-cxns
+          when (non-zero-cxn-p cxn)
+          collect cxn)))
 
 (defun non-zero-cxn-p (cxn)
   (> (attr-val cxn :score) 0))

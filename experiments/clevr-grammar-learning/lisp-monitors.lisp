@@ -19,21 +19,21 @@
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
 
-;;;; Lexicon size
+;;;; Grammar size
 (define-monitor record-lexicon-size
                 :class 'data-recorder
-                :documentation "records the avg lexicon size.")
+                :documentation "records the avg grammar size.")
 
 (define-monitor export-lexicon-size
                 :class 'lisp-data-file-writer
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
-                :file-name (babel-pathname :name "lexicon-size" :type "lisp"
+                :file-name (babel-pathname :name "grammar-size" :type "lisp"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-lexicon-size interaction-finished)
-  (record-value monitor (count-if #'non-zero-cxn-p (get-cxns-of-type (learner experiment) 'all))))
+  (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
 
 ;;;; Type hierarchy size
 (define-monitor record-th-size
@@ -92,13 +92,10 @@
                 :average-window 1)
 
 (define-event-handler (record-lexicon-size-per-type interaction-finished)
-  (let ((all-constructions
-         (constructions-list (grammar (learner experiment)))))
-    (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
-          for all-cxns-of-type = (find-all cxn-type all-constructions
-                                           :key #'get-cxn-type)
-          when all-cxns-of-type
-          do (set-value-for-symbol monitor cxn-type (length all-cxns-of-type)))))
+  (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
+        for all-cxns-of-type = (get-cxns-of-type (learner experiment) cxn-type)
+        when all-cxns-of-type
+        do (set-value-for-symbol monitor cxn-type (length all-cxns-of-type))))
 
 (define-monitor plot-lexicon-size-per-type
     :class 'alist-gnuplot-graphic-generator
@@ -117,14 +114,11 @@
                 :average-window 100)
 
 (define-event-handler (record-cxn-score-per-type interaction-finished)
-  (let ((all-constructions
-         (constructions-list (grammar (learner experiment)))))
-    (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
-          for all-cxns-of-type = (find-all cxn-type all-constructions
-                                           :key #'get-cxn-type)
-          for cxn-scores = (mapcar #'cxn-score all-cxns-of-type)
-          when all-cxns-of-type
-          do (set-value-for-symbol monitor cxn-type (average cxn-scores)))))
+  (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
+        for all-cxns-of-type = (get-cxns-of-type (learner experiment) cxn-type)
+        for cxn-scores = (mapcar #'cxn-score all-cxns-of-type)
+        when all-cxns-of-type
+        do (set-value-for-symbol monitor cxn-type (average cxn-scores))))
 
 (define-monitor plot-cxn-score-per-type
     :class 'alist-gnuplot-graphic-generator
@@ -163,7 +157,7 @@
         :add-time-and-experiment-to-file-name nil)
 
 
-;; cxn usage per type (alist monitor)
+;; repair per type (alist monitor)
 (define-monitor record-repair-per-type
                 :class 'alist-recorder
                 :average-window 100)
@@ -253,10 +247,8 @@
                 :average-window 1)
 
 (define-event-handler (record-nr-of-slots interaction-finished)
-  (let* ((all-constructions
-          (constructions-list (grammar (learner experiment))))
-         (item-based-cxns
-          (find-all 'gl::item-based all-constructions :key #'get-cxn-type)))
+  (let* ((item-based-cxns
+          (get-cxns-of-type (learner experiment) 'gl::item-based)))
     (loop with counts = nil
           for cxn in item-based-cxns
           for nr-of-slots = (item-based-number-of-slots cxn)

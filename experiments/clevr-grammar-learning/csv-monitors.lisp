@@ -12,7 +12,7 @@
                 :documentation "Exports communicative success"
                 :data-sources '(record-csv-communicative-success)
                 :file-name (babel-pathname :name "communicative-success" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :comment-string "#"
                 :column-separator ",")
@@ -29,8 +29,8 @@
                 :class 'csv-data-file-writer
                 :documentation "Exports lexicon size"
                 :data-sources '(record-csv-lexicon-size)
-                :file-name (babel-pathname :name "lexicon-size" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :file-name (babel-pathname :name "grammar-size" :type "csv"
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :comment-string "#"
                 :column-separator ",")
@@ -38,45 +38,23 @@
 (define-event-handler (record-csv-lexicon-size interaction-finished)
   (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
 
-;;;; # meanings per form for lexical cxns
-(define-monitor record-csv-lexical-meanings-per-form
+;;;; Type hierarchy size
+(define-monitor record-csv-th-size
                 :class 'data-recorder
-                :documentation "records avg nr of meanings per form")
+                :documentation "records the type hierarchy size.")
 
-(define-monitor export-csv-lexical-meanings-per-form
+(define-monitor export-csv-th-size
                 :class 'csv-data-file-writer
-                :documentation "Exports nr of meanings per form for lexical cxns"
-                :data-sources '(record-csv-lexical-meanings-per-form)
-                :file-name (babel-pathname :name "lexical-meanings-per-form" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :documentation "Exports type hierarchy size as number of edges"
+                :data-sources '(record-csv-th-size)
+                :file-name (babel-pathname :name "th-size" :type "csv"
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :comment-string "#"
                 :column-separator ",")
 
-(define-event-handler (record-csv-lexical-meanings-per-form interaction-finished)
-   (record-value monitor
-                 (compute-nr-of-lexical-meanings-per-form
-                  (learner experiment))))
-
-;;;; # forms per meaning for lexical cxns
-(define-monitor record-csv-lexical-forms-per-meaning
-                :class 'data-recorder
-                :documentation "records avg nr of forms per meaning")
-
-(define-monitor export-csv-lexical-forms-per-meaning
-                :class 'csv-data-file-writer
-                :documentation "Exports nr of forms per meaning for lexical cxns"
-                :data-sources '(record-csv-lexical-forms-per-meaning)
-                :file-name (babel-pathname :name "lexical-forms-per-meaning" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil
-                :comment-string "#"
-                :column-separator ",")
-
-(define-event-handler (record-csv-lexical-forms-per-meaning interaction-finished)
-   (record-value monitor
-                 (compute-nr-of-lexical-forms-per-meaning
-                  (learner experiment))))
+(define-event-handler (record-csv-th-size interaction-finished)
+  (record-value monitor (graph-utils::edge-count (graph-utils::graph (get-type-hierarchy (grammar (learner experiment)))))))
 
 ;;;; Avg cxn score
 (define-monitor record-csv-avg-cxn-score
@@ -88,10 +66,10 @@
                 :documentation "exports avg cxn score"
                 :data-sources '(record-csv-avg-cxn-score)
                 :file-name (babel-pathname :name "avg-cxn-score" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :comment-string "#"
-                :column-separator ",")   
+                :column-separator ",")
 
 (define-event-handler (record-csv-avg-cxn-score interaction-finished)
   (record-value monitor (average (mapcar #'cxn-score (get-cxns-of-type (learner experiment) 'all)))))
@@ -105,19 +83,16 @@
                 :class 'alist-csv-file-writer
                 :documentation "Exports lexicon size per type"
                 :recorder 'record-csv-lexicon-size-per-type
-                :file-name (babel-pathname :name "lexicon-size-per-type" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :file-name (babel-pathname :name "grammar-size-per-type" :type "csv"
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :comment-string "#" :column-separator ",")
 
 (define-event-handler (record-csv-lexicon-size-per-type interaction-finished)
-  (let ((all-constructions
-         (constructions-list (grammar (learner experiment)))))
-    (loop for cxn-type in '(holophrase lexical item-based)
-          for all-cxns-of-type = (find-all cxn-type all-constructions
-                                           :key #'get-cxn-type)
-          when all-cxns-of-type
-          do (set-value-for-symbol monitor cxn-type (length all-cxns-of-type)))))
+  (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
+        for all-cxns-of-type = (get-cxns-of-type (learner experiment) cxn-type)
+        when all-cxns-of-type
+        do (set-value-for-symbol monitor cxn-type (length all-cxns-of-type))))
 
 ;;;; avg cxn score per cxn type (alist monitor)
 (define-monitor record-csv-cxn-score-per-type
@@ -129,19 +104,16 @@
                 :documentation "Exports cxn score per type"
                 :recorder 'record-csv-cxn-score-per-type
                 :file-name (babel-pathname :name "cxn-score-per-type" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :comment-string "#" :column-separator ",")
 
 (define-event-handler (record-csv-cxn-score-per-type interaction-finished)
-  (let ((all-constructions
-         (constructions-list (grammar (learner experiment)))))
-    (loop for cxn-type in '(holophrase lexical item-based)
-          for all-cxns-of-type = (find-all cxn-type all-constructions
-                                           :key #'get-cxn-type)
-          for cxn-scores = (mapcar #'cxn-score all-cxns-of-type)
-          when all-cxns-of-type
-          do (set-value-for-symbol monitor cxn-type (average cxn-scores)))))
+  (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
+        for all-cxns-of-type = (get-cxns-of-type (learner experiment) cxn-type)
+        for cxn-scores = (mapcar #'cxn-score all-cxns-of-type)
+        when all-cxns-of-type
+        do (set-value-for-symbol monitor cxn-type (average cxn-scores))))
 
 ;; cxn usage per type (alist monitor)
 (define-monitor record-csv-cxn-usage-per-type
@@ -153,16 +125,96 @@
                 :documentation "Exports cxn usage per type"
                 :recorder 'record-csv-cxn-usage-per-type
                 :file-name (babel-pathname :name "cxn-usage-per-type" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :comment-string "#" :column-separator ",")
 
 (define-event-handler (record-csv-cxn-usage-per-type constructions-chosen)
-  (if (find 'holophrase constructions :key #'get-cxn-type)
+  (if (find 'gl::holophrase constructions :key #'get-cxn-type)
     (progn (set-value-for-symbol monitor 'holophrase 1)
       (set-value-for-symbol monitor 'item-based+lexical 0))
     (progn (set-value-for-symbol monitor 'holophrase 0)
       (set-value-for-symbol monitor 'item-based+lexical 1))))
+
+;; repair per type (alist monitor)
+(define-monitor record-csv-repair-per-type
+                :class 'alist-recorder
+                :average-window 1)
+
+(define-event-handler (record-csv-repair-per-type interaction-finished)
+  (let ((repair-symbol (last-elt (repair-buffer experiment))))
+    (cond ((string= repair-symbol "h")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 1)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "i")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 1)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "l")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 1)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "s")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 1)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "a")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 1)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "d")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 1)
+             (set-value-for-symbol monitor 'add-th-links 0)))
+          ((string= repair-symbol "t")
+           (progn
+             (set-value-for-symbol monitor 'nothing->holophrase 0)
+             (set-value-for-symbol monitor 'lexical->item-based 0)
+             (set-value-for-symbol monitor 'item-based->lexical 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
+             (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
+             (set-value-for-symbol monitor 'add-th-links 1))))))
+
+(define-monitor export-csv-repair-per-type
+        :class 'alist-csv-file-writer
+                :documentation "Exports repair usage per type"
+                :recorder 'record-csv-repair-per-type
+                :file-name (babel-pathname :name "repair-per-type" :type "csv"
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :comment-string "#" :column-separator ",")
 
 ;; nr of item-based cxns with slots (alist monitor)
 (define-monitor record-csv-nr-of-slots
@@ -174,15 +226,13 @@
                 :documentation "Exports cxn usage per type"
                 :recorder 'record-csv-nr-of-slots
                 :file-name (babel-pathname :name "item-based-nr-of-slots" :type "csv"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :comment-string "#" :column-separator ",")
 
 (define-event-handler (record-csv-nr-of-slots interaction-finished)
-  (let* ((all-constructions
-          (constructions-list (grammar (learner experiment))))
-         (item-based-cxns
-          (find-all 'item-based all-constructions :key #'get-cxn-type)))
+  (let* ((item-based-cxns
+          (get-cxns-of-type (learner experiment) 'gl::item-based)))
     (loop with counts = nil
           for cxn in item-based-cxns
           for nr-of-slots = (item-based-number-of-slots cxn)
@@ -198,10 +248,10 @@
 (defun get-all-csv-monitors ()
   '("export-csv-communicative-success"
     "export-csv-lexicon-size"
-    "export-csv-lexical-meanings-per-form"
-    "export-csv-lexical-forms-per-meaning"
+    "export-csv-th-size"
     "export-csv-avg-cxn-score"
     "export-csv-lexicon-size-per-type"
     "export-csv-cxn-score-per-type"
     "export-csv-cxn-usage-per-type"
+    "export-csv-repair-per-type"
     "export-csv-nr-of-slots"))

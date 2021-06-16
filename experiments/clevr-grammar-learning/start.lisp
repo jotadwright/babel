@@ -43,20 +43,21 @@
                          (:current-challenge-level . 1)
                          ))
                        )
-                     :number-of-interactions (* 2 47133)
-                     :number-of-series 1
+                     :number-of-interactions 200; (* 2 47133)
+                     :number-of-series 2
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-lisp-monitors)
-                                       (get-all-export-monitors))))
+                                       (get-all-export-monitors)
+                                       (get-all-csv-monitors))))
   (create-graph-for-single-strategy
-   :experiment-name "training-stage-1" :measure-names '("communicative-success" "lexicon-size")
+   :experiment-name "training-stage-1" :measure-names '("communicative-success" "grammar-size")
    :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
    :xlabel "# Observations"
    :y1-label "Communicative Success"
    :y2-label "# Constructions"
    :captions '("communicative success" "grammar size")
-   :open t)
+   :open nil)
 
   (create-graph-for-single-strategy
    :experiment-name "training-stage-1" :measure-names '("communicative-success" "th-size")
@@ -65,7 +66,7 @@
    :y1-label "Communicative Success"
    :y2-label "# Categorial Links"
    :captions '("communicative success" "number of edges in categorial network")
-   :open t))
+   :open nil))
 
 (defun run-training-stage-2 ()
   (wi::reset)
@@ -79,7 +80,7 @@
                          (:current-challenge-level . 2)
                          ))
                        )
-                     :number-of-interactions 100;408656
+                     :number-of-interactions 400;408656
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
@@ -164,19 +165,3 @@
 ; (summarize-cxn-types *saved-inventory*)
 ; (add-element (make-html (get-type-hierarchy *saved-inventory*)))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; TODO
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; configuraties
-; - bidirectional (trainen in formulation en comprehension)
-; - met en zonder lateral inhibition
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; DONE
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; - th-connected mode op path-exists (enkel bij evaluatie) levert slechtere resultaten!
-; --> 99.26 ipv 99.29% accuracy

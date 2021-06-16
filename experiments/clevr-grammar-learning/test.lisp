@@ -61,7 +61,6 @@
 ;(run-series *experiment* 400)
 
 
-
 #|
 
 QUESTIONS
@@ -81,10 +80,8 @@ ISSUES
 
 TODO
 ----
-- alist naar export monitors veranderen
+- add series number to exported grammar! (currently overwritten!)
 
-- nullen niet meetellen in avg cxn score
--2 epochs: plak de data 2x aan elkaar (geshuffeld)
 - 10 series
 - run parallel batch
 
@@ -94,6 +91,7 @@ TODO
 
 DONE
 ----
+-2 epochs: plak de data 2x aan elkaar (geshuffeld)
 
 
 
