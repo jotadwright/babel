@@ -62,8 +62,8 @@
                          (:current-challenge-level . 2)
                          ))
                        )
-                     :number-of-interactions 400;408656
-                     :number-of-series 1
+                     :number-of-interactions 200;408656
+                     :number-of-series 2
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-export-monitors)

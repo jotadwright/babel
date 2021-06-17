@@ -51,43 +51,88 @@
                    (if applied-cxns
                      applied-cxns '(nil)))
            stream))))))
-#|
-(define-event-handler (log-interactions log-interaction-finished)
-  (unless *log-file*
-    (setf *log-file*
-          (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
-                          :name (format nil "log-~a" (make-random-string 5))
-                          :type "txt")))
-  (unless success
-    (let* ((interaction-nr
-            (interaction-number (current-interaction (experiment agent))))
-           (applied-cxns
-            (mapcar (compose #'downcase #'mkstr #'name)
-                    (find-data process-input 'applied-cxns)))
-           (utterance (utterance agent)))
-      (with-open-file (stream *log-file* :direction :output
-                              :if-exists :append
-                              :if-does-not-exist :create)
-        (write-line
-         (format nil "~%Interaction ~a - Interpretation failed - \"~a\" - ~{~a~^, ~}"
-                 interaction-nr
-                 utterance
-                 (if applied-cxns
-                   applied-cxns '(nil)))
-         stream)))))
-          
 
-|#
-;;;; export type hierarchy after series
-(define-monitor export-type-hierarchy
+
+;;;; export grammar after series
+(define-monitor export-learner-grammar
                 :class 'store-monitor
-                :file-name (make-file-name-with-time
-                            (babel-pathname :name (format nil "type-hierarchy-~a"
-                                                          (make-random-string 5))
-                                            :type "pdf"
-                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
+                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "learner-grammar" :type "store"))
 
-(defun export-type-hierarchy (type-hierarchy path)
+(defun make-file-name-with-time-and-series (file-name series)
+  (make-file-name-with-time
+   (mkstr
+    (make-pathname :directory (pathname-directory file-name))
+    (pathname-name file-name) "-series-" series  "." (pathname-type file-name))))
+  
+(define-event-handler (export-learner-grammar run-series-finished)  
+  (export-grammar (grammar (learner experiment))
+                  (make-file-name-with-time-and-series (file-name monitor) (series-number experiment))))
+                  
+(defun export-grammar (cxn-inventory path)
+  #-ccl (cl-store:store cxn-inventory path))
+
+
+(define-monitor export-type-hierarchy-to-json
+                :class 'store-monitor
+                :file-name (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                                            :name "type-hierarchy"
+                                            :type "json"))
+
+(defun export-th-to-json (cxn-inventory path)
+  (let* ((g (type-hierarchies::graph
+             (get-type-hierarchy cxn-inventory)))
+         ;; get a list of all node names
+         (all-nodes
+          (mapcar #'mkstr (graph-utils::list-nodes g)))
+         ;; get a list of all the edges
+         ;; this include the edge-type
+         ;; but excludes the weight
+         (all-edges (graph-utils::list-edges g))
+         ;; so get the weight separately
+         (all-edges-with-weight
+          (loop for (from to etype) in all-edges
+                for w = (graph-utils:edge-weight g from to etype)
+                collect (list (mkstr from) (mkstr to) w))))
+    (ensure-directories-exist path)
+    (with-open-file (stream path :direction :output
+                            :if-exists :supersede
+                            :if-does-not-exist :create)
+      (write-string
+       (cl-json:encode-json-alist-to-string
+        `((nodes . ,all-nodes)
+          (edges . ,all-edges-with-weight)))
+       stream)
+      (force-output stream))))
+
+
+(defun import-th-from-json (cxn-inventory path)
+  (let* ((g-data (cl-json:decode-json-from-source path))
+         (all-nodes (rest (assoc :nodes g-data)))
+         (all-weighted-edges (rest (assoc :edges g-data)))
+         (th (make-instance 'type-hierarchy)))
+    (loop for node in all-nodes
+          for name = (intern (upcase (mkstr node)) :type-hierarchies)
+          do (add-category name th))
+    (loop for (from to w) in all-weighted-edges
+          for from-name = (intern (upcase (mkstr from)) :type-hierarchies)
+          for to-name = (intern (upcase (mkstr to)) :type-hierarchies)
+          do (add-link from-name to-name th :weight w))
+    (set-type-hierarchy cxn-inventory th)))
+         
+   
+(define-event-handler (export-type-hierarchy-to-json run-series-finished)
+  (let ((cxn-inventory (grammar (learner experiment)))
+        (path (make-file-name-with-time-and-series (file-name monitor) (series-number experiment))))
+    (export-th-to-json cxn-inventory path)))
+
+
+;;;; export type hierarchy to image
+(define-monitor export-type-hierarchy-to-image
+                :class 'store-monitor
+                :file-name (babel-pathname :name "type-hierarchy" :type "pdf"
+                                            :directory '("experiments" "clevr-grammar-learning" "raw-data")))
+
+(defun export-type-hierarchy-to-image (type-hierarchy path)
   (type-hierarchy->image
    type-hierarchy :render-program "circo" :weights? t
    :path (make-pathname :directory (pathname-directory path))
@@ -101,97 +146,18 @@
           do (graph-utils::delete-node graph category))
     th))
 
-(define-event-handler (export-type-hierarchy run-series-finished)
+(define-event-handler (export-type-hierarchy-to-image run-series-finished)
   (let* ((th (get-type-hierarchy (grammar (learner experiment))))
          (th-copy (copy-object th))
-         (path (file-name monitor)))
-    (export-type-hierarchy
+         (path (make-file-name-with-time-and-series (file-name monitor) (series-number experiment))))
+    (export-type-hierarchy-to-image
      (remove-non-connected-nodes th-copy)
      path)))
 
-;;;; export type hierarchy every nth interaction
-(define-monitor export-type-hierarchy-every-nth-interaction
-                :class 'store-monitor
-                :file-name (make-file-name-with-time
-                            (babel-pathname :name "type-hierarchy" :type "pdf"
-                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
-
-(define-event-handler (export-type-hierarchy-every-nth-interaction interaction-finished)
-  (let ((interaction-nr (interaction-number (current-interaction experiment)))
-        (n (get-configuration-or-default experiment :export-interval 100)))
-    (when (= (mod interaction-nr n) 0)
-      (let ((th (get-type-hierarchy (grammar (learner experiment))))
-            (path (make-pathname
-                   :directory (pathname-directory (file-name monitor))
-                   :name (format nil "~a-~a"
-                                 (pathname-name (file-name monitor))
-                                 interaction-nr)
-                   :type (pathname-type (file-name monitor)))))
-        (type-hierarchy-components->images
-         th :render-program "circo" :weights? t
-         :path (pathname-directory path)
-         :file-name (pathname-name path) :format "pdf"
-         :minimum-component-size 1)))))
-
-;;;; export grammar after series
-(define-monitor export-learner-grammar
-                :class 'store-monitor
-                :file-name (make-file-name-with-time
-                            (babel-pathname :name (format nil "learner-grammar-~a"
-                                                          (make-random-string 5))
-                                            :type "store"
-                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
-
-(define-monitor export-latest-grammar
-                :class 'store-monitor
-                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-training-latest" :type "store"))
-
-(define-event-handler (export-latest-grammar run-series-finished)
-  (export-grammar (grammar (learner experiment))
-                  (file-name monitor)))
-
-(define-monitor export-latest-errors
-                :class 'store-monitor
-                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "errors-training-latest" :type "store"))
-
-(define-event-handler (export-latest-errors run-series-finished)
-  #-ccl (cl-store:store (failed-question-data experiment) (file-name monitor)))
-
-
-(defun export-grammar (cxn-inventory path)
-  #-ccl (cl-store:store cxn-inventory path))
-
-(define-event-handler (export-learner-grammar run-series-finished)
-  (export-grammar (grammar (learner experiment))
-                  (file-name monitor)))
-
-;;;; export grammar every nth interaction
-(define-monitor export-learner-grammar-every-nth-interaction
-                :class 'store-monitor
-                :file-name (make-file-name-with-time
-                            (babel-pathname :name "learner-grammar" :type "store"
-                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))))
-
-(define-event-handler (export-learner-grammar-every-nth-interaction interaction-finished)
-  (let ((interaction-nr (interaction-number (current-interaction experiment)))
-        (n (get-configuration-or-default experiment :export-interval 100)))
-    (when (= (mod interaction-nr n) 0)
-      (let ((pathname
-             (make-pathname :directory (pathname-directory (file-name monitor))
-                            :name (format nil "~a-~a" (pathname-name (file-name monitor))
-                                          interaction-nr)
-                            :type (pathname-type (file-name monitor)))))
-        (export-grammar (grammar (learner experiment))
-                        pathname)))))
-
-
-
-
 
 (defun get-all-export-monitors ()
-  '("export-type-hierarchy"
-    "export-learner-grammar"
-    "export-latest-grammar"
-    "export-latest-errors"))
+  '("export-type-hierarchy-to-image"
+    "export-type-hierarchy-to-json"
+    "export-learner-grammar"))
   
     
