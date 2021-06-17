@@ -76,14 +76,10 @@ NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van varia
 ISSUES
 ------
 
-
-
 TODO
 ----
 - add series number to exported grammar! (currently overwritten!)
 
-- 10 series
-- run parallel batch
 
 - stage 1 en dan stage 2 met dezelfde grammatica
 - stage 2 loopt vast!

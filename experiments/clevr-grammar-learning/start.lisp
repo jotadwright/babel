@@ -43,30 +43,12 @@
                          (:current-challenge-level . 1)
                          ))
                        )
-                     :number-of-interactions 200; (* 2 47133)
+                     :number-of-interactions 100; (* 2 47133)
                      :number-of-series 2
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
-                                       (get-all-lisp-monitors)
                                        (get-all-export-monitors)
-                                       (get-all-csv-monitors))))
-  (create-graph-for-single-strategy
-   :experiment-name "training-stage-1" :measure-names '("communicative-success" "grammar-size")
-   :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
-   :xlabel "# Observations"
-   :y1-label "Communicative Success"
-   :y2-label "# Constructions"
-   :captions '("communicative success" "grammar size")
-   :open nil)
-
-  (create-graph-for-single-strategy
-   :experiment-name "training-stage-1" :measure-names '("communicative-success" "th-size")
-   :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
-   :xlabel "# Observations"
-   :y1-label "Communicative Success"
-   :y2-label "# Categorial Links"
-   :captions '("communicative success" "number of edges in categorial network")
-   :open nil))
+                                       (get-all-csv-monitors)))))
 
 (defun run-training-stage-2 ()
   (wi::reset)
@@ -84,8 +66,8 @@
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
-                                       (get-all-lisp-monitors)
-                                       (get-all-export-monitors)))))
+                                       (get-all-export-monitors)
+                                       (get-all-csv-monitors)))))
 
 (defun run-evaluation (stored-grammar)
   (wi::reset)
@@ -103,8 +85,8 @@
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "evaluation-after-n-interactions")
-                                       (get-all-lisp-monitors)
-                                       (get-all-export-monitors)))))
+                                       (get-all-export-monitors)
+                                       (get-all-csv-monitors)))))
 
 (defun run-dev-set (stored-grammar)
   (wi::reset)
@@ -122,8 +104,8 @@
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "evaluation-after-n-interactions")
-                                       (get-all-lisp-monitors)
-                                       (get-all-export-monitors)))))
+                                       (get-all-export-monitors)
+                                       (get-all-csv-monitors)))))
 
 #|
 (progn
