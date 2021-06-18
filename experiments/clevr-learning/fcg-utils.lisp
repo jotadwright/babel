@@ -83,10 +83,15 @@
               :key #'first))))
 
 (defun meaning-predicates->hash-meaning (meaning-predicates)
-  ;; the last meaning predicate (excluding get-context)
-  (first
-   (first
-    (find-all-if-not #'(lambda (p)
-                         (or (eql p 'bind)
-                             (eql p 'get-context)))
-                     meaning-predicates :key #'first))))
+  (let* ((all-primitives
+          (mapcar #'first meaning-predicates))
+         (all-primitives-but-bind
+          (remove 'bind all-primitives))
+         (all-primitives-but-get-context
+          (remove 'get-context all-primitives-but-bind)))
+    ;; if there are only bind statements
+    (if (null all-primitives-but-bind)
+      ;; taje the last element of the first binding
+      (last-elt (first (find-all 'bind meaning-predicates :key #'first)))
+      ;; otherwise, take the last primitive excluding get-context
+      (first all-primitives-but-get-context))))
