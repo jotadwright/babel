@@ -74,7 +74,7 @@
 
 (define-monitor export-type-hierarchy-to-json
                 :class 'store-monitor
-                :file-name (babel-pathname :directory '("experiments" "clevr-learning" "raw-data")
+                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
                                             :name "type-hierarchy"
                                             :type "json"))
 
