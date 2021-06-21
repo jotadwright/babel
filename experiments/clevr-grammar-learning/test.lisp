@@ -60,7 +60,6 @@
 
 ;(run-series *experiment*  400)
 
-
 #|
 
 QUESTIONS
@@ -78,7 +77,6 @@ ISSUES
 
 TODO
 ----
-- add series number to exported grammar! (currently overwritten!)
 
 
 - stage 1 en dan stage 2 met dezelfde grammatica

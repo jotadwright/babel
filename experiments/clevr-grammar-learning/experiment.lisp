@@ -93,6 +93,10 @@
 (defmethod initialize-instance :after ((experiment clevr-grammar-learning-experiment) &key)
   ;; set the questions of the experiment
   (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
+  ;; append stage 2 data
+  (set-configuration experiment :current-challenge-level 2)
+  (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
+
   ;; set the population of the experiment
   (setf (population experiment)
         (list (make-clevr-learning-learner experiment)))
@@ -130,8 +134,8 @@
                                         while data
                                         collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal))))))
         (setf (question-data experiment) (append
-                                          stage-data ;; 2 epochs
-                                          (shuffle stage-data)))))
+                                          (question-data experiment)
+                                          stage-data))))
     (format t "~%Done!")
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))
@@ -152,7 +156,9 @@
                                         for data = (when line (cl-json:decode-json-from-string line))
                                         while data
                                         collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
-        (setf (question-data experiment) stage-data)))
+        (setf (question-data experiment) (append
+                                          (question-data experiment)
+                                          stage-data))))
     (format t "~%Done!")
     (notify challenge-level-questions-loaded
             (get-configuration experiment :current-challenge-level))))
