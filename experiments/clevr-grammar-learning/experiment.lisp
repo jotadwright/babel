@@ -14,7 +14,7 @@
                                                    :name "stage-1" :type "txt"))
 (define-configuration-default-value :challenge-2-data
                                     (make-pathname :directory '(:relative "train")
-                                                   :name "stage-1-and-2" :type "txt"))
+                                                   :name "stage-2" :type "txt"))
 (define-configuration-default-value :challenge-3-data
                                     (make-pathname :directory '(:relative "train")
                                                    :name "stage-3" :type "txt"))
@@ -23,7 +23,7 @@
                                                    :name "stage-1" :type "txt"))
 (define-configuration-default-value :challenge-2-data-evaluation
                                     (make-pathname :directory '(:relative "val")
-                                                   :name "stage-1-and-2" :type "txt"))
+                                                   :name "stage-2" :type "txt"))
 (define-configuration-default-value :challenge-3-data-evaluation
                                     (make-pathname :directory '(:relative "val")
                                                    :name "stage-3" :type "txt"))
@@ -32,7 +32,7 @@
                                                    :name "stage-1" :type "txt"))
 (define-configuration-default-value :challenge-2-data-development
                                     (make-pathname :directory '(:relative "test")
-                                                   :name "stage-1-and-2" :type "txt"))
+                                                   :name "stage-2" :type "txt"))
 (define-configuration-default-value :challenge-3-data-development
                                     (make-pathname :directory '(:relative "test")
                                                    :name "stage-3" :type "txt"))
