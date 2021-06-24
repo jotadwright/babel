@@ -19,7 +19,7 @@
 (setf nlp-tools::*penelope-host* "http://localhost:5000")
 
 ;; Activating trace-fcg
-(deactivate-monitor trace-fcg)
+(activate-monitor trace-fcg)
 ;The dynamics of change in the state of health of children affected by the Chernobyl accident in all three countries - Belarus , Russia , and Ukraine - in the post-accident period is characterized by persistent negative tendencies : the morbidity rate is going up , the number of really healthy children is dropping , and disability is increasing .
 
 ;;;;;;;;;;;
@@ -70,7 +70,7 @@
 (defparameter *train-sentences-ontonotes* (train-split *ontonotes-annotations*))
 (defparameter *train-sentences-all* (shuffle (append (train-split *ontonotes-annotations*)
                                                      (train-split *ewt-annotations*))))
-
+(length *train-sentences-all*)
 (defparameter *dev-sentences-ewt* (dev-split *ewt-annotations*))
 (defparameter *dev-sentences-ontonotes* (dev-split *ontonotes-annotations*))
 (defparameter *dev-sentences-all*  (append *dev-sentences-ewt* *dev-sentences-ontonotes*))
@@ -88,16 +88,16 @@
 ;; Storing and restoring grammars ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cl-store:store *propbank-learned-cxn-inventory*
+(cl-store:store *propbank-ontonotes-ewt-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "propbank-grammar-ontonotes-uncleaned"
+                                :name "propbank-grammar-ontonotes-ewt-cleaned-100"
                                 :type "fcg"))
 
-(defparameter *restored-grammar*
+(defparameter *restored-100-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                           :name "propbank-grammar-ontonotes-ewt-cleaned-pron"
+                           :name "propbank-grammar-ontonotes-ewt-cleaned-100"
                            :type "fcg")))
-(size *restored-grammar*)
+(size *restored-100-grammar*)
 
 ;(setf *th* (get-type-hierarchy *restored-grammar*))
 
@@ -137,24 +137,25 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-    (train-split *ontonotes-annotations*)
-         ;  (train-split *ewt-annotations*))
+   *train-sentences-all*
    :selected-rolesets nil
-   :cxn-inventory '*propbank-learned-cxn-inventory*
+   :cxn-inventory '*propbank-ontonotes-ewt-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
 
 (activate-monitor trace-fcg)
-(comprehend-and-extract-frames "They don't mess with me"
-                         :cxn-inventory *propbank-learned-cxn-inventory* )
+(comprehend-and-extract-frames (first (train-split *ewt-annotations*))
+                         :cxn-inventory *propbank-ewt-learned-cxn-inventory* )
 
 ;;>> Cleaning
 ;;--------------
 (length (dev-split *ontonotes-annotations*))
+
 (defparameter *sorted-cxns*
-  (sort-cxns-for-outliers *propbank-learned-cxn-inventory* (dev-split *ontonotes-annotations*)
-                          :timeout 10
-                          :nr-of-training-sentences (get-data (blackboard *propbank-learned-cxn-inventory*) :training-corpus-size)
+  (sort-cxns-for-outliers *propbank-ontonotes-ewt-learned-cxn-inventory*
+                          (shuffle *dev-sentences-all*)
+                          :timeout 15
+                          :nr-of-training-sentences (get-data (blackboard *propbank-ontonotes-ewt-learned-cxn-inventory*) :training-corpus-size)
                           :nr-of-test-sentences 100))
 
 (defparameter *sorted-cxns* (cl-store:restore 
@@ -165,15 +166,15 @@
       when (> (eval dev/train-ratio) 1)
       do (format t "~a : ~a ~%" (name cxn) (eval dev/train-ratio) ))
 
-(loop for (cxn . dev/train-ratio) in *sorted-cxns*
-        if (>= (eval dev/train-ratio) 3000)
+(defun apply-cutoff (cutoff grammar)
+  (loop for (cxn . dev/train-ratio) in (reverse *sorted-cxns*)
+        if (>= (eval dev/train-ratio) cutoff)
         do (with-disabled-monitor-notifications
-             (delete-cxn cxn *propbank-learned-cxn-inventory* :hash-key (attr-val cxn :lemma)))
-        else do (return *propbank-learned-cxn-inventory*))
-
+             (delete-cxn (name cxn) grammar :key #'name))))
+        
+(apply-cutoff 50 *restored-100-grammar*)
 ;;*restored-grammar* ;111102 cxns ;;> <hashed-fcg-construction-set: 111099 cxns>
-(clean-grammar *restored-grammar* (dev-split *ontonotes-annotations*)
-               :nr-of-test-sentences 500 :timeout 10)
+
 
 (add-element (make-html (find-cxn 'HAVE.03-CXN *propbank-learned-cxn-inventory* :hash-key 'have)))
 (size *propbank-learned-cxn-inventory*)
@@ -183,27 +184,63 @@
 (loop for key in '(\'s \'ve be had haqve hav hvae v ve \` {had?} \'m \'re \'s \'s** ai am ar are art being is m r re s wase)
       do (remhash key (constructions-hash-table *propbank-learned-cxn-inventory*))
       (remhash key (constructions-hash-table (processing-cxn-inventory *propbank-learned-cxn-inventory*))))
-;(clean-type-hierarchy (get-type-hierarchy *restored-grammar*) :remove-edges-with-freq-smaller-than 2)
+;(clean-type-hierarchy (get-type-hierarchy *propbank-ewt-learned-cxn-inventory*) :remove-edges-with-freq-smaller-than 2)
 
 
 ;;;;;;;;;;;;;;;;;
 ;; Evaluation  ;;
 ;;;;;;;;;;;;;;;;;
 
+;;"DPA : Iraqi authorities announced that they had busted up 3 terrorist cells operating in Baghdad"
+;; fout met have.03 ipv have.01
+
+(setf *th* (get-type-hierarchy *propbank-ontonotes-ewt-learned-cxn-inventory*))
+
 
 
 (loop for i from 1
-      for sentence in (subseq *train-sentences-ewt* 0 10)
+      for sentence in (subseq *train-sentences-ewt* 100 150) 
       do (format t "~%~% Sentence: ~a ~%" i)
-      (comprehend-and-evaluate (list sentence ) *propbank-learned-cxn-inventory* :core-roles-only nil :silent nil))
+      (comprehend-and-evaluate (list sentence ) *propbank-ewt-learned-cxn-inventory*
+                               :excluded-rolesets '("have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11" "be.01" "be.02" "be.03")
+                               :core-roles-only t :include-word-sense t :silent nil
+                               :include-sentences-with-incomplete-role-constituent-mapping nil))
+
+(set-configuration (visualization-configuration *propbank-ontonotes-ewt-learned-cxn-inventory*) :hide-features '())
+
+(defparameter *test-sentences* (subseq (shuffle (test-split *ontonotes-annotations*)) 0 10))
+
+(comprehend-and-evaluate *test-sentences*
+                         *restored-100-grammar* ;;50
+                         :excluded-rolesets '("have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11" "be.01" "be.02" "be.03" "have" "be")
+                         :core-roles-only t :include-word-sense t
+                         :timeout 20
+                         :include-timed-out-sentences nil
+                         :include-sentences-with-incomplete-role-constituent-mapping nil
+                         :silent t)
+
+
+(let ((predictions (restore (babel-pathname :directory '(".tmp")
+                                                :name "results-100-all"
+                                                :type "store"))))
+    
+      (evaluate-predictions predictions
+                            :core-roles-only t
+                            :excluded-rolesets '("have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11" "be.01" "be.02" "be.03" "have" "be")
+                            :include-word-sense t
+                            :include-timed-out-sentences nil
+                            :include-sentences-with-incomplete-role-constituent-mapping nil))
+
+
+
+(comprehend-and-extract-frames "First room had used tissues next to the bed and I requested it be rectified" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
 
 (setf *stack-overflow-behaviour* nil)
 (comprehend-and-extract-frames (sentence-string (nth 50 (test-split *ontonotes-annotations*)))
                          :cxn-inventory *propbank-learned-cxn-inventory* )
 
 
-(comprehend-and-evaluate (list (nth 1 (test-split *ontonotes-annotations*)))
-                         *propbank-learned-cxn-inventory* :silent nil)
+
 
 (add-element (make-html (find-cxn  'break-up\(vp\)-cxn  *propbank-learned-cxn-inventory-small* :hash-key 'break-up)))
 (evaluate-propbank-corpus (subseq (shuffle *train-sentences-all-frames*) 0 100) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check

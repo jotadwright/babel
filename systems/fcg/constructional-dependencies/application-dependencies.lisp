@@ -1,6 +1,6 @@
 ;; Copyright 2019 AI Lab, Vrije Universiteit Brussel - Sony CSL Paris
 
-;; Licensed under the Apache License, Version 2.0 (the "License");
+;; Licensed under the Apache License, Verpsion 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
 ;; You may obtain a copy of the License at
 
@@ -87,7 +87,7 @@ the nodes above the solution."
                      :test #'equalp))
 
 (defun get-resolved-bindings (gp-cxn)
-  "";;katrien: no idea what this does exactly...
+  ""
   (remove-if-not #'car 
                  (mapcar #'(lambda (binding)
                              (cons (find (first binding) (units gp-cxn) :test #'eq :key #'name)
@@ -156,58 +156,6 @@ the nodes above the solution."
   (or (null value)
       (and (consp value)
            (real-listp (cdr value)))))
-
-;;; (defun all-unit-names (cxn &key (include-root? nil))
-;;;   (let ((left-and-right-pole-structures (append (left-pole-structure cxn)
-;;;                                                 (right-pole-structure cxn))))
-;;;     (remove-duplicates
-;;;      (loop for unit in (if include-root?
-;;;                         left-and-right-pole-structures
-;;;                         (remove-if #'root-p left-and-right-pole-structures))
-;;;           collect (unit-name unit :maybe-j-unit t)))))
-
-;;; (defun all-units (cxn &key (include-root? nil))
-;;;   (let ((left-and-right-pole-structures (append (left-pole-structure cxn)
-;;;                                                 (right-pole-structure cxn))))
-;;;     (remove-duplicates
-;;;      (loop for unit in (if include-root?
-;;;                          left-and-right-pole-structures
-;;;                          (remove-if #'root-p left-and-right-pole-structures))
-;;;            collect unit) :test #'equal :key #'unit-name)))
-  
-
-;;; (defun make-gp-units (processing-cxn gp-cxn)
-;;;   (let ((gp-units nil))
-;;;     ;;processing construction has two poles:
-;;;     ;;a) left-pole
-;;;     (setf gp-units
-;;;           (loop for unit in (remove-if #'root-p (left-pole-structure processing-cxn))
-;;;                 if (j-unit-p unit)
-;;;                 collect (make-instance 'gp-unit
-;;;                                        :name (unit-name unit)
-;;;                                        :cxn gp-cxn ;;volledige cxn nodig?
-;;;                                        :cont-part (append (unit-features unit)
-;;;                                                           (cont-part unit))) ;;zit hier al iets in??
-;;;                 else collect (make-instance 'gp-unit
-;;;                                             :name (unit-name unit)
-;;;                                             :cxn gp-cxn
-;;;                                             :prod-lock (unit-features unit))))
-;;;     ;;b) right-pole                         
-;;;     (setf gp-units
-;;;           (append gp-units
-;;;                   (loop for unit in (remove-if #'root-p (right-pole-structure processing-cxn))
-;;;                         if (j-unit-p unit)
-;;;                         collect (make-instance 'gp-unit
-;;;                                                :name (unit-name unit)
-;;;                                                :cxn gp-cxn
-;;;                                                :cont-part (append (unit-features unit)
-;;;                                                                   (cont-part gp-unit))) ;;zit hier al iets in??
-;;;                         else collect (make-instance 'gp-unit
-;;;                                                     :name (unit-name unit)
-;;;                                                     :cxn gp-cxn
-;;;                                                     :comp-lock (unit-features unit)))))
-;;;     gp-units))
-
 
 (defun gp-units-data (proc-cxn gp-cxn)
   (let ((gp-units (mapcar (lambda (uname)
@@ -426,18 +374,27 @@ the nodes above the solution."
                                   source)))))
     
 
-;(defparameter *only-vp* T)
 
-(defun unit-bindings->graph (&key (data nil) (debug-mode nil) ;(colored-paths t) (labeled 'full)
-                                  (prefered-font "Open Sans Condensed")
+
+
+(defun visualise-cxn-skeleton (cxn font)
+  `(s-dot::cluster 
+    ((s-dot::id ,(string-append (make-dot-id2 (symbol-name (name cxn)))
+                                (write-to-string (id cxn))))
+     (s-dot::label ,(string-append "<<TABLE BGCOLOR=\"#030e86\" COLOR=\"transparent\" WIDTH=\"80%\"><TR><TD ALIGN=\"CENTER\" WIDTH=\"80%\"> "
+                                   (string-downcase (symbol-name (name cxn)))
+                                   "</TD></TR></TABLE>>"))
+     (s-dot::color "#030e86")
+     (s-dot::fontcolor "white")
+     (s-dot::fontsize "10")
+     (s-dot::fontname ,font))))
+
+(defun unit-bindings->graph (&key (data nil) (debug-mode nil) 
+                                  (preferred-font "Open Sans Condensed")
                                   (construction-inventory *fcg-constructions*)
-                                  (visualization-configuration nil)
-                                  ; (trace-units nil)
-                                  )
+                                  (visualization-configuration nil))
   "Draws a graph, analogeous to the one for the
-   full grammar profiler.
-
-   Labeled can be 'full, 'no-bindings or nil"
+   full grammar profiler."
   (unless data
     (setf data (read-data)))
   (unless visualization-configuration
@@ -450,54 +407,28 @@ the nodes above the solution."
          (labeled-paths (get-configuration visualization-configuration :labeled-paths))
          (trace-units (mapcar #'string-downcase (get-configuration visualization-configuration :trace-units))))
     (mapc (lambda (cxn)
-            (push (append `(s-dot::cluster ((s-dot::id ,(string-append (make-dot-id2 (symbol-name (name cxn)))
-                                                                       (write-to-string (id cxn))))
-                                            (s-dot::label ,(string-append "<<TABLE BGCOLOR=\"#030e86\" COLOR=\"transparent\" WIDTH=\"80%\"><TR><TD ALIGN=\"CENTER\" WIDTH=\"80%\"> "
-                                                                          (string-downcase (symbol-name (name cxn)))
-                                                                          "</TD></TR></TABLE>>")) ; ,(string-downcase (symbol-name (name cxn))))
-                                            (s-dot::color "#030e86")
-                                            (s-dot::fontcolor "white")
-                                            (s-dot::fontsize "9")
-                                            (s-dot::fontname ,prefered-font)
-                                            ;(s-dot::style "filled, setlinewidth(2.0)")
-                                            (s-dot::style "setlinewidth(1.5)")
-                                            (s-dot::tooltip ,(format nil "~A" (snd-mrg-binds cxn)))
-                                            (s-dot::lwidth "0.0")
-                                            ;(s-dot::margin "0.0")
-                                            ;(s-dot::fillcolor "#030e86")
-                                            ;(s-dot::bgcolor "green")
-                                            
-                                            ;(s-dot::gradientangle 270)
-                                            ;(s-dot::fontcolor "white")
-                                            ;(s-dot::fillcolor "#030e86;0.3:white")
-                                            (s-dot::lheight "0.0")
-                                            ))
+            (push (append (visualise-cxn-skeleton cxn preferred-font)
                           (mapcar (lambda (unit)
                                     (let ((new-unit-p (not (find (unitstr unit)
                                                                  not-new-units :test #'string=))))
                                       `(s-dot::node ((s-dot::id ,(make-dot-id2 (unitstr unit)))
                                                      (s-dot::label ,(string-downcase (apply-if (not debug-mode) #'utils::remove-numeric-tail (symbol-name (name unit)))))
                                                      (s-dot::shape "box")
-                                                     (s-dot::style "filled, setlinewidth(1.0)")
+                                                     (s-dot::style "filled, setlinewidth(0.5)")
                                                      (s-dot::fillcolor ,(if new-unit-p "#C2E0D1"
                                                                           (if (and trace-units (find (string-downcase (utils::remove-numeric-tail (symbol-name (name unit)))) trace-units :test #'string=))
                                                                             "yellow"
                                                                             "white")))
-                                                     (s-dot::color ; "#669999"
-                                                                   ,(if colored-paths ; (string= (utils::remove-numeric-tail (symbol-name (name unit))) "?VP")
+                                                     (s-dot::color,(if colored-paths 
                                                                       (gethash (tunit unit) tu-colors)
                                                                       	"#808080"))
-                                                     (s-dot::fontcolor ; "#669999"
-                                                                       ,(if colored-paths ; (string= (utils::remove-numeric-tail (symbol-name (name unit))) "?VP")
+                                                     (s-dot::fontcolor ,(if colored-paths 
                                                                           (gethash (tunit unit) tu-colors)
                                                                           "#030e86"))
                                                      (s-dot::fontsize "9")
-                                                     (s-dot::fontname ,prefered-font) ;(string-append prefered-font " bold") ;;does not work well  with svg
+                                                     (s-dot::fontname ,preferred-font)
                                                      (s-dot::height "0.25")
-                                                     (s-dot::tooltip ,(symbol-name (tunit unit)))
-                                                     ;(s-dot::width "0.0")
-                                                     ;(s-dot::margin "0.0")
-                                                     ))))
+                                                     (s-dot::tooltip ,(symbol-name (tunit unit)))))))
                                   (units cxn)))
                   clusters))
           (cxns data))
@@ -505,10 +436,10 @@ the nodes above the solution."
           (mapcar (lambda (edge)
                     `(s-dot::edge ((s-dot::from ,(make-dot-id2 (unitstr (from edge))))
                                    (s-dot::to ,(make-dot-id2 (unitstr (to edge))))
-                                   (s-dot::color ,(if (and (from-last-p edge) ;"#669999" "gray90"
-                                                           colored-paths) ; (string= (utils::remove-numeric-tail (symbol-name (name (to edge)))) "?VP")
+                                   (s-dot::color ,(if (and (from-last-p edge) 
+                                                           colored-paths) 
                                                       (gethash (tunit edge) tu-colors)
-                                                      "gray30"))
+                                                      "gray50"))
                                    (s-dot::label ,(if (or labeled-paths
                                                           (and trace-units
                                                                (find (string-downcase (utils::remove-numeric-tail (symbol-name (name (to edge)))))  trace-units :test #'string=)))
@@ -517,10 +448,11 @@ the nodes above the solution."
                                    (s-dot::fontcolor ,(if (and (from-last-p edge)
                                                            colored-paths)
                                                       (gethash (tunit edge) tu-colors)
-                                                      "gray30"))
+                                                      "gray50"))
                                    (s-dot::fontsize "9")
-                                   (s-dot::fontname ,prefered-font)
-                                   (s-dot::style ,(if (from-last-p edge) "" "dotted"))
+                                   (s-dot::arrowhead "open")
+                                   (s-dot::fontname ,preferred-font)
+                                   (s-dot::style ,(if (from-last-p edge) "setlinewidth(0.5)" "setlinewidth(0.5) dotted"))
                                    (s-dot::tooltip ,(format nil "~A" (remove-if (lambda (b) (equalp b '(T . T)))
                                                                                 (apply #'append (apply #'append (mapcar #'bindings (bindings edge)))))))
                                    (s-dot::labeltooltip ,(format nil "~A" (remove-if (lambda (b) (equalp b '(T . T)))
