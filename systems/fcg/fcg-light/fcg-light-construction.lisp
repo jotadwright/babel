@@ -257,6 +257,14 @@
                                  (construction-set fcg-construction-set))
   (setf (slot-value construction-set 'constructions) construction-list))
 
+(defmethod add-cxn :before ((construction fcg-construction)
+                            (construction-inventory fcg-construction-set)
+                            &key (replace-when-equivalent t)
+                            (equivalent-test #'eql) (equivalent-key #'name))
+  (when replace-when-equivalent
+    (delete-cxn construction construction-inventory 
+                :test equivalent-test :key equivalent-key)))
+
 (defmethod add-cxn ((fcg-construction fcg-construction)
                     (fcg-construction-set fcg-construction-set)
                     &key
@@ -284,14 +292,6 @@
              :equivalent-key equivalent-key)
     (values fcg-construction-set fcg-construction)))
 
-(defmethod add-cxn :before ((construction fcg-construction)
-                            (construction-inventory fcg-construction-set)
-                            &key (replace-when-equivalent t)
-                            (equivalent-test #'eql) (equivalent-key #'name))
-  (when replace-when-equivalent
-    (delete-cxn construction construction-inventory 
-                :test equivalent-test :key equivalent-key)))
-
 (defmethod find-cxn ((fcg-construction fcg-construction) (fcg-construction-set fcg-construction-set) 
                      &key (key #'name) (test #'eql))
   (find-cxn fcg-construction (append (constructions fcg-construction-set))
@@ -301,24 +301,6 @@
                      &key (key #'name) (test #'eql) (search-trash nil))
   (find construction (append (constructions fcg-construction-set)
                              (when search-trash (trash fcg-construction-set))) 
-        :key key :test test))
-
-(defmethod find-cxn ((fcg-construction fcg-construction)
-                     (hashed-fcg-construction-set hashed-fcg-construction-set) 
-                     &key (key #'name) (test #'eql))
-
-  (loop with hashes = (hash fcg-construction (get-configuration hashed-fcg-construction-set :hash-mode))
-        for hash in (if (null hashes) (list nil) hashes)
-        for cxn = (find fcg-construction (gethash hash (constructions-hash-table hashed-fcg-construction-set))
-                        :test test :key key)
-        when cxn
-        do (return cxn)))
-
-(defmethod find-cxn ((construction t) (hashed-fcg-construction-set hashed-fcg-construction-set) 
-                     &key (key #'name) (test #'eql) (search-trash nil) (hash-key nil))
-  (find construction
-        (append (gethash hash-key (constructions-hash-table hashed-fcg-construction-set))
-                (when search-trash (trash hashed-fcg-construction-set)))
         :key key :test test))
 
 (defmethod find-cxn ((construction fcg-construction) (constructions list) 
@@ -340,56 +322,6 @@
             (remove to-delete (constructions construction-set)))
       (delete-cxn (get-processing-cxn to-delete) (processing-cxn-inventory construction-set)
                   :key key :test test)
-      to-delete)))
-
-(defmethod delete-cxn ((construction t) 
-                       (construction-set hashed-fcg-construction-set)
-                       &key (key #'identity) (test #'eql) (move-to-trash nil))
-  "Deletes a construction from the fcg-construction-set and the
-processing construction inventory. Also removes the hashkey if the
-value has become NIL."
-  (let ((to-delete (find-cxn construction construction-set :test test :key key)))
-
-    (when to-delete
-      (when move-to-trash
-        (push to-delete (trash construction-set)))
-      (loop
-       with hashes = (hash to-delete (get-configuration construction-set :hash-mode))
-       for hash in (if (and hashes
-                            (find nil (listify hashes)))
-                     (listify hashes)
-                     (cons nil (listify hashes)))
-       do
-       (setf (gethash hash (constructions-hash-table construction-set))
-                (remove to-delete (gethash hash (constructions-hash-table construction-set))))
-       (delete-cxn (get-processing-cxn to-delete) (processing-cxn-inventory construction-set))
-       (unless (gethash hash (constructions-hash-table construction-set))
-         (remhash hash (constructions-hash-table construction-set))))
-      to-delete)))
-
-(defmethod delete-cxn ((construction fcg-construction) 
-                       (construction-set hashed-fcg-construction-set)
-                       &key (key #'identity) (test #'eql) (move-to-trash nil))
-  "Deletes a construction from the fcg-construction-set and the
-processing construction inventory. Also removes the hashkey if the
-value has become NIL."
-  (let ((to-delete (find-cxn construction construction-set :test test :key key)))
-
-    (when to-delete
-      (when move-to-trash
-        (push to-delete (trash construction-set)))
-      (loop
-       with hashes = (hash to-delete (get-configuration construction-set :hash-mode))
-       for hash in (if (and hashes
-                            (find nil (listify hashes)))
-                     (listify hashes)
-                     (cons nil (listify hashes)))
-       do
-       (setf (gethash hash (constructions-hash-table construction-set))
-                (remove to-delete (gethash hash (constructions-hash-table construction-set))))
-       (delete-cxn (get-processing-cxn to-delete) (processing-cxn-inventory construction-set))
-       (unless (gethash hash (constructions-hash-table construction-set))
-         (remhash hash (constructions-hash-table construction-set))))
       to-delete)))
 
 (defmethod copy-object ((cxn fcg-construction))
@@ -472,12 +404,34 @@ construction on the fly."
 ;; Hashed FCG construction set    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmethod find-cxn ((fcg-construction fcg-construction)
+                     (hashed-fcg-construction-set hashed-fcg-construction-set) 
+                     &key (key #'identity) (test #'eql))
+  (loop with hashes = (hash fcg-construction
+                            (get-configuration hashed-fcg-construction-set :hash-mode))
+        for hash in (if (null hashes) (list nil) hashes)
+        for cxn = (find (funcall key fcg-construction)
+                        (gethash hash
+                                 (constructions-hash-table hashed-fcg-construction-set))
+                        :test test :key key)
+        when cxn
+        do (return cxn)))
+
+(defmethod find-cxn ((construction t) (hashed-fcg-construction-set hashed-fcg-construction-set) 
+                     &key (key #'name) (test #'eql) (search-trash nil) (hash-key nil))
+  ;; this function relies on the hash-key being provided!
+  (find construction
+        (append (gethash hash-key (constructions-hash-table hashed-fcg-construction-set))
+                (when search-trash (trash hashed-fcg-construction-set)))
+        :key key :test test))
+
 (defmethod add-cxn ((fcg-construction fcg-construction)
                     (fcg-construction-set hashed-fcg-construction-set)
                     &key
                     (replace-when-equivalent t)
                     (equivalent-test #'eql)
-                    (equivalent-key #'identity) (processing-cxn-inventory nil)
+                    (equivalent-key #'identity)
+                    (processing-cxn-inventory nil)
                     (recover-from-trash nil)
                     &allow-other-keys)
   (let ((processing-construction (fcg-light-cxn->fcg-2-cxn
@@ -491,17 +445,21 @@ construction on the fly."
           (cxn-inventory fcg-construction) fcg-construction-set)
     ;; Add construction to the hash table
     (if recover-from-trash
-      (let* ((trashed-cxn (find (funcall equivalent-key fcg-construction) (trash fcg-construction-set) 
+      (let* ((trashed-cxn (find (funcall equivalent-key fcg-construction)
+                                (trash fcg-construction-set) 
                                 :key equivalent-key
                                 :test equivalent-test)))
         (if trashed-cxn
           (progn
-            (loop for hash in (hash trashed-cxn (get-configuration fcg-construction-set :hash-mode))
+            (loop for hash in (hash trashed-cxn
+                                    (get-configuration fcg-construction-set :hash-mode))
                   do (setf (gethash hash (constructions-hash-table fcg-construction-set))
                            (push trashed-cxn
                                  (gethash hash (constructions-hash-table fcg-construction-set)))))
-            (setf (trash fcg-construction-set) (remove trashed-cxn (trash fcg-construction-set))))
-          (loop for hash in (hash fcg-construction (get-configuration fcg-construction-set :hash-mode))
+            (setf (trash fcg-construction-set)
+                  (remove trashed-cxn (trash fcg-construction-set))))
+          (loop for hash in (hash fcg-construction
+                                  (get-configuration fcg-construction-set :hash-mode))
                 do (setf (gethash hash (constructions-hash-table fcg-construction-set))
                          (push fcg-construction
                                (gethash hash (constructions-hash-table fcg-construction-set)))))))
@@ -512,7 +470,8 @@ construction on the fly."
        do (when replace-when-equivalent
             (setf (gethash hash (constructions-hash-table fcg-construction-set))
                   (remove (funcall equivalent-key fcg-construction)
-                          (gethash hash (constructions-hash-table fcg-construction-set)) :test equivalent-test :key equivalent-key)))
+                          (gethash hash (constructions-hash-table fcg-construction-set))
+                          :test equivalent-test :key equivalent-key)))
        (setf (gethash hash (constructions-hash-table fcg-construction-set))
              (cons fcg-construction
                    (gethash hash (constructions-hash-table fcg-construction-set))))))
@@ -527,6 +486,59 @@ construction on the fly."
              :hash-keys (hash fcg-construction
                               (get-configuration fcg-construction-set :hash-mode)))
     (values fcg-construction-set fcg-construction)))
+
+(defmethod delete-cxn ((construction t) 
+                       (construction-set hashed-fcg-construction-set)
+                       &key (key #'name) (test #'eql) (move-to-trash nil)
+                       (hash-key nil))
+  "Deletes a construction from the fcg-construction-set and the
+   processing construction inventory. Also removes the hashkey if the
+   value has become NIL."
+  ;; this function relies on the hash-key being provided!
+  (let ((to-delete (find-cxn construction construction-set
+                             :test test :key key :hash-key hash-key)))
+
+    (when to-delete
+      (when move-to-trash
+        (push to-delete (trash construction-set)))
+      
+      (loop
+       with hashes = (hash to-delete (get-configuration construction-set :hash-mode))
+       for hash in (if (null hashes) (list nil) hashes)
+       do
+       (setf (gethash hash (constructions-hash-table construction-set))
+                (remove to-delete (gethash hash (constructions-hash-table construction-set))))
+       (unless (gethash hash (constructions-hash-table construction-set))
+         (remhash hash (constructions-hash-table construction-set)))
+       (delete-cxn (get-processing-cxn to-delete) (processing-cxn-inventory construction-set)
+                   :hash-key hash))
+      
+      to-delete)))
+
+(defmethod delete-cxn ((construction fcg-construction) 
+                       (construction-set hashed-fcg-construction-set)
+                       &key (key #'identity) (test #'eql) (move-to-trash nil)
+                       &allow-other-keys)
+  "Deletes a construction from the fcg-construction-set and the
+   processing construction inventory. Also removes the hashkey if the
+   value has become NIL."
+  (let ((to-delete (find-cxn construction construction-set :test test :key key)))
+
+    (when to-delete
+      (when move-to-trash
+        (push to-delete (trash construction-set)))
+      (loop
+       with hashes = (hash to-delete (get-configuration construction-set :hash-mode))
+       for hash in (if (null hashes) (list nil) hashes)
+       do
+       (setf (gethash hash (constructions-hash-table construction-set))
+             (remove to-delete (gethash hash (constructions-hash-table construction-set))))
+       (unless (gethash hash (constructions-hash-table construction-set))
+         (remhash hash (constructions-hash-table construction-set)))
+       (delete-cxn (get-processing-cxn to-delete)
+                   (processing-cxn-inventory construction-set)
+                   :hash-key hash))
+      to-delete)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
