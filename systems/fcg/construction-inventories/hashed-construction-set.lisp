@@ -61,28 +61,35 @@
 (defmethod add-cxn :before ((construction construction)
                             (hashed-construction-set hashed-construction-set)
                             &key (replace-when-equivalent t)
-                            (equivalent-test #'eql) (equivalent-key #'name) (hash-keys nil))
+                            (equivalent-test #'eql)
+                            (equivalent-key #'identity)
+                            (hash-keys nil))
   (when replace-when-equivalent
     (loop for hash-key in hash-keys
           do (delete-cxn construction hashed-construction-set 
-                         :test equivalent-test :key equivalent-key :hash-key hash-key))))
+                         :test equivalent-test :key equivalent-key
+                         :hash-key hash-key))))
 
-(defmethod add-cxn ((construction construction) (construction-set hashed-construction-set)
-                    &key (recover-from-trash nil) (equivalent-key #'name) 
-                    (equivalent-test #'eql) &allow-other-keys)
+(defmethod add-cxn ((construction construction)
+                    (construction-set hashed-construction-set)
+                    &key (recover-from-trash nil)
+                    (equivalent-key #'identity) 
+                    (equivalent-test #'eql)
+                    &allow-other-keys)
   (if recover-from-trash
-    (let* ((trashed-cxn (find (funcall equivalent-key construction) (trash construction-set) 
+    (let* ((trashed-cxn (find (funcall equivalent-key construction)
+                              (trash construction-set) 
                               :key equivalent-key
                               :test equivalent-test)))
       (if trashed-cxn
         (loop with hashes = (hash construction
-                                    (get-configuration construction-set :hash-mode))
-                for hash in (if (null hashes) (list nil) hashes)
-                do (setf (gethash hash (constructions-hash-table construction-set))
-                         (cons construction
-                               (gethash hash (constructions-hash-table construction-set))))
-                finally
-                (setf (trash construction-set) (remove trashed-cxn (trash construction-set))))
+                                  (get-configuration construction-set :hash-mode))
+              for hash in (if (null hashes) (list nil) hashes)
+              do (setf (gethash hash (constructions-hash-table construction-set))
+                       (cons construction
+                             (gethash hash (constructions-hash-table construction-set))))
+              finally
+              (setf (trash construction-set) (remove trashed-cxn (trash construction-set))))
         (loop for hash in (hash construction (get-configuration construction-set :hash-mode))
               do (setf (gethash hash (constructions-hash-table construction-set))
                        (cons construction
@@ -90,7 +97,7 @@
     (progn
       (loop
        with hashes = (hash construction
-                          (get-configuration construction-set :hash-mode))
+                           (get-configuration construction-set :hash-mode))
        for hash in (if (null hashes) (list nil) hashes)
        do (setf (gethash hash (constructions-hash-table construction-set))
                 (cons construction
@@ -103,25 +110,35 @@
 
 (defmethod find-cxn ((construction construction)
                      (hashed-construction-set hashed-construction-set) 
-                     &key (key #'name) (test #'eql) (search-trash nil))
+                     &key (key #'identity) (test #'eql) (search-trash nil)
+                     (hash-key nil hash-key-provided-p))
 
   (when search-trash
     (let ((found-cxn
-           (find (funcall key construction) (trash hashed-construction-set) :key key :test test)))
+           (find (funcall key construction)
+                 (trash hashed-construction-set)
+                 :key key :test test)))
       (when found-cxn
         (return-from find-cxn found-cxn))))
-  
-  (loop with hashes = (hash construction
-                            (get-configuration hashed-construction-set :hash-mode))
-        for hash in (if (null hashes) (list nil) hashes)
-        for cxn = (find (funcall key construction)
-                        (gethash hash (constructions-hash-table hashed-construction-set))
-                        :test test :key key)
-        when cxn
-        do (return cxn)))
+
+  (if hash-key-provided-p
+    ;; finding is less work when the hash-key is provided
+    (find (funcall key construction)
+          (gethash hash-key (constructions-hash-table hashed-construction-set))
+          :key key :test test)
+    ;; otherwise, loop over the hash keys of the cxn
+    (loop with hashes = (hash construction
+                              (get-configuration hashed-construction-set :hash-mode))
+          for hash in (if (null hashes) (list nil) hashes)
+          for cxn = (find (funcall key construction)
+                          (gethash hash (constructions-hash-table hashed-construction-set))
+                          :test test :key key)
+          when cxn
+          do (return cxn))))
 
 (defmethod find-cxn ((construction t) (hashed-construction-set hashed-construction-set) 
                      &key (key #'name) (test #'eql) (search-trash nil) (hash-key nil))
+  ;; this function relies on the hash-key being provided!
   (find construction
         (append (gethash hash-key (constructions-hash-table hashed-construction-set))
                 (when search-trash (trash hashed-construction-set)))
@@ -134,19 +151,35 @@
 
 (defmethod delete-cxn ((construction construction) 
                        (construction-set hashed-construction-set)
-                       &key (key #'identity) (test #'eql) (move-to-trash nil) (hash-key nil))
-  (let ((to-delete (find-cxn (funcall key construction) construction-set :test test :key key :hash-key hash-key)))
-    (when to-delete
-      (when move-to-trash
-        (push to-delete (trash construction-set)))
-      (loop
-       with hashes = (hash to-delete (get-configuration construction-set :hash-mode))
-       for hash in (if (null hashes) (list nil) hashes)
-       do (setf (gethash hash (constructions-hash-table construction-set))
-                (remove to-delete (gethash hash (constructions-hash-table construction-set))))
-       (unless (gethash hash (constructions-hash-table construction-set))
-         (remhash hash (constructions-hash-table construction-set))))
-      to-delete)))
+                       &key (key #'identity) (test #'eql)
+                       (move-to-trash nil)
+                       (hash-key nil hash-key-provided-p))
+  (if hash-key-provided-p
+    ;; deleting is less work when the hash key is provided
+    (let ((to-delete (find-cxn (funcall key construction) construction-set
+                               :test test :key key :hash-key hash-key)))
+      (when to-delete
+        (when move-to-trash
+          (push to-delete (trash construction-set)))
+        (setf (gethash hash-key (constructions-hash-table construction-set))
+              (remove to-delete (gethash hash-key (constructions-hash-table construction-set))))
+        (unless (gethash hash-key (constructions-hash-table construction-set))
+          (remhash hash-key (constructions-hash-table construction-set)))
+        to-delete))
+    ;; if not, loop over all hash keys
+    (let ((to-delete (find-cxn construction construction-set
+                               :test test :key key)))
+      (when to-delete
+        (when move-to-trash
+          (push to-delete (trash construction-set)))
+        (loop with hashes = (hash to-delete (get-configuration construction-set :hash-mode))
+              for hash in (if (null hashes) (list nil) hashes)
+              do (setf (gethash hash (constructions-hash-table construction-set))
+                       (remove to-delete (gethash hash (constructions-hash-table construction-set))))
+              (unless (gethash hash (constructions-hash-table construction-set))
+                (remhash hash (constructions-hash-table construction-set))))
+        to-delete))))
+
 
 ;; #########################################################
 ;; copy-object-content
