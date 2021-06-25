@@ -33,7 +33,9 @@
   (deactivate-all-monitors)
   (activate-monitor display-metrics)
   (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor print-a-dot-for-each-interaction))
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor export-type-hierarchy-evolution-to-jsonl)
+  (activate-monitor export-type-hierarchy-to-json))
 
 (progn
   (wi::reset)
@@ -58,7 +60,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  200)
+;(run-series *experiment*  40)
 
 #|
 
@@ -79,7 +81,12 @@ TODO
 
 
 - stage 1 en dan stage 2 met dezelfde grammatica
-- stage 2 loopt vast!
+- stage 2 loopt vast! assertion error, dus repairs failen en comprehension failt
+
+- wijzigingen in experiment class:
+- maak het aantal epochs een optie
+- maak het een optie om een grammatica mee te geven waarop hij verder leert (zonder in evaluation mode te zitten)
+- maak een export monitor voor categorial networks die om de n interacties een timestep toevoegt met de volledige graph, in JSON formaat
 
 
 DONE

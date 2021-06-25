@@ -33,7 +33,6 @@
          (gold-standard-meaning (cdr interaction-data)))
     (values utterance gold-standard-meaning)))
 
-
 (defun determine-communicative-success (cipn)
   (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
@@ -41,7 +40,6 @@
            (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
            (find 'add-th-links node-statuses :test #'string=))
       t)))
-
 
 (defun get-last-repair-symbol (cipn)
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
@@ -56,8 +54,6 @@
             ((find 'add-th-links node-statuses :test #'string=) "t")
             (t (error "Did not find any repair node statuses and no solution was found!"))))))
          
-
-
 (defmethod interact :before ((experiment clevr-grammar-learning-experiment)
                              interaction &key)
   (multiple-value-bind (utterance gold-standard-meaning)
@@ -86,6 +82,9 @@
   (let ((successp
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
+    ;; export the type hierarchy to jsonl
+    (notify type-hierarchy-updated (grammar (first (agents experiment))) interaction experiment)
+    
     ;; record the success of the current utterance
     ;; by adding the success to the confidence buffer of the learner
     (setf (confidence-buffer experiment)

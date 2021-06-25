@@ -57,12 +57,6 @@
 (define-monitor export-learner-grammar
                 :class 'store-monitor
                 :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "learner-grammar" :type "store"))
-
-(defun make-file-name-with-time-and-series (file-name series)
-  (make-file-name-with-time
-   (mkstr
-    (make-pathname :directory (pathname-directory file-name))
-    (pathname-name file-name) "-series-" series  "." (pathname-type file-name))))
   
 (define-event-handler (export-learner-grammar run-series-finished)  
   (export-grammar (grammar (learner experiment))
@@ -134,7 +128,7 @@
 
 (defun export-type-hierarchy-to-image (type-hierarchy path)
   (type-hierarchy->image
-   type-hierarchy :render-program "circo" :weights? t
+   type-hierarchy :render-program "fdp" :weights? t
    :path (make-pathname :directory (pathname-directory path))
    :file-name (pathname-name path)
    :format "pdf"))
@@ -154,10 +148,72 @@
      (remove-non-connected-nodes th-copy)
      path)))
 
+(define-monitor export-type-hierarchy-evolution-to-jsonl
+                :documentation "Export a series of states of the type-hierarchy as JSONL. Used to draw dynamic evolutionary graphs."
+                :class 'store-monitor
+                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
+                                            :name "type-hierarchy-evolution"
+                                            :type "jsonl"))
+
+(define-event-handler (export-type-hierarchy-evolution-to-jsonl interaction-finished)
+  (let* ((interval (if (get-configuration experiment :type-hierarchy-export-interval)
+                     (get-configuration experiment :type-hierarchy-export-interval)
+                     100))
+         (timestep (/ (interaction-number interaction) interval)))
+    (when (= (mod (interaction-number interaction) interval) 0)
+      (let* ((g (type-hierarchies::graph (get-type-hierarchy (grammar (first (interacting-agents experiment))))))
+             (path (make-file-name-with-series (file-name monitor) (series-number experiment)))
+             ;; get a list of all node names
+             ;; to do: get color and type attributes from graph
+             (all-nodes
+              (loop for node in (graph-utils::list-nodes g)
+                    collect `((label . ,(mkstr node))
+                              (color . "#000000")
+                              (type . nil))))
+             ;; get a list of all the edges
+             ;; this include the edge-type
+             ;; but excludes the weight
+             (all-edges (graph-utils::list-edges g))
+             ;; so get the weight separately
+             (all-edges-with-weight
+              (loop for (from to etype) in all-edges
+                    for w = (graph-utils:edge-weight g from to etype)
+                    collect`((start-node . ,(mkstr from))
+                             (end-node . ,(mkstr to))
+                             (score . ,w)
+                             (type . nil)))) ;; to do: get type attribute from graph
+             (json-hash (make-hash-table)))
+        (setf (gethash 'nodes json-hash) all-nodes)
+        (setf (gethash 'edges json-hash) all-edges-with-weight)
+
+        (ensure-directories-exist path)
+        (with-open-file (stream path :direction :output
+                                :if-exists (if (= 1 timestep) :supersede :append)
+                                :if-does-not-exist :create)
+          (write-line
+           (cl-json:encode-json-to-string
+            `((time-step . ,timestep)
+              (interaction-number . ,(interaction-number interaction))
+              (graph . ,json-hash)))
+           stream)
+          (force-output stream))))))
+#|
+(defparameter *my-hash* (make-hash-table))
+(setf (gethash 'one-entry *my-hash*) "one")
+(setf (gethash 'another-entry *my-hash*) 2/4)
+(cl-json:encode-json-to-string *my-hash*)
+
+ {"label":"MATERIAL","color":"#000000","type":"lexical"}
+(cl-json:encode-json-alist-to-string `((time-step . 1)
+            (graph . ((nodes . (((label . "bla")
+                                (color . "#000000")
+                                (type . "default"))))
+                      (edges . "bla")))))
+|#
 
 (defun get-all-export-monitors ()
   '("export-type-hierarchy-to-image"
     "export-type-hierarchy-to-json"
+    "export-type-hierarchy-evolution-to-jsonl"
     "export-learner-grammar"))
   
-    

@@ -49,6 +49,7 @@
 (define-configuration-default-value :evaluation-grammar nil)
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
+(define-configuration-default-value :type-hierarchy-export-interval 100)
 
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
@@ -94,8 +95,8 @@
   ;; set the questions of the experiment
   (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
   ;; append stage 2 data
-  (set-configuration experiment :current-challenge-level 2)
-  (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
+  ;(set-configuration experiment :current-challenge-level 2)
+  ;(load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
 
   ;; set the population of the experiment
   (setf (population experiment)
