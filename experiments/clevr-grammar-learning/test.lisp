@@ -58,14 +58,12 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  400)
-
+;(run-series *experiment*  200)
 
 #|
 
 QUESTIONS
 ---------
-
  
 NOTES
 ------
@@ -78,7 +76,6 @@ ISSUES
 
 TODO
 ----
-- add series number to exported grammar! (currently overwritten!)
 
 
 - stage 1 en dan stage 2 met dezelfde grammatica
