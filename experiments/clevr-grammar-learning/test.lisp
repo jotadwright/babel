@@ -77,8 +77,7 @@ ISSUES
 
 TODO
 ----
-- wijzigingen in experiment class:
-- maak het een optie om een grammatica mee te geven waarop hij verder leert (zonder in evaluation mode te zitten)
+
 - run een experiment met 10 epochs, en evalueer dan
 
 - stage 1 en dan stage 2 met dezelfde grammatica
@@ -90,7 +89,7 @@ DONE
 ----
 - 2 epochs: plak de data 2x aan elkaar (geshuffeld)
 - maak een export monitor voor categorial networks die om de n interacties een timestep toevoegt met de volledige graph, in JSON formaat
-
+- maak het een optie om een grammatica mee te geven waarop hij verder leert (zonder in evaluation mode te zitten)
 
 
 |#
