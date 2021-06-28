@@ -30,7 +30,6 @@
         do (comprehend utterance :gold-standard-meaning meaning :cxn-inventory cxn-inventory))
   (deactivate-monitor trace-fcg))
         
-
 (defun run-training ()
   (wi::reset)
   (let ((experiment-name 'training-stage-1))
@@ -39,31 +38,30 @@
                         ((:determine-interacting-agents-mode . :corpus-learner)
                          (:observation-sample-mode . :train)
                          (:learner-th-connected-mode . :neighbours)
-                         (:run-mode :training)
                          (:current-challenge-level . 1)
                          ))
                        )
-                     :number-of-interactions 47133
+                     :number-of-interactions 200;  47133
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-export-monitors)
                                        (get-all-csv-monitors)))))
 
-(defun run-training-stage-2 ()
-  (wi::reset)
+(defun run-training-stage-2 (stored-grammar)
+  ;(wi::reset)
   (let ((experiment-name 'training-stage-2))
     (run-experiments `(
                        (,experiment-name
                         ((:determine-interacting-agents-mode . :corpus-learner)
                          (:observation-sample-mode . :train)
+                         (:evaluation-grammar . ,stored-grammar)
                          (:learner-th-connected-mode . :neighbours)
-                         (:run-mode :training)
                          (:current-challenge-level . 2)
                          ))
                        )
                      :number-of-interactions 200;408656
-                     :number-of-series 2
+                     :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-export-monitors)
@@ -78,7 +76,6 @@
                          (:observation-sample-mode . :evaluation)
                          (:evaluation-grammar . ,stored-grammar)
                          (:learner-th-connected-mode . :path-exists)
-                         (:run-mode :evaluation)
                          ))
                        )
                      :number-of-interactions 10043
@@ -97,7 +94,6 @@
                          (:observation-sample-mode . :development)
                          (:evaluation-grammar . ,stored-grammar)
                          (:learner-th-connected-mode . :neighbours)
-                         (:run-mode :test)
                          ))
                        )
                      :number-of-interactions 10181
@@ -127,9 +123,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; train, load the exported grammar and evaluate it.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;(activate-monitor trace-fcg)
 ; (run-training)
-;(run-training-stage-2)
+; (defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data" "training-stage-1") :name "grammar" :type "store")))
+;(run-training-stage-2 *saved-inventory*)
 ; (defparameter *saved-inventory* (cl-store:restore (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data" "mac-pro-stage-1") :name "cxn-inventory-training-latest" :type "store")))
 ; (run-evaluation *saved-inventory*)
 ; (run-dev-set *saved-inventory*)
