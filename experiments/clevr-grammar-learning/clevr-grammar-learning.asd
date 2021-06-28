@@ -27,6 +27,6 @@
                (:file "experiment")
                (:file "interaction")
                (:file "web-monitors")
-               (:file "monitors")
+               (:file "export-monitors")
                (:file "lisp-monitors")
                (:file "csv-monitors")))

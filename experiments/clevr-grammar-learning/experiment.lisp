@@ -38,6 +38,8 @@
                                                    :name "stage-3" :type "txt"))
 
 (define-configuration-default-value :observation-sample-mode :train) ; train, debug, development or evaluation
+(define-configuration-default-value :number-of-epochs 1) ; how many times the training data is concatenated in random variations
+
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
@@ -49,6 +51,7 @@
 (define-configuration-default-value :evaluation-grammar nil)
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
+(define-configuration-default-value :type-hierarchy-export-interval 100)
 
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
@@ -93,16 +96,14 @@
 (defmethod initialize-instance :after ((experiment clevr-grammar-learning-experiment) &key)
   ;; set the questions of the experiment
   (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
-  ;; append stage 2 data
-  (set-configuration experiment :current-challenge-level 2)
-  (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
-
+  
   ;; set the population of the experiment
   (setf (population experiment)
         (list (make-clevr-learning-learner experiment)))
   ;; set configurations for evaluation
   (when (get-configuration experiment :evaluation-grammar)
-    (setf (grammar (first (agents experiment))) (get-configuration experiment :evaluation-grammar))
+    (setf (grammar (first (agents experiment))) (get-configuration experiment :evaluation-grammar)))
+  (when (equal (get-configuration experiment :observation-sample-mode) :evaluation)
     (set-configuration (grammar (first (agents experiment))) :update-th-links nil)
     ;(set-configuration (grammar (first (agents experiment))) :use-meta-layer nil)
     ;(set-configuration (grammar (first (agents experiment))) :th-connected-mode :path-exists)
@@ -114,6 +115,22 @@
                    :initial-element 0)))
 
 (define-event challenge-level-questions-loaded (level number))
+
+
+(defun load-question-data (experiment challenge-file num-epochs &key shuffle-data-p)
+  (with-open-file (stream challenge-file)
+    (let* ((stage-data (loop for line = (read-line stream nil)
+                             for data = (when line (cl-json:decode-json-from-string line))
+                             while data
+                             collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
+      (setf (question-data experiment)
+            (loop repeat num-epochs
+                  for data = (if shuffle-data-p (shuffle stage-data) stage-data)
+                  append data))))
+  (format t "~%Done!")
+  (notify challenge-level-questions-loaded
+          (get-configuration experiment :current-challenge-level)))
+
 
 (defgeneric load-questions-for-current-challenge-level (experiment mode)
   (:documentation "Load all data for the current challenge level"))
@@ -127,20 +144,8 @@
                             (2 (get-configuration experiment :challenge-2-data))
                             (3 (get-configuration experiment :challenge-3-data)))
                           (get-configuration experiment :challenge-files-root))))
+    (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p t)))
     
-    (with-open-file (stream challenge-file)
-      (let* ((stage-data (shuffle (loop for line = (read-line stream nil)
-                                        for data = (when line (cl-json:decode-json-from-string line))
-                                        while data
-                                        collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal))))))
-        (setf (question-data experiment) (append
-                                          (question-data experiment)
-                                          stage-data))))
-    (format t "~%Done!")
-    (notify challenge-level-questions-loaded
-            (get-configuration experiment :current-challenge-level))))
-
-
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
                                                        (mode (eql :debug)))
   (format t "~%Loading data...")
@@ -151,17 +156,7 @@
                             (3 (get-configuration experiment :challenge-3-data)))
                           (get-configuration experiment :challenge-files-root))))
     
-    (with-open-file (stream challenge-file)
-      (let* ((stage-data (loop for line = (read-line stream nil)
-                                        for data = (when line (cl-json:decode-json-from-string line))
-                                        while data
-                                        collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
-        (setf (question-data experiment) (append
-                                          (question-data experiment)
-                                          stage-data))))
-    (format t "~%Done!")
-    (notify challenge-level-questions-loaded
-            (get-configuration experiment :current-challenge-level))))
+    (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p nil)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
                                                        (mode (eql :evaluation)))
@@ -172,16 +167,7 @@
                             (2 (get-configuration experiment :challenge-2-data-evaluation))
                             (3 (get-configuration experiment :challenge-3-data-evaluation)))
                           (get-configuration experiment :challenge-files-root))))
-    
-    (with-open-file (stream challenge-file)
-      (let* ((stage-data (loop for line = (read-line stream nil)
-                                        for data = (when line (cl-json:decode-json-from-string line))
-                                        while data
-                                        collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
-        (setf (question-data experiment) stage-data)))
-    (format t "~%Done!")
-    (notify challenge-level-questions-loaded
-            (get-configuration experiment :current-challenge-level))))
+    (load-question-data experiment challenge-file 1 :shuffle-data-p nil)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
                                                        (mode (eql :development)))
@@ -192,16 +178,7 @@
                             (2 (get-configuration experiment :challenge-2-data-development))
                             (3 (get-configuration experiment :challenge-3-data-development)))
                           (get-configuration experiment :challenge-files-root))))
-    
-    (with-open-file (stream challenge-file)
-      (let* ((stage-data (loop for line = (read-line stream nil)
-                                        for data = (when line (cl-json:decode-json-from-string line))
-                                        while data
-                                        collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
-        (setf (question-data experiment) stage-data)))
-    (format t "~%Done!")
-    (notify challenge-level-questions-loaded
-            (get-configuration experiment :current-challenge-level))))
+    (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p nil)))
 
 
 (defmethod tutor ((experiment clevr-grammar-learning-experiment))
