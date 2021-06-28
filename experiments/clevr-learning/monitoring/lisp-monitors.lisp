@@ -166,7 +166,7 @@
 (define-event-handler (record-number-of-lexical-cxns interaction-finished)
   (record-value
    monitor
-   (count 'item-based (constructions-list (grammar (learner experiment)))
+   (count 'lexical (constructions-list (grammar (learner experiment)))
           :key #'get-cxn-type)))
 
 #|
