@@ -2,6 +2,12 @@
 
 (in-package :clevr-learning)
 
+;; function used for debugging
+(defun check-cxn-has-nil-as-conditional-unit-name (cxn)
+  (when (find nil (mapcar #'unit-name (conditional-part cxn)))
+    (error "~%Construction ~a has NIL as a unit name in the conditional part. ~%It was created by the ~a repair."
+           (name cxn) (attr-val cxn :repair))))
+
 (defun extract-meanings-from-cipn (cipn)
   (extract-meanings
    (left-pole-structure
