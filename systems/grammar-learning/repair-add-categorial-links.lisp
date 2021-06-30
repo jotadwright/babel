@@ -1,14 +1,14 @@
 (in-package :grammar-learning)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Repair Add TH links             ;;
+;; Repair Add Categorial links     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defclass add-th-links (add-cxns-and-th-links) 
+(defclass add-categorial-links (add-cxns-and-th-links) 
   ((trigger :initform 'fcg::new-node)))
   
-(defmethod repair ((repair add-th-links)
+(defmethod repair ((repair add-categorial-links)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -23,7 +23,7 @@
         (progn (set-data (blackboard (construction-inventory node)) :add-th-links-repair-failed t)
           nil)))))
 
-(defmethod repair ((repair add-th-links)
+(defmethod repair ((repair add-categorial-links)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)

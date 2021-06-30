@@ -38,7 +38,7 @@
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (when (or
            (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
-           (find 'add-th-links node-statuses :test #'string=))
+           (find 'add-categorial-links node-statuses :test #'string=))
       t)))
 
 (defun get-last-repair-symbol (cipn)
@@ -51,7 +51,7 @@
             ((find 'holophrase->item-based+lexical+lexical--substitution node-statuses :test #'string=) "s")
             ((find 'holophrase->item-based+lexical--addition node-statuses :test #'string=) "a")
             ((find 'holophrase->item-based+lexical+holophrase--deletion node-statuses :test #'string=) "d")
-            ((find 'add-th-links node-statuses :test #'string=) "t")
+            ((find 'add-categorial-links node-statuses :test #'string=) "t")
             (t (error "Did not find any repair node statuses and no solution was found!"))))))
          
 (defmethod interact :before ((experiment clevr-grammar-learning-experiment)
@@ -82,8 +82,6 @@
   (let ((successp
          (loop for agent in (population experiment)
                always (communicated-successfully agent))))
-    ;; export the type hierarchy to jsonl
-    (notify type-hierarchy-updated (grammar (first (agents experiment))) interaction experiment)
     
     ;; record the success of the current utterance
     ;; by adding the success to the confidence buffer of the learner
