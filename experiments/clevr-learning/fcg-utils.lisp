@@ -3,11 +3,21 @@
 (in-package :clevr-learning)
 
 ;; function used for debugging
-(defun check-cxn-has-nil-as-conditional-unit-name (cxn)
-  (when (find nil (mapcar #'fcg::name (conditional-part cxn)))
-    (error "~%Construction ~a has NIL as a unit name in the conditional part. ~%It was created by the ~a repair."
-           (name cxn) (attr-val cxn :repair))))
-
+(defun check-cxn-has-nil-as-unit-name (cxn)
+  (let ((nil-in-cond-part
+         (find nil (mapcar #'fcg::name (conditional-part cxn))))
+        (nil-in-cont-part
+         (find nil (mapcar #'fcg::name (contributing-part cxn)))))
+    (cond ((and nil-in-cond-part nil-in-cont-part)
+           (error "~a has unit name NIL in both parts.~%It was created by the ~a repair."
+                  (name cxn) (attr-val cxn :repair)))
+          (nil-in-cond-part
+           (error "~a has unit name NIL in the conditional part.~%It was created by the ~a repair."
+                  (name cxn) (attr-val cxn :repair)))
+          (nil-in-cont-part
+           (error "~a has unit name NIL in the contributing part.~%It was created by the ~a repair."
+                  (name cxn) (attr-val cxn :repair))))))
+         
 (defun extract-meanings-from-cipn (cipn)
   (extract-meanings
    (left-pole-structure
@@ -75,10 +85,12 @@
         for th-link in th-links
         for lex-slot-lex-class = (cdr th-link)
         collect `(,lex-cxn-unit-name
-                  (syn-cat (gl::lex-class ,lex-slot-lex-class))) into contributing-units
+                  (syn-cat (gl::lex-class ,lex-slot-lex-class)))
+        into contributing-units
         collect `(,lex-cxn-unit-name
                   (args (,arg))
-                  --) into conditional-units
+                  --)
+        into conditional-units
         finally (return (values conditional-units contributing-units))))
 
 (defun form-predicates->hash-string (form-predicates)
