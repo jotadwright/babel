@@ -2,22 +2,6 @@
 
 (in-package :clevr-learning)
 
-;; function used for debugging
-(defun check-cxn-has-nil-as-unit-name (cxn)
-  (let ((nil-in-cond-part
-         (find nil (mapcar #'fcg::name (conditional-part cxn))))
-        (nil-in-cont-part
-         (find nil (mapcar #'fcg::name (contributing-part cxn)))))
-    (cond ((and nil-in-cond-part nil-in-cont-part)
-           (error "~a has unit name NIL in both parts.~%It was created by the ~a repair."
-                  (name cxn) (attr-val cxn :repair)))
-          (nil-in-cond-part
-           (error "~a has unit name NIL in the conditional part.~%It was created by the ~a repair."
-                  (name cxn) (attr-val cxn :repair)))
-          (nil-in-cont-part
-           (error "~a has unit name NIL in the contributing part.~%It was created by the ~a repair."
-                  (name cxn) (attr-val cxn :repair))))))
-         
 (defun extract-meanings-from-cipn (cipn)
   (extract-meanings
    (left-pole-structure
@@ -105,11 +89,11 @@
           (mapcar #'first meaning-predicates))
          (all-primitives-but-bind
           (remove 'bind all-primitives))
-         (all-primitives-but-get-context
-          (remove 'get-context all-primitives-but-bind)))
+         (target-variable
+          (get-target-var meaning-predicates)))
     ;; if there are only bind statements
     (if (null all-primitives-but-bind)
-      ;; taje the last element of the first binding
+      ;; take the last element of the first binding
       (last-elt (first (find-all 'bind meaning-predicates :key #'first)))
-      ;; otherwise, take the last primitive excluding get-context
-      (first all-primitives-but-get-context))))
+      ;; otherwise, take the primitive that holds the target var
+      (first (find target-variable meaning-predicates :key #'second)))))
