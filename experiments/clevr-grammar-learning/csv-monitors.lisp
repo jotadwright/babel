@@ -151,7 +151,7 @@
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
-             (set-value-for-symbol monitor 'add-th-links 0)))
+             (set-value-for-symbol monitor 'add-categorial-links 0)))
           ((string= repair-symbol "i")
            (progn
              (set-value-for-symbol monitor 'nothing->holophrase 0)
@@ -160,7 +160,7 @@
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
-             (set-value-for-symbol monitor 'add-th-links 0)))
+             (set-value-for-symbol monitor 'add-categorial-links 0)))
           ((string= repair-symbol "l")
            (progn
              (set-value-for-symbol monitor 'nothing->holophrase 0)
@@ -169,7 +169,7 @@
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
-             (set-value-for-symbol monitor 'add-th-links 0)))
+             (set-value-for-symbol monitor 'add-categorial-links 0)))
           ((string= repair-symbol "s")
            (progn
              (set-value-for-symbol monitor 'nothing->holophrase 0)
@@ -178,7 +178,7 @@
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 1)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
-             (set-value-for-symbol monitor 'add-th-links 0)))
+             (set-value-for-symbol monitor 'add-categorial-links 0)))
           ((string= repair-symbol "a")
            (progn
              (set-value-for-symbol monitor 'nothing->holophrase 0)
@@ -187,7 +187,7 @@
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 1)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
-             (set-value-for-symbol monitor 'add-th-links 0)))
+             (set-value-for-symbol monitor 'add-categorial-links 0)))
           ((string= repair-symbol "d")
            (progn
              (set-value-for-symbol monitor 'nothing->holophrase 0)
@@ -196,7 +196,7 @@
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 1)
-             (set-value-for-symbol monitor 'add-th-links 0)))
+             (set-value-for-symbol monitor 'add-categorial-links 0)))
           ((string= repair-symbol "t")
            (progn
              (set-value-for-symbol monitor 'nothing->holophrase 0)
@@ -205,7 +205,7 @@
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--substitution 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--addition 0)
              (set-value-for-symbol monitor 'holophrase->item-based+lexical+lexical--deletion 0)
-             (set-value-for-symbol monitor 'add-th-links 1))))))
+             (set-value-for-symbol monitor 'add-categorial-links 1))))))
 
 (define-monitor export-csv-repair-per-type
         :class 'alist-csv-file-writer

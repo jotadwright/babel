@@ -42,10 +42,7 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :debug) ;; train, debug, evaluation, development
-                              (:determine-interacting-agents-mode . :corpus-learner)
-                              (:remove-cxn-on-lower-bound . nil)
-                              (:learner-th-connected-mode . :neighbours))))) ;; :neighbours or :path-exists
+                   :entries '((:observation-sample-mode . :debug))))) ;; train, debug, evaluation, development
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
@@ -60,7 +57,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  40)
+;(run-series *experiment*  1000)
 #|
 
 QUESTIONS
@@ -77,13 +74,20 @@ ISSUES
 
 TODO
 ----
+- fix namen van monitors
+- average over series van aantal nodes en edges in TH
+- voorbeeld van TH visualisatie
 
-- run een experiment met 10 epochs, en evalueer dan
+
+- add th links: weg met die comprehend, gwn links maken, niet checken of de indirecte bestaat
+
 
 - stage 1 en dan stage 2 met dezelfde grammatica
 - stage 2 loopt vast! assertion error, dus repairs failen en comprehension failt
 
 
+1 epoch
+test set (uiteindelijke metric)
 
 DONE
 ----

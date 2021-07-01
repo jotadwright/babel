@@ -54,7 +54,7 @@
                                         (:consolidate-repairs . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
-                   :repairs (gl::add-th-links
+                   :repairs (gl::add-categorial-links
                              gl::item-based->lexical
                              gl::holophrase->item-based+lexical+lexical--substitution
                              gl::holophrase->item-based+lexical--addition
@@ -101,6 +101,11 @@
 ;;;;  COMPETITORS
 ;;;; -------------
 
+
+;; punish abstract cxns too!
+;; e.g. what ?X is the ?Y ?Z was not used, but what size is the ?X ?Y was used instead,
+;; 
+
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory hashed-fcg-construction-set)
                                              (cxn-type (eql 'gl::item-based))
@@ -109,42 +114,42 @@
   ;; less general item-based cxns and holophrase cxns
   ;; that also work for the current utterance
   (let* ((cxn-name-with-placeholders
-         (gl::make-cxn-placeholder-name
-          (extract-form-predicates cxn)
-          cxn-inventory))
-        (de-rendered-utterance
-         (fcg::tokenize utterance))
-        (possible-item-based-competitors
-         (loop for other-cxn in (constructions-list cxn-inventory)
-               when (and (eql (get-cxn-type other-cxn) 'gl::item-based)
-                         (< (item-based-number-of-slots other-cxn)
-                            (item-based-number-of-slots cxn)))
-               collect other-cxn))
-        (item-based-competitors
-         (loop for comp in possible-item-based-competitors
-               for comp-name-with-placeholders =
-               (gl::make-cxn-placeholder-name
-                (extract-form-predicates comp)
-                cxn-inventory)
-               when (and (length= cxn-name-with-placeholders
-                                  comp-name-with-placeholders)
-                         (loop for cxn-elem in cxn-name-with-placeholders
-                               for comp-elem in comp-name-with-placeholders
-                               for i from 0
-                               always (or (string= cxn-elem comp-elem)
-                                          (and (string= (subseq cxn-elem 0 1) "?")
-                                               (string= (subseq comp-elem 0 1) "?"))
-                                          (and (string= (subseq cxn-elem 0 1) "?")
-                                               (string= comp-elem (nth i de-rendered-utterance))))))
-               collect comp)) 
-        (holophrase-competitors
-         (loop for other-cxn in (constructions-list cxn-inventory)
-               when (and (eql (get-cxn-type other-cxn) 'gl::holophrase)
-                         (string= (extract-and-render other-cxn)
-                                  (list-of-strings->string
-                                   (fcg::tokenize utterance))))
-               collect other-cxn)))
-    (append holophrase-competitors item-based-competitors)))
+          (gl::make-cxn-placeholder-name
+           (extract-form-predicates cxn)
+           cxn-inventory))
+         (de-rendered-utterance
+          (fcg::tokenize utterance))
+         (item-based-competitors
+          (loop for comp in (get-cxns-of-type agent 'gl::item-based) ;; also skips cxns with score 0
+                for comp-name-with-placeholders =
+                (gl::make-cxn-placeholder-name
+                 (extract-form-predicates comp)
+                 cxn-inventory)
+                when (and (length= cxn-name-with-placeholders
+                                   comp-name-with-placeholders)
+                          (loop for cxn-elem in cxn-name-with-placeholders
+                                for comp-elem in comp-name-with-placeholders
+                                for i from 0
+                                always (or (string= cxn-elem comp-elem) ; either the string is equal to the string of the comparing cxn
+                                           (and (placeholderp cxn-elem) ; or both parts are variables ==> to do: do check in TH
+                                                (placeholderp comp-elem))
+                                           (and (placeholderp cxn-elem) ; or one part is a variable
+                                                (string= comp-elem (nth i de-rendered-utterance))) ; the other part matches the nth word from the utterance
+                                           (and (placeholderp comp-elem) ; competitor part is a variable (more abstract)
+                                                (stringp cxn-elem))))) ; and the cxn part is a string
+                collect comp))
+         (holophrase-competitors
+          (loop for other-cxn in (constructions-list cxn-inventory)
+                when (and (eql (get-cxn-type other-cxn) 'gl::holophrase)
+                          (string= (extract-and-render other-cxn)
+                                   (list-of-strings->string
+                                    (fcg::tokenize utterance))))
+                collect other-cxn)))
+    (remove cxn (append holophrase-competitors item-based-competitors))))
+
+(defun placeholderp (str)
+  (eql (char str 0) #\?))
+
 
 (defun get-meaning-competitors (agent applied-cxns utterance)
   "Get cxns with the same form as cxn"

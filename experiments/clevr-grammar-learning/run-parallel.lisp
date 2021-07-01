@@ -10,11 +10,13 @@
    :number-of-interactions 47133
    :number-of-series 10
    :monitors (append (get-all-export-monitors)
+                     (get-all-lisp-monitors)
                      (get-all-csv-monitors))
    :configurations '(
                      (training-10-series
                       ((:learner-th-connected-mode . :neighbours)
                        (:current-challenge-level . 1)
+                       (:number-of-epochs . 1)
                        ))
                      )
    :shared-configuration '((:determine-interacting-agents-mode . :corpus-learner)
