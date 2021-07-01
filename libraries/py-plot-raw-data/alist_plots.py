@@ -232,4 +232,6 @@ if __name__ == '__main__':
             args.average_windows = None
         else:
             args.average_windows = int(args.average_windows[0])
+    else:
+        args.average_windows = [None if x == 'None' else int(x) for x in args.average_windows]
     raw_file_to_alist_plot(**vars(args))
