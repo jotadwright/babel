@@ -24,7 +24,7 @@
                                 repair-holophrase->item-based-substitution
                                 repair-holophrase->item-based-addition
                                 repair-holophrase->item-based-deletion
-                                repair-item-based+lexical->item-based
+                                ;repair-item-based+lexical->item-based
                                 repair-item-based->hypotheses
                                 repair-make-holophrase-cxn)
                 collect (make-instance repair)))
@@ -119,7 +119,7 @@
           (loop for repair in '(repair-holophrase->item-based-substitution
                                 repair-holophrase->item-based-addition
                                 repair-holophrase->item-based-deletion
-                                repair-item-based+lexical->item-based
+                                ;repair-item-based+lexical->item-based
                                 repair-make-holophrase-cxn)
                 collect (make-instance repair)))
          (task
