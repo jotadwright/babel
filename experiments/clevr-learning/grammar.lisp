@@ -169,49 +169,62 @@
 (defun placeholderp (str)
   (eql (char str 0) #\?))
 
+(defun competitorp (cxn-name-with-placeholders
+                    other-name-with-placeholders
+                    de-rendered-utterance)
+  (loop for cxn-elem in cxn-name-with-placeholders
+        for other-elem in other-name-with-placeholders
+        for i from 0
+        for nth-word = (nth i de-rendered-utterance)
+        always (or ;; same word
+                   (string= cxn-elem other-elem)
+                   ;; both placeholders
+                   (and (placeholderp cxn-elem)
+                        (placeholderp other-elem))
+                   ;; less abstract
+                   (and (placeholderp cxn-elem)
+                        (string= other-elem nth-word))
+                   ;; more abstract
+                   (and (placeholderp other-elem)
+                        (stringp cxn-elem)))))
+
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory construction-inventory)
                                              (cxn-type (eql 'item-based))
                                              agent utterance)
   ;; meaning competitors for item-based cxns are
-  ;; less general item-based cxns and holophrase cxns
+  ;; less or more general item-based cxns
   ;; that also work for the current utterance
+  ;; and holophrase cxns
   (let* ((cxn-name-with-placeholders
-         (gl::make-cxn-placeholder-name
-          (extract-form-predicates cxn)
-          cxn-inventory))
-        (de-rendered-utterance
-         (fcg::tokenize utterance))
-        (possible-item-based-competitors
-         (loop for other-cxn in (constructions-list cxn-inventory)
-               when (and (eql (get-cxn-type other-cxn) 'item-based)
-                         (<= (item-based-number-of-slots other-cxn)
-                             (item-based-number-of-slots cxn)))
-               collect other-cxn))
-        (item-based-competitors
-         (loop for comp in possible-item-based-competitors
-               for comp-name-with-placeholders =
-               (gl::make-cxn-placeholder-name
-                (extract-form-predicates comp)
-                cxn-inventory)
-               when (and (length= cxn-name-with-placeholders
-                                  comp-name-with-placeholders)
-                         (loop for cxn-elem in cxn-name-with-placeholders
-                               for comp-elem in comp-name-with-placeholders
-                               for i from 0
-                               always (or (string= cxn-elem comp-elem)
-                                          (and (placeholderp cxn-elem)
-                                               (placeholderp comp-elem))
-                                          (and (placeholderp cxn-elem)
-                                               (string= comp-elem (nth i de-rendered-utterance))))))
-               collect comp)) 
-        (holophrase-competitors
-         (loop for other-cxn in (constructions-list cxn-inventory)
-               when (and (eql (get-cxn-type other-cxn) 'holophrase)
-                         (string= (extract-and-render other-cxn)
-                                  (list-of-strings->string
-                                   (fcg::tokenize utterance))))
-               collect other-cxn)))
+          (gl::make-cxn-placeholder-name
+           (extract-form-predicates cxn)
+           cxn-inventory))
+         (de-rendered-utterance
+          (fcg::tokenize utterance))
+         (possible-item-based-competitors
+          (find-all 'item-based
+                    (constructions-list cxn-inventory)
+                    :key #'get-cxn-type))
+         (item-based-competitors
+          (loop for comp in possible-item-based-competitors
+                for comp-name-with-placeholders =
+                (gl::make-cxn-placeholder-name
+                 (extract-form-predicates comp)
+                 cxn-inventory)
+                when (and (length= cxn-name-with-placeholders
+                                   comp-name-with-placeholders)
+                          (competitorp cxn-name-with-placeholders
+                                       comp-name-with-placeholders
+                                       de-rendered-utterance))
+                collect comp))
+         (holophrase-competitors
+          (loop for other-cxn in (constructions-list cxn-inventory)
+                when (and (eql (get-cxn-type other-cxn) 'holophrase)
+                          (string= (extract-and-render other-cxn)
+                                   (list-of-strings->string
+                                    (fcg::tokenize utterance))))
+                collect other-cxn)))
     (remove cxn (append holophrase-competitors item-based-competitors))))
 
 (defun get-meaning-competitors (agent applied-cxns utterance)

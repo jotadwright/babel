@@ -79,7 +79,7 @@
    :measure-names '("avg-holophrase-cxn-score"
                     "avg-item-based-cxn-score"
                     "avg-lexical-cxn-score")
-   :y-axis '(1 1 1) :y1-max nil
+   :y-axis '(1 1 1) :y1-max 1.0
    :xlabel "Number of Games"
    :y1-label "Score of cxn"
    :captions '("holophrase" "item-based" "lexical")
@@ -93,7 +93,7 @@
                     "num-item-based-3"
                     "num-item-based-4"
                     "num-item-based-5"
-                    "num-item-based-5")
+                    "num-item-based-6")
    :y-axis '(1 1 1 1 1 1) :y1-max nil
    :xlabel "Number of Games"
    :y1-label "Number of item-based Constructions"

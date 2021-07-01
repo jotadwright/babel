@@ -35,7 +35,7 @@
     (loop for measure-name in measure-names
           collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
     :average-windows 100
-    :plot-directory `("experiments" "clevr-learning" "raw-data" ,experiment-name)
+    :plot-directory `("experiments" "clevr-learning" "graphs" ,experiment-name)
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
     :captions captions
