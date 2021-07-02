@@ -9,6 +9,7 @@
    :experiment-name (downcase (mkstr experiment-name))
    :measure-names '("communicative-success"
                     "lexicon-size")
+   :average-windows '(1000 1)
    :y-axis '(1 2) :y1-max 1
    :xlabel "Number of Games"
    :y1-label "Communicative Success"
@@ -22,6 +23,7 @@
    :experiment-name (downcase (mkstr experiment-name))
    :measure-names '("lexical-meanings-per-form"
                     "lexical-forms-per-meaning")
+   :average-windows '(1000 1000)
    :y-axis '(1 1) :y1-max nil
    :xlabel "Number of Games"
    :y1-label "Number of Competitors"
@@ -33,6 +35,7 @@
   (create-graph-for-single-strategy
    :experiment-name (downcase (mkstr experiment-name))
    :measure-names '("avg-cxn-score")
+   :average-windows 1000
    :y-axis '(1) :y1-max 1
    :xlabel "Number of Games"
    :y1-label "Score of cxn"
@@ -54,6 +57,7 @@
    :experiment-name (downcase (mkstr experiment-name))
    :measure-names '("number-of-th-nodes"
                     "number-of-th-edges")
+   :average-windows '(1 1)
    :y-axis '(1 2) :y1-max nil :y2-max nil
    :xlabel "Number of Games"
    :y1-label "Number of Nodes"
@@ -67,6 +71,7 @@
    :measure-names '("number-of-holophrase-cxns"
                     "number-of-item-based-cxns"
                     "number-of-lexical-cxns")
+   :average-windows '(1 1 1)
    :y-axis '(1 1 1) :y1-max nil
    :xlabel "Number of Games"
    :y1-label "Number of Constructions"
@@ -79,6 +84,7 @@
    :measure-names '("avg-holophrase-cxn-score"
                     "avg-item-based-cxn-score"
                     "avg-lexical-cxn-score")
+   :average-windows '(1000 1000 1000)
    :y-axis '(1 1 1) :y1-max 1.0
    :xlabel "Number of Games"
    :y1-label "Score of cxn"
@@ -94,6 +100,7 @@
                     "num-item-based-4"
                     "num-item-based-5"
                     "num-item-based-6")
+   :average-windows '(1 1 1 1 1 1)
    :y-axis '(1 1 1 1 1 1) :y1-max nil
    :xlabel "Number of Games"
    :y1-label "Number of item-based Constructions"

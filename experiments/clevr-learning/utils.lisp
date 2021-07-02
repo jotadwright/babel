@@ -24,7 +24,7 @@
 ;;;; UTILS FOR PLOTTING
 ;;;; ------------------
 
-(defun create-graph-for-single-strategy (&key experiment-name measure-names
+(defun create-graph-for-single-strategy (&key experiment-name measure-names (average-windows 100)
                                               y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
                                               captions open points series-numbers)
   ;; This function allows you to plot one or more measures for a single experiment
@@ -34,7 +34,7 @@
     :raw-file-paths
     (loop for measure-name in measure-names
           collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
-    :average-windows 100
+    :average-windows average-windows
     :plot-directory `("experiments" "clevr-learning" "graphs" ,experiment-name)
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
