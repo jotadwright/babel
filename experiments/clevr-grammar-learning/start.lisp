@@ -43,7 +43,7 @@
                          ))
                        )
                      :number-of-interactions 47133
-                     :number-of-series 10
+                     :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-export-monitors)

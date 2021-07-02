@@ -18,13 +18,14 @@
  :average-windows 1
  :y1-max nil
  :y2-max nil
- :error-bars '(:percentiles (25 75))
+ :error-bars '(:percentiles (95 5))
  :error-bar-modes '(:lines)
  :open t
- :key-location "bmargin"
+ :key-location "inside"
  )
 
 ;; repair-per-type
+
 (raw-files->evo-plot
  :raw-file-paths '(("experiments" "clevr-grammar-learning" "raw-data" "training-stage-1" "repair-usage-add-categorial-links")
                    ("experiments" "clevr-grammar-learning" "raw-data" "training-stage-1" "repair-usage-item-based-to-lexical")
@@ -37,22 +38,23 @@
  :plot-file-name "repair-per-type-1k"
  :plot-directory '("experiments" "clevr-grammar-learning" "raw-data" "training-stage-1" "lisp-plots")
  :captions '("add-categorial-links"
-             "item-based-->lexical"
-             "holophrase-->item-based+lexical+lexical-substitution"
-             "holophrase-->item-based+lexical-addition"
-             "holophrase-->item-based+lexical+holophrase-deletion"
-             "lexical-->item-based"
-             "nothing-->holophrase")
+             "item-based\\U+2B62lexical"
+             "holophrase\\U+2B62item-based+lexical+lexical-substitution"
+             "holophrase\\U+2B62item-based+lexical-addition"
+             "holophrase\\U+2B62item-based+lexical+holophrase-deletion"
+             "lexical\\U+2B62item-based"
+             "nothing\\U+2B62holophrase")
  :x-label "# Observations"
- :y1-label "Repair Usage"
+ :y1-label "Repair Activation"
  :use-y-axis '(1 1 1 1 1 1 1)
  :y1-max 1
- :average-windows 100
- :error-bars '(:percentiles (25 75))
+ :average-windows 50
+ :error-bars '(:percentiles (95 5))
  :error-bar-modes '(:lines)
  :open t
- ;:key-location "bmargin"
+ :key-location "inside right"
  :end 1000
+ :key-box t
  )
 
 ;; grammar-size-per-type-1k
@@ -70,10 +72,10 @@
  :use-y-axis '(1 1 1)
  :y1-max nil
  :average-windows 1
- :error-bars '(:percentiles (25 75))
+ :error-bars '(:percentiles (95 5))
  :error-bar-modes '(:lines)
  :open t
- :key-location "bmargin"
+ :key-location "inside"
  :end 1000
  )
 
@@ -92,10 +94,10 @@
  :use-y-axis '(1 1 1)
  :y1-max nil
  :average-windows 1
- :error-bars '(:percentiles (25 75))
+ :error-bars '(:percentiles (95 5))
  :error-bar-modes '(:lines)
  :open t
- :key-location "bmargin"
+ :key-location "inside"
  )
 
 ;; communicative-success+grammar-size-2k
@@ -114,13 +116,13 @@
  :use-y-axis '(1 2)
  :average-windows '(50 1)
 
- :error-bars '(:percentiles (25 75))
+ :error-bars '(:percentiles (95 5))
  :error-bar-modes '(:lines)
  :open t
- :key-location "bmargin"
+ :key-location "inside"
  :end 2000
  )
-
+*great-gnuplot-dashtypes*
 ;; communicative-success+grammar-size
 
 (raw-files->evo-plot
@@ -137,8 +139,8 @@
  :use-y-axis '(1 2)
  :average-windows '(50 1)
 
- :error-bars '(:percentiles (25 75))
+ :error-bars '(:percentiles (95 5))
  :error-bar-modes '(:lines)
  :open t
- :key-location "bmargin"
+ :key-location "inside"
  )
