@@ -46,6 +46,21 @@
 
 (define-event log-unseen-questions (n number))
 
+(defmethod sample-question ((agent clevr-learning-agent) mode)
+  ;; sample a random question
+  (when (eql (role agent) 'tutor)
+    (multiple-value-bind (unseen-question-indices seen-question-indices)
+        (loop for (index . elem) in (question-success-table agent)
+              if (null elem) collect index into unseen
+              else collect index into seen
+              finally (return (values unseen seen)))
+      (declare (ignorable seen-question-indices))
+      (notify log-unseen-questions (length unseen-question-indices))))
+  (load-clevr-scene-and-answer
+   agent (random-elt
+          (question-data
+           (experiment agent)))))
+
 (defmethod sample-question ((agent clevr-learning-agent) (mode (eql :debug)))
   ;; sample a question according to the index of the interaction
   (let* ((current-interaction-nr
@@ -60,21 +75,6 @@
           (nth n (question-data (experiment agent)))))
     (load-clevr-scene-and-answer
      agent nth-sample)))
-
-(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :random)))
-  ;; sample a random question
-  (when (eql (role agent) 'tutor)
-    (multiple-value-bind (unseen-question-indices seen-question-indices)
-        (loop for (index . elem) in (question-success-table agent)
-              if (null elem) collect index into unseen
-              else collect index into seen
-              finally (return (values unseen seen)))
-      (declare (ignorable seen-question-indices))
-      (notify log-unseen-questions (length unseen-question-indices))))
-  (load-clevr-scene-and-answer
-   agent (random-elt
-          (question-data
-           (experiment agent)))))
 
 (defmethod sample-question ((agent clevr-learning-tutor) (mode (eql :smart)))
   ;; sample a question according to previous successes
