@@ -509,6 +509,149 @@
                   (get-type-hierarchy
                    (grammar
                     (learner experiment)))))))
+
+;; Track the applied repairs
+(define-monitor record-repair-add-holophrase
+                :class 'data-recorder :average-window 1
+                :documentation "records if the add-holophrase repair was used")
+
+(define-monitor export-repair-add-holophrase
+                :class 'lisp-data-file-writer
+                :documentation "exports if the add-holophrase repair was used"
+                :data-sources '(record-repair-add-holophrase)
+                :file-name (babel-pathname :name "repair-add-holophrase" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-repair-add-holophrase interaction-finished)
+  (record-value monitor
+                (if (and (find-data interaction :applied-repair)
+                         (eql (find-data interaction :applied-repair) 'add-holophrase))
+                  1 0)))
+
+
+
+(define-monitor record-repair-holophrase-to-item-based
+                :class 'data-recorder :average-window 1
+                :documentation "records if the add-holophrase repair was used")
+
+(define-monitor export-repair-holophrase-to-item-based
+                :class 'lisp-data-file-writer
+                :documentation "exports if the add-holophrase repair was used"
+                :data-sources '(record-repair-holophrase-to-item-based)
+                :file-name (babel-pathname :name "repair-holophrase-to-item-based" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-repair-holophrase-to-item-based interaction-finished)
+  (record-value monitor
+                (if (and (find-data interaction :applied-repair)
+                         (eql (find-data interaction :applied-repair) 'holophrase->item-based))
+                  1 0)))
+
+
+
+
+(define-monitor record-repair-add-th-links
+                :class 'data-recorder :average-window 1
+                :documentation "records if the add-holophrase repair was used")
+
+(define-monitor export-repair-add-th-links
+                :class 'lisp-data-file-writer
+                :documentation "exports if the add-holophrase repair was used"
+                :data-sources '(record-repair-add-th-links)
+                :file-name (babel-pathname :name "repair-add-th-links" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-repair-add-th-links interaction-finished)
+  (record-value monitor
+                (if (and (find-data interaction :applied-repair)
+                         (eql (find-data interaction :applied-repair) 'add-th-links))
+                  1 0)))
+
+
+
+
+(define-monitor record-repair-lexical-to-item-based
+                :class 'data-recorder :average-window 1
+                :documentation "records if the add-holophrase repair was used")
+
+(define-monitor export-repair-lexical-to-item-based
+                :class 'lisp-data-file-writer
+                :documentation "exports if the add-holophrase repair was used"
+                :data-sources '(record-repair-lexical-to-item-based)
+                :file-name (babel-pathname :name "repair-lexical-to-item-based" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-repair-lexical-to-item-based interaction-finished)
+  (record-value monitor
+                (if (and (find-data interaction :applied-repair)
+                         (eql (find-data interaction :applied-repair) 'lexical->item-based))
+                  1 0)))
+
+
+
+
+(define-monitor record-repair-item-based-to-lexical
+                :class 'data-recorder :average-window 1
+                :documentation "records if the add-holophrase repair was used")
+
+(define-monitor export-repair-item-based-to-lexical
+                :class 'lisp-data-file-writer
+                :documentation "exports if the add-holophrase repair was used"
+                :data-sources '(record-repair-item-based-to-lexical)
+                :file-name (babel-pathname :name "repair-item-based-to-lexical" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-repair-item-based-to-lexical interaction-finished)
+  (record-value monitor
+                (if (and (find-data interaction :applied-repair)
+                         (eql (find-data interaction :applied-repair) 'item-based->lexical))
+                  1 0)))
+
+
+
+(define-monitor record-repair-hypotheses
+                :class 'data-recorder :average-window 1
+                :documentation "records if the add-holophrase repair was used")
+
+(define-monitor export-repair-hypotheses
+                :class 'lisp-data-file-writer
+                :documentation "exports if the add-holophrase repair was used"
+                :data-sources '(record-repair-hypotheses)
+                :file-name (babel-pathname :name "repair-hypotheses" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-repair-hypotheses interaction-finished)
+  (record-value monitor
+                (if (and (find-data interaction :applied-repair)
+                         (eql (find-data interaction :applied-repair) 'item-based->hypotheses))
+                  1 0)))
+
+
+
+
+(define-monitor record-repair-item-based-to-item-based
+                :class 'data-recorder :average-window 1
+                :documentation "records if the add-holophrase repair was used")
+
+(define-monitor export-repair-item-based-to-item-based
+                :class 'lisp-data-file-writer
+                :documentation "exports if the add-holophrase repair was used"
+                :data-sources '(record-repair-item-based-to-item-based)
+                :file-name (babel-pathname :name "repair-item-based-to-item-based" :type "lisp"
+                                           :directory '("experiments" "clevr-learning" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-repair-item-based-to-item-based interaction-finished)
+  (record-value monitor
+                (if (and (find-data interaction :applied-repair)
+                         (eql (find-data interaction :applied-repair) 'item-based+lexical->item-based))
+                  1 0)))
                            
 
 ;; utilty function to get all of them
@@ -534,4 +677,12 @@
     "export-num-item-based-3"
     "export-num-item-based-4"
     "export-num-item-based-5"
-    "export-num-item-based-6"))
+    "export-num-item-based-6"
+    "export-repair-add-holophrase"
+    "export-repair-holophrase-to-item-based"
+    "export-repair-add-th-links"
+    "export-repair-lexical-to-item-based"
+    "export-repair-item-based-to-lexical"
+    "export-repair-hypotheses"
+    "export-repair-item-based-to-item-based"
+    ))
