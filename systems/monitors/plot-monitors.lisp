@@ -38,11 +38,15 @@
 ;; gnuplotter
 ;; ----------------------------------------------------------------------------
 
-(export '*great-gnuplot-colors*)
+(export '(*great-gnuplot-colors* *great-gnuplot-dashtypes*))
+
 (defparameter *great-gnuplot-colors*
   '("#328888" "dark-goldenrod" "dark-red" "navy" "dark-green" "gray30" "light-red" "green"
     "dark-orange" "royalblue" "sea-green" "dark-pink" "purple" "orange-red" "gray50" "dark-khaki"
     "dark-turquoise" "salmon" "dark-magenta"  "dark-yellow" "violet" "light-green"))
+
+(defparameter *great-gnuplot-dashtypes*
+  '("1" "2" "3" "4" "5" "." "-" "._" "..-"))
 
 (defclass gnuplotter (data-handler)
   ((title

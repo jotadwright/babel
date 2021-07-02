@@ -312,12 +312,16 @@ x-axis."
       (loop for source in data 
          for source-number from 0
          for color = (nth (mod source-number (length colors)) colors)
+         for dashtype = (nth (mod source-number (length *great-gnuplot-dashtypes*))
+                             *great-gnuplot-dashtypes*)
          do (when (fourth source)
             (format stream "'-' axes x1y~:[1~;~:*~d~] notitle with errorbars lw ~a dt ~a lc rgb ~s,"
-                    (nth source-number use-y-axis) line-width (+ 2 (mod source-number 8)) color))))
+                    (nth source-number use-y-axis) line-width dashtype color))))
     (loop for source in data 
        for source-number from 0
        for color = (nth (mod source-number (length colors)) colors)
+       for dashtype = (nth (mod source-number (length *great-gnuplot-dashtypes*))
+                             *great-gnuplot-dashtypes*)
        do (format stream "'-' axes x1y~:[1~;~:*~d~] title ~s ~a  dt ~a lc rgb ~s ~:[~;, ~]"
                   (nth source-number use-y-axis)
                   (if (and caption (nth source-number caption))
@@ -327,7 +331,7 @@ x-axis."
 		      (format nil "with points pointtype ~a"
                               (mod (1+ source-number) 40))
 		      (format nil "with lines lw ~a" line-width))
-                  (+ 2 (mod source-number 8)) color
+                  dashtype color
                   (< source-number (- (length data) 1))))
 
     (when (member :filled error-bar-modes)
