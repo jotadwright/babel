@@ -439,9 +439,6 @@
   '("export-communicative-success"
     "export-lexicon-size"
     "export-avg-cxn-score"
-   
-    ;"plot-repair-per-type" todo:maak deze: voor alle interacties, doe een 1 0 check of die repair bezig is
-
     "export-number-of-nodes-in-th"
     "export-number-of-edges-in-th"
     "export-num-item-based-1"
@@ -457,7 +454,6 @@
     "export-repair-usage-holophrase->item-based+lexical+lexical--addition"
     "export-repair-usage-holophrase->item-based+lexical+lexical--deletion"
     "export-repair-usage-add-categorial-links"
-    
     "export-number-of-holophrase-cxns"
     "export-number-of-item-based-cxns"
     "export-number-of-lexical-cxns"

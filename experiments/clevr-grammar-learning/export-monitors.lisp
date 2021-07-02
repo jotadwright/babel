@@ -214,6 +214,6 @@
 (defun get-all-export-monitors ()
   '("export-type-hierarchy-to-image"
     "export-type-hierarchy-to-json"
-    "export-type-hierarchy-evolution-to-jsonl"
+    ;"export-type-hierarchy-evolution-to-jsonl"
     "export-learner-grammar"))
   

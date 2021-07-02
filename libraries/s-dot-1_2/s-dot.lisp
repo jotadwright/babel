@@ -211,7 +211,7 @@ http://www.martin-loetzsch.de/DOTML/dotml-1.3/dotml2dot.xsl . This code does exa
 		      do (store-records element)))))
       (store-records graph)
       (when check-syntax (check-syntax graph))
-      (format stream "digraph g {compound=\"true\";")
+      (format stream "digraph g {compound=\"true\"; splines=\"true\";")
       (write-attributes graph ";" nil)
       (loop for element in (cddr graph) do (write-element element))
       (format stream "}~c" #\linefeed))))
