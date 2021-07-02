@@ -46,7 +46,7 @@
     "dark-turquoise" "salmon" "dark-magenta"  "dark-yellow" "violet" "light-green"))
 
 (defparameter *great-gnuplot-dashtypes*
-  '("1" "2" "3" "4" "5" "." "-" "._" "..-"))
+  '("1" "2" "3" "4" "5" "(30, 5, 30, 5)" "\"-\"" "\"._\"" "\"..-\""))
 
 (defclass gnuplotter (data-handler)
   ((title
