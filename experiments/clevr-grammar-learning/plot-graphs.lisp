@@ -18,7 +18,7 @@
  :average-windows 1
  :y1-max nil
  :y2-max nil
- :error-bars '(:percentiles (95 5))
+ :error-bars '(:percentiles (5 95))
  :error-bar-modes '(:lines)
  :open t
  :key-location "inside"
@@ -49,7 +49,7 @@
  :use-y-axis '(1 1 1 1 1 1 1)
  :y1-max 1
  :average-windows 50
- :error-bars '(:percentiles (95 5))
+ :error-bars '(:percentiles (5 95))
  :error-bar-modes '(:lines)
  :open t
  :key-location "inside right"
@@ -72,7 +72,7 @@
  :use-y-axis '(1 1 1)
  :y1-max nil
  :average-windows 1
- :error-bars '(:percentiles (95 5))
+ :error-bars '(:percentiles (5 95))
  :error-bar-modes '(:lines)
  :open t
  :key-location "inside"
@@ -94,7 +94,7 @@
  :use-y-axis '(1 1 1)
  :y1-max nil
  :average-windows 1
- :error-bars '(:percentiles (95 5))
+ :error-bars '(:percentiles (5 95))
  :error-bar-modes '(:lines)
  :open t
  :key-location "inside"
@@ -116,13 +116,13 @@
  :use-y-axis '(1 2)
  :average-windows '(50 1)
 
- :error-bars '(:percentiles (95 5))
+ :error-bars '(:percentiles (5 95))
  :error-bar-modes '(:lines)
  :open t
  :key-location "inside"
  :end 2000
  )
-*great-gnuplot-dashtypes*
+
 ;; communicative-success+grammar-size
 
 (raw-files->evo-plot
@@ -139,7 +139,7 @@
  :use-y-axis '(1 2)
  :average-windows '(50 1)
 
- :error-bars '(:percentiles (95 5))
+ :error-bars '(:percentiles (5 95))
  :error-bar-modes '(:lines)
  :open t
  :key-location "inside"
