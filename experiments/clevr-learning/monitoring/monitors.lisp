@@ -93,6 +93,24 @@
 |#
 
 
+;;;; monitor for debugging where the unit name NIL occurs
+(define-monitor find-unit-name-nil)
+
+(defun find-unit-name-nil (cxn-inventory)
+  (loop for cxn in (constructions cxn-inventory)
+        for conditional-part = (conditional-part cxn)
+        for contributing-part = (contributing-part cxn)
+        if (find nil (mapcar #'fcg::name conditional-part))
+        do (error "~%cxn ~a has NIL as a unit name in the conditional part! It was created by the ~a repair"
+                  (name cxn) (attr-val cxn :repair))
+        if (find nil (mapcar #'fcg::name contributing-part))
+        do (error "~%cxn ~a has NIL as a unit name in the contributing part! It was created by the ~a repair"
+                  (name cxn) (attr-val cxn :repair))))
+
+(define-event-handler (find-unit-name-nil interaction-finished)
+  (find-unit-name-nil (grammar (learner experiment))))
+
+
 ;;;; export type hierarchy to json
 ;;;; allows to reconstruct the type hierarchy, regardless
 ;;;; of which Lisp is used to import/export
