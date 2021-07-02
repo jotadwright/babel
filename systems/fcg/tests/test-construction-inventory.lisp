@@ -294,7 +294,9 @@
     (test-assert (find-cxn cxn-for-trash-2 cxn-set :search-trash t))
     (setf copied-cxn-set (copy-object cxn-set))
     (test-assert (= (length (trash copied-cxn-set)) 2))
-    (add-cxn cxn-with-same-name-as-6 cxn-set :recover-from-trash t)
+    (add-cxn cxn-with-same-name-as-6 cxn-set
+             :recover-from-trash t
+             :equivalent-key #'name)
     (test-assert (= (length (trash cxn-set)) 1))
     (test-assert (find-cxn cxn-with-same-name-as-6 cxn-set))
     (delete-cxn cxn-1 cxn-set :move-to-trash t :key #'name)
