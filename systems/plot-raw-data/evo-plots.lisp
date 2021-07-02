@@ -39,7 +39,9 @@
      (logscale nil) (fsize 10)
      (error-bars :stdev) ;; '(:percentile 5 95)
      (error-bar-modes '(:filled)) ;; '(:lines :filled)
-     (open t))
+     (open t)
+     (unicode t)
+     (key-box nil))
   "Takes the :raw-file-paths and generates one single merged evo-plot
 for them. An evo-plot is a line-plot that has number of games on the
 x-axis."
@@ -100,7 +102,10 @@ x-axis."
                    :error-bar-modes error-bar-modes
                    :average-mode average-mode
 		   :points points :fsize fsize
-                   :open open)))
+                   :open open
+                   :unicode unicode
+                   :key-box key-box
+                   )))
 
 ;; ##################### evo-plot creation ######################
 
@@ -272,6 +277,8 @@ x-axis."
                       (open t)
                       (fsize 10)
                       (typeface "Helvetica")
+                      (unicode t)
+                      (key-box t)
                       &allow-other-keys)
   (let ((data (compute-data-points data :divide-indices-by divide-indices-by
                                    :error-bars error-bars :average-mode average-mode))
@@ -292,7 +299,11 @@ x-axis."
 	  (format stream "~cset logscale ~a" #\linefeed 
 		  (intern (downcase (mkstr logscale)))))
     (format stream "~cset grid back noxtics" #\linefeed)
-    
+    (when unicode
+      (format stream "~cset encoding utf8" #\linefeed))
+    (when key-box
+      (format stream "~cset style line 66 linetype 1 linecolor rgb 'gray50'" #\linefeed)
+      (format stream "~cset key box ls 66 vertical width 1 height 1 maxcols 1 spacing 1 opaque" #\linefeed))
     (format stream "~cset ytics nomirror" #\linefeed)
     (format stream "~cset y2tics nomirror" #\linefeed)
     (unless (member 2 use-y-axis)
