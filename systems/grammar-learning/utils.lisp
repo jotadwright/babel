@@ -428,14 +428,34 @@
 
 (defun diff-non-overlapping-form (observed-form matching-lex-cxns)
   "subtract all lexical forms from the gold standard"
-  (let ((resulting-form observed-form)
+  (let ((resulting-form (copy-object observed-form))
         (lex-unit-names nil))
     (loop for lex-cxn in matching-lex-cxns
           for lex-cxn-form = (extract-form-predicates lex-cxn)
-          do (let ((prev-res-form resulting-form))
-               (setf resulting-form (set-difference resulting-form lex-cxn-form :test #'irl:unify-irl-programs))
-               (setf lex-unit-names (append lex-unit-names (list (second (find 'string (set-difference prev-res-form resulting-form :test #'irl:unify-irl-programs) :key #'first)))))))
-    (values lex-unit-names resulting-form)))
+          do (let* (;; make an explicit copy, to be sure
+                    (prev-res-form 
+                     (copy-object resulting-form))
+                    ;; remove the lex form from the (remaining) observed form
+                    (set-diff-1 
+                     (set-difference resulting-form lex-cxn-form
+                                     :test #'irl:unify-irl-programs))
+                    ;; find the lex form in the (previous) observed form
+                    (set-diff-2
+                     (set-difference prev-res-form set-diff-1
+                                     :test #'irl:unify-irl-programs))
+                    ;; extract the unit name from the found lex form
+                    (unit-name
+                     (second (find 'string set-diff-2 :key #'first))))
+               ;; overwrite the remaining form
+               (setf resulting-form set-diff-1)
+               ;; store the unit name
+               (push unit-name lex-unit-names)
+               ;; !!!! throw error when unit name is NIL!
+               (when (null unit-name)
+                 (error "~%UNIT NAME IS NIL. OBSERVED FORM: ~a. LEX CXNS: ~a. LEX CXN FORMS: ~a."
+                        observed-form (mapcar #'name matching-lex-cxns)
+                        (mapcar #'extract-form-predicates matching-lex-cxns)))))
+    (values (reverse lex-unit-names) resulting-form)))
 
 (defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
     "subtract all lexical meanings (bind statements) from the gold standard"
