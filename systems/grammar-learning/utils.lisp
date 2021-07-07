@@ -546,10 +546,13 @@
 (defun create-type-hierarchy-links (lex-cxns item-based-name placeholders
                                              &key item-based-numeric-tail)
   "Creates all TH links for matching lexical cxns using their original lex-class."
+  ;; !! This function assumes the lex-cxns are provided
+  ;; in the same order as they occur in the utterance
   (loop for lex-cxn in lex-cxns
+        for position from 0
         for lex-cxn-lex-class = (lex-class-cxn lex-cxn)
         for placeholder = (when (< 1 (length placeholders))
-                            (format nil "-(~a)" (nth (position lex-cxn lex-cxns) placeholders)))
+                            (format nil "-(~a)" (nth position placeholders)))
         for item-slot-lex-class = (make-lex-class (concatenate 'string item-based-name placeholder)
                                                   :add-numeric-tail item-based-numeric-tail)
         collect (cons lex-cxn-lex-class item-slot-lex-class)))
