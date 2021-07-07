@@ -97,3 +97,35 @@
       (last-elt (first (find-all 'bind meaning-predicates :key #'first)))
       ;; otherwise, take the primitive that holds the target var
       (first (find target-variable meaning-predicates :key #'second)))))
+
+
+(defun find-matching-lex-cxns-in-item-based-constraints (form-constraints meaning-constraints applicable-cxns)
+  "return all lexical cxns that can be extracted by checking
+   whether they are a subset of the form and meaning
+   of an item-based construction. This function takes into
+   account lexical cxns that are applicable more than once
+   by checking each unification separately, instead of using
+   set-difference."
+  (let ((remaining-form form-constraints)
+        (remaining-meaning meaning-constraints))
+    (loop for cxn in applicable-cxns
+          for cxn-form
+          = (gl::form-predicates-with-variables
+             (extract-form-predicates cxn))
+          for cxn-meaning
+          = (extract-meaning-predicates cxn)
+          for unified-form-elem
+          = (loop for elem in remaining-form
+                  when (unify-irl-programs cxn-form (list elem))
+                  return elem)
+          for unified-meaning-elem
+          = (loop for elem in remaining-meaning
+                  when (unify-irl-programs cxn-meaning (list elem))
+                  return elem)
+          when (and unified-form-elem unified-meaning-elem)
+          do (progn
+               (setf remaining-form
+                     (remove unified-form-elem remaining-form :test #'equal))
+               (setf remaining-meaning
+                     (remove unified-meaning-elem remaining-meaning :test #'equal)))
+          and collect cxn)))
