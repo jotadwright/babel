@@ -106,6 +106,26 @@
    :y1-label "Number of item-based Constructions"
    :captions '("1 slot" "2 slots" "3 slots" "4 slots" "5 slots" "6 slots")
    :open nil)
+
+  ;; applied repairs
+  (create-graph-for-single-strategy
+   :experiment-name (downcase (mkstr experiment-name))
+   :measure-names '("repair-add-holophrase"
+                    "repair-holophrase-to-item-based"
+                    "repair-add-th-links"
+                    "repair-lexical-to-item-based"
+                    "repair-item-based-to-lexical"
+                    "repair-hypotheses"
+                    "repair-item-based-to-item-based")
+   :average-windows '(1000 1000 1000 1000 1000 1000 1000)
+   :y-axis '(1 1 1 1 1 1 1) :y1-max 1
+   :xlabel "Number of Games"
+   :y1-label "Applied Repair Strategies"
+   :captions '("add holophrase" "holophrase to item-based"
+               "add links" "lexical to item-based"
+               "item-based hypotheses"
+               "item-based and lexical to item-based")
+   :open nil)
   )
 
 (defun create-all-graphs-comparing-experiment (experiment-names)
