@@ -314,7 +314,8 @@
   '(;"export-type-hierarchy-to-image"
     "export-type-hierarchy-to-json"
     ;"export-learner-grammar"
-    "export-weighted-lexical-coherence"))
+    ;"export-weighted-lexical-coherence"
+    ))
 
 
 ;; download attentions from server when using hybrid primitives
