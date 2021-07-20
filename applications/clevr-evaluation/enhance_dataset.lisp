@@ -2,56 +2,58 @@
 (in-package :clevr-evaluation)
 (deactivate-all-monitors)
 
-(defun answer-question-in-scene (question meaning scene)
+(defun answer-question-in-scene (meaning scene)
   (set-data *clevr-ontology* 'clevr-context scene)
   (let ((solutions
-         (evaluate-irl-program meaning *clevr-ontology*)))
+         (evaluate-irl-program meaning *clevr-ontology*
+                               :primitive-inventory *clevr-primitives*)))
     (if (and solutions (= (length solutions) 1))
       (let* ((answer (answer->str
                       (get-target-value meaning (first solutions)))))
         (values (name scene) (mkstr (downcase answer))))
       (values nil nil))))
+
+(defun set-depth-first-configurations (cxn-inventory)
+  (set-configurations cxn-inventory
+                      '((:cxn-supplier-mode . :ordered-by-label-hashed)
+                        (:priority-mode . :nr-of-applied-cxns)
+                        (:parse-order hashed nom cxn)
+                        (:production-order hashed-lex nom cxn hashed-morph)
+                        (:max-nr-of-nodes . 10000))))
   
-(defun enhance-data (inputfile outputfile seq2seq-server-port)
-  ;; set the seq2seq endpoint
-  (set-configuration *fcg-constructions* :seq2seq-endpoint
-                     (format nil "http://localhost:~a/next-cxn"
-                             seq2seq-server-port)
-                     :replace t)
+(defun enhance-data (inputfile outputdir dataset)
+  ;; set the depth first configuration
+  (set-depth-first-configurations *fcg-constructions*)
   ;; open streams
-  (let ((in-stream
-         (open inputfile
-               :direction :input))
-        (out-stream
-         (open outputfile
-               :direction :output
-               :if-exists :supersede))
-        (world
-         (make-instance 'clevr-world
-                        :data-sets '("val"))))
+  (let ((in-stream (open inputfile :direction :input))
+        (world (make-instance 'clevr-world :data-sets (list dataset))))
     ;; skip the header line
     (read-line in-stream nil nil)
-    ;; write the opening bracket to the output file
-    (write-string "[" out-stream)
     ;; loop over each line
     (loop for line = (read-line in-stream nil nil)
+          for line-counter from 0
           while line
           for fields = (split line #\,)
           for question = (second fields)
+          for meaning = (read-from-string (third fields))
           ;; comprehend it to get the meaning
-          for (meaning cipn) = (multiple-value-list (comprehend question))
-          when (eql (first (statuses cipn))
-                    'fcg::succeeded)
+          ;for (meaning cipn) = (multiple-value-list (comprehend question))
+          ;when (eql (first (statuses cipn)) 'fcg::succeeded)
           ;; execute the meaning in every scene
           do (with-progress-bar (bar (length (scenes world))
                                      ("Processing question \"~a\"" question))
-               (let ((counter 0)
-                     (scenes nil)
-                     (answers nil))
+               (let* ((counter 0)
+                      (scenes nil)
+                      (answers nil)
+                      (outputname (format nil "question-~6,'0d" line-counter))
+                      (outputfile (merge-pathnames
+                                   (make-pathname :name outputname :type "lisp")
+                                   outputdir)))
+                 (ensure-directories-exist outputfile)
                  (do-for-scenes
                   world (lambda (scene)
                           (multiple-value-bind (scene-name answer)
-                              (answer-question-in-scene question meaning scene)
+                              (answer-question-in-scene meaning scene)
                             (update bar)
                             ;; when an answer is computed, store it
                             (when answer
@@ -60,18 +62,13 @@
                               (push answer answers)))
                           t))
                  (format t "Storing ~a lines~%" counter)
-                 (write-line
-                  (encode-json-alist-to-string
-                   `((question . ,question)
-                     (meaning . ,(downcase (mkstr meaning)))
-                     (answers ,@(loop for (scene-name . answer) in (pairlis scenes answers)
-                                      collect `((scene . ,scene-name)
-                                                (answer . ,answer))))))
-                  out-stream))
-               (force-output out-stream)
-               (sleep 10)))
-    (write-string "]" out-stream)
-    (force-output out-stream)))
+                 (with-open-file (out-stream outputfile :direction :output
+                                             :if-exists :supersede)
+                   (let ((data (list question (downcase (mkstr meaning))
+                                     (pairlis scenes answers))))
+                     (write data :stream out-stream)
+                     (force-output out-stream)))
+                 (sleep 10))))))
 
 (defun args->plist (args)
   (loop for arg in args
@@ -82,10 +79,10 @@
 (defun main (args)
   (let ((arg-plist (args->plist args)))
     (enhance-data (parse-namestring (getf arg-plist 'inputfile))
-                  (parse-namestring (getf arg-plist 'outputfile))
-                  (parse-integer (getf arg-plist 'seq2seq-port)))))
+                  (parse-namestring (getf arg-plist 'outputdir))
+                  (getf arg-plist 'dataset))))
                   
-
+#-lispworks
 (main #+ccl ccl:*unprocessed-command-line-arguments*
       #+sbcl (rest sb-ext:*posix-argv*))
 
