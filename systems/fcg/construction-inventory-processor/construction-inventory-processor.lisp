@@ -55,17 +55,17 @@
 
 (defmethod initialize-instance :after ((cip construction-inventory-processor) &key)
   (let* ((fcg-2 (not (original-cxn-set (construction-inventory cip)))) ;; if there's no original-cxn-set, it's old FCG
-         (top-node
-          (make-instance 'cip-node
-                         :construction-inventory (construction-inventory cip)
-                         :statuses '(initial)
-                         :car (make-cxn-application-result 
-                               :source-cfs (initial-cfs cip)
-                               :direction (direction cip)
-                               :resulting-cfs (initial-cfs cip))
-                         :cip cip :created-at 0
-                         :diagnostics (unless fcg-2 (diagnostics (original-cxn-set (construction-inventory cip))))
-                         :repairs (unless fcg-2 (repairs (original-cxn-set (construction-inventory cip)))))))
+        (top-node
+         (make-instance 'cip-node
+                        :construction-inventory (construction-inventory cip)
+                        :statuses '(initial)
+                        :car (make-cxn-application-result 
+                              :source-cfs (initial-cfs cip)
+                              :direction (direction cip)
+                              :resulting-cfs (initial-cfs cip))
+                        :cip cip :created-at 0
+                        :diagnostics (unless fcg-2 (diagnostics (original-cxn-set (construction-inventory cip))))
+                        :repairs (unless fcg-2 (repairs (original-cxn-set (construction-inventory cip)))))))
     (setf (top-node cip) top-node)
     (setf (queue cip) (list top-node))))
 
@@ -119,7 +119,7 @@
     :accessor applied-constructions
     :documentation "All constructions that have been applied so far")
    (priority
-    :type number :initarg :priority :initform 1.0 :accessor priority
+    :type number :initarg :priority :initform 0.0 :accessor priority
     :documentation "The higher, the more in front in the queue")
    (goal-test-data 
     :type blackboard :accessor goal-test-data :initform (make-blackboard)
@@ -153,11 +153,6 @@
 
 (defmethod parent ((node cip-node))
   (first (all-parents node)))
-
-(defun initial-node-p (node)
-  "Checks if a node is the initial node."
-  (when (= (created-at node) 0)
-    t))
 
 (defun upward-branch (cipn &key (include-initial t))
   "Returns the given cipn and all its parents"
@@ -707,9 +702,7 @@ solution."
 	last-node
 	(first (last (get-cip-leaves cip))))))
 
-(defgeneric next-cip-solution (cip &key notify))
-
-(defmethod next-cip-solution ((cip construction-inventory-processor) &key (notify t))
+(defun next-cip-solution (cip &key (notify t))
   "runs the construction inventory application search process until
    the next solution is found"
   (when notify (notify cip-started cip))
