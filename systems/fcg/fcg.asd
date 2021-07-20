@@ -124,4 +124,7 @@
     :serial t
     :components ((:file "application-dependencies")
                  (:file "data")
-                 (:file "html")))))
+                 (:file "html")))
+   (:module heuristic-search
+    :serial t
+    :components ((:file "heuristic-search")))))
