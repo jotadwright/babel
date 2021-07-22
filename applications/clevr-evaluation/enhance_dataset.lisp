@@ -1,6 +1,5 @@
 ;;;; enhance_dataset.lisp
 
-
 (ql:quickload :clevr-evaluation)
 (in-package :clevr-evaluation)
 (deactivate-all-monitors)
@@ -92,10 +91,9 @@
                                            (multiple-value-bind (scene-name answer)
                                                (answer-question-in-scene meaning scene)
                                              (update bar)
-                                             (incf counter)
                                              ;; when an answer is computed, store it
                                              (when answer
-                                               
+                                               (incf counter)
                                                (push scene-name scenes)
                                                (push answer answers)))
                                            t))))
