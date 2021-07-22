@@ -87,22 +87,28 @@
                                       question-index question))
                                 (do-for-scenes
                                  world (lambda (scene)
-                                         (when (< counter 10)
-                                           (multiple-value-bind (scene-name answer)
-                                               (answer-question-in-scene meaning scene)
-                                             (update bar)
-                                             ;; when an answer is computed, store it
-                                             (when answer
-                                               (incf counter)
-                                               (push scene-name scenes)
-                                               (push answer answers)))
-                                           t))))
+                                         (multiple-value-bind (scene-name answer)
+                                             (answer-question-in-scene meaning scene)
+                                           (update bar)
+                                           ;; when an answer is computed, store it
+                                           (when answer
+                                             (incf counter)
+                                             (push scene-name scenes)
+                                             (push answer answers)))
+                                         t)))
           do (format t "~%Storing ~a lines" counter)
           do (with-open-file (out-stream outputfile :direction :output
                                          :if-exists :supersede)
                (let ((data (list question meaning (pairlis scenes answers))))
                  (write data :stream out-stream)
                  (force-output out-stream))))))
+
+#|
+(enhance-data
+ (parse-namestring "/Users/jensnevens/Babel-Corpora/seq2seq/data/CLEVR_train_corpus_comprehension.csv")
+ (parse-namestring "/Users/jensnevens/Babel-Corpora/clevr-learning-data/train/")
+ "train" 0 10)
+|#
 
 
 (defun args->plist (args)
