@@ -72,7 +72,7 @@
     (integer (mkstr answer-value))
     (bit (mkstr answer-value))
     (shape-category (mkstr (shape answer-value)))
-    (size-category (mkstr (size answer-value)))
+    (size-category (mkstr (clevr-world::size answer-value)))
     (color-category (mkstr (color answer-value)))
     (material-category (mkstr (material answer-value)))
     (boolean-category (mkstr (id answer-value)))))
