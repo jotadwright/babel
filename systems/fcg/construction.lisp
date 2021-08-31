@@ -155,20 +155,11 @@ expensive. Use this for visualization."
 
 (defun safe-cxn (cxn previous-cxns)
   "We need te rename variables in a construction when it has been
-applied before."
-  (if (find cxn previous-cxns) ;; if applied before -> rename variables
-      ;; (let ((cxn (persistent-cxn cxn)))
-;; 	(make-instance 'construction
-;; 		       :name (name cxn)
-;;                        :attributes (attributes cxn)
-;; 		       :match-source (match-source cxn)
-;; 		       :left-pole (copy-object (left-pole cxn))
-;; 		       :right-pole (copy-object (right-pole cxn))
-;; 		       :persistent-cxn cxn))
-      (let ((safe (copy-object cxn)))
-        (setf (persistent-cxn safe) (persistent-cxn cxn))
-        safe)
-      cxn))
+applied before. Update: to be really safe, we always need to rename."
+  (declare (ignore previous-cxns))
+  (let ((safe (copy-object cxn)))
+    (setf (persistent-cxn safe) (persistent-cxn cxn))
+    safe))
 
 (defun parse-attributes (attributes &optional parsed-attributes)
   "Converts attributes in a macro definition in the acceptable form."
