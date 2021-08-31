@@ -119,7 +119,7 @@
     :accessor applied-constructions
     :documentation "All constructions that have been applied so far")
    (priority
-    :type number :initarg :priority :initform 0.0 :accessor priority
+    :type number :initarg :priority :initform 1.0 :accessor priority
     :documentation "The higher, the more in front in the queue")
    (goal-test-data 
     :type blackboard :accessor goal-test-data :initform (make-blackboard)
@@ -690,6 +690,11 @@ tree."
                                 :collect-fn #'(lambda (node) 
                                                 (when (fully-expanded? node) node)))))
 
+(defun initial-node-p (node)
+  "Checks if a node is the initial node."
+  (when (= (created-at node) 0)
+    t))
+
 (defun get-last-cip-node (cip) 
   "Helper function: extract last node that is consulted from a
 construction inventory processor (cip). Useful when there is no
@@ -702,7 +707,9 @@ solution."
 	last-node
 	(first (last (get-cip-leaves cip))))))
 
-(defun next-cip-solution (cip &key (notify t))
+(defgeneric next-cip-solution (cip &key notify))
+
+(defmethod next-cip-solution ((cip construction-inventory-processor) &key (notify t))
   "runs the construction inventory application search process until
    the next solution is found"
   (when notify (notify cip-started cip))
