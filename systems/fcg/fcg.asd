@@ -61,6 +61,9 @@
                  (:file "cxn-suppliers")
                  (:file "node-tests")
                  (:file "goal-tests")))
+   (:module heuristic-search
+    :serial t
+    :components ((:file "heuristic-search")))
    (:module monitoring
     :serial t
     :components ((:file "monitors")
