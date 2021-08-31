@@ -396,7 +396,7 @@ occurs in x."
 	;; unify variables
 	((variable-p x) (unify-variable x y bindings))
 	((variable-p y) (unify-variable y x bindings))
-	((unify-equal x y) bindings)
+        ((unify-equal x y) bindings)
 	(t (values +fail+ x y))))
 
 (defun unify-simple (x y &optional (bindings +no-bindings+) &key cxn-inventory)
@@ -478,17 +478,17 @@ occurs in x."
 		(<= (length (mr-added (first mrs))) cutoff)))
     mrs))
 
-(defun remove-special-operators (e bindings)
+(defun remove-special-operators (e bindings &key cxn-inventory)
   (cond ((atom e) (values e bindings))
 	((merge-fn (first e))
 	 (if (clean-fn (first e))
-	     (funcall (clean-fn (first e)) e bindings)
-	     (remove-special-operators (cdr e) bindings)))
+	     (funcall (clean-fn (first e)) e bindings :cxn-inventory cxn-inventory)
+	     (remove-special-operators (cdr e) bindings :cxn-inventory cxn-inventory)))
 	(t
          (multiple-value-bind (new-car new-bindings)
-             (remove-special-operators (car e) bindings)
+             (remove-special-operators (car e) bindings :cxn-inventory cxn-inventory)
            (multiple-value-bind (new-cdr final-bindings)
-               (remove-special-operators (cdr e) new-bindings)
+               (remove-special-operators (cdr e) new-bindings :cxn-inventory cxn-inventory)
              (values (cons new-car new-cdr) final-bindings))))))
 
 (defun fcg-length (l)
