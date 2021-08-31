@@ -81,7 +81,7 @@ it."
       (setf bindings-list new-bindings))
     (unify expanded-structure source bindings-list :cxn-inventory cxn-inventory)))
 
-(defun merge-expansion (pattern source bindings &key &allow-other-keys)
+(defun merge-expansion (pattern source bindings &key cxn-inventory &allow-other-keys)
   "Expands the value (in pattern) based on its type and merge-includes
 it."
   (let ((expanded-structure (fcg-expand (get-expansion-type pattern) 
@@ -91,7 +91,7 @@ it."
                                         :merge? t)))
     (fcg-merge expanded-structure source bindings)))
 
-(defun clean-expansion (pattern bindings)
+(defun clean-expansion (pattern bindings &key cxn-inventory &allow-other-keys)
   ;; cleaning a ++ also entails expanding it! This is required
   ;; because in merging when source = nil merge-fn isn't called (only
   ;; clean-fn)
@@ -99,8 +99,9 @@ it."
                                         :value (get-expansion-value pattern) 
                                         :source nil
                                         :bindings bindings
-                                        :merge? t)))
-    (values (remove-special-operators expanded-structure bindings) bindings)))
+                                        :merge? t
+                                        :cxn-inventory cxn-inventory)))
+    (values (remove-special-operators expanded-structure bindings :cxn-inventory cxn-inventory) bindings)))
 
 
 (add-special-operator (make-instance 'special-operator
