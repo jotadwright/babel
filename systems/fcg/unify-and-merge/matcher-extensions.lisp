@@ -356,8 +356,8 @@ resulting in the following table after substitution:
   (when bindings
     (list (make-merge-result source (list bindings)))))
 
-(defun clean-excludes (excludes bindings)
-  (declare (ignore excludes))
+(defun clean-excludes (excludes bindings &key cxn-inventory)
+  (declare (ignore excludes cxn-inventory))
   (values nil bindings))
 
 (add-special-operator (make-instance 'special-operator
@@ -414,7 +414,7 @@ explicitly represented because they'll have more positions."
                         (or (null cutoff) (> cutoff 1)))
                (multiple-value-bind (to-add new-bs)
                    (if remove-special-operators
-                     (remove-special-operators subset-elt bindings)
+                     (remove-special-operators subset-elt bindings :cxn-inventory cxn-inventory)
                      (values subset-elt bindings))
                  (when new-bs
                    (push (list '(new) (list (make-merge-result to-add (list new-bs) (list to-add))) 1)
