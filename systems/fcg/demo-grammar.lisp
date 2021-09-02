@@ -27,7 +27,8 @@
                   (form set-of-predicates)
                   (meaning set-of-predicates)
                   (constituents sequence)
-                  (dependents sequence))
+                  (dependents sequence)
+                  (footprints set))
   :hierarchy-features (constituents dependents)
   
   ;; Lexical constructions
