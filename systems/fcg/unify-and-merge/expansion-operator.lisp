@@ -76,7 +76,8 @@ it."
                           :value (get-expansion-value pattern) 
                           :source source
                           :bindings bindings-list
-                          :merge? nil)
+                          :merge? nil
+                          :cxn-inventory cxn-inventory)
     (when new-bindings
       (setf bindings-list new-bindings))
     (unify expanded-structure source bindings-list :cxn-inventory cxn-inventory)))
@@ -88,7 +89,8 @@ it."
                                         :value (get-expansion-value pattern) 
                                         :source source
                                         :bindings bindings
-                                        :merge? t)))
+                                        :merge? t
+                                        :cxn-inventory cxn-inventory)))
     (fcg-merge expanded-structure source bindings)))
 
 (defun clean-expansion (pattern bindings &key cxn-inventory &allow-other-keys)
