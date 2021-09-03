@@ -18,7 +18,8 @@
           iota
           log-transform-vector
           sum-list-of-vectors
-          random-from-range))
+          random-from-range
+          normalize))
 
 (declaim (inline sum))
 (defun sum (values)
@@ -256,6 +257,11 @@ coefficient equal to r**2."
   (if (= start end)
     start
     (+ start (random (- end start)))))
+
+(defun normalize (x min-x max-x)
+  "Normalizes x between 0 and 1."
+  (float (/ (- x min-x)
+            (- max-x min-x))))
 
 ;;;
 ;;; stuff not used
