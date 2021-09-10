@@ -80,8 +80,8 @@
 
 
 
-;; (defparameter *th* (type-hierarchies:get-type-hierarchy propbank-english::*propbank-learned-cxn-inventory*))
-;; (pprint (closest-nodes 'propbank-english::send.01-20 (graph *th*) :edge-type 'propbank-english::gram-sense))
+;; (defparameter *th* (type-hierarchies:get-type-hierarchy propbank-english::*restored-300-grammar*))
+;; (pprint (closest-nodes 'propbank-english::EXPLAIN\(V\)-73 (graph *th*) :edge-type 'propbank-english::lex-gram))
 
 
 

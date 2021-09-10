@@ -16,7 +16,7 @@
 
 
 ;; Activating spacy-api locally
-(setf nlp-tools::*penelope-host* "http://localhost:5000")
+(setf nlp-tools::*penelope-host*   "http://localhost:5000")
 
 ;; Activating trace-fcg
 (activate-monitor trace-fcg)
@@ -90,18 +90,33 @@
 
 (cl-store:store *propbank-ontonotes-ewt-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-cleaned-100"
+                                :name "propbank-grammar-ontonotes-ewt-cleaned-500"
                                 :type "fcg"))
 
-(defparameter *restored-100-grammar*
+(defparameter *restored-300-grammar*
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                           :name "propbank-grammar-ontonotes-ewt-cleaned-100"
+                           :name "propbank-grammar-ontonotes-ewt-cleaned-300"
                            :type "fcg")))
 (size *restored-100-grammar*)
 
 ;(setf *th* (get-type-hierarchy *restored-grammar*))
 
 ;(clean-type-hierarchy *th*)
+
+
+(comprehend-and-extract-frames "He gave the book to Mary" :cxn-inventory  *restored-500-grammar*)
+(comprehend-and-extract-frames "He gave Mary the book" :cxn-inventory  *restored-500-grammar*)
+
+(comprehend-and-extract-frames "He arrived before me" :cxn-inventory  *restored-500-grammar*)
+(comprehend-and-extract-frames "He appeared before the judge" :cxn-inventory  *restored-500-grammar*)
+(comprehend-and-extract-frames "He arrived at the airport" :cxn-inventory  *restored-500-grammar*)
+(comprehend-and-extract-frames "He finished after me" :cxn-inventory  *restored-500-grammar*)
+
+(comprehend-and-extract-frames "He cried before my eyes" :cxn-inventory  *restored-500-grammar*)
+
+
+(comprehend-and-extract-frames "He arrived in front of me" :cxn-inventory  *restored-500-grammar*)
+(comprehend-and-extract-frames "He went to the front of the queue" :cxn-inventory  *restored-500-grammar*)
 
 
 ;;;;;;;;;;;;;;
@@ -145,7 +160,10 @@
 
 (activate-monitor trace-fcg)
 (comprehend-and-extract-frames (first (train-split *ewt-annotations*))
-                         :cxn-inventory *propbank-ewt-learned-cxn-inventory* )
+                         :cxn-inventory *propbank-ontonotes-ewt-learned-cxn-inventory* )
+
+
+
 
 ;;>> Cleaning
 ;;--------------
@@ -172,7 +190,7 @@
         do (with-disabled-monitor-notifications
              (delete-cxn (name cxn) grammar :key #'name))))
         
-(apply-cutoff 50 *restored-100-grammar*)
+(apply-cutoff 500 *propbank-ontonotes-ewt-learned-cxn-inventory*)
 ;;*restored-grammar* ;111102 cxns ;;> <hashed-fcg-construction-set: 111099 cxns>
 
 
@@ -246,7 +264,7 @@
 (evaluate-propbank-corpus (subseq (shuffle *train-sentences-all-frames*) 0 100) *propbank-learned-cxn-inventory* :timeout 60) ;;sanity check
 (evaluate-propbank-corpus *test-sentences-all-frames* *propbank-learned-cxn-inventory* :timeout 60)
 
-(comprehend-and-evaluate  (list (nth 1238 *train-sentences-all*))   *propbank-learned-cxn-inventory*)
+(comprehend-and-evaluate  (list (nth 1238 *train-sentences-all*))   *propbank-ontonotes-ewt-learned-cxn-inventory*)
 
 (comprehend-and-extract-frames "In a medium bowl, mix together corn, red onion, jicama, red bell pepper, and cilantro."
                                :cxn-inventory *propbank-learned-cxn-inventory*)
@@ -278,9 +296,6 @@
                            *propbank-learned-cxn-inventory* :silent nil))
 
 
-
-(comprehend-and-extract-frames "I give the roses to my sister ." :cxn-inventory *restored-grammar*)
-
 (evaluate-propbank-corpus *believe-sentences-test*
                           *propbank-learned-cxn-inventory* :timeout 10)
 
@@ -296,11 +311,31 @@
 ;;;;;;;;;;;;;;;;;;;
 
 
+(comprehend-and-extract-frames "Nina sent her mother a dozen roses." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "A dozen roses Nina sent her mother ." :cxn-inventory *restored-grammar*)
 
-(defparameter *spacy-benepar-compatible-sentences* (remove-if-not #'(lambda (sentence)
+(comprehend-and-extract-frames "Melinda Gates wrote that income inequality is still rising" :cxn-inventory *restored-grammar* :timeout nil)
+
+(defparameter *spacy-benepar-compatible-sentences* (shuffle (remove-if-not #'(lambda (sentence)
                                                                       (loop for roleset in (all-rolesets  sentence)
                         always (spacy-benepar-compatible-annotation sentence roleset)))
-                 (dev-split *ontonotes-annotations*)))
+                 (dev-split *ontonotes-annotations*))))
+
+(loop for i from 0 to 10
+      do (comprehend-and-extract-frames (nth i *spacy-benepar-compatible-sentences*) :cxn-inventory *restored-grammar*))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ;;23/06/2020: GRAMMAR DEBUGGING (tests met lex-class als set gestaakt omdat connl-sentences eerst opnieuw geannoteerd moeten worden met initial ts die kloppen!)
@@ -322,8 +357,8 @@
 
 
 
-(comprehend-and-extract-frames "She shouted the children into the queue" :cxn-inventory *propbank-learned-cxn-inventory*)
-(comprehend-and-extract-frames "Tsar Nicholas II gave his wife a Fabergé egg." :cxn-inventory *propbank-learned-cxn-inventory*)
+(comprehend-and-extract-frames "She shouted the children into the queue" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Tsar Nicholas II gave his wife a Faberg� egg." :cxn-inventory *restored-grammar*)
 (comprehend-and-extract-frames "It is a Fabergé egg that Tsar Nicholas II gave his wife." :cxn-inventory *propbank-learned-cxn-inventory*)
 (comprehend-and-extract-frames "He called his mother while doing the dishes" :cxn-inventory *propbank-learned-cxn-inventory*)
 
@@ -406,7 +441,7 @@
 
 
 
-(comprehend-and-extract-frames "The report explains that the ocean's oxygen supply is threatened by global warming in two ways." :cxn-inventory *demo-grammar*)
+(comprehend-and-extract-frames "The report explains that the ocean's oxygen supply is threatened by global warming in two ways." :cxn-inventory *restored-grammar*)
 
 (comprehend-and-extract-frames "Warmer water is less able to contain oxygen than cold, so as the oceans warm, oxygen is reduced." :cxn-inventory *demo-grammar*)
 
