@@ -97,14 +97,14 @@
   (restore (babel-pathname :directory '("grammars" "propbank-english" "grammars")
                            :name "propbank-grammar-ontonotes-ewt-cleaned-300"
                            :type "fcg")))
-(size *restored-100-grammar*)
+(size *restored-300-grammar*)
 
 ;(setf *th* (get-type-hierarchy *restored-grammar*))
 
 ;(clean-type-hierarchy *th*)
 
 
-(comprehend-and-extract-frames "He gave the book to Mary" :cxn-inventory  *restored-500-grammar*)
+(comprehend-and-extract-frames "He gave the book to Mary" :cxn-inventory  *restored-300-grammar*)
 (comprehend-and-extract-frames "He gave Mary the book" :cxn-inventory  *restored-500-grammar*)
 
 (comprehend-and-extract-frames "He arrived before me" :cxn-inventory  *restored-500-grammar*)
@@ -113,10 +113,10 @@
 (comprehend-and-extract-frames "He finished after me" :cxn-inventory  *restored-500-grammar*)
 
 (comprehend-and-extract-frames "He cried before my eyes" :cxn-inventory  *restored-500-grammar*)
-
-
 (comprehend-and-extract-frames "He arrived in front of me" :cxn-inventory  *restored-500-grammar*)
 (comprehend-and-extract-frames "He went to the front of the queue" :cxn-inventory  *restored-500-grammar*)
+
+(comprehend-and-extract-frames "Speaking of business cycles, I suppose the long lasting effects of the recession will remain the same." :cxn-inventory *restored-300-grammar*)
 
 
 ;;;;;;;;;;;;;;

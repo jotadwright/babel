@@ -4,7 +4,9 @@
 
 (in-package :propbank-english)
 
-(load (babel-pathname :directory '("grammars" "propbank-english" "web-service") :name "web-service" :type "lisp"))
+(load
+ (babel-pathname :directory '("grammars" "propbank-english" "web-service")
+                 :name "web-service" :type "lisp"))
 
 (in-package :hunchentoot)
 
@@ -36,4 +38,5 @@ either return a handler or neglect by returning NIL."
 (push *propbank-frame-extractor-app* hunchentoot:*dispatch-table*)
 (defvar *propbank-frame-extractor-acceptor* (make-instance 'hunchentoot:cors-acceptor :port 9007))
 (hunchentoot:start *propbank-frame-extractor-acceptor*)
+;(hunchentoot:stop *propbank-frame-extractor-acceptor*)
 
