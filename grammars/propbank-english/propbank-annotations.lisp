@@ -22,12 +22,12 @@
 
 ;; File where propbank annotations will be stored in binary format
 (defparameter *ontonotes-annotations-storage-file* (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                                                                 :name "ontonotes-annotations"
-                                                                 :type "store"))
+                                                                   :name #+lispworks "ontonotes-annotations" #+ccl "ontonotes-annotations-ccl" #+sbcl "ontonotes-annotations-sbcl"
+                                                                   :type "store"))
 
 (defparameter *ewt-annotations-storage-file* (babel-pathname :directory '("grammars" "propbank-english" "learning")
-                                                                 :name "ewt-annotations"
-                                                                 :type "store"))
+                                                             :name #+lispworks "ewt-annotations" #+ccl "ewt-annotations-ccl" #+sbcl "ewt-annotations-sbcl"
+                                                             :type "store"))
 
 
 ;;;;;;;;;;;;;
@@ -189,12 +189,11 @@
   ((source-file
     :type string
     :accessor source-file
-    :initform nil 
+    :initform "" 
     :documentation "The path to the source file.")
    (sentence-id 
     :type number 
     :accessor sentence-id
-    :initform nil 
     :documentation "The id of the sentence.")
    (tokens 
     :type list :initarg :tokens 
@@ -204,12 +203,12 @@
    (sentence-string 
     :type string 
     :accessor sentence-string
-    :initform nil 
+    :initform "" 
     :documentation "The sentence as a string.")
   (propbank-frames 
-    :type string 
+    :type t 
     :accessor propbank-frames
-    :initform nil 
+    :initform nil
     :documentation "The propbank frames annotated in the sentence.")
   (syntactic-analysis 
     :type list 
@@ -219,7 +218,6 @@
   (initial-transient-structure 
    :type coupled-feature-structure 
     :accessor initial-transient-structure
-    :initform nil 
     :documentation "The initial transient structure for the utterance."))
    (:documentation "Representation of a conll sentence."))
 
@@ -299,10 +297,10 @@
                       (setf current-open-role nil)
                       (setf current-open-role-indices nil)
                       (setf current-open-role-strings nil)
-                      finally return (make-instance 'propbank-frame
+                      finally (return (make-instance 'propbank-frame
                                                     :frame-name frame-name
                                                     :propbank-frame-file frame-file
-                                                    :frame-roles propbank-roles)))))
+                                                    :frame-roles propbank-roles))))))
 
 
 
@@ -374,7 +372,7 @@
         else
         do (warn (format nil "File not found: ~s." file))
         finally
-        do (return sentences)))
+        (return sentences)))
 
 (defun read-propbank-conll-file (pathname)
   "Reads a propbank-conll file and returns a list of conll-sentence objects."
@@ -413,8 +411,8 @@
           (setf current-sentence-tokens (append current-sentence-tokens (list conll-token)))
           (setf previous-sentence-id sentence-id)
           finally
-          do (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens))))
-          (return conll-sentences))))
+          (progn (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens))))
+                (return conll-sentences)))))
 
 (defun get-corpus-file-lists (corpus-name)
   (case corpus-name
