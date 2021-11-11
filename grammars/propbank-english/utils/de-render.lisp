@@ -221,8 +221,8 @@
                        collect `(precedes ,p-un ,unit-name))
           into precedes-constraints
           do (push unit-name previous-unit-names)
-          finally return
-          (append adjacency-constraints precedes-constraints))))
+          finally (return
+                    (append adjacency-constraints precedes-constraints)))))
 
 (defun find-constituents (node-id spacy-benepar-analysis unit-name-ids)
   "Returns unit names of constituents."
