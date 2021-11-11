@@ -45,7 +45,7 @@
  (defparameter *penelope-host* "https://penelope.vub.be/spacy-api")
 
 ;;You can run the services also locally, if you clone the spacy-api repository (gitlab ehai) and follow the readme file there. Once your python server is running, please evaluate this line:
-;;(defparameter *penelope-host* "http://localhost:5000")
+;;(defparameter *penelope-host* "http://127.0.0.1:5000")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -88,7 +88,7 @@
     (error "The function <run-penelope-tokenizer> expects a string as input"))
   (send-request "/tokenize"
              (encode-json-to-string `((:sentence . ,sentence)
-                                                (:model . ,model)))))
+                                      (:model . ,model)))))
 
 ;;(run-penelope-tokenizer "Paul kicked the ball.")
 
