@@ -45,7 +45,7 @@
                       do
                       (learn-from-propbank-annotation sentence roleset cxn-inventory mode)))
           finally
-          return cxn-inventory)))
+          (return cxn-inventory))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Learning constructions from an annotated frame instance. ;;
@@ -878,7 +878,7 @@
                          ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))
                           (format nil "~{~a~}" (feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))))))
         into roles
-        finally return (intern (symbol-name (make-id (upcase (format nil "~{~a~^+~}+~a-cxn" roles (length cxn-units-without-role))))))))
+        finally (return (intern (symbol-name (make-id (upcase (format nil "~{~a~^+~}+~a-cxn" roles (length cxn-units-without-role)))))))))
 
 (defun make-gram-category (units-with-role)
   (intern (symbol-name (make-const
@@ -1123,7 +1123,7 @@ fillers (arg0, arg1) and the frame-evoking element unit."
                (when fc-to-keep 
                  (setf fcs-to-keep (append fcs-to-keep fc-to-keep))))
           
-          finally return fcs-to-keep)))
+          finally (return fcs-to-keep))))
 
 
 (defun find-path-in-syntactic-tree (unit v-unit unit-structure)
