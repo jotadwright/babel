@@ -16,7 +16,7 @@
 
 
 ;; Activating spacy-api locally
-(setf nlp-tools::*penelope-host*   "http://localhost:5000")
+(setf nlp-tools::*penelope-host*   "http://127.0.0.1:5000")
 
 ;; Activating trace-fcg
 (activate-monitor trace-fcg)
