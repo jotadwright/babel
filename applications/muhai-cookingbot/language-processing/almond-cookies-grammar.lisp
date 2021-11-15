@@ -149,7 +149,7 @@
                  --
                  (HASH form ((string ?gram-unit "g"))))))
 
-      (def-fcg-cxn cup-cxn
+  (def-fcg-cxn cup-cxn
                ((?cup-unit
                  (ontology cup)
                  (boundaries (left ?cup-unit)
@@ -175,6 +175,26 @@
                 (?cup-unit
                  --
                  (HASH form ((string ?cup-unit "cup"))))))
+
+
+  (def-fcg-cxn tablespoon-cxn
+               ((?tablespoon-unit
+                 (ontology tablespoon)
+                 (boundaries (left ?tablespoon-unit)
+                             (right ?tablespoon-unit)))
+                <-
+                (?tablespoon-unit
+                 --
+                 (lex-id tablespoon)))
+               :feature-types ((ontology default :lookup-in-ontology)))
+
+  (def-fcg-cxn tablespoons-morph-cxn
+               ((?tablespoons-unit
+                 (lex-id tablespoon))
+                <-
+                (?tablespoons-unit
+                 --
+                 (HASH form ((string ?tablespoons-unit "tablespoons"))))))
 
 
   
@@ -908,48 +928,83 @@
                 (?clause-unit
                  --
                  (HASH form ((meets ?mix-unit ?thoroughly-unit))))))
+
+  (def-fcg-cxn take-generous-tablespoons-of-X-cxn
+               ((?clause-unit
+                 (subunits (?take-unit ?generous-unit ?tablespoons-unit ?of-unit ?x-unit-in-utterance))
+                 (boundaries (left ?take-unit)
+                             (right ?x-unit-right))
+                 (meaning ((portion-and-arrange ?tray-with-portioned-dough ?kitchen-state-with-portions-on-tray
+                                    ?kitchen-state-with-lined-baking-tray ?dough 25 g ?pattern ?lined-baking-tray))))
+                <-
+                (?take-unit
+                 --
+                 (HASH form ((string ?take-unit "take"))))
+                (?generous-unit
+                 --
+                 (HASH form ((string ?generous-unit "generous"))))
+                (?tablespoons-unit
+                 --
+                 (HASH form ((string ?tablespoons-unit "tablespoons"))))
+                (?of-unit
+                 --
+                 (HASH form ((string ?of-unit "of"))))
+                (?x-unit-in-utterance
+                 --
+                 (boundaries (left ?x-unit-left)
+                             (right ?x-unit-right))
+                 (ontology (ontological-class ?ontological-class-utterance)
+                           (ontological-types ?ontological-types)))
+                (?x-unit-in-world
+                 --
+                 (ontological-types (not kitchen-state))
+                 (properties (contents ((ontological-class ?ontological-class-world))))
+                 (binding-variable ?dough))
+               (?clause-unit
+                 --
+                 (HASH form ((meets ?take-unit ?generous-unit)
+                             (meets ?generous-unit ?tablespoons-unit)
+                             (meets ?tablespoons-unit ?of-unit)
+                             (meets ?of-unit ?x-unit-left))))))
                    
   )
 
+              
 
 ;(clear-output)
-#|
-(process-uterances '(;;;; Ingredients 
+
+(process-uterances '(;;;; Ingredients
                      "226 grams butter , room temperature"
                      "116 grams sugar"
-                     "4 grams vanilla extract"
-                     "4 grams almond extract"
-                     "340 grams flour"
-                     "112 grams almond flour"
+                   ;  "4 grams vanilla extract"
+                   ;  "4 grams almond extract"
+                   ;  "340 grams flour"
+                  ;   "112 grams almond flour"
                    ;  "29 grams powdered sugar"
                      
                      ;;;; Instructions
-                    "beat the butter and the sugar together until light and fluffy"
-                    "add the vanilla and almond extracts and mix"
-                    "add the flour and almond flour"
-                    "mix thoroughly"
-                    
-                   ; "take generous tablespoons of the dough and roll it into a small ball, about an inch in diameter, and then shape into a crescent shape"
-                   ; "place onto a parchment paper lined baking sheet"
-                    
-                    ;; (define-amount ?tablespoon-portion 25 g)
-                    ;; (bind-and-fetch ?fetched-baking-tray ?kitchen-state-with-tray ?kitchen-state-with-dough baking-tray)
-                    ;; (line-with-baking-paper ?lined-baking-tray ?kitchen-state-with-lined-baking-tray ?kitchen-state-with-tray ?fetched-baking-tray)
-                    ;; (portion ?tray-with-portioned-dough ?kitchen-state-with-portions-on-tray ?kitchen-state-with-lined-baking-tray ?dough ?tablespoon-portion ?lined-baking-tray)
-                    ;; (shape ?tray-with-crescent-dough ?kitchen-state-with-crescent-dough-on-tray ?kitchen-state-with-portions-on-tray ?tray-with-portioned-dough crescent)
-                    
-                    ;;REPEAT STEPS UNTIL DOUGH IS GONE!!!!!!!
-                    
-                    ; "bake at 350°F (175°C) for 15-20 minutes or until a light golden brown"
-                    ; "dust with powdered sugar"
-    
+                     "beat the butter and the sugar together until light and fluffy"
+                  ;  "add the vanilla and almond extracts and mix"
+                  ;  "add the flour and almond flour"
+                  ;  "mix thoroughly"
+                     "take generous tablespoons of the dough"
                      "end"
                      )
                    (initialise-personal-dynamic-memory
                     *fcg-constructions*
                     `((get-kitchen ,(make-var 'kitchen-state)))))
-|#
 
 
 
+    ;;and roll it into a small ball, about an inch in diameter, and then shape into a crescent shape"
+                     
+                   ; "place onto a parchment paper lined baking sheet"
+                    
+                    
+                    ;; "bake at 350°F (175°C) for 15-20 minutes or until a light golden brown"
+                    ;; "dust with powdered sugar"
 
+
+                     ;; (define-amount ?tablespoon-portion 25 g)
+                     ;; (bind-and-fetch ?fetched-baking-tray ?kitchen-state-with-tray ?kitchen-state-with-dough baking-tray)
+                     ;; (line-with-baking-paper ?lined-baking-tray ?kitchen-state-with-lined-baking-tray ?kitchen-state-with-tray ?fetched-baking-tray)

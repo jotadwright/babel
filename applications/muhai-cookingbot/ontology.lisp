@@ -1010,6 +1010,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Unit: cup."))
 
+(defclass tablespoon (unit)
+  ()
+  (:documentation "Unit: tablespoon."))
+
 (defclass l (unit)
   ()
   (:documentation "Unit: liter."))
