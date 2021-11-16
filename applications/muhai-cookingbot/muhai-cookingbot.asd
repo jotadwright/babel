@@ -1,6 +1,6 @@
 (in-package :asdf)
 
-(defsystem :aipp-cookingbot
+(defsystem :muhai-cookingbot
   :description "A project for building a cookingbot that can execute natural language recipes in a kitchen simulator."
   :depends-on (:s-dot
                :utils
@@ -12,7 +12,7 @@
                #+lispworks :drakma)
   :serial t
   :components ((:file "package")
-               (:file "cooking-macros")
+            ;   (:file "cooking-macros")
                (:file "ontology")
                (:file "primitives")
               ; (:file "vr-simulator")

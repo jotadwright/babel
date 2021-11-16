@@ -1,4 +1,4 @@
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                             ;;
@@ -10,7 +10,7 @@
 ;; Defining the primitive inventory ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-irl-primitives aipp-cookingbot-inventory)
+(def-irl-primitives muhai-cookingbot-inventory)
 
 
 ;; Primitives ;;
@@ -242,7 +242,7 @@
 
 
 
-
+#|
 (defprimitive portion-and-arrange ((tray-with-portions transferable-container)
                                    (kitchen-state-out kitchen-state)
                                    (kitchen-state-in kitchen-state)
@@ -278,7 +278,8 @@
      (bind (output-container 1.0 new-output-container)
            (kitchen-output-state 1.0 new-kitchen-state)
            (arrangement-pattern 0.0 default-arrangement-pattern)
-           (target-container 0.0 target-container-in-kitchen-input-state))))
+           (target-container 0.0 target-container-in-kitchen-input-state)))))
+|#
 
 ;;--------------------------------------------------------------------------
 ;; Helper functions

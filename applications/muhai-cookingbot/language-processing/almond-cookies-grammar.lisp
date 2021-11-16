@@ -1,6 +1,6 @@
-;(ql:quickload :aipp-cookingbot)
+;(ql:quickload :muhai-cookingbot)
 
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 ;(activate-monitor trace-fcg)
 ;(activate-monitor trace-irl)
@@ -987,7 +987,7 @@
                   ;  "add the vanilla and almond extracts and mix"
                   ;  "add the flour and almond flour"
                   ;  "mix thoroughly"
-                     "take generous tablespoons of the dough"
+                  ;   "take generous tablespoons of the dough"
                      "end"
                      )
                    (initialise-personal-dynamic-memory
