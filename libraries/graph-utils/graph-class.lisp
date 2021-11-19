@@ -155,8 +155,8 @@ node-comparator is a valid hash table test."
   (let ((r nil))
     (maphash (lambda (node-name node-id)
                (if collect?
-                 (push (funcall fn node-name node-id) r)
-                 (funcall fn node-name node-id)))
+                   (push (funcall fn node-name node-id) r)
+                  (funcall fn node-name node-id)))
 	     (nodes graph))
     (when collect?
       (nreverse (if remove-nulls? (remove-if #'null r) r)))))
@@ -503,9 +503,6 @@ outbound neighbors for a directed graph."
                (when (leaf? graph id)
                  id))
 	     graph :collect? t :remove-nulls? t))
-
-(defgeneric delete-node (graph thing)
-  (:documentation "Delete a node from the graph"))
 
 (defmethod delete-node ((graph graph) (id integer))
   (let ((value (lookup-node graph id)))
