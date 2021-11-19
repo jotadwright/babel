@@ -241,8 +241,6 @@
                 (kitchen-state-out 1.0 new-kitchen-state)))))))
 
 
-
-#|
 (defprimitive portion-and-arrange ((tray-with-portions transferable-container)
                                    (kitchen-state-out kitchen-state)
                                    (kitchen-state-in kitchen-state)
@@ -251,35 +249,58 @@
                                    (unit unit)
                                    (arrangement-pattern arrangement-pattern)
                                    (target-tray transferable-container))
+  
+  ;; Case 1: Arrangement pattern and target-tray not specified, use evenly-spread and find tray
   ((kitchen-state-in container-with-dough quantity unit
                      => tray-with-portions kitchen-state-out arrangement-pattern target-tray)
-   (let* ((new-kitchen-state (copy-object kitchen-input-state))
-          (new-counter-top (counter-top new-kitchen-state))
-          (default-arrangement-pattern (make-instance 'evenly-spread))
-          (new-input-container (find-object-by-id input-container new-counter-top))
-          (new-output-container (find-object-by-id new-container new-counter-top))
-          (ingredient-to-portion (first (contents new-input-container)))
-          (absolute-amount-to-transfer (if (relative-amount-p amount)
-                                         (convert-relative-to-absolute amount (amount ingredient-to-portion))
-                                         (copy-object amount)))
-          (value-to-transfer (value (quantity absolute-amount-to-transfer)))
-          (left-to-transfer (value (quantity (amount ingredient-to-portion)))))
-     (loop while (> left-to-transfer 0)
-           do (let ((new-portion (copy-object ingredient-to-portion))
-                    (portion-amount (copy-object absolute-amount-to-transfer)))
-                (when (< left-to-transfer value-to-transfer) ;; last portion could be smaller than the others (left-over portion)
-                  (setf (value (quantity portion-amount)) left-to-transfer))
-                (setf (amount new-portion) portion-amount)
-                (setf (contents new-output-container) (cons new-portion (contents new-output-container)))
-                (setf left-to-transfer (- left-to-transfer value-to-transfer))))
-     (setf (contents new-input-container) nil) ;; everything has been transferred so should be empty
-     (use-container new-output-container)
-     (setf (arrangement new-output-container) arrangement-pattern)
-     (bind (output-container 1.0 new-output-container)
-           (kitchen-output-state 1.0 new-kitchen-state)
-           (arrangement-pattern 0.0 default-arrangement-pattern)
-           (target-container 0.0 target-container-in-kitchen-input-state)))))
-|#
+   
+   (let ((new-kitchen-state (copy-object kitchen-state-in))
+         (default-arrangement-pattern (make-instance 'evenly-spread)))
+
+
+     ;; 1) find tray and bring it to the countertop
+     (multiple-value-bind (target-tray-in-kitchen-input-state target-tray-original-location)
+         (find-unused-kitchen-entity 'baking-tray kitchen-state-in)
+
+       (let ((target-tray-instance
+              (find-object-by-persistent-id target-tray-in-kitchen-input-state
+                                            (funcall (type-of target-tray-original-location) new-kitchen-state)))
+             (container-with-dough-instance
+              (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state))))
+
+         (change-kitchen-entity-location target-tray-instance ;;bring the tray to the countertop
+                                         (funcall (type-of target-tray-original-location) new-kitchen-state)
+                                         (counter-top new-kitchen-state))
+
+         ;; 2) portion contents from container
+         (let* ((dough (first (contents container-with-dough-instance)))
+                (value-to-transfer (value (quantity (amount dough))))
+                (portion-amount (make-instance 'amount :quantity quantity :unit unit))
+                (left-to-transfer (copy-object value-to-transfer)))
+           
+           (loop while (> left-to-transfer 0)
+                 for new-portion = (copy-object dough)
+                 if (> left-to-transfer (value (quantity portion-amount))) ;; last portion could be smaller than the others (left-over portion)
+                 do (setf (amount new-portion) portion-amount
+                          (contents target-tray-instance) (cons new-portion (contents target-tray-instance))
+                          left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
+                 else do (setf (amount new-portion) (make-instance 'amount
+                                                                   :quantity (make-instance 'quantity
+                                                                                            :value left-to-transfer)
+                                                                   :unit unit)
+                               (contents target-tray-instance) (cons new-portion (contents target-tray-instance))
+                               left-to-transfer 0)
+                 finally do
+                 (setf (contents container-with-dough-instance) nil)
+                 (setf (used target-tray-instance) t)
+                 (setf (arrangement target-tray-instance) default-arrangement-pattern))
+                 
+
+           (bind (tray-with-portions 1.0 target-tray-instance)
+                 (kitchen-state-out 1.0 new-kitchen-state)
+                 (arrangement-pattern 0.0 default-arrangement-pattern)
+                 (target-tray 0.0 target-tray-in-kitchen-input-state))))))))
+
 
 ;;--------------------------------------------------------------------------
 ;; Helper functions

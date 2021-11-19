@@ -12,10 +12,8 @@
                #+lispworks :drakma)
   :serial t
   :components ((:file "package")
-            ;   (:file "cooking-macros")
                (:file "ontology")
                (:file "primitives")
-              ; (:file "vr-simulator")
                (:file "visualisations")
                (:module personal-dynamic-memory
                 :serial t
@@ -26,5 +24,4 @@
                              (:file "understand")
                              (:file "expansions")
                              (:file "utils")
-                             (:file "heuristics")
-                             (:file "grammar")))))
+                             (:file "heuristics")))))

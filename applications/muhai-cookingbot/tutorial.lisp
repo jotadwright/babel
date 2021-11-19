@@ -1,6 +1,6 @@
-;(ql:quickload :aipp-cookingbot)
+;(ql:quickload :muhai-cookingbot)
 
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 (setf *initial-kitchen-state*
       (make-instance 'kitchen-state
