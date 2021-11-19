@@ -280,7 +280,7 @@
            
            (loop while (> left-to-transfer 0)
                  for new-portion = (copy-object dough)
-                 if (> left-to-transfer (value (quantity portion-amount))) ;; last portion could be smaller than the others (left-over portion)
+                 if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
                  do (setf (amount new-portion) portion-amount
                           (contents target-tray-instance) (cons new-portion (contents target-tray-instance))
                           left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
@@ -300,6 +300,27 @@
                  (kitchen-state-out 1.0 new-kitchen-state)
                  (arrangement-pattern 0.0 default-arrangement-pattern)
                  (target-tray 0.0 target-tray-in-kitchen-input-state))))))))
+
+
+
+
+
+(defprimitive shape ((output-container transferable-container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (input-container transferable-container)
+                     (shape shape))
+  
+  ((kitchen-state-in input-container shape => output-container kitchen-state-out)
+   
+    (let* ((new-kitchen-state (copy-object kitchen-state-in))
+           (tray-with-portions (find-object-by-persistent-id input-container (counter-top new-kitchen-state))))
+
+      (loop for item in (contents tray-with-portions)
+            do (setf (current-shape item) shape))
+
+     (bind (output-container 1.0 tray-with-portions)
+           (kitchen-state-out 1.0 new-kitchen-state)))))
 
 
 ;;--------------------------------------------------------------------------

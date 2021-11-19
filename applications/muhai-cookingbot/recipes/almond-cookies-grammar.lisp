@@ -932,6 +932,10 @@
                  (subunits (?take-unit ?generous-unit ?tablespoons-unit ?of-unit ?x-unit-in-utterance))
                  (boundaries (left ?take-unit)
                              (right ?x-unit-right))
+                 (input-args (kitchen-state ?kitchen-state-with-lined-baking-tray)
+                             (arg1 ?dough))
+                 (output-args (kitchen-state ?kitchen-state-with-portions-on-tray)
+                              (arg1 ?tray-with-portioned-dough))
                  (meaning ((portion-and-arrange ?tray-with-portioned-dough ?kitchen-state-with-portions-on-tray
                                     ?kitchen-state-with-lined-baking-tray ?dough 25 g ?pattern ?lined-baking-tray))))
                 <-
@@ -968,6 +972,56 @@
                              (meets ?generous-unit ?tablespoons-unit)
                              (meets ?tablespoons-unit ?of-unit)
                              (meets ?of-unit ?x-unit-left))))))
+
+
+  (def-fcg-cxn and-roll-it-into-a-small-ball-cxn
+             ((?and-roll-it-into-a-small-ball-unit
+               (subunits (?x-unit-in-utterance ?and-unit-2 ?roll-unit-1 ?it-unit-2 ?into-unit-2 ?a-unit-2 ?small-unit-1 ?ball-unit-3))
+               (boundaries (left ?x-unit-left)
+                           (right ?ball-unit-3))
+               (meaning ((shape ?tray-with-shaped-bakeables
+                                ?kitchen-state-out
+                                ?kitchen-state-in
+                                ?tray-with-unshaped-bakeables
+                                ball-shape))))
+              <-
+              (?x-unit-in-utterance
+               --
+               (output-args (kitchen-state ?kitchen-state-in)
+                            (arg1 ?tray-with-unshaped-bakeables))
+               (boundaries (left ?x-unit-left)
+                           (right ?x-unit-right)))
+              (?and-unit-2
+                --
+                (HASH form ((string ?and-unit-2 "and"))))
+              (?roll-unit-1
+                --
+                (HASH form ((string ?roll-unit-1 "roll"))))
+              (?it-unit-2
+                --
+                (HASH form ((string ?it-unit-2 "it"))))
+              (?into-unit-2
+                --
+                (HASH form ((string ?into-unit-2 "into"))))
+              (?a-unit-2
+                --
+                (HASH form ((string ?a-unit-2 "a"))))
+              (?small-unit-1
+                --
+                (HASH form ((string ?small-unit-1 "small"))))
+              (?ball-unit-3
+                --
+                (HASH form ((string ?ball-unit-3 "ball"))))
+              (?and-roll-it-into-a-small-ball-unit
+               --
+               (HASH form ((meets ?and-unit-2 ?roll-unit-1)
+                           (meets ?roll-unit-1 ?it-unit-2)
+                           (meets ?it-unit-2 ?into-unit-2)
+                           (meets ?into-unit-2 ?a-unit-2)
+                           (meets ?a-unit-2 ?small-unit-1)
+                           (meets ?small-unit-1 ?ball-unit-3))))))
+
+  
                    
   )
 
@@ -980,18 +1034,18 @@
 (process-uterances '(;;;; Ingredients
                      "226 grams butter , room temperature"
                      "116 grams sugar"
-                   ;  "4 grams vanilla extract"
-                   ;  "4 grams almond extract"
-                   ;  "340 grams flour"
-                  ;   "112 grams almond flour"
-                   ;  "29 grams powdered sugar"
+                     "4 grams vanilla extract"
+                     "4 grams almond extract"
+                     "340 grams flour"
+                     "112 grams almond flour"
+                     "29 grams powdered sugar"
                      
                      ;;;; Instructions
                      "beat the butter and the sugar together until light and fluffy"
-                  ;  "add the vanilla and almond extracts and mix"
-                  ;  "add the flour and almond flour"
-                  ;  "mix thoroughly"
-                     "take generous tablespoons of the dough"
+                   ;  "add the vanilla and almond extracts and mix"
+                     "add the flour and almond flour"
+                     "mix thoroughly"
+                     "take generous tablespoons of the dough and roll it into a small ball"
                      "end"
                      )
                    (initialise-personal-dynamic-memory
