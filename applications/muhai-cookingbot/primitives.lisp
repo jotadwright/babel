@@ -1,4 +1,4 @@
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                             ;;
@@ -10,7 +10,7 @@
 ;; Defining the primitive inventory ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-irl-primitives aipp-cookingbot-inventory)
+(def-irl-primitives muhai-cookingbot-inventory)
 
 
 ;; Primitives ;;
@@ -242,17 +242,20 @@
 
 
 
-
-(defprimitive portion-and-arrange ((output-container transferable-container)
-                                   (kitchen-output-state kitchen-state)
-                                   (kitchen-input-state kitchen-state)
-                                   (input-container transferable-container)
-                                   (amount amount)
+#|
+(defprimitive portion-and-arrange ((tray-with-portions transferable-container)
+                                   (kitchen-state-out kitchen-state)
+                                   (kitchen-state-in kitchen-state)
+                                   (container-with-dough transferable-container)
+                                   (quantity quantity)
+                                   (unit unit)
                                    (arrangement-pattern arrangement-pattern)
-                                   (new-container container))
-  ((kitchen-input-state input-container amount arrangement-pattern new-container => output-container kitchen-output-state)
+                                   (target-tray transferable-container))
+  ((kitchen-state-in container-with-dough quantity unit
+                     => tray-with-portions kitchen-state-out arrangement-pattern target-tray)
    (let* ((new-kitchen-state (copy-object kitchen-input-state))
           (new-counter-top (counter-top new-kitchen-state))
+          (default-arrangement-pattern (make-instance 'evenly-spread))
           (new-input-container (find-object-by-id input-container new-counter-top))
           (new-output-container (find-object-by-id new-container new-counter-top))
           (ingredient-to-portion (first (contents new-input-container)))
@@ -273,7 +276,10 @@
      (use-container new-output-container)
      (setf (arrangement new-output-container) arrangement-pattern)
      (bind (output-container 1.0 new-output-container)
-           (kitchen-output-state 1.0 new-kitchen-state)))))
+           (kitchen-output-state 1.0 new-kitchen-state)
+           (arrangement-pattern 0.0 default-arrangement-pattern)
+           (target-container 0.0 target-container-in-kitchen-input-state)))))
+|#
 
 ;;--------------------------------------------------------------------------
 ;; Helper functions

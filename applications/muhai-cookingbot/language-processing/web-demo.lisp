@@ -1,6 +1,6 @@
-(ql:quickload :aipp-cookingbot)
+(ql:quickload :muhai-cookingbot)
 
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 
 (defparameter *initial-kitchen-state* 
@@ -91,7 +91,7 @@
   (activate-monitor trace-fcg)
   (activate-monitor trace-irl)
   (with-disabled-monitor-notifications
-    (load (babel-pathname :directory '("applications" "aipp-cookingbot" "language-processing")
+    (load (babel-pathname :directory '("applications" "muhai-cookingbot" "language-processing")
                           :name "almond-cookies-grammar"
                           :type "lisp")))
   

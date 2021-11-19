@@ -1,4 +1,4 @@
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :ontological-distance)))
   "Returns a normalisation of the number of units matched by the cxn."

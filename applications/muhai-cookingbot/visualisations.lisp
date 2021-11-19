@@ -1,4 +1,4 @@
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 (defun draw-recipe (network &key expand path)
   "Draws a predicate network by linking its variables"

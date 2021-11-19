@@ -1,4 +1,4 @@
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 (defun ontological-vector (ontological-class-name cxn-inventory)
   (gethash ontological-class-name (get-data (blackboard cxn-inventory) :ontology-hash-table)))

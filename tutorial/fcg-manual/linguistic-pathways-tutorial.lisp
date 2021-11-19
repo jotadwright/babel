@@ -87,7 +87,8 @@
 
 ;; For comprehension:
 (get-constructional-dependencies "the mouse"
-                                 :cxn-inventory *fcg-constructions*)
+                                 :cxn-inventory *fcg-constructions*
+                                 :format "svg" )
 
 ;; For formulation:
 (get-constructional-dependencies '((FCG::MOUSE #:X-4) (FCG::UNIQUE #:X-4))

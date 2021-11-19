@@ -1,6 +1,6 @@
 (in-package :cl-user)
 
-(defpackage :aipp-cookingbot
+(defpackage :muhai-cookingbot
   (:use :cl-user
         :common-lisp
         :utils
@@ -10,4 +10,4 @@
         :fcg
         :cl-json)
   (:shadow "PROTOTYPE" "PP")
-  (:documentation "Your very own AIPP Project"))
+  (:documentation ""))

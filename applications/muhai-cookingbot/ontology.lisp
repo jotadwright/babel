@@ -1,4 +1,4 @@
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                             ;;
@@ -1009,6 +1009,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass cup (unit)
   ()
   (:documentation "Unit: cup."))
+
+(defclass tablespoon (unit)
+  ()
+  (:documentation "Unit: tablespoon."))
 
 (defclass l (unit)
   ()
