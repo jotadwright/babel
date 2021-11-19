@@ -952,7 +952,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying shape objects."
   (setf (is-concept copy) (copy-object (is-concept shape))))
 
-(defclass crescent (shape)
+(defclass crescent-shape (shape)
   ()
   (:documentation "A crescent shape."))
 

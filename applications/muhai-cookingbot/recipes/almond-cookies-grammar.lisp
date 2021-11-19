@@ -930,13 +930,14 @@
   (def-fcg-cxn take-generous-tablespoons-of-X-cxn
                ((?clause-unit
                  (subunits (?take-unit ?generous-unit ?tablespoons-unit ?of-unit ?x-unit-in-utterance))
+                 
                  (boundaries (left ?take-unit)
                              (right ?x-unit-right))
                  (input-args (kitchen-state ?kitchen-state-with-lined-baking-tray)
                              (arg1 ?dough))
                  (output-args (kitchen-state ?kitchen-state-with-portions-on-tray)
-                              (arg1 ?tray-with-portioned-dough))
-                 (meaning ((portion-and-arrange ?tray-with-portioned-dough ?kitchen-state-with-portions-on-tray
+                              (arg1 ?portioned-dough))
+                 (meaning ((portion-and-arrange ?portioned-dough ?kitchen-state-with-portions-on-tray
                                     ?kitchen-state-with-lined-baking-tray ?dough 25 g ?pattern ?lined-baking-tray))))
                 <-
                 (?take-unit
@@ -975,20 +976,24 @@
 
 
   (def-fcg-cxn and-roll-it-into-a-small-ball-cxn
-             ((?and-roll-it-into-a-small-ball-unit
-               (subunits (?x-unit-in-utterance ?and-unit-2 ?roll-unit-1 ?it-unit-2 ?into-unit-2 ?a-unit-2 ?small-unit-1 ?ball-unit-3))
+             ((?clause-unit
+               (subunits (?x-unit-in-utterance ?and-unit-2 ?roll-unit-1
+                                               ?it-unit-2 ?into-unit-2 ?a-unit-2 ?small-unit-1 ?ball-unit-3))
+               (lex-class clause)
                (boundaries (left ?x-unit-left)
                            (right ?ball-unit-3))
-               (meaning ((shape ?tray-with-shaped-bakeables
+               (output-args (kitchen-state ?kitchen-state-out)
+                            (arg1 ?shaped-bakeables))
+               (meaning ((shape ?shaped-bakeables
                                 ?kitchen-state-out
                                 ?kitchen-state-in
-                                ?tray-with-unshaped-bakeables
+                                ?unshaped-bakeables
                                 ball-shape))))
               <-
               (?x-unit-in-utterance
                --
                (output-args (kitchen-state ?kitchen-state-in)
-                            (arg1 ?tray-with-unshaped-bakeables))
+                            (arg1 ?unshaped-bakeables))
                (boundaries (left ?x-unit-left)
                            (right ?x-unit-right)))
               (?and-unit-2
@@ -1012,7 +1017,7 @@
               (?ball-unit-3
                 --
                 (HASH form ((string ?ball-unit-3 "ball"))))
-              (?and-roll-it-into-a-small-ball-unit
+              (?clause-unit
                --
                (HASH form ((meets ?and-unit-2 ?roll-unit-1)
                            (meets ?roll-unit-1 ?it-unit-2)
@@ -1021,7 +1026,99 @@
                            (meets ?a-unit-2 ?small-unit-1)
                            (meets ?small-unit-1 ?ball-unit-3))))))
 
-  
+
+ (def-fcg-cxn shape-it-into-a-crescent-shape-cxn
+             ((?clause-unit
+               (subunits (?x-unit-in-utterance ?and-unit-2 ?then-unit-2 ?shape-unit-1
+                                               ?it-unit-3 ?into-unit-3 ?a-unit-3 ?crescent-unit-1 ?shape-unit-2))
+               (lex-class clause)
+               (boundaries (left ?x-unit-left)
+                           (right ?shape-unit-2))
+               (meaning ((shape ?shaped-bakeables
+                                ?kitchen-state-out
+                                ?kitchen-state-in
+                                ?unshaped-bakeables
+                                crescent-shape))))
+              <-
+              (?x-unit-in-utterance
+               --
+               (lex-class clause)
+               (output-args (kitchen-state ?kitchen-state-in)
+                            (arg1 ?unshaped-bakeables))
+               (boundaries (left ?x-unit-left)
+                           (right ?x-unit-right)))
+              (?and-unit-2
+                --
+                (HASH form ((string ?and-unit-2 "and"))))
+
+              (?then-unit-2
+                --
+                (HASH form ((string ?then-unit-2 "then"))))
+              
+              (?shape-unit-1
+                --
+                (HASH form ((string ?shape-unit-1 "shape"))))
+              (?it-unit-3
+                --
+                (HASH form ((string ?it-unit-3 "it"))))
+              (?into-unit-3
+                --
+                (HASH form ((string ?into-unit-3 "into"))))
+              (?a-unit-3
+                --
+                (HASH form ((string ?a-unit-3 "a"))))
+              (?crescent-unit-1
+                --
+                (HASH form ((string ?crescent-unit-1 "crescent"))))
+              (?shape-unit-2
+                --
+                (HASH form ((string ?shape-unit-2 "shape"))))
+              (?clause-unit
+               --
+               (HASH form (
+                           (meets ?shape-unit-1 ?it-unit-3)
+                           (meets ?it-unit-3 ?into-unit-3)
+                           (meets ?into-unit-3 ?a-unit-3)
+                           (meets ?a-unit-3 ?crescent-unit-1)
+                           (meets ?crescent-unit-1 ?shape-unit-2))))))
+
+ (def-fcg-cxn about-an-inch-in-diameter-cxn
+             ((?clause-unit
+               (subunits (?comma-unit-1 ?about-unit-1 ?an-unit-1 ?inch-unit-1 ?in-unit-1 ?diameter-unit ?comma-unit-2)))
+              <-
+              (?comma-unit-1
+                --
+                (HASH form ((string ?comma-unit-1 ","))))
+              (?about-unit-1
+                --
+                (HASH form ((string ?about-unit-1 "about"))))
+              (?an-unit-1
+                --
+                (HASH form ((string ?an-unit-1 "an"))))
+              (?inch-unit-1
+                --
+                (HASH form ((string ?inch-unit-1 "inch"))))
+              (?in-unit-1
+                --
+                (HASH form ((string ?in-unit-1 "in"))))
+              (?diameter-unit
+                --
+                (HASH form ((string ?diameter-unit "diameter"))))
+              (?comma-unit-2
+                --
+                (HASH form ((string ?comma-unit-2 ","))))
+              (?clause-unit
+               --
+               (lex-class clause)
+               (HASH form ((meets ?comma-unit-1 ?about-unit-1)
+                           (meets ?about-unit-1 ?an-unit-1)
+                           (meets ?an-unit-1 ?inch-unit-1)
+                           (meets ?inch-unit-1 ?in-unit-1)
+                           (meets ?in-unit-1 ?diameter-unit)
+                           (meets ?diameter-unit ?comma-unit-2))))))
+
+
+ 
                    
   )
 
@@ -1034,27 +1131,25 @@
 (process-uterances '(;;;; Ingredients
                      "226 grams butter , room temperature"
                      "116 grams sugar"
-                     "4 grams vanilla extract"
-                     "4 grams almond extract"
-                     "340 grams flour"
-                     "112 grams almond flour"
-                     "29 grams powdered sugar"
+                   ;  "4 grams vanilla extract"
+                   ;  "4 grams almond extract"
+                   ;  "340 grams flour"
+                   ;  "112 grams almond flour"
+                   ;  "29 grams powdered sugar"
                      
                      ;;;; Instructions
                      "beat the butter and the sugar together until light and fluffy"
                    ;  "add the vanilla and almond extracts and mix"
-                     "add the flour and almond flour"
-                     "mix thoroughly"
-                     "take generous tablespoons of the dough and roll it into a small ball"
-                     "end"
+                   ;  "add the flour and almond flour"
+                   ;  "mix thoroughly"
+                     "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
+                   ;  "place onto a parchment paper lined baking sheet"
+                    ; "end"
                      )
                    (initialise-personal-dynamic-memory
                     *fcg-constructions*
                     `((get-kitchen ,(make-var 'kitchen-state)))))
 
-
-
-    ;;and roll it into a small ball, about an inch in diameter, and then shape into a crescent shape"
                      
                    ; "place onto a parchment paper lined baking sheet"
                     

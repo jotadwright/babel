@@ -241,24 +241,81 @@
                 (kitchen-state-out 1.0 new-kitchen-state)))))))
 
 
-(defprimitive portion-and-arrange ((tray-with-portions transferable-container)
+(defprimitive portion-and-arrange ((destination-with-portions container)
                                    (kitchen-state-out kitchen-state)
                                    (kitchen-state-in kitchen-state)
                                    (container-with-dough transferable-container)
                                    (quantity quantity)
                                    (unit unit)
                                    (arrangement-pattern arrangement-pattern)
-                                   (target-tray transferable-container))
+                                   (destination container))
   
-  ;; Case 1: Arrangement pattern and target-tray not specified, use evenly-spread and find tray
+  ;; Case 1: Arrangement pattern and destination not specified, use evenly-spread and use countertop
   ((kitchen-state-in container-with-dough quantity unit
-                     => tray-with-portions kitchen-state-out arrangement-pattern target-tray)
+                     => destination-with-portions kitchen-state-out arrangement-pattern destination)
    
-   (let ((new-kitchen-state (copy-object kitchen-state-in))
+   (let ((source-destination (counter-top kitchen-state-in))
+         (new-kitchen-state (copy-object kitchen-state-in))
          (default-arrangement-pattern (make-instance 'evenly-spread)))
 
 
-     ;; 1) find tray and bring it to the countertop
+     ;; portion contents from container and put them on the counter top
+     (let* ((container-with-dough-instance
+              (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state)))
+            (dough (first (contents container-with-dough-instance)))
+            (value-to-transfer (value (quantity (amount dough))))
+            (portion-amount (make-instance 'amount :quantity quantity :unit unit))
+            (left-to-transfer (copy-object value-to-transfer))
+            (countertop (counter-top new-kitchen-state)))
+           
+       (loop while (> left-to-transfer 0)
+             for new-portion = (copy-object dough)
+             if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
+             do (setf (amount new-portion) portion-amount
+                      (contents countertop) (cons new-portion (contents countertop))
+                      left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
+             else do (setf (amount new-portion) (make-instance 'amount
+                                                               :quantity (make-instance 'quantity
+                                                                                        :value left-to-transfer)
+                                                               :unit unit)
+                           (contents countertop) (cons new-portion (contents countertop))
+                           left-to-transfer 0)
+             finally do
+             (setf (contents container-with-dough-instance) nil)
+             (setf (arrangement countertop) default-arrangement-pattern))
+                 
+
+       (bind (destination-with-portions 1.0 countertop)
+             (kitchen-state-out 1.0 new-kitchen-state)
+             (arrangement-pattern 0.0 default-arrangement-pattern)
+             (destination 0.0 source-destination))))))
+
+
+
+
+
+(defprimitive shape ((output-container container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (input-container container)
+                     (shape shape))
+  
+  ((kitchen-state-in input-container shape => output-container kitchen-state-out)
+   
+    (let* ((new-kitchen-state (copy-object kitchen-state-in))
+           (location-with-portions (find-object-by-persistent-id input-container new-kitchen-state)))
+
+      (loop for item in (contents location-with-portions)
+            when (equal (class-name (class-of item)) 'homogeneous-mixture)
+            do (setf (current-shape item) shape))
+
+     (bind (output-container 1.0 location-with-portions)
+           (kitchen-state-out 1.0 new-kitchen-state)))))
+
+
+
+#|
+ ;; 1) find tray and bring it to the countertop
      (multiple-value-bind (target-tray-in-kitchen-input-state target-tray-original-location)
          (find-unused-kitchen-entity 'baking-tray kitchen-state-in)
 
@@ -272,57 +329,7 @@
                                          (funcall (type-of target-tray-original-location) new-kitchen-state)
                                          (counter-top new-kitchen-state))
 
-         ;; 2) portion contents from container
-         (let* ((dough (first (contents container-with-dough-instance)))
-                (value-to-transfer (value (quantity (amount dough))))
-                (portion-amount (make-instance 'amount :quantity quantity :unit unit))
-                (left-to-transfer (copy-object value-to-transfer)))
-           
-           (loop while (> left-to-transfer 0)
-                 for new-portion = (copy-object dough)
-                 if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
-                 do (setf (amount new-portion) portion-amount
-                          (contents target-tray-instance) (cons new-portion (contents target-tray-instance))
-                          left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
-                 else do (setf (amount new-portion) (make-instance 'amount
-                                                                   :quantity (make-instance 'quantity
-                                                                                            :value left-to-transfer)
-                                                                   :unit unit)
-                               (contents target-tray-instance) (cons new-portion (contents target-tray-instance))
-                               left-to-transfer 0)
-                 finally do
-                 (setf (contents container-with-dough-instance) nil)
-                 (setf (used target-tray-instance) t)
-                 (setf (arrangement target-tray-instance) default-arrangement-pattern))
-                 
-
-           (bind (tray-with-portions 1.0 target-tray-instance)
-                 (kitchen-state-out 1.0 new-kitchen-state)
-                 (arrangement-pattern 0.0 default-arrangement-pattern)
-                 (target-tray 0.0 target-tray-in-kitchen-input-state))))))))
-
-
-
-
-
-(defprimitive shape ((output-container transferable-container)
-                     (kitchen-state-out kitchen-state)
-                     (kitchen-state-in kitchen-state)
-                     (input-container transferable-container)
-                     (shape shape))
-  
-  ((kitchen-state-in input-container shape => output-container kitchen-state-out)
-   
-    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-           (tray-with-portions (find-object-by-persistent-id input-container (counter-top new-kitchen-state))))
-
-      (loop for item in (contents tray-with-portions)
-            do (setf (current-shape item) shape))
-
-     (bind (output-container 1.0 tray-with-portions)
-           (kitchen-state-out 1.0 new-kitchen-state)))))
-
-
+      |#   
 ;;--------------------------------------------------------------------------
 ;; Helper functions
 ;;--------------------------------------------------------------------------
@@ -421,6 +428,7 @@
         (current-freezer (freezer kitchen-state))
         (current-pantry (pantry kitchen-state))
         (current-kitchen-cabinet (kitchen-cabinet kitchen-state))
+        (current-counter-top (counter-top kitchen-state))
         (current-oven (oven kitchen-state)))
     (cond ((eq (persistent-id object) (persistent-id current-fridge))
            current-fridge)
@@ -430,6 +438,8 @@
            current-pantry)
           ((eq (persistent-id object) (persistent-id current-kitchen-cabinet))
            current-kitchen-cabinet)
+          ((eq (persistent-id object) (persistent-id current-counter-top))
+           current-counter-top)
           ((eq (persistent-id object) (persistent-id current-oven))
            current-oven)
           (T
