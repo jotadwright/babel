@@ -2,8 +2,6 @@
 
 (in-package :muhai-cookingbot)
 
-;(activate-monitor trace-fcg)
-;(activate-monitor trace-irl)
 
 (defparameter *initial-kitchen-state* 
   (make-instance 
@@ -960,6 +958,10 @@
                  (ontological-types (not kitchen-state))
                  (properties (contents ((ontological-class ?ontological-class-world))))
                  (binding-variable ?dough))
+                (?ks-unit
+                 --
+                 (ontological-class kitchen-state)
+                 (binding-variable ?kitchen-state-with-lined-baking-tray))
                (?clause-unit
                  --
                  (HASH form ((meets ?take-unit ?generous-unit)
@@ -969,7 +971,9 @@
                    
   )
 
-              
+
+;(activate-monitor trace-fcg)
+;(activate-monitor trace-irl)
 
 ;(clear-output)
 
