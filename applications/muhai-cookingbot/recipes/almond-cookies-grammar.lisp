@@ -1118,6 +1118,85 @@
                            (meets ?diameter-unit ?comma-unit-2))))))
 
 
+             
+(def-fcg-cxn a-parchment-paper-lined-baking-sheet-cxn
+             ((?a-parchment-paper-lined-baking-sheet-unit
+               (subunits (?a-unit-4 ?parchment-unit-1 ?paper-unit-1
+                                    ?lined-unit-1 ?baking-unit-1 ?sheet-unit-1))
+               (sem-cat supporting-surface)
+               (lex-class noun-phrase)
+               (boundaries (left ?a-unit-4)
+                           (right ?sheet-unit-1))
+               (output-args (kitchen-state ?kitchen-state-out)
+                            (arg1 ?lined-baking-tray))
+               (meaning ((line ?lined-baking-tray
+                               ?kitchen-state-out 
+                               ?kitchen-state-in
+                               baking-tray
+                               baking-paper))))
+              <-
+              (?ks-unit
+                 --
+                 (ontological-class kitchen-state)
+                 (binding-variable ?kitchen-state-in))
+              (?a-unit-4
+                --
+                (HASH form ((string ?a-unit-4 "a"))))
+              (?parchment-unit-1
+                --
+                (HASH form ((string ?parchment-unit-1 "parchment"))))
+              (?paper-unit-1
+                --
+                (HASH form ((string ?paper-unit-1 "paper"))))
+              (?lined-unit-1
+                --
+                (HASH form ((string ?lined-unit-1 "lined"))))
+              (?baking-unit-1
+                --
+                (HASH form ((string ?baking-unit-1 "baking"))))
+              (?sheet-unit-1
+                --
+                (HASH form ((string ?sheet-unit-1 "sheet"))))
+              (?a-parchment-paper-lined-baking-sheet-unit
+               --
+               (HASH form ((meets ?a-unit-4 ?parchment-unit-1)
+                           (meets ?parchment-unit-1 ?paper-unit-1)
+                           (meets ?paper-unit-1 ?lined-unit-1)
+                           (meets ?lined-unit-1 ?baking-unit-1)
+                           (meets ?baking-unit-1 ?sheet-unit-1))))))
+
+
+(def-fcg-cxn place-X-onto-Y-cxn
+             ((?clause-unit
+               (subunits (?place-unit ?onto-unit ?arg2-unit))
+               (lex-class clause)
+               (boundaries (left ?place-unit)
+                           (right ?x-unit-right))
+               (meaning ((transfer-items ?things-placed ?kitchen-out ;;times nr of arg1s
+                                         ?kitchen-in ?things-to-transfer ?where-to-transfer-it))))
+              <-
+              (?arg1-unit-in-world
+               --
+               (ontological-class list-of-kitchen-entities)
+               (binding-variable ?things-to-transfer))
+              (?place-unit
+               --
+               (HASH form ((string ?place-unit "place"))))
+              (?onto-unit
+               --
+               (HASH form ((string ?onto-unit "onto"))))
+              (?arg2-unit
+               --
+               (boundaries (left ?x-unit-left)
+                           (right ?x-unit-right))
+               (output-args (kitchen-state ?kitchen-in)
+                            (arg1 ?where-to-transfer-it))
+               (sem-cat supporting-surface))
+              (?clause-unit
+               --
+               (HASH form ((meets ?place-unit ?onto-unit)
+                           (meets ?onto-unit ?x-unit-left))))))
+             
  
                    
   )
@@ -1139,25 +1218,16 @@
                      
                      ;;;; Instructions
                      "beat the butter and the sugar together until light and fluffy"
-                   ;  "add the vanilla and almond extracts and mix"
+                     ;  "add the vanilla and almond extracts and mix"
                    ;  "add the flour and almond flour"
                    ;  "mix thoroughly"
                      "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
-                   ;  "place onto a parchment paper lined baking sheet"
-                    ; "end"
+                     "place onto a parchment paper lined baking sheet"
+                     "end"
                      )
                    (initialise-personal-dynamic-memory
                     *fcg-constructions*
                     `((get-kitchen ,(make-var 'kitchen-state)))))
 
-                     
-                   ; "place onto a parchment paper lined baking sheet"
-                    
-                    
-                    ;; "bake at 350°F (175°C) for 15-20 minutes or until a light golden brown"
-                    ;; "dust with powdered sugar"
-
-
-                     ;; (define-amount ?tablespoon-portion 25 g)
-                     ;; (bind-and-fetch ?fetched-baking-tray ?kitchen-state-with-tray ?kitchen-state-with-dough baking-tray)
-                     ;; (line-with-baking-paper ?lined-baking-tray ?kitchen-state-with-lined-baking-tray ?kitchen-state-with-tray ?fetched-baking-tray)
+             ;; "bake at 350°F (175°C) for 15-20 minutes or until a light golden brown"
+             ;; "dust with powdered sugar"

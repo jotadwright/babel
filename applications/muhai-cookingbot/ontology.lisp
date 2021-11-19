@@ -404,7 +404,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 ;; Kitchen Equipment ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass baking-paper (can-be-lined-with)
+(defclass baking-paper (reusable can-be-lined-with)
   ()
   (:documentation "A piece of baking paper. It can be used to line something with."))
 

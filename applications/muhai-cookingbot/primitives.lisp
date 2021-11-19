@@ -241,7 +241,7 @@
                 (kitchen-state-out 1.0 new-kitchen-state)))))))
 
 
-(defprimitive portion-and-arrange ((destination-with-portions container)
+(defprimitive portion-and-arrange ((portions list-of-kitchen-entities)
                                    (kitchen-state-out kitchen-state)
                                    (kitchen-state-in kitchen-state)
                                    (container-with-dough transferable-container)
@@ -252,7 +252,7 @@
   
   ;; Case 1: Arrangement pattern and destination not specified, use evenly-spread and use countertop
   ((kitchen-state-in container-with-dough quantity unit
-                     => destination-with-portions kitchen-state-out arrangement-pattern destination)
+                     => portions kitchen-state-out arrangement-pattern destination)
    
    (let ((source-destination (counter-top kitchen-state-in))
          (new-kitchen-state (copy-object kitchen-state-in))
@@ -266,10 +266,12 @@
             (value-to-transfer (value (quantity (amount dough))))
             (portion-amount (make-instance 'amount :quantity quantity :unit unit))
             (left-to-transfer (copy-object value-to-transfer))
-            (countertop (counter-top new-kitchen-state)))
+            (countertop (counter-top new-kitchen-state))
+            (portions (make-instance 'list-of-kitchen-entities)))
            
        (loop while (> left-to-transfer 0)
              for new-portion = (copy-object dough)
+             do (push new-portion (items portions))
              if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
              do (setf (amount new-portion) portion-amount
                       (contents countertop) (cons new-portion (contents countertop))
@@ -283,9 +285,8 @@
              finally do
              (setf (contents container-with-dough-instance) nil)
              (setf (arrangement countertop) default-arrangement-pattern))
-                 
 
-       (bind (destination-with-portions 1.0 countertop)
+       (bind (portions 1.0 portions)
              (kitchen-state-out 1.0 new-kitchen-state)
              (arrangement-pattern 0.0 default-arrangement-pattern)
              (destination 0.0 source-destination))))))
@@ -294,42 +295,96 @@
 
 
 
-(defprimitive shape ((output-container container)
+(defprimitive shape ((shaped-portions list-of-kitchen-entities)
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
-                     (input-container container)
+                     (portions list-of-kitchen-entities)
                      (shape shape))
   
-  ((kitchen-state-in input-container shape => output-container kitchen-state-out)
+  ((kitchen-state-in portions shape => shaped-portions kitchen-state-out)
    
-    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-           (location-with-portions (find-object-by-persistent-id input-container new-kitchen-state)))
+    (let* ((new-kitchen-state (copy-object kitchen-state-in)))
 
-      (loop for item in (contents location-with-portions)
-            when (equal (class-name (class-of item)) 'homogeneous-mixture)
+      (loop for item in (items portions)
             do (setf (current-shape item) shape))
 
-     (bind (output-container 1.0 location-with-portions)
+      (bind (shaped-portions 1.0 portions)
+            (kitchen-state-out 1.0 new-kitchen-state)))))
+
+
+
+
+(defprimitive line ((lined-baking-tray lineable)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (baking-tray lineable)
+                    (baking-paper can-be-lined-with))
+
+  ;; Case 1
+  ((kitchen-state-in baking-tray baking-paper => kitchen-state-out lined-baking-tray)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (target-tray (find 'baking-tray (contents (counter-top new-kitchen-state))
+                             :key #'(lambda (item) (class-name (class-of item))))))
+
+     ;; 1) find tray and bring it to the countertop if it is not already there
+     (unless target-tray
+
+       (multiple-value-bind (target-tray-in-kitchen-input-state target-tray-original-location)
+           (find-unused-kitchen-entity 'baking-tray kitchen-state-in)
+
+         (let ((target-tray-instance
+                (find-object-by-persistent-id target-tray-in-kitchen-input-state
+                                              (funcall (type-of target-tray-original-location) new-kitchen-state))))
+
+           (change-kitchen-entity-location target-tray-instance ;;bring the tray to the countertop
+                                           (funcall (type-of target-tray-original-location) new-kitchen-state)
+                                           (counter-top new-kitchen-state))
+           (setf target-tray target-tray-instance))))
+
+     ;; 2) find baking paper and bring it to the countertop
+     (multiple-value-bind (target-paper-in-kitchen-input-state target-paper-original-location)
+           (find-unused-kitchen-entity 'baking-paper kitchen-state-in)
+
+         (let ((target-paper-instance
+                (find-object-by-persistent-id target-paper-in-kitchen-input-state
+                                              (funcall (type-of target-paper-original-location) new-kitchen-state))))
+
+           (change-kitchen-entity-location target-paper-instance ;;bring the paper to the countertop
+                                           (funcall (type-of target-paper-original-location) new-kitchen-state)
+                                           (counter-top new-kitchen-state))
+
+           (setf (lined-with target-tray) target-paper-instance) ;;do the lining
+           (setf (is-lining target-paper-instance) t) 
+           
+           (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
+                 (remove target-paper-instance (contents (counter-top new-kitchen-state))))
+           
+           (bind (lined-baking-tray 1.0 target-tray)
+                 (kitchen-state-out 1.0 new-kitchen-state)))))))
+
+
+(defprimitive transfer-items ((transferred container)
+                              (kitchen-state-out kitchen-state)
+                              (kitchen-state-in kitchen-state)
+                              (items-to-transfer list-of-kitchen-entities)
+                              (destination container))
+
+  ;; Case 1 : transfer a number of items to a given destination
+  ((kitchen-state-in items-to-transfer destination => kitchen-state-out transferred)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+         ; (new-items-to-transfer (find-object-by-persistent-id to-transfer new-kitchen-state))
+          (new-destination (find-object-by-persistent-id destination new-kitchen-state)))
+     
+     (setf (used new-destination) t)
+     (setf (contents new-destination) (items items-to-transfer))
+
+     (bind (transferred 1.0 new-destination)
            (kitchen-state-out 1.0 new-kitchen-state)))))
 
 
 
-#|
- ;; 1) find tray and bring it to the countertop
-     (multiple-value-bind (target-tray-in-kitchen-input-state target-tray-original-location)
-         (find-unused-kitchen-entity 'baking-tray kitchen-state-in)
-
-       (let ((target-tray-instance
-              (find-object-by-persistent-id target-tray-in-kitchen-input-state
-                                            (funcall (type-of target-tray-original-location) new-kitchen-state)))
-             (container-with-dough-instance
-              (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state))))
-
-         (change-kitchen-entity-location target-tray-instance ;;bring the tray to the countertop
-                                         (funcall (type-of target-tray-original-location) new-kitchen-state)
-                                         (counter-top new-kitchen-state))
-
-      |#   
 ;;--------------------------------------------------------------------------
 ;; Helper functions
 ;;--------------------------------------------------------------------------
