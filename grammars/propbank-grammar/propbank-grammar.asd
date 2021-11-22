@@ -12,6 +12,9 @@
                (:module propbank-annotations
                 :serial t
                 :components ((:file "propbank-annotations")))
+               (:module learning
+                :serial t
+                :components ((:file "learn-propbank-constructions")))               
                (:module fcg-components
                 :serial t
                 :components ((:file "de-render")))))
