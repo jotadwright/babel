@@ -393,7 +393,8 @@
                     (target-temperature-quantity quantity)
                     (target-temperature-unit unit))
   
-  ((kitchen-state-in thing-to-bake time-to-bake-quantity time-to-bake-unit target-temperature-quantity target-temperature-unit => kitchen-state-out thing-baked )
+  ((kitchen-state-in thing-to-bake time-to-bake-quantity time-to-bake-unit target-temperature-quantity target-temperature-unit
+                     => kitchen-state-out thing-baked )
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-thing-to-bake (find-object-by-persistent-id thing-to-bake new-kitchen-state)))
@@ -402,9 +403,40 @@
            do (setf (temperature bakeable) (make-instance 'amount :quantity target-temperature-quantity :unit target-temperature-unit))
            ;;fast forward time to bake!!!!
            (setf (baked bakeable) t))
-
      
      (bind (thing-baked 1.0 new-thing-to-bake)
+           (kitchen-state-out 1.0 new-kitchen-state)))))
+
+
+
+(defprimitive sprinkle ((sprinkled-object transferable-container)
+                        (kitchen-state-out kitchen-state)
+                        (kitchen-state-in kitchen-state)
+                        (object transferable-container)
+                        (topping-container transferable-container))
+  
+  ((kitchen-state-in object topping-container
+                        => kitchen-state-out sprinkled-object)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-input-container (find-object-by-persistent-id object (counter-top new-kitchen-state)))
+          (new-topping-container (find-object-by-persistent-id topping-container (counter-top new-kitchen-state)))
+          (topping (first (contents new-topping-container)))
+          (total-topping-weight-in-grams (convert-to-g topping))
+          (topping-weight-per-portion (make-instance 'amount
+                                                     :quantity (make-instance 'quantity
+                                                                              :value (/ (value (quantity (amount total-topping-weight-in-grams)))
+                                                                                        (length (contents new-input-container))))
+                                                     :unit 'g))) 
+
+     (loop for portion in (contents new-input-container)
+           for topping = (copy-object (first (contents new-topping-container)))
+           do (setf (amount portion) topping-weight-per-portion)
+           (setf (sprinkled-with portion) topping))
+     
+     (setf (contents new-topping-container) nil) 
+     
+     (bind (sprinkled-object 1.0 new-input-container)
            (kitchen-state-out 1.0 new-kitchen-state)))))
 
 

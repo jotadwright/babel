@@ -1282,10 +1282,10 @@
                                ?target-temperature-quantity
                                degrees-celsius))))
               <-
-             (?ks-unit
-                 --
-                 (ontological-class kitchen-state)
-                 (binding-variable ?kitchen-state-in))
+              (?ks-unit
+               --
+               (ontological-class kitchen-state)
+               (binding-variable ?kitchen-state-in))
               (?thing-to-bake-unit
                --
                (ontological-class baking-tray)
@@ -1317,13 +1317,49 @@
                --
                (HASH form ((meets ?at-unit ?temperature-unit-left)
                            (meets ?for-unit ?duration-unit-left))))))
+
+
+(def-fcg-cxn dust-with-x-cxn
+             ((?instruction-unit
+               (subunits (?dust-unit ?with-unit ?x-unit-in-utterance))
+               (boundaries (left ?dust-unit)
+                           (right ?x-unit-right))
+               (meaning ((sprinkle ?sprinkled-object
+                                   ?kitchen-state-out
+                                   ?kitchen-state-in
+                                   ?thing-to-dust
+                                   ?topping-container))))
+              <-
+              (?ks-unit
+               --
+               (ontological-class kitchen-state)
+               (binding-variable ?kitchen-state-in))
+              (?thing-to-dust-unit
+               --
+               (ontological-class baking-tray)
+               (binding-variable ?thing-to-dust))
+              (?dust-unit
+               --
+               (HASH form ((string ?dust-unit "dust"))))
+              (?with-unit
+               --
+               (HASH form ((string ?with-unit "with"))) )
+              (?x-unit-in-utterance
+               --
+               (ontology (ontological-class ?ontological-class))
+               (boundaries (left ?x-unit-left)
+                           (right ?x-unit-right)))
+              (?x-unit-in-world
+               --
+               (binding-variable ?topping-container)
+               (ontological-types (bowl))
+               (properties (contents ((ontological-class ?ontological-class)))))
+              (?instruction-unit
+               --
+               (HASH form ((meets ?dust-unit ?with-unit)
+                           (meets ?with-unit ?x-unit-left))))))
               
-
-
-
-             
- 
-                   
+            
   )
 
 
@@ -1335,21 +1371,21 @@
 (process-uterances '(;;;; Ingredients
                      "226 grams butter , room temperature"
                      "116 grams sugar"
-                   ;  "4 grams vanilla extract"
-                   ;  "4 grams almond extract"
-                   ;  "340 grams flour"
-                   ;  "112 grams almond flour"
-                   ;  "29 grams powdered sugar"
+                     "4 grams vanilla extract"
+                     "4 grams almond extract"
+                     "340 grams flour"
+                     "112 grams almond flour"
+                     "29 grams powdered sugar"
                      
                      ;;;; Instructions
                      "beat the butter and the sugar together until light and fluffy"
-                    ; "add the vanilla and almond extracts and mix"
-                    ; "add the flour and almond flour"
-                    ; "mix thoroughly"
+                     "add the vanilla and almond extracts and mix"
+                     "add the flour and almond flour"
+                     "mix thoroughly"
                      "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
                      "place onto a parchment paper lined baking sheet"
                      "bake at 175 °C for 15 - 20 minutes" ; or until a light golden brown
-                     ;"dust with powdered sugar"
+                     "dust with powdered sugar"
                     ; "end"
                      )
                    (initialise-personal-dynamic-memory
