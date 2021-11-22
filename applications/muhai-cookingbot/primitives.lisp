@@ -384,6 +384,29 @@
            (kitchen-state-out 1.0 new-kitchen-state)))))
 
 
+(defprimitive bake ((thing-baked transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (thing-to-bake transferable-container)
+                    (time-to-bake-quantity quantity)
+                    (time-to-bake-unit unit)
+                    (target-temperature-quantity quantity)
+                    (target-temperature-unit unit))
+  
+  ((kitchen-state-in thing-to-bake time-to-bake-quantity time-to-bake-unit target-temperature-quantity target-temperature-unit => kitchen-state-out thing-baked )
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-thing-to-bake (find-object-by-persistent-id thing-to-bake new-kitchen-state)))
+
+     (loop for bakeable in (contents new-thing-to-bake)
+           do (setf (temperature bakeable) (make-instance 'amount :quantity target-temperature-quantity :unit target-temperature-unit))
+           ;;fast forward time to bake!!!!
+           (setf (baked bakeable) t))
+
+     
+     (bind (thing-baked 1.0 new-thing-to-bake)
+           (kitchen-state-out 1.0 new-kitchen-state)))))
+
 
 ;;--------------------------------------------------------------------------
 ;; Helper functions

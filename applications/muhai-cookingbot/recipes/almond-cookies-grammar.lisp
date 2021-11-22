@@ -147,6 +147,27 @@
                  --
                  (HASH form ((string ?gram-unit "g"))))))
 
+
+ (def-fcg-cxn degrees-celsius-cxn
+               ((?degrees-celsius-unit
+                 (ontology degrees-celsius)
+                 (boundaries (left ?degrees-celsius-unit)
+                             (right ?degrees-celsius-unit)))
+                <-
+                (?degrees-celsius-unit
+                 --
+                 (lex-id degrees-celsius)))
+               :feature-types ((ontology default :lookup-in-ontology)))
+
+ (def-fcg-cxn °C-morph-cxn
+               ((?degrees-celsius-unit
+                 (lex-id degrees-celsius))
+                <-
+                (?degrees-celsius-unit
+                 --
+                 (HASH form ((string ?degrees-celsius-unit "°C"))))))
+ 
+
   (def-fcg-cxn cup-cxn
                ((?cup-unit
                  (ontology cup)
@@ -194,6 +215,33 @@
                  --
                  (HASH form ((string ?tablespoons-unit "tablespoons"))))))
 
+
+  (def-fcg-cxn minute-cxn
+               ((?minute-unit
+                 (ontology minute)
+                 (boundaries (left ?minute-unit)
+                             (right ?minute-unit)))
+                <-
+                (?minute-unit
+                 --
+                 (lex-id minute)))
+               :feature-types ((ontology default :lookup-in-ontology)))
+
+  (def-fcg-cxn minutes-morph-cxn
+               ((?minutes-unit
+                 (lex-id minute))
+                <-
+                (?minutes-unit
+                 --
+                 (HASH form ((string ?minutes-unit "minutes"))))))
+
+  (def-fcg-cxn minute-morph-cxn
+               ((?minute-unit
+                 (lex-id minute))
+                <-
+                (?minute-unit
+                 --
+                 (HASH form ((string ?minute-unit "minute"))))))
 
   
 ;; Quantity-cxn ;;
@@ -514,7 +562,7 @@
                               (args (?ingredient-out)))
                  (ontology (ontological-class ?ingredient)
                            (ontological-types (ingredient)))
-                 (boundaries (left ?unit-unit-left)
+                 (boundaries (left ?quantity-unit-left)
                              (right ?ingredient-unit-right)))
                 <-
                 (?kitchen-state
@@ -550,6 +598,58 @@
                  --
                  (HASH form ((meets ?quantity-unit-right ?unit-unit-left)
                              (meets ?unit-unit-right ?ingredient-unit-left))))))
+
+  (def-fcg-cxn quantity-unit-cxn
+               ((?noun-phrase-unit
+                 (phrase-type noun-phrase)
+                 (subunits (?quantity-unit ?unit-unit))
+                 (value ?quantity)
+                 (ontology (ontological-class ?unit)) ;;time!!
+                 (boundaries (left ?quantity-unit-left)
+                             (right ?unit-unit-right)))
+                <-
+                (?quantity-unit
+                 --
+                 (value ?quantity)
+                 (ontology (ontological-class quantity))
+                 (boundaries (left ?quantity-unit-left)
+                             (right ?quantity-unit-right)))
+                (?unit-unit
+                 --
+                 (ontology (ontological-class ?unit)
+                           (ontological-types (unit)))
+                 (boundaries (left ?unit-unit-left)
+                             (right ?unit-unit-right)))
+                (?noun-phrase-unit
+                 --
+                 (HASH form ((meets ?quantity-unit-right ?unit-unit-left))))))
+
+
+ 
+
+  (def-fcg-cxn number-range-cxn
+               ((?number-range-unit
+                 (boundaries (left ?number-1-unit)
+                             (right ?number-2-unit))
+                 (subunits (?number-1-unit ?dash-unit ?number-2-unit))
+                 (ontology (ontological-class quantity))
+                 (value ?value-1))
+                <-
+                (?number-1-unit
+                 --
+                 (ontology (ontological-class quantity))
+                 (value ?value-1))
+                (?dash-unit
+                 --
+                 (HASH form ((string ?dash-unit "-"))))
+                (?number-2-unit
+                 --
+                 (ontology (ontological-class quantity))
+                 (value ?value-2))
+                (?number-range-unit
+                 --
+                 (HASH form ((meets ?number-1-unit ?dash-unit)
+                             (meets ?dash-unit ?number-2-unit))))))
 
 
   (def-fcg-cxn the-x-cxn
@@ -865,35 +965,6 @@
                  (HASH form ((meets ?x-unit-right ?and-unit)
                              (meets ?and-unit ?y-unit-left))))))
 
- #| (def-fcg-cxn x-thoroughly-cxn ;;mix, shake, etc.
-               ((?clause-unit
-                 (subunits (?verb-unit ?thoroughly-unit))
-                 (boundaries (left ?verb-unit-left)
-                             (right ?thoroughly-unit)))
-                <-
-                (?ks-unit
-                 --
-                 (binding-variable ?input-kitchen-state)
-                 (ontological-class kitchen-state))
-                (?target-container-in-world-unit
-                 --
-                 (ontological-types (container)) ;;container => recency heuristic needed!!!!!!!
-                 (properties (contents ((ontological-types (ingredient))))) ;;ingredient
-                 (binding-variable ?input-container))
-                (?verb-unit
-                 --
-                 (boundaries (left ?verb-unit-left)
-                             (right ?verb-unit-right))
-                 (input-args (kitchen-state ?input-kitchen-state) ;;problem with var bindings! FCG vars, not IRL vars
-                             (arg1 ?input-container)
-                             (arg2 ?tool)))
-                (?thoroughly-unit
-                 --
-                 (HASH form ((string ?thoroughly-unit "thoroughly"))))
-                (?clause-unit
-                 --
-                 (HASH form ((meets ?verb-unit-right ?thoroughly-unit)))))) |#
-
 
   (def-fcg-cxn mix-thoroughly-cxn ;;mix, shake, etc.
                ((?clause-unit
@@ -1196,6 +1267,60 @@
                --
                (HASH form ((meets ?place-unit ?onto-unit)
                            (meets ?onto-unit ?x-unit-left))))))
+
+
+(def-fcg-cxn bake-at-temperature-for-duration-cxn
+             ((?instruction-unit
+               (phrase-type clause)
+               (subunits (?bake-unit ?at-unit ?temperature-unit ?for-unit ?duration-unit))
+               (meaning ((bake ?thing-baked
+                               ?kitchen-state-out
+                               ?kitchen-state-in
+                               ?thing-to-bake
+                               ?time-to-bake-quantity
+                               minute
+                               ?target-temperature-quantity
+                               degrees-celsius))))
+              <-
+             (?ks-unit
+                 --
+                 (ontological-class kitchen-state)
+                 (binding-variable ?kitchen-state-in))
+              (?thing-to-bake-unit
+               --
+               (ontological-class baking-tray)
+               (binding-variable ?thing-to-bake)) 
+              (?bake-unit
+               --
+               (HASH form ((string ?bake-unit "bake"))))
+              (?at-unit
+               --
+               (HASH form ((string ?at-unit "at"))))
+              (?temperature-unit
+               --
+               (value ?target-temperature-quantity)
+               (ontology (ontological-class degrees-celsius))
+               (phrase-type noun-phrase)
+               (boundaries (left ?temperature-unit-left)
+                           (right ?temperature-unit-right)))
+              (?for-unit
+               --
+               (HASH form ((string ?for-unit "for"))))
+              (?duration-unit
+               --
+               (value ?time-to-bake-quantity)
+               (ontology (ontological-class minute))
+               (phrase-type noun-phrase)
+               (boundaries (left ?duration-unit-left)
+                           (right ?duration-unit-right)))
+              (?instruction-unit
+               --
+               (HASH form ((meets ?at-unit ?temperature-unit-left)
+                           (meets ?for-unit ?duration-unit-left))))))
+              
+
+
+
              
  
                    
@@ -1218,16 +1343,15 @@
                      
                      ;;;; Instructions
                      "beat the butter and the sugar together until light and fluffy"
-                     ;  "add the vanilla and almond extracts and mix"
-                   ;  "add the flour and almond flour"
-                   ;  "mix thoroughly"
+                    ; "add the vanilla and almond extracts and mix"
+                    ; "add the flour and almond flour"
+                    ; "mix thoroughly"
                      "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
                      "place onto a parchment paper lined baking sheet"
-                     "end"
+                     "bake at 175 °C for 15 - 20 minutes" ; or until a light golden brown
+                     ;"dust with powdered sugar"
+                    ; "end"
                      )
                    (initialise-personal-dynamic-memory
                     *fcg-constructions*
                     `((get-kitchen ,(make-var 'kitchen-state)))))
-
-             ;; "bake at 350°F (175°C) for 15-20 minutes or until a light golden brown"
-             ;; "dust with powdered sugar"
