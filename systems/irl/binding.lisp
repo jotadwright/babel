@@ -9,12 +9,13 @@
 (defclass binding ()
   ((variable :accessor var :initarg :var)
    (score :accessor score :initarg :score :initform nil)
-   (value :accessor value :initarg :value :initform nil)))
+   (value :accessor value :initarg :value :initform nil)
+   (available-at :accessor available-at :initarg :available-at :initform nil)))
 
 
 (defmethod print-object ((binding binding) stream)
-  (format stream "<binding: ~a ~a (~a)>"
-          (var binding) (score binding) (value binding)))
+  (format stream "<binding: ~a ~a (~a) [~a]>"
+          (var binding) (score binding) (value binding) (available-at binding)))
 
 
 (defgeneric evaluate-bind-statement (class var value ontology &key))
