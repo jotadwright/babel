@@ -58,7 +58,8 @@
         do
         (loop for bindings-list in (understand-and-execute utterance cxn-inventory current-world-state :silent silent)
               when bindings-list
-              do (push (make-instance 'world-state :accessible-entities bindings-list
+              do (push (make-instance 'world-state
+                                      :accessible-entities bindings-list
                                       :personal-dynamic-memory personal-dynamic-memory)
                        (world-states personal-dynamic-memory))
               finally return bindings-list)))

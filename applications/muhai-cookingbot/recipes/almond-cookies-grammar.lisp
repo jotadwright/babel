@@ -1357,10 +1357,7 @@
               (?instruction-unit
                --
                (HASH form ((meets ?dust-unit ?with-unit)
-                           (meets ?with-unit ?x-unit-left))))))
-              
-            
-  )
+                           (meets ?with-unit ?x-unit-left)))))))
 
 
 ;(activate-monitor trace-fcg)
@@ -1368,26 +1365,32 @@
 
 ;(clear-output)
 
+(defparameter *pdm* (initialise-personal-dynamic-memory
+                    *fcg-constructions*
+                    `((get-kitchen ,(make-var 'kitchen-state)))))
+
 (process-uterances '(;;;; Ingredients
                      "226 grams butter , room temperature"
-                     "116 grams sugar"
-                     "4 grams vanilla extract"
-                     "4 grams almond extract"
-                     "340 grams flour"
-                     "112 grams almond flour"
-                     "29 grams powdered sugar"
+                     "116 grams sugar"    
+                   ;  "4 grams vanilla extract"
+                  ;   "4 grams almond extract"
+                  ;   "340 grams flour"
+                   ;  "112 grams almond flour"
+                  ;   "29 grams powdered sugar"
                      
                      ;;;; Instructions
                      "beat the butter and the sugar together until light and fluffy"
-                     "add the vanilla and almond extracts and mix"
+                   #|  "add the vanilla and almond extracts and mix"
                      "add the flour and almond flour"
                      "mix thoroughly"
                      "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
                      "place onto a parchment paper lined baking sheet"
                      "bake at 175 °C for 15 - 20 minutes" ; or until a light golden brown
-                     "dust with powdered sugar"
-                    ; "end"
+                     "dust with powdered sugar" |#
+                     "end"
                      )
-                   (initialise-personal-dynamic-memory
-                    *fcg-constructions*
-                    `((get-kitchen ,(make-var 'kitchen-state)))))
+                   *pdm*
+                   ;(initialise-personal-dynamic-memory
+                   ; *fcg-constructions*
+                   ; `((get-kitchen ,(make-var 'kitchen-state))))
+                   )
