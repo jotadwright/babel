@@ -152,10 +152,12 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   *train-sentences-all*
+   (subseq *train-sentences-ewt* 0 20)
    :selected-rolesets nil
-   :cxn-inventory '*propbank-ontonotes-ewt-learned-cxn-inventory*
+   :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
+
+(add-element (make-html *propbank-ewt-learned-cxn-inventory*))
 
 
 (activate-monitor trace-fcg)
