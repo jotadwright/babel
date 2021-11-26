@@ -129,7 +129,7 @@ is overwritten."
   (set-configuration construction-inventory
                      :equivalent-cxn-fn #'eql)
   (set-configuration construction-inventory
-                     :th-connected-mode :neighbours)
+                     :category-linking-mode :neighbours)
   
   ;; Set default visualization configuration
   (set-configuration (visualization-configuration construction-inventory) :coupled-mode nil :replace nil)

@@ -386,13 +386,22 @@ occurs in x."
   (first (funcall (unify-fn (first x)) x y (list bindings) :cxn-inventory cxn-inventory)))
 
 (defun unify-atom (x y bindings &key cxn-inventory)
-  (declare (ignore cxn-inventory))
   (cond ((eq bindings +fail+) +fail+)
 	;; handle strings and interned symbols
 	((equal x y) bindings)
 	;; unify uninterned symbols 
 	((and (symbolp x) (symbolp y)
-	      (equal (symbol-name x) (symbol-name y)) bindings))
+	      (equal (symbol-name x) (symbol-name y)))
+         bindings)
+        ;; unify symbols on type-hierarchy-basis
+        ((and cxn-inventory (categorial-network (original-cxn-set cxn-inventory))
+              (symbolp x) (symbolp y)
+              (category-exists-p x (categorial-network (original-cxn-set cxn-inventory)))
+              (category-exists-p y (categorial-network (original-cxn-set cxn-inventory)))
+              (categories-linked-p x y
+                                   (categorial-network (original-cxn-set cxn-inventory))
+                                   (get-configuration (original-cxn-set cxn-inventory) :category-linking-mode)))
+         bindings)
 	;; unify variables
 	((variable-p x) (unify-variable x y bindings))
 	((variable-p y) (unify-variable y x bindings))

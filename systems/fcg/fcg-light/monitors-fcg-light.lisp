@@ -86,12 +86,21 @@
         (format nil "a large ~a (~d)"
                 (get-construction-inventory-title-string (original-cxn-set (construction-inventory cip)))
                 (size (original-cxn-set (construction-inventory cip))))
-     (make-html (original-cxn-set (construction-inventory cip))))
-     #+:type-hierarchies ,(if (and (type-hierarchies::get-type-hierarchy (original-cxn-set (construction-inventory cip)))
-                                   (get-configuration (visualization-configuration (construction-inventory cip)) :show-categorial-network))
-                            (make-html (type-hierarchies::get-type-hierarchy (original-cxn-set (construction-inventory cip)))
-                                       :weights? t :render-program "circo")
-                           "")
+        (make-html (original-cxn-set (construction-inventory cip))))
+     ;; For printing categorial networks
+     ,(if (get-configuration (visualization-configuration (construction-inventory cip)) :show-categorial-network)
+        "with categorial network"
+        "")
+     ,(if (get-configuration (visualization-configuration (construction-inventory cip)) :show-categorial-network)
+        (if (> (nr-of-categories (categorial-network (original-cxn-set (construction-inventory cip))))
+               (/ (get-configuration (construction-inventory cip) :max-size-for-html) 10))
+          (format nil " (~a categories, ~a links, ~a link types)"
+                  (nr-of-categories (original-cxn-set (construction-inventory cip)))
+                  (nr-of-links (original-cxn-set (construction-inventory cip)))
+                  (length (link-types (original-cxn-set (construction-inventory cip)))))
+          (make-html (categorial-network (original-cxn-set (construction-inventory cip)))
+                     :weights? t :render-program "circo"))
+        "")
      " in "
      ,(if (eq (direction cip) '->) "formulation" "comprehension"))))
 
@@ -111,11 +120,20 @@
              (format nil "Computing max ~a solutions for application of " n)
              "Computing all solutions for application of ")
      ,(make-html (original-cxn-set construction-inventory))
-     #+:type-hierarchies ,(if (and (type-hierarchies::get-type-hierarchy (original-cxn-set construction-inventory))
-                                   (get-configuration (visualization-configuration construction-inventory) :show-type-hierarchy))
-                            (make-html (type-hierarchies::get-type-hierarchy (original-cxn-set (construction-inventory cip)))
-                                       :weights? t :render-program "circo")
-                           "")
+     ;; For printing categorial networks
+     ,(if (get-configuration (visualization-configuration (original-cxn-set construction-inventory)) :show-categorial-network)
+        "with categorial network"
+        "")
+     ,(if (get-configuration (visualization-configuration (original-cxn-set construction-inventory)) :show-categorial-network)
+        (if (> (nr-of-categories (categorial-network (original-cxn-set construction-inventory)))
+               (/ (get-configuration (original-cxn-set construction-inventory) :max-size-for-html) 10))
+          (format nil " (~a categories, ~a links, ~a link types)"
+                  (nr-of-categories (original-cxn-set construction-inventory))
+                  (nr-of-links (original-cxn-set construction-inventory))
+                  (length (link-types (original-cxn-set construction-inventory))))
+          (make-html (categorial-network (original-cxn-set construction-inventory))
+                     :weights? t :render-program "circo"))
+        "") 
      " in "
      ,(if (eq direction '->) "formulation" "comprehension"))))
 
@@ -313,6 +331,7 @@
                                               (solutions nil)
                                               (show-queue nil)
                                               (configuration nil))
+  (declare (ignore show-queue))
   (set-configuration configuration :labeled-paths t)
   (set-configuration configuration :with-search-debug-data t)
   

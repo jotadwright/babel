@@ -13,37 +13,35 @@
 ;; limitations under the License.
 ;;=========================================================================
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; This File contains a tutorial for using type-hierarchies in FCG's match and merge ;;
-;; File by Paul - 01/2017                                                            ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This File contains a tutorial for using categorial-networks in FCG's match and merge ;;
+;; File by Paul - 01/2017                                                               ;;
+;; Updated by Paul and Katrien - 11/2021                                                ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ql:quickload :type-hierarchies)
-(in-package :type-hierarchies)
+(ql:quickload :fcg)
+(in-package :fcg)
 (activate-monitor trace-fcg)
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; 1. Introduction ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-;; They type-hierarchy package is an extension to FCG which makes it possible to represent
-;; hierarchies of values (categories), to build these hierarchies up, and to use them in
-;; FCG processing (match and merge).
+;; Categorial networks makes it possible to represent links between grammatical categories
+;;, to build these networks up, and to use them in FCG processing (match and merge).
 ;;
 ;; Say, we have two units for the words 'man' and 'cat' with the features (sem-class human)
 ;; and (sem-class animal) respectively. However, our NP-cxn is not that specific, it is happy
-;; to combine a determiner with any noun with (sem-class physical-object). The type-hierarchy
-;; extension allows to declare that animal and human are subtypes of physical-object. The FCG
-;; processing engine will then look up these relations in the type-hierarchy and use them in
+;; to combine a determiner with any noun with (sem-class physical-object). The categorial-network
+;; allows to declare that animal and human are subtypes of physical-object. The FCG
+;; processing engine will then look up these relations in the categorial-network and use them in
 ;; matching and merging.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 2. An example grammar ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; We use the macro def-fcg-constructions-with-type-hierarchy for constructing a cxn-inventory
-;; that can be used by the type-hierarchy extension. Besides this, the macro is entirely the
-;; same as the standard def-fcg-constructions macro.
+;; We use the macro def-fcg-constructions for constructing a cxn-inventory.
 
 ;; The cxn-inventory holds four constructions:
 ;; - A lexical construction for the determiner the
@@ -52,7 +50,9 @@
 ;; - A lexical construction for cat, being of (lex-class count-noun) and (sem-class animal)
 ;; - A lexical construction for grass, being of (lex-class mass-noun) and (sem-class plant)
 
-(def-fcg-constructions-with-type-hierarchy type-hierarchy-example-grammar
+(def-fcg-constructions categorial-network-example-grammar
+  :visualization-configurations ((:show-categorial-network . t))
+  :fcg-configurations ((:category-linking-mode . :path-exists))
   :feature-types ((args sequence)
                   (footprints set)
                   (form set-of-predicates)
@@ -126,29 +126,30 @@
 (formulate '((unique o-1) (cat o-1)))
 (formulate '((unique o-2) (grass o-2)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 3. Specifying the type hierarchy ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 3. Specifying the categorial network ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; The type-hierarchy is stored in the data field (blackboard) of the cxn-inventory
-;; under the key :type-hierarchy. It can easily be accessed with (get-type-hierarchy cxn-inventory)
-;; categories and links can be added with the add-link, add-categories and add-category functions.
+;; The categorial network is stored in the data field (blackboard) of the cxn-inventory
+;; under the key :categorial-network. It can easily be accessed with (categorial-network cxn-inventory)
+;; and set with the (set-categorial-network cxn-inventory).
+;; Categories and links can be added with the add-link, add-categories and add-category functions.
 
-(let ((th (get-type-hierarchy *fcg-constructions*)))
+(let ((categorial-network (categorial-network *fcg-constructions*)))
   ;; more syntactic (used by lex-class)
-  (add-categories '(noun mass-noun count-noun common-noun proper-noun) th)
-  (add-link 'proper-noun 'noun th)
-  (add-link 'common-noun 'noun th)
-  (add-link 'mass-noun 'common-noun th)
-  (add-link 'count-noun 'common-noun th)
+  (add-categories '(noun mass-noun count-noun common-noun proper-noun) categorial-network)
+  (add-link 'proper-noun 'noun categorial-network)
+  (add-link 'common-noun 'noun categorial-network)
+  (add-link 'mass-noun 'common-noun categorial-network)
+  (add-link 'count-noun 'common-noun categorial-network)
   ;; more semantic (used by sem-class)
-  (add-categories '(physical-object plant animal) th)
-  (add-link 'animal 'physical-object th)
-  (add-link 'plant 'physical-object th)
-  th)
+  (add-categories '(physical-object plant animal) categorial-network)
+  (add-link 'animal 'physical-object categorial-network)
+  (add-link 'plant 'physical-object categorial-network)
+  categorial-network)
 
-;; The type-hierarchies can be visualised in the web-interface
-(add-element (make-html (get-type-hierarchy *fcg-constructions*)))
+;; The categorial-networks can be visualised in the web-interface
+(add-element (make-html (categorial-network *fcg-constructions*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 4. Using the type hierarchy      ;;
@@ -169,7 +170,9 @@
 
 ;; The grammar
 
-(def-fcg-constructions-with-type-hierarchy type-hierarchy-weights-example-grammar
+(def-fcg-constructions categorial-network-weights-example-grammar
+  :visualization-configurations ((:show-categorial-network . t))
+  :fcg-configurations ((:category-linking-mode . :path-exists))
   :feature-types ((args sequence)
                   (footprints set)
                   (form set-of-predicates)
@@ -224,28 +227,28 @@
 
 ;; Setting the type hierarchy
 
-(let ((th (get-type-hierarchy *fcg-constructions*)))
-  (add-categories '(sandwich cooked-meal noon-meal evening-meal) th)
-  (add-link 'sandwich 'noon-meal th :weight 0.3)
-  (add-link 'sandwich 'evening-meal th :weight 0.7)
-  (add-link 'cooked-meal 'noon-meal th :weight 0.8)
-  (add-link 'cooked-meal 'evening-meal th :weight 0.2)
-  th)
+(let ((categorial-network (categorial-network *fcg-constructions*)))
+  (add-categories '(sandwich cooked-meal noon-meal evening-meal) categorial-network)
+  (add-link 'sandwich 'noon-meal categorial-network :weight 0.3)
+  (add-link 'sandwich 'evening-meal categorial-network :weight 0.7)
+  (add-link 'cooked-meal 'noon-meal categorial-network :weight 0.8)
+  (add-link 'cooked-meal 'evening-meal categorial-network :weight 0.2)
+  categorial-network)
 
 ;; Visualizing the type hierarchy with weights
 
-(add-element (make-html (get-type-hierarchy *fcg-constructions*) :weights? t))
+(add-element (make-html (categorial-network *fcg-constructions*) :weights? t))
 
 ;; Changing the weights on the edges
 
-(link-weight  'sandwich 'cooked-meal (get-type-hierarchy *fcg-constructions*))
-(set-link-weight 'sandwich 'cooked-meal (get-type-hierarchy *fcg-constructions*)  0.7)
-(incf-link-weight 'sandwich 'cooked-meal (get-type-hierarchy *fcg-constructions*) 0.1)
-(decf-link-weight 'sandwich 'cooked-meal (get-type-hierarchy *fcg-constructions*) 0.1)
+(link-weight  'sandwich 'noon-meal (categorial-network *fcg-constructions*))
+(set-link-weight 'sandwich 'noon-meal (categorial-network *fcg-constructions*)  0.7)
+(incf-link-weight 'sandwich 'noon-meal (categorial-network *fcg-constructions*) :delta 0.1)
+(decf-link-weight 'sandwich 'noon-meal (categorial-network *fcg-constructions*) :delta 0.1)
 
-;; Paths and distances
-(directed-path-p 'cooked-meal 'noon-meal (get-type-hierarchy *fcg-constructions*))
-(directed-distance  'cooked-meal 'noon-meal (get-type-hierarchy *fcg-constructions*))
+;; With large categorial networks, do not print every time
+(loop for n from 1 upto 75
+      do (add-category (gensym) *fcg-constructions*))
 
 ;; Comprehending and formulating
 
