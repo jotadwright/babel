@@ -1078,26 +1078,38 @@ fillers (arg0, arg1) and the frame-evoking element unit."
                                        units-with-role))
          for unit-with-role in (remove fee-unit units-with-role :test #'equal) ;;discard the frame-evoking element (FEE) unit
          for path = (find-path-in-syntactic-tree (cdr unit-with-role) fee-unit unit-structure) ;;find path between a unit in the transient structure and the FEE unit
-
          append (progn (assert path)
                   (loop for unit-name in path
                         for unit = (find unit-name unit-structure :key #'unit-name)
                         for parent = (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
                                        (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name))))
-                        for form-constraints-for-children-with-role-and-same-type = (make-form-constraints-for-children-with-role-and-same-type unit cxn-units-with-role)
-
                         unless (find (variablify unit-name) cxn-units-with-role :key #'unit-name) ;;check that the unit is not a frame-element
                         collect `(,(variablify unit-name)
                                   --
                                   ,@(when parent
                                       `((parent ,parent)))
-                                  ,@(when form-constraints-for-children-with-role-and-same-type
-                                      `((word-order ,form-constraints-for-children-with-role-and-same-type)))
+                                  ,@(when (has-siblings? unit-with-role units-with-role)
+                                      `((word-order ,(make-form-constraints-for-children-with-role-and-same-type unit cxn-units-with-role))))
                                   ,(find 'syn-class (unit-body unit) :key #'feature-name)
                                   ,@(when (find 'passive (unit-body unit) :key #'feature-name)
                                       `(,(find 'passive (unit-body unit) :key #'feature-name)))))))
    :key #'unit-name))
 
+(defun has-siblings? (unit other-units)
+  "Checks whether a unit shares its parent with a unit from the other-units list."
+  (let ((possible-siblings (remove-if #'(lambda(u) (or (string= (role-type (car u)) "V")
+                                                       (string= (role-type (car u))
+                                                                (role-type (car unit)))))
+                                      other-units)))
+
+    (assert (null (find-if #'(lambda(unit-with-role) (string= (role-type (car unit-with-role)) "V"))
+                           possible-siblings)))
+  
+    (loop with parent-unit-name = (cadr (find 'parent (unit-body unit) :key #'feature-name))
+          for other-unit in possible-siblings
+          when (equal (cadr (find 'parent (unit-body other-unit) :key #'feature-name))
+                      parent-unit-name)
+          do (return t))))
 
 (defun make-form-constraints-for-children-with-role-and-same-type (unit cxn-units-with-role)
   (let* ((children (loop for role-unit in cxn-units-with-role
