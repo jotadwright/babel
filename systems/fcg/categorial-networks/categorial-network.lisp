@@ -22,7 +22,19 @@
 
 (in-package :fcg)
 
-(export '())
+(export '(categorial-network set-categorial-network
+          categories links link-types
+          category-exists-p link-exists-p
+          add-category add-categories
+          remove-category remove-categories
+          add-link remove-link
+          link-weight set-link-weight
+          incf-link-weight decf-link-weight
+          neighbouring-categories neighbouring-categories-p
+          connected-categories connected-categories-p
+          categories-linked-p
+          nr-of-categories nr-of-links
+          compute-transitive-closure))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Classes for using categorial networks ;;
