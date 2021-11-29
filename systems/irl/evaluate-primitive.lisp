@@ -29,7 +29,7 @@
          (primitive-is-applicable (and applicable-slot-spec applicable-evaluation-spec))
          (results (when primitive-is-applicable
                     (apply (evaluation-spec-function applicable-evaluation-spec)
-                           ontology (mapcar #'value bindings)))))
+                           ontology bindings (mapcar #'value bindings)))))
     ;;  given the bound-slots-pattern there are the following cases
     ;;  no bound-slots-pattern found
     ;;  bound-slots-pattern all t -> t (success), nil (failure)

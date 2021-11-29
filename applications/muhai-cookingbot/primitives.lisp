@@ -18,7 +18,7 @@
 
 (defprimitive get-kitchen ((kitchen kitchen-state))
   ((=> kitchen)
-   (bind (kitchen 1.0 *initial-kitchen-state*))))
+   (bind (kitchen 1.0 *initial-kitchen-state* 0.0))))
 
 
 
@@ -100,7 +100,7 @@
    (let* ((temperature (make-instance 'amount :quantity temperature-quantity :unit temperature-unit))
           (new-kitchen-state (copy-object kitchen-state-in))
           (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-          (new-kitchen-time (+ 600 (kitchen-time kitchen-state-in)))
+          (new-kitchen-time (kitchen-time kitchen-state-in))
           (container-available-at (+ 600 (kitchen-time kitchen-state-in)))
           (kitchen-state-available-at (kitchen-time kitchen-state-in)))
      
@@ -131,9 +131,10 @@
           (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
           (new-mixture (create-homogeneous-mixture-in-container new-container))
           (new-kitchen-time (+ 60 (max (kitchen-time kitchen-state-in)
-                                       (available-at (find (id container-with-ingredients) bindings
-                                                           :key #'(lambda(binding)
-                                                                    (id (value binding))))))))
+                                       (available-at (find (id container-with-ingredients) binding-objects
+                                                           :key #'(lambda (binding-object)
+                                                                    (and (value binding-object)
+                                                                         (id (value binding-object)))))))))
           (container-available-at new-kitchen-time)
           (kitchen-state-available-at new-kitchen-time))
    
@@ -161,7 +162,10 @@
      => target-container container-with-all-ingredients container-with-rest kitchen-state-out quantity unit)
 
    (let ((new-kitchen-state (copy-object kitchen-state-in))
-         (total-amount nil))
+         (total-amount nil)
+         (new-kitchen-time (+ 30 (kitchen-time kitchen-state-in)))
+         (container-available-at (+ 30 (kitchen-time kitchen-state-in)))
+         (kitchen-state-available-at (+ 30 (kitchen-time kitchen-state-in))))
    
    ;; 1) find target container and place it on the countertop
      (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
@@ -188,13 +192,15 @@
                (setf (used target-container-instance) t)
                (setf (unit container-amount) (unit (amount ingredient)))
                (setf total-amount container-amount))
+
+         (setf (kitchen-time new-kitchen-state) new-kitchen-time)
          
-     (bind (target-container 0.0 target-container-in-kitchen-input-state)
-           (container-with-all-ingredients 1.0 target-container-instance)
-           (container-with-rest 1.0 source-container-instance)
-           (kitchen-state-out 1.0 new-kitchen-state)
-           (quantity 0.0 (quantity total-amount))
-           (unit 0.0 (unit total-amount)))))))
+     (bind (target-container 0.0 target-container-in-kitchen-input-state nil)
+           (container-with-all-ingredients 1.0 target-container-instance container-available-at)
+           (container-with-rest 1.0 source-container-instance container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (quantity 0.0 (quantity total-amount) nil)
+           (unit 0.0 (unit total-amount) nil))))))
 
   ;; Case in which the target container is given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in container-with-input-ingredients target-container
@@ -205,7 +211,10 @@
            (find-object-by-persistent-id target-container (counter-top new-kitchen-state)))
           (source-container-instance
            (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
-          (total-amount nil))
+          (total-amount nil)
+          (new-kitchen-time (+ 30 (kitchen-time kitchen-state-in)))
+         (container-available-at (+ 30 (kitchen-time kitchen-state-in)))
+         (kitchen-state-available-at (+ 30 (kitchen-time kitchen-state-in))))
 
           ;; 1) all contents from source container to target container
          (loop with container-amount = (make-instance 'amount)
@@ -219,12 +228,14 @@
                (setf (used target-container-instance) t)
                (setf (unit container-amount) (unit (amount ingredient)))
                (setf total-amount container-amount))
-         
-     (bind (container-with-all-ingredients 1.0 target-container-instance)
-           (container-with-rest 1.0 source-container-instance)
-           (kitchen-state-out 1.0 new-kitchen-state)
-           (quantity 0.0 (quantity total-amount))
-           (unit 0.0 (unit total-amount)))))
+
+         (setf (kitchen-time new-kitchen-state) new-kitchen-time)
+                  
+     (bind (container-with-all-ingredients 1.0 target-container-instance container-available-at)
+           (container-with-rest 1.0 source-container-instance container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (quantity 0.0 (quantity total-amount) nil)
+           (unit 0.0 (unit total-amount) nil))))
 
 
   )

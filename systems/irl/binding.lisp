@@ -4,7 +4,7 @@
 ;; binding definition:
 ;; ----------------------------------------------------------------------------
 
-(export '(binding var score value))
+(export '(binding var score value available-at))
 
 (defclass binding ()
   ((variable :accessor var :initarg :var)
@@ -14,22 +14,27 @@
 
 
 (defmethod print-object ((binding binding) stream)
-  (format stream "<binding: ~a ~a (~a) [~a]>"
-          (var binding) (score binding) (value binding) (available-at binding)))
+  (format stream "<binding: ~a ~a (~a)~a>"
+          (var binding)
+          (score binding)
+          (value binding)
+          (if (available-at binding)
+            (format nil " [~a]" (available-at binding))
+            "")))
 
 
-(defgeneric evaluate-bind-statement (class var value ontology &key))
+(defgeneric evaluate-bind-statement (class var value available-at ontology &key))
 
-(defmethod evaluate-bind-statement (class var (value entity) ontology
+(defmethod evaluate-bind-statement (class var (value entity) available-at ontology
                                           &key &allow-other-keys)
   "Evaluates a bind statement by searching for values in the
    ontology or by binding the value in the bind statement."
   (declare (ignorable class ontology))
   (assert (typep value class))
   (make-instance 'binding :var var
-                 :score 1.0 :value value))
+                 :score 1.0 :value value :available-at available-at))
 
-(defmethod evaluate-bind-statement (class var value ontology
+(defmethod evaluate-bind-statement (class var value available-at ontology
                                      &key (assert-exists t))
   "Evaluates a bind statement by searching for values in the
    ontology or by binding the value in the bind statement."
@@ -37,7 +42,7 @@
   (let ((entity (find-entity-by-id ontology value)))
     (cond (entity (progn (assert (typep entity class))
                     (make-instance 'binding :var var
-                                   :score 1.0 :value entity)))
+                                   :score 1.0 :value entity :available-at available-at)))
           (assert-exists (error "Could not find ~a in ontology." 
                                 value))
           (t nil))))
@@ -50,6 +55,7 @@
         collect (evaluate-bind-statement (second bind-statement)
                                          (third bind-statement)
                                          (fourth bind-statement)
+                                         (fifth bind-statement)
                                          ontology)))
 
 
@@ -81,7 +87,7 @@
   (assert (listp b))
   (cond
    ((eq (first b) 'bind)
-    (evaluate-bind-statement (second b) (third b) (fourth b) ontology))
+    (evaluate-bind-statement (second b) (third b) (fourth b) (fifth b) ontology))
    ((and (variable-p (first b)) (length= 3 b))
     (make-instance 'binding :var (first b)
                    :score (second b) :value (third b)))

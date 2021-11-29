@@ -5,7 +5,7 @@
 ;; evaluation-spec definition:
 ;; ----------------------------------------------------------------------------
 
-(export '(bind ontology))
+(export '(bind ontology binding-objects))
 
 (defclass evaluation-spec ()
   ((pattern :type list :initform nil :initarg :pattern :accessor pattern
@@ -107,8 +107,8 @@
                       :function
                       ,(if (= 0 (length unbound-slot-names))
                          ;; if no unbound slots -> return what body returns
-                         `(lambda (ontology . ,slot-names)
-                            (declare (ignorable ontology . ,slot-names))
+                         `(lambda (ontology binding-objects . ,slot-names)
+                            (declare (ignorable ontology binding-objects . ,slot-names))
                             ,@body)
                          ;; if bound slots -> return weighted-value-set,
                          ;; which is nil if bind has not been called
@@ -129,8 +129,8 @@
                               ;; unbound slots are the vars linked to those slots. These
                               ;; could be used to inspect the new bindings resulting from
                               ;; previously considered binding combinations.
-                              (lambda (ontology . ,slot-names)
-                                (declare (ignorable ontology . ,slot-names))
+                              (lambda (ontology binding-objects . ,slot-names)
+                                (declare (ignorable ontology binding-objects . ,slot-names))
                                 (let ((,weighted-value-sets '()))
                                   ,@body
                                   ;; check the bindings
