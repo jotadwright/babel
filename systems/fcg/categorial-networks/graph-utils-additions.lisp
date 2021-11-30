@@ -24,6 +24,50 @@
           connected?
           neighbours?))
 
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Transitive Closure ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+(export '(transitive-closure))
+
+(defmethod transitive-closure ((graph undirected-typed-graph))
+  "Warshall algorithm to compute the transitive closure G' of the graph G.
+   G' has an edge A-B if G has a path A-B. Allows to check in O(1) if
+   there is a path in G. Useful for th-connected-mode :path-exists."
+  (let ((traclo (make-graph :directed? t)))
+    ;; copy the nodes to traclo
+    (map-nodes
+     #'(lambda (name-node node)
+         (declare (ignorable node))
+         (add-node traclo name-node))
+     graph)
+    ;; copy the edges to traclo (undirected -> directed)
+    ;; list-edges returns the edges in both directions already
+    (let ((all-edges (list-edges graph))) 
+      (loop for (from to) in all-edges
+            do (add-edge traclo from to)))
+    ;; run the Warshall algorithm
+    (map-nodes
+     #'(lambda (name-via via)
+         (declare (ignorable name-via))
+         (map-nodes
+          #'(lambda (name-from from)
+              (declare (ignorable name-from))
+              (when (edge-exists? traclo from via)
+                (map-nodes
+                 #'(lambda (name-to to)
+                     (declare (ignorable name-to))
+                     (when (edge-exists? traclo via to)
+                       (add-edge traclo from to)))
+                 traclo)))
+          traclo))
+     traclo)
+    ;; return traclo
+    traclo))
+
+
+
+
 (defgeneric find-cheapest-path (graph node-1 node-2)
   (:documentation "Dijkstra's algorithm for finding the shortest path between two nodes."))
             
