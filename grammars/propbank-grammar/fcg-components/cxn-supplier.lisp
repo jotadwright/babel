@@ -70,7 +70,7 @@
              (equal label 'argm-phrase-cxn))
          (let* ((lex-categories-node (lex-categories node))
                 (neighbours (remove-duplicates (loop for lex-category in lex-categories-node
-                                                     append (neighbouring-categories lex-category (construction-inventory node)))))
+                                                     append (neighbouring-categories lex-category (original-cxn-set (construction-inventory node))))))
                 (constructions (loop for cxn in (if (equal label 'argument-structure-cxn)
                                                   (gethash nil (constructions-hash-table (construction-inventory node)))
                                                   (append
@@ -95,7 +95,7 @@
         ((equal label 'word-sense-cxn)
          (let* ((gram-categories-node (gram-categories node))
                 (neighbours (remove-duplicates (loop for gram-category in gram-categories-node
-                                                     append (neighbouring-categories gram-category (construction-inventory node)))))
+                                                     append (neighbouring-categories gram-category (original-cxn-set (construction-inventory node))))))
                 (constructions (loop for cxn in (loop for hash in (hash node (get-configuration node :hash-mode))
                                                       append (gethash hash (constructions-hash-table (construction-inventory node))))
                                      for cxn-category = (attr-val cxn :sense-category)
@@ -117,8 +117,8 @@
   (loop with cxn-category = (or (attr-val cxn :gram-category)
                                 (attr-val cxn :sense-category))
         for cat in category-list
-        if (link-exists-p cat cxn-category (construction-inventory node))
-        maximize (link-weight cat cxn-category (construction-inventory node))))
+        if (link-exists-p cat cxn-category (original-cxn-set (construction-inventory node)))
+        maximize (link-weight cat cxn-category (original-cxn-set (construction-inventory node)))))
 
 (defun lex-categories (node)
   (loop for unit in (fcg-get-transient-unit-structure node)

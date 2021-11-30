@@ -5,7 +5,7 @@
   :author "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :maintainer "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :license "To be determined."
-  :depends-on (:utils :nlp-tools :cl-store :fcg)
+  :depends-on (:utils :nlp-tools :cl-store :fcg :irl)
   :serial t
   :components ((:file "package")
                
@@ -18,7 +18,8 @@
                              (:file "goal-tests")
                              (:file "node-tests")
                              (:file "cxn-supplier")
-                             (:file "hash-mode")))
+                             (:file "hash-mode")
+                             (:file "comprehend")))
                (:module learning
                 :serial t
                 :components ((:file "learn-propbank-constructions")))))
