@@ -12,9 +12,13 @@
                (:module propbank-annotations
                 :serial t
                 :components ((:file "propbank-annotations")))
-               (:module learning
-                :serial t
-                :components ((:file "learn-propbank-constructions")))               
                (:module fcg-components
                 :serial t
-                :components ((:file "de-render")))))
+                :components ((:file "de-render")
+                             (:file "goal-tests")
+                             (:file "node-tests")
+                             (:file "cxn-supplier")
+                             (:file "hash-mode")))
+               (:module learning
+                :serial t
+                :components ((:file "learn-propbank-constructions")))))
