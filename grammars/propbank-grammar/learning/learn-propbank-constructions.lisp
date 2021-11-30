@@ -145,7 +145,7 @@
                            :description ,(sentence-string propbank-sentence)
                            :disable-automatic-footprints t
                            :cxn-inventory ,cxn-inventory)))
-          (add-category lex-category cxn-inventory)
+        (add-category lex-category cxn-inventory :recompute-transitive-closure nil)
           lex-category))))
 
 
@@ -198,8 +198,8 @@
             (incf-link-weight lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :delta 1.0 :link-type 'lex-gram))
           ;;b) Otherwise, add new connection (weight 1.0)
           (progn
-            (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type nil)
-            (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type 'lex-gram)))
+            (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+            (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)))
         ;;2b) Check if there was already a link in the type hierarchy
         ;;between the gram-category and the abstract-gram-category:
         (if (link-exists-p (attr-val equivalent-cxn :gram-category) abstract-gram-category cxn-inventory)
@@ -209,8 +209,8 @@
             (incf-link-weight (attr-val equivalent-cxn :gram-category) abstract-gram-category cxn-inventory :delta 1.0 :link-type 'gram-abstract-gram))
           ;;b) Otherwise, add new connection (weight 1.0)
           (progn
-            (add-link (attr-val equivalent-cxn :gram-category) abstract-gram-category cxn-inventory :weight 1.0 :link-type nil)
-            (add-link (attr-val equivalent-cxn :gram-category) abstract-gram-category cxn-inventory :weight 1.0 :link-type 'gram-abstract-gram)))
+            (add-link (attr-val equivalent-cxn :gram-category) abstract-gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+            (add-link (attr-val equivalent-cxn :gram-category) abstract-gram-category cxn-inventory :weight 1.0 :link-type 'gram-abstract-gram :recompute-transitive-closure nil)))
         
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
@@ -218,13 +218,13 @@
       ;;Create a new grammatical category for the observed pattern + add category and link to the type hierarchy
       (when (and cxn-units-with-role (v-lemma core-units-with-role))
         
-        (add-category gram-category cxn-inventory)
-        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil)
-        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram)
+        (add-category gram-category cxn-inventory :recompute-transitive-closure nil)
+        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)
         
-        (add-category abstract-gram-category cxn-inventory)
-        (add-link gram-category abstract-gram-category cxn-inventory :weight 1.0 :link-type nil)
-        (add-link gram-category abstract-gram-category cxn-inventory :weight 1.0 :link-type 'gram-abstract-gram)
+        (add-category abstract-gram-category cxn-inventory :recompute-transitive-closure nil)
+        (add-link gram-category abstract-gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link gram-category abstract-gram-category cxn-inventory :weight 1.0 :link-type 'gram-abstract-gram :recompute-transitive-closure nil)
         
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit
@@ -271,9 +271,9 @@
           ;;add new link
           (progn
             (add-link gram-category
-                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type nil)
+                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
             (add-link gram-category
-                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :type 'gram-sense)))
+                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type 'gram-sense :recompute-transitive-closure nil)))
         
         ;; edge between lex-category and sense-category
         (if (link-exists-p lex-category (attr-val equivalent-cxn :sense-category) cxn-inventory)
@@ -282,9 +282,9 @@
             (incf-link-weight lex-category (attr-val equivalent-cxn :sense-category) cxn-inventory :delta 1.0 :link-type 'lex-sense))
           (progn
             (add-link lex-category
-                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type nil)
+                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
             (add-link lex-category
-                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type 'lex-sense)))
+                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type 'lex-sense :recompute-transitive-closure nil)))
 
         (attr-val equivalent-cxn :sense-category))
       
@@ -315,11 +315,11 @@
                        :description ,(sentence-string propbank-sentence)
                        :cxn-inventory ,cxn-inventory))
         
-        (add-category sense-category cxn-inventory)
-        (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type nil)
-        (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type 'gram-sense)
-        (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type nil)
-        (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type 'lex-sense)
+        (add-category sense-category cxn-inventory :recompute-transitive-closure nil)
+        (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type 'gram-sense :recompute-transitive-closure nil)
+        (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type 'lex-sense :recompute-transitive-closure nil)
         
         sense-category))))
 
@@ -340,18 +340,18 @@
       (incf-link-weight gram-category sense-category cxn-inventory :delta 1.0 :link-type 'gram-sense))
     ;;add new link
     (progn
-      (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type nil)
-      (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type 'gram-sense)))
+      (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+      (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type 'gram-sense :recompute-transitive-closure nil)))
 
   (if (link-exists-p lex-category sense-category cxn-inventory)
     ;;connection between gram and sense category exists: increase edge weight
     (progn
-      (incf-link-weight lex-category sense-category cxn-inventory :delta 1.0 :link-type nil)
+      (incf-link-weight lex-category sense-category cxn-inventory :delta 1.0 :link-type nil )
       (incf-link-weight lex-category sense-category cxn-inventory :delta 1.0 :link-type 'lex-sense))
     ;;add new link
     (progn
-      (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type nil)
-      (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type 'lex-sense))))
+      (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+      (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type 'lex-sense :recompute-transitive-closure nil))))
 
 
 
@@ -448,17 +448,17 @@
             (incf-link-weight lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :delta 1.0 :link-type 'lex-gram))
           ;;b) Otherwise, add new connection (weight 1.0)
           (progn
-            (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type nil)
-          (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type 'lex-gram)))
+            (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+          (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)))
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
       
       ;;Create a new grammatical category for the observed pattern + add category and link to the type hierarchy
       (when (and cxn-units-with-role (v-lemma units-with-role))
         (assert preposition-lemma)
-        (add-category gram-category cxn-inventory)
-        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil)
-        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram)
+        (add-category gram-category cxn-inventory :recompute-transitive-closure nil)
+        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)
         
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit
@@ -563,18 +563,18 @@
           ;;b) Otherwise, add new connection (weight 1.0)
           (progn
             (add-link lex-category
-                    (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type nil)
+                    (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
           (add-link lex-category
-                    (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :type 'lex-gram)))
+                    (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :type 'lex-gram :recompute-transitive-closure nil)))
         
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
       
       ;;Create a new grammatical category for the observed pattern + add category and link to the type hierarchy
       (when (and cxn-units-with-role (v-lemma units-with-role))
-        (add-category gram-category cxn-inventory)
-        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil)
-        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram)
+        (add-category gram-category cxn-inventory :recompute-transitive-closure nil)
+        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)
 
         (eval `(def-fcg-cxn ,cxn-name
                             (,contributing-unit
