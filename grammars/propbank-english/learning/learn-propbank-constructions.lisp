@@ -1097,14 +1097,13 @@ fillers (arg0, arg1) and the frame-evoking element unit."
 
 (defun has-siblings? (unit other-units)
   "Checks whether a unit shares its parent with a unit from the other-units list."
-  (let ((possible-siblings (remove-if #'(lambda(u) (or (string= (role-type (car u)) "V")
-                                                       (string= (role-type (car u))
-                                                                (role-type (car unit)))))
-                                      other-units)))
-
-    (assert (null (find-if #'(lambda(unit-with-role) (string= (role-type (car unit-with-role)) "V"))
-                           possible-siblings)))
   
+  (let ((possible-siblings
+         (remove-if #'(lambda(u) (or (string= (role-type (car u)) "V") ;;remove fee-unit and unit itself
+                                     (string= (role-type (car u))
+                                              (role-type (car unit)))))
+                    other-units)))
+    
     (loop with parent-unit-name = (cadr (find 'parent (unit-body unit) :key #'feature-name))
           for other-unit in possible-siblings
           when (equal (cadr (find 'parent (unit-body other-unit) :key #'feature-name))

@@ -20,68 +20,19 @@
 
 ;; Activating trace-fcg
 (activate-monitor trace-fcg)
-;The dynamics of change in the state of health of children affected by the Chernobyl accident in all three countries - Belarus , Russia , and Ukraine - in the post-accident period is characterized by persistent negative tendencies : the morbidity rate is going up , the number of really healthy children is dropping , and disability is increasing .
 
 ;;;;;;;;;;;
 ;; Data  ;;
 ;;;;;;;;;;;
 
-(defparameter *opinion-sentences-ontonotes* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset
-                                                                                              :split #'train-split
-                                                                                              :corpus *ontonotes-annotations*)
-                                                 append (all-sentences-annotated-with-roleset roleset
-                                                                                              :split #'dev-split
-                                                                                              :corpus *ontonotes-annotations*))))
-                                                 append (all-sentences-annotated-with-roleset roleset
-                                                                                              :split #'train-split
-                                                                                              :corpus *ewt-annotations*)
-                                                 append (all-sentences-annotated-with-roleset roleset
-                                                                                              :split #'dev-split
-                                                                                              :corpus *ewt-annotations*))))
-
-
-(defparameter *opinion-sentences-dev* (shuffle (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                                 append (all-sentences-annotated-with-roleset roleset
-                                                                                              :split #'dev-split
-                                                                                              :corpus *ontonotes-annotations*))))
-
-(defparameter *opinion-sentences-test* (shuffle
-                                        (spacy-benepar-compatible-sentences
-                                         (loop for roleset in '("FIGURE.01" "FEEL.02" "THINK.01" "BELIEVE.01" "EXPECT.01")
-                                               append (all-sentences-annotated-with-roleset roleset
-                                                                                            :split #'test-split
-                                                                                            :corpus *ontonotes-annotations*))
-                                         nil)))
-(length *opinion-sentences-test*)
-(defparameter *believe-sentences-ontonotes* (shuffle (loop for roleset in '("BELIEVE.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'train-split ))))
-
-(defparameter *believe-sentences-test* (shuffle (loop for roleset in '("BELIEVE.01")
-                                                 append (all-sentences-annotated-with-roleset roleset :split #'test-split))))
-
-
-(defparameter *test-sentences-all-frames* (subseq (spacy-benepar-compatible-sentences
-                                                   (subseq (shuffle (test-split *ontonotes-annotations*)) 0 500) nil) 0 100))
-
-(length *test-sentences-all-frames*)
-
 (defparameter *train-sentences-ewt* (train-split *ewt-annotations*))
 (defparameter *train-sentences-ontonotes* (train-split *ontonotes-annotations*))
 (defparameter *train-sentences-all* (shuffle (append (train-split *ontonotes-annotations*)
                                                      (train-split *ewt-annotations*))))
-(length *train-sentences-all*)
+
 (defparameter *dev-sentences-ewt* (dev-split *ewt-annotations*))
 (defparameter *dev-sentences-ontonotes* (dev-split *ontonotes-annotations*))
 (defparameter *dev-sentences-all*  (append *dev-sentences-ewt* *dev-sentences-ontonotes*))
-
-(length *dev-sentences-all*)
-
-(defparameter *phrasal-sentences* (loop for sentence in *train-sentences-ewt*
-                                        for gold-frames = (propbank-frames sentence)
-                                        append (loop for frame in gold-frames
-                                                     when (search "_" (frame-name frame) )
-                                                     collect sentence)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -90,7 +41,7 @@
 
 (cl-store:store *propbank-ontonotes-ewt-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-english" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-cleaned-500"
+                                :name "propbank-grammar-ontonotes-ewt-cleaned-300"
                                 :type "fcg"))
 
 (defparameter *restored-300-grammar*
@@ -152,9 +103,9 @@
 
 (with-disabled-monitor-notifications
   (learn-propbank-grammar
-   (subseq *train-sentences-ewt* 0 20)
+   *train-sentences-all*
    :selected-rolesets nil
-   :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
+   :cxn-inventory '*propbank-ontonotes-ewt-learned-cxn-inventory*
    :fcg-configuration *training-configuration*))
 
 (add-element (make-html *propbank-ewt-learned-cxn-inventory*))
@@ -174,7 +125,7 @@
 (defparameter *sorted-cxns*
   (sort-cxns-for-outliers *propbank-ontonotes-ewt-learned-cxn-inventory*
                           (shuffle *dev-sentences-all*)
-                          :timeout 15
+                          :timeout 30
                           :nr-of-training-sentences (get-data (blackboard *propbank-ontonotes-ewt-learned-cxn-inventory*) :training-corpus-size)
                           :nr-of-test-sentences 100))
 
@@ -192,7 +143,7 @@
         do (with-disabled-monitor-notifications
              (delete-cxn (name cxn) grammar :key #'name))))
         
-(apply-cutoff 500 *propbank-ontonotes-ewt-learned-cxn-inventory*)
+(apply-cutoff 300 *propbank-ontonotes-ewt-learned-cxn-inventory*)
 ;;*restored-grammar* ;111102 cxns ;;> <hashed-fcg-construction-set: 111099 cxns>
 
 

@@ -117,10 +117,10 @@
           (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
           (new-mixture (create-homogeneous-mixture-in-container new-container))
           (kitchen-state-available-at (+ 60 (max (kitchen-time kitchen-state-in)
-                                       (available-at (find (id container-with-ingredients) binding-objects
-                                                           :key #'(lambda (binding-object)
-                                                                    (and (value binding-object)
-                                                                         (id (value binding-object)))))))))
+                                                 (available-at (find (id container-with-ingredients) binding-objects
+                                                                     :key #'(lambda (binding-object)
+                                                                              (and (value binding-object)
+                                                                                   (id (value binding-object)))))))))
           (container-available-at kitchen-state-available-at))
    
      (setf (used new-tool) t)
@@ -147,10 +147,14 @@
   ((kitchen-state-in container-with-input-ingredients  
                      => target-container container-with-all-ingredients container-with-rest kitchen-state-out quantity unit)
 
-   (let ((new-kitchen-state (copy-object kitchen-state-in))
-         (total-amount nil)
-         (container-available-at (+ 30 (kitchen-time kitchen-state-in)))
-         (kitchen-state-available-at (+ 30 (kitchen-time kitchen-state-in))))
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (total-amount nil)
+          (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                :key #'(lambda (binding-object)
+                                                                         (and (value binding-object)
+                                                                              (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
    
      ;; 1) find target container and place it on the countertop
      (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
@@ -197,8 +201,12 @@
           (source-container-instance
            (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
           (total-amount nil)
-          (container-available-at (+ 30 (kitchen-time kitchen-state-in)))
-          (kitchen-state-available-at (+ 30 (kitchen-time kitchen-state-in))))
+          (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
 
      ;; 1) all contents from source container to target container
      (loop with container-amount = (make-instance 'amount)
@@ -232,7 +240,13 @@
   ;;Case 1: Mixing tool not specified, use a whisk
   ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-mixture mixing-tool)
    
-   (let ((new-kitchen-state (copy-object kitchen-state-in)))
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                                   (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
 
      ;; 1) find whisk and bring it to the countertop
      (multiple-value-bind (target-whisk-in-kitchen-input-state target-whisk-original-location)
@@ -254,10 +268,12 @@
             (setf (used target-whisk-instance) t)
             (setf (mixed mixture) t)
             (setf (contents container-with-input-ingredients-instance) (list mixture)))
+
+          (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
          
           (bind (mixing-tool 0.0 target-whisk-instance)
-                (container-with-mixture 1.0 container-with-input-ingredients-instance)
-                (kitchen-state-out 1.0 new-kitchen-state)))))))
+                (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 
 (defprimitive portion-and-arrange ((portions list-of-kitchen-entities)
@@ -273,9 +289,15 @@
   ((kitchen-state-in container-with-dough quantity unit
                      => portions kitchen-state-out arrangement-pattern destination)
    
-   (let ((source-destination (counter-top kitchen-state-in))
-         (new-kitchen-state (copy-object kitchen-state-in))
-         (default-arrangement-pattern (make-instance 'evenly-spread)))
+   (let* ((source-destination (counter-top kitchen-state-in))
+          (new-kitchen-state (copy-object kitchen-state-in))
+          (default-arrangement-pattern (make-instance 'evenly-spread))
+          (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id container-with-dough) binding-objects
+                                                                :key #'(lambda (binding-object)
+                                                                         (and (value binding-object)
+                                                                              (id (value binding-object)))))))))
+          (kitchen-state-available-at portions-available-at))
 
 
      ;; portion contents from container and put them on the counter top
@@ -305,12 +327,12 @@
              (setf (contents container-with-dough-instance) nil)
              (setf (arrangement countertop) default-arrangement-pattern))
 
-       (bind (portions 1.0 portions)
-             (kitchen-state-out 1.0 new-kitchen-state)
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+       (bind (portions 1.0 portions portions-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
              (arrangement-pattern 0.0 default-arrangement-pattern)
              (destination 0.0 source-destination))))))
-
-
 
 
 
@@ -322,13 +344,21 @@
   
   ((kitchen-state-in portions shape => shaped-portions kitchen-state-out)
    
-    (let* ((new-kitchen-state (copy-object kitchen-state-in)))
+    (let* ((new-kitchen-state (copy-object kitchen-state-in))
+           (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id portions) binding-objects
+                                                                :key #'(lambda (binding-object)
+                                                                         (and (value binding-object)
+                                                                              (id (value binding-object)))))))))
+           (kitchen-state-available-at portions-available-at))
 
       (loop for item in (items portions)
             do (setf (current-shape item) shape))
 
-      (bind (shaped-portions 1.0 portions)
-            (kitchen-state-out 1.0 new-kitchen-state)))))
+      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+      (bind (shaped-portions 1.0 portions portions-available-at)
+            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 
@@ -344,7 +374,9 @@
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (target-tray (find 'baking-tray (contents (counter-top new-kitchen-state))
-                             :key #'(lambda (item) (class-name (class-of item))))))
+                             :key #'(lambda (item) (class-name (class-of item)))))
+          (tray-available-at (+ 150 (kitchen-time kitchen-state-in)))
+          (kitchen-state-available-at tray-available-at))
 
      ;; 1) find tray and bring it to the countertop if it is not already there
      (unless target-tray
@@ -378,9 +410,11 @@
            
            (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
                  (remove target-paper-instance (contents (counter-top new-kitchen-state))))
+
+           (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
            
-           (bind (lined-baking-tray 1.0 target-tray)
-                 (kitchen-state-out 1.0 new-kitchen-state)))))))
+           (bind (lined-baking-tray 1.0 target-tray tray-available-at)
+                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 
 (defprimitive transfer-items ((transferred container)
@@ -394,13 +428,21 @@
 
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
          ; (new-items-to-transfer (find-object-by-persistent-id to-transfer new-kitchen-state))
-          (new-destination (find-object-by-persistent-id destination new-kitchen-state)))
+          (new-destination (find-object-by-persistent-id destination new-kitchen-state))
+          (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
+                                              (available-at (find (id destination) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
      
      (setf (used new-destination) t)
      (setf (contents new-destination) (items items-to-transfer))
 
-     (bind (transferred 1.0 new-destination)
-           (kitchen-state-out 1.0 new-kitchen-state)))))
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (bind (transferred 1.0 new-destination container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 (defprimitive bake ((thing-baked transferable-container)
@@ -416,15 +458,29 @@
                      => kitchen-state-out thing-baked )
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (new-thing-to-bake (find-object-by-persistent-id thing-to-bake new-kitchen-state)))
+          (new-thing-to-bake (find-object-by-persistent-id thing-to-bake new-kitchen-state))
+          (thing-baked-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-bake) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                       (* (value time-to-bake-quantity) 60)))
+          (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-bake) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                         30)))
+                                       
 
      (loop for bakeable in (contents new-thing-to-bake)
            do (setf (temperature bakeable) (make-instance 'amount :quantity target-temperature-quantity :unit target-temperature-unit))
-           ;;fast forward time to bake!!!!
            (setf (baked bakeable) t))
+
+     (setf (kitchen-time new-kitchen-state)  kitchen-state-available-at)
      
-     (bind (thing-baked 1.0 new-thing-to-bake)
-           (kitchen-state-out 1.0 new-kitchen-state)))))
+     (bind (thing-baked 1.0 new-thing-to-bake thing-baked-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 
