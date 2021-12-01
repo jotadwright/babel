@@ -34,6 +34,7 @@
                                :element-type 'number
                                :initial-element 0))))
 
+#+sbcl
 (defmethod add-edge-index ((graph typed-graph) edge-type index-type unique? ordered? ordering-fn)
   (add-edge-type graph edge-type)
   (case index-type

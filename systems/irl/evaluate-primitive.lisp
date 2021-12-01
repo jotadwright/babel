@@ -12,7 +12,8 @@
                      bindings-list
                      (loop for b in bindings-list
                            collect (make-instance 'binding :var (first b)
-                                                  :score (second b) :value (third b)))))
+                                                  :score (second b) :value (third b)
+                                                  :available-at (fourth b)))))
          (bound-slots-pattern (loop for binding in bindings
                                     if (value binding) collect t
                                     else collect nil))
@@ -28,7 +29,7 @@
          (primitive-is-applicable (and applicable-slot-spec applicable-evaluation-spec))
          (results (when primitive-is-applicable
                     (apply (evaluation-spec-function applicable-evaluation-spec)
-                           ontology (mapcar #'value bindings)))))
+                           ontology bindings (mapcar #'value bindings)))))
     ;;  given the bound-slots-pattern there are the following cases
     ;;  no bound-slots-pattern found
     ;;  bound-slots-pattern all t -> t (success), nil (failure)
@@ -46,7 +47,8 @@
                               for res in result
                               if (value binding) collect binding
                               else collect (make-instance 'binding :var (var binding)
-                                                          :score (first res) :value (second res))))
+                                                          :score (first res) :value (second res)
+                                                          :available-at (third res))))
           ;; only checked the bindings -> return the bindings
           (list bindings)))
       nil)))

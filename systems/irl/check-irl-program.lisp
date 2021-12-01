@@ -20,9 +20,9 @@
 
     ;; next we check all bind statements
     (loop for bind-statement in bind-statements
-          do (if (not (= (length bind-statement) 4))
-               (error "Expected four element bind statement, ~%got: ~a" bind-statement)
-               (destructuring-bind (bind type variable value-expr) bind-statement
+          do (if (and (not (= (length bind-statement) 4)) (not (= (length bind-statement) 5)))
+               (error "Expected four or five element bind statement, ~%got: ~a" bind-statement)
+               (destructuring-bind (bind type variable value-expr . available-at) bind-statement
                  (declare (ignore bind))
                  (when (not (variable-p variable))
                    (error "Expected variable identifier in ~a,~%got: ~a."

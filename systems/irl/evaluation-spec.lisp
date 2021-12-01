@@ -5,7 +5,7 @@
 ;; evaluation-spec definition:
 ;; ----------------------------------------------------------------------------
 
-(export '(bind ontology))
+(export '(bind ontology binding-objects))
 
 (defclass evaluation-spec ()
   ((pattern :type list :initform nil :initarg :pattern :accessor pattern
@@ -64,9 +64,10 @@
           "The bindings should be a list, got:~%  ~a"
           bindings)
   (loop for binding in bindings
-        do (assert (and (listp binding) (= 3 (length binding))) ()
+        do (assert (and (listp binding) (or (= 3 (length binding))
+                                            (= 4 (length binding)))) ()
                    "Primitive ~a. Pattern ~a.~
-                   ~%A binding should be a list of three elements, as in ~
+                   ~%A binding should be a list of three or four elements, as in ~
                    (slot-name 0.8 binding-spec) got:~%  ~a"
                    primitive pattern binding)
         do (assert (member (car binding) unbound-slot-names) ()
@@ -106,8 +107,8 @@
                       :function
                       ,(if (= 0 (length unbound-slot-names))
                          ;; if no unbound slots -> return what body returns
-                         `(lambda (ontology . ,slot-names)
-                            (declare (ignorable ontology . ,slot-names))
+                         `(lambda (ontology binding-objects . ,slot-names)
+                            (declare (ignorable ontology binding-objects . ,slot-names))
                             ,@body)
                          ;; if bound slots -> return weighted-value-set,
                          ;; which is nil if bind has not been called
@@ -120,7 +121,7 @@
                                          `(push
                                            (list . ,(loop for slot-name in ',slot-names
                                                           for binding = (assq slot-name bindings)
-                                                          collect `(list ,(second binding) ,(third binding))))
+                                                          collect `(list ,(second binding) ,(third binding) ,(fourth binding))))
                                            ,',weighted-value-sets)))
                               ;; Here also all slot-names are given as formal parameters.
                               ;; The concrete parameters for bound slots are the bindings
@@ -128,8 +129,8 @@
                               ;; unbound slots are the vars linked to those slots. These
                               ;; could be used to inspect the new bindings resulting from
                               ;; previously considered binding combinations.
-                              (lambda (ontology . ,slot-names)
-                                (declare (ignorable ontology . ,slot-names))
+                              (lambda (ontology binding-objects . ,slot-names)
+                                (declare (ignorable ontology binding-objects . ,slot-names))
                                 (let ((,weighted-value-sets '()))
                                   ,@body
                                   ;; check the bindings

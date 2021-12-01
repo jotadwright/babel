@@ -623,6 +623,10 @@ construction on the fly."
            ;; Set selected hierarchy         
            (set-configuration (visualization-configuration ,cxn-inventory) :selected-hierarchy (first ',hierarchy-features))
 
+           ;; Set categorial network
+           (set-data (blackboard ,cxn-inventory) :categorial-network (or ,(find-key-arg keys-and-defs :categorial-network)
+                                                                         (make-instance 'categorial-network)))
+
            (let ((*fcg-constructions* ,cxn-inventory))
              ,@(remove-key-args keys-and-defs)
              *fcg-constructions*))
@@ -776,7 +780,7 @@ construction on the fly."
 (defun check-def-fcg-constructions-keys (keys-and-defs)
   (let ((accepted-keys '(:feature-types :hierarchy-features :fcg-configurations :visualization-configurations
                          :cxn-inventory :disable-automatic-footprints
-                         :diagnostics :repairs :hashed :cxn-inventory-type)))
+                         :diagnostics :repairs :hashed :cxn-inventory-type :categorial-network)))
     (dolist (x keys-and-defs)
       (if (keywordp x)
         (unless (member x accepted-keys)

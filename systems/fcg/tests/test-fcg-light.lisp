@@ -42,6 +42,8 @@
                                                  :cxn-inventory fcg-construction-set)))
            (setf (processing-cxn-inventory fcg-construction-set)
                  (make-instance 'construction-set))
+           (setf (original-cxn-set (processing-cxn-inventory fcg-construction-set))
+                 fcg-construction-set)
            (setf (configuration fcg-construction-set) (configuration (processing-cxn-inventory fcg-construction-set)))
            (test-assert (eq 'fcg-construction (type-of fcg-construction)))
            (test-assert (eql'fcg-construction-set (type-of fcg-construction-set)))

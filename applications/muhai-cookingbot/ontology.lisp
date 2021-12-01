@@ -24,8 +24,15 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (id copy)  (make-id (persistent-id kitchen-entity))))
 
 (defclass kitchen-state (container)
-  ()
+  ((kitchen-time :type integer
+                 :accessor kitchen-time
+                 :initarg :kitchen-time
+                 :initform 0))
   (:documentation "Representation of the state of the kitchen."))
+
+(defmethod copy-object-content ((kitchen-state kitchen-state) (copy kitchen-state))
+  (setf (kitchen-time copy) (kitchen-time kitchen-state))
+  )
 
 (defclass vr-kitchen-state (container)
   ()

@@ -1,17 +1,13 @@
 (in-package :muhai-cookingbot)
 
-(defun draw-recipe (network &key expand path)
+(defun draw-recipe (network &key path)
   "Draws a predicate network by linking its variables"
   (let ((path (or path
-                   (make-file-name-with-time
-                    (merge-pathnames wi::*graphviz-output-directory*
-                                     (make-pathname :name "recipe" 
-                                                    :type "pdf"))))))
-  (if expand
-    (draw-predicate-network (macroexpand-irl-program network)
-                            :path path
-                            :open t :format "pdf")
-    (draw-predicate-network network :path path :open t :format "pdf"))))
+                  (make-file-name-with-time
+                   (merge-pathnames wi::*graphviz-output-directory*
+                                    (make-pathname :name "recipe" 
+                                                   :type "pdf"))))))    
+    (draw-predicate-network network :path path :open t :format "pdf")))
 
 
 (defmethod make-html-for-entity-details ((e kitchen-entity) &key expand-initially)

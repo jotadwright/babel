@@ -19,7 +19,7 @@
 (defsystem :fcg
   :description "All files part of the implementation of Fluid
   Construction Grammar"
-  :depends-on (:experiment-framework :test-framework :utils :monitors :meta-layer-learning :cl-store
+  :depends-on (:experiment-framework :test-framework :utils :monitors :meta-layer-learning :cl-store :graph-utils
                #+:hunchentoot-available-on-this-platform :web-interface
                :network
                :s-dot)
@@ -41,8 +41,7 @@
                  (:file "construction-set")
                  (:file "construction-network")
                  (:file "hashed-construction-set")
-                 (:file "construction-inventory-collection")
-                 ))
+                 (:file "construction-inventory-collection")))
    (:module parse-and-produce 
     :serial t
     :components ((:file "parse-and-produce")
@@ -73,16 +72,6 @@
                  (:file "web-monitors")
                    #+:hunchentoot-available-on-this-platform
                  (:file "visualisation-helpers")))
-   (:module tests
-    :serial t
-    :components ((:file "helpers")
-                 (:file "test-matcher-extensions")
-                 (:file "test-render")
-                 (:file "test-construction-application")
-                 (:file "test-construction-inventory")
-                 (:file "test-cip")
-                 (:file "test-structures")
-                 (:file "test-anti-unification")))
    (:module check-cxn
     :serial t
     :components ((:file "report")
@@ -92,6 +81,7 @@
                   :components ((:file "monitors")
                                #+:hunchentoot-available-on-this-platform
                                (:file "web-monitors")))))
+   
    (:module fcg-light
     :serial t
     :components ((:file "utilities")
@@ -101,8 +91,16 @@
                  (:file "monitors-fcg-light")
                  (:file "fcg-light-to-fcg2")
                  (:file "fcg-light-to-latex")
-		 (:file "processing-cxn-to-fcg-cxn")
-                 (:file "tests")))
+		 (:file "processing-cxn-to-fcg-cxn")))
+   
+   (:module categorial-networks
+    :serial t
+    :components ((:file "typed-edge-undirected-graph-class")
+                 (:file "graph-utils-additions")
+                 (:file "categorial-network")
+                 (:file "html")
+                 (:file "web-monitor")))
+   
    (:module meta-layer
     :serial t
     :components ((:file "fcg-meta-layer-lib")))
@@ -127,4 +125,16 @@
     :serial t
     :components ((:file "application-dependencies")
                  (:file "data")
-                 (:file "html")))))
+                 (:file "html")))
+   (:module tests
+    :serial t
+    :components ((:file "helpers")
+                 (:file "test-matcher-extensions")
+                 (:file "test-render")
+                 (:file "test-construction-application")
+                 (:file "test-construction-inventory")
+                 (:file "test-cip")
+                 (:file "test-structures")
+                 (:file "test-anti-unification")
+                 (:file "test-fcg-light")
+                 (:file "test-categorial-networks")))))

@@ -176,7 +176,11 @@ div.binding td.score { padding-left:4px; }
       ,@(when (score binding)
               `(((tr)
                  ((td :class "score")
-                  ,(format nil "~,3f" (score binding))))))))))
+                  ,(format nil "score: ~,3f" (score binding))))))
+      ,@(when (available-at binding)
+              `(((tr)
+                 ((td :class "score")
+                  ,(format nil "available-at: ~a" (available-at binding))))))))))
 
 ;; #########################################################
 ;; primitive-inventory - make-html

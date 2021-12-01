@@ -58,7 +58,8 @@
         do
         (loop for bindings-list in (understand-and-execute utterance cxn-inventory current-world-state :silent silent)
               when bindings-list
-              do (push (make-instance 'world-state :accessible-entities bindings-list
+              do (push (make-instance 'world-state
+                                      :accessible-entities bindings-list
                                       :personal-dynamic-memory personal-dynamic-memory)
                        (world-states personal-dynamic-memory))
               finally return bindings-list)))
@@ -77,7 +78,7 @@
                                                              (loop for v in open-variables
                                                                    when (and (or (find v existing-bindings :key #'var)
                                                                                  (find v (all-variables parsed-meaning)))
-                                                                             (> (score (find v bindings-list :key #'var)) 0.0))
+                                                                             (available-at (find v bindings-list :key #'var)))
                                                                    collect (find v bindings-list :key #'var)))
                                                          resulting-bindings-lists)))
     resulting-bindings-with-open-variables))
@@ -108,23 +109,13 @@
         into args
         finally (return (cons (first irl-primitive) args))))
 
-#|
-(defun macroexpand-irl-program (irl-program)
-  "Returns an IRL program with all macro's expanded"
-  (loop for primitive in irl-program
-        if (macro-function (first primitive))
-        append (eval primitive)
-        else
-        collect primitive))
-|#
-
 (defun irl-bindings-to-bind-statements (list-of-irl-bindings)
   "Transforms a list of IRL bindings into a ((bind class ?var object)) statement."
   (mapcar #'irl-binding-to-bind-statement list-of-irl-bindings))
 
 (defun irl-binding-to-bind-statement (irl-binding)
   "Transforms an IRL binding into a (bind class ?var object) statement."
-  `(bind ,(type-of (value irl-binding)) ,(var irl-binding) ,(value irl-binding)))
+  `(bind ,(type-of (value irl-binding)) ,(var irl-binding) ,(value irl-binding) ,(available-at irl-binding)))
 
 (defun find-object-in-pdm (object pdm &key (test #'eql) (key #'id))
   "Finds an object in a pdm."
