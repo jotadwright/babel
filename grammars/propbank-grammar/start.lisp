@@ -45,7 +45,6 @@
   '((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
-    
     (:max-nr-of-nodes . 100)
     (:node-expansion-mode . :multiple-cxns)
     (:priority-mode . :nr-of-applied-cxns)
@@ -74,3 +73,10 @@
  :selected-rolesets nil
  :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
  :fcg-configuration *training-configuration*)
+
+
+
+;; Inspecting the learned grammars
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(comprehend-and-extract-frames "She sent her mother a dozen roses" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)

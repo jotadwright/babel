@@ -19,6 +19,8 @@
                              (:file "node-tests")
                              (:file "cxn-supplier")
                              (:file "hash-mode")
+                             (:file "frame-visualisation")
+                             (:file "extract-frames")
                              (:file "comprehend")))
                (:module learning
                 :serial t
