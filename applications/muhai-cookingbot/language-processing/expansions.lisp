@@ -29,32 +29,11 @@
     (let* ((class (handler-case (find-class value)
                     (error (c)
                       (error (format nil "Class ~S not found in ontology while expanding cxn." value)))))
-           (superclasses (set-difference (mapcar #'class-name (clos::class-all-superclasses class))
-                                         (mapcar #'class-name (clos::class-all-superclasses (find-class 'entity))))))
+           (superclasses (set-difference (mapcar #'class-name (class-all-superclasses class))
+                                         (mapcar #'class-name (class-all-superclasses (find-class 'entity))))))
       (values `((ontological-class ,value)
                 (ontological-types ,superclasses))
               bindings))))
-
-#|(defmethod fcg-expand ((type (eql :lookup-in-ontology))
-                       &key value source bindings merge?)
-  "Returns number from string."
-  (declare (ignore merge? source))
-  (unless (null bindings)
-    (let* ((class (handler-case (find-class value)
-                    (error (c)
-                      (error (format nil "Class ~S not found in ontology while expanding cxn." value)))))
-           (superclasses (set-difference (mapcar #'class-name (clos::class-all-superclasses class))
-                                       (mapcar #'class-name (clos::class-all-superclasses (find-class 'entity)))))
-           (subclasses 
-                  (mapcar #'class-name (closer-mop:class-direct-subclasses class)))
-           (linked-classes (append superclasses subclasses))
-           (vector (class-name class)))
-      (values `((ontological-class ,value)
-                (ontological-types ,superclasses)
-                (ontological-subclasses ,subclasses)
-                (ontological-linked-classes ,linked-classes)
-                (ontological-vector ,vector))
-              bindings))))|#
 
 
 (defmethod fcg-expand ((type (eql :compare-ontological-vectors))

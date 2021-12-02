@@ -9,6 +9,7 @@
                :irl
                :fcg
                :cl-json
+               :closer-mop
                #+lispworks :drakma)
   :serial t
   :components ((:file "package")

@@ -11,10 +11,19 @@
           append (cons subclass (all-subclasses subclass)) into all-subclasses
           finally (return (remove-duplicates (cons class all-subclasses))))))
 
+
+(defun class-all-superclasses (class &optional collected-superclasses)
+  "get all superclasses of a certain class"
+  (let ((direct-superclasses (closer-mop:class-direct-superclasses class)))
+    (if direct-superclasses
+      (loop for superclass in direct-superclasses
+         append (class-all-superclasses superclass (append collected-superclasses (list class))))
+      collected-superclasses)))
+
 (defun all-superclasses (class)
   "returns a list of all superclasses of a given class, including the class itself."
-  (set-difference (clos::class-all-superclasses class)
-                  (remove (find-class 'kitchen-entity) (clos::class-all-superclasses (find-class 'kitchen-entity)))))
+  (set-difference (class-all-superclasses class)
+                  (remove (find-class 'kitchen-entity) (class-all-superclasses (find-class 'kitchen-entity)))))
 
 ;; (all-superclasses (find-class 'sugar))
                       

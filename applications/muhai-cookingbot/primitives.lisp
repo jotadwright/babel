@@ -177,7 +177,7 @@
                         (+ (value (quantity container-amount)) (value (quantity (amount ingredient)))))
                (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
                (setf (contents source-container-instance) (remove ingredient (contents source-container-instance) :test #'equalp))
-               finally do
+               finally
                (setf (used target-container-instance) t)
                (setf (unit container-amount) (unit (amount ingredient)))
                (setf total-amount container-amount))
@@ -216,7 +216,7 @@
            (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
            (setf (contents source-container-instance)
                  (remove ingredient (contents source-container-instance) :test #'equalp))
-           finally do
+           finally
            (setf (used target-container-instance) t)
            (setf (unit container-amount) (unit (amount ingredient)))
            (setf total-amount container-amount))
@@ -323,7 +323,7 @@
                                                                :unit unit)
                            (contents countertop) (cons new-portion (contents countertop))
                            left-to-transfer 0)
-             finally do
+             finally 
              (setf (contents container-with-dough-instance) nil)
              (setf (arrangement countertop) default-arrangement-pattern))
 
@@ -578,16 +578,19 @@
                do (multiple-value-bind (found-entity found-place)
                       (find-unused-kitchen-entity reusable-type el)
                     (if found-entity
-                      (return (values found-entity found-place))))))))
+                        (return (values found-entity found-place))))))))
+
+
+
 
 (defun find-ingredient (ingredient-type place &optional mother-place) ;;place can be bowl!!
   (cond ((loop for el in (contents place)
                if (or (eql ingredient-type (type-of el))
-                      (member ingredient-type (mapcar #'class-name (clos::class-all-superclasses (class-of el)))))
+                      (member ingredient-type (mapcar #'class-name (class-all-superclasses (class-of el)))))
                do (return t))
          (loop for el in (contents place)
                if (or (eql ingredient-type (type-of el))
-                      (member ingredient-type (mapcar #'class-name (clos::class-all-superclasses (class-of el)))))
+                      (member ingredient-type (mapcar #'class-name (class-all-superclasses (class-of el)))))
                do (return (values el place mother-place))))
         (t
          (loop for el in (contents place)

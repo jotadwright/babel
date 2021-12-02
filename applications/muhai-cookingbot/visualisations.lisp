@@ -12,8 +12,8 @@
 
 (defmethod make-html-for-entity-details ((e kitchen-entity) &key expand-initially)
   "Default HTML visualisation method for object of class kitchen-entity."
-  (loop for slot in (harlequin-common-lisp:class-slots (class-of e))
-        for slot-name = (harlequin-common-lisp:slot-definition-name slot)
+  (loop for slot in (closer-mop:class-slots (class-of e))
+     for slot-name = (closer-mop:slot-definition-name slot)
         for slot-value = (slot-value e slot-name)
         if (and (or (symbolp slot-value) (stringp slot-value) (numberp slot-value)))
         collect
