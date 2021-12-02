@@ -1375,13 +1375,13 @@
                      "4 grams vanilla extract"
                      "4 grams almond extract"
                      "340 grams flour"
-                   ;  "112 grams almond flour"
+                     "112 grams almond flour"
                      "29 grams powdered sugar"
                      
                      ;;;; Instructions
                      "beat the butter and the sugar together until light and fluffy"
-                  ;   "add the vanilla and almond extracts and mix"
-                   ;  "add the flour and almond flour"
+                     "add the vanilla and almond extracts and mix"
+                     "add the flour and the almond flour"
                      "mix thoroughly"
                      "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
                      "place onto a parchment paper lined baking sheet"

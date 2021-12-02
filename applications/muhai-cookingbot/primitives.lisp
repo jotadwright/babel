@@ -502,17 +502,25 @@
                                                      :quantity (make-instance 'quantity
                                                                               :value (/ (value (quantity (amount total-topping-weight-in-grams)))
                                                                                         (length (contents new-input-container))))
-                                                     :unit 'g))) 
+                                                     :unit 'g))
+          (sprinkled-object-available-at (+ (max (kitchen-time kitchen-state-in)
+                                                 (available-at (find (id object) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                            50))
+          (kitchen-state-available-at sprinkled-object-available-at))
 
      (loop for portion in (contents new-input-container)
            for topping = (copy-object (first (contents new-topping-container)))
            do (setf (amount portion) topping-weight-per-portion)
            (setf (sprinkled-with portion) topping))
      
-     (setf (contents new-topping-container) nil) 
+     (setf (contents new-topping-container) nil)
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (sprinkled-object 1.0 new-input-container)
-           (kitchen-state-out 1.0 new-kitchen-state)))))
+     (bind (sprinkled-object 1.0 new-input-container sprinkled-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 ;;--------------------------------------------------------------------------
