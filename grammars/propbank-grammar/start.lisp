@@ -45,7 +45,6 @@
   '((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
-    
     (:max-nr-of-nodes . 100)
     (:node-expansion-mode . :multiple-cxns)
     (:priority-mode . :nr-of-applied-cxns)
@@ -73,7 +72,6 @@
  :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
  :fcg-configuration *training-configuration*)
 
-
 ;; Testing learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -82,3 +80,5 @@
 (comprehend "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
 
 (comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames "She sent her mother a dozen roses" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
