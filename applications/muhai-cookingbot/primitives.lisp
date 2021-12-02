@@ -438,7 +438,11 @@
      
      (setf (used new-destination) t)
      (setf (contents new-destination) (items items-to-transfer))
-
+     (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
+           (remove-if #'(lambda (el)
+                          (find (persistent-id el) (items items-to-transfer) :test #'eql :key #'persistent-id))
+                      (contents (counter-top new-kitchen-state))))
+     
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
      (bind (transferred 1.0 new-destination container-available-at)
