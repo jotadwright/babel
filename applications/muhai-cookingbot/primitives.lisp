@@ -586,11 +586,11 @@
 (defun find-ingredient (ingredient-type place &optional mother-place) ;;place can be bowl!!
   (cond ((loop for el in (contents place)
                if (or (eql ingredient-type (type-of el))
-                      (member ingredient-type (mapcar #'class-name (class-all-superclasses (class-of el)))))
+                      (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
                do (return t))
          (loop for el in (contents place)
                if (or (eql ingredient-type (type-of el))
-                      (member ingredient-type (mapcar #'class-name (class-all-superclasses (class-of el)))))
+                      (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
                do (return (values el place mother-place))))
         (t
          (loop for el in (contents place)

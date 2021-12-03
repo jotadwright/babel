@@ -12,27 +12,26 @@
           finally (return (remove-duplicates (cons class all-subclasses))))))
 
 
-(defun class-all-superclasses (class &optional collected-superclasses)
-  "get all superclasses of a certain class"
+(defun all-superclasses (class &optional collected-superclasses &key until)
+  "Returns a list of all superclasses of a given class, including the
+class itself, optionally with an upper bound."
   (let ((direct-superclasses (closer-mop:class-direct-superclasses class)))
     (if direct-superclasses
-      (loop for superclass in direct-superclasses
-         append (class-all-superclasses superclass (append collected-superclasses (list class))))
-      collected-superclasses)))
+      (remove-duplicates (loop for superclass in direct-superclasses
+                               append (all-superclasses superclass (append collected-superclasses (list class)) :until until))
+                         :test #'equalp)
+      (if until
+        (set-difference collected-superclasses (all-superclasses until))
+        collected-superclasses))))
 
-(defun all-superclasses (class)
-  "returns a list of all superclasses of a given class, including the class itself."
-  (set-difference (class-all-superclasses class)
-                  (remove (find-class 'kitchen-entity) (class-all-superclasses (find-class 'kitchen-entity)))))
-
-;; (all-superclasses (find-class 'sugar))
+;(all-superclasses (find-class 'sugar) nil :until (find-class 'kitchen-entity))
                       
 
 (defun make-ontology-vectors ()
   (let ((ontology-hash-table (make-hash-table))
         (ontological-classes (all-subclasses (find-class 'kitchen-entity))))
     (loop for class in ontological-classes
-          for class-vector = (loop with super-classes = (all-superclasses class)
+          for class-vector = (loop with super-classes = (all-superclasses class nil :until (find-class 'entity))
                                    for vector-class in ontological-classes
                                    if (find vector-class super-classes)
                                    collect 1

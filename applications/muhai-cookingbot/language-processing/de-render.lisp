@@ -37,8 +37,8 @@
          (let* ((ontological-class (type-of entity))
                 (ontological-types (set-difference
                                     (mapcar #'class-name
-                                            (class-all-superclasses (find-class ontological-class)))
-                                    (mapcar #'class-name (class-all-superclasses (find-class 'entity)))))
+                                            (all-superclasses (find-class ontological-class)))
+                                    (mapcar #'class-name (all-superclasses (find-class 'entity)))))
                 (other-properties (loop for slot in (closer-mop:class-slots (class-of entity))
                                         for slot-name = (closer-mop:slot-definition-name slot)
                                         for slot-value = (slot-value entity slot-name)
