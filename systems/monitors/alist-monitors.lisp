@@ -49,15 +49,10 @@
 			  :initform nil :accessor first-value-positions)
    (average-window
     :documentation "Values are averaged over the last n interactions"
-    :initarg :average-window :initform 100 :accessor average-window)
-   (keep-previous-values 
-    :documentation "When t and no value was recorded for a particular
-                    symbol, then the value of the previous interaction
-                    is used, otherwise 0"
-    :initarg :keep-previous-values :accessor keep-previous-values
-    :initform nil))
-  
-  (:documentation "Records averaged values for a alist"))
+    :initarg :average-window :initform 100 :accessor average-window))
+  (:documentation "Records averaged values for a alist 
+                  When no value was recorded for a symbol, 
+                  then the previous value of the last known interaction is used"))
 
 
 (defmethod initialize-instance :around ((monitor alist-recorder) 
@@ -75,15 +70,6 @@
     (subscribe-to-event id 'interaction-finished)
     (subscribe-to-event id 'series-finished)
     (subscribe-to-event id 'reset-monitors)))
-
-(defmethod handle-interaction-started-event :before ((monitor alist-recorder) (monitor-id symbol)
-						     (event (eql 'interaction-started))
-						     (experiment t)(interaction t)(interaction-number number))
-  (declare (ignorable experiment interaction interaction-number))
-  ;; set the current values of each symbol to 0
-  (unless (keep-previous-values monitor)
-    (loop for cons in (current-values monitor)
-       do (setf (cdr cons) 0))))
 
 (defmethod handle-interaction-finished-event :after ((monitor alist-recorder) (monitor-id symbol)
 						     (event (eql 'interaction-finished))
