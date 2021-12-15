@@ -226,9 +226,6 @@
 		:initform nil :initarg :draw-y-grid :reader draw-y-grid)
    (hide-legend :documentation "Whether to draw a legend"
 		:initform nil :initarg :hide-legend :reader hide-legend)
-   (display-threshold :documentation "Whether to draw a set of data
-   points (average score above threshold)"
-		:initform 0 :initarg :display-threshold :reader display-threshold)
    (stream :documentation "Where the plot-data method writes its output"
 	   :reader plot-stream :initform nil)
    (colors :documentation "A list of line colors to use for plotting." 
@@ -280,10 +277,6 @@
 	    #\linefeed #\linefeed #\linefeed (y-min monitor) (y-max monitor))
     (format stream "~cunset y2tics" #\linefeed)
     (format stream "~cplot " #\linefeed)
-    (setf data
-	  (remove-if #'(lambda (source)
-			(< (average (remove nil (second source))) (display-threshold monitor)))
-		     data))    
     (loop for source in data 
        for source-number from 0
        for color = (nth (mod source-number (length (colors monitor))) (colors monitor))
