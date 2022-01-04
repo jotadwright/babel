@@ -1,15 +1,13 @@
 (in-package :emergent-rl)
 
-(defun create-graph-for-single-strategy (&key experiment-name measure-names y-axis y1-max y2-max xlabel y1-label y2-label x-max)
-  ;; This function allows you to plot one or more measures for a single experiment
-  ;; e.g. communicative success and lexicon size
+(defun create-graph-for-single-strategy (&key experiment-name measure-names y-axis y1-max y2-max xlabel y1-label y2-label x-max plot-file-name (captions nil) (avg-window 100))
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
   (raw-files->evo-plot
     :raw-file-paths
     (loop for measure-name in measure-names
           collect `("experiments" "emergent-rl" "raw-data" ,experiment-name "monitors" ,measure-name))
-    :average-windows 500
-    :plot-directory `("experiments" "emergent-rl" "raw-data" ,experiment-name)
+    :average-windows avg-window
+    :plot-directory `("experiments" "emergent-rl" "graphs" ,experiment-name)
     :error-bars '(:stdev)
     :error-bar-modes '(:filled)
     :use-y-axis y-axis
@@ -18,13 +16,17 @@
     :y2-min 0
     :y2-max y2-max
     :end x-max
-    :x-label (if xlabel xlabel "number of interactions")
+    :x-label (if xlabel xlabel "number of games")
     :y1-label y1-label
     :y2-label y2-label
+    :open nil
+    :plot-file-name plot-file-name
+    :captions captions
+    :fsize 12
     )
   (format t "~%Graphs have been created"))
 
-(defun create-graph-comparing-strategies (&key top-name experiment-names measure-name (avg-window 500) (y-min 0) (y-max 1) x-max xlabel y1-label y2-label)
+(defun create-graph-comparing-strategies (&key top-name experiment-names measure-name (avg-window 100) (y-min 0) (y-max 1) x-max xlabel y1-label y2-label plot-file-name (captions nil) (key-location "below"))
   ;; This function allows you to compare a given measure accross different
   ;; experiments, e.g. comparing lexicon size
   (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
@@ -33,16 +35,21 @@
     (loop for experiment-name in experiment-names
           collect `("experiments" "emergent-rl" "raw-data" ,top-name ,experiment-name "monitors" ,measure-name))
     :average-windows avg-window
-    :captions experiment-names
-    :plot-directory `("experiments" "emergent-rl" "raw-data" ,top-name)
+    :plot-directory `("experiments" "emergent-rl" "graphs" ,top-name)
     :error-bars '(:stdev)
     :error-bar-modes '(:filled)
     :y1-min y-min
     :y1-max y-max
     :end x-max
-    :x-label (if xlabel xlabel "number of interactions")
+    :x-label (if xlabel xlabel "number of games")
     :y1-label (when y1-label y1-label)
-    :y2-label (when y2-label y2-label))
+    :y2-label (when y2-label y2-label)
+    :open nil
+    :plot-file-name plot-file-name
+    :key-location key-location
+    :captions (if captions captions experiment-names)
+    :fsize 12
+    )
   (format t "~%Graphs have been created"))
 
 
@@ -58,9 +65,9 @@
     :average-windows 1
     :draw-y-1-grid t
     :y-label "forms associated to one meaning"
-    :x-label "number of interactions"
+    :x-label "number of games"
     :file-name (babel-pathname
-                :directory '("experiments" "emergent-rl" "raw-data" "comp" "int" "monitors")
+                :directory '("experiments" "emergent-rl" "raw-data" "comp" "basic" "monitors")
                 :name "meaning-form-competition"
                 :type "pdf")
     :graphic-type "pdf")
