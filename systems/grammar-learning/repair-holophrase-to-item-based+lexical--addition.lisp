@@ -102,9 +102,9 @@
                (lex-class-lex-cxn
                 (if existing-lex-cxn
                   (lex-class-cxn existing-lex-cxn)
-                  (intern (get-base-name unit-name-lex-cxn) :type-hierarchies)))
+                  (intern (get-base-name unit-name-lex-cxn) :grammar-learning)))
                (lex-class-item-based-cxn
-                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :type-hierarchies)) 
+                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
                ;; type hierachy links
                (th-link
                 (cons lex-class-item-based-cxn lex-class-lex-cxn))

@@ -62,7 +62,7 @@
                   (= (length string-predicates-in-root) 1))
           ;; construct the remaining cxn first
           (let* ((utterance (random-elt (get-data problem :utterances)))
-                 (type-hierarchy (get-type-hierarchy original-cxn-inventory))
+                 (type-hierarchy (categorial-network original-cxn-inventory))
                  (meaning-predicates-gold (meaning-predicates-with-variables (first (get-data problem :meanings))))
                  (meaning-predicates-gold-minus-lex (subtract-lex-cxn-meanings matching-lex-cxns meaning-predicates-gold))
                  (meaning-predicates-observed (extract-meanings observation))
@@ -77,7 +77,7 @@
                  (unit-name (second (first form-predicates-lex-cxn)))
                  (lex-class (if existing-lex-cxn
                               (lex-class-cxn existing-lex-cxn)
-                              (intern (get-base-name unit-name) :type-hierarchies)))
+                              (intern (get-base-name unit-name) :grammar-learning)))
                  (args (mapcar #'third meaning-predicates-lex-cxn))
                  (new-lex-cxn (or existing-lex-cxn (second (multiple-value-list (eval
                                                                                  `(def-fcg-cxn ,cxn-name

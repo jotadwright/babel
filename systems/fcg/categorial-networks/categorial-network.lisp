@@ -90,6 +90,9 @@
   (when (field? (blackboard cxn-inventory) :categorial-network)
     (get-data (blackboard cxn-inventory) :categorial-network)))
 
+(defmethod categorial-network ((cxn-inventory construction-set))
+  "Returns the categorial-network of a non-original cxn-inventory."
+  (categorial-network (original-cxn-set cxn-inventory)))
 
 (defgeneric set-categorial-network (thing categorial-network)
   (:documentation "Sets the categorial network of a grammar, an agent, ..."))
@@ -98,6 +101,9 @@
   "Sets the categorial network of a cxn-inventory"
   (set-data (blackboard cxn-inventory) :categorial-network categorial-network))
 
+(defmethod set-categorial-network ((cxn-inventory construction-set) categorial-network)
+  "Sets the categorial network of a non-original cxn-inventory"
+  (set-categorial-network (original-cxn-set cxn-inventory) categorial-network))
 
 (defgeneric categories (thing)
   (:documentation "Returns the categories in the network of a grammar."))

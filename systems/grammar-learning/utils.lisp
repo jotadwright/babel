@@ -137,7 +137,7 @@
     (funcall (if add-numeric-tail #'make-const #'make-symbol)
              (upcase
               (if cat-name cat-name "CAT"))))
-   :type-hierarchies))
+   :grammar-learning))
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix))
 

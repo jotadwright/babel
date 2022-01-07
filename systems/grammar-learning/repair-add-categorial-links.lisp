@@ -59,7 +59,7 @@
   "Creates all TH links for matching lexical cxns using their original lex-class."
   (loop for lex-cxn-lex-class in lex-classes-lex-cxns
         for item-slot-lex-class in lex-classes-item-based-units
-        unless (neighbours-p lex-cxn-lex-class item-slot-lex-class type-hierarchy)
+        unless (neighbouring-categories-p lex-cxn-lex-class item-slot-lex-class type-hierarchy)
         collect (cons lex-cxn-lex-class item-slot-lex-class)))
 
 (defun create-th-links (problem node)
@@ -68,7 +68,7 @@
          (gold-standard-meaning (random-elt (get-data problem :meanings)))
          (cxn-inventory (construction-inventory node))
          (orig-cxn-set (original-cxn-set cxn-inventory))
-         (type-hierarchy (get-type-hierarchy cxn-inventory)))
+         (type-hierarchy (categorial-network orig-cxn-set)))
     (disable-meta-layer-configuration cxn-inventory) ;(fcg::unify-atom
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend utterance :cxn-inventory orig-cxn-set :gold-standard-meaning gold-standard-meaning)))

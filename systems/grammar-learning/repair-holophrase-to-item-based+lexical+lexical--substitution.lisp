@@ -66,13 +66,13 @@ based on existing construction with sufficient overlap."
                (lex-class-lex-cxn-1
                 (if lex-cxn-1
                   (lex-class-cxn lex-cxn-1)
-                  (intern (get-base-name unit-name-lex-cxn-1) :type-hierarchies)))
+                  (intern (get-base-name unit-name-lex-cxn-1) :grammar-learning)))
                (lex-class-lex-cxn-2
                 (if lex-cxn-2
                   (lex-class-cxn lex-cxn-2)
-                  (intern (get-base-name unit-name-lex-cxn-2) :type-hierarchies)))
+                  (intern (get-base-name unit-name-lex-cxn-2) :grammar-learning)))
                (lex-class-item-based-cxn
-                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :type-hierarchies)) 
+                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
                ;; Type hierachy links
                (th-link-1
                 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))

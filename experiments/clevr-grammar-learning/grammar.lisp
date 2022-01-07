@@ -35,7 +35,7 @@
 (defun empty-cxn-set (hide-type-hierarchy cxn-supplier th-connected-mode)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
-          (eval `(def-fcg-constructions-with-type-hierarchy
+          (eval `(def-fcg-constructions
                      ,grammar-name
                    :cxn-inventory ,grammar-name
                    :hashed t
