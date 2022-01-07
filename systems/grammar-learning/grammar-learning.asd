@@ -3,7 +3,7 @@
   :maintainer "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :license "to be decided on"
   :homepage "https://gitlab.ai.vub.ac.be/ehai/grammar-learning"
-  :depends-on ("utils" "monitors" "plot-raw-data" "web-interface" "fcg" "irl" "meta-layer-learning" "category-hierarchies" "cl-change-case")
+  :depends-on ("utils" "monitors" "plot-raw-data" "web-interface" "fcg" "irl" "meta-layer-learning" "cl-change-case")
   :serial t
   :components ((:file "package")
                (:file "fcg-utils")

@@ -111,14 +111,14 @@ based on existing construction with sufficient overlap."
            (lex-cxns (map 'list #'get-processing-cxn (second (restart-data fix))))
            (th-links (third (restart-data fix)))
            ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
-           (orig-type-hierarchy (get-type-hierarchy (construction-inventory node)))
-           (temp-type-hierarchy (copy-object (get-type-hierarchy (construction-inventory node))))
+           (orig-type-hierarchy (categorial-network (construction-inventory node)))
+           (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
            (th-flat-list nil)
            (th (loop for th-link in th-links
                      do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy)
                      (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5)
                      (setf th-flat-list (append th-flat-list (list th-link)))
-                     finally (set-type-hierarchy (construction-inventory node) temp-type-hierarchy)))
+                     finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
            (lex-nodes (loop for lex-cxn in lex-cxns
                             with last-node = (initial-node node)
                             do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply lex-cxn (if (initial-node-p last-node)
@@ -134,7 +134,7 @@ based on existing construction with sufficient overlap."
                                                                                    :cxn-inventory (construction-inventory node))))))
       ;; ignore
       ;; Reset type hierarchy
-      (set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
+      (set-categorial-network (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (append (second (restart-data fix)) (list (original-cxn item-based-cxn))))
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links th-flat-list)
