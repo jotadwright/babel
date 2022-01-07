@@ -49,8 +49,8 @@
                                         (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:render-mode . :generate-and-test)
-                                        (:th-connected-mode . ,th-connected-mode)
-                                        (:update-th-links . t)
+                                        (:category-linking-mode . ,th-connected-mode)
+                                        ; (:update-th-links . t) ;todo: check if it can be removed
                                         (:consolidate-repairs . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
@@ -92,7 +92,7 @@
          (loop for unit in (contributing-part cxn)
                for lex-class = (gl::lex-class-item-based unit)
                when lex-class return lex-class))
-        (type-hierarchy (get-type-hierarchy (grammar agent))))
+        (type-hierarchy (categorial-network (grammar agent))))
     (delete-cxn cxn (grammar agent))
     (notify lexicon-changed)
     (when lex-class

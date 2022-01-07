@@ -13,7 +13,6 @@
    :meta-layer-learning
    :irl
    :fcg
-   :type-hierarchies
    :clevr-world
    :grammar-learning)
   (:shadowing-import-from :fcg :size :attributes))

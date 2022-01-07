@@ -14,7 +14,7 @@
                      (get-all-csv-monitors))
    :configurations '(
                      (training-10-series
-                      ((:learner-th-connected-mode . :neighbours)
+                      ((:category-linking-mode . :neighbours)
                        (:current-challenge-level . 1)
                        (:number-of-epochs . 1)
                        ))

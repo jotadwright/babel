@@ -85,6 +85,11 @@
 (defgeneric categorial-network (thing)
   (:documentation "Returns the categorial network of a grammar, an agent, ..."))
 
+(defmethod categorial-network ((cxn-inventory hashed-fcg-construction-set))
+  "Returns the categorial-network of a hashed cxn-inventory."
+  (when (field? (blackboard cxn-inventory) :categorial-network)
+    (get-data (blackboard cxn-inventory) :categorial-network)))
+
 (defmethod categorial-network ((cxn-inventory fcg-construction-set))
   "Returns the categorial-network of a cxn-inventory."
   (when (field? (blackboard cxn-inventory) :categorial-network)
@@ -96,6 +101,10 @@
 
 (defgeneric set-categorial-network (thing categorial-network)
   (:documentation "Sets the categorial network of a grammar, an agent, ..."))
+
+(defmethod set-categorial-network ((cxn-inventory hashed-fcg-construction-set) categorial-network)
+  "Sets the categorial network of a hashed cxn-inventory"
+  (set-data (blackboard cxn-inventory) :categorial-network categorial-network))
 
 (defmethod set-categorial-network ((cxn-inventory fcg-construction-set) categorial-network)
   "Sets the categorial network of a cxn-inventory"

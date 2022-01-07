@@ -54,7 +54,7 @@
                 :column-separator ",")
 
 (define-event-handler (record-csv-th-size interaction-finished)
-  (record-value monitor (graph-utils::edge-count (graph-utils::graph (get-type-hierarchy (grammar (learner experiment)))))))
+  (record-value monitor (nr-of-links (grammar (learner experiment)))))
 
 ;;;; Avg cxn score
 (define-monitor record-csv-avg-cxn-score

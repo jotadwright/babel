@@ -68,7 +68,7 @@
          (gold-standard-meaning (random-elt (get-data problem :meanings)))
          (cxn-inventory (construction-inventory node))
          (orig-cxn-set (original-cxn-set cxn-inventory))
-         (type-hierarchy (categorial-network orig-cxn-set)))
+         (type-hierarchy (categorial-network (construction-inventory node))))
     (disable-meta-layer-configuration cxn-inventory) ;(fcg::unify-atom
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend utterance :cxn-inventory orig-cxn-set :gold-standard-meaning gold-standard-meaning)))

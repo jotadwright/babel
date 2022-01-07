@@ -13,7 +13,6 @@
                :meta-layer-learning
                :irl
                :fcg
-               :category-hierarchies
                :clevr-world
                :cl-json
                :grammar-learning)

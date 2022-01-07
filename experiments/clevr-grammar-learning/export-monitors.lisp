@@ -73,19 +73,18 @@
                                             :type "json"))
 
 (defun export-th-to-json (cxn-inventory path)
-  (let* ((g (type-hierarchies::graph
-             (get-type-hierarchy cxn-inventory)))
+  (let* (
          ;; get a list of all node names
          (all-nodes
-          (mapcar #'mkstr (graph-utils::list-nodes g)))
+          (mapcar #'mkstr (categories (categorial-network cxn-inventory))))
          ;; get a list of all the edges
          ;; this include the edge-type
          ;; but excludes the weight
-         (all-edges (graph-utils::list-edges g))
+         (all-edges (links (categorial-network cxn-inventory)))
          ;; so get the weight separately
          (all-edges-with-weight
           (loop for (from to etype) in all-edges
-                for w = (graph-utils:edge-weight g from to etype)
+                for w = (link-weight (categorial-network cxn-inventory) from to etype)
                 collect (list (mkstr from) (mkstr to) w))))
     (ensure-directories-exist path)
     (with-open-file (stream path :direction :output
@@ -103,15 +102,15 @@
   (let* ((g-data (cl-json:decode-json-from-source path))
          (all-nodes (rest (assoc :nodes g-data)))
          (all-weighted-edges (rest (assoc :edges g-data)))
-         (th (make-instance 'type-hierarchy)))
+         (th (make-instance 'categorial-network)))
     (loop for node in all-nodes
-          for name = (intern (upcase (mkstr node)) :type-hierarchies)
+          for name = (intern (upcase (mkstr node)) :grammar-learning)
           do (add-category name th))
     (loop for (from to w) in all-weighted-edges
-          for from-name = (intern (upcase (mkstr from)) :type-hierarchies)
-          for to-name = (intern (upcase (mkstr to)) :type-hierarchies)
+          for from-name = (intern (upcase (mkstr from)) :grammar-learning)
+          for to-name = (intern (upcase (mkstr to)) :grammar-learning)
           do (add-link from-name to-name th :weight w))
-    (set-type-hierarchy cxn-inventory th)))
+    (set-categorial-network cxn-inventory th)))
          
    
 (define-event-handler (export-type-hierarchy-to-json run-series-finished)
@@ -134,14 +133,14 @@
    :format "pdf"))
 
 (defun remove-non-connected-nodes (th)
-  (let ((graph (type-hierarchies::graph th)))
+  (let ((graph (graph th)))
     (loop for category being each hash-key of (graph-utils::nodes graph)
           when (= (graph-utils::degree graph category) 0)
           do (graph-utils::delete-node graph category))
     th))
 
 (define-event-handler (export-type-hierarchy-to-image run-series-finished)
-  (let* ((th (get-type-hierarchy (grammar (learner experiment))))
+  (let* ((th (categorial-network (grammar (learner experiment))))
          (th-copy (copy-object th))
          (path (make-file-name-with-time-and-series (file-name monitor) (series-number experiment))))
     (export-type-hierarchy-to-image
@@ -161,23 +160,24 @@
                      100))
          (timestep (/ (interaction-number interaction) interval)))
     (when (= (mod (interaction-number interaction) interval) 0)
-      (let* ((g (type-hierarchies::graph (get-type-hierarchy (grammar (first (interacting-agents experiment))))))
+      (let* ((g (graph (categorial-network (grammar (first (interacting-agents experiment))))))
+             (cn (categorial-network (grammar (first (interacting-agents experiment)))))
              (path (make-file-name-with-series (file-name monitor) (series-number experiment)))
              ;; get a list of all node names
              ;; to do: get color and type attributes from graph
              (all-nodes
-              (loop for node in (graph-utils::list-nodes g)
+              (loop for node in (categories cn)
                     collect `((label . ,(mkstr node))
                               (color . "#000000")
                               (type . nil))))
              ;; get a list of all the edges
              ;; this include the edge-type
              ;; but excludes the weight
-             (all-edges (graph-utils::list-edges g))
+             (all-edges (links cn))
              ;; so get the weight separately
              (all-edges-with-weight
               (loop for (from to etype) in all-edges
-                    for w = (graph-utils:edge-weight g from to etype)
+                    for w = (link-weight cn from to etype)
                     collect`((start-node . ,(mkstr from))
                              (end-node . ,(mkstr to))
                              (score . ,w)
