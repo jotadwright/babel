@@ -158,7 +158,7 @@
    
      ;; 1) find target container and place it on the countertop
      (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
-         (find-unused-kitchen-entity 'medium-bowl kitchen-state-in)
+         (find-unused-kitchen-entity 'large-bowl kitchen-state-in)
 
        (let ((target-container-instance
               (find-object-by-persistent-id target-container-in-kitchen-input-state
