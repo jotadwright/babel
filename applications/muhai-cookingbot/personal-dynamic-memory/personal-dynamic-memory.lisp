@@ -18,7 +18,7 @@
    (world-states :type list
                  :accessor world-states
                  :initarg :world-states
-                 :initform nil
+                 :initform '()
                  :documentation "The stack of world-states."))
   (:documentation "The personal dynamic memory of the agents contains all its knowledge."))
 
@@ -39,12 +39,10 @@
   ((accessible-entities :type list
                         :accessor accessible-entities
                         :initarg :accessible-entities
-                        :initform nil
+                        :initform '()
                         :documentation "The entities in the world-model that are currently accessible (list-of-bindings).")
-   (personal-dynamic-memory :type personal-dynamic-memory
-                            :accessor personal-dynamic-memory
+   (personal-dynamic-memory :accessor personal-dynamic-memory
                             :initarg :personal-dynamic-memory
-                            :initform nil
                             :documentation "A pointer back to the personal dynamic memory that the world state belongs to.")))
 
 
@@ -62,7 +60,7 @@
                                       :accessible-entities bindings-list
                                       :personal-dynamic-memory personal-dynamic-memory)
                        (world-states personal-dynamic-memory))
-              finally return bindings-list)))
+              finally (return bindings-list))))
         
 (defun understand-and-execute (utterance
                                cxn-inventory
@@ -126,16 +124,16 @@
   (let* (;; First find current kitchen state
          (current-kitchen-state (first (world-states pdm)))
          ;; Then find top-level-containers
-         (top-level-containers (loop for slot in (harlequin-common-lisp:class-slots (find-class 'kitchen-state))
+         (top-level-containers (loop for slot in (closer-mop:class-slots (find-class 'kitchen-state))
                                      when (closer-mop:subtypep (find-class
-                                                                (harlequin-common-lisp:slot-definition-type slot))
+                                                                (closer-mop:slot-definition-type slot))
                                                                'container)
-                                     collect (slot-value current-kitchen-state (harlequin-common-lisp:slot-definition-name slot)))))
+                                  collect (slot-value current-kitchen-state (closer-mop:slot-definition-name slot)))))
     ;; Now recursively traverse these top-level-containers
     (loop for container in top-level-containers
           append (all-objects-in-container container)
           into subcontainers
-          finally return (append (list current-kitchen-state) top-level-containers subcontainers))))
+          finally (return (append (list current-kitchen-state) top-level-containers subcontainers)))))
 
 (defun all-objects-in-container (container)
   "Returns all the objects in a container (recursively!), including the container itself."

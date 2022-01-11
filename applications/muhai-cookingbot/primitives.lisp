@@ -158,7 +158,7 @@
    
      ;; 1) find target container and place it on the countertop
      (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
-         (find-unused-kitchen-entity 'medium-bowl kitchen-state-in)
+         (find-unused-kitchen-entity 'large-bowl kitchen-state-in)
 
        (let ((target-container-instance
               (find-object-by-persistent-id target-container-in-kitchen-input-state
@@ -177,7 +177,7 @@
                         (+ (value (quantity container-amount)) (value (quantity (amount ingredient)))))
                (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
                (setf (contents source-container-instance) (remove ingredient (contents source-container-instance) :test #'equalp))
-               finally do
+               finally
                (setf (used target-container-instance) t)
                (setf (unit container-amount) (unit (amount ingredient)))
                (setf total-amount container-amount))
@@ -216,7 +216,7 @@
            (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
            (setf (contents source-container-instance)
                  (remove ingredient (contents source-container-instance) :test #'equalp))
-           finally do
+           finally
            (setf (used target-container-instance) t)
            (setf (unit container-amount) (unit (amount ingredient)))
            (setf total-amount container-amount))
@@ -323,7 +323,7 @@
                                                                :unit unit)
                            (contents countertop) (cons new-portion (contents countertop))
                            left-to-transfer 0)
-             finally do
+             finally 
              (setf (contents container-with-dough-instance) nil)
              (setf (arrangement countertop) default-arrangement-pattern))
 
@@ -438,7 +438,11 @@
      
      (setf (used new-destination) t)
      (setf (contents new-destination) (items items-to-transfer))
-
+     (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
+           (remove-if #'(lambda (el)
+                          (find (persistent-id el) (items items-to-transfer) :test #'eql :key #'persistent-id))
+                      (contents (counter-top new-kitchen-state))))
+     
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
      (bind (transferred 1.0 new-destination container-available-at)
@@ -502,17 +506,25 @@
                                                      :quantity (make-instance 'quantity
                                                                               :value (/ (value (quantity (amount total-topping-weight-in-grams)))
                                                                                         (length (contents new-input-container))))
-                                                     :unit 'g))) 
+                                                     :unit 'g))
+          (sprinkled-object-available-at (+ (max (kitchen-time kitchen-state-in)
+                                                 (available-at (find (id object) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                            50))
+          (kitchen-state-available-at sprinkled-object-available-at))
 
      (loop for portion in (contents new-input-container)
            for topping = (copy-object (first (contents new-topping-container)))
            do (setf (amount portion) topping-weight-per-portion)
            (setf (sprinkled-with portion) topping))
      
-     (setf (contents new-topping-container) nil) 
+     (setf (contents new-topping-container) nil)
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (sprinkled-object 1.0 new-input-container)
-           (kitchen-state-out 1.0 new-kitchen-state)))))
+     (bind (sprinkled-object 1.0 new-input-container sprinkled-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 ;;--------------------------------------------------------------------------
@@ -566,16 +578,19 @@
                do (multiple-value-bind (found-entity found-place)
                       (find-unused-kitchen-entity reusable-type el)
                     (if found-entity
-                      (return (values found-entity found-place))))))))
+                        (return (values found-entity found-place))))))))
+
+
+
 
 (defun find-ingredient (ingredient-type place &optional mother-place) ;;place can be bowl!!
   (cond ((loop for el in (contents place)
                if (or (eql ingredient-type (type-of el))
-                      (member ingredient-type (mapcar #'class-name (clos::class-all-superclasses (class-of el)))))
+                      (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
                do (return t))
          (loop for el in (contents place)
                if (or (eql ingredient-type (type-of el))
-                      (member ingredient-type (mapcar #'class-name (clos::class-all-superclasses (class-of el)))))
+                      (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
                do (return (values el place mother-place))))
         (t
          (loop for el in (contents place)

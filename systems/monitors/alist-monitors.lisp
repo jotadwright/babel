@@ -16,18 +16,6 @@
 ;;;; File alist-monitors.lisp
 ;;;;
 ;;;; Monitors for plotting unspecified alists
-;;;;
-;;;; These are typically used for form-meaning competition plots
-;;;; or meaning-form competition plots in language games. In such
-;;;; a case, only use an alist monitor for a single series.
-;;;;
-;;;; However, support for alists that average over multiple series
-;;;; has also been added. For the aforementioned plots, this makes
-;;;; no sense as e.g. the forms will most likely be different in
-;;;; every series. However, if you want to gather data about related
-;;;; items in a single plot AND you are absolutely sure that all
-;;;; of these items will appear in each of the series, then you
-;;;; can use an alist monitor for multiple series.
 ;;;; 
 
 (in-package :monitors)
@@ -61,15 +49,11 @@
 			  :initform nil :accessor first-value-positions)
    (average-window
     :documentation "Values are averaged over the last n interactions"
-    :initarg :average-window :initform 100 :accessor average-window)
-   (keep-previous-values 
-    :documentation "When t and no value was recorded for a particular
-                    symbol, then the value of the previous interaction
-                    is used, otherwise 0"
-    :initarg :keep-previous-values :accessor keep-previous-values
-    :initform nil))
-  
-  (:documentation "Records averaged values for a alist"))
+    :initarg :average-window :initform 100 :accessor average-window))
+  (:documentation "Records averaged values for a alist 
+                  When no value was recorded for a symbol, 
+                  then the previous value of the last known interaction is used"))
+
 
 (defmethod initialize-instance :around ((monitor alist-recorder) 
 					&key id &allow-other-keys)
@@ -87,63 +71,34 @@
     (subscribe-to-event id 'series-finished)
     (subscribe-to-event id 'reset-monitors)))
 
-
-
-;; when a symbol is not yet encountered in the new series
-;; it should also be recorded as NIL, not 0
-(defmethod handle-interaction-started-event :before ((monitor alist-recorder)
-                                                     (monitor-id symbol)
-						     (event (eql 'interaction-started))
-						     (experiment t)
-                                                     (interaction t)
-                                                     (interaction-number number))
-  (declare (ignorable experiment interaction interaction-number))
-  ;; check for each symbol if it has been observed in this series
-  ;; if it has, set the current value of that symbol to 0
-  ;; except when keep-previous-values is activate
-  ;; otherwise, set the current value of that symbol to NIL
-  (loop for (symbol . fvp) in (first-value-positions monitor)
-        if (null (car fvp))
-        do (setf (cdr (assoc symbol (current-values monitor))) nil)
-        else do (unless (keep-previous-values monitor)
-                  (setf (cdr (assoc symbol (current-values monitor))) 0))))
-
-(defmethod handle-interaction-finished-event :after ((monitor alist-recorder)
-                                                     (monitor-id symbol)
+(defmethod handle-interaction-finished-event :after ((monitor alist-recorder) (monitor-id symbol)
 						     (event (eql 'interaction-finished))
-						     (experiment t)
-                                                     (interaction t)
-                                                     (interaction-number number))
+						     (experiment t) (interaction t)(interaction-number number))
   ;; store the current-values and compute average values
   (declare (ignorable experiment interaction interaction-number))
   (push nil (caar (empty-list monitor)))
   (loop for values-cons in (get-values monitor)
-        for average-values-cons in (car (average-values monitor))
-        for current-value-cons in (current-values monitor)
-        for first-value-position-cons in (first-value-positions monitor)
-        for range = (min (average-window monitor)
-                         (+ 1 (- (length (caar (cdr values-cons)))
-                                 (if (null (cadr first-value-position-cons))
-                                   0 (cadr first-value-position-cons)))))
-        do (push (cdr current-value-cons) (caar (cdr values-cons)))
-        do (if (null (cadr first-value-position-cons))
-             (push nil (caar (cdr average-values-cons)))
-             (push (/ (apply #'+ (subseq (caar (cdr values-cons)) 0 range)) range)
-                   (caar (cdr average-values-cons))))))
+     for average-values-cons in (car (average-values monitor))
+     for current-value-cons in (current-values monitor)
+     for first-value-position-cons in (first-value-positions monitor)
+     for range = (min (average-window monitor)
+		      (+ 1 (- (length (caar (cdr values-cons))) (cdr first-value-position-cons))))
+     do (push (cdr current-value-cons) (caar (cdr values-cons)))
+     (push (/ (apply #'+ (subseq (caar (cdr values-cons)) 0 range)) range)
+	   (caar (cdr average-values-cons)))))
 
 (defmethod handle-series-finished-event :after ((monitor alist-recorder) (monitor-id symbol)
 						(event (eql 'series-finished))
 						(series-number number))
   (push nil (car (empty-list monitor)))
   (loop for values-cons in (get-values monitor)
-        for average-values-cons in (car (average-values monitor))
-        for first-value-position-cons in (first-value-positions monitor)
-        do (push nil (car (cdr values-cons)))
-        (push nil (car (cdr average-values-cons)))
-        (push nil (cdr first-value-position-cons))))
+     for average-values-cons in (car (average-values monitor))
+     for first-value-position-cons in (first-value-positions monitor)
+     do (push nil (car (cdr values-cons)))
+       (push nil (car (cdr average-values-cons)))
+       (push nil (cdr first-value-position-cons))))
 
-(defmethod handle-reset-monitors-event :before ((monitor alist-recorder)
-                                                (monitor-id symbol)
+(defmethod handle-reset-monitors-event :before ((monitor alist-recorder) (monitor-id symbol)
 						(event (eql 'reset-monitors)))
   (setf (slot-value monitor 'values) nil)
   (setf (car (slot-value monitor 'average-values)) nil)
@@ -163,16 +118,13 @@
 (defmethod set-value-for-symbol ((monitor alist-recorder) (symbol symbol) (value number))
   (let ((current-value-cons (assoc symbol (current-values monitor))))
     (if current-value-cons
-	(progn (setf (cdr current-value-cons) value)
-          (when (null (cadr (assoc symbol (slot-value monitor 'first-value-positions))))
-            (setf (cadr (assoc symbol (slot-value monitor 'first-value-positions)))
-                  (length (caar (empty-list monitor))))))
+	(setf (cdr current-value-cons) value)
 	(progn
 	  (push (cons symbol (mapcar #'copy-list (empty-list monitor)))
                 (slot-value monitor 'values))
 	  (push (cons symbol (mapcar #'copy-list (empty-list monitor))) 
 		(car (slot-value monitor 'average-values)))
-	  (push (cons symbol (list (length (caar (empty-list monitor)))))
+	  (push (cons symbol (length (caar (empty-list monitor)))) 
 		(slot-value monitor 'first-value-positions))
 	  (push (cons symbol value) (slot-value monitor 'current-values))))))
 
@@ -182,8 +134,8 @@
 (defmethod incf-value-for-symbol ((monitor alist-recorder) (symbol symbol) (value number))
   (let ((current-value-cons (assoc symbol (current-values monitor))))
     (if current-value-cons
-      (incf (cdr current-value-cons) value)
-      (set-value-for-symbol monitor symbol value))))
+	(incf (cdr current-value-cons) value)
+	(set-value-for-symbol monitor symbol value))))
 
 
 ;; #####################################################################
@@ -200,16 +152,14 @@
 (defmethod initialize-instance :around ((monitor alist-handler) 
 					&key recorder &allow-other-keys)
   (setf (error-occured-during-initialization monitor) t)
-  (unless recorder (error "Parameter :recorder not provided."))
+  (unless recorder (error "Please provide a :recorder."))
   (setf (error-occured-during-initialization monitor) nil)
   (call-next-method)
   (setf (error-occured-during-initialization monitor) t)
   (let ((alist-recorder (get-monitor recorder)))
-    (unless alist-recorder
-      (error "Monitor ~a is not defined" recorder))
-    (unless (subtypep (type-of alist-recorder) 'alist-recorder)
-      (error "Monitor ~a is not of type data-recorder" recorder))
-    (setf (slot-value monitor 'recorder) recorder)
+    (unless alist-recorder (error "Monitor ~a is not defined" recorder))
+    (unless (typep alist-recorder 'alist-recorder)
+      (error "Monitor ~a is not of type alist-recorder" recorder))
     (setf (slot-value monitor 'data) (average-values alist-recorder)))
   (setf (error-occured-during-initialization monitor) nil))
 
@@ -225,6 +175,7 @@
 ;; #####################################################################
 ;; alist-printer
 ;; ---------------------------------------------------------------------
+
 
 (defclass alist-printer (alist-handler)
   ((interval :initarg :interval :accessor interval :initform 1
@@ -245,7 +196,7 @@
   (when (= (mod interaction-number (interval monitor)) 0)
     (format t "~%~a: " interaction-number)
     (loop for (symbol . average-values) in (reverse (car (data monitor)))
-          do (format t "~(~a~): ~,2f; " symbol (caaar average-values)))))
+       do (format t "~(~a~): ~,2f; " symbol (caaar average-values)))))
 
 
 ;; #####################################################################
@@ -257,9 +208,8 @@
     :documentation "At least that many values are plotted along the x-axis.
                     It can be more depending on the dynamically adapted step size."
     :initform 500 :initarg :minimum-number-of-data-points :accessor minimum-number-of-data-points)
-   (error-bars :documentation "can be set to :min-max, (:percentile min max),
-                               :stdev or nil for no error bars"
-	       :initarg :error-bars :accessor error-bars :initform nil)
+   (error-bars :documentation "When t, error bars are plotted"
+	       :type boolean :initarg :error-bars :accessor error-bars :initform nil)
    (key-location :documentation "Where the key is placed (this is directly passed to 'set key')"
 		 :type string :initform "below" :initarg :key-location :accessor key-location)
    (y-max :documentation "The maximum for the left y axis. Nil results in automatic scaling"
@@ -276,17 +226,19 @@
 		:initform nil :initarg :draw-y-grid :reader draw-y-grid)
    (hide-legend :documentation "Whether to draw a legend"
 		:initform nil :initarg :hide-legend :reader hide-legend)
-   (display-threshold :documentation "Whether to draw a set of data
-   points (average score above threshold)"
-		:initform 0 :initarg :display-threshold :reader display-threshold)
    (stream :documentation "Where the plot-data method writes its output"
 	   :reader plot-stream :initform nil)
    (colors :documentation "A list of line colors to use for plotting." 
 	   :accessor colors :initform *great-gnuplot-colors*)
+   (dashtypes :documentation "a list of dash types to use for plotting"
+              :accessor dashtypes :initform *great-gnuplot-dashtypes*)
    (divide-indices-by :documentation "A constant by which the indices (x-values) are divided by."
 		      :accessor divide-indices-by :initform 1 :initarg :divide-indices-by)
-   (dashed 
-    :documentation "When t, different data lines have different dashes. 
+   ;; BUG: DASHED IS BY DEFAULT SET TO T, BUT FULL LINES ARE DRAWN ANYWAY
+   ;; NEED TO FIND HOW TO INTEGRATE IT INTO THE GNUPLOT COMMAND
+   ;; USING 'dt ~a' DOES NOT SEEM TO WORK
+   (dashed
+    :documentation "When t, different data lines have different dashes.
                     Only has effect in some terminals"
     :initform t :initarg :dashed :accessor dashed))
   (:documentation "A gnuplotter based on the alist-recorder"))
@@ -315,41 +267,34 @@
     (assert stream)
     (format stream "~cset grid back noxtics" #\linefeed)
     (format stream "~cset grid back ~:[noytics~;ytics lt 4 lc rgb \"#aaaaaa\" lw 0.5~]" 
-            #\linefeed (draw-y-grid monitor))
+	    #\linefeed (draw-y-grid monitor))
     (format stream "~cset key ~a" #\linefeed (key-location monitor))
     (when (hide-legend monitor)
       (format stream "~cunset key" #\linefeed ))
     (format stream "~cset xlabel ~:[~;~:*~s~]" #\linefeed (x-label monitor))
     (format stream "~cset ylabel ~:[~;~:*~s~]" #\linefeed (y-label monitor))
     (format stream "~cset ytics nomirror~cset xrange [0:*]~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
-            #\linefeed #\linefeed #\linefeed (y-min monitor) (y-max monitor))
+	    #\linefeed #\linefeed #\linefeed (y-min monitor) (y-max monitor))
     (format stream "~cunset y2tics" #\linefeed)
     (format stream "~cplot " #\linefeed)
-    (setf data
-          (remove-if #'(lambda (source)
-                         (< (average (remove nil (second source)))
-                            (display-threshold monitor)))
-                     data))
-
     (loop for source in data 
-          for source-number from 0
-          for color = (nth (mod source-number (length (colors monitor))) (colors monitor))
-          do (format stream "~:[~*~*~;'-' axes x1y1 notitle with errorbars ps 0.01 lw ~a dt ~a lc rgb ~s,~] '-' axes x1y1 title \"~(~a~)\" with lines lw ~a dt ~a lc rgb ~s~:[~;, ~]" 
-                     (third source) (line-width monitor)
-                     (if (dashed monitor) (+ 2 source-number) 1) color
-                     (nth source-number (reverse (mapcar #'car (car (data monitor)))))
-                     (line-width monitor) (if (dashed monitor) (+ 2 source-number) 1)
-                     color (< source-number (- (length data) 1))))
+       for source-number from 0
+       for color = (nth (mod source-number (length (colors monitor))) (colors monitor))
+       do (format stream "~:[~*~*~;'-' axes x1y1 notitle with errorbars ps 0.01 lw ~a lc rgb ~s,~] '-' axes x1y1 title \"~(~a~)\" with lines lw ~a lc rgb ~s~:[~;, ~]" 
+		  (third source) (line-width monitor) color
+		  (nth source-number (reverse (mapcar #'car (car (data monitor)))))
+		  (line-width monitor)
+		  color (< source-number (- (length data) 1))))
     (loop for source in data
-          do (when (third source)
-               (loop for error-bar in (third source) 
-                     do (format stream "~c~{~d ~,3f ~,3f ~,3f~}"  #\linefeed error-bar))
-               (format stream "~ce"  #\linefeed))
-          (mapcar #'(lambda (index average-value) 
-                      (when average-value
-                        (format stream "~c~d ~,3f"  #\linefeed index average-value)))
-                  (first source) (second source))
-          (format stream "~ce~c" #\linefeed #\linefeed))))
+       do (when (third source)
+	    (loop for error-bar in (third source) 
+	       do (format stream "~c~{~d ~,3f ~,3f ~,3f~}"  #\linefeed error-bar))
+	    (format stream "~ce"  #\linefeed))
+	 (mapcar #'(lambda (index average-value) 
+		     (when average-value
+		       (format stream "~c~d ~,3f"  #\linefeed index average-value)))
+		 (first source) (second source))
+	 (format stream "~ce~c" #\linefeed #\linefeed))))
 
 
 ;; ############################################################################
@@ -414,6 +359,12 @@
     :documentation "When t, different data lines have different colors. 
                     Only has effect in some terminals"
     :initform t :initarg :colored :accessor colored)
+   (typeface
+    :documentation "Typeface of the text in the plot."
+    :initform "Helvetica" :initarg :typeface :accessor typeface)
+   (fsize
+    :documentation "Font size of the text"
+    :initform 10 :initarg :fsize :accessor fsize)
    (add-time-and-experiment-to-file-name
     :documentation "When t, the file name is prefixed with the name of the experiment class
                     and a yyyy-mm-dd-hh-mm-ss string"
@@ -438,7 +389,6 @@
   (subscribe-to-event id 'batch-finished)
   (setf (error-occured-during-initialization monitor) nil))
 
-
 (defmethod handle-batch-finished-event ((monitor alist-gnuplot-graphic-generator)
 					(monitor-id symbol) (event (eql 'batch-finished))
 					(experiment-class string))
@@ -452,9 +402,9 @@
       (close-pipe (slot-value monitor 'stream)))
     (setf (slot-value monitor 'stream) (pipe-to-gnuplot))
     (format (plot-stream monitor) "~cset output \"~a\"" #\linefeed file-name)
-    (format (plot-stream monitor) "~cset terminal ~a font 'Helvetica' linewidth ~a rounded ~a"
-	    #\linefeed (graphic-type monitor) (line-width monitor) 
-	    (if (colored monitor) "color" "mono"))
+    (format (plot-stream monitor) "~cset terminal ~a font \"~a,~a\" linewidth ~a rounded ~:[monochrome~;color~]"
+	    #\linefeed (graphic-type monitor) (typeface monitor) (fsize monitor)
+            (line-width monitor) (colored monitor))
     (plot-data monitor)
     (format (plot-stream monitor) "~cexit~c"  #\linefeed #\linefeed)
     (finish-output (plot-stream monitor))
@@ -653,4 +603,7 @@
                             ((= i (- (length row) 1)) ;; last element does not need a separator
                              (format stream "~f" elem))
                             (t (format stream "~f~a" elem (column-separator monitor))))))))
+
+
+
 

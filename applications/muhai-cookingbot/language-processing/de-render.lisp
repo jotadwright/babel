@@ -37,10 +37,10 @@
          (let* ((ontological-class (type-of entity))
                 (ontological-types (set-difference
                                     (mapcar #'class-name
-                                            (clos::class-all-superclasses (find-class ontological-class)))
-                                    (mapcar #'class-name (clos::class-all-superclasses (find-class 'entity)))))
-                (other-properties (loop for slot in (harlequin-common-lisp:class-slots (class-of entity))
-                                        for slot-name = (harlequin-common-lisp:slot-definition-name slot)
+                                            (all-superclasses (find-class ontological-class)))
+                                    (mapcar #'class-name (all-superclasses (find-class 'entity)))))
+                (other-properties (loop for slot in (closer-mop:class-slots (class-of entity))
+                                        for slot-name = (closer-mop:slot-definition-name slot)
                                         for slot-value = (slot-value entity slot-name)
                                         collect (list slot-name (make-fs-from-entity slot-value)))))
            `((ontological-class ,ontological-class)
