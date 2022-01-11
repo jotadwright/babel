@@ -359,6 +359,12 @@
     :documentation "When t, different data lines have different colors. 
                     Only has effect in some terminals"
     :initform t :initarg :colored :accessor colored)
+   (typeface
+    :documentation "Typeface of the text in the plot."
+    :initform "Helvetica" :initarg :typeface :accessor typeface)
+   (fsize
+    :documentation "Font size of the text"
+    :initform 10 :initarg :fsize :accessor fsize)
    (add-time-and-experiment-to-file-name
     :documentation "When t, the file name is prefixed with the name of the experiment class
                     and a yyyy-mm-dd-hh-mm-ss string"
@@ -383,8 +389,6 @@
   (subscribe-to-event id 'batch-finished)
   (setf (error-occured-during-initialization monitor) nil))
 
- 
-
 (defmethod handle-batch-finished-event ((monitor alist-gnuplot-graphic-generator)
 					(monitor-id symbol) (event (eql 'batch-finished))
 					(experiment-class string))
@@ -398,8 +402,8 @@
       (close-pipe (slot-value monitor 'stream)))
     (setf (slot-value monitor 'stream) (pipe-to-gnuplot))
     (format (plot-stream monitor) "~cset output \"~a\"" #\linefeed file-name)
-    (format (plot-stream monitor) "~cset terminal ~a font \"Helvetica\" linewidth ~a rounded ~:[monochrome~;color~]"
-	    #\linefeed (graphic-type monitor)
+    (format (plot-stream monitor) "~cset terminal ~a font \"~a,~a\" linewidth ~a rounded ~:[monochrome~;color~]"
+	    #\linefeed (graphic-type monitor) (typeface monitor) (fsize monitor)
             (line-width monitor) (colored monitor))
     (plot-data monitor)
     (format (plot-stream monitor) "~cexit~c"  #\linefeed #\linefeed)
