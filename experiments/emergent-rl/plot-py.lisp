@@ -64,10 +64,11 @@
     :recorder 'record-meaning-form-competition
     :average-windows 1
     :draw-y-1-grid t
-    :y-label "forms associated to one meaning"
+    :fsize 12
+    :y-label "forms for object 3"
     :x-label "number of games"
     :file-name (babel-pathname
-                :directory '("experiments" "emergent-rl" "raw-data" "comp" "basic" "monitors")
+                :directory '("experiments" "emergent-rl" "raw-data" "comp" "int" "monitors")
                 :name "meaning-form-competition"
                 :type "pdf")
     :graphic-type "pdf")
