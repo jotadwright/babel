@@ -230,11 +230,21 @@
                                    (list (variablify (second fc-with-const)) (third fc-with-const))
                                    (mapcar #'variablify (rest fc-with-const)))
           collect (cons first-fc-with-var rest-fc-with-var))))
+(defun meaning-predicates-with-variables (meaning)
+       "Transform meaning network with constants to meaning network with variables."
+    (loop for predicate in meaning
+          collect (if (equal (first predicate) 'bind)
+                    (list (first predicate)
+                          (second predicate)
+                          (variablify (third predicate))
+                          (fourth predicate))
+                    (cons (first predicate)
+                          (mapcar #'variablify (rest predicate))))))
 
-;; (form-constraints-with-variables "what is the color of the cube" :de-render-string-meets-precedes)
-;(defgeneric meaning-predicates-with-variables (meaning mode))
 
-;(defmethod meaning-predicates-with-variables (meaning (eql :irl))
+#|(defgeneric meaning-predicates-with-variables (meaning mode))
+
+(defmethod meaning-predicates-with-variables (meaning (eql :irl))
   "Transform meaning network with constants to meaning network with variables."
     (loop for predicate in meaning
           collect (if (equal (first predicate) 'bind)
@@ -245,12 +255,12 @@
                     (cons (first predicate)
                           (mapcar #'variablify (rest predicate))))))
 
-;(defmethod meaning-predicates-with-variables (meaning (eql :amr))
-(defun meaning-predicates-with-variables (meaning)
+(defmethod meaning-predicates-with-variables (meaning (eql :amr))
+;(defmethod meaning-predicates-with-variables (meaning)
   "Transform meaning network with constants to meaning network with variables."
     (variablify-amr-network meaning))
         
-
+|#
  ;; (meaning-predicates-with-variables '((get-context source) (bind attribute-category attribute color) (bind shape-category shape cube) (unique object cubes) (filter cubes source shape) (query response object attribute)))
 
 (defun form-predicates-with-variables (form-predicates)
