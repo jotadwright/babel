@@ -54,7 +54,7 @@
             ((find 'add-categorial-links node-statuses :test #'string=) "t")
             (t (error "Did not find any repair node statuses and no solution was found!"))))))
          
-(defmethod interact :before ((experiment clevr-grammar-learning-experiment)
+(defmethod interact :before ((experiment grammar-learning-experiment)
                              interaction &key)
   (multiple-value-bind (utterance gold-standard-meaning)
       (get-interaction-data interaction)
@@ -62,7 +62,7 @@
           do (initialize-agent agent utterance gold-standard-meaning))
     (notify interaction-before-finished utterance gold-standard-meaning)))           
 
-(defmethod interact ((experiment clevr-grammar-learning-experiment)
+(defmethod interact ((experiment grammar-learning-experiment)
                      interaction &key)
   "the learner attempts to comprehend the utterance with its grammar, and applies any repairs if necessary"
   (multiple-value-bind (learner-meaning cipn) (run-learner-comprehension-task (learner experiment))
@@ -76,7 +76,7 @@
     
 (define-event agent-confidence-level (level float))
 
-(defmethod interact :after ((experiment clevr-grammar-learning-experiment)
+(defmethod interact :after ((experiment grammar-learning-experiment)
                             interaction &key)
   "the tutor gives the answer, the learner learns from the gold standard"
   (let ((successp

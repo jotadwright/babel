@@ -107,13 +107,13 @@
                          (monitors (get-all-lisp-monitors)))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
-    :experiment-class 'clevr-grammar-learning-experiment 
+    :experiment-class 'grammar-learning-experiment 
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :named-configurations strategies
     :shared-configuration nil
     :monitors monitors
-    :output-dir (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")))
+    :output-dir (babel-pathname :directory '("experiments" "grammar-learning" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
 ;;;; UTILS FOR PLOTTING

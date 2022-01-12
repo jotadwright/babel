@@ -6,37 +6,14 @@
 ;; Finding the data
 (define-configuration-default-value :meaning-representation :irl)
 
-(define-configuration-default-value :challenge-files-root
+(define-configuration-default-value :corpus-files-root
                                     (merge-pathnames
                                      (make-pathname :directory '(:relative "little-prince-amr"))
                                      cl-user:*babel-corpora*))
-(define-configuration-default-value :challenge-1-data
+(define-configuration-default-value :corpus-data-file
                                     (make-pathname :directory '(:relative "pre-processed")
                                                    :name "little-prince-amr" :type "json"))
-(define-configuration-default-value :challenge-2-data
-                                    (make-pathname :directory '(:relative "train")
-                                                   :name "stage-2" :type "txt"))
-(define-configuration-default-value :challenge-3-data
-                                    (make-pathname :directory '(:relative "train")
-                                                   :name "stage-3" :type "txt"))
-(define-configuration-default-value :challenge-1-data-evaluation
-                                    (make-pathname :directory '(:relative "val")
-                                                   :name "stage-1" :type "txt"))
-(define-configuration-default-value :challenge-2-data-evaluation
-                                    (make-pathname :directory '(:relative "val")
-                                                   :name "stage-2" :type "txt"))
-(define-configuration-default-value :challenge-3-data-evaluation
-                                    (make-pathname :directory '(:relative "val")
-                                                   :name "stage-3" :type "txt"))
-(define-configuration-default-value :challenge-1-data-development
-                                    (make-pathname :directory '(:relative "test")
-                                                   :name "stage-1" :type "txt"))
-(define-configuration-default-value :challenge-2-data-development
-                                    (make-pathname :directory '(:relative "test")
-                                                   :name "stage-2" :type "txt"))
-(define-configuration-default-value :challenge-3-data-development
-                                    (make-pathname :directory '(:relative "test")
-                                                   :name "stage-3" :type "txt"))
+
 
 (define-configuration-default-value :observation-sample-mode :train) ; train, debug, development or evaluation
 (define-configuration-default-value :number-of-epochs 1) ; how many times the training data is concatenated in random variations
@@ -57,13 +34,6 @@
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
 (define-configuration-default-value :learner-th-connected-mode :neighbours)
 
-;; Autotelic principle
-(define-configuration-default-value :enable-autotelic-levels nil)
-(define-configuration-default-value :current-challenge-level 1)
-(define-configuration-default-value :max-challenge-level 3)
-(define-configuration-default-value :evaluation-window-size 1000)
-(define-configuration-default-value :confidence-threshold 1.00)
-(define-configuration-default-value :learner-speaks-confidence-threshold 0.5)
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)
@@ -74,7 +44,7 @@
 ;; + Experiment +
 ;; --------------
 
-(defclass clevr-grammar-learning-experiment (experiment)
+(defclass grammar-learning-experiment (experiment)
   ((question-data :initarg :question-data :initform nil 
                    :accessor question-data :type list
                    :documentation "A list of samples for the current challenge level")
@@ -91,11 +61,11 @@
                       :accessor repair-buffer :type list
                       :documentation "A buffer to keep track of all used repairs")
    )
-  (:documentation "The CLEVR learning experiment"))
+  (:documentation "A grammar learning experiment"))
 
-(defmethod initialize-instance :after ((experiment clevr-grammar-learning-experiment) &key)
-  ;; set the questions of the experiment
-  (load-questions-for-current-challenge-level experiment (get-configuration experiment :observation-sample-mode))
+(defmethod initialize-instance :after ((experiment grammar-learning-experiment) &key)
+  ;; set the utterances/gold standard meanings of the experiment
+  (load-utterances experiment (get-configuration experiment :observation-sample-mode))
   
   ;; set the population of the experiment
   (setf (population experiment)
@@ -106,15 +76,10 @@
   (when (equal (get-configuration experiment :observation-sample-mode) :evaluation)
     (set-configuration (grammar (first (agents experiment))) :update-th-links nil)
     ;(set-configuration (grammar (first (agents experiment))) :use-meta-layer nil)
-    ;(set-configuration (grammar (first (agents experiment))) :th-connected-mode :path-exists)
-    (set-configuration (grammar (first (agents experiment))) :consolidate-repairs nil))
-  
-  ;; fill the confidence buffer with zeros
-  (setf (confidence-buffer experiment)
-        (make-list (get-configuration experiment :evaluation-window-size)
-                   :initial-element 0)))
+    (set-configuration (grammar (first (agents experiment))) :consolidate-repairs nil)))
 
-(define-event challenge-level-questions-loaded (level number))
+
+(define-event corpus-utterances-loaded)
 
 
 (defun load-question-data (experiment challenge-file num-epochs &key shuffle-data-p)
@@ -128,78 +93,62 @@
                   for data = (if shuffle-data-p (shuffle stage-data) stage-data)
                   append data))))
   (format t "~%Done!")
-  (notify challenge-level-questions-loaded
-          (get-configuration experiment :current-challenge-level)))
+  (notify corpus-utterances-loaded))
 
 
-(defgeneric load-questions-for-current-challenge-level (experiment mode)
+(defgeneric load-utterances (experiment mode)
   (:documentation "Load all data for the current challenge level"))
 
-(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+(defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :train)))
   (format t "~%Loading data...")
   (let* ((challenge-file (merge-pathnames
-                          (case (get-configuration experiment :current-challenge-level)
-                            (1 (get-configuration experiment :challenge-1-data))
-                            (2 (get-configuration experiment :challenge-2-data))
-                            (3 (get-configuration experiment :challenge-3-data)))
-                          (get-configuration experiment :challenge-files-root))))
+                          (get-configuration experiment :corpus-data-file)
+                          (get-configuration experiment :corpus-files-root))))
     (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p t)))
 
-(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+(defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :sort-length-ascending)))
   (format t "~%Loading data...")
   (let* ((challenge-file (merge-pathnames
-                          (case (get-configuration experiment :current-challenge-level)
-                            (1 (get-configuration experiment :challenge-1-data))
-                            (2 (get-configuration experiment :challenge-2-data))
-                            (3 (get-configuration experiment :challenge-3-data)))
-                          (get-configuration experiment :challenge-files-root))))
+                          (get-configuration experiment :corpus-data-file)
+                          (get-configuration experiment :corpus-files-root))))
     
     (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p nil)))
 
-(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+(defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :debug)))
   (format t "~%Loading data...")
   (let* ((challenge-file (merge-pathnames
-                          (case (get-configuration experiment :current-challenge-level)
-                            (1 (get-configuration experiment :challenge-1-data))
-                            (2 (get-configuration experiment :challenge-2-data))
-                            (3 (get-configuration experiment :challenge-3-data)))
-                          (get-configuration experiment :challenge-files-root))))
+                          (get-configuration experiment :corpus-data-file)
+                          (get-configuration experiment :corpus-files-root))))
     
     (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p nil)))
 
-(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+(defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :evaluation)))
   (format t "~%Loading evaluation data...")
   (let* ((challenge-file (merge-pathnames
-                          (case (get-configuration experiment :current-challenge-level)
-                            (1 (get-configuration experiment :challenge-1-data-evaluation))
-                            (2 (get-configuration experiment :challenge-2-data-evaluation))
-                            (3 (get-configuration experiment :challenge-3-data-evaluation)))
-                          (get-configuration experiment :challenge-files-root))))
+                          (get-configuration experiment :corpus-data-file)
+                          (get-configuration experiment :corpus-files-root))))
     (load-question-data experiment challenge-file 1 :shuffle-data-p nil)))
 
-(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+(defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :development)))
   (format t "~%Loading evaluation data...")
   (let* ((challenge-file (merge-pathnames
-                          (case (get-configuration experiment :current-challenge-level)
-                            (1 (get-configuration experiment :challenge-1-data-development))
-                            (2 (get-configuration experiment :challenge-2-data-development))
-                            (3 (get-configuration experiment :challenge-3-data-development)))
-                          (get-configuration experiment :challenge-files-root))))
+                          (get-configuration experiment :corpus-data-file)
+                          (get-configuration experiment :corpus-files-root))))
     (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p nil)))
 
 
-(defmethod tutor ((experiment clevr-grammar-learning-experiment))
+(defmethod tutor ((experiment grammar-learning-experiment))
   (find 'tutor (population experiment) :key #'role))
 
 (defmethod tutor ((interaction interaction))
   (find 'tutor (interacting-agents interaction) :key #'role))
 
-(defmethod learner ((experiment clevr-grammar-learning-experiment))
+(defmethod learner ((experiment grammar-learning-experiment))
   (find 'learner (population experiment) :key #'role))
 
 (defmethod learner ((interaction interaction))
@@ -210,7 +159,7 @@
 ;; + Interacting Agents Mode +
 ;; ---------------------------
 
-(defmethod determine-interacting-agents ((experiment clevr-grammar-learning-experiment)
+(defmethod determine-interacting-agents ((experiment grammar-learning-experiment)
                                          interaction (mode (eql :corpus-learner)) &key)
   ;; Tutor is speaker, learner is hearer
   (setf (interacting-agents interaction) (list (learner experiment))

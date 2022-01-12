@@ -55,9 +55,8 @@
 (define-monitor show-type-hierarchy-after-n-interactions)
 
 
-(define-event-handler (trace-interactions-in-wi challenge-level-questions-loaded)
-  (add-element `((h1) ,(format nil "Level ~a questions loaded"
-                               level))))
+(define-event-handler (trace-interactions-in-wi corpus-utterances-loaded)
+  (add-element `((h1) ,(format nil "Corpus utterances loaded"))))
 
 (define-event-handler (trace-interactions-in-wi interaction-started)
   (add-element `((h1) ,(format nil "Observation ~a"

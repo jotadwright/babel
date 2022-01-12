@@ -1,5 +1,5 @@
-(ql:quickload :clevr-grammar-learning)
-(in-package :clevr-grammar-learning)
+(ql:quickload :grammar-learning)
+(in-package :grammar-learning)
 
 ;; full logging
 (progn
@@ -41,7 +41,7 @@
   (wi::reset)
   (notify reset-monitors)
   (defparameter *experiment*
-    (make-instance 'clevr-grammar-learning-experiment
+    (make-instance 'grammar-learning-experiment
                    :entries '((:observation-sample-mode . :sort-length-ascending))))) ;; train, debug, evaluation, development
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
