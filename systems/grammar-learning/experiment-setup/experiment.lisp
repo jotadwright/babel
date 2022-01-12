@@ -81,13 +81,20 @@
 
 (define-event corpus-utterances-loaded)
 
+(defgeneric pre-process-meaning-data (meaning mode))
+
+(defmethod pre-process-meaning-data (meaning (mode (eql :irl)))
+  (remove-duplicates (read-from-string meaning) :test #'equal))
+
+(defmethod pre-process-meaning-data (meaning (mode (eql :amr)))
+  (amr:penman->predicates (read-from-string meaning)))
 
 (defun load-question-data (experiment challenge-file num-epochs &key shuffle-data-p)
   (with-open-file (stream challenge-file)
     (let* ((stage-data (loop for line = (read-line stream nil)
                              for data = (when line (cl-json:decode-json-from-string line))
                              while data
-                             collect (cons (cdr (assoc :utterance data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
+                             collect (cons (cdr (assoc :utterance data)) (pre-process-meaning-data (cdr (assoc :meaning data)) (get-configuration experiment :meaning-representation) )))))
       (setf (question-data experiment)
             (loop repeat num-epochs
                   for data = (if shuffle-data-p (shuffle stage-data) stage-data)

@@ -19,3 +19,5 @@
     (make-instance 'grammar-learning-experiment
                    :entries '((:observation-sample-mode . :sort-length-ascending)
                               (:meaning-representation . :amr)))))
+
+;(run-interaction *experiment*)
