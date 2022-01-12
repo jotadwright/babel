@@ -89,16 +89,20 @@
 (defmethod pre-process-meaning-data (meaning (mode (eql :amr)))
   (amr:penman->predicates (read-from-string meaning)))
 
-(defun load-question-data (experiment challenge-file num-epochs &key shuffle-data-p)
+(defun load-question-data (experiment challenge-file num-epochs &key sort-p shuffle-data-p)
   (with-open-file (stream challenge-file)
     (let* ((stage-data (loop for line = (read-line stream nil)
                              for data = (when line (cl-json:decode-json-from-string line))
                              while data
-                             collect (cons (cdr (assoc :utterance data)) (pre-process-meaning-data (cdr (assoc :meaning data)) (get-configuration experiment :meaning-representation) )))))
+                             collect (cons (cdr (assoc :utterance data)) (pre-process-meaning-data (cdr (assoc :meaning data)) (get-configuration experiment :meaning-representation) ))))
+           (ordered-stage-data (if shuffle-data-p
+                                 (shuffle stage-data)
+                                 (if sort-p
+                                   (sort stage-data #'< :key #'(lambda (x) (count #\space (first x))))
+                                   stage-data))))
       (setf (question-data experiment)
             (loop repeat num-epochs
-                  for data = (if shuffle-data-p (shuffle stage-data) stage-data)
-                  append data))))
+                  append ordered-stage-data))))
   (format t "~%Done!")
   (notify corpus-utterances-loaded))
 
@@ -121,7 +125,7 @@
                           (get-configuration experiment :corpus-data-file)
                           (get-configuration experiment :corpus-files-root))))
     
-    (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p nil)))
+    (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :sort-p t :shuffle-data-p nil)))
 
 (defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :debug)))
