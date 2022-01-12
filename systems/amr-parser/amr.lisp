@@ -1,3 +1,4 @@
+;(ql:quickload :amr)
 (in-package :amr)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -191,14 +192,34 @@
 ;; 6. Higher-level functions                      ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun penman->predicates (amr-formatted-meaning)
+(defun penman->predicates (amr-formatted-meaning &key variablify?)
   "Transforms a Penman formatted meaning into a predicate network."
-  (object->predicates (penman->object amr-formatted-meaning)))
+  (let ((predicates (object->predicates (penman->object amr-formatted-meaning))))
+    (if variablify?
+      (variablify-amr-network predicates)
+      predicates)))
 
 (defun predicates->penman (predicate-network)
   "Transforms a predicate network into a Penman formatted meaning."
   (object->penman (predicates->object predicate-network)))
 
+(defun variablify-amr-network (amr-predicates)
+  (mapcar #'(lambda (predicate)
+               (cons (first predicate)
+                     (mapcar #'(lambda (symbol)
+                                 (cond ((stringp symbol)
+                                        symbol)
+                                       ((numberp symbol)
+                                        symbol)
+                                       ((or (equal symbol '-)
+                                            (equal symbol '+))
+                                        symbol)
+                                       ((keywordp symbol)
+                                        symbol)
+                                       (t
+                                        (utils::variablify symbol))))
+                             (rest predicate))))
+           amr-predicates))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -219,7 +240,7 @@
                       :ARG1 (f / flee-01
                                :ARG0 (p / person
                                         :quant (a / about
-                                                  :op1 14000))
+                                                  :op1 14:00))
                                :ARG1 (h / home
                                         :poss p)
                                :time (w / weekend)
@@ -230,6 +251,18 @@
                       :medium (s2 / site
                                   :poss g
                                   :mod (w3 / web))))
+
+(defparameter *json-file*
+  (parse-namestring "/Users/u0077062/Projects/babel-corpora/little-prince-amr/pre-processed/little-prince-amr.json"))
+
+(setf *test-petit-prince* (read-from-string (cdr (assoc :meaning (nth 279 (with-open-file (stream *json-file*)
+    (loop for line = (read-line stream nil)
+                           while line
+                           collect (cl-json:decode-json-from-string line))))))))
+
+
+
+(penman->predicates *test-petit-prince* :variablify? t)
 
 (progn
   (setf *object-in* (penman->object *penman-in*))

@@ -5,13 +5,15 @@
 ;; -----------------------------
 
 ;; Finding the data
+(define-configuration-default-value :meaning-representation :irl)
+
 (define-configuration-default-value :challenge-files-root
                                     (merge-pathnames
-                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
+                                     (make-pathname :directory '(:relative "little-prince-amr"))
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :challenge-1-data
-                                    (make-pathname :directory '(:relative "train")
-                                                   :name "stage-1" :type "txt"))
+                                    (make-pathname :directory '(:relative "pre-processed")
+                                                   :name "little-prince-amr" :type "json"))
 (define-configuration-default-value :challenge-2-data
                                     (make-pathname :directory '(:relative "train")
                                                    :name "stage-2" :type "txt"))
@@ -121,7 +123,7 @@
     (let* ((stage-data (loop for line = (read-line stream nil)
                              for data = (when line (cl-json:decode-json-from-string line))
                              while data
-                             collect (cons (cdr (assoc :question data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
+                             collect (cons (cdr (assoc :utterance data)) (remove-duplicates (read-from-string (cdr (assoc :meaning data))) :test #'equal)))))
       (setf (question-data experiment)
             (loop repeat num-epochs
                   for data = (if shuffle-data-p (shuffle stage-data) stage-data)
@@ -144,7 +146,19 @@
                             (3 (get-configuration experiment :challenge-3-data)))
                           (get-configuration experiment :challenge-files-root))))
     (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p t)))
+
+(defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
+                                                       (mode (eql :sort-length-ascending)))
+  (format t "~%Loading data...")
+  (let* ((challenge-file (merge-pathnames
+                          (case (get-configuration experiment :current-challenge-level)
+                            (1 (get-configuration experiment :challenge-1-data))
+                            (2 (get-configuration experiment :challenge-2-data))
+                            (3 (get-configuration experiment :challenge-3-data)))
+                          (get-configuration experiment :challenge-files-root))))
     
+    (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p nil)))
+
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-grammar-learning-experiment)
                                                        (mode (eql :debug)))
   (format t "~%Loading data...")

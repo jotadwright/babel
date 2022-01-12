@@ -42,7 +42,7 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'clevr-grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :debug))))) ;; train, debug, evaluation, development
+                   :entries '((:observation-sample-mode . :sort-length-ascending))))) ;; train, debug, evaluation, development
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
@@ -62,7 +62,7 @@
 
 QUESTIONS
 ---------
- 
+
 NOTES
 ------
 OVERAL ORIGINAL behalve in FCG apply!
