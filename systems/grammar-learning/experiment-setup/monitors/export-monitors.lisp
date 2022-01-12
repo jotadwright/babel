@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :clevr-grammar-learning)
+(in-package :grammar-learning)
 
 ;;;; Printing dots
 (define-monitor print-a-dot-for-each-interaction

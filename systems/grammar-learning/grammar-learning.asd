@@ -3,7 +3,7 @@
   :maintainer "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :license "to be decided on"
   :homepage "https://gitlab.ai.vub.ac.be/ehai/ehai-babel/"
-  :depends-on ("utils" "monitors" "plot-raw-data" "web-interface" "fcg" "irl" "amr" "meta-layer-learning" "cl-change-case")
+  :depends-on ("utils" "monitors" "plot-raw-data" "web-interface" "fcg" "irl" "amr" "meta-layer-learning" "cl-change-case" "experiment-framework" "plot-raw-data" "clevr-world" "cl-json" )
   :serial t
   :components ((:file "package")
                (:module diagnostics-and-repairs
@@ -21,5 +21,23 @@
                              (:file "repair-item-based-to-lexical")
                              (:file "monitors")
                              (:file "web-monitors")))
-               )
+               (:module experiment-setup
+                :serial t
+                :components ( (:file "run-helpers")
+                              (:file "grammar")
+                              (:file "agent")
+                              (:file "learner")
+                              (:file "alignment")
+                              (:file "experiment")
+                              (:file "interaction")
+                              (:module monitors
+                               :serial t
+                               :components ( (:file "web-monitors")
+                                             (:file "export-monitors")
+                                             (:file "lisp-monitors")
+                                             (:file "csv-monitors")
+                                             )))))
+
   :description "A Common Lisp package for learning construction grammars.")
+
+

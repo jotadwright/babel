@@ -1,5 +1,4 @@
-(in-package :clevr-grammar-learning)
-
+(in-package :grammar-learning)
 ;; -----------------
 ;; + Agent Classes +
 ;; -----------------

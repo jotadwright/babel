@@ -1,6 +1,6 @@
 ;;;; interaction.lisp
 
-(in-package :clevr-grammar-learning)
+(in-package :grammar-learning)
 
 ;; --------------------
 ;; + Initialize agent +

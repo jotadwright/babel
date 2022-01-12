@@ -1,6 +1,6 @@
 ;;;; web-monitors.lisp
 
-(in-package :clevr-grammar-learning)
+(in-package :grammar-learning)
 
 
 ;;;;;; EVENTS ;;;;;;

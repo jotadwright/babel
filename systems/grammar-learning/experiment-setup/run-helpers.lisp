@@ -1,4 +1,4 @@
-(in-package :clevr-grammar-learning)
+(in-package :grammar-learning)
 
 (defun extract-meanings-from-cipn (cipn)
   (extract-meanings

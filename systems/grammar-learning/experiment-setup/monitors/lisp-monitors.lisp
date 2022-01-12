@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :clevr-grammar-learning)
+(in-package :grammar-learning)
 
 ;;;; Communicative success             
 (define-monitor record-communicative-success

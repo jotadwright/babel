@@ -30,7 +30,7 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
-(in-package :clevr-grammar-learning)
+(in-package :grammar-learning)
 
 (defun empty-cxn-set (hide-type-hierarchy cxn-supplier th-connected-mode)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))

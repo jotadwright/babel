@@ -1,4 +1,4 @@
-(in-package :clevr-grammar-learning)
+(in-package :grammar-learning)
 
 (define-event constructions-chosen (constructions list))
 (define-event cipn-statuses (cipn-statuses list))

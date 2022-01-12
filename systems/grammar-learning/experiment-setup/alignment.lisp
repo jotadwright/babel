@@ -1,6 +1,6 @@
 ;;;; alignment.lisp
 
-(in-package :clevr-grammar-learning)
+(in-package :grammar-learning)
 
 (define-event alignment-started)
 (define-event cxns-rewarded (cxns list))
