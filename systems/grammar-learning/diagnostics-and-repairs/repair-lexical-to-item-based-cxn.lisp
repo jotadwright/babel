@@ -120,29 +120,29 @@ based on existing construction with sufficient overlap."
                      (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5)
                      (setf th-flat-list (append th-flat-list (list th-link)))
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
+           (new-node-item-based (fcg::cip-add-child (initial-node node) (first (fcg-apply item-based-cxn (car-source-cfs (cipn-car (initial-node node))) (direction (cip node))
+                                                                                   :configuration (configuration (construction-inventory node))
+                                                                                   :cxn-inventory (construction-inventory node)))))
            (lex-nodes (loop for lex-cxn in lex-cxns
-                            with last-node = (initial-node node)
-                            do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply lex-cxn (if (initial-node-p last-node)
-                                                                                                         (car-source-cfs (cipn-car last-node))
-                                                                                                         (car-resulting-cfs (cipn-car last-node)))
-                                                                                                         (direction (cip node))
+                            with last-node = new-node-item-based
+                            do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply lex-cxn (car-resulting-cfs (cipn-car last-node))
+                                                                                               (direction (cip node))
                                                                                                       :configuration (configuration (construction-inventory node))
                                                                                                       :cxn-inventory (construction-inventory node)))))
                             collect last-node))
-          
-           (new-node-item-based (fcg::cip-add-child (last-elt lex-nodes) (first (fcg-apply item-based-cxn (car-resulting-cfs (cipn-car (last-elt lex-nodes))) (direction (cip node))
-                                                                                   :configuration (configuration (construction-inventory node))
-                                                                                   :cxn-inventory (construction-inventory node))))))
+           (last-applied-node (last-elt lex-nodes))
+
+           )
       ;; ignore
       ;; Reset type hierarchy
       (set-categorial-network (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
-      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (append (second (restart-data fix)) (list (original-cxn item-based-cxn))))
-      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links th-flat-list)
+      (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-cxns (append (second (restart-data fix)) (list (original-cxn item-based-cxn))))
+      (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-th-links th-flat-list)
       ;; set cxn-supplier to second new node
-      (setf (cxn-supplier new-node-item-based) (cxn-supplier node))
+      (setf (cxn-supplier last-applied-node) (cxn-supplier node))
       ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses new-node-item-based))
-      (push 'added-by-repair (statuses new-node-item-based))
+      (push (type-of repair) (statuses last-applied-node))
+      (push 'added-by-repair (statuses last-applied-node))
       ;; enqueue only second new node; never backtrack over the first applied lexical construction, we applied them as a block
-      (cip-enqueue new-node-item-based (cip node) (get-configuration node :queue-mode)))))
+      (cip-enqueue last-applied-node (cip node) (get-configuration node :queue-mode)))))
