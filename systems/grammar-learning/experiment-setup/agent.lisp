@@ -39,5 +39,6 @@
                         :role 'learner :experiment experiment
                         :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
                                                 (get-configuration experiment :learner-cxn-supplier)
-                                                (get-configuration experiment :learner-th-connected-mode)))))
+                                                (get-configuration experiment :learner-th-connected-mode)
+                                                (get-configuration experiment :meaning-representation)))))
     learner))
