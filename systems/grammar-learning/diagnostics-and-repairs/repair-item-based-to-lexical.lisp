@@ -38,7 +38,7 @@
   (with-disabled-monitor-notifications
     (let* ((processing-cxn-inventory (construction-inventory node))
            (original-cxn-inventory (original-cxn-set processing-cxn-inventory))
-           
+           (meaning-representation-formalism (get-configuration processing-cxn-inventory :meaning-representation-formalism))
            (resulting-cars (loop for cxn in (constructions processing-cxn-inventory)
                                  when (and
                                        (equal (attr-val cxn :cxn-type) 'item-based)
@@ -78,7 +78,9 @@
                  (lex-class (if existing-lex-cxn
                               (lex-class-cxn existing-lex-cxn)
                               (intern (get-base-name unit-name) :grammar-learning)))
-                 (args (mapcar #'third meaning-predicates-lex-cxn))
+                 (args (mapcar #'(lambda (predicate)
+                                   (extract-args-from-predicate predicate meaning-representation-formalism))
+                               meaning-predicates-lex-cxn))
                  (new-lex-cxn (or existing-lex-cxn (second (multiple-value-list (eval
                                                                                  `(def-fcg-cxn ,cxn-name
                                                                                                ((,unit-name

@@ -508,6 +508,31 @@
                  (push unit-name lex-unit-names))))
     (values (reverse lex-unit-names) resulting-form)))
 
+
+
+#|(defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
+  "subtract all lexical meanings (bind statements) from the gold standard
+   taking into account possible duplicates in the matching lex cxns
+   by always taking the first unification result and removing it
+   manually instead of using set-difference."
+  ;; !! it is assumed the matching lex cxns are provided
+  ;; in the same order as which they occur in the form
+  ;; the ordering of the gold standard meaning cannot be guaranteed?
+  (let ((resulting-meaning gold-standard-meaning)
+        (args nil))
+    (loop for lex-cxn in matching-lex-cxns
+          for lex-cxn-meaning = (extract-meaning-predicates lex-cxn)
+          do (let* ((prev-res-meaning (copy-object resulting-meaning))
+                    (elm-to-remove
+                     (loop for elm in resulting-meaning
+                           when (irl::unify-irl-programs lex-cxn-meaning (list elm))
+                           return elm)))
+               (setf resulting-meaning (remove elm-to-remove resulting-meaning :test #'equal))
+               (let* ((arg-predicate (set-difference prev-res-meaning resulting-meaning :test #'equal))
+                      (arg (third (find 'bind arg-predicate :key #'first))))
+                 (push arg args))))
+    (values (reverse args) resulting-meaning)))|#
+
 (defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
   "subtract all lexical meanings (bind statements) from the gold standard
    taking into account possible duplicates in the matching lex cxns
@@ -586,11 +611,21 @@
           do (setf string-predicates-in-root (set-difference string-predicates-in-root lex-form :test #'irl:unify-irl-programs)))
     string-predicates-in-root)
 
-(defgeneric extract-args-from-predicates (predicate mode))
+(defgeneric extract-args-from-predicate (predicate mode))
 
-(defmethod extract-args-from-predicates (predicate (mode (eql :irl)))
+(defmethod extract-args-from-predicate (predicate (mode (eql :irl)))
   (third predicate))
 
-(defmethod extract-args-from-predicates (predicate (mode (eql :amr)))
+(defmethod extract-args-from-predicate (predicate (mode (eql :amr)))
   (second predicate))
 
+
+
+
+(defgeneric equivalent-meaning-networks (m1 m2 mode))
+
+(defmethod equivalent-meaning-networks (m1 m2  (mode (eql :irl)))
+  (equivalent-irl-programs? m1 m2))
+
+(defmethod equivalent-meaning-networks (m1 m2  (mode (eql :amr)))
+  (amr::equivalent-amr-predicate-networks m1 m2))

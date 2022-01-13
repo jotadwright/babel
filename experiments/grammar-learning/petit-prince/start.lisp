@@ -21,4 +21,7 @@
                               (:meaning-representation . :amr)))))
 
 ;(run-interaction *experiment*)
-;(run-series *experiment* 300) 
+;(comprehend "Ah !" :cxn-inventory (grammar (first (agents *experiment*))))
+;(run-series *experiment* 20)
+
+;(add-element (make-html (grammar (first (agents *experiment*)))))

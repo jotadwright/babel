@@ -9,9 +9,10 @@
   (and (fully-expanded? node)
     (let* ((resulting-cfs (car-resulting-cfs (cipn-car node)))
            (meaning (extract-meanings (left-pole-structure resulting-cfs)))
+           (meaning-representation-formalism (get-configuration (construction-inventory node) :meaning-representation-formalism))
            (gold-standard-meanings (get-data resulting-cfs :meanings)))
       (when (find meaning gold-standard-meanings :test #'(lambda (m1 m2)
-                                                     (amr::equivalent-amr-predicate-networks m1 m2)))
+                                                         (equivalent-meaning-networks m1 m2 meaning-representation-formalism)))
         (set-data (blackboard (construction-inventory node)) :add-th-links-repair-failed nil)
         t))))
 

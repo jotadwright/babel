@@ -55,6 +55,7 @@
   (let* ((initial-transient-structure (initial-transient-structure node))
          (cxn-inventory (original-cxn-set (construction-inventory node)))
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
+         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (utterance (random-elt (get-data problem :utterances))))
     (multiple-value-bind (superset-holophrase-cxn
                           non-overlapping-form
@@ -86,7 +87,8 @@
                 (cons lex-class-lex-cxn lex-class-item-based-cxn))
                ;; args: 
                (args-lex-cxn
-                (third (first non-overlapping-meaning))) ;; third if bind
+               (extract-args-from-predicate (first non-overlapping-meaning) meaning-representation-formalism))
+
                (meaning
                 (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
                (cxn-name

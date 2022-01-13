@@ -81,11 +81,11 @@ based on existing construction with sufficient overlap."
                 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
                ;; Args
                (args-lex-cxn-1
-                (extract-args-from-predicates (first non-overlapping-meaning-cxn) meaning-representation-formalism))
+                (extract-args-from-predicate (first non-overlapping-meaning-cxn) meaning-representation-formalism))
                                             
                
                (args-lex-cxn-2
-                (extract-args-from-predicates (first non-overlapping-meaning-observation) meaning-representation-formalism)) 
+                (extract-args-from-predicate (first non-overlapping-meaning-observation) meaning-representation-formalism)) 
                
                ;; CXNs
                
