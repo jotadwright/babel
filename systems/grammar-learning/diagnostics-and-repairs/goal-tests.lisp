@@ -11,7 +11,7 @@
            (meaning (extract-meanings (left-pole-structure resulting-cfs)))
            (gold-standard-meanings (get-data resulting-cfs :meanings)))
       (when (find meaning gold-standard-meanings :test #'(lambda (m1 m2)
-                                                     (irl:equivalent-irl-programs? m1 m2)))
+                                                     (amr::equivalent-amr-predicate-networks m1 m2)))
         (set-data (blackboard (construction-inventory node)) :add-th-links-repair-failed nil)
         t))))
 

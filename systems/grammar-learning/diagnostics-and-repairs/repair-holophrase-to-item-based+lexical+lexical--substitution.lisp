@@ -38,7 +38,8 @@
 based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
-         (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)))))
+         (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
+         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))) 
 
     (multiple-value-bind (non-overlapping-meaning-observation
                           non-overlapping-meaning-cxn
@@ -80,9 +81,11 @@ based on existing construction with sufficient overlap."
                 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
                ;; Args
                (args-lex-cxn-1
-                (third (first non-overlapping-meaning-cxn))) ;; third if bind
+                (extract-args-from-predicates (first non-overlapping-meaning-cxn) meaning-representation-formalism))
+                                            
+               
                (args-lex-cxn-2
-                (third (first non-overlapping-meaning-observation))) ;; third if bind
+                (extract-args-from-predicates (first non-overlapping-meaning-observation) meaning-representation-formalism)) 
                
                ;; CXNs
                

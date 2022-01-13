@@ -585,3 +585,12 @@
           for lex-form = (extract-form-predicates lex-cxn)
           do (setf string-predicates-in-root (set-difference string-predicates-in-root lex-form :test #'irl:unify-irl-programs)))
     string-predicates-in-root)
+
+(defgeneric extract-args-from-predicates (predicate mode))
+
+(defmethod extract-args-from-predicates (predicate (mode (eql :irl)))
+  (third predicate))
+
+(defmethod extract-args-from-predicates (predicate (mode (eql :amr)))
+  (second predicate))
+

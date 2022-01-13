@@ -34,7 +34,7 @@
     (values utterance gold-standard-meaning)))
 
 (defun determine-communicative-success (cipn)
-  (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
+  (find 'SUCCEEDED (statuses cipn) :test #'string=)
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (when (or
            (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))

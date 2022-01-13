@@ -199,25 +199,30 @@
       (variablify-amr-network predicates)
       predicates)))
 
+
 (defun predicates->penman (predicate-network)
   "Transforms a predicate network into a Penman formatted meaning."
   (object->penman (predicates->object predicate-network)))
+
+
+(defparameter *amr-constants* '( expressive imperative + -))
 
 (defun variablify-amr-network (amr-predicates)
   (mapcar #'(lambda (predicate)
                (cons (first predicate)
                      (mapcar #'(lambda (symbol)
-                                 (cond ((stringp symbol)
+                                 (cond
+                                       ((stringp symbol)
                                         symbol)
                                        ((numberp symbol)
                                         symbol)
-                                       ((or (equal symbol '-)
-                                            (equal symbol '+))
+                                       ((or (find symbol *amr-constants*)
+                                            (find (symbol-name symbol) *amr-constants* :key #'symbol-name :test #'equalp))
                                         symbol)
                                        ((keywordp symbol)
                                         symbol)
                                        (t
-                                        (utils::variablify symbol))))
+                                        (variablify symbol))))
                              (rest predicate))))
            amr-predicates))
 

@@ -5,7 +5,7 @@
 
 (progn
   (deactivate-all-monitors)
-  (activate-monitor display-metrics)
+  ;(activate-monitor display-metrics)
   (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
@@ -21,3 +21,4 @@
                               (:meaning-representation . :amr)))))
 
 ;(run-interaction *experiment*)
+;(run-series *experiment* 300) 

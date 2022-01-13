@@ -47,7 +47,8 @@
                    :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
                                         (:parse-goal-tests :non-gold-standard-meaning)
                                         (:production-goal-tests :non-gold-standard-utterance)
-                                        (:de-render-mode . :de-render-string-meets-no-punct)
+                                        (:de-render-mode . :de-render-string-meets)
+                                        (:meaning-representation-formalism . :amr)
                                         (:render-mode . :generate-and-test)
                                         (:category-linking-mode . ,th-connected-mode)
                                         ; (:update-th-links . t) ;todo: check if it can be removed
