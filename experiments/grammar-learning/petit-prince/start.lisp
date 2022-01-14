@@ -22,6 +22,6 @@
 
 ;(run-interaction *experiment*)
 ;(comprehend "Ah !" :cxn-inventory (grammar (first (agents *experiment*))))
-;(run-series *experiment* 20)
+;(run-series *experiment* 108)
 
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
