@@ -32,7 +32,7 @@
 
 (in-package :grammar-learning)
 
-(defun empty-cxn-set (hide-type-hierarchy cxn-supplier th-connected-mode)
+(defun empty-cxn-set (hide-type-hierarchy cxn-supplier th-connected-mode de-render-mode)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions
@@ -47,7 +47,7 @@
                    :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
                                         (:parse-goal-tests :non-gold-standard-meaning)
                                         (:production-goal-tests :non-gold-standard-utterance)
-                                        (:de-render-mode . :de-render-string-meets)
+                                        (:de-render-mode . ,de-render-mode)
                                         (:meaning-representation-formalism . :amr)
                                         (:render-mode . :generate-and-test)
                                         (:category-linking-mode . ,th-connected-mode)

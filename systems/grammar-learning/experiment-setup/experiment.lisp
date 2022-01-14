@@ -17,7 +17,7 @@
 
 (define-configuration-default-value :observation-sample-mode :train) ; train, debug, development or evaluation
 (define-configuration-default-value :number-of-epochs 1) ; how many times the training data is concatenated in random variations
-
+(define-configuration-default-value :de-render-mode :de-render-string-meets)
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)

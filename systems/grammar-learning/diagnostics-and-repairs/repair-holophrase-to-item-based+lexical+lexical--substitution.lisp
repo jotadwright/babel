@@ -50,7 +50,7 @@ based on existing construction with sufficient overlap."
                           cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory utterance meaning)
       
-      (when cxn
+      (when (and cxn overlapping-form-cxn)
         
         (let* ((cxn-name-item-based-cxn
                 (make-cxn-name overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))
@@ -86,7 +86,7 @@ based on existing construction with sufficient overlap."
                
                (args-lex-cxn-2
                 (extract-args-from-predicate (first non-overlapping-meaning-observation) meaning-representation-formalism)) 
-               
+               (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
                ;; CXNs
                
                (new-lex-cxn-1
@@ -105,7 +105,7 @@ based on existing construction with sufficient overlap."
                                                                 :attributes (:cxn-type lexical
                                                                              :repair holophrase->item-based+lexical+lexical--substitution
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning-cxn :key #'first))
-                                                                             :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
+                                                                             :string ,hash-string)
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-lex-cxn-2
                 (or lex-cxn-2
