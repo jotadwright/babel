@@ -233,7 +233,7 @@
 
 
 
-#|
+
 (defgeneric meaning-predicates-with-variables (meaning mode))
 
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :irl)))
@@ -248,8 +248,6 @@
                           (mapcar #'variablify (rest predicate))))))
 
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :amr)))
-  |#
-(defun meaning-predicates-with-variables (meaning)
     "Transform meaning network with constants to meaning network with variables."
     (amr:variablify-amr-network meaning))
         

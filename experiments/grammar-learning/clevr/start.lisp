@@ -1,34 +1,34 @@
-(ql:quickload :clevr-grammar-learning)
-(in-package :clevr-grammar-learning)
-
-(defun summarize-cxn-types (cxn-inventory)
-  (let ((holophrase-cxns (sort (find-all 'gl::holophrase (constructions-list cxn-inventory)
-                                         :key #'get-cxn-type)  #'> :key (lambda (cxn) (attr-val cxn :score))))
-        (lexical-cxns (sort (find-all 'gl::lexical (constructions-list cxn-inventory)
-                                      :key #'get-cxn-type)  #'> :key (lambda (cxn) (attr-val cxn :score))))
-        (item-based-cxns (sort (find-all 'gl::item-based (constructions-list cxn-inventory)
-                                         :key #'get-cxn-type)  #'> :key (lambda (cxn) (attr-val cxn :score)))))
-        
-    (add-element `((h2) ,(format nil "Holophrases: ~a" (length holophrase-cxns))))
-    ;(loop for cxn in holophrase-cxns
-    ;      do (add-element (make-html cxn)))
-    (add-element '((hr)))
-    (add-element `((h2) ,(format nil "Lexical cxns: ~a" (length lexical-cxns))))
-    ;(loop for cxn in lexical-cxns
-    ;      do (add-element (make-html cxn)))
-    (add-element '((hr)))
-    (add-element `((h2) ,(format nil "Item-based cxns: ~a" (length item-based-cxns))))
-    ;(loop for cxn in item-based-cxns
-    ;      do (add-element (make-html cxn)))
-    (add-element '((hr)))
-    (add-element '((hr)))))
+(ql:quickload :grammar-learning)
+(in-package :grammar-learning)
 
 
-(defun failure-analysis (error-file cxn-inventory)
+
+(progn
+  (deactivate-all-monitors)
+  ;(activate-monitor display-metrics)
   (activate-monitor trace-fcg)
-  (loop for (utterance meaning) in error-file
-        do (comprehend utterance :gold-standard-meaning meaning :cxn-inventory cxn-inventory))
-  (deactivate-monitor trace-fcg))
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
+  (activate-monitor trace-interactions-in-wi))
+
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (defparameter *experiment*
+    (make-instance 'grammar-learning-experiment
+                   :entries `((:observation-sample-mode . :train)
+                              (:meaning-representation . :irl)
+                              (:de-render-mode . :de-render-string-meets-no-punct)
+                              (:corpus-files-root . ,(merge-pathnames
+                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
+                                     cl-user:*babel-corpora*))
+                              (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
+                                                   :name "stage-1" :type "jsonl"))))))
+
+
+;(run-interaction *experiment*)
+
         
 (defun run-training ()
   (wi::reset)
@@ -37,9 +37,14 @@
                        (,experiment-name
                         ((:determine-interacting-agents-mode . :corpus-learner)
                          (:observation-sample-mode . :train)
+                         (:meaning-representation . :irl)
+                         (:de-render-mode . :de-render-string-meets-no-punct)
+                         (:corpus-files-root . ,(merge-pathnames
+                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
+                                     cl-user:*babel-corpora*))
+                         (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
+                                                   :name "stage-1" :type "jsonl"))
                          (:number-of-epochs . 1)
-                         (:category-linking-mode . :neighbours)
-                         (:current-challenge-level . 1)
                          ))
                        )
                      :number-of-interactions 47133
@@ -50,7 +55,10 @@
                                        (get-all-lisp-monitors)
                                        (get-all-csv-monitors)))))
 
-(defun run-training-stage-2 (stored-grammar)
+
+
+
+#|(defun run-training-stage-2 (stored-grammar)
   ;(wi::reset)
   (let ((experiment-name 'training-stage-2))
     (run-experiments `(
@@ -103,7 +111,7 @@
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "evaluation-after-n-interactions")
                                        (get-all-export-monitors)
-                                       (get-all-csv-monitors)))))
+                                       (get-all-csv-monitors)))))|#
 
 #|
 (progn

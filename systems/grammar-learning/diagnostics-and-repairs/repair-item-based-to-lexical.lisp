@@ -63,7 +63,8 @@
           ;; construct the remaining cxn first
           (let* ((utterance (random-elt (get-data problem :utterances)))
                  (type-hierarchy (categorial-network original-cxn-inventory))
-                 (meaning-predicates-gold (meaning-predicates-with-variables (first (get-data problem :meanings))))
+                 (meaning-predicates-gold (meaning-predicates-with-variables (first (get-data problem :meanings))
+                                                                             meaning-representation-formalism))
                  (meaning-predicates-gold-minus-lex (subtract-lex-cxn-meanings matching-lex-cxns meaning-predicates-gold))
                  (meaning-predicates-observed (extract-meanings observation))
                  (meaning-predicates-lex-cxn (if (= 1 (length string-predicates-in-root))

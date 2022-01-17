@@ -74,8 +74,9 @@
    "
   (let* ((initial-transient-structure (initial-transient-structure node))
          (cxn-inventory (original-cxn-set (construction-inventory node)))
-         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
+                                                                   meaning-representation-formalism))
          (utterance (random-elt (get-data problem :utterances))))
     (multiple-value-bind (subset-holophrase-cxn
                           superset-form

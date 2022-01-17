@@ -2,20 +2,20 @@
 (ql:quickload :cl-json)
 
 (defparameter *train-file*
-  (parse-namestring "/Users/u0077062/OneDrive - KU Leuven/CLEVR_data/clevr-grammar-learning/source/CLEVR_train_corpus_comprehension.csv"))
+  (parse-namestring "/Users/u0148283/Projects/babel-corpora/seq2seq/comprehension-and-formulation-training-data/CLEVR_train_corpus_comprehension.csv"))
 
 (defparameter *validation-file*
-  (parse-namestring "/Users/u0077062/OneDrive - KU Leuven/CLEVR_data/clevr-grammar-learning/source/CLEVR_val_corpus_comprehension.csv"))
+  (parse-namestring "/Users/u0148283/Projects/babel-corpora/seq2seq/comprehension-and-formulation-training-data/CLEVR_val_corpus_comprehension.csv"))
 
 (defparameter *test-file*
-  (parse-namestring "/Users/u0077062/OneDrive - KU Leuven/CLEVR_data/clevr-grammar-learning/source/CLEVR_test_corpus_comprehension.csv"))
+  (parse-namestring "/Users/u0148283/Projects/babel-corpora/seq2seq/comprehension-and-formulation-training-data/CLEVR_test_corpus_comprehension.csv"))
 
 (defparameter *stage-1-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/test/stage-1.txt"))
+  (parse-namestring "/Users/u0148283/Projects/babel-corpora/clevr-grammar-learning/train/stage-1.jsonl"))
 (defparameter *stage-2-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/test/stage-2.txt"))
+  (parse-namestring "/Users/u0148283/Projects/babel-corpora/clevr-grammar-learning/train/stage-2.jsonl"))
 (defparameter *stage-3-file*
-  (parse-namestring "/Users/u0077062/Projects/babel-corpora/clevr-grammar-learning/test/stage-3.txt"))
+  (parse-namestring "/Users/u0148283/Projects/babel-corpora/clevr-grammar-learning/train/stage-3.jsonl"))
 
 
 (defparameter *stage-1-primitives*
@@ -49,7 +49,7 @@
                           (meaning (read-from-string meaning-string))
                           (predicates (remove 'bind (mapcar #'car meaning)))
                           (len (count #\space question))
-                          (json (cl-json:encode-json-to-string (list (cons "question" question)
+                          (json (cl-json:encode-json-to-string (list (cons "utterance" question)
                                                                      (cons "meaning" meaning-string)
                                                                      (cons "len" len)))))
                           
@@ -67,4 +67,4 @@
                             ;; move to stage-3 file
                             (write-line json s3))))))))))
 
-(main *test-file*)
+(main *train-file*)

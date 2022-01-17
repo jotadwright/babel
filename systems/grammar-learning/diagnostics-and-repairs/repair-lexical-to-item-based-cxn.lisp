@@ -40,7 +40,8 @@ based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
+         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
+                                                                   meaning-representation-formalism))
          (observed-form (extract-forms (left-pole-structure (car-source-cfs (cipn-car (initial-node node))))))
          (matching-lex-cxns (find-matching-lex-cxns cxn-inventory observed-form gold-standard-meaning utterance)))
          

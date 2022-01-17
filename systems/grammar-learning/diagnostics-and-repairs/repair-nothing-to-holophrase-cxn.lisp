@@ -33,8 +33,9 @@
   "Creates a holophrase-cxn."
   (let* ((processing-cxn-inventory (construction-inventory node))
          (cxn-inventory (original-cxn-set processing-cxn-inventory))
+         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (utterance (random-elt (get-data problem :utterances)))
-         (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))))
+         (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (cxn-name (make-cxn-name utterance cxn-inventory))
          (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
          ;; take the last element of the form constraints (the last word) and use it for hashing

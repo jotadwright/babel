@@ -31,3 +31,9 @@
 ;(run-series *experiment* 6952)
 
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
+
+(loop for el in (constructions-list (grammar (first (agents *experiment*))))
+      unless (eql (attr-val el :cxn-type) 'holophrase)
+      do (format t "~a~%" (name el))
+      unless (eql (attr-val el :cxn-type) 'holophrase)
+      count el)
