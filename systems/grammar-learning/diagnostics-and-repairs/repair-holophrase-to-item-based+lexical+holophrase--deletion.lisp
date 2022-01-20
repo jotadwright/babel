@@ -180,7 +180,7 @@
 
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car new-node)) :fix-cxns (list holophrase-cxn lexical-cxn item-based-cxn))
-      (set-data (car-resulting-cfs  (cipn-car new-node)) :fix-th-links th-links)
+      (set-data (car-resulting-cfs  (cipn-car new-node)) :fix-categorial-links th-links)
       ;; set cxn-supplier to second new node
       (setf (cxn-supplier new-node) (cxn-supplier node))
       ;; set statuses (colors in web interface)

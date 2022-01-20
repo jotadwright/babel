@@ -760,8 +760,8 @@ solution."
                   (get-configuration cip :consolidate-repairs)
                   (repairs node))
          (consolidate-repairs node)) ;; consolidate repairs!
-       (when (get-configuration cip :update-th-links)
-         (update-th-links node)))
+       (when (get-configuration cip :update-categorial-links)
+         (update-categorial-links node)))
      (unless (or (fully-expanded? node) ;;there are other children in the making
                  goal-test-succeeded?) ;;and the node did NOT pass the goal test
        (cip-enqueue node cip queue-mode))) ;;requeue it so the next children can be explored
@@ -796,9 +796,9 @@ solution."
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
-(defun update-th-links (solution-node)
-  #+:type-hierarchies
-  (loop with type-hierarchy = (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory solution-node)))
+(defun update-categorial-links (solution-node)
+  
+  (loop with categorial-network = (categorial-network (construction-inventory solution-node))
         for node in (append (reverse (all-parents solution-node)) (list solution-node))
         for applied-cxn = (first (applied-constructions node))
         for transient-structure = (left-pole-structure (car-resulting-cfs (cipn-car node)))
@@ -819,10 +819,10 @@ solution."
                       (when (and lex-class-cxn lex-class-ts)
                         (cond
                          ((eql lex-class-cxn lex-class-ts))
-                         ((type-hierarchies:neighbours-p lex-class-cxn lex-class-ts type-hierarchy)
-                          (type-hierarchies:incf-link-weight lex-class-cxn lex-class-ts type-hierarchy 0.1))
+                         ((link-exists-p lex-class-cxn lex-class-ts categorial-network)
+                          (incf-link-weight lex-class-cxn lex-class-ts categorial-network :delta 0.1))
                          (t
-                          (type-hierarchies:add-link lex-class-cxn lex-class-ts type-hierarchy :weight 0.1))))))))
+                          (add-link lex-class-cxn lex-class-ts categorial-network :weight 0.1))))))))
 
 (defun inform-search-heuristics (solution-node processing-direction) ;;should become a method later
   "Extract useful information from the solution to inform future
@@ -1134,13 +1134,13 @@ added here. Preprocessing is only used in parsing currently."
     (loop for cxn in (get-data (car-resulting-cfs (cipn-car node)) :fix-cxns)
           do (add-cxn cxn (original-cxn-set (construction-inventory node)))))
   ;; fix-th-links
-  #+:type-hierarchies 
-  (when (field? (car-resulting-cfs (cipn-car node)) :fix-th-links)
-    (loop for th-link in (get-data (car-resulting-cfs (cipn-car node)) :fix-th-links)
-          do (type-hierarchies:add-categories (list (car th-link) (cdr th-link))
-                                              (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory node))))
-          (type-hierarchies:add-link (car th-link) (cdr th-link) 
-                                     (type-hierarchies:get-type-hierarchy (original-cxn-set (construction-inventory node)))
+  
+  (when (field? (car-resulting-cfs (cipn-car node)) :fix-categorial-links)
+    (loop for cat-link in (get-data (car-resulting-cfs (cipn-car node)) :fix-categorial-links)
+          do (add-categories (list (car cat-link) (cdr cat-link))
+                             (original-cxn-set (construction-inventory node)))
+          (add-link (car cat-link) (cdr cat-link) 
+                                     (original-cxn-set (construction-inventory node))
                                      :weight 0.0)))
   ;; also add all applied cxns
   (loop with fcg-cxn-set = (original-cxn-set (construction-inventory node))

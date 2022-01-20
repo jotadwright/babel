@@ -182,7 +182,7 @@ based on existing construction with sufficient overlap."
       (set-categorial-network (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (subseq (restart-data fix) 0 3)) ;; add all learned cxns for consolidation
-      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links (subseq (restart-data fix) 3)) ;; add all th links for consolidation
+      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-categorial-links (subseq (restart-data fix) 3)) ;; add all th links for consolidation
       ;; set cxn-supplier to second new node
       (setf (cxn-supplier new-node-item-based) (cxn-supplier node))
       ;; set statuses (colors in web interface)

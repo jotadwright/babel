@@ -149,7 +149,7 @@
       (set-categorial-network (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of last new node
       (set-data (car-resulting-cfs (cipn-car last-node)) :fix-cxns (list new-lex-cxn))
-      (set-data (car-resulting-cfs (cipn-car last-node)) :fix-th-links th-flat-list)
+      (set-data (car-resulting-cfs (cipn-car last-node)) :fix-categorial-links th-flat-list)
       ;; set cxn-supplier to last new node
       (setf (cxn-supplier last-node) (cxn-supplier node))
       ;; set statuses (colors in web interface)

@@ -190,7 +190,7 @@
       (set-categorial-network (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (list (original-cxn lexical-cxn) (original-cxn item-based-cxn)))
-      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-th-links th-links)
+      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-categorial-links th-links)
       ;; set cxn-supplier to second new node
       (setf (cxn-supplier new-node-item-based) (cxn-supplier node))
       ;; set statuses (colors in web interface)

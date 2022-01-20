@@ -56,7 +56,7 @@
                                         (:meaning-representation-formalism . ,meaning-representation-formalism)
                                         (:render-mode . :generate-and-test)
                                         (:category-linking-mode . ,th-connected-mode)
-                                        (:update-th-links . t) ;todo: check if it can be removed
+                                        (:update-categorial-links . t)
                                         (:consolidate-repairs . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)

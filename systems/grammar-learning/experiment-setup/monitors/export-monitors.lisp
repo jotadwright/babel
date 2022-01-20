@@ -84,7 +84,7 @@
          ;; so get the weight separately
          (all-edges-with-weight
           (loop for (from to etype) in all-edges
-                for w = (link-weight (categorial-network cxn-inventory) from to etype)
+                for w = (link-weight from to (categorial-network cxn-inventory) :link-type etype)
                 collect (list (mkstr from) (mkstr to) w))))
     (ensure-directories-exist path)
     (with-open-file (stream path :direction :output

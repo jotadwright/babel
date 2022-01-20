@@ -47,7 +47,7 @@
                          (:number-of-epochs . 1)
                          ))
                        )
-                     :number-of-interactions 100
+                     :number-of-interactions 1000
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
