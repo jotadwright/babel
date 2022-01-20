@@ -125,15 +125,15 @@
                 :file-name (babel-pathname :name "type-hierarchy" :type "pdf"
                                             :directory '("experiments" "clevr-grammar-learning" "raw-data")))
 
-(defun export-type-hierarchy-to-image (type-hierarchy path)
-  (type-hierarchy->image
-   type-hierarchy :render-program "fdp" :weights? t
+(defun export-type-hierarchy-to-image (categorial-network path)
+  (categorial-network->image
+   categorial-network :render-program "fdp" :weights? t
    :path (make-pathname :directory (pathname-directory path))
    :file-name (pathname-name path)
    :format "pdf"))
 
 (defun remove-non-connected-nodes (th)
-  (let ((graph (graph th)))
+  (let ((graph (fcg::graph th)))
     (loop for category being each hash-key of (graph-utils::nodes graph)
           when (= (graph-utils::degree graph category) 0)
           do (graph-utils::delete-node graph category))
