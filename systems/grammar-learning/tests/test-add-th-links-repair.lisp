@@ -1,5 +1,5 @@
-(ql:quickload :clevr-grammar-learning)
-(in-package :clevr-grammar-learning)
+(ql:quickload :grammar-learning)
+(in-package :grammar-learning)
 
 
 
@@ -54,7 +54,7 @@
 (defun set-up-cxn-inventory-and-repairs ()
   (wi::reset)
   (notify reset-monitors)
-  (make-instance 'clevr-grammar-learning-experiment
+  (make-instance 'grammar-learning-experiment
                  :entries '((:observation-sample-mode . :debug) ;; random or sequential
                             (:determine-interacting-agents-mode . :corpus-learner)
                             (:remove-cxn-on-lower-bound . nil)
@@ -152,9 +152,7 @@
                                          (bind attribute-category ?attribute-6 size)
                                          (filter ?target-1 ?source-1 ?shape-4)
                                          (bind color-category ?color-8 yellow)
-                                         (query ?target-4 ?target-object-1 ?attribute-6)))
-    
-    )
+                                         (query ?target-4 ?target-object-1 ?attribute-6))))
 
 (defun test-add-th-links-repair-production ()
   (defparameter *inventory* (grammar (first (agents (set-up-cxn-inventory-and-repairs)))))
