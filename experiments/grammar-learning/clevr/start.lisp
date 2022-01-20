@@ -26,7 +26,7 @@
                               (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                    :name "stage-1" :type "jsonl"))))))
 
-
+(defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 ;(run-interaction *experiment*)
 
         
@@ -47,7 +47,7 @@
                          (:number-of-epochs . 1)
                          ))
                        )
-                     :number-of-interactions 47133
+                     :number-of-interactions 100
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
@@ -55,8 +55,7 @@
                                        (get-all-lisp-monitors)
                                        (get-all-csv-monitors)))))
 
-
-
+;(run-training)
 
 #|(defun run-training-stage-2 (stored-grammar)
   ;(wi::reset)

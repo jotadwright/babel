@@ -30,6 +30,8 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
+
+
 (in-package :grammar-learning)
 
 
@@ -51,11 +53,10 @@
                                         (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,de-render-mode)
                                         (:meaning-representation-formalism . :amr)
-                                        (:de-render-mode . :de-render-string-meets)
                                         (:meaning-representation-formalism . ,meaning-representation-formalism)
                                         (:render-mode . :generate-and-test)
                                         (:category-linking-mode . ,th-connected-mode)
-                                        ; (:update-th-links . t) ;todo: check if it can be removed
+                                        (:update-th-links . t) ;todo: check if it can be removed
                                         (:consolidate-repairs . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
