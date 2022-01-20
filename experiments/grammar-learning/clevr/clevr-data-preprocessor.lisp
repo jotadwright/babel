@@ -1,21 +1,40 @@
 
 (ql:quickload :cl-json)
 
+
+(defun merge-paths-recursively (path-list)
+  (cond
+   ((null path-list) (make-pathname :directory '(:relative ".")))
+   ((atom path-list) (eval `(make-pathname :directory '(:relative ,path-list))))
+   (t (merge-pathnames (merge-paths-recursively (cdr path-list))
+                       (merge-paths-recursively (car path-list))))))
+
+(defun babel-corpora-pathname (sub-path-list &key file-name file-extension)
+  (let ((dir-name (merge-pathnames
+                   (merge-paths-recursively sub-path-list)
+                   cl-user:*babel-corpora*)))
+    
+    (if (and file-name file-extension)
+      (merge-pathnames (make-pathname :name file-name :type file-extension) dir-name)                  
+      dir-name)))
+
+(babel-corpora-pathname '("seq2seq" "comprehension-and-formulation-training-data")
+                        :file-name "CLEVR_train_corpus_comprehension"
+                        :file-extension "csv")
+
 (defparameter *train-file*
-  (parse-namestring "/Users/u0148283/Projects/babel-corpora/seq2seq/comprehension-and-formulation-training-data/CLEVR_train_corpus_comprehension.csv"))
+  (babel-corpora-pathname '("seq2seq" "comprehension-and-formulation-training-data")
+                          :file-name "CLEVR_train_corpus_comprehension"
+                          :file-extension "csv"))
 
 (defparameter *validation-file*
-  (parse-namestring "/Users/u0148283/Projects/babel-corpora/seq2seq/comprehension-and-formulation-training-data/CLEVR_val_corpus_comprehension.csv"))
-
+  (babel-corpora-pathname '("seq2seq" "comprehension-and-formulation-training-data")
+                          :file-name "CLEVR_val_corpus_comprehension"
+                          :file-extension "csv"))
 (defparameter *test-file*
-  (parse-namestring "/Users/u0148283/Projects/babel-corpora/seq2seq/comprehension-and-formulation-training-data/CLEVR_test_corpus_comprehension.csv"))
-
-(defparameter *stage-1-file*
-  (parse-namestring "/Users/u0148283/Projects/babel-corpora/clevr-grammar-learning/train/stage-1.jsonl"))
-(defparameter *stage-2-file*
-  (parse-namestring "/Users/u0148283/Projects/babel-corpora/clevr-grammar-learning/train/stage-2.jsonl"))
-(defparameter *stage-3-file*
-  (parse-namestring "/Users/u0148283/Projects/babel-corpora/clevr-grammar-learning/train/stage-3.jsonl"))
+  (babel-corpora-pathname '("seq2seq" "comprehension-and-formulation-training-data")
+                          :file-name "CLEVR_test_corpus_comprehension"
+                          :file-extension "csv"))
 
 
 (defparameter *stage-1-primitives*
@@ -28,14 +47,23 @@
            equal? exist filter get-context intersect
            query relate same union! unique))
 
-(defun main (data-path)
-  (with-open-file (s1 *stage-1-file* :direction :output
+(defun main (data-path &key mode-string)
+  (let ((stage-1-file (eval `(babel-corpora-pathname '("clevr-grammar-learning" ,mode-string)
+                          :file-name "stage-1"
+                          :file-extension "jsonl")))
+        (stage-2-file (eval `(babel-corpora-pathname '("clevr-grammar-learning" ,mode-string)
+                          :file-name "stage-2"
+                          :file-extension "jsonl")))
+        (stage-3-file (eval `(babel-corpora-pathname '("clevr-grammar-learning" ,mode-string)
+                          :file-name "stage-3"
+                          :file-extension "jsonl"))))
+  (with-open-file (s1 stage-1-file :direction :output
                       :if-exists :supersede
                       :if-does-not-exist :create)
-    (with-open-file (s2 *stage-2-file* :direction :output
+    (with-open-file (s2 stage-2-file :direction :output
                         :if-exists :supersede
                         :if-does-not-exist :create)
-      (with-open-file (s3 *stage-3-file* :direction :output
+      (with-open-file (s3 stage-3-file :direction :output
                           :if-exists :supersede
                           :if-does-not-exist :create)
         (with-open-file (stream data-path :direction :input)
@@ -65,6 +93,8 @@
                             (write-line json s2))
                            (t
                             ;; move to stage-3 file
-                            (write-line json s3))))))))))
+                            (write-line json s3)))))))))))
 
-(main *train-file*)
+(main *train-file* :mode-string "train")
+(main *validation-file* :mode-string "val")
+(main *test-file* :mode-string "test")
