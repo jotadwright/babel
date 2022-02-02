@@ -134,18 +134,22 @@
           (alignment learner (get-data learner 'topic)
                      (find-data learner 'applied-concept)))
         ;; alignment when learner is speaker
-        ;; reasons for failure:
-        ;; - the learner could not conceptualise --> do nothing
-        ;; - the tutor's interpretation failed 
-        ;;   because the learner said the wrong thing
-        ;;   --> ??
-        ;; - the tutor's and learner's topics are not equal
-        ;;   --> ??
-        ;; or there was success --> update the concept!
-        (when (and (communicated-successfully tutor)
-                   (communicated-successfully learner))
+        (cond
+         ;; success? do alignment
+         ((and (communicated-successfully tutor)
+               (communicated-successfully learner))
           (alignment learner (get-data learner 'topic)
-                     (find-data learner 'applied-concept)))))))
+                     (find-data learner 'applied-concept)))
+         ;; learner could not conceptualise? do nothing
+         ((null (find-data learner 'applied-concept))
+          (format t "1"))
+         ;; learner could conceptualise, but interpretation failed?
+         ;; do nothing
+         ((null (find-data tutor 'interpreted-topic))
+          (format t "2"))
+         ;; learner could conceptualise and interpretation succeeded
+         ;; but incorrectly? do nothing
+         (t (format t "3")))))))
 
 
 ;;;;

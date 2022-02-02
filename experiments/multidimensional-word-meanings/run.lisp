@@ -19,7 +19,7 @@
   (make-configuration
    :entries '((:experiment-type . :baseline)
               (:world-type . :simulated)
-              (:determine-interacting-agents-mode . :tutor-speaks))))
+              (:determine-interacting-agents-mode . :default))))
 
 (defparameter *baseline-extracted*
   (make-configuration
@@ -58,7 +58,7 @@
 ;;;; EXPERIMENT
 (defparameter *experiment*
   (make-instance 'mwm-experiment
-                 :configuration *incremental-extracted*))
+                 :configuration *baseline-simulated*))
 
 (run-interaction *experiment*)
 
@@ -82,12 +82,13 @@
                    (test
                     ((:experiment-type . :baseline)
                      (:world-type . :extracted)
-                     (:determine-interacting-agents-mode . :tutor-speaks)))
+                     (:determine-interacting-agents-mode . :default)))
                    )
-                 :number-of-interactions 2500
-                 :number-of-series 3
+                 :number-of-interactions 2000
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
+                                 "export-communicative-success-given-conceptualisation"
                                  ;"export-features-per-form"
                                  ;"export-lexicon-evolution"
                                  ;"export-tutor-utterance-length-1"
@@ -105,9 +106,10 @@
 (create-graph-for-single-strategy
  :experiment-name "test"
  :measure-names '("communicative-success"
+                  "communicative-success-given-conceptualisation"
                   "lexicon-size")
- :average-windows '(100 1)
- :y-axis '(1 2)
+ :average-windows '(200 200 1)
+ :y-axis '(1 1 2)
  :y1-max 1
  :y2-max nil
  :xlabel "Number of games"

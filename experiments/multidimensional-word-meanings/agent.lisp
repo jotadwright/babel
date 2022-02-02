@@ -153,7 +153,7 @@
           = (with-disabled-monitors (run-tutor-conceptualisation tutor))
           if possible-to-conceptualise-symbolically
           return (run-learner-conceptualisation agent)
-          else do (before-interaction (experiment agent)))))
+          else do (sample-topic (experiment agent)))))
 
 (defmethod run-learner-conceptualisation ((agent mwm-agent))
   "The learner conceptualises the topic using a single cxn."
@@ -170,6 +170,7 @@
                     maximize (weighted-similarity object concept))
             for delta = (- topic-similarity best-other-similarity)
             when (and (> topic-similarity best-other-similarity)
+                      (< best-other-similarity 0)
                       (> delta biggest-delta)
                       (> topic-similarity best-similarity))
             do (setf most-discriminating-concept concept
@@ -296,7 +297,7 @@
                                   (list best-cxn)))))))
   (notify conceptualisation-finished agent)
   (find-data agent 'applied-cxns))
- |#
+|#
          
                                  
 
@@ -376,18 +377,18 @@
                collect (cons (id object) (object->alist object)))))
     (loop for (id . object) in all-objects-as-alist
           for object-attributes = (mapcar (compose #'downcase #'mkstr #'cdr) object)
-          when (loop for form in utterance
-                     always (member form object-attributes :test #'string=))
+          when (member utterance object-attributes :test #'string=)
           collect (find id objects :key #'id))))
 
 (defmethod tutor-interpret ((agent mwm-agent))
   ;; if the learner says 'blue', the tutor will find
   ;; all objects that are indeed blue. If the tutor finds more
   ;; than one object, interpretation fails.
-  ;; this should also work for multi-word utterances.
+  ;; there is no guessing
   (let ((objects-with-utterance
-         (match-utterance-to-objects (objects (get-data agent 'clevr-context))
-                                     (utterance agent))))   
+         (match-utterance-to-objects
+          (objects (get-data agent 'tutor-context))
+          (utterance agent))))
     (when (and objects-with-utterance
                (length= objects-with-utterance 1))
       (set-data agent 'interpreted-topic (first objects-with-utterance))))

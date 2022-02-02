@@ -13,7 +13,7 @@
 (define-monitor display-communicative-success
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
-                :data-sources '((average record-communicative-success))
+                :data-sources '(record-communicative-success)
                 :update-interval 100
                 :caption '("communicative success")
                 :x-label "# Games" 
@@ -33,6 +33,32 @@
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
+
+;;;; Communicative Success given Conceptualisation
+(define-monitor record-communicative-success-given-conceptualisation
+                :class 'data-recorder
+                :average-window 100
+                :documentation "records the game outcome of each game (1 or 0).")
+
+(define-monitor export-communicative-success-given-conceptualisation
+                :class 'lisp-data-file-writer
+                :documentation "Exports communicative success"
+                :data-sources '(record-communicative-success-given-conceptualisation)
+                :file-name (babel-pathname :name "communicative-success-given-conceptualisation" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :column-separator " "
+                :comment-string "#")
+
+(define-event-handler (record-communicative-success-given-conceptualisation interaction-finished)
+  (record-value monitor (determine-communicative-success-given-conceptualisation interaction monitor)))
+
+(defun determine-communicative-success-given-conceptualisation (interaction monitor)
+  (if (eql (tutor interaction) (speaker interaction))
+    (if (communicated-successfully interaction) 1 0)
+    (if (find-data (speaker interaction) 'applied-concept)
+      (if (communicated-successfully interaction) 1 0)
+      (if (caaar (monitors::get-values monitor)) (caaar (monitors::get-values monitor)) 0))))
 
 
 ;;;; Lexicon size
@@ -55,7 +81,7 @@
   (length (lexicon agent)))
 
 (define-event-handler (record-lexicon-size interaction-finished)
-  (record-value monitor (get-lexicon-size (hearer experiment))))
+  (record-value monitor (get-lexicon-size (learner experiment))))
 
 
 ;;;; Monitor that tracks what the tutor uses when the interaction fails
