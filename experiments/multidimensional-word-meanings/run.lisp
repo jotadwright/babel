@@ -14,86 +14,51 @@
 ;; + Run interactions +
 ;; --------------------
 
-;; define some import path variables
-(progn
-  (defparameter *baseline-simulated-data-sets* '("val"))
-  (defparameter *baseline-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                     cl-user:*babel-corpora*))
-  
-  (defparameter *cogent-simulated-data-sets* '("valA"))
-  (defparameter *cogent-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
-                     cl-user:*babel-corpora*))
-  
-  
-  (defparameter *incremental-simulated-data-sets* '("phase_1"))
-  (defparameter *incremental-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-incremental" "scenes" "phase_1-ns_vqa"))
-                     cl-user:*babel-corpora*)))
-
-;; define some configurations
-(progn
-(defparameter *baseline-simulated-configuration*
+;;;; CONFIGURATIONS
+(defparameter *baseline-simulated*
   (make-configuration
-   :entries `((:experiment-type . :baseline)
-              (:data-type . :simulated)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks) 
-              (:data-sets . ,*baseline-simulated-data-sets*))))
+   :entries '((:experiment-type . :baseline)
+              (:world-type . :simulated)
+              (:determine-interacting-agents-mode . :tutor-speaks))))
 
-(defparameter *baseline-extracted-configuration*
+(defparameter *baseline-extracted*
   (make-configuration
-   :entries `((:experiment-type . :baseline)
-              (:data-type . :extracted)
-              (:category-representation . :prototype)
+   :entries '((:experiment-type . :baseline)
+              (:world-type . :extracted)
+              (:determine-interacting-agents-mode . :tutor-speaks))))
+
+(defparameter *cogent-simulated*
+  (make-configuration
+   :entries '((:experiment-type . :cogent)
+              (:world-type . :simulated)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:data-sets . ,*baseline-simulated-data-sets*)
-              (:data-path . ,*baseline-extracted-data-path*)
-              (:extracted-colour-space . :hsv))))
+              (:switch-conditions-after-n-interactions . 100))))
 
-(defparameter *cogent-simulated-configuration*
+(defparameter *cogent-extracted*
   (make-configuration
-   :entries `((:experiment-type . :cogent)
-              (:data-type . :simulated)
-              (:category-representation . :prototype)
+   :entries '((:experiment-type . :cogent)
+              (:world-type . :extracted)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,500)
-              (:data-sets . ,*cogent-simulated-data-sets*))))
+              (:switch-conditions-after-n-interactions . 100))))
 
-(defparameter *cogent-extracted-configuration*
+(defparameter *incremental-simulated*
   (make-configuration
-   :entries `((:experiment-type . :cogent)
-              (:data-type . :extracted)
-              (:category-representation . :prototype)
+   :entries '((:experiment-type . :incremental)
+              (:world-type . :simulated)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,100)
-              (:data-sets . ,*cogent-simulated-data-sets*)
-              (:data-path . ,*cogent-extracted-data-path*))))
+              (:switch-conditions-after-n-interactions . 100))))
 
-(defparameter *incremental-simulated-configuration*
+(defparameter *incremental-extracted*
   (make-configuration
-   :entries `((:experiment-type . :incremental)
-              (:data-type . :simulated)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :default)
-              (:switch-conditions-after-n-interactions . 1000)
-              (:data-sets . ,*incremental-simulated-data-sets*))))
-
-(defparameter *incremental-extracted-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :incremental)
-              (:data-type . :extracted)
-              (:category-representation . :prototype)
+   :entries '((:experiment-type . :incremental)
+              (:world-type . :extracted)
               (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . 10)
-              (:data-sets . ,*incremental-simulated-data-sets*)
-              (:data-path . ,*incremental-extracted-data-path*))))
-)
+              (:switch-conditions-after-n-interactions . 100))))
 
+;;;; EXPERIMENT
 (defparameter *experiment*
   (make-instance 'mwm-experiment
-                 :configuration *baseline-simulated-configuration*))
+                 :configuration *incremental-extracted*))
 
 (run-interaction *experiment*)
 
@@ -115,19 +80,14 @@
 
 (run-experiments `(
                    (test
-                    ((:experiment-type . :cogent)
-                     (:data-type . :simulated)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:data-sets . ,*cogent-simulated-data-sets*)
-                     (:data-path . ,*cogent-extracted-data-path*)
-                     (:switch-conditions-after-n-interactions . ,500)
-                     (:extracted-colour-space . :hsv)))
+                    ((:experiment-type . :baseline)
+                     (:world-type . :extracted)
+                     (:determine-interacting-agents-mode . :tutor-speaks)))
                    )
                  :number-of-interactions 2500
-                 :number-of-series 5
+                 :number-of-series 3
                  :monitors (list "export-communicative-success"
-                                 ;"export-lexicon-size"
+                                 "export-lexicon-size"
                                  ;"export-features-per-form"
                                  ;"export-lexicon-evolution"
                                  ;"export-tutor-utterance-length-1"
@@ -144,12 +104,27 @@
 
 (create-graph-for-single-strategy
  :experiment-name "test"
- :measure-names '("com-success")
- :y-axis '(1)
+ :measure-names '("communicative-success"
+                  "lexicon-size")
+ :average-windows '(100 1)
+ :y-axis '(1 2)
  :y1-max 1
+ :y2-max nil
  :xlabel "Number of games"
- :y1-label "Success"
- :start 0)
+ :y1-label "Communicative Success"
+ :y2-label "Concept Repertoire Size"
+ :open t)
+
+(create-tutor-word-use-graph
+ :configurations
+ '((:experiment-type . :baseline)
+   (:world-type . :extracted)
+   (:determine-interacting-agents-mode . :tutor-speaks))
+ :nr-of-interactions 2500)
+
+
+
+
 
 (create-graph-for-single-strategy
  :experiment-name "test-extracted-filter-one"

@@ -18,11 +18,11 @@
     :number-of-series number-of-series
     :monitors monitors
     :shared-configuration shared-configurations
-    :configurations strategies
+    :named-configurations strategies
     :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
-(defun create-graph-for-single-strategy (&key experiment-name measure-names
+(defun create-graph-for-single-strategy (&key experiment-name measure-names average-windows
                                               y-axis y1-max y2-max xlabel y1-label y2-label
                                               captions (open t) start)
   ;; This function allows you to plot one or more measures for a single experiment
@@ -32,7 +32,7 @@
     :raw-file-paths
     (loop for measure-name in measure-names
           collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment-name ,measure-name))
-    :average-windows 50
+    :average-windows average-windows
     :plot-directory `("experiments" "multidimensional-word-meanings" "graphs")
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
@@ -125,54 +125,3 @@
      :error-bars :stdev
      :y-max y-max
      :open open)))
-
-;;;; cxn -> json
-(defgeneric cxn->json (cxn category-representation)
-  (:documentation "Export the cxn to json such that it can be used later"))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :min-max)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:lower--bound . ,(lower-bound category))
-                                 (:upper--bound . ,(upper-bound category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :prototype-min-max)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:lower--bound . ,(lower-bound category))
-                                 (:upper--bound . ,(upper-bound category))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:lower--m . ,(lower-m category))
-                                 (:lower--b . ,(lower-b category))
-                                 (:upper--m . ,(upper-m category))
-                                 (:lower--b . ,(lower-b category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
-
-(defmethod cxn->json ((cxn fcg-construction) (category-representation (eql :exponential)))
-  `((:form . ,(attr-val cxn :form))
-    (:meaning . ,(loop for (category . certainty) in (attr-val cxn :meaning)
-                       collect `((:attribute . ,(mkstr (attribute category)))
-                                 (:prototype . ,(prototype category))
-                                 (:nr--samples . ,(nr-samples category))
-                                 (:M2 . ,(M2 category))
-                                 (:left--sigma . ,(left-sigma category))
-                                 (:right--sigma . ,(right-sigma category))
-                                 (:certainty . ,certainty))))
-    (:type . ,(mkstr (type-of (car (first (attr-val cxn :meaning))))))))
