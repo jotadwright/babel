@@ -85,19 +85,34 @@
 (defgeneric categorial-network (thing)
   (:documentation "Returns the categorial network of a grammar, an agent, ..."))
 
+(defmethod categorial-network ((cxn-inventory hashed-fcg-construction-set))
+  "Returns the categorial-network of a hashed cxn-inventory."
+  (when (field? (blackboard cxn-inventory) :categorial-network)
+    (get-data (blackboard cxn-inventory) :categorial-network)))
+
 (defmethod categorial-network ((cxn-inventory fcg-construction-set))
   "Returns the categorial-network of a cxn-inventory."
   (when (field? (blackboard cxn-inventory) :categorial-network)
     (get-data (blackboard cxn-inventory) :categorial-network)))
 
+(defmethod categorial-network ((cxn-inventory construction-set))
+  "Returns the categorial-network of a non-original cxn-inventory."
+  (categorial-network (original-cxn-set cxn-inventory)))
 
 (defgeneric set-categorial-network (thing categorial-network)
   (:documentation "Sets the categorial network of a grammar, an agent, ..."))
+
+(defmethod set-categorial-network ((cxn-inventory hashed-fcg-construction-set) categorial-network)
+  "Sets the categorial network of a hashed cxn-inventory"
+  (set-data (blackboard cxn-inventory) :categorial-network categorial-network))
 
 (defmethod set-categorial-network ((cxn-inventory fcg-construction-set) categorial-network)
   "Sets the categorial network of a cxn-inventory"
   (set-data (blackboard cxn-inventory) :categorial-network categorial-network))
 
+(defmethod set-categorial-network ((cxn-inventory construction-set) categorial-network)
+  "Sets the categorial network of a non-original cxn-inventory"
+  (set-categorial-network (original-cxn-set cxn-inventory) categorial-network))
 
 (defgeneric categories (thing)
   (:documentation "Returns the categories in the network of a grammar."))
@@ -107,6 +122,10 @@
   (graph-utils:list-nodes (graph categorial-network)))
 
 (defmethod categories ((cxn-inventory fcg-construction-set))
+  "Lists categories in categorial-network."
+  (categories (categorial-network cxn-inventory)))
+
+(defmethod categories ((cxn-inventory hashed-fcg-construction-set))
   "Lists categories in categorial-network."
   (categories (categorial-network cxn-inventory)))
 
@@ -122,6 +141,10 @@
   "Lists categories in categorial-network."
   (links (categorial-network cxn-inventory)))
 
+(defmethod links ((cxn-inventory hashed-fcg-construction-set))
+  "Lists categories in categorial-network."
+  (links (categorial-network cxn-inventory)))
+
 
 (defgeneric link-types (thing)
   (:documentation "Returns the types of links in the network of a grammar."))
@@ -131,6 +154,10 @@
   (graph-utils::edge-types (graph categorial-network)))
 
 (defmethod link-types ((cxn-inventory fcg-construction-set))
+  "Lists link types in categorial-network."
+  (link-types (categorial-network cxn-inventory)))
+
+(defmethod link-types ((cxn-inventory hashed-fcg-construction-set))
   "Lists link types in categorial-network."
   (link-types (categorial-network cxn-inventory)))
 
@@ -146,6 +173,10 @@
   "predicate for checking whether category is part of network"
   (category-exists-p category (categorial-network cxn-inventory)))
 
+(defmethod category-exists-p ((category symbol) (cxn-inventory hashed-fcg-construction-set))
+  "predicate for checking whether category is part of network"
+  (category-exists-p category (categorial-network cxn-inventory)))
+
 
 (defgeneric link-exists-p (category-1 category-2 thing &key link-type)
   (:documentation "Predicate that checks whether a link exists."))
@@ -155,6 +186,10 @@
   (second (multiple-value-list (graph-utils:edge-exists? (graph categorial-network) category-1 category-2 :edge-type link-type))))
 
 (defmethod link-exists-p ((category-1 symbol) (category-2 symbol) (cxn-inventory fcg-construction-set) &key link-type)
+  "predicate for checking whether category is part of network"
+  (link-exists-p category-1 category-2 (categorial-network cxn-inventory) :link-type link-type))
+
+(defmethod link-exists-p ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) &key link-type)
   "predicate for checking whether category is part of network"
   (link-exists-p category-1 category-2 (categorial-network cxn-inventory) :link-type link-type))
 
@@ -177,6 +212,10 @@
   "Adds a category to the categorial network of a grammar."
   (add-category category (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
 
+(defmethod add-category ((category symbol) (cxn-inventory hashed-fcg-construction-set) &key (recompute-transitive-closure t))
+  "Adds a category to the categorial network of a grammar."
+  (add-category category (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
+
 
 (defgeneric add-categories (categories thing &key recompute-transitive-closure))
 
@@ -191,6 +230,10 @@
         (return categorial-network)))
 
 (defmethod add-categories ((categories list) (cxn-inventory fcg-construction-set) &key (recompute-transitive-closure t))
+  "Adds a list of categories to the categorial network of a grammar."
+  (add-categories categories (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
+
+(defmethod add-categories ((categories list) (cxn-inventory hashed-fcg-construction-set) &key (recompute-transitive-closure t))
   "Adds a list of categories to the categorial network of a grammar."
   (add-categories categories (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
 
@@ -210,6 +253,10 @@
   "Removes a category from the categorial network of a grammar."
   (remove-category category (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
 
+(defmethod remove-category ((category symbol) (cxn-inventory hashed-fcg-construction-set) &key (recompute-transitive-closure t))
+  "Removes a category from the categorial network of a grammar."
+  (remove-category category (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
+
 
 (defgeneric remove-categories (categories thing &key recompute-transitive-closure)
   (:documentation "Removes a list  of categories from the categorial network."))
@@ -224,6 +271,10 @@
         (return categorial-network)))
 
 (defmethod remove-categories ((categories list) (cxn-inventory fcg-construction-set) &key (recompute-transitive-closure t))
+  "Removes a list of categories to the categorial network of a grammar."
+  (remove-categories categories (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
+
+(defmethod remove-categories ((categories list) (cxn-inventory hashed-fcg-construction-set) &key (recompute-transitive-closure t))
   "Removes a list of categories to the categorial network of a grammar."
   (remove-categories categories (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
 
@@ -248,6 +299,10 @@
   categorial-network)
 
 (defmethod add-link ((category-1 symbol) (category-2 symbol) (cxn-inventory fcg-construction-set) &key (weight 0.5) link-type (recompute-transitive-closure t))
+  "Add link to categorial-network of cxn-inventory."
+  (add-link category-1 category-2 (categorial-network cxn-inventory) :weight weight :link-type link-type :recompute-transitive-closure recompute-transitive-closure))
+
+(defmethod add-link ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) &key (weight 0.5) link-type (recompute-transitive-closure t))
   "Add link to categorial-network of cxn-inventory."
   (add-link category-1 category-2 (categorial-network cxn-inventory) :weight weight :link-type link-type :recompute-transitive-closure recompute-transitive-closure))
 
@@ -276,7 +331,9 @@
   "Remove link from categorial-network of cxn-inventory."
   (remove-link category-1 category-2 (categorial-network cxn-inventory) :link-type link-type :recompute-transitive-closure recompute-transitive-closure))
 
-
+(defmethod remove-link ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) &key link-type (recompute-transitive-closure t))
+  "Remove link from categorial-network of cxn-inventory."
+  (remove-link category-1 category-2 (categorial-network cxn-inventory) :link-type link-type :recompute-transitive-closure recompute-transitive-closure))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modifying the weights on the nodes ;;
@@ -302,6 +359,10 @@
   "Returns the weight of a link."
   (link-weight category-1 category-2 (categorial-network cxn-inventory) :link-type link-type))
 
+(defmethod link-weight ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) &key link-type)
+  "Returns the weight of a link."
+  (link-weight category-1 category-2 (categorial-network cxn-inventory) :link-type link-type))
+
 
 (defgeneric set-link-weight (category-1 category-2 thing weight &key link-type)
   (:documentation "Sets the weight of a link."))
@@ -313,6 +374,10 @@
   (graph-utils:set-edge-weight (graph categorial-network) category-1 category-2 weight :edge-type link-type))
 
 (defmethod set-link-weight ((category-1 symbol) (category-2 symbol) (cxn-inventory fcg-construction-set) (weight number) &key link-type)
+  "Sets the weight of a link."
+  (set-link-weight category-1 category-2 (categorial-network cxn-inventory) weight :link-type link-type))
+
+(defmethod set-link-weight ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) (weight number) &key link-type)
   "Sets the weight of a link."
   (set-link-weight category-1 category-2 (categorial-network cxn-inventory) weight :link-type link-type))
 
@@ -328,6 +393,10 @@
   "Increments a link-weight."
   (incf-link-weight category-1 category-2 (categorial-network cxn-inventory) :delta delta :link-type link-type))
 
+(defmethod incf-link-weight ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) &key (delta 0.1) link-type)
+  "Increments a link-weight."
+  (incf-link-weight category-1 category-2 (categorial-network cxn-inventory) :delta delta :link-type link-type))
+
 
 (defgeneric decf-link-weight (category-1 category-2 categorial-network &key delta link-type)
   (:documentation "Decrements a link-weight."))
@@ -337,6 +406,10 @@
   (graph-utils:decf-edge-weight (graph categorial-network) category-1 category-2 :delta delta :edge-type link-type))
 
 (defmethod decf-link-weight ((category-1 symbol) (category-2 symbol) (cxn-inventory fcg-construction-set) &key (delta 0.1) link-type)
+  "Decrements a link-weight."
+  (decf-link-weight category-1 category-2 (categorial-network cxn-inventory) :delta delta :link-type link-type))
+
+(defmethod decf-link-weight ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) &key (delta 0.1) link-type)
   "Decrements a link-weight."
   (decf-link-weight category-1 category-2 (categorial-network cxn-inventory) :delta delta :link-type link-type))
 
@@ -360,6 +433,10 @@
   "Lists all neighbouring categories of link-type above a link-weight threshold."
   (neighbouring-categories category (categorial-network cxn-inventory) :link-type link-type :threshold threshold))
 
+(defmethod neighbouring-categories ((category symbol) (cxn-inventory hashed-fcg-construction-set) &key link-type threshold)
+  "Lists all neighbouring categories of link-type above a link-weight threshold."
+  (neighbouring-categories category (categorial-network cxn-inventory) :link-type link-type :threshold threshold))
+
 
 (defgeneric neighbouring-categories-p (category-1 category-2 thing &key link-type threshold)
   (:documentation "Checks whether two categories are neighbours above threshold."))
@@ -379,6 +456,10 @@
   "Checks whether two categories are neighbours above threshold."
   (neighbouring-categories-p category-1 category-2 (categorial-network cxn-inventory) :link-type link-type :threshold threshold))
 
+(defmethod neighbouring-categories-p ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) &key link-type threshold)
+  "Checks whether two categories are neighbours above threshold."
+  (neighbouring-categories-p category-1 category-2 (categorial-network cxn-inventory) :link-type link-type :threshold threshold))
+
 
 (defgeneric connected-categories (category thing &key link-type threshold use-transitive-closure)
   (:documentation "Returns all categories that are connected to category with all links above threshold."))
@@ -394,6 +475,10 @@
          (connected-categories-aux category categorial-network link-type threshold nil))))
 
 (defmethod connected-categories ((category symbol) (cxn-inventory fcg-construction-set) &key link-type threshold  (use-transitive-closure t))
+  "Returns all categories that are connected to category with all links above threshold."
+  (connected-categories category (categorial-network cxn-inventory) :link-type link-type :threshold threshold :use-transitive-closure use-transitive-closure))
+
+(defmethod connected-categories ((category symbol) (cxn-inventory hashed-fcg-construction-set) &key link-type threshold  (use-transitive-closure t))
   "Returns all categories that are connected to category with all links above threshold."
   (connected-categories category (categorial-network cxn-inventory) :link-type link-type :threshold threshold :use-transitive-closure use-transitive-closure))
 
@@ -426,6 +511,10 @@
   "Checks whether there is a path from category-1 to category-2 with all links above threshold."
   (connected-categories-p category-1 category-2 (categorial-network cxn-inventory) :link-type link-type :threshold threshold :use-transitive-closure use-transitive-closure))
 
+(defmethod connected-categories-p ((category-1 symbol) (category-2 symbol) (cxn-inventory hashed-fcg-construction-set) &key link-type threshold (use-transitive-closure t))
+  "Checks whether there is a path from category-1 to category-2 with all links above threshold."
+  (connected-categories-p category-1 category-2 (categorial-network cxn-inventory) :link-type link-type :threshold threshold :use-transitive-closure use-transitive-closure))
+
 (defun connected-categories-p-aux (category-1 category-2 categorial-network link-type threshold visited-categories)
   "Returns all categories that are connected to category with all links above threshold."
   (let ((unvisited-neighbours (set-difference (neighbouring-categories category-1 categorial-network :link-type link-type :threshold threshold)
@@ -453,11 +542,19 @@
   "Succeeds if categories are neighbours (= linked directly), including neighbours with weight 0."
   (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
 
+(defmethod categories-linked-p (category-1 category-2 (cxn-inventory hashed-fcg-construction-set) (mode (eql :neighbours)))
+  "Succeeds if categories are neighbours (= linked directly), including neighbours with weight 0."
+  (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
+
 (defmethod categories-linked-p (category-1 category-2 (categorial-network categorial-network) (mode (eql :neighbours-w-weight-above-0)))
   "Succeeds if categories are neighbours (= linked directly), excluding neighbours with weight 0."
   (neighbouring-categories-p category-1 category-2 categorial-network :threshold 0.0))
 
 (defmethod categories-linked-p (category-1 category-2 (cxn-inventory fcg-construction-set) (mode (eql :neighbours-w-weight-above-0)))
+  "Succeeds if categories are neighbours (= linked directly), excluding neighbours with weight 0."
+  (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
+
+(defmethod categories-linked-p (category-1 category-2 (cxn-inventory hashed-fcg-construction-set) (mode (eql :neighbours-w-weight-above-0)))
   "Succeeds if categories are neighbours (= linked directly), excluding neighbours with weight 0."
   (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
 
@@ -469,11 +566,19 @@
   "Succeeds if categories are connected (= linked directly or indirectly)."
   (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
 
+(defmethod categories-linked-p (category-1 category-2 (cxn-inventory hashed-fcg-construction-set) (mode (eql :path-exists)))
+  "Succeeds if categories are connected (= linked directly or indirectly)."
+  (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
+
 (defmethod categories-linked-p (category-1 category-2 (categorial-network categorial-network) (mode (eql :path-exists-w-weight-above-0)))
   "Succeeds if categories are connected (= linked directly or indirectly) with all links above 0."
   (connected-categories-p category-1 category-2 categorial-network :threshold 0.0))
 
 (defmethod categories-linked-p (category-1 category-2 (cxn-inventory fcg-construction-set) (mode (eql :path-exists-w-weight-above-0)))
+  "Succeeds if categories are connected (= linked directly or indirectly) with all links above 0."
+  (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
+
+(defmethod categories-linked-p (category-1 category-2 (cxn-inventory hashed-fcg-construction-set) (mode (eql :path-exists-w-weight-above-0)))
   "Succeeds if categories are connected (= linked directly or indirectly) with all links above 0."
   (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
 
@@ -493,6 +598,10 @@
   "number of categories in categorial network"
   (nr-of-categories (categorial-network cxn-inventory)))
 
+(defmethod nr-of-categories ((cxn-inventory hashed-fcg-construction-set))
+  "number of categories in categorial network"
+  (nr-of-categories (categorial-network cxn-inventory)))
+
 (defgeneric nr-of-links (thing)
   (:documentation "number of links in categorial network"))
 
@@ -501,6 +610,10 @@
   (graph-utils:edge-count (graph categorial-network)))
 
 (defmethod nr-of-links ((cxn-inventory fcg-construction-set))
+  "number of links in categorial network"
+  (nr-of-links (categorial-network cxn-inventory)))
+
+(defmethod nr-of-links ((cxn-inventory hashed-fcg-construction-set))
   "number of links in categorial network"
   (nr-of-links (categorial-network cxn-inventory)))
 

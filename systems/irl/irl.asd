@@ -43,5 +43,16 @@
                  (:module monitoring
                   :serial t
                   :components ((:file "html")
-                               (:file "web-monitors")))))))
+                               (:file "web-monitors")))))
+   (:module tests
+            :serial t
+            :components 
+            ((:file "apple-counting-example")
+             (:file "test-evaluate-primitive")
+             (:file "test-evaluate-irl-program")
+             (:file "test-equivalent-irl-programs")
+             (:file "test-irl-program-connected")
+             (:file "test-expand-chunk")
+             (:file "test-match-chunk")
+             (:file "test-binding-helpers")))))
 

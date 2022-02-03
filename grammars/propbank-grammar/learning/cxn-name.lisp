@@ -2,8 +2,7 @@
 
 
 (defgeneric make-cxn-name (ts-units-with-role cxn-units-with-role cxn-units-without-role &key mode &allow-other-keys)
-  (:documentation "Creates a unique construction name for an argument structure construction")
-  )
+  (:documentation "Creates a unique construction name for an argument structure construction"))
 
 
 (defmethod make-cxn-name ((ts-units-with-role list)

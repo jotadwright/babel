@@ -12,6 +12,7 @@
                :plot-raw-data
                :experiment-framework
                :meta-layer-learning
+               :irl
                :fcg
                :clevr-world
                :cl-mop
@@ -22,12 +23,12 @@
                (:file "utils")
                (:file "fuzzy-operations")
                (:file "world")
-               (:file "ontology")
-               (:file "lexicon")
+               (:file "concept")
                (:file "agent")
                (:file "alignment")
                (:file "experiment")
                (:file "interaction")
                (:file "html")
                (:file "web-monitor")
-               (:file "monitors")))
+               (:file "monitors")
+               (:file "misc")))
