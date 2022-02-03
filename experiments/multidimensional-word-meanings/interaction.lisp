@@ -142,14 +142,14 @@
                      (find-data learner 'applied-concept)))
          ;; learner could not conceptualise? do nothing
          ((null (find-data learner 'applied-concept))
-          (format t "1"))
+          nil)
          ;; learner could conceptualise, but interpretation failed?
          ;; do nothing
          ((null (find-data tutor 'interpreted-topic))
-          (format t "2"))
+          nil)
          ;; learner could conceptualise and interpretation succeeded
          ;; but incorrectly? do nothing
-         (t (format t "3")))))))
+         (t nil))))))
 
 
 ;;;;

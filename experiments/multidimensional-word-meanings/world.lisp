@@ -169,11 +169,6 @@
                             (cdr pair)))
                   alist))
     ;; split the color channels
-    ;(setf alist
-    ;      (append `((mean-h . ,(first mean-color))
-    ;                (mean-s . ,(second mean-color))
-    ;                (mean-v . ,(third mean-color)))
-    ;              alist))
     (setf alist
           (append `((mean-l . ,(first lab))
                     (mean-a . ,(second lab))

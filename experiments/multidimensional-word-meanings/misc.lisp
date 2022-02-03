@@ -6,10 +6,13 @@
    (string-append
     (get-configuration experiment :experiment-type) "-"
     (get-configuration experiment :world-type) "-"
-    (when (eql (get-configuration experiment :experiment-type) :cogent)
-      (string-append "train-" (mkstr (get-configuration experiment :switch-conditions-after-n-interactions)) "-"))
-    (when (eql (get-configuration experiment :experiment-type) :incremental)
-      (string-append "condition-" (mkstr (get-configuration experiment :incremental-stage)) "-"))
+    (get-configuration experiment :determine-interacting-agents-mode) "-"
+    (if (eql (get-configuration experiment :experiment-type) :cogent)
+      (string-append "train-" (mkstr (get-configuration experiment :switch-conditions-after-n-interactions)) "-")
+      "")
+    (if (eql (get-configuration experiment :experiment-type) :incremental)
+      (string-append "condition-" (mkstr (get-configuration experiment :incremental-stage)) "-")
+      "")
     "lexicon")))
 
 (defun lexicon->pdf (agent &key dirname serie)
@@ -20,7 +23,7 @@
             (babel-pathname
              :directory `("experiments" "multidimensional-word-meanings"
                           "graphs" ,(downcase experiment-name)
-                          ,(format nil "run-~a" serie)))
+                          ,(format nil "serie-~a" serie)))
             (babel-pathname
              :directory `("experiments" "multidimensional-word-meanings"
                           "graphs" ,(downcase experiment-name))))))

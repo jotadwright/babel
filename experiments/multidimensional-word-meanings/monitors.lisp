@@ -91,13 +91,14 @@
 (defparameter *used-features* nil)
 
 (define-event-handler (record-tutor-conceptualisation-in-failed-interactions interaction-finished)
-  (let* ((tutor-feature (find-data (tutor experiment) 'tutor-conceptualisation)))
-    (unless (communicated-successfully (current-interaction experiment))
-      (if (assoc tutor-feature *used-features*)
-        (incf (cdr (assoc tutor-feature *used-features*)))
-        (push (cons tutor-feature 1) *used-features*)))
-    (loop for (feature . count) in *used-features*
-          do (set-value-for-symbol monitor feature count))))
+  (when (eql (tutor experiment) (speaker experiment))
+    (let ((tutor-feature (find-data (tutor experiment) 'tutor-conceptualisation)))
+      (unless (communicated-successfully (current-interaction experiment))
+        (if (assoc tutor-feature *used-features*)
+          (incf (cdr (assoc tutor-feature *used-features*)))
+          (push (cons tutor-feature 1) *used-features*)))))
+  (loop for (feature . count) in *used-features*
+        do (set-value-for-symbol monitor feature count)))
 
 (define-monitor plot-tutor-conceptualisation-in-failed-interactions
     :class 'alist-gnuplot-graphic-generator
@@ -118,6 +119,61 @@
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-tutor-conceptualisation-in-failed-interactions)
   (format t "~%Graphs have been created"))
+
+;;;; Monitor that tracks what the learner uses when the interaction fails
+(define-monitor record-learner-failed-conceptualisations
+                :class 'alist-recorder :average-window 1)
+
+(defparameter *failed-conceptualisations* nil)
+
+(define-event-handler (record-learner-failed-conceptualisations interaction-finished)
+  (when (eql (learner experiment) (speaker experiment))
+    (let ((symbolic-feature (find-data (tutor experiment) 'tutor-conceptualisation)))
+      (unless (communicated-successfully (current-interaction experiment))
+        (if (assoc symbolic-feature *failed-conceptualisations*)
+          (incf (cdr (assoc symbolic-feature *failed-conceptualisations*)))
+          (push (cons symbolic-feature 1) *failed-conceptualisations*)))))
+  (loop for (feature . count) in *failed-conceptualisations*
+        do (set-value-for-symbol monitor feature count)))
+
+(define-monitor plot-learner-failed-conceptualisations
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-learner-failed-conceptualisations
+    :draw-y-1-grid t
+    :y-label "Learner failed conceptualisation"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "learner-failed-conceptualisation" :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-learner-failed-conceptualisation-graph (&key configurations
+                                                           (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create a graph." nr-of-interactions)
+  (setf *failed-conceptualisations* nil)
+  (activate-monitor plot-learner-failed-conceptualisations)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-learner-failed-conceptualisations)
+  (format t "~%Graphs have been created"))
+
+;;;; Export the lexicon at the end of a series
+(define-monitor export-learner-concepts)
+
+(define-event-handler (export-learner-concepts run-series-finished)
+  (lexicon->pdf (learner experiment) :serie (series-number experiment)))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #|
