@@ -45,10 +45,12 @@
  :y-axis '(1 2)
  :y1-min 0 :y1-max 1
  :y2-max 30
- :xlabel "Number of games"
+ :xlabel "Number of Games"
  :y1-label "Communicative Success"
- :y2-label "Concept Repertoire Size"
- :open t)
+ :y2-label "Number of Concepts"
+ :captions '("communicative success"
+             "concept repertoire size")
+ :open nil)
 
 (create-graph-for-single-strategy
  :experiment-name "baseline-simulated-bidirectional"
@@ -60,10 +62,13 @@
  :y-axis '(1 1 2)
  :y1-min 0 :y1-max 1
  :y2-max 30
- :xlabel "Number of games"
+ :xlabel "Number of Games"
  :y1-label "Communicative Success"
- :y2-label "Concept Repertoire Size"
- :open t)
+ :y2-label "Number of Concepts"
+ :captions '("communicative success"
+             "communicative success given conceptualisation"
+             "concept repertoire size")
+ :open nil)
 
 (create-graph-mixing-strategies
  :experiment-measure-conses
@@ -71,11 +76,11 @@
    ("baseline-simulated-bidirectional" . "communicative-success")
    ("baseline-simulated-bidirectional" . "communicative-success-given-conceptualisation"))
  :plot-file-name "baseline-simulated-comparison"
- :xlabel "Number of games"
- :y1-label "Communicative success"
+ :xlabel "Number of Games"
+ :y1-label "Communicative Success"
  :captions '("communicative success"
-             "bidirectional communicative success"
-             "bidirectional communicative success given conceptualisaiton")
+             "communicative success (bidirectional)"
+             "communicative success given conceptualisaiton (bidirectional)")
  :window 100 :y-max 1)
 
 (create-graph-for-single-strategy
@@ -88,10 +93,12 @@
  :y-axis '(1 2)
  :y1-min 0 :y1-max 1
  :y2-max 30
- :xlabel "Number of games"
+ :xlabel "Number of Games"
  :y1-label "Communicative Success"
- :y2-label "Concept Repertoire Size"
- :open t)
+ :y2-label "Number of Concepts"
+ :captions '("communicative success"
+             "concept repertoire size")
+ :open nil)
 
 (create-graph-for-single-strategy
  :experiment-name "baseline-extracted-bidirectional"
@@ -103,10 +110,13 @@
  :y-axis '(1 1 2)
  :y1-min 0 :y1-max 1
  :y2-max 30
- :xlabel "Number of games"
+ :xlabel "Number of Games"
  :y1-label "Communicative Success"
- :y2-label "Concept Repertoire Size"
- :open t)
+ :y2-label "Number of Concepts"
+ :captions '("communicative success"
+             "communicative success given conceptualisation"
+             "concept repertoire size")
+ :open nil)
 
 (create-graph-mixing-strategies
  :experiment-measure-conses
@@ -114,9 +124,9 @@
    ("baseline-extracted-bidirectional" . "communicative-success")
    ("baseline-extracted-bidirectional" . "communicative-success-given-conceptualisation"))
  :plot-file-name "baseline-extracted-comparison"
- :xlabel "Number of games"
+ :xlabel "Number of Games"
  :y1-label "Communicative success"
  :captions '("communicative success"
-             "bidirectional communicative success"
-             "bidirectional communicative success given conceptualisaiton")
+             "communicative success (bidirectional)"
+             "communicative success given conceptualisaiton (bidirectional)")
  :window 100 :y-max 1)

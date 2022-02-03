@@ -88,7 +88,7 @@
 (defun create-graph-mixing-strategies (&key experiment-measure-conses
                                             (y-min 0) (y-max 1) xlabel y1-label y2-label
                                             captions title start end (window 1000)
-                                            plot-file-name)
+                                            plot-file-name open)
   (let* ((raw-file-paths
           (loop for (experiment . measure) in experiment-measure-conses
                 collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment ,measure)))
@@ -112,7 +112,8 @@
    :y1-label (when y1-label y1-label)
    :y2-label (when y2-label y2-label)
    :start start :end end
-   :fsize 12))
+   :fsize 12
+   :open open))
   (format t "~%Graphs have been created"))
 
 (defun create-stacked-bars-comparing-strategies (&key experiment-names measure-names
