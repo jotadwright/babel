@@ -1,12 +1,13 @@
 (ql:quickload :mwm)
 (in-package :mwm)
 
+(progn
 (run-parallel-batch-for-different-configurations 
  :asdf-system "mwm"
  :package "mwm"
  :experiment-class "mwm-experiment"
- :number-of-interactions 2500
- :number-of-series 3
+ :number-of-interactions 15000
+ :number-of-series 10
  :monitors (list "export-communicative-success"
                  "export-lexicon-size"
                  "export-communicative-success-given-conceptualisation"
@@ -18,19 +19,23 @@
                    (baseline-simulated
                     ((:experiment-type . :baseline)
                      (:world-type . :simulated)
-                     (:determine-interacting-agents-mode . :tutor-speaks)))
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:alignment-filter . :all)))
                    (baseline-simulated-bidirectional
                     ((:experiment-type . :baseline)
                      (:world-type . :simulated)
-                     (:determine-interacting-agents-mode . :default)))
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)))
                    (baseline-extracted
                     ((:experiment-type . :baseline)
                      (:world-type . :extracted)
-                     (:determine-interacting-agents-mode . :tutor-speaks)))
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:alignment-filter . :all)))
                    (baseline-extracted-bidirectional
                     ((:experiment-type . :baseline)
                      (:world-type . :extracted)
-                     (:determine-interacting-agents-mode . :default)))
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)))
                    )
  ;; output directory
  :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))
@@ -38,7 +43,6 @@
 (create-graph-for-single-strategy
  :experiment-name "baseline-simulated"
  :measure-names '("communicative-success"
-                  ;"communicative-success-given-conceptualisation"
                   "lexicon-size")
  :plot-file-name "baseline-simulated"
  :average-windows '(100 1)
@@ -86,7 +90,6 @@
 (create-graph-for-single-strategy
  :experiment-name "baseline-extracted"
  :measure-names '("communicative-success"
-                  ;"communicative-success-given-conceptualisation"
                   "lexicon-size")
  :plot-file-name "baseline-extracted"
  :average-windows '(100 1)
@@ -130,3 +133,4 @@
              "communicative success (bidirectional)"
              "communicative success given conceptualisaiton (bidirectional)")
  :window 100 :y-max 1)
+)

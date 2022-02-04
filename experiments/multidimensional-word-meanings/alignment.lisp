@@ -106,7 +106,6 @@
         for ws = (get-ws object attribute table)
         collect ws into weighted-similarities
         finally (return (average weighted-similarities))))
-        
                       
 (defun find-most-discriminating-subset (agent subsets topic similarity-table)
   "Find the subset that maximizes the difference in similarity
@@ -123,6 +122,7 @@
                         maximize (weighted-similarity-with-table object subset similarity-table)))
                  (diff (- topic-similarity best-other-similarity)))
             (when (and (> topic-similarity best-other-similarity)
+                       (< best-other-similarity 0)
                        (> diff largest-diff)
                        (> topic-similarity best-similarity))
               (setf best-subset subset
