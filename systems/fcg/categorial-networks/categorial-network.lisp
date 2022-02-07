@@ -659,30 +659,30 @@
            (add-traclo-link (from to link-type table)
              (unless (traclo-connected-p from to table)
                (push to (gethash link-type (gethash from table))))))
-    (let ((new-traclo (make-hash-table)))
+    (let ((traclo (make-hash-table)))
       ;; make a hash table for every category
       (loop for category in (categories categorial-network)
-            do (setf (gethash category new-traclo) (make-hash-table)))
+            do (setf (gethash category traclo) (make-hash-table)))
       ;; add the edges from the categorial network to the hash table
       (loop for (from to link-type) in (links categorial-network)
-            do (add-traclo-link from to link-type new-traclo))
+            do (add-traclo-link from to link-type traclo))
       ;; run the Warshall algorithm
       (loop for via in (categories categorial-network)
             do (loop for from in (categories categorial-network)
                      ; find edge from->via in hash table
                      for (from-via-connected . from-via-type)
-                     = (traclo-connected-p from via new-traclo)
+                     = (traclo-connected-p from via traclo)
                      when from-via-connected
                      do (loop for to in (categories categorial-network)
                               ; find edge via->to in hash table
                               for (via-to-connected . via-to-type)
-                              = (traclo-connected-p via to new-traclo)
+                              = (traclo-connected-p via to traclo)
                               when (and via-to-connected
                                         (eql from-via-type via-to-type))
                               ; when from->via and via->to exist
                               ; and the edge-types are the same
-                              ; add from->to in the hash table
-                              do (add-traclo-link from to via-to-type new-traclo))))
+                              ; add from->to to the hash table
+                              do (add-traclo-link from to via-to-type traclo))))
       ;; set the new traclo
-      (setf (transitive-closure categorial-network) new-traclo))))
+      (setf (transitive-closure categorial-network) traclo))))
         
