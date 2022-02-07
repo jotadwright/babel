@@ -80,7 +80,7 @@
                                        (container-with-ingredients transferable-container)
                                        (temperature-quantity quantity)
                                        (temperature-unit unit))
-  
+  ;;to do add default temperature = room temperature
   ((kitchen-state-in container-with-ingredients temperature-quantity temperature-unit
                      => kitchen-state-out container-with-ingredients-at-temperature)
    
