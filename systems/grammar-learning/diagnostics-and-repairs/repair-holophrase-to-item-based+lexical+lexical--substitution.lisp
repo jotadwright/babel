@@ -165,8 +165,8 @@ based on existing construction with sufficient overlap."
            (orig-type-hierarchy (categorial-network (construction-inventory node)))
            (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
            (th (loop for th-link in (subseq (restart-data fix) 3)
-                     do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy)
-                         (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5)
+                     do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy :recompute-transitive-closure nil)
+                         (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy))) 
            ;; apply lexical-cxn and add node
            ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application
