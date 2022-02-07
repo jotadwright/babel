@@ -144,6 +144,14 @@
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
                           "raw-data" "thesis"
+                          "baseline-extracted")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *extracted-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis"
                           "baseline-extracted-bidirectional")
              :name "communicative-success" :type "lisp"))
   (defparameter *bidirectional-extracted-success-data* (read stream)))
@@ -157,17 +165,23 @@
              :type "lisp"))
   (defparameter *bidirectional-extracted-success-given-conceptualisation-data* (read stream)))
 
-(defun compute-success-at-point (data point)
+(defun compute-success-at-point (data point &optional last-n)
   (loop for series in (first data)
+        if last-n
+        sum (average (subseq series (- point last-n) point)) into sum-list
+        else
         sum (nth point series) into sum-list
+        end
         count series into denom
         finally (return (float (/ sum-list denom)))))
 
 (compute-success-at-point *simulated-success-data* 3000) ;; 0.998
 (compute-success-at-point *bidirectional-simulated-success-data* 3000) ;; 0.986
-(compute-success-at-point *bidirectional-simulated-success-given-conceptualisation-data* 3000) ;; 1.0
+(compute-success-at-point *bidirectional-simulated-success-given-conceptualisation-data* 3000 100) ;; 0.997
+;; ==> 100% when removing spatial relations!
 
+(compute-success-at-point *extracted-success-data* 3000) ;; 0.894
 (compute-success-at-point *bidirectional-extracted-success-data* 3000) ;; 0.811
-(compute-success-at-point *bidirectional-extracted-success-given-conceptualisation-data* 3000) ;; 0.9
+(compute-success-at-point *bidirectional-extracted-success-given-conceptualisation-data* 3000 100) ;; 0.922
 
 
