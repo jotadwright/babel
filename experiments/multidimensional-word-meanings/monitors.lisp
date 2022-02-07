@@ -43,7 +43,7 @@
 (define-monitor export-communicative-success-given-conceptualisation
                 :class 'lisp-data-file-writer
                 :documentation "Exports communicative success"
-                :data-sources '(record-communicative-success-given-conceptualisation)
+                :data-sources '((average record-communicative-success-given-conceptualisation))
                 :file-name (babel-pathname :name "communicative-success-given-conceptualisation" :type "lisp"
                                            :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
                 :add-time-and-experiment-to-file-name nil

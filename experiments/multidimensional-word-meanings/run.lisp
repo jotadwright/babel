@@ -112,3 +112,62 @@
    (:world-type . :extracted)
    (:determine-interacting-agents-mode . :default))
  :nr-of-interactions 5000)
+
+
+;;;; Computing average success
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis"
+                          "baseline-simulated")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *simulated-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis"
+                          "baseline-simulated-bidirectional")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *bidirectional-simulated-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis"
+                          "baseline-simulated-bidirectional")
+             :name "communicative-success-given-conceptualisation"
+             :type "lisp"))
+  (defparameter *bidirectional-simulated-success-given-conceptualisation-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis"
+                          "baseline-extracted-bidirectional")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *bidirectional-extracted-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis"
+                          "baseline-extracted-bidirectional")
+             :name "communicative-success-given-conceptualisation"
+             :type "lisp"))
+  (defparameter *bidirectional-extracted-success-given-conceptualisation-data* (read stream)))
+
+(defun compute-success-at-point (data point)
+  (loop for series in (first data)
+        sum (nth point series) into sum-list
+        count series into denom
+        finally (return (float (/ sum-list denom)))))
+
+(compute-success-at-point *simulated-success-data* 3000) ;; 0.998
+(compute-success-at-point *bidirectional-simulated-success-data* 3000) ;; 0.986
+(compute-success-at-point *bidirectional-simulated-success-given-conceptualisation-data* 3000) ;; 1.0
+
+(compute-success-at-point *bidirectional-extracted-success-data* 3000) ;; 0.811
+(compute-success-at-point *bidirectional-extracted-success-given-conceptualisation-data* 3000) ;; 0.9
+
+

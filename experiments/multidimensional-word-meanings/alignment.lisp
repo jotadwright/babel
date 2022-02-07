@@ -106,7 +106,8 @@
         for ws = (get-ws object attribute table)
         collect ws into weighted-similarities
         finally (return (average weighted-similarities))))
-                      
+
+
 (defun find-most-discriminating-subset (agent subsets topic similarity-table)
   "Find the subset that maximizes the difference in similarity
    between the topic and the best other object"
@@ -131,10 +132,12 @@
     (notify found-subset-to-reward best-subset)
     best-subset))
 
+
 (defgeneric align-concept (agent topic concept)
   (:documentation "Align the concept that was used during the
    game so that it better fits with the topic object of the
    game."))
+
 
 (defmethod align-concept ((agent mwm-agent) (topic mwm-object) concept)
   ;; 1. update the prototypical values
@@ -173,6 +176,7 @@
                                  (get-configuration agent :remove-on-lower-bound)))
           finally
           (notify scores-updated concept rewarded-attributes punished-attributes))))
+
 
 ;; -------------
 ;; + Alignment +

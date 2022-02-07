@@ -85,10 +85,11 @@
     :fsize 12))
   (format t "~%Graphs have been created"))
 
-(defun create-graph-mixing-strategies (&key experiment-measure-conses
-                                            (y-min 0) (y-max 1) xlabel y1-label y2-label
-                                            captions title start end (window 1000)
-                                            plot-file-name open)
+(defun create-graph-mixing-strategies (&key
+                                       experiment-measure-conses
+                                       (y1-min 0) (y1-max 1) (y2-min 0) (y2-max nil) use-y-axis
+                                       xlabel y1-label y2-label captions title start end
+                                       (window 1000) plot-file-name open)
   (let* ((raw-file-paths
           (loop for (experiment . measure) in experiment-measure-conses
                 collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment ,measure)))
@@ -106,8 +107,9 @@
    :plot-file-name (if plot-file-name plot-file-name default-plot-file-name)
    :error-bars '(:percentile 5 95) ;'(:stdev)
    :error-bar-modes '(:lines)
-   :y1-min y-min
-   :y1-max y-max
+   :use-y-axis use-y-axis
+   :y1-min y1-min :y1-max y1-max
+   :y2-min y2-min :y2-max y2-max
    :x-label (if xlabel xlabel "Number of Games")
    :y1-label (when y1-label y1-label)
    :y2-label (when y2-label y2-label)
