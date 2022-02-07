@@ -156,11 +156,35 @@
   (deactivate-monitor plot-learner-failed-conceptualisations)
   (format t "~%Graphs have been created"))
 
-;;;; Export the lexicon at the end of a series
-(define-monitor export-learner-concepts)
+;;;; Export the lexicon to pdf at the end of a series
+(define-monitor export-learner-concepts-to-pdf)
 
-(define-event-handler (export-learner-concepts run-series-finished)
+(define-event-handler (export-learner-concepts-to-pdf run-series-finished)
   (lexicon->pdf (learner experiment) :serie (series-number experiment)))
+
+
+;;;; Export the lexicon to .store at the end of a series
+(define-monitor export-learner-concepts-to-store)
+
+(define-event-handler (export-learner-concepts-to-store run-series-finished)
+  (lexicon->store (learner experiment) :serie (series-number experiment)))
+
+
+;;;; Export the configurations of the experiment at the end of the first series
+(define-monitor export-experiment-configurations)
+
+(define-event-handler (export-experiment-configurations run-series-finished)
+  (when (= (series-number experiment) 1)
+    (let* ((experiment-name (experiment-name-from-configurations experiment))
+           (path (babel-pathname
+                  :directory `("experiments" "multidimensional-word-meanings"
+                               "raw-data" ,(downcase experiment-name))
+                  :name "experiment-configurations" :type "lisp")))
+      (with-open-file (stream path :direction :output
+                              :if-exists :overwrite
+                              :if-does-not-exist :create)
+        (write (entries experiment) stream)))))
+    
 
 
 

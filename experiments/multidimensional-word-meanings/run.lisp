@@ -19,7 +19,8 @@
   (make-configuration
    :entries '((:experiment-type . :baseline)
               (:world-type . :simulated)
-              (:determine-interacting-agents-mode . :default))))
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :at-least-one))))
 
 (defparameter *baseline-extracted*
   (make-configuration
@@ -58,7 +59,7 @@
 ;;;; EXPERIMENT
 (defparameter *experiment*
   (make-instance 'mwm-experiment
-                 :configuration *baseline-extracted*))
+                 :configuration *baseline-simulated*))
 
 (run-interaction *experiment*)
 

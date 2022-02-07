@@ -11,9 +11,15 @@
  :monitors (list "export-communicative-success"
                  "export-lexicon-size"
                  "export-communicative-success-given-conceptualisation"
-                 "export-learner-concepts")
+                 "export-learner-concepts-to-pdf"
+                 "export-learner-concepts-to-store"
+                 "export-experiment-configurations")
  ;; default configuration settings
- :shared-configuration nil
+ :shared-configuration '((:initial-certainty . 0.5)
+                         (:certainty-incf . 0.1)
+                         (:certainty-decf . -0.1)
+                         (:remove-on-lower-bound . nil)
+                         (:lexical-variation . nil))
  ;; configurations
  :configurations '(
                    (baseline-simulated
