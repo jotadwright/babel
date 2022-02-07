@@ -131,18 +131,22 @@
 
 
 (defgeneric links (thing)
-  (:documentation "Returns the categories in the network of a grammar."))
+  (:documentation "Returns the links in the network of a grammar
+   as triples of type (category-1 category-2 link-type). All links
+   are returned as directed edges even though the categorial network
+   is undirected. For example, the edge A<->B is returned as both
+   (A, B, NIL) and (B, A, NIL)."))
 
 (defmethod links ((categorial-network categorial-network))
-  "Lists categories in categorial-network."
+  "Lists links in categorial-network."
   (graph-utils:list-edges (graph categorial-network)))
 
 (defmethod links ((cxn-inventory fcg-construction-set))
-  "Lists categories in categorial-network."
+  "Lists links in categorial-network."
   (links (categorial-network cxn-inventory)))
 
 (defmethod links ((cxn-inventory hashed-fcg-construction-set))
-  "Lists categories in categorial-network."
+  "Lists links in categorial-network."
   (links (categorial-network cxn-inventory)))
 
 
@@ -621,6 +625,7 @@
 ;; Computing the transitive closure ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+#|
 (defun compute-transitive-closure (categorial-network &key threshold)
   "Sets the transitive closure table of cxn-inventory."
   (loop with transitive-closure = (transitive-closure categorial-network)
@@ -629,11 +634,55 @@
         for category-value = (make-hash-table)
         do
         (loop for link-type in link-types
-              do (setf (gethash link-type category-value) (connected-categories category categorial-network :link-type link-type :threshold threshold :use-transitive-closure nil)))
+              do (setf (gethash link-type category-value)
+                       (connected-categories category categorial-network
+                                             :link-type link-type
+                                             :threshold threshold
+                                             :use-transitive-closure nil)))
         (setf (gethash category transitive-closure) category-value)))
+|#
 
 
 
-          
-          
+(defun compute-transitive-closure (categorial-network)
+  "Sets the transitive closure table of cxn-inventory
+   using the Warshall algorithm. The 'threshold' key
+   is not provided as it was never used."
+  (labels (;; is there an edge from->to in the hash table?
+           (traclo-connected-p (from to table)
+             (loop with from-table = (gethash from table)
+                   for link-type being the hash-keys in from-table
+                   for categories = (gethash link-type from-table)
+                   when (find to categories)
+                   return (cons t link-type)))
+           ;; add a link from->to in the hash table
+           (add-traclo-link (from to link-type table)
+             (unless (traclo-connected-p from to table)
+               (push to (gethash link-type (gethash from table))))))
+    (let ((new-traclo (make-hash-table)))
+      ;; make a hash table for every category
+      (loop for category in (categories categorial-network)
+            do (setf (gethash category new-traclo) (make-hash-table)))
+      ;; add the edges from the categorial network to the hash table
+      (loop for (from to link-type) in (links categorial-network)
+            do (add-traclo-link from to link-type new-traclo))
+      ;; run the Warshall algorithm
+      (loop for via in (categories categorial-network)
+            do (loop for from in (categories categorial-network)
+                     ; find edge from->via in hash table
+                     for (from-via-connected . from-via-type)
+                     = (traclo-connected-p from via new-traclo)
+                     when from-via-connected
+                     do (loop for to in (categories categorial-network)
+                              ; find edge via->to in hash table
+                              for (via-to-connected . via-to-type)
+                              = (traclo-connected-p via to new-traclo)
+                              when (and via-to-connected
+                                        (eql from-via-type via-to-type))
+                              ; when from->via and via->to exist
+                              ; and the edge-types are the same
+                              ; add from->to in the hash table
+                              do (add-traclo-link from to via-to-type new-traclo))))
+      ;; set the new traclo
+      (setf (transitive-closure categorial-network) new-traclo))))
         

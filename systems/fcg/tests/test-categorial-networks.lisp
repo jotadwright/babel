@@ -27,10 +27,14 @@
     (test-assert (not (link-exists-p 'b 'd categorial-network)))
 
     (test-assert (permutation-of? '(a b f d h) (connected-categories 'a categorial-network)))
-    (test-assert (permutation-of? '(a b f d h) (connected-categories 'a categorial-network :threshold 0.2 :use-transitive-closure nil)))
-    (test-assert (permutation-of? '(a d) (connected-categories 'a categorial-network :threshold 0.3 :use-transitive-closure nil)))
-    (test-assert (not (connected-categories-p 'h 'd categorial-network :threshold 0.3 :use-transitive-closure nil)))
-    (test-assert (connected-categories-p 'h 'd categorial-network :threshold 0.2 :use-transitive-closure nil))
+    (test-assert (permutation-of? '(a b f d h) (connected-categories 'a categorial-network
+                                                                     :threshold 0.2 :use-transitive-closure nil)))
+    (test-assert (permutation-of? '(a d) (connected-categories 'a categorial-network
+                                                               :threshold 0.3 :use-transitive-closure nil)))
+    (test-assert (not (connected-categories-p 'h 'd categorial-network
+                                              :threshold 0.3 :use-transitive-closure nil)))
+    (test-assert (connected-categories-p 'h 'd categorial-network
+                                         :threshold 0.2 :use-transitive-closure nil))
     (test-assert (connected-categories-p 'h 'd categorial-network))
   ))
 
