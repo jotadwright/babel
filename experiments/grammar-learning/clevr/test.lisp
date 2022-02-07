@@ -41,15 +41,24 @@
   (wi::reset)
   (notify reset-monitors)
   (defparameter *experiment*
-    (make-instance 'grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :sort-length-ascending))))) ;; train, debug, evaluation, development
+    (eval `(make-instance 'grammar-learning-experiment
+                   :entries '((:determine-interacting-agents-mode . :corpus-learner)
+                         (:observation-sample-mode . :train)
+                         (:meaning-representation . :irl)
+                         (:de-render-mode . :de-render-string-meets-no-punct)
+                         (:corpus-files-root . ,(merge-pathnames
+                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
+                                     cl-user:*babel-corpora*))
+                         (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
+                                                   :name "stage-1" :type "jsonl"))
+                              )))) 
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
 ;(add-element (make-html (get-type-hierarchy (grammar (first (agents *experiment*)))) :weights t))
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
 
-;(defparameter *th* (get-type-hierarchy (grammar (first (interacting-agents *experiment*)))))
+;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
 
 ;;; test single interaction
 ;(run-interaction *experiment*)
@@ -57,7 +66,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  100)
+;(run-series *experiment*  1000)
 #|
 
 QUESTIONS
