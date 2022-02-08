@@ -26,22 +26,22 @@
                     ((:experiment-type . :baseline)
                      (:world-type . :simulated)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:alignment-filter . :at-least-one)))
+                     (:alignment-filter . :all)))
                    (baseline-simulated-bidirectional
                     ((:experiment-type . :baseline)
                      (:world-type . :simulated)
                      (:determine-interacting-agents-mode . :default)
-                     (:alignment-filter . :at-least-one)))
+                     (:alignment-filter . :all)))
                    (baseline-extracted
                     ((:experiment-type . :baseline)
                      (:world-type . :extracted)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:alignment-filter . :at-least-one)))
+                     (:alignment-filter . :all)))
                    (baseline-extracted-bidirectional
                     ((:experiment-type . :baseline)
                      (:world-type . :extracted)
                      (:determine-interacting-agents-mode . :default)
-                     (:alignment-filter . :at-least-one)))
+                     (:alignment-filter . :all)))
                    )
  ;; output directory
  :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))

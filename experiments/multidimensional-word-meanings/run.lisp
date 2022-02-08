@@ -20,13 +20,14 @@
    :entries '((:experiment-type . :baseline)
               (:world-type . :simulated)
               (:determine-interacting-agents-mode . :default)
-              (:alignment-filter . :at-least-one))))
+              (:alignment-filter . :all))))
 
 (defparameter *baseline-extracted*
   (make-configuration
    :entries '((:experiment-type . :baseline)
               (:world-type . :extracted)
-              (:determine-interacting-agents-mode . :tutor-speaks))))
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all))))
 
 (defparameter *cogent-simulated*
   (make-configuration
@@ -59,11 +60,11 @@
 ;;;; EXPERIMENT
 (defparameter *experiment*
   (make-instance 'mwm-experiment
-                 :configuration *baseline-simulated*))
+                 :configuration *baseline-extracted*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 500)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -75,15 +76,17 @@
                    (test
                     ((:experiment-type . :baseline)
                      (:world-type . :simulated)
-                     (:determine-interacting-agents-mode . :default)))
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)))
                    )
-                 :number-of-interactions 5000
-                 :number-of-series 3
+                 :number-of-interactions 2000
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
                                  "export-communicative-success-given-conceptualisation"
-                                 ;"export-learner-concepts"
-                                 ))
+                                 "export-learner-concepts-to-pdf"
+                                 "export-learner-concepts-to-store"
+                                 "export-experiment-configurations"))
 
 (create-graph-for-single-strategy
  :experiment-name "test"

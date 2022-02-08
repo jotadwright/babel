@@ -180,10 +180,12 @@
                   :directory `("experiments" "multidimensional-word-meanings"
                                "raw-data" ,(downcase experiment-name))
                   :name "experiment-configurations" :type "lisp")))
+      (ensure-directories-exist path)
       (with-open-file (stream path :direction :output
                               :if-exists :overwrite
                               :if-does-not-exist :create)
-        (write (entries experiment) stream)))))
+        (write (entries experiment)
+               :stream stream)))))
     
 
 
