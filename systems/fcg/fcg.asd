@@ -58,6 +58,7 @@
     :serial t
     :components ((:file "construction-inventory-processor")
                  (:file "cxn-suppliers")
+                 (:file "hashed-cxn-suppliers")
                  (:file "node-tests")
                  (:file "goal-tests")))
    (:module heuristic-search
