@@ -646,8 +646,8 @@
 
 (defun compute-transitive-closure (categorial-network)
   "Sets the transitive closure table of cxn-inventory
-   using the Warshall algorithm. The 'threshold' key
-   is not provided as it was never used."
+   using the Warshall algorithm."
+  ;; NOTE: the transitive closure can contain self-loops.
   (labels (;; is there an edge from->to in the hash table?
            (traclo-connected-p (from to table)
              (loop with from-table = (gethash from table)
@@ -685,4 +685,17 @@
                               do (add-traclo-link from to via-to-type traclo))))
       ;; set the new traclo
       (setf (transitive-closure categorial-network) traclo))))
+
+;; Jens 8/2/2022
+;; Possible improvements regarding the transitive closure
+;; 1. Only compute the transitive closure when absolutely necessary,
+;;    i.e. when using 'connected-categories' or 'connected-categories-p'?
+;; 2. Should self-loops be allowed in the transitive closure?
+;;    The Warshall algorithm includes them now because the previous
+;;    algorithm did, but could this cause problems?
+;; 3. One of the connected modes for unify atom specifies :path-exists-w-weight-above-0.
+;;    This could also be integrated in the transitive closure hash table.
+;;    If we want the weights of the _shortest_ path, the Warshall algorithm
+;;    could be expanded to the Floyd-Warshall algorithm (which has the same
+;;    performance characteristics, i.e. O(|V|^3), where |V| is the number of vertices).
         
