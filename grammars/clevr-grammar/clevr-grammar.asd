@@ -17,7 +17,11 @@
                :seq2seq-heuristics)
   :serial t
   :components ((:file "package")
-               (:file "fcg-utils")
+               (:module "fcg-utils"
+                :serial t
+                :components ((:file "cxn-supplier")
+                             (:file "de-render")
+                             (:file "node-tests")))
                (:file "lex-and-morph")
                (:file "rpn-meaning")
                (:file "grammar")
