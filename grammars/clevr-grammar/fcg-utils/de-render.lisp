@@ -1,16 +1,25 @@
 (in-package :fcg)
 
+(export '(scene-unit))
+
 ;;;; custom de-render for clevr-grammar
 ;;;; ----------------------------------
-(defmethod de-render ((utterance string) (mode (eql :de-render-string-meets-precedes-within-3))
-                      &key &allow-other-keys)
+(defmethod de-render ((utterance string) (mode (eql :clevr-de-renderer))
+                      &key scene-var &allow-other-keys)
+  ;; 1. lowercase the utterace
+  ;; 2. remove punctuation
+  ;; 3. generate all meets contraints, but only precedes constraints with a scope of 3
+  ;; 4. create a custom root unit that has a subunit 'scene-unit' with a feature structure 'scene: ?scene'
   "There were too many precedes constraints in the root, slowing down the processing for very large
    sentences. However, only a few cxns actually need 'precedes' and don't need 'long distance' precedes.
    To solve this, we constrain the generation of precedes constraints to only contain precedes within 3."
-  (de-render (clevr-grammar::preprocess-utterance utterance) :de-render-string-meets-precedes-within-3))
+  (de-render (clevr-grammar::preprocess-utterance utterance)
+             :de-render-string-meets-precedes-within-3
+             :scene-var scene-var))
+             
 
 (defmethod de-render ((utterance list) (mode (eql :de-render-string-meets-precedes-within-3))
-                      &key &allow-other-keys)
+                      &key scene-var &allow-other-keys)
   "There were too many precedes constraints in the root, slowing down the processing for very large
    sentences. However, only a few cxns actually need 'precedes' and don't need 'long distance' precedes.
    To solve this, we constrain the generation of precedes constraints to only contain precedes within 3."
@@ -31,10 +40,17 @@
 	((null (cdr left)))
       (push `(meets ,(second (second left)) ,(second (first left)))
 	    constraints))
-    (make-instance 'coupled-feature-structure 
-		   :left-pole `((root (meaning ())
-                                      (sem-cat ())
-                                      (form ,(cons (cons 'sequence (reverse sequence))
-                                                   (append strings constraints)))
-                                      (syn-cat ())))
-		   :right-pole '((root)))))
+    (let ((root-unit
+           `(root (meaning ())
+                  (sem-cat ())
+                  (form ,(cons (cons 'sequence (reverse sequence))
+                               (append strings constraints)))
+                  (syn-cat ())
+                  (subunits (scene-unit))))
+          (scene-unit
+           `(scene-unit
+             (scene ,scene-var))))
+      (make-instance 'coupled-feature-structure
+                     :left-pole `(,root-unit
+                                  ,scene-unit)
+                     :right-pole '((root))))))

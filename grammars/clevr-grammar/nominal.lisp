@@ -27,8 +27,11 @@
                (superunits (?nominal-unit))
                (footprints (nominal)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?nominal-unit
-               (HASH meaning ((filter ?target ?source ?shape)))
+               (HASH meaning ((filter ?target ?source ?scene ?shape)))
                --
                )
               (?noun-unit
@@ -40,6 +43,7 @@
                (syn-cat (lex-class noun)
                         (syn-function nominal)
                         (number ?number))))
+             :disable-automatic-footprints t
              :cxn-set (nom cxn)
              :cxn-inventory *CLEVR*)
 
@@ -67,8 +71,11 @@
                (superunits (?super-nominal-unit))
                (footprints (nominal)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?super-nominal-unit
-               (HASH meaning ((filter ?target ?between ?category)))
+               (HASH meaning ((filter ?target ?between ?scene ?category)))
                --
                )
               (?adjective-unit
@@ -96,6 +103,7 @@
                (leftmost-unit ?leftmost-nom-unit)
                (rightmost-unit ?rightmost-nom-unit)
                (HASH form ((meets ?adjective-unit ?leftmost-nom-unit)))))
+             :disable-automatic-footprints t
              :cxn-set (nom cxn)
              :cxn-inventory *CLEVR*)
 

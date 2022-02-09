@@ -9,11 +9,9 @@
      (meaning set-of-predicates)
      (subunits set)
      (superunits set)
-     (footprints set))
+     (footprints set))    
     :fcg-configurations
-    (;; special de-render mode: precedes within 3
-     (:de-render-mode . :de-render-string-meets-precedes-within-3)
-     ;; using the new renderer
+    ((:de-render-mode . :clevr-de-renderer)
      (:render-mode . :generate-and-test) 
      (:form-predicates meets precedes)
      (:node-tests :check-duplicate
@@ -26,17 +24,25 @@
      (:production-goal-tests :no-applicable-cxns
       :connected-structure
       :no-meaning-in-root)
+
+    
      
      ;; For heuristic search with seq2seq:
-     (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-     (:priority-mode . :seq2seq-heuristic-additive)
-     (:seq2seq-endpoint . "http://localhost:8888/next-cxn")
-     (:seq2seq-model-comprehension . "clevr_comprehension_model")
-     (:seq2seq-model-formulation . "clevr_formulation_model")
-     (:seq2seq-rpn-fn . clevr-meaning->rpn)
+     ;(:cxn-supplier-mode . :hashed+seq2seq-heuristic)
+     ;(:priority-mode . :seq2seq-heuristic-additive)
+     ;(:seq2seq-endpoint . "http://localhost:8888/next-cxn")
+     ;(:seq2seq-model-comprehension . "clevr_comprehension_model")
+     ;(:seq2seq-model-formulation . "clevr_formulation_model")
+     ;(:seq2seq-rpn-fn . clevr-meaning->rpn)
+
+     ;; depth first search
+     (:cxn-supplier-mode . :ordered-by-label-hashed)
+     (:priority-mode . :nr-of-applied-cxns)
+     (:parse-order hashed nom cxn)
+     (:production-order hashed-lex nom cxn hashed-morph)
      
      ;; For guiding search:
-     (:cxn-sets-with-sequential-application hashed-lex hashed-morph)
+     (:cxn-sets-with-sequential-application hashed-lex) ; hashed-morph
      (:node-expansion-mode . :multiple-cxns)
      (:queue-mode . :greedy-best-first)
      (:max-nr-of-nodes . 10000)
@@ -49,7 +55,8 @@
     :hashed t
     :cxn-inventory *CLEVR*
     (generate-lexical-constructions *CLEVR*)
-    (generate-morphological-constructions *CLEVR*))
+    (generate-morphological-constructions *CLEVR*)
+    )
 
 ;; This is to be able to call comprehend and formulate without specifying the cxn-inventory
 (setf *fcg-constructions* *CLEVR*)

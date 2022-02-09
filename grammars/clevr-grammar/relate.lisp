@@ -45,8 +45,11 @@
                (superunits (?relate-noun-phrase-unit))
                (footprints (relate)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?relate-noun-phrase-unit
-               (HASH meaning ((relate ?related-set ?object ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
                --
                )
               (?referent-noun-phrase-unit
@@ -69,8 +72,10 @@
                --
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?rightmost-ref-unit ?spatial-relation-unit)
-                           (meets ?spatial-relation-unit ?leftmost-np-unit))))
+               (leftmost-unit ?leftmost-spatial-unit)
+               (rightmost-unit ?rightmost-spatial-unit)
+               (HASH form ((meets ?rightmost-ref-unit ?leftmost-spatial-unit)
+                           (meets ?rightmost-spatial-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
                (args ((sources ?source)
                       (target ?object)))
@@ -85,6 +90,7 @@
                (leftmost-unit ?leftmost-np-unit)
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-inventory *clevr*
+             :disable-automatic-footprints t
              :cxn-set cxn)
 
 ;; relate-cxn takes a 'related noun phrase', a spatial relation
@@ -113,8 +119,11 @@
                (superunits (?super-relate-noun-phrase-unit))
                (footprints (relate)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?super-relate-noun-phrase-unit
-               (HASH meaning ((relate ?related-set ?object ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
                --
                )
               (?relate-noun-phrase-unit
@@ -139,8 +148,10 @@
                --
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?rightmost-relate-unit ?spatial-relation-unit)
-                           (meets ?spatial-relation-unit ?leftmost-np-unit))))
+               (leftmost-unit ?leftmost-spatial-unit)
+               (rightmost-unit ?rightmost-spatial-unit)
+               (HASH form ((meets ?rightmost-relate-unit ?leftmost-spatial-unit)
+                           (meets ?rightmost-spatial-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
                (args ((sources ?source)
                       (target ?object)))
@@ -155,6 +166,7 @@
                (leftmost-unit ?leftmost-np-unit)
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-inventory *clevr*
+             :disable-automatic-footprints t
              :cxn-set cxn)
               
 ;; we need 2 (base-)relate cxns, since at any level the string 'that is' can be between
@@ -182,8 +194,11 @@
                (superunits (?relate-noun-phrase-unit))
                (footprints (relate)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?relate-noun-phrase-unit
-               (HASH meaning ((relate ?related-set ?object ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
                --
                )
               (?referent-noun-phrase-unit
@@ -203,7 +218,7 @@
                --
                (HASH form ((string ?that-is-unit "that is")
                            (meets ?rightmost-ref-unit ?that-is-unit)
-                           (meets ?that-is-unit ?spatial-relation-unit))))
+                           (meets ?that-is-unit ?leftmost-spatial-unit))))
               (?spatial-relation-unit
                (args ((target ?spatial-relation)))
                (sem-cat (sem-class spatial-relation))
@@ -211,7 +226,9 @@
                --
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?spatial-relation-unit ?leftmost-np-unit))))
+               (leftmost-unit ?leftmost-spatial-unit)
+               (rightmost-unit ?rightmost-spatial-unit)
+               (HASH form ((meets ?rightmost-spatial-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
                (args ((sources ?source)
                       (target ?object)))
@@ -226,6 +243,7 @@
                (leftmost-unit ?leftmost-np-unit)
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-inventory *clevr*
+             :disable-automatic-footprints t
              :cxn-set cxn)
 
 (def-fcg-cxn relate-that-is-cxn
@@ -251,8 +269,11 @@
                (superunits (?super-relate-noun-phrase-unit))
                (footprints (relate)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?super-relate-noun-phrase-unit
-               (HASH meaning ((relate ?related-set ?object ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
                --
                )
               (?relate-noun-phrase-unit
@@ -274,7 +295,7 @@
                --
                (HASH form ((string ?that-is-unit "that is")
                            (meets ?rightmost-rel-unit ?that-is-unit)
-                           (meets ?that-is-unit ?spatial-relation-unit))))
+                           (meets ?that-is-unit ?leftmost-spatial-unit))))
               (?spatial-relation-unit
                (args ((target ?spatial-relation)))
                (sem-cat (sem-class spatial-relation))
@@ -282,7 +303,9 @@
                --
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?spatial-relation-unit ?leftmost-np-unit))))
+               (leftmost-unit ?leftmost-spatial-unit)
+               (rightmost-unit ?rightmost-spatial-unit)
+               (HASH form ((meets ?rightmost-spatial-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
                (args ((sources ?source)
                       (target ?object)))
@@ -297,6 +320,7 @@
                (leftmost-unit ?leftmost-np-unit)
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-inventory *clevr*
+             :disable-automatic-footprints t
              :cxn-set cxn)
 
 
@@ -327,11 +351,14 @@
                         (definite +))
                (sem-cat (sem-function spatial-relation))
                (subunits (?spatial-relation-unit ?determined-noun-phrase-unit))
-               (leftmost-unit ?spatial-relation-unit)
+               (leftmost-unit ?leftmost-spatial-unit)
                (rightmost-unit ?rightmost-np-unit))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?relate-unit
-               (HASH meaning ((relate ?related-set ?object ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
                --
                )
               (?plural-nominal-unit
@@ -354,9 +381,11 @@
                (args ((target ?spatial-relation)))
                (sem-cat (sem-class spatial-relation))
                --
+               (leftmost-unit ?leftmost-spatial-unit)
+               (rightmost-unit ?rightmost-spatial-unit)
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?rightmost-nom-unit ?spatial-relation-unit)
-                           (meets ?spatial-relation-unit ?leftmost-np-unit))))
+               (HASH form ((meets ?rightmost-nom-unit ?leftmost-spatial-unit)
+                           (meets ?rightmost-spatial-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
                (args ((sources ?source)
                       (target ?object)))
@@ -369,6 +398,7 @@
                (leftmost-unit ?leftmost-np-unit)
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-set cxn
+             :disable-automatic-footprints t
              :cxn-inventory *clevr*)
 
 (def-fcg-cxn plural-relate-that-are-cxn
@@ -395,11 +425,14 @@
                         (definite +))
                (sem-cat (sem-function spatial-relation))
                (subunits (?spatial-relation-unit ?determined-noun-phrase-unit))
-               (leftmost-unit ?spatial-relation-unit)
+               (leftmost-unit ?leftmost-spatial-unit)
                (rightmost-unit ?rightmost-np-unit))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?relate-unit
-               (HASH meaning ((relate ?related-set ?object ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
                --
                )
               (?plural-nominal-unit
@@ -422,13 +455,15 @@
                --
                (HASH form ((string ?that-are "that are")
                            (meets ?rightmost-nom-unit ?that-are)
-                           (meets ?that-are ?spatial-relation-unit))))
+                           (meets ?that-are ?leftmost-spatial-unit))))
               (?spatial-relation-unit
                (args ((target ?spatial-relation)))
                (sem-cat (sem-class spatial-relation))
                --
+               (leftmost-unit ?leftmost-spatial-unit)
+               (rightmost-unit ?rightmost-spatial-unit)
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?spatial-relation-unit ?leftmost-np-unit))))
+               (HASH form ((meets ?rightmost-spatial-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
                (args ((sources ?source)
                       (target ?object)))
@@ -441,4 +476,5 @@
                (leftmost-unit ?leftmost-np-unit)
                (rightmost-unit ?rightmost-np-unit)))
              :cxn-set cxn
+             :disable-automatic-footprints t
              :cxn-inventory *clevr*)

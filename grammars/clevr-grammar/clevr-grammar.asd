@@ -36,4 +36,5 @@
                (:file "compare-integer")
                (:file "same-relate")
                (:file "comparison")
-               (:file "preprocess-utterance")))
+               (:file "preprocess-utterance")
+               (:file "understand")))
