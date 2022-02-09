@@ -24,7 +24,7 @@
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names average-windows
                                               y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
-                                              captions (open t) start plot-file-name)
+                                              captions (open t) start plot-file-name (key-location "bottom"))
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
@@ -51,13 +51,14 @@
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
     :open open
-    :start start))
+    :start start
+    :key-location key-location))
   (format t "~%Graphs have been created"))
 
 (defun create-graph-comparing-strategies (&key experiment-names measure-name
                                                (y-min 0) (y-max 1) xlabel y1-label y2-label
                                                captions title start end (window 1000)
-                                               plot-file-name)
+                                               plot-file-name (key-location "bottom"))
   ;; This function allows you to compare a given measure accross different
   ;; experiments, e.g. comparing lexicon size
   (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
@@ -82,14 +83,14 @@
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
     :start start :end end
-    :fsize 12))
+    :key-location key-location))
   (format t "~%Graphs have been created"))
 
 (defun create-graph-mixing-strategies (&key
                                        experiment-measure-conses
                                        (y1-min 0) (y1-max 1) (y2-min 0) (y2-max nil) use-y-axis
                                        xlabel y1-label y2-label captions title start end
-                                       (window 1000) plot-file-name open)
+                                       (window 1000) plot-file-name open (key-location "bottom"))
   (let* ((raw-file-paths
           (loop for (experiment . measure) in experiment-measure-conses
                 collect `("experiments" "multidimensional-word-meanings" "raw-data" ,experiment ,measure)))
@@ -114,8 +115,8 @@
    :y1-label (when y1-label y1-label)
    :y2-label (when y2-label y2-label)
    :start start :end end
-   :fsize 12
-   :open open))
+   :open open
+   :key-location key-location))
   (format t "~%Graphs have been created"))
 
 (defun create-stacked-bars-comparing-strategies (&key experiment-names measure-names

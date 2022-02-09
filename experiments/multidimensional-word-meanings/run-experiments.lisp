@@ -92,7 +92,7 @@
  :y2-label "Number of Concepts"
  :captions '("communicative success (always listener)"
              "communicative success (both roles)"
-             "communicative success given conceptualisaiton (both roles)"
+             "communicative success given conceptualisation (both roles)"
              "concept repertoire size")
  :window '(100 100 100 1)
  :use-y-axis '(1 1 1 2) :y1-max 1 :y2-max 30)
