@@ -22,9 +22,57 @@
     :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
+(defun create-graph-for-single-strategy (experiment-name measure-names
+                                         &rest evo-plot-keyword-args)
+  ;; take some arguments, but pass along the rest to raw-files->evo-plot
+  (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
+  (let* ((raw-file-paths
+          (loop for measure-name in measure-names
+                collect `("experiments" "multidimensional-word-meanings"
+                          "raw-data" ,experiment-name ,measure-name)))
+         (default-plot-file-name
+          (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
+                  raw-file-paths  :key #'(lambda (path) (first (last path)))))
+         (plot-file-name
+          (when (find :plot-file-name evo-plot-keyword-args)
+            (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
+    (apply #'raw-files->evo-plot
+           (append `(:raw-file-paths ,raw-file-paths
+                     :plot-directory ("experiments" "multidimensional-word-meanings" "graphs")
+                     :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
+                   evo-plot-keyword-args)))
+  (format t "~%Graphs have been created"))
+
+(defun create-graph-mixing-strategies (experiment-measure-pairs
+                                       &rest evo-plot-keyword-args)
+  ;; take some arguments, but pass along the rest to raw-files->evo-plot
+  (let* ((raw-file-paths
+          (loop for (experiment . measure) in experiment-measure-pairs
+                collect `("experiments" "multidimensional-word-meanings"
+                          "raw-data" ,experiment ,measure)))
+         (default-plot-file-name
+          (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
+                  raw-file-paths  :key #'(lambda (path) (first (last path)))))
+         (captions
+          (if (find :captions evo-plot-keyword-args)
+            (nth (1+ (position :captions evo-plot-keyword-args)) evo-plot-keyword-args)
+            (loop for (experiment . measure) in experiment-measure-pairs
+                  collect (format nil "~a-~a" experiment measure))))
+         (plot-file-name
+          (when (find :plot-file-name evo-plot-keyword-args)
+            (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
+    (apply #'raw-files->evo-plot
+           (append `(:raw-file-paths ,raw-file-paths
+                     :plot-directory ("experiments" "multidimensional-word-meanings" "graphs")
+                     :captions ,captions
+                     :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
+                   evo-plot-keyword-args))))
+  
+  
+#|
 (defun create-graph-for-single-strategy (&key experiment-name measure-names average-windows
                                               y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
-                                              captions (open t) start plot-file-name (key-location "bottom"))
+                                              captions (open t) start end plot-file-name (key-location "bottom"))
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
@@ -51,7 +99,7 @@
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
     :open open
-    :start start
+    :start start :end end
     :key-location key-location))
   (format t "~%Graphs have been created"))
 
@@ -85,7 +133,8 @@
     :start start :end end
     :key-location key-location))
   (format t "~%Graphs have been created"))
-
+                     
+  
 (defun create-graph-mixing-strategies (&key
                                        experiment-measure-conses
                                        (y1-min 0) (y1-max 1) (y2-min 0) (y2-max nil) use-y-axis
@@ -170,3 +219,4 @@
      :error-bars :stdev
      :y-max y-max
      :open open)))
+|#
