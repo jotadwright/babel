@@ -22,34 +22,38 @@
                          (:lexical-variation . nil))
  ;; configurations
  :configurations '(
-                   (baseline-simulated
-                    ((:experiment-type . :baseline)
+                   (cogent-simulated-switch-500
+                    ((:experiment-type . :cogent)
                      (:world-type . :simulated)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:alignment-filter . :all)))
-                   (baseline-simulated-bidirectional
-                    ((:experiment-type . :baseline)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
+                   (cogent-simulated-bidirectional-switch-500
+                    ((:experiment-type . :cogent)
                      (:world-type . :simulated)
                      (:determine-interacting-agents-mode . :default)
-                     (:alignment-filter . :all)))
-                   (baseline-extracted
-                    ((:experiment-type . :baseline)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
+                   (cogent-extracted-switch-500
+                    ((:experiment-type . :cogent)
                      (:world-type . :extracted)
                      (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:alignment-filter . :all)))
-                   (baseline-extracted-bidirectional
-                    ((:experiment-type . :baseline)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
+                   (cogent-extracted-bidirectional-switch-500
+                    ((:experiment-type . :cogent)
                      (:world-type . :extracted)
                      (:determine-interacting-agents-mode . :default)
-                     (:alignment-filter . :all)))
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
                    )
  ;; output directory
  :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))
 
 (create-graph-for-single-strategy
- "baseline-simulated"
+ "cogent-simulated-switch-500"
  '("communicative-success" "lexicon-size")
- :plot-file-name "baseline-simulated"
+ :plot-file-name "cogent-simulated-switch-500"
  :average-windows '(100 1)
  :use-y-axis '(1 2)
  :y1-min 0 :y1-max 1
@@ -65,11 +69,11 @@
  :open nil)
 
 (create-graph-for-single-strategy
- "baseline-simulated-bidirectional"
+ "cogent-simulated-bidirectional-switch-500"
  '("communicative-success"
    "communicative-success-given-conceptualisation"
    "lexicon-size")
- :plot-file-name "baseline-simulated-bidirectional"
+ :plot-file-name "cogent-simulated-bidirectional-switch-500"
  :average-windows '(100 100 1)
  :use-y-axis '(1 1 2)
  :y1-min 0 :y1-max 1
@@ -86,11 +90,11 @@
  :open nil)
 
 (create-graph-mixing-strategies
- '(("baseline-simulated" . "communicative-success")
-   ("baseline-simulated-bidirectional" . "communicative-success")
-   ("baseline-simulated-bidirectional" . "communicative-success-given-conceptualisation")
-   ("baseline-simulated-bidirectional" . "lexicon-size"))
- :plot-file-name "baseline-simulated-comparison"
+ '(("cogent-simulated-switch-500" . "communicative-success")
+   ("cogent-simulated-bidirectional-switch-500" . "communicative-success")
+   ("cogent-simulated-bidirectional-switch-500" . "communicative-success-given-conceptualisation")
+   ("cogent-simulated-bidirectional-switch-500" . "lexicon-size"))
+ :plot-file-name "cogent-simulated-comparison"
  :x-label "Number of Games"
  :y1-label "Communicative Success"
  :y2-label "Number of Concepts"
@@ -108,10 +112,10 @@
  :open nil)
 
 (create-graph-for-single-strategy
- "baseline-extracted"
+ "cogent-extracted-switch-500"
  '("communicative-success"
    "lexicon-size")
- :plot-file-name "baseline-extracted"
+ :plot-file-name "cogent-extracted-switch-500"
  :average-windows '(100 1)
  :use-y-axis '(1 2)
  :y1-min 0 :y1-max 1
@@ -127,11 +131,11 @@
  :open nil)
 
 (create-graph-for-single-strategy
- "baseline-extracted-bidirectional"
+ "cogent-extracted-bidirectional-switch-500"
  '("communicative-success"
    "communicative-success-given-conceptualisation"
    "lexicon-size")
- :plot-file-name "baseline-extracted-bidirectional"
+ :plot-file-name "cogent-extracted-bidirectional-switch-500"
  :average-windows '(100 100 1)
  :use-y-axis '(1 1 2)
  :y1-min 0 :y1-max 1
@@ -148,11 +152,11 @@
  :open nil)
 
 (create-graph-mixing-strategies
- '(("baseline-extracted" . "communicative-success")
-   ("baseline-extracted-bidirectional" . "communicative-success")
-   ("baseline-extracted-bidirectional" . "communicative-success-given-conceptualisation")
-   ("baseline-extracted-bidirectional" . "lexicon-size"))
- :plot-file-name "baseline-extracted-comparison"
+ '(("cogent-extracted-switch-500" . "communicative-success")
+   ("cogent-extracted-bidirectional-switch-500" . "communicative-success")
+   ("cogent-extracted-bidirectional-switch-500" . "communicative-success-given-conceptualisation")
+   ("cogent-extracted-bidirectional-switch-500" . "lexicon-size"))
+ :plot-file-name "cogent-extracted-comparison"
  :x-label "Number of Games"
  :y1-label "Communicative Success"
  :y2-label "Number of Concepts"
