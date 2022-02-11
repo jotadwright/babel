@@ -22,7 +22,8 @@
   :depends-on (:experiment-framework :test-framework :utils :monitors :meta-layer-learning :cl-store :graph-utils
                #+:hunchentoot-available-on-this-platform :web-interface
                :network
-               :s-dot)
+               :s-dot
+               :cl-json)
   :serial t
   :components 
   ((:file "package")
@@ -100,7 +101,8 @@
                  (:file "graph-utils-additions")
                  (:file "categorial-network")
                  (:file "html")
-                 (:file "web-monitor")))
+                 (:file "web-monitor")
+                 (:file "export-utils")))
    
    (:module meta-layer
     :serial t
