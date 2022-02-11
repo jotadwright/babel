@@ -147,55 +147,25 @@
      (remove-non-connected-nodes th-copy)
      path)))
 
-(define-monitor export-type-hierarchy-evolution-to-jsonl
+(define-monitor export-categorial-network-evolution-to-jsonl
                 :documentation "Export a series of states of the type-hierarchy as JSONL. Used to draw dynamic evolutionary graphs."
                 :class 'store-monitor
-                :file-name (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
-                                            :name "type-hierarchy-evolution"
+                :file-name (babel-pathname :directory '("experiments" "grammar-learning" "raw-data")
+                                            :name "categorial-network-evolution"
                                             :type "jsonl"))
 
-(define-event-handler (export-type-hierarchy-evolution-to-jsonl interaction-finished)
-  (let* ((interval (if (get-configuration experiment :type-hierarchy-export-interval)
-                     (get-configuration experiment :type-hierarchy-export-interval)
+(define-event-handler (export-categorial-network-evolution-to-jsonl interaction-finished)
+  ;; TODO: the entire jsonl file needs to be reversed (at end of experiment) so use experiment-finished and create new event handler!
+  (let* ((interval (if (get-configuration experiment :categorial-network-export-interval)
+                     (get-configuration experiment :categorial-network-export-interval)
                      100))
          (timestep (/ (interaction-number interaction) interval)))
     (when (= (mod (interaction-number interaction) interval) 0)
       (let* ((cn (categorial-network (grammar (first (interacting-agents experiment)))))
-             (path (make-file-name-with-series (file-name monitor) (series-number experiment)))
-             ;; get a list of all node names
-             ;; to do: get color and type attributes from graph
-             (all-nodes
-              (loop for node in (categories cn)
-                    collect `((label . ,(mkstr node))
-                              (color . "#000000")
-                              (type . nil))))
-             ;; get a list of all the edges
-             ;; this include the edge-type
-             ;; but excludes the weight
-             (all-edges (links cn))
-             ;; so get the weight separately
-             (all-edges-with-weight
-              (loop for (from to etype) in all-edges
-                    for w = (link-weight from to cn :link-type etype)
-                    collect`((start-node . ,(mkstr from))
-                             (end-node . ,(mkstr to))
-                             (score . ,w)
-                             (type . nil)))) ;; to do: get type attribute from graph
-             (json-hash (make-hash-table)))
-        (setf (gethash 'nodes json-hash) all-nodes)
-        (setf (gethash 'edges json-hash) all-edges-with-weight)
-
-        (ensure-directories-exist path)
-        (with-open-file (stream path :direction :output
-                                :if-exists (if (= 1 timestep) :supersede :append)
-                                :if-does-not-exist :create)
-          (write-line
-           (cl-json:encode-json-to-string
-            `((time-step . ,timestep)
-              (interaction-number . ,(interaction-number interaction))
-              (graph . ,json-hash)))
-           stream)
-          (force-output stream))))))
+             (path (make-file-name-with-series (file-name monitor) (series-number experiment))))
+        (export-categorial-network-evolution-to-jsonl cn :path path :timestep timestep :interaction-number (interaction-number interaction))))))
+        
+             
 #|
 (defparameter *my-hash* (make-hash-table))
 (setf (gethash 'one-entry *my-hash*) "one")

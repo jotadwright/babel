@@ -34,7 +34,7 @@
   (activate-monitor display-metrics)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor export-type-hierarchy-evolution-to-jsonl)
+  (activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
 
 (progn
@@ -66,7 +66,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  3000)
+;(run-series *experiment*  400)
 #|
 
 QUESTIONS

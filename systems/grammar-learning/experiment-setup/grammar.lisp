@@ -52,7 +52,6 @@
                                         (:parse-goal-tests :non-gold-standard-meaning)
                                         (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,de-render-mode)
-                                        (:meaning-representation-formalism . :amr)
                                         (:meaning-representation-formalism . ,meaning-representation-formalism)
                                         (:render-mode . :generate-and-test)
                                         (:category-linking-mode . ,th-connected-mode)
