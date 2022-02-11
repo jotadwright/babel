@@ -160,8 +160,7 @@
                      100))
          (timestep (/ (interaction-number interaction) interval)))
     (when (= (mod (interaction-number interaction) interval) 0)
-      (let* ((g (graph (categorial-network (grammar (first (interacting-agents experiment))))))
-             (cn (categorial-network (grammar (first (interacting-agents experiment)))))
+      (let* ((cn (categorial-network (grammar (first (interacting-agents experiment)))))
              (path (make-file-name-with-series (file-name monitor) (series-number experiment)))
              ;; get a list of all node names
              ;; to do: get color and type attributes from graph
@@ -177,7 +176,7 @@
              ;; so get the weight separately
              (all-edges-with-weight
               (loop for (from to etype) in all-edges
-                    for w = (link-weight cn from to etype)
+                    for w = (link-weight from to cn :link-type etype)
                     collect`((start-node . ,(mkstr from))
                              (end-node . ,(mkstr to))
                              (score . ,w)

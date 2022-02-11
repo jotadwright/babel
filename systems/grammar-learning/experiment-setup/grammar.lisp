@@ -58,6 +58,9 @@
                                         (:category-linking-mode . ,th-connected-mode)
                                         (:update-categorial-links . t)
                                         (:consolidate-repairs . t)
+                                        (:use-meta-layer . t)
+                                        (:initial-categorial-link-weight . 0.0)
+                                        (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (gl::add-categorial-links

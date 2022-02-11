@@ -219,7 +219,7 @@
 
 (defgeneric add-categories (categories thing &key recompute-transitive-closure))
 
-(defmethod add-categories ((categories list) (categorial-network categorial-network) &key (recompute-transitive-closure t))
+(defmethod add-categories ((categories list) (categorial-network categorial-network) &key (recompute-transitive-closure nil))
   "Adds a list of categories to the categorial network of a grammar."
   (loop for category in categories
         do
@@ -229,11 +229,11 @@
           (compute-transitive-closure categorial-network))
         (return categorial-network)))
 
-(defmethod add-categories ((categories list) (cxn-inventory fcg-construction-set) &key (recompute-transitive-closure t))
+(defmethod add-categories ((categories list) (cxn-inventory fcg-construction-set) &key (recompute-transitive-closure nil))
   "Adds a list of categories to the categorial network of a grammar."
   (add-categories categories (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
 
-(defmethod add-categories ((categories list) (cxn-inventory hashed-fcg-construction-set) &key (recompute-transitive-closure t))
+(defmethod add-categories ((categories list) (cxn-inventory hashed-fcg-construction-set) &key (recompute-transitive-closure nil))
   "Adds a list of categories to the categorial network of a grammar."
   (add-categories categories (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
 

@@ -1128,7 +1128,7 @@ added here. Preprocessing is only used in parsing currently."
                     (type-of x))))))
 
 (defun consolidate-repairs (node)
-  "conolidate the constructions and th-links added by repairs"
+  "consolidate the constructions and categorial links added by repairs"
   ;; fix-cxns field is used by repair
   (when (field? (car-resulting-cfs (cipn-car node)) :fix-cxns)
     (loop for cxn in (get-data (car-resulting-cfs (cipn-car node)) :fix-cxns)
@@ -1141,7 +1141,8 @@ added here. Preprocessing is only used in parsing currently."
                              (original-cxn-set (construction-inventory node)))
           (add-link (car cat-link) (cdr cat-link) 
                                      (original-cxn-set (construction-inventory node))
-                                     :weight 0.0)))
+                                     :weight (get-configuration (construction-inventory node) :initial-categorial-link-weight)
+                                     :recompute-transitive-closure (not (get-configuration (construction-inventory node) :ignore-transitive-closure)))))
   ;; also add all applied cxns
   (loop with fcg-cxn-set = (original-cxn-set (construction-inventory node))
         for cxn in (applied-constructions node)
