@@ -51,7 +51,7 @@
                                      cl-user:*babel-corpora*))
                          (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                    :name "stage-1" :type "jsonl"))
-                              )))) 
+                              )))))
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
@@ -66,7 +66,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  1000)
+;(run-series *experiment*  3000)
 #|
 
 QUESTIONS
@@ -80,6 +80,9 @@ NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van varia
  
 ISSUES
 ------
+compute-transitive-closure: also called in consolidate-repairs
+=> make it a configuration of the cip?
+=> make the default nil!
 
 TODO
 ----
