@@ -11,7 +11,7 @@
       (string-append "train-" (mkstr (get-configuration experiment :switch-conditions-after-n-interactions)) "-")
       "")
     (if (eql (get-configuration experiment :experiment-type) :incremental)
-      (string-append "condition-" (mkstr (get-configuration experiment :incremental-stage)) "-")
+      (string-append "phase-" (mkstr (get-configuration experiment :incremental-stage)) "-")
       "")
     "lexicon")))
 
