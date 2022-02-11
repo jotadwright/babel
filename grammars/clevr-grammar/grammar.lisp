@@ -2,148 +2,61 @@
 
 (in-package :clevr-grammar)
 
-;; + Apply terminal cxns last +
-
-#|
-
-(defclass cxn-supplier-with-ordered-labels-and-terminals-last (cxn-supplier-with-ordered-labels)
-  ())
-
-(defmethod create-cxn-supplier ((node cip-node)
-                                (mode (eql :ordered-labels-and-terminals-last)))
-  (let* ((parent (car (all-parents node))))
-    (if parent
-      ;; copy most of the stuff from the the pool of the parent
-      (make-instance 
-       'cxn-supplier-with-ordered-labels-and-terminals-last
-       :current-label (current-label (cxn-supplier parent))
-       :remaining-labels (remaining-labels (cxn-supplier parent))
-       :all-constructions-of-current-label (all-constructions-of-current-label (cxn-supplier parent)))
-      ;; there is no parent, start from first label
-      (let ((labels (get-configuration (construction-inventory (cip node))
-                                       (if (eq (direction (cip node)) '->)
-                                         :production-order :parse-order))))
-        (make-instance 
-         'cxn-supplier-with-ordered-labels-and-terminals-last
-         :current-label (car labels)
-         :remaining-labels (cdr labels)
-         :all-constructions-of-current-label
-         (all-constructions-of-label-with-terminals-last node (car labels)))))))
-
-(defun all-constructions-of-label-with-terminals-last (node label)
-  "Shuffles the cxns, except for the 'cxn' label. Here, the cxns
-   are divided in 2 groups: terminal and non-terminal. Terminal cxns
-   are cxns that add the get-context predicate to the meaning network.
-   They are the last cxns that need to be applied. Therefore, the non-
-   terminal cxns preceed the terminal cxns. Within the groups, the
-   cxns are again shuffled."
-  (let ((cxns-of-label (copy-object
-                        (loop for cxn in (constructions-for-application (construction-inventory (cip node)))
-                              for cxn-label = (attr-val cxn :label)
-                              when (equalp (symbol-name label) (symbol-name cxn-label))
-                              collect cxn))))
-    (cond
-     ((eql label 'cxn)
-      (let ((terminal-cxns (remove-if-not (lambda (cxn) (attr-val cxn :terminal)) cxns-of-label))
-            (non-terminal-cxns (remove-if (lambda (cxn) (attr-val cxn :terminal)) cxns-of-label)))
-        (append (shuffle non-terminal-cxns)
-                (shuffle terminal-cxns))))
-     (t
-      (shuffle cxns-of-label)))))
-
-(defmethod next-cxn ((cxn-supplier cxn-supplier-with-ordered-labels-and-terminals-last)
-                     (node cip-node))
-  (cond ((remaining-constructions cxn-supplier)
-         ;; there are remaining constructions. just return the next one
-         (pop (remaining-constructions cxn-supplier)))
-        ((loop for child in (children node)
-               thereis (cxn-applied child))
-         ;; when the node already has children where cxn application succeeded,
-         ;;  then we don't move to the next label
-         nil)
-        ((remaining-labels cxn-supplier)
-         ;; go to the next label
-         (setf (current-label cxn-supplier) (car (remaining-labels cxn-supplier)))
-         (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
-         (setf (all-constructions-of-current-label cxn-supplier)
-               (all-constructions-of-label-with-terminals-last node (current-label cxn-supplier)))
-         (setf (remaining-constructions cxn-supplier)
-               (all-constructions-of-current-label cxn-supplier))
-         (next-cxn cxn-supplier node))))
-
-;; + Goal test: meaning network should contain get-context predicate +
-;; These are currently not being used
-
-(defmethod cip-goal-test ((node cip-node) (mode (eql :meaning-contains-context-predicate)))
-  "Checks whether the resulting meaning contains a get-context predicate"
-  (let ((meaning (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node))))))
-    (find 'get-context meaning :key #'first)))
-
-(defmethod cip-goal-test ((node cip-node) (mode (eql :context-predicate-is-taken-from-root)))
-  "Checks whether the get-context predicate has been removed from the root"
-  (let ((root-meanings (extract-meaning (get-root (left-pole-structure (car-resulting-cfs (cipn-car node)))))))
-    (not (find 'get-context root-meanings :key #'first))))
-
-|#
-
-(defmethod cip-node-test ((node cip-node) (mode (eql :connected-structure-for-morph)))
-  (if (eql (direction (cip node)) '->)
-    (let* ((applied-cxn-label (attr-val (first (applied-constructions node)) :label)))
-      (if (and (listp applied-cxn-label) (find 'hashed-morph applied-cxn-label))
-        (let* ((left-pole (left-pole-structure (car-resulting-cfs (cipn-car node))))
-               (connected? (fcg::connected-syntactic-structure
-                            left-pole
-                            :grammar-hierarchy-features
-                            (fcg::hierarchy-features (construction-inventory node)))))
-          (or connected?
-              (progn
-                (set-data (goal-test-data node) 'dependencies-realized left-pole)
-                nil)))
-        t))
-    t))
-
 (def-fcg-constructions clevr-grammar
-    :feature-types ((args set-of-predicates)
-                    (form set-of-predicates)
-                    (meaning set-of-predicates)
-                    (subunits set)
-                    (superunits set)
-                    (footprints set))
-    :fcg-configurations ((:de-render-mode . :de-render-string-meets-precedes-within-3) ;; special de-render mode: precedes within N
-                         (:render-mode . :generate-and-test) ;; using the new renderer
-                         (:form-predicates meets precedes)
-                         (:node-tests :check-duplicate :connected-structure-for-morph :restrict-nr-of-nodes)
-                         (:parse-goal-tests :no-applicable-cxns
-                                            :connected-semantic-network
-                                            :connected-structure ;; !!! also :connected-structure in comprehension
-                                            :no-strings-in-root) 
-                         (:production-goal-tests :no-applicable-cxns
-                                                 :connected-structure
-                                                 :no-meaning-in-root)
-                         
-                         ;; For heuristic search with seq2seq:
-                         (:cxn-supplier-mode . :hashed+seq2seq-heuristic)
-                         (:priority-mode . :seq2seq-heuristic-additive)
-                         (:seq2seq-endpoint . "http://localhost:8888/next-cxn")
-                         (:seq2seq-model-comprehension . "clevr_comprehension_model")
-                         (:seq2seq-model-formulation . "clevr_formulation_model")
-                         (:seq2seq-rpn-fn . clevr-meaning->rpn)
-                         
-                         ;; For guiding search:
-                         (:cxn-sets-with-sequential-application hashed-lex hashed-morph)
-                         (:node-expansion-mode . :multiple-cxns)
-                         (:queue-mode . :greedy-best-first)
-                         (:max-nr-of-nodes . 10000)
-                         (:hash-mode . :hash-string-meaning-lex-id))
-    :visualization-configurations ((:show-constructional-dependencies . nil)
-                                   (:hide-features . nil)
-                                   ;(:hide-features . (footprints superunits))
-                                   (:with-search-debug-data . t))
+    :feature-types
+    ((args set-of-predicates)
+     (form set-of-predicates)
+     (meaning set-of-predicates)
+     (subunits set)
+     (superunits set)
+     (footprints set))    
+    :fcg-configurations
+    ((:de-render-mode . :clevr-de-renderer)
+     (:render-mode . :generate-and-test) 
+     (:form-predicates meets precedes)
+     (:node-tests :check-duplicate
+      :connected-structure-for-morph
+      :restrict-nr-of-nodes)
+     (:parse-goal-tests :no-applicable-cxns
+      :connected-semantic-network
+      :connected-structure
+      :no-strings-in-root)
+     (:production-goal-tests :no-applicable-cxns
+      :connected-structure
+      :no-meaning-in-root)
+
+    
+     
+     ;; For heuristic search with seq2seq:
+     ;(:cxn-supplier-mode . :hashed+seq2seq-heuristic)
+     ;(:priority-mode . :seq2seq-heuristic-additive)
+     ;(:seq2seq-endpoint . "http://localhost:8888/next-cxn")
+     ;(:seq2seq-model-comprehension . "clevr_comprehension_model")
+     ;(:seq2seq-model-formulation . "clevr_formulation_model")
+     ;(:seq2seq-rpn-fn . clevr-meaning->rpn)
+
+     ;; depth first search
+     (:cxn-supplier-mode . :ordered-by-label-hashed)
+     (:priority-mode . :nr-of-applied-cxns)
+     (:parse-order hashed nom cxn)
+     (:production-order hashed-lex nom cxn hashed-morph)
+     
+     ;; For guiding search:
+     (:cxn-sets-with-sequential-application hashed-lex) ; hashed-morph
+     (:node-expansion-mode . :multiple-cxns)
+     (:queue-mode . :greedy-best-first)
+     (:max-nr-of-nodes . 10000)
+     (:hash-mode . :hash-string-meaning-lex-id))
+    :visualization-configurations
+    ((:show-constructional-dependencies . nil)
+     (:hide-features . nil) ; (footprints superunits)
+     (:with-search-debug-data . t))
     :hierarchy-features (subunits)
     :hashed t
     :cxn-inventory *CLEVR*
     (generate-lexical-constructions *CLEVR*)
-    (generate-morphological-constructions *CLEVR*))
+    (generate-morphological-constructions *CLEVR*)
+    )
 
 ;; This is to be able to call comprehend and formulate without specifying the cxn-inventory
 (setf *fcg-constructions* *CLEVR*)

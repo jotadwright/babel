@@ -34,19 +34,11 @@
                       (:seq2seq-model-formulation . "clevr_formulation_model"))
                     :replace t)
 
+(understand "Do the large metal cube left of the red thing and the small cylinder have the same color?" *fcg-constructions* '?scene)
+
+
 (comprehend-and-formulate "Do the big rubber object on the left side of the big gray thing and the large sphere that is in front of the large blue rubber thing have the same color?")
-;; nr of nodes for solution: 2200, 775, 772, 5230, 2971, 2073
-
 (comprehend-and-formulate "Is the material of the big gray thing that is in front of the tiny green metallic object the same as the green object that is behind the gray matte ball?")
-;; nr of nodes for solution: 1608, 2600, 71, 2598, 3372
-
-
-
-
-
-(comprehend "What color is the cube?")
-(comprehend-and-formulate "What color is the cube?")
-
 (comprehend-and-formulate "Is the color of the metal block that is right of the yellow rubber object the same as the large metal cylinder?")
 (comprehend-and-formulate "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?")
 (comprehend-and-formulate "Does the matte object behind the gray metallic ball have the same color as the big rubber sphere?")
@@ -55,12 +47,10 @@
 (comprehend-and-formulate "Do the big rubber cube that is behind the small rubber cube and the large matte cylinder have the same color?")
 (comprehend-and-formulate "Are the big brown ball that is on the right side of the big metal cylinder and the sphere on the left side of the small metallic ball made of the same material?")
 (comprehend-and-formulate "There is a tiny matte object right of the tiny gray matte thing; is its shape the same as the yellow object that is to the left of the small yellow matte cube?")
-
 (comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
 (comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
 (comprehend "How many blue metal things are left of the green ball and behind the red thing?")
 (comprehend "Do the large metal cube left of the red thing and the small cylinder have the same color?")
-
 (comprehend-and-formulate "What size is the blue metal thing left of the green ball behind the red thing?")
 (comprehend-and-formulate "How many blue metal things are left of the green ball and behind the red thing?")
 (comprehend-and-formulate "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")

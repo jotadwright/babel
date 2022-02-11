@@ -37,6 +37,26 @@
                      base-path)
               :format "pdf" :open nil))))
 
+(defun lexicon->store (agent &key dirname serie)
+  (let* ((experiment-name
+          (if dirname dirname (experiment-name-from-configurations (experiment agent))))
+         (base-path
+          (if serie
+            (babel-pathname
+             :directory `("experiments" "multidimensional-word-meanings"
+                          "store" ,(downcase experiment-name)
+                          ,(format nil "serie-~a" serie)))
+            (babel-pathname
+             :directory `("experiments" "multidimensional-word-meanings"
+                          "store" ,(downcase experiment-name))))))
+    (ensure-directories-exist base-path)
+    (loop for concept in (average-over-concept-history agent)
+          for pathname = (merge-pathnames
+                          (make-pathname :name (format nil "~a-cxn" (form concept))
+                                         :type "store")
+                          base-path)
+          do (cl-store:store concept pathname))))
+
 
 
 

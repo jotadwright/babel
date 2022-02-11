@@ -122,8 +122,7 @@
                   (loop for object in context
                         maximize (weighted-similarity-with-table object subset similarity-table)))
                  (diff (- topic-similarity best-other-similarity)))
-            (when (and (> topic-similarity best-other-similarity)
-                       (< best-other-similarity 0)
+            (when (and (> topic-similarity best-other-similarity) 
                        (> diff largest-diff)
                        (> topic-similarity best-similarity))
               (setf best-subset subset
@@ -159,6 +158,11 @@
          (best-subset
           (find-most-discriminating-subset
            agent subsets-to-consider topic similarity-table)))
+    (when (null best-subset)
+      ;; when best-subset returns NIL
+      ;; reward all attributes...
+      (format t "!")
+      (setf best-subset (meaning concept)))
     (add-to-concept-history agent concept)
     ;; 3. actually update the certainty scores
     (loop with rewarded-attributes = nil

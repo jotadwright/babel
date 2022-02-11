@@ -19,50 +19,56 @@
   (make-configuration
    :entries '((:experiment-type . :baseline)
               (:world-type . :simulated)
-              (:determine-interacting-agents-mode . :default))))
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all))))
 
 (defparameter *baseline-extracted*
   (make-configuration
    :entries '((:experiment-type . :baseline)
               (:world-type . :extracted)
-              (:determine-interacting-agents-mode . :tutor-speaks))))
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all))))
 
 (defparameter *cogent-simulated*
   (make-configuration
    :entries '((:experiment-type . :cogent)
               (:world-type . :simulated)
-              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all)
               (:switch-conditions-after-n-interactions . 100))))
 
 (defparameter *cogent-extracted*
   (make-configuration
    :entries '((:experiment-type . :cogent)
               (:world-type . :extracted)
-              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all)
               (:switch-conditions-after-n-interactions . 100))))
 
 (defparameter *incremental-simulated*
   (make-configuration
    :entries '((:experiment-type . :incremental)
               (:world-type . :simulated)
-              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all)
               (:switch-conditions-after-n-interactions . 100))))
 
 (defparameter *incremental-extracted*
   (make-configuration
    :entries '((:experiment-type . :incremental)
               (:world-type . :extracted)
-              (:determine-interacting-agents-mode . :tutor-speaks)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all)
               (:switch-conditions-after-n-interactions . 100))))
 
 ;;;; EXPERIMENT
 (defparameter *experiment*
   (make-instance 'mwm-experiment
-                 :configuration *baseline-extracted*))
+                 :configuration *cogent-extracted*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 300)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -74,30 +80,35 @@
                    (test
                     ((:experiment-type . :baseline)
                      (:world-type . :simulated)
-                     (:determine-interacting-agents-mode . :default)))
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)))
                    )
-                 :number-of-interactions 5000
-                 :number-of-series 3
+                 :number-of-interactions 2000
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
                                  "export-communicative-success-given-conceptualisation"
-                                 ;"export-learner-concepts"
+                                 ;"export-learner-concepts-to-pdf"
+                                 ;"export-learner-concepts-to-store"
+                                 ;"export-experiment-configurations"
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "test"
- :measure-names '("communicative-success"
-                  "communicative-success-given-conceptualisation"
-                  "lexicon-size"
-                  )
- :average-windows '(200 200 1)
- :y-axis '(1 1 2)
+ "test" '("communicative-success" "lexicon-size")
+ :plot-file-name "baseline-simulated"
+ :average-windows '(100 1)
+ :use-y-axis '(1 2)
  :y1-min 0 :y1-max 1
- :y2-max nil
- :xlabel "Number of games"
+ :y2-min 0 :y2-max 30
+ :x-label "Number of Games"
  :y1-label "Communicative Success"
- :y2-label "Concept Repertoire Size"
- :open t)
+ :y2-label "Number of Concepts"
+ :captions '("communicative success"
+             "concept repertoire size")
+ :error-bars '(:percentile 5 95)
+ :error-bar-modes '(:lines)
+ :key-location "bottom"
+ :open nil)
 
 (create-tutor-word-use-graph
  :configurations
@@ -114,11 +125,55 @@
  :nr-of-interactions 5000)
 
 
-;;;; Computing average success
+
+;; -------------
+;; + All plots +
+;; -------------
+(create-graph-mixing-strategies
+ :experiment-measure-conses
+ '(("baseline-simulated" . "communicative-success")
+   ("baseline-simulated-bidirectional" . "communicative-success")
+   ("baseline-simulated-bidirectional" . "communicative-success-given-conceptualisation")
+   ("baseline-simulated-bidirectional" . "lexicon-size"))
+ :plot-file-name "baseline-simulated-comparison"
+ :xlabel "Number of Games"
+ :y1-label "Communicative Success"
+ :y2-label "Number of Concepts"
+ :captions '("communicative success (always listener)"
+             "communicative success (both roles)"
+             "communicative success given conceptualisation (both roles)"
+             "concept repertoire size")
+ :window '(100 100 100 1)
+ :use-y-axis '(1 1 1 2) :y1-max 1 :y2-max 30
+ :end 5000)
+
+(create-graph-mixing-strategies
+ :experiment-measure-conses
+ '(("baseline-extracted" . "communicative-success")
+   ("baseline-extracted-bidirectional" . "communicative-success")
+   ("baseline-extracted-bidirectional" . "communicative-success-given-conceptualisation")
+   ("baseline-extracted-bidirectional" . "lexicon-size"))
+ :plot-file-name "baseline-extracted-comparison"
+ :xlabel "Number of Games"
+ :y1-label "Communicative Success"
+ :y2-label "Number of Concepts"
+ :captions '("communicative success (always listener)"
+             "communicative success (both roles)"
+             "communicative success given conceptualisation (both roles)"
+             "concept repertoire size")
+ :window '(100 100 100 1)
+ :use-y-axis '(1 1 1 2) :y1-max 1 :y2-max 30
+ :end 5000)
+
+
+;; -----------------------------
+;; + Computing average success +
+;; -----------------------------
+
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis"
+                          "raw-data" "thesis-v3"
                           "baseline-simulated")
              :name "communicative-success" :type "lisp"))
   (defparameter *simulated-success-data* (read stream)))
@@ -126,7 +181,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis"
+                          "raw-data" "thesis-v3"
                           "baseline-simulated-bidirectional")
              :name "communicative-success" :type "lisp"))
   (defparameter *bidirectional-simulated-success-data* (read stream)))
@@ -134,7 +189,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis"
+                          "raw-data" "thesis-v3"
                           "baseline-simulated-bidirectional")
              :name "communicative-success-given-conceptualisation"
              :type "lisp"))
@@ -143,7 +198,15 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis"
+                          "raw-data" "thesis-v3"
+                          "baseline-extracted")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *extracted-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-v3"
                           "baseline-extracted-bidirectional")
              :name "communicative-success" :type "lisp"))
   (defparameter *bidirectional-extracted-success-data* (read stream)))
@@ -151,23 +214,29 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis"
+                          "raw-data" "thesis-v3"
                           "baseline-extracted-bidirectional")
              :name "communicative-success-given-conceptualisation"
              :type "lisp"))
   (defparameter *bidirectional-extracted-success-given-conceptualisation-data* (read stream)))
 
-(defun compute-success-at-point (data point)
+(defun compute-success-at-point (data point &optional last-n)
   (loop for series in (first data)
+        if last-n
+        sum (average (subseq series (- point last-n) point)) into sum-list
+        else
         sum (nth point series) into sum-list
+        end
         count series into denom
         finally (return (float (/ sum-list denom)))))
 
-(compute-success-at-point *simulated-success-data* 3000) ;; 0.998
-(compute-success-at-point *bidirectional-simulated-success-data* 3000) ;; 0.986
-(compute-success-at-point *bidirectional-simulated-success-given-conceptualisation-data* 3000) ;; 1.0
+(compute-success-at-point *simulated-success-data* 5000 100) ;; 0.996 (0.992)
+(compute-success-at-point *bidirectional-simulated-success-data* 5000 100) ;; 0.986 (0.982)
+(compute-success-at-point *bidirectional-simulated-success-given-conceptualisation-data* 5000 100) ;; 0.999 (0.998)
+;; ==> 100% when removing spatial relations!
 
-(compute-success-at-point *bidirectional-extracted-success-data* 3000) ;; 0.811
-(compute-success-at-point *bidirectional-extracted-success-given-conceptualisation-data* 3000) ;; 0.9
+(compute-success-at-point *extracted-success-data* 5000 100) ;; 0.915 (0.917)
+(compute-success-at-point *bidirectional-extracted-success-data* 5000 100) ;; 0.832 (0.830)
+(compute-success-at-point *bidirectional-extracted-success-given-conceptualisation-data* 5000 100) ;; 0.926 (0.929)
 
 
