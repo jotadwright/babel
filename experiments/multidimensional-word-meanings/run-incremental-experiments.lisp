@@ -6,7 +6,7 @@
  :asdf-system "mwm"
  :package "mwm"
  :experiment-class "mwm-experiment"
- :number-of-interactions 5000
+ :number-of-interactions 15000
  :number-of-series 10
  :monitors (list "export-communicative-success"
                  "export-lexicon-size"
@@ -23,26 +23,50 @@
                          (:lexical-variation . nil))
  ;; configurations
  :configurations '(
-                   (cogent-simulated-switch-1000
-                    ((:experiment-type . :cogent)
+                   (incremental-simulated-switch-500
+                    ((:experiment-type . :incremental)
+                     (:world-type . :simulated)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
+                   (incremental-simulated-bidirectional-switch-500
+                    ((:experiment-type . :incremental)
+                     (:world-type . :simulated)
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
+                   (incremental-extracted-switch-500
+                    ((:experiment-type . :incremental)
+                     (:world-type . :extracted)
+                     (:determine-interacting-agents-mode . :tutor-speaks)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
+                   (incremental-extracted-bidirectional-switch-500
+                    ((:experiment-type . :incremental)
+                     (:world-type . :extracted)
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
+                   (incremental-simulated-switch-1000
+                    ((:experiment-type . :incremental)
                      (:world-type . :simulated)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:alignment-filter . :all)
                      (:switch-conditions-after-n-interactions . 1000)))
-                   (cogent-simulated-bidirectional-switch-1000
-                    ((:experiment-type . :cogent)
+                   (incremental-simulated-bidirectional-switch-1000
+                    ((:experiment-type . :incremental)
                      (:world-type . :simulated)
                      (:determine-interacting-agents-mode . :default)
                      (:alignment-filter . :all)
                      (:switch-conditions-after-n-interactions . 1000)))
-                   (cogent-extracted-switch-1000
-                    ((:experiment-type . :cogent)
+                   (incremental-extracted-switch-1000
+                    ((:experiment-type . :incremental)
                      (:world-type . :extracted)
                      (:determine-interacting-agents-mode . :tutor-speaks)
                      (:alignment-filter . :all)
                      (:switch-conditions-after-n-interactions . 1000)))
-                   (cogent-extracted-bidirectional-switch-1000
-                    ((:experiment-type . :cogent)
+                   (incremental-extracted-bidirectional-switch-1000
+                    ((:experiment-type . :incremental)
                      (:world-type . :extracted)
                      (:determine-interacting-agents-mode . :default)
                      (:alignment-filter . :all)

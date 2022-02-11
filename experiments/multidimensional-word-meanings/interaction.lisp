@@ -220,8 +220,7 @@
     (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%"
             current-stage next-stage)
     ;; export the lexicon before each condition switch
-    (lexicon->pdf (learner experiment)
-                  :dirname (format nil "incremental-phase-~a" current-stage))
+    (lexicon->pdf (learner experiment) :serie (series-number experiment))
     ;; set the config
     (set-configuration experiment :incremental-stage next-stage :replace t)
     ;; reload the world with a different dataset

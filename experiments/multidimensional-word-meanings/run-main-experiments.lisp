@@ -1,6 +1,10 @@
 (ql:quickload :mwm)
 (in-package :mwm)
 
+;; TO DO
+;; main experiment needs to be reran, because 'front'
+;; and 'behind' are reversed...
+
 (progn
 (run-parallel-batch-for-different-configurations 
  :asdf-system "mwm"
@@ -13,7 +17,8 @@
                  "export-communicative-success-given-conceptualisation"
                  "export-learner-concepts-to-pdf"
                  "export-learner-concepts-to-store"
-                 "export-experiment-configurations")
+                 ;"export-experiment-configurations"
+                 )
  ;; default configuration settings
  :shared-configuration '((:initial-certainty . 0.5)
                          (:certainty-incf . 0.1)
@@ -63,6 +68,7 @@
  :error-bars '(:percentile 5 95)
  :error-bar-modes '(:lines)
  :key-location "bottom"
+ :fsize 12
  :open nil)
 
 (create-graph-for-single-strategy
@@ -84,6 +90,7 @@
  :error-bars '(:percentile 5 95)
  :error-bar-modes '(:lines)
  :key-location "bottom"
+ :fsize 12
  :open nil)
 
 (create-graph-mixing-strategies
@@ -106,6 +113,8 @@
  :error-bars '(:percentile 5 95)
  :error-bar-modes '(:lines)
  :key-location "bottom"
+ :end 5000
+ :fsize 12 
  :open nil)
 
 (create-graph-for-single-strategy
@@ -125,6 +134,7 @@
  :error-bars '(:percentile 5 95)
  :error-bar-modes '(:lines)
  :key-location "bottom"
+ :fsize 12
  :open nil)
 
 (create-graph-for-single-strategy
@@ -146,6 +156,7 @@
  :error-bars '(:percentile 5 95)
  :error-bar-modes '(:lines)
  :key-location "bottom"
+ :fsize 12
  :open nil)
 
 (create-graph-mixing-strategies
@@ -168,6 +179,8 @@
  :error-bars '(:percentile 5 95)
  :error-bar-modes '(:lines)
  :key-location "bottom"
+ :end 5000
+ :fsize 12
  :open nil)
 
 )
