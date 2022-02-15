@@ -2,18 +2,23 @@
 
 ;;;; Export learner lexicon to pdf
 (defun experiment-name-from-configurations (experiment)
-  (downcase
-   (string-append
-    (get-configuration experiment :experiment-type) "-"
-    (get-configuration experiment :world-type) "-"
-    (get-configuration experiment :determine-interacting-agents-mode) "-"
-    (if (eql (get-configuration experiment :experiment-type) :cogent)
-      (string-append "train-" (mkstr (get-configuration experiment :switch-conditions-after-n-interactions)) "-")
-      "")
-    (if (eql (get-configuration experiment :experiment-type) :incremental)
-      (string-append "phase-" (mkstr (get-configuration experiment :incremental-stage)) "-")
-      "")
-    "lexicon")))
+  (let ((parts
+         (list (mkstr (get-configuration experiment :experiment-type))
+               (mkstr (get-configuration experiment :world-type))
+               (mkstr (get-configuration experiment :determine-interacting-agents-mode)))))
+    (when (eql (get-configuration experiment :experiment-type) :cogent)
+      (pushend
+       (format nil "train-~a"  (get-configuration experiment :switch-conditions-after-n-interactions))
+       parts))
+    (when (eql (get-configuration experiment :experiment-type) :incremental)
+      (pushend
+       (format nil "train-~a"  (get-configuration experiment :switch-conditions-after-n-interactions))
+       parts)
+      (pushend
+       (format nil "phase-~a" (get-configuration experiment :incremental-stage))
+       parts))
+    (pushend "lexicon" parts)
+    (downcase (list-of-strings->string parts :separator "-"))))
 
 (defun lexicon->pdf (agent &key dirname serie)
   (let* ((experiment-name
