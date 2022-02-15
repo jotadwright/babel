@@ -1,5 +1,5 @@
-(ql:quickload :clevr-grammar-learning)
-(in-package :clevr-grammar-learning)
+(ql:quickload :grammar-learning)
+(in-package :grammar-learning)
 
 
 
@@ -39,13 +39,13 @@
 
 
 (defun disable-learning (grammar)
-  (set-configuration grammar :update-th-links nil)
+  (set-configuration grammar :update-categorial-links nil)
   (set-configuration grammar :use-meta-layer nil)
   (set-configuration grammar :consolidate-repairs nil))
 
 
 (defun enable-learning (grammar)
-  (set-configuration grammar :update-th-links t)
+  (set-configuration grammar :update-categorial-links t)
   (set-configuration grammar :use-meta-layer t)
   (set-configuration grammar :consolidate-repairs t))
 
