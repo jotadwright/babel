@@ -97,7 +97,7 @@
 (defun non-overlapping-form (utterance cxn &key (nof-cxn nil) (nof-observation nil))
   (when (and nof-cxn nof-observation) (error "only nof-cxn or nof-observeration can be true"))
   (multiple-value-bind (non-overlapping-form-observation non-overlapping-form-cxn)
-      (non-overlapping-predicates (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
+      (non-overlapping-predicates-ignore-length (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
                                   (extract-form-predicates cxn))
       (cond (nof-cxn non-overlapping-form-cxn)
             (nof-observation non-overlapping-form-observation))))
@@ -398,12 +398,12 @@
         return (values cxn non-overlapping-form non-overlapping-meaning)))
 
 
-(defun find-chunk-meet-constraints (item-based-form-constraints chunk-form-constraints)
+(defun find-chunk-meets-constraints (item-based-form-constraints chunk-form-constraints)
   (cdr (loop for fc in chunk-form-constraints
         for var = (second fc)
         for meet = (find var item-based-form-constraints  :key #'second)
         collect meet)))
-(defun fix-item-based-meet-constraints (chunk-meet-constraints item-based-meet-constraints)
+(defun fix-item-based-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
  (let* (( filtered-form-constraints (set-difference item-based-meet-constraints chunk-meet-constraints))
         (first-chunk-var (second (first (last chunk-meet-constraints))))
         (last-chunk-var (third (first chunk-meet-constraints)))
@@ -430,8 +430,11 @@
                     (non-overlapping-form-observation (non-overlapping-form utterance cxn :nof-observation t))
                     (non-overlapping-form-cxn (non-overlapping-form utterance cxn :nof-cxn t))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
-                    (chunk-meet-constraints (find-chunk-meet-constraints overlapping-form-cxn non-overlapping-form-cxn))
-                    (overlapping-form-cxn-with-meet-constraints (fix-item-based-meet-constraints chunk-meet-constraints overlapping-form-cxn))
+                    (overlapping-form-observation (set-difference (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode)) non-overlapping-form-observation :test #'unify-irl-programs))
+                    (chunk-meets-constraints-cxn (find-chunk-meets-constraints overlapping-form-cxn non-overlapping-form-cxn))
+                    (chunk-meets-constraints-observation (find-chunk-meets-constraints overlapping-form-observation non-overlapping-form-observation))
+                    (overlapping-form-cxn-with-meets-constraints (fix-item-based-meets-constraints chunk-meets-constraints-cxn overlapping-form-cxn))
+                    
                     )
                
        (when (and
@@ -440,7 +443,7 @@
               (> (length non-overlapping-form-observation) 0)
               (> (length non-overlapping-form-cxn)) 0)
         (return (values non-overlapping-meaning-observation non-overlapping-meaning-cxn
-                       non-overlapping-form-observation (append non-overlapping-form-cxn chunk-meet-constraints)
+                       (append non-overlapping-form-observation chunk-meets-constraints-observation) (append non-overlapping-form-cxn chunk-meets-constraints-cxn)
                        overlapping-meaning-cxn overlapping-form-cxn-with-meet-constraints
                        cxn)))))))
 
