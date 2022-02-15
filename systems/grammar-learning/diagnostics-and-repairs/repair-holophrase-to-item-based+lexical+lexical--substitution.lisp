@@ -38,6 +38,7 @@
 based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
+         (utterance-form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          ) 
@@ -49,7 +50,7 @@ based on existing construction with sufficient overlap."
                           overlapping-meaning-cxn
                           overlapping-form-cxn
                           cxn)
-        (select-cxn-for-making-item-based-cxn cxn-inventory utterance meaning)
+        (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning)
       
       (when (and cxn overlapping-form-cxn)
         

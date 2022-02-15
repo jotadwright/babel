@@ -94,13 +94,19 @@
       (cond (nom-cxn non-overlapping-meaning-cxn)
             (nom-observation non-overlapping-meaning-observation))))
 
-(defun non-overlapping-form (utterance cxn &key (nof-cxn nil) (nof-observation nil))
-  (when (and nof-cxn nof-observation) (error "only nof-cxn or nof-observeration can be true"))
+(defun non-overlapping-form (utterance-form-constraints cxn &key (nof-cxn nil) (nof-observation nil))
+  (when (and nof-cxn nof-observation) (error "only nof-cxn or nof-observation can be true"))
   (multiple-value-bind (non-overlapping-form-observation non-overlapping-form-cxn)
-      (non-overlapping-predicates-ignore-length (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
-                                  (extract-form-predicates cxn))
-      (cond (nof-cxn non-overlapping-form-cxn)
-            (nof-observation non-overlapping-form-observation))))
+      (non-overlapping-predicates-ignore-length utterance-form-constraints
+                                                (extract-form-predicates cxn))
+    (let* ((meets-constraints-cxn (find-chunk-meets-constraints
+                                   (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)
+                                   non-overlapping-form-cxn))
+           (meets-constraints-observation (find-chunk-meets-constraints
+                                           (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)
+                                           non-overlapping-form-observation)))
+      (cond (nof-cxn (append non-overlapping-form-cxn meets-constraints-cxn))
+            (nof-observation (append non-overlapping-form-observation meets-constraints-observation))))))
 
 (defun non-overlapping-predicates-ignore-length (network-1 network-2)
   (let ((unique-part-network-1 (set-difference network-1 network-2 :test #'irl:unify-irl-programs))
@@ -421,31 +427,32 @@
    fc
   )
 
-(defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance meaning)
+(defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
   (loop for cxn in (constructions cxn-inventory)
         do (when (eql (phrase-type cxn) 'holophrase)
              (let* ((non-overlapping-meaning-observation (non-overlapping-meaning meaning cxn :nom-observation t))
                     (non-overlapping-meaning-cxn (non-overlapping-meaning meaning cxn :nom-cxn t))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
-                    (non-overlapping-form-observation (non-overlapping-form utterance cxn :nof-observation t))
-                    (non-overlapping-form-cxn (non-overlapping-form utterance cxn :nof-cxn t))
+                    (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
+                    (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
-                    (overlapping-form-observation (set-difference (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode)) non-overlapping-form-observation :test #'unify-irl-programs))
                     (chunk-meets-constraints-cxn (find-chunk-meets-constraints overlapping-form-cxn non-overlapping-form-cxn))
-                    (chunk-meets-constraints-observation (find-chunk-meets-constraints overlapping-form-observation non-overlapping-form-observation))
                     (overlapping-form-cxn-with-meets-constraints (fix-item-based-meets-constraints chunk-meets-constraints-cxn overlapping-form-cxn))
                     
                     )
                
-       (when (and
-              (> (length non-overlapping-meaning-observation) 0)
-              (> (length non-overlapping-meaning-cxn) 0)
-              (> (length non-overlapping-form-observation) 0)
-              (> (length non-overlapping-form-cxn)) 0)
-        (return (values non-overlapping-meaning-observation non-overlapping-meaning-cxn
-                       (append non-overlapping-form-observation chunk-meets-constraints-observation) (append non-overlapping-form-cxn chunk-meets-constraints-cxn)
-                       overlapping-meaning-cxn overlapping-form-cxn-with-meet-constraints
-                       cxn)))))))
+               (when (and
+                      (> (length non-overlapping-meaning-observation) 0)
+                      (> (length non-overlapping-meaning-cxn) 0)
+                      (> (length non-overlapping-form-observation) 0)
+                      (> (length non-overlapping-form-cxn)) 0)
+                 (return (values non-overlapping-meaning-observation
+                                 non-overlapping-meaning-cxn
+                                 non-overlapping-form-observation
+                                 non-overlapping-form-cxn
+                                 overlapping-meaning-cxn
+                                 overlapping-form-cxn-with-meets-constraints
+                                 cxn)))))))
 
 (defun find-matching-lex-cxns (cxn-inventory observed-form gold-standard-meaning utterance)
   "return all lexical cxns that can apply by checking whether they are a subset of the observed form and meaning"
