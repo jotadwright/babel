@@ -164,21 +164,6 @@
       (let* ((cn (categorial-network (grammar (first (interacting-agents experiment)))))
              (path (make-file-name-with-series (file-name monitor) (series-number experiment))))
         (export-categorial-network-evolution-to-jsonl cn :path path :timestep timestep :interaction-number (interaction-number interaction))))))
-        
-             
-#|
-(defparameter *my-hash* (make-hash-table))
-(setf (gethash 'one-entry *my-hash*) "one")
-(setf (gethash 'another-entry *my-hash*) 2/4)
-(cl-json:encode-json-to-string *my-hash*)
-
- {"label":"MATERIAL","color":"#000000","type":"lexical"}
-(cl-json:encode-json-alist-to-string `((time-step . 1)
-            (graph . ((nodes . (((label . "bla")
-                                (color . "#000000")
-                                (type . "default"))))
-                      (edges . "bla")))))
-|#
 
 (defun get-all-export-monitors ()
   '("export-type-hierarchy-to-image"
