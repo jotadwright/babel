@@ -34,6 +34,8 @@
                       (:seq2seq-model-formulation . "clevr_formulation_model"))
                     :replace t)
 
+(set-configuration *fcg-constructions* :create-initial-structure-mode :clevr-initial-structure)
+
 (understand "Do the large metal cube left of the red thing and the small cylinder have the same color?" *fcg-constructions* '?scene)
 
 
@@ -58,24 +60,28 @@
 
 ;; zero hop
 (formulate
- '((get-context context)
-   (filter set-1 context shape-1)
-   (filter set-2 set-1 color-1)
+ '((segment-scene segs scene)
+   (filter set-1 segs scene shape-1)
+   (filter set-2 set-1 scene color-1)
    (count! target set-2)
    (bind shape-category shape-1 thing)
    (bind color-category color-1 blue)))
 
+(understand-and-formulate "How many large blue metal things are left of the green sphere?"
+                          *fcg-constructions* '?scene)
+
+
 ;; one hop
 (formulate
- '((get-context context)
-   (filter set-1 context shape-1)
-   (filter set-2 set-1 color-1)
+ '((segment-scene ss scene)
+   (filter set-1 ss scene shape-1)
+   (filter set-2 set-1 scene color-1)
    (unique obj-1 set-2)
-   (relate set-3 obj-1 rel-1)
-   (filter set-4 set-3 shape-2)
-   (filter set-5 set-4 mat-1)
-   (filter set-6 set-5 color-2)
-   (filter set-7 set-6 size-1)
+   (relate set-3 obj-1 scene rel-1)
+   (filter set-4 set-3 scene shape-2)
+   (filter set-5 set-4 scene mat-1)
+   (filter set-6 set-5 scene color-2)
+   (filter set-7 set-6 scene size-1)
    (count! target set-7)
    
    (bind shape-category shape-1 sphere)

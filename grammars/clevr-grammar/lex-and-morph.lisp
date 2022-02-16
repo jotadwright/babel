@@ -247,6 +247,29 @@
                    :attributes (:string ,form
                                 :lex-id ,(intern (upcase lex-id)))))))
 
+
+(defmethod add-clevr-morph-cxn (cxn-inventory (form string) (lex-id symbol) (type (eql :relation)))
+  (let* ((cxn-name (intern (upcase (string-append (hyphenize form) "-morph-cxn"))))
+         (unit-name (make-var (upcase (string-append (hyphenize form) "-unit")))))
+    (eval
+     `(def-fcg-cxn ,cxn-name
+                   ((,unit-name
+                     (footprints (morph))
+                     (leftmost-unit ,unit-name)
+                     (rightmost-unit ,unit-name))
+                    <-
+                    (,unit-name
+                     (lex-id ,(intern (upcase lex-id)))
+                     (syn-cat (lex-class preposition))
+                     (footprints (NOT morph))
+                     --
+                     (HASH form ((string ,unit-name ,form)))))
+                   :cxn-inventory ,cxn-inventory
+                   :cxn-set (hashed hashed-morph)
+                   :attributes (:string ,form
+                                :lex-id ,(intern (upcase lex-id)))))))
+
+#|
 (defmethod add-clevr-morph-cxn (cxn-inventory (form string) (lex-id symbol) (type (eql :relation)))
   (let* ((cxn-name (intern (upcase (string-append (hyphenize form) "-morph-cxn"))))
          (unit-name (make-var (upcase (string-append (hyphenize form) "-unit"))))
@@ -308,6 +331,7 @@
                      :cxn-set (hashed hashed-morph)
                      :attributes (:string ,form
                                   :lex-id ,(intern (upcase lex-id))))))))
+|#
 
                         
 
@@ -381,6 +405,7 @@
 
 
 #|
+;;;; PREVIOUS VERSION
 
 (defgeneric add-lex-cxn-of-clevr-type (cxn-inventory lex-id type)
   (:documentation "Generate a lexical cxn of the given CLEVR datatype, for the given word"))

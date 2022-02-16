@@ -2,6 +2,24 @@
 
 (export '(scene-unit))
 
+;;;; custom create-initial-structure for clevr-grammar
+;;;; -------------------------------------------------
+(defmethod create-initial-structure ((meaning list) (mode (eql :clevr-initial-structure)))
+  (make-instance 'coupled-feature-structure
+                 :left-pole `((root
+			       (referent)
+			       (meaning ,meaning)
+			       (sem-cat nil)
+                               (form nil)
+                               (syn-cat nil)
+                               (subunits (scene-unit)))
+                              (scene-unit
+                               (scene ,(make-var 'scene))))
+		 :right-pole '((root))
+		 :left-pole-domain 'sem
+		 :right-pole-domain 'syn))
+    
+
 ;;;; custom de-render for clevr-grammar
 ;;;; ----------------------------------
 (defmethod de-render ((utterance string) (mode (eql :clevr-de-renderer))

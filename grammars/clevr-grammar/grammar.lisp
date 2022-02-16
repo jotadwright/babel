@@ -12,7 +12,8 @@
      (footprints set))    
     :fcg-configurations
     ((:de-render-mode . :clevr-de-renderer)
-     (:render-mode . :generate-and-test) 
+     (:render-mode . :generate-and-test)
+     (:create-initial-structure-mode . :clevr-initial-structure)
      (:form-predicates meets precedes)
      (:node-tests :check-duplicate
       :connected-structure-for-morph
@@ -42,7 +43,7 @@
      (:production-order hashed-lex nom cxn hashed-morph)
      
      ;; For guiding search:
-     (:cxn-sets-with-sequential-application hashed-lex) ; hashed-morph
+     (:cxn-sets-with-sequential-application hashed-lex hashed-morph)
      (:node-expansion-mode . :multiple-cxns)
      (:queue-mode . :greedy-best-first)
      (:max-nr-of-nodes . 10000)
