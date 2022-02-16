@@ -610,9 +610,8 @@
 (defun complete-digits (index)
   "Given an index (as string), prepend zeros
    until it is 6 digits long"
-  (let* ((nr-of-zeros (- 6 (length index)))
-         (zeros (loop repeat nr-of-zeros collect "0")))
-    (list-of-strings->string (append zeros (list index)) :separator "")))
+  ;; this can be done using a format statement
+  (format nil "~6,'0d" index))
 
 (defun load-clevr-scene (filename)
   "utility function for loading a scene separately"
