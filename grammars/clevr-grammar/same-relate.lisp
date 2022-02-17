@@ -9,7 +9,7 @@
 
 (def-fcg-cxn the-same-T-as-relate-cxn
              ((?same-type-unit
-               (args ((sources ?source)
+               (args ((sources ?source ?segmented-scene)
                       (target ?target)))
                (sem-cat (sem-function equal-property))
                (syn-cat (syn-class comparative-conjunction))
@@ -22,7 +22,7 @@
                --
                (scene ?scene))
               (?same-type-unit
-               (HASH meaning ((same ?target ?source ?scene ?attribute)))
+               (HASH meaning ((same ?target ?source ?segmented-scene ?scene ?attribute)))
                --
                )
               (?the-same
@@ -74,7 +74,7 @@
                (rightmost-unit ?rightmost-exist-unit)
                (HASH form ((meets ?rightmost-exist-unit ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?exist-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?type)
@@ -134,7 +134,7 @@
                            (meets ?rightmost-exist-unit ?made-of)
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?exist-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -190,7 +190,7 @@
                (rightmost-unit ?rightmost-count-unit)
                (HASH form ((meets ?rightmost-count-unit ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?count-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?type)
@@ -252,7 +252,7 @@
                            (meets ?rightmost-count-unit ?made-of)
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?count-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -330,7 +330,7 @@
                            (meets ?rightmost-np-unit-1 ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
              (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -428,7 +428,7 @@
                            (meets ?rightmost-nom-unit ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -496,7 +496,7 @@
                            (meets ?rightmost-np-unit-1 ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -594,7 +594,7 @@
                            (meets ?rightmost-nom-unit ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -675,7 +675,7 @@
                            (meets ?rightmost-np-unit-1 ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -773,7 +773,7 @@
                            (meets ?rightmost-nom-unit ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -858,7 +858,7 @@
                            (meets ?rightmost-np-unit-1 ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -950,7 +950,7 @@
                            (meets ?rightmost-nom-unit ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -1046,7 +1046,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1148,7 +1148,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1220,7 +1220,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1322,7 +1322,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1407,7 +1407,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1509,7 +1509,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object)
+               (args ((sources ?object ?segmented-scene)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
