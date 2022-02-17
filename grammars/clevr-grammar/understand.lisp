@@ -1,5 +1,7 @@
 (in-package :clevr-grammar)
 
+(export '(understand understand-and-formulate))
+
 (defmethod understand ((utterance string)
                        (cxn-inventory fcg-construction-set)
                        (scene symbol)
