@@ -8,7 +8,7 @@
           color-category material-category spatial-relation-category
           spatial-relation boolean-category bool
           attribute-category attribute attention attention-set
-          attention-object img-path
+          attention-object img-path pathname-entity
           shapes sizes colors materials spatial-relations attributes
           category-value))
 
@@ -56,6 +56,11 @@
 
 (defclass attention-object (attention) ()
   (:documentation "Attention intended for single objects"))
+
+(defclass pathname-entity (entity)
+  ((pathname :type (or null pathname) :initarg :pathname
+             :accessor pathname :initform nil))
+  (:documentation "Using pathnames as irl entities"))
 
 ;; ################################
 ;; category-value
@@ -184,3 +189,15 @@
 
 (defmethod copy-object ((attention attention-object))
   (make-instance 'attention-object :id (id attention)))
+
+(defmethod copy-object ((pe pathname-entity))
+  (make-instance 'pathname-entity :id (id pe)
+                 :pathname (pathname pe)))
+
+(defmethod print-object ((pe pathname-entity) stream)
+  (if *print-pretty*
+      (pprint-logical-block (stream nil)
+        (format stream "<pathname .../~a.~a>"
+                (pathname-name (pathname pe))
+                (pathname-type (pathname pe))))
+      (call-next-method)))
