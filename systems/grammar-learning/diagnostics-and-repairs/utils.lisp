@@ -436,10 +436,8 @@
                     (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
                     (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
-                    (chunk-meets-constraints-cxn (find-chunk-meets-constraints overlapping-form-cxn non-overlapping-form-cxn))
-                    (overlapping-form-cxn-with-meets-constraints (fix-item-based-meets-constraints chunk-meets-constraints-cxn overlapping-form-cxn))
-                    
-                    )
+                    (chunk-meets-constraints-cxn (find-all 'meets non-overlapping-form-cxn :key #'first))
+                    (overlapping-form-cxn-with-meets-constraints (fix-item-based-meets-constraints chunk-meets-constraints-cxn overlapping-form-cxn))) ;
                
                (when (and
                       (> (length non-overlapping-meaning-observation) 0)
