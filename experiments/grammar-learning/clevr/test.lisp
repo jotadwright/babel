@@ -66,7 +66,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  400)
+;(run-series *experiment*  500)
 #|
 
 QUESTIONS
@@ -87,8 +87,8 @@ compute-transitive-closure: also called in consolidate-repairs
 TODO
 ----
 - fix namen van monitors
-- average over series van aantal nodes en edges in TH
-- voorbeeld van TH visualisatie
+- reverse exported jsonl graph
+- 
 
 
 - add th links: weg met die comprehend, gwn links maken, niet checken of de indirecte bestaat

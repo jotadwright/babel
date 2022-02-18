@@ -38,6 +38,7 @@
 based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
+         (utterance-form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          ) 
@@ -49,7 +50,7 @@ based on existing construction with sufficient overlap."
                           overlapping-meaning-cxn
                           overlapping-form-cxn
                           cxn)
-        (select-cxn-for-making-item-based-cxn cxn-inventory utterance meaning)
+        (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning)
       
       (when (and cxn overlapping-form-cxn)
         
@@ -61,9 +62,9 @@ based on existing construction with sufficient overlap."
                 (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
                ;; unit names
                (unit-name-lex-cxn-1
-                (second (find 'string non-overlapping-form-cxn :key #'first)))
+               (variablify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
                (unit-name-lex-cxn-2
-                (second (find 'string non-overlapping-form-observation :key #'first)))
+               (variablify (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil)))
                ;; args and syn-cat
                (lex-class-lex-cxn-1
                 (if lex-cxn-1
@@ -82,11 +83,13 @@ based on existing construction with sufficient overlap."
                 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
                ;; Args
                (args-lex-cxn-1
-                (extract-args-from-predicate (first non-overlapping-meaning-cxn) meaning-representation-formalism))
-                                            
+                (loop for predicate in non-overlapping-meaning-cxn
+                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+               
                
                (args-lex-cxn-2
-                (extract-args-from-predicate (first non-overlapping-meaning-observation) meaning-representation-formalism)) 
+                (loop for predicate in non-overlapping-meaning-observation
+                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
                (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
                ;; CXNs
                
@@ -95,7 +98,7 @@ based on existing construction with sufficient overlap."
                     (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-cxn cxn-inventory)
                                                                 ((,unit-name-lex-cxn-1
-                                                                  (args (,args-lex-cxn-1))
+                                                                  (args ,args-lex-cxn-1)
                                                                   (syn-cat (phrase-type lexical)
                                                                            (lex-class ,lex-class-lex-cxn-1)))
                                                                  <-
@@ -113,7 +116,7 @@ based on existing construction with sufficient overlap."
                     (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-observation cxn-inventory)
                                                                 ((,unit-name-lex-cxn-2
-                                                                  (args (,args-lex-cxn-2))
+                                                                  (args ,args-lex-cxn-2)
                                                                   (syn-cat (phrase-type lexical)
                                                                            (lex-class ,lex-class-lex-cxn-2)))
                                                                  <-
@@ -139,7 +142,7 @@ based on existing construction with sufficient overlap."
                                                                              --
                                                                              (HASH form ,overlapping-form-cxn))
                                                                             (,unit-name-lex-cxn-1
-                                                                             (args (,args-lex-cxn-1))
+                                                                             (args ,args-lex-cxn-1)
                                                                              --))
                                                                            :attributes (:cxn-type item-based
                                                                                         :repair holophrase->item-based+lexical+lexical--substitution
@@ -151,6 +154,10 @@ based on existing construction with sufficient overlap."
                                                                                         :string ,(third (find 'string overlapping-form-cxn :key #'first)))
                                                                            
                                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
+         
+          (add-element (make-html new-lex-cxn-1))
+          (add-element (make-html new-lex-cxn-2))
+          (add-element (make-html item-based-cxn))
           (list new-lex-cxn-1 new-lex-cxn-2 item-based-cxn
                 th-link-1 th-link-2 (cons (cdr th-link-1) (car th-link-1))
                 (cons (cdr th-link-2) (car th-link-2))))))))
