@@ -49,7 +49,7 @@
                --
                (scene ?scene))
               (?relate-noun-phrase-unit
-               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?source ?scene ?spatial-relation)))
                --
                )
               (?referent-noun-phrase-unit
@@ -123,7 +123,7 @@
                --
                (scene ?scene))
               (?super-relate-noun-phrase-unit
-               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?source ?scene ?spatial-relation)))
                --
                )
               (?relate-noun-phrase-unit
@@ -198,7 +198,7 @@
                --
                (scene ?scene))
               (?relate-noun-phrase-unit
-               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?source ?scene ?spatial-relation)))
                --
                )
               (?referent-noun-phrase-unit
@@ -273,7 +273,7 @@
                --
                (scene ?scene))
               (?super-relate-noun-phrase-unit
-               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?source ?scene ?spatial-relation)))
                --
                )
               (?relate-noun-phrase-unit
@@ -358,7 +358,7 @@
                --
                (scene ?scene))
               (?relate-unit
-               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?source ?scene ?spatial-relation)))
                --
                )
               (?plural-nominal-unit
@@ -432,7 +432,7 @@
                --
                (scene ?scene))
               (?relate-unit
-               (HASH meaning ((relate ?related-set ?object ?scene ?spatial-relation)))
+               (HASH meaning ((relate ?related-set ?object ?source ?scene ?spatial-relation)))
                --
                )
               (?plural-nominal-unit

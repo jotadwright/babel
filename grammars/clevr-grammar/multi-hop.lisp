@@ -61,7 +61,7 @@
                (scene ?scene))
               (?count-unit
                (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (relate ?count-set ?object ?scene ?spatial-relation)))
+                              (relate ?count-set ?object ?segmented-scene ?scene ?spatial-relation)))
                --
                )
               (?counting-unit
@@ -120,7 +120,7 @@
                (scene ?scene))
               (?count-unit
                (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (relate ?count-set ?object ?scene ?spatial-relation)))
+                              (relate ?count-set ?object ?segmented-scene ?scene ?spatial-relation)))
                --
                )
               (?relational-unit
@@ -265,7 +265,7 @@
                (scene ?scene))
               (?exist-unit
                (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (relate ?exist-set ?object ?scene ?spatial-relation)))
+                              (relate ?exist-set ?object ?segmented-scene ?scene ?spatial-relation)))
                --
                )
               (?existing-unit
@@ -325,7 +325,7 @@
                (scene ?scene))
               (?exist-unit
                (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (relate ?exist-set ?object ?scene ?spatial-relation)))
+                              (relate ?exist-set ?object ?segmented-scene ?scene ?spatial-relation)))
                --
                )
               (?relational-unit

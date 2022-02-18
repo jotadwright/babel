@@ -42,5 +42,3 @@
    (bind color-category ?color-1 red)
    (bind attribute-category ?attribute-1 material))
  :primitive-inventory *clevr-primitives*) 
-
-(mapcar #'id (irl-2:primitives-list *clevr-primitives*))

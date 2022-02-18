@@ -42,7 +42,7 @@
                --
                (scene ?scene))
               (?prepositional-phrase-1
-               (HASH meaning ((relate ?related-set-1 ?object-1 ?scene ?spatial-relation-1)))
+               (HASH meaning ((relate ?related-set-1 ?object-1 ?source ?scene ?spatial-relation-1)))
                --
                )
               (?spatial-relation-unit-1
@@ -71,7 +71,7 @@
                            (meets ?rightmost-np-unit-1 ?intersect-unit)
                            (meets ?intersect-unit ?leftmost-spatial-unit-2))))
               (?prepositional-phrase-2
-               (HASH meaning ((relate ?related-set-2 ?object-2 ?scene ?spatial-relation-2)))
+               (HASH meaning ((relate ?related-set-2 ?object-2 ?source ?scene ?spatial-relation-2)))
                --
                )
               (?spatial-relation-unit-2
@@ -135,7 +135,7 @@
                --
                (scene ?scene))
               (?prepositional-phrase-1
-               (HASH meaning ((relate ?related-set-1 ?object-1 ?scene ?spatial-relation-1)))
+               (HASH meaning ((relate ?related-set-1 ?object-1 ?source ?scene ?spatial-relation-1)))
                --
                )
               (?spatial-relation-unit-1
@@ -164,7 +164,7 @@
                            (meets ?rightmost-np-unit-1 ?intersect-unit)
                            (meets ?intersect-unit ?leftmost-spatial-unit-2))))
               (?prepositional-phrase-2
-               (HASH meaning ((relate ?related-set-2 ?object-2 ?scene ?spatial-relation-2)))
+               (HASH meaning ((relate ?related-set-2 ?object-2 ?source ?scene ?spatial-relation-2)))
                --
                )
               (?spatial-relation-unit-2
