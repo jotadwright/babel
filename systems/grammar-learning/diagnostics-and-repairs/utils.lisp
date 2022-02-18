@@ -40,7 +40,12 @@
                             collect (third fc)))
          (left-most-unit (first (set-difference left-units right-units)))
          (right-most-unit (first (set-difference right-units left-units))))
-    (list left-most-unit right-most-unit)))
+    (if (and left-most-unit right-most-unit)
+      (list left-most-unit right-most-unit)
+      (when (and (equal 1 (length form-constraints))
+                 (equal 'string (first (first form-constraints))))
+        (list (second (first form-constraints)) (second (first form-constraints)))))))
+                           
 
 (defun initial-transient-structure (node)
   (if (find 'fcg::initial (statuses node))
