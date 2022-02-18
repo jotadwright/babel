@@ -65,6 +65,7 @@ based on existing construction with sufficient overlap."
                (variablify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
                (unit-name-lex-cxn-2
                (variablify (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil)))
+               
                ;; args and syn-cat
                (lex-class-lex-cxn-1
                 (if lex-cxn-1
