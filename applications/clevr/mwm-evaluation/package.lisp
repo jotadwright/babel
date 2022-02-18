@@ -11,10 +11,13 @@
         :fcg
         :irl
         :clevr-world
-        :clevr-grammar)
+        :clevr-grammar
+        :mwm)
   (:import-from :cl-json
    :decode-json-from-string
    :encode-json-to-string
    :encode-json-alist-to-string)
+  (:import-from :cl-store
+   :restore)
   (:shadowing-import-from :fcg :size :attributes))
   

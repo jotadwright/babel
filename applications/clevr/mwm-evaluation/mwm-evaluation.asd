@@ -7,6 +7,7 @@
   :license "Babel Research License"
   :depends-on (:utils
                :cl-json
+               :cl-store
                :plot-raw-data
                :monitors
                :experiment-framework
