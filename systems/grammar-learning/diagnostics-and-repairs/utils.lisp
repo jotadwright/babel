@@ -38,13 +38,20 @@
          (right-units (loop for fc in form-constraints
                             when (equal 'meets (first fc))
                             collect (third fc)))
+         (string-units (loop for fc in form-constraints
+                            when (equal 'string (first fc))
+                            collect (second fc)))
          (left-most-diff (set-difference left-units right-units))
-         (right-most-diff (set-difference right-units left-units)))
+         (right-most-diff (set-difference right-units left-units))
+         (all-units (remove-duplicates (append left-units right-units)))
+         (string-meets-diff (set-difference string-units all-units))
+         (meets-string-diff (set-difference all-units string-units)))
+    
     (if (and left-most-diff right-most-diff)
       (and (= 1 (length left-most-diff))
            (= 1 (length right-most-diff))
-           (find (first left-most-diff) (extract-form-predicate-by-type form-constraints 'string) :key #'second)
-           (find (first right-most-diff) (extract-form-predicate-by-type form-constraints 'string) :key #'second))
+           (not string-meets-diff)
+           (not meets-string-diff))
       t)))
 
 (defun get-boundary-units (form-constraints)
