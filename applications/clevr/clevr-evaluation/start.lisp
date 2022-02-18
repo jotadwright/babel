@@ -94,22 +94,21 @@
   (:documentation "Evaluate the accuracy of the clevr grammar."))
 
 (defmethod evaluate-clevr-accuracy (data-split &key nr-of-scenes nr-of-questions)
-  ;; accuracy in comprehension
-  ;; loop over scenes and questions
-  ;;      do comprehension
-  ;;      evaluate irl program
-  ;;      compare meaning to ground-truth
-  ;;      compare answer to ground-truth
   (let ((clevr-world
          (make-instance 'clevr-world
                         :data-sets (list data-split)
                         :load-questions t)))
     (average
      (remove nil
-             (loop for scene-path in (scenes clevr-world)
+             (loop with processed-questions = 0
+                   with processed-scenes = 0
+                   for scene-path in (scenes clevr-world)
                    for question-path in (question-sets clevr-world)
                    for set-of-questions = (load-clevr-question-set question-path)
                    for path-entity = (make-instance 'pathname-entity :pathname scene-path)
+                   if (and nr-of-scenes (>= processed-scenes nr-of-scenes))
+                   return accuracy
+                   else
                    append (loop for clevr-question in (questions set-of-questions)
                                 for q = (question clevr-question)
                                 for answer = (answer clevr-question)
@@ -117,10 +116,18 @@
                                 = (multiple-value-list
                                    (clevr-grammar::understand q *clevr* '?scene))
                                 for scene-var = (extract-scene-unit-variable cipn)
-                                when (find 'fcg::succeeded (fcg::statuses cipn))
-                                if (string= (upcase answer)
-                                            (upcase (compute-answer irl-program scene-var path-entity)))
-                                collect 1 else collect 0))))))
+                                do (incf processed-questions)
+                                if (and nr-of-questions (>= processed-questions nr-of-questions))
+                                return scene-accuracy
+                                else if (and (find 'fcg::succeeded (fcg::statuses cipn))
+                                             (string= (upcase answer)
+                                                      (upcase (compute-answer irl-program scene-var path-entity))))
+                                collect 1 into scene-accuracy
+                                else collect 0 into scene-accuracy
+                                finally return scene-accuracy)
+                   into accuracy
+                   do (incf processed-scenes)
+                   finally return accuracy)))))
                    
           
   
