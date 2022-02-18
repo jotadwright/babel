@@ -68,43 +68,12 @@
                            (meets ?what-66 ?shape?-66))))
               (?large-gray-unit
                (args (?size-4 ?color-2))
-               --)))
-
-
-(def-fcg-cxn the-x-object-is-what-shape-cxn
-             ((?item-based-unit
-               (syn-cat (phrase-type item-based))
-               (subunits (?large-gray-unit)))
-               
-              (?large-gray-unit
-               (syn-cat (lex-class large-gray))
-               )
-              <-
-              (?item-based-unit
-               (HASH meaning ((QUERY ?TARGET-8 ?SOURCE-10 ?ATTRIBUTE-2)
-                              (FILTER ?TARGET-2 ?TARGET-1 ?COLOR-2)
-                              (BIND SHAPE-CATEGORY ?SHAPE-8 THING)
-                              (BIND ATTRIBUTE-CATEGORY ?ATTRIBUTE-2 SHAPE)
-                              (FILTER ?TARGET-1 ?SOURCE-1 ?SHAPE-8)
-                              (UNIQUE ?SOURCE-10 ?TARGET-39552)
-                              (FILTER ?TARGET-39552 ?TARGET-2 ?SIZE-4)
-                              (GET-CONTEXT ?SOURCE-1)))
-               --
-               (HASH form ((string ?the-66 "The")
-                           (string ?object-66 "object")
-                           (string ?is-66 "is")
-                           (string ?what-66 "what")
-                           (string ?shape?-66 "shape?")
-                           (meets ?the-66 ?large-unit)
-                           (meets ?gray-unit ?object-66)
-                           (meets ?object-66 ?is-66)
-                           (meets ?is-66 ?what-66)
-                           (meets ?what-66 ?shape?-66))))
-              (?large-gray-unit
-               (args (?SIZE-4 ?COLOR-2))
                --
                (boundaries
                 (left ?large-unit)
                 (right ?gray-unit)))))
+
+
+
 
 (comprehend-and-formulate "The large gray object is what shape?")
