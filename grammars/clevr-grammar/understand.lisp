@@ -3,9 +3,9 @@
 (export '(understand understand-and-formulate))
 
 (defmethod understand ((utterance string)
-                       (cxn-inventory fcg-construction-set)
-                       (scene symbol)
-                       &key silent)
+                       &key (cxn-inventory *clevr*)
+                       (scene '?scene)
+                       silent)
   "Comprehends an utterance given a scene"
   (let* ((initial-cfs
           (de-render utterance (get-configuration cxn-inventory :de-render-mode)
@@ -22,9 +22,9 @@
         (values meaning solution cip)))))
 
 (defmethod understand-and-formulate ((utterance string)
-                                     (cxn-inventory fcg-construction-set)
-                                     (scene symbol)
-                                     &key silent)
+                                     &key (cxn-inventory *clevr*)
+                                     (scene '?scene)
+                                     silent)
   "Comprehend and formulate"
   (multiple-value-bind (meaning cipn cip)
       (understand utterance cxn-inventory scene

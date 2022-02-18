@@ -114,7 +114,7 @@
                                 for answer = (answer clevr-question)
                                 for (irl-program cipn nil)
                                 = (multiple-value-list
-                                   (clevr-grammar::understand q *clevr* '?scene))
+                                   (clevr-grammar::understand q))
                                 for scene-var = (extract-scene-unit-variable cipn)
                                 do (incf processed-questions)
                                 if (and nr-of-questions (>= processed-questions nr-of-questions))
@@ -129,5 +129,5 @@
                    do (incf processed-scenes)
                    finally return accuracy)))))
                    
-          
+
   

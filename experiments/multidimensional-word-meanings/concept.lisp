@@ -1,5 +1,7 @@
 (in-package :mwm)
 
+(export '(concept))
+
 (defclass concept ()
   ((form
     :documentation "the word of the concept"
