@@ -36,6 +36,26 @@
 
 (comprehend "large gray")
 
+
+(def-fcg-cxn tiny-yellow-cxn
+             ((?tiny-yellow-unit
+               (args (?size-4 ?color-2))
+               (syn-cat (phrase-type holistic)
+                        (lex-class large-gray))
+               (boundaries
+                (left ?tiny-unit)
+                (right ?yellow-unit))
+               )
+              <-
+              (?tiny-yellow-unit
+               (HASH meaning ((bind size-category ?size-4 tiny)
+                              (bind color-category ?color-2 yellow)))
+               --
+               (HASH form ((string ?tiny-unit "tiny")
+                           (string ?yellow-unit "yellow")
+                           (meets ?tiny-unit ?yellow-unit))))))
+
+
 (def-fcg-cxn the-x-object-is-what-shape-cxn
              ((?item-based-unit
                (syn-cat (phrase-type item-based))
@@ -75,5 +95,5 @@
 
 
 
-
+(comprehend-and-formulate "The tiny yellow object is what shape?")
 (comprehend-and-formulate "The large gray object is what shape?")
