@@ -64,7 +64,7 @@
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (gl::add-categorial-links
                              gl::item-based->lexical
-                             gl::holophrase->item-based+lexical+lexical--substitution
+                             gl::holophrase->item-based+holistic+holistic--substitution
                              gl::holophrase->item-based+lexical--addition
                              gl::holophrase->item-based+lexical+holophrase--deletion
                              gl::repair-lexical->item-based-cxn

@@ -14,7 +14,7 @@
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-holophrase-to-item-based+lexical+lexical--substitution")
+                             (:file "repair-holophrase-to-item-based+holistic+holistic--substitution")
                              (:file "repair-holophrase-to-item-based+lexical--addition")
                              (:file "repair-holophrase-to-item-based+lexical+holophrase--deletion")
                              (:file "repair-lexical-to-item-based-cxn")

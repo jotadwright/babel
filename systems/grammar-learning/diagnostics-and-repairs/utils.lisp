@@ -177,16 +177,19 @@
                     (string-append string "-cxn")
                     string)))))))
 
+
+  
+
 ;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
 
-(defun make-variablified-cxn-name (item-based-form-constraints slot-form-constraints cxn-inventory)
-  "Transform an utterance into a suitable construction name"
-  (let ((item-based-fc (substitute-slot-meets-constraints slot-form-constraints item-based-form-constraints)))
-  (loop with string-constraints = (extract-form-predicate-by-type item-based-fc 'string)
+(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t))
+  "Transform a list of form constraints into a suitable construction name"
+  (loop with string-constraints = (extract-form-predicate-by-type form-constraints 'string)
         with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
         with placeholder-index = 0
         with new-string-constraints = '()
-        with meets-constraints = (set-difference item-based-fc string-constraints)
+        with meets-constraints = (set-difference form-constraints string-constraints)
         for meets-constraint in meets-constraints
         for first-word-var = (second meets-constraint)
         for second-word-var = (third meets-constraint)
@@ -201,9 +204,9 @@
           (incf placeholder-index))
         finally (return
                  (make-cxn-name (format nil "~{~a~^-~}"
-                                        (render (append item-based-fc new-string-constraints)
+                                        (render (append form-constraints new-string-constraints)
                                                 (get-configuration cxn-inventory :render-mode)))
-                                cxn-inventory :add-cxn-suffix nil)))))
+                                cxn-inventory :add-cxn-suffix add-cxn-suffix))))
 
 (defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
   (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
