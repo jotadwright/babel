@@ -173,10 +173,6 @@ based on existing construction with sufficient overlap."
                                                                                         :string ,(third (find 'string overlapping-form-cxn :key #'first)))
                                                                            
                                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
-         
-          (add-element (make-html new-holistic-cxn-1))
-          (add-element (make-html new-holistic-cxn-2))
-          (add-element (make-html item-based-cxn))
           (list new-holistic-cxn-1 new-holistic-cxn-2 item-based-cxn
                 th-link-1 th-link-2 (cons (cdr th-link-1) (car th-link-1))
                 (cons (cdr th-link-2) (car th-link-2))))))))
