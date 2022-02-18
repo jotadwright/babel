@@ -1,65 +1,39 @@
-;;;; utils.lisp
-
 (in-package :clevr-evaluation)
 
-;;;; predicate->clevr-program-node
-(defgeneric predicate->clevr-program-node (predicate bind-statement type)
-  (:documentation "Make a clevr program node from the given predicate"))
+(defun answer->str (answer-value)
+  (case #+lispworks (type-of answer-value)
+        #+ccl (if (listp (type-of answer-value))
+                  (first (type-of answer-value))
+                  (type-of answer-value))
+        #+sbcl (if (listp (type-of answer-value))
+                  (first (type-of answer-value))
+                  (type-of answer-value))
+    (number (mkstr answer-value))
+    (fixnum (mkstr answer-value))
+    (integer (mkstr answer-value))
+    (bit (mkstr answer-value))
+    (shape-category (mkstr (shape answer-value)))
+    (size-category (mkstr (clevr-world::size answer-value)))
+    (color-category (mkstr (color answer-value)))
+    (material-category (mkstr (material answer-value)))
+    (boolean-category (mkstr (id answer-value)))))
 
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'get-context)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'scene))
+(defun compute-answer (irl-program scene-var scene-path-entity)
+  "Given an irl-program, a variable and a scene path,
+   compute the answer."
+  (let ((solutions
+         (evaluate-irl-program
+          (cons `(bind pathname-entity ,scene-var ,scene-path-entity) irl-program)
+          *clevr-ontology* :primitive-inventory *clevr-primitives*)))
+    (when (and solutions (length= solutions 1))
+      (let* ((target-var (get-target-var irl-program))
+             (target-value (value (find target-var (first solutions) :key #'var))))
+        (answer->str target-value)))))
 
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'filter)))
-  (let* ((category (first (split (mkstr (bind-statement-type bind-statement)) #\-)))
-         (filter-type (internal-symb (upcase (string-append "filter_" category)))))
-    (make-instance 'clevr-function :function-name filter-type
-                   :args (list (internal-symb (bind-statement-value bind-statement))))))
 
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'unique)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'unique))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'relate)))
-  (make-instance 'clevr-function :function-name 'relate
-                 :args (list (internal-symb (bind-statement-value bind-statement)))))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'union!)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'union))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'intersect)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'intersect))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'count!)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'count))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'query)))
-  (let ((query-type (internal-symb (upcase (string-append "query_" (mkstr (bind-statement-value bind-statement)))))))
-    (make-instance 'clevr-function :function-name query-type)))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'exist)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'exist))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'equal?)))
-  (let ((equal-type (internal-symb (upcase (string-append "equal_" (mkstr (bind-statement-value bind-statement)))))))
-    (make-instance 'clevr-function :function-name equal-type)))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'equal-integer)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'equal_integer))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'less-than)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'less_than))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'greater-than)))
-  (declare (ignorable predicate bind-statement))
-  (make-instance 'clevr-function :function-name 'greater_than))
-
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'same)))
-  (let ((same-type (internal-symb (upcase (string-append "same_" (mkstr (bind-statement-value bind-statement)))))))
-    (make-instance 'clevr-function :function-name same-type)))
+(defun extract-scene-unit-variable (cipn)
+  "returns scene-variable from resulting cfs of given cipn"
+  (let* ((cfs (pole-structure (left-pole (car-resulting-cfs (cipn-car cipn)))))
+         (scene-unit (find 'fcg::scene-unit cfs :key #'first))
+         (scene-var (second (find 'fcg::scene (rest scene-unit) :key #'first))))
+    scene-var))
