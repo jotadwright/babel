@@ -30,6 +30,23 @@
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
 
+(defun check-holistic-meets-connectivity (form-constraints)
+  "check if within a holistic chunk, all form strings are connected"
+  (let* ((left-units (loop for fc in form-constraints
+                           when (equal 'meets (first fc))
+                           collect (second fc)))
+         (right-units (loop for fc in form-constraints
+                            when (equal 'meets (first fc))
+                            collect (third fc)))
+         (left-most-diff (set-difference left-units right-units))
+         (right-most-diff (set-difference right-units left-units)))
+    (if (and left-most-diff right-most-diff)
+      (and (= 1 (length left-most-diff))
+           (= 1 (length right-most-diff))
+           (find (first left-most-diff) (extract-form-predicate-by-type form-constraints 'string) :key #'second)
+           (find (first right-most-diff) (extract-form-predicate-by-type form-constraints 'string) :key #'second))
+      t)))
+
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"
   (let* ((left-units (loop for fc in form-constraints
@@ -463,7 +480,9 @@
                       (> (length non-overlapping-meaning-observation) 0)
                       (> (length non-overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-form-observation) 0)
-                      (> (length non-overlapping-form-cxn)) 0)
+                      (> (length non-overlapping-form-cxn) 0)
+                      (check-holistic-meets-connectivity non-overlapping-form-cxn)
+                      (check-holistic-meets-connectivity non-overlapping-form-observation))
                  (return (values non-overlapping-meaning-observation
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation
