@@ -159,7 +159,10 @@ based on existing construction with sufficient overlap."
                                                                              (HASH form ,overlapping-form-cxn))
                                                                             (,unit-name-lex-cxn-1
                                                                              (args ,args-lex-cxn-1)
-                                                                             --))
+                                                                             --
+                                                                             (boundaries
+                                                                              (left ,leftmost-unit-lex-cxn-1)
+                                                                              (right ,rightmost-unit-lex-cxn-1))))
                                                                            :attributes (:cxn-type item-based
                                                                                         :repair holophrase->item-based+lexical+lexical--substitution
                                                                                         :meaning ,(loop for predicate in overlapping-meaning-cxn
