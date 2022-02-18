@@ -30,6 +30,18 @@
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
 
+(defun get-boundary-units (form-constraints)
+  "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"
+  (let* ((left-units (loop for fc in form-constraints
+                           when (equal 'meets (first fc))
+                           collect (second fc)))
+         (right-units (loop for fc in form-constraints
+                            when (equal 'meets (first fc))
+                            collect (third fc)))
+         (left-most-unit (first (set-difference left-units right-units)))
+         (right-most-unit (first (set-difference right-units left-units))))
+    (list left-most-unit right-most-unit)))
+
 (defun initial-transient-structure (node)
   (if (find 'fcg::initial (statuses node))
     (car-source-cfs (cipn-car node))

@@ -60,6 +60,15 @@ based on existing construction with sufficient overlap."
                 (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
                (lex-cxn-2
                 (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
+               ;; holistic cxn boundaries (leftmost/rightmost)
+               (boundaries-cxn-1 (get-boundary-units non-overlapping-form-cxn))
+               (leftmost-unit-lex-cxn-1 (first boundaries-cxn-1))
+               (rightmost-unit-lex-cxn-1 (second boundaries-cxn-1))
+
+               (boundaries-cxn-2 (get-boundary-units non-overlapping-form-observation))
+               (leftmost-unit-lex-cxn-2 (first boundaries-cxn-2))
+               (rightmost-unit-lex-cxn-2 (second boundaries-cxn-2))
+               
                ;; unit names
                (unit-name-lex-cxn-1
                (variablify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
@@ -101,7 +110,10 @@ based on existing construction with sufficient overlap."
                                                                 ((,unit-name-lex-cxn-1
                                                                   (args ,args-lex-cxn-1)
                                                                   (syn-cat (phrase-type lexical)
-                                                                           (lex-class ,lex-class-lex-cxn-1)))
+                                                                           (lex-class ,lex-class-lex-cxn-1))
+                                                                  (boundaries
+                                                                   (left ,leftmost-unit-lex-cxn-1)
+                                                                   (right ,rightmost-unit-lex-cxn-1)))
                                                                  <-
                                                                  (,unit-name-lex-cxn-1
                                                                   (HASH meaning ,non-overlapping-meaning-cxn)
@@ -119,7 +131,10 @@ based on existing construction with sufficient overlap."
                                                                 ((,unit-name-lex-cxn-2
                                                                   (args ,args-lex-cxn-2)
                                                                   (syn-cat (phrase-type lexical)
-                                                                           (lex-class ,lex-class-lex-cxn-2)))
+                                                                           (lex-class ,lex-class-lex-cxn-2))
+                                                                  (boundaries
+                                                                   (left ,leftmost-unit-lex-cxn-2)
+                                                                   (right ,rightmost-unit-lex-cxn-2)))
                                                                  <-
                                                                  (,unit-name-lex-cxn-2
                                                                   (HASH meaning ,non-overlapping-meaning-observation)
