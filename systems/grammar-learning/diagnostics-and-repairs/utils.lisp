@@ -174,16 +174,17 @@
 
 ;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
 
-(defmethod make-cxn-name ((form list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t))
+(defun make-variablified-cxn-name (item-based-form-constraints slot-form-constraints cxn-inventory)
   "Transform an utterance into a suitable construction name"
-  (loop with string-constraints = (extract-form-predicate-by-type form 'string)
+  (let ((item-based-fc (substitute-slot-meets-constraints slot-form-constraints item-based-form-constraints)))
+  (loop with string-constraints = (extract-form-predicate-by-type item-based-fc 'string)
         with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
         with placeholder-index = 0
         with new-string-constraints = '()
-        for order-constraint in (set-difference form string-constraints)
-        for first-word-var = (second order-constraint)
-        for second-word-var = (third order-constraint)
+        with meets-constraints = (set-difference item-based-fc string-constraints)
+        for meets-constraint in meets-constraints
+        for first-word-var = (second meets-constraint)
+        for second-word-var = (third meets-constraint)
         do
         (unless (or (find first-word-var string-constraints :key #'second)
                     (find first-word-var new-string-constraints :key #'second))
@@ -195,9 +196,28 @@
           (incf placeholder-index))
         finally (return
                  (make-cxn-name (format nil "~{~a~^-~}"
-                                        (render (append form new-string-constraints)
+                                        (render (append item-based-fc new-string-constraints)
                                                 (get-configuration cxn-inventory :render-mode)))
-                                cxn-inventory :add-cxn-suffix add-cxn-suffix))))
+                                cxn-inventory :add-cxn-suffix nil)))))
+
+(defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
+  (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
+         (left-boundary (first slot-boundaries))
+         (right-boundary (second slot-boundaries))
+         (new-slot-var (variablify "X")))
+    (loop for fc in item-based-meet-constraints
+          collect (replace-chunk-variables fc left-boundary right-boundary new-slot-var))))
+
+(defun replace-chunk-variables (fc first-chunk-var last-chunk-var new-slot-var)
+  (when (equalp first-chunk-var (third fc))
+    (setf (nth 2 fc) new-slot-var))
+  (when (equalp last-chunk-var (second fc))
+    (setf (nth 1 fc) new-slot-var))
+   fc
+  )
+
+
+
 
 (defun make-cxn-placeholder-name (form cxn-inventory)
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)

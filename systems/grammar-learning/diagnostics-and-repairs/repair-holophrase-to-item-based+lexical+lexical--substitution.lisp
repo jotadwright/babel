@@ -55,7 +55,7 @@ based on existing construction with sufficient overlap."
       (when (and cxn overlapping-form-cxn)
         
         (let* ((cxn-name-item-based-cxn
-                (make-cxn-name overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))
+                (make-variablified-cxn-name (copy-object overlapping-form-cxn) non-overlapping-form-cxn cxn-inventory))
                (lex-cxn-1
                 (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
                (lex-cxn-2
