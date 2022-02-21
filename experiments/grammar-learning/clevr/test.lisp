@@ -43,15 +43,15 @@
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
                    :entries '((:determine-interacting-agents-mode . :corpus-learner)
-                         (:observation-sample-mode . :train)
+                         (:observation-sample-mode . :debug)
                          (:meaning-representation . :irl)
                          (:de-render-mode . :de-render-string-meets-no-punct)
                          (:corpus-files-root . ,(merge-pathnames
                                      (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                      cl-user:*babel-corpora*))
                          (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
-                                                   :name "stage-1" :type "jsonl"))
-                              )))))
+                                                   :name "stage-1" :type "jsonl")))))))
+                              
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
@@ -66,7 +66,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  500)
+;(run-series *experiment*  42)
 #|
 
 QUESTIONS
@@ -106,6 +106,4 @@ DONE
 - 2 epochs: plak de data 2x aan elkaar (geshuffeld)
 - maak een export monitor voor categorial networks die om de n interacties een timestep toevoegt met de volledige graph, in JSON formaat
 - maak het een optie om een grammatica mee te geven waarop hij verder leert (zonder in evaluation mode te zitten)
-
-
 |#
