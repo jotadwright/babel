@@ -237,7 +237,7 @@
          (left-boundary (first slot-boundaries))
          (right-boundary (second slot-boundaries))
          (new-slot-var (variablify "X")))
-    (loop for fc in item-based-meet-constraints
+    (loop for fc in (copy-object item-based-meet-constraints)
           collect (replace-chunk-variables fc left-boundary right-boundary new-slot-var))))
 
 (defun replace-chunk-variables (fc first-chunk-var last-chunk-var new-slot-var)

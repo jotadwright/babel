@@ -55,7 +55,7 @@ based on existing construction with sufficient overlap."
       (when (and cxn overlapping-form-cxn)
         
         (let* ((cxn-name-item-based-cxn
-                (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-cxn (copy-object overlapping-form-cxn)) cxn-inventory :add-cxn-suffix nil))
+                (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn) cxn-inventory :add-cxn-suffix nil))
                (holistic-cxn-1
                 (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
                (holistic-cxn-2
