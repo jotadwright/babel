@@ -10,4 +10,4 @@
 
 
 
-(evaluate-clevr-accuracy "val" :nr-of-scenes 1)
+(evaluate-clevr-accuracy "val")

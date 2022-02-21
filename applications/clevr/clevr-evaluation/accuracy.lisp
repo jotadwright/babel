@@ -25,6 +25,7 @@
                    for question-path in (question-sets clevr-world)
                    for set-of-questions = (load-clevr-question-set question-path)
                    for path-entity = (make-instance 'pathname-entity :pathname scene-path)
+                   for scene-name = (pathname-name scene-path)
                    if (and nr-of-scenes (>= processed-scenes nr-of-scenes))
                    return accuracy
                    else
@@ -44,7 +45,8 @@
                                                       (upcase (compute-answer irl-program scene-var path-entity))))
                                 collect 1 into scene-accuracy
                                 else collect 0 into scene-accuracy
-                                and do (write-line q log)
+                                and do (progn (write-line (format nil "~a - ~a" scene-name q) log)
+                                         (force-output log))
                                 finally return scene-accuracy)
                    into accuracy
                    do (incf processed-scenes)
