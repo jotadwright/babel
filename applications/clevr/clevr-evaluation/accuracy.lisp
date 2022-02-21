@@ -51,3 +51,20 @@
                    into accuracy
                    do (incf processed-scenes)
                    finally return accuracy))))))
+
+
+(defun understand-utterance-in-scene (utterance scene-name data-split)
+  (let* ((clevr-world
+          (make-instance 'clevr-world
+                         :data-sets (list data-split)
+                         :load-questions t))
+         (scene (find-scene-by-name scene-name clevr-world))
+         (scene-pathname (source-path scene))
+         (path-entity (make-instance 'pathname-entity :pathname scene-pathname)))
+    (multiple-value-bind (irl-program cipn cip) (clevr-grammar::understand utterance)
+      (let ((scene-var (extract-scene-unit-variable cipn)))
+        (when (find 'fcg::succeeded (fcg::statuses cipn))
+          (evaluate-irl-program
+           (cons `(bind pathname-entity ,scene-var ,path-entity) irl-program)
+           *clevr-ontology* :primitive-inventory *clevr-primitives*))))))
+          
