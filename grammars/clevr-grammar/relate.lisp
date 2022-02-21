@@ -104,6 +104,79 @@
                (syn-cat (phrase-type np)
                         (number ?number)
                         (definite ?def))
+               (leftmost-unit ?leftmost-np-unit)
+               (rightmost-unit ?rightmost-relate-unit)
+               (subunits (?determined-noun-phrase-unit ?spatial-relation-unit ?relate-noun-phrase-unit))
+               (superunits nil)
+               (relate +)
+               (footprints (base-relate)))
+              (?relate-noun-phrase-unit
+               (superunits (?super-relate-noun-phrase-unit))
+               (footprints (relate)))
+              (?spatial-relation-unit
+               (footprints (relate)))
+              (?determined-noun-phrase-unit
+               (superunits (?super-relate-noun-phrase-unit))
+               (footprints (relate)))
+              <-
+              (scene-unit
+               --
+               (scene ?scene))
+              (?super-relate-noun-phrase-unit
+               (HASH meaning ((relate ?related-set ?object ?source ?scene ?spatial-relation)))
+               --
+               (HASH form ((meets ?rightmost-np-unit ?leftmost-spatial-unit)
+                           (meets ?rightmost-spatial-unit ?leftmost-relate-unit))))
+              (?determined-noun-phrase-unit
+               (args ((sources ?related-set)
+                      (target ?target)))
+               (sem-cat (sem-function referring-expression))
+               (footprints (NOT relate base-relate))
+               --
+               (footprints (NOT relate base-relate))
+               (syn-cat (phrase-type np)
+                        (number ?number)
+                        (definite ?def))
+               (leftmost-unit ?leftmost-np-unit)
+               (rightmost-unit ?rightmost-np-unit))
+              (?spatial-relation-unit
+               (args ((target ?spatial-relation)))
+               (sem-cat (sem-class spatial-relation))
+               (footprints (NOT relate))
+               --
+               (footprints (NOT relate))
+               (syn-cat (lex-class preposition))
+               (leftmost-unit ?leftmost-spatial-unit)
+               (rightmost-unit ?rightmost-spatial-unit))
+              (?relate-noun-phrase-unit
+               (args ((sources ?source)
+                      (target ?object)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (definite +))
+               (footprints (NOT relate))
+               (relate +)
+               --
+               (relate +)
+               (footprints (NOT relate))
+               (syn-cat (phrase-type np)
+                        (number singular)
+                        (definite +))
+               (sem-cat (sem-function referring-expression))
+               (leftmost-unit ?leftmost-relate-unit)
+               (rightmost-unit ?rightmost-relate-unit)))
+             :cxn-inventory *clevr*
+             :disable-automatic-footprints t
+             :cxn-set cxn)
+
+#|
+(def-fcg-cxn relate-cxn
+             ((?super-relate-noun-phrase-unit
+               (args ((sources ?source)
+                      (target ?target)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (phrase-type np)
+                        (number ?number)
+                        (definite ?def))
                (leftmost-unit ?leftmost-relate-unit)
                (rightmost-unit ?rightmost-np-unit)
                (subunits (?relate-noun-phrase-unit ?spatial-relation-unit ?determined-noun-phrase-unit))
@@ -168,6 +241,7 @@
              :cxn-inventory *clevr*
              :disable-automatic-footprints t
              :cxn-set cxn)
+|#
               
 ;; we need 2 (base-)relate cxns, since at any level the string 'that is' can be between
 ;; a nominal and a spatial relation, e.g. what shape is the A R the B that is R the C
@@ -254,6 +328,83 @@
                (syn-cat (phrase-type np)
                         (number ?number)
                         (definite ?def))
+               (leftmost-unit ?leftmost-np-unit)
+               (rightmost-unit ?rightmost-rel-unit)
+               (subunits (?determined-noun-phrase-unit ?that-is-unit ?spatial-relation-unit ?relate-noun-phrase-unit))
+               (superunits nil)
+               (relate +)
+               (footprints (base-relate)))
+              (?relate-noun-phrase-unit
+               (superunits (?super-relate-noun-phrase-unit))
+               (footprints (relate)))
+              (?spatial-relation-unit
+               (footprints (relate)))
+              (?determined-noun-phrase-unit
+               (superunits (?super-relate-noun-phrase-unit))
+               (footprints (relate)))
+              <-
+              (scene-unit
+               --
+               (scene ?scene))
+              (?super-relate-noun-phrase-unit
+               (HASH meaning ((relate ?related-set ?object ?source ?scene ?spatial-relation)))
+               --
+               (HASH form ((meets ?rightmost-np-unit ?that-is-unit)
+                           (meets ?that-is-unit ?leftmost-spatial-unit)
+                           (meets ?rightmost-spatial-unit ?leftmost-rel-unit))))
+              (?determined-noun-phrase-unit
+               (args ((sources ?related-set)
+                      (target ?target)))
+               (sem-cat (sem-function referring-expression))
+               (footprints (NOT relate base-relate))
+               --
+               (footprints (NOT relate base-relate))
+               (syn-cat (phrase-type np)
+                        (number ?number)
+                        (definite ?def))
+               (leftmost-unit ?leftmost-np-unit)
+               (rightmost-unit ?rightmost-np-unit))
+              (?that-is-unit
+               --
+               (HASH form ((string ?that-is-unit "that is"))))
+              (?spatial-relation-unit
+               (args ((target ?spatial-relation)))
+               (sem-cat (sem-class spatial-relation))
+               (footprints (NOT relate))
+               --
+               (footprints (NOT relate))
+               (syn-cat (lex-class preposition))
+               (leftmost-unit ?leftmost-spatial-unit)
+               (rightmost-unit ?rightmost-spatial-unit))
+              (?relate-noun-phrase-unit
+               (args ((sources ?source)
+                      (target ?object)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (definite +))
+               (footprints (NOT relate))
+               (relate +)
+               --
+               (relate +)
+               (footprints (NOT relate))
+               (syn-cat (phrase-type np)
+                        (number singular)
+                        (definite +))
+               (sem-cat (sem-function referring-expression))
+               (leftmost-unit ?leftmost-rel-unit)
+               (rightmost-unit ?rightmost-rel-unit)))
+             :cxn-inventory *clevr*
+             :disable-automatic-footprints t
+             :cxn-set cxn)
+              
+#|
+(def-fcg-cxn relate-that-is-cxn
+             ((?super-relate-noun-phrase-unit
+               (args ((sources ?source)
+                      (target ?target)))
+               (sem-cat (sem-function referring-expression))
+               (syn-cat (phrase-type np)
+                        (number ?number)
+                        (definite ?def))
                (leftmost-unit ?leftmost-rel-unit)
                (rightmost-unit ?rightmost-np-unit)
                (subunits (?relate-noun-phrase-unit ?that-is-unit ?spatial-relation-unit ?determined-noun-phrase-unit))
@@ -322,6 +473,7 @@
              :cxn-inventory *clevr*
              :disable-automatic-footprints t
              :cxn-set cxn)
+|#
 
 
 ;; the single-or question family requires a relate-cxn with a plural nominal

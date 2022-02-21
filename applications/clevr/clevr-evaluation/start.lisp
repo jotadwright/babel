@@ -10,4 +10,8 @@
 
 
 
-(evaluate-clevr-accuracy "val" :nr-of-scenes 1)
+(evaluate-clevr-accuracy "val")
+
+(understand-utterance-in-scene
+ "is there a metallic object left of the gray object that is behind the large cylinder that is in front of the green matte object?"
+ "CLEVR_val_000004" "val")
