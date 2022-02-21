@@ -30,6 +30,47 @@
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
 
+(defun check-holistic-meets-connectivity (form-constraints)
+  "check if within a holistic chunk, all form strings are connected"
+  (let* ((left-units (loop for fc in form-constraints
+                           when (equal 'meets (first fc))
+                           collect (second fc)))
+         (right-units (loop for fc in form-constraints
+                            when (equal 'meets (first fc))
+                            collect (third fc)))
+         (string-units (loop for fc in form-constraints
+                            when (equal 'string (first fc))
+                            collect (second fc)))
+         (left-most-diff (set-difference left-units right-units))
+         (right-most-diff (set-difference right-units left-units))
+         (all-units (remove-duplicates (append left-units right-units)))
+         (string-meets-diff (set-difference string-units all-units))
+         (meets-string-diff (set-difference all-units string-units)))
+    
+    (if (and left-most-diff right-most-diff)
+      (and (= 1 (length left-most-diff))
+           (= 1 (length right-most-diff))
+           (not string-meets-diff)
+           (not meets-string-diff))
+      t)))
+
+(defun get-boundary-units (form-constraints)
+  "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"
+  (let* ((left-units (loop for fc in form-constraints
+                           when (equal 'meets (first fc))
+                           collect (second fc)))
+         (right-units (loop for fc in form-constraints
+                            when (equal 'meets (first fc))
+                            collect (third fc)))
+         (left-most-unit (first (set-difference left-units right-units)))
+         (right-most-unit (first (set-difference right-units left-units))))
+    (if (and left-most-unit right-most-unit)
+      (list left-most-unit right-most-unit)
+      (when (and (equal 1 (length form-constraints))
+                 (equal 'string (first (first form-constraints))))
+        (list (second (first form-constraints)) (second (first form-constraints)))))))
+                           
+
 (defun initial-transient-structure (node)
   (if (find 'fcg::initial (statuses node))
     (car-source-cfs (cipn-car node))
@@ -160,18 +201,22 @@
                     (string-append string "-cxn")
                     string)))))))
 
+
+  
+
 ;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
 
-(defmethod make-cxn-name ((form list) (cxn-inventory fcg-construction-set)
+(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
                           &key (add-cxn-suffix t))
-  "Transform an utterance into a suitable construction name"
-  (loop with string-constraints = (extract-form-predicate-by-type form 'string)
+  "Transform a list of form constraints into a suitable construction name"
+  (loop with string-constraints = (extract-form-predicate-by-type form-constraints 'string)
         with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
         with placeholder-index = 0
         with new-string-constraints = '()
-        for order-constraint in (set-difference form string-constraints)
-        for first-word-var = (second order-constraint)
-        for second-word-var = (third order-constraint)
+        with meets-constraints = (set-difference form-constraints string-constraints)
+        for meets-constraint in meets-constraints
+        for first-word-var = (second meets-constraint)
+        for second-word-var = (third meets-constraint)
         do
         (unless (or (find first-word-var string-constraints :key #'second)
                     (find first-word-var new-string-constraints :key #'second))
@@ -183,9 +228,28 @@
           (incf placeholder-index))
         finally (return
                  (make-cxn-name (format nil "~{~a~^-~}"
-                                        (render (append form new-string-constraints)
+                                        (render (append form-constraints new-string-constraints)
                                                 (get-configuration cxn-inventory :render-mode)))
                                 cxn-inventory :add-cxn-suffix add-cxn-suffix))))
+
+(defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
+  (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
+         (left-boundary (first slot-boundaries))
+         (right-boundary (second slot-boundaries))
+         (new-slot-var (variablify "X")))
+    (loop for fc in item-based-meet-constraints
+          collect (replace-chunk-variables fc left-boundary right-boundary new-slot-var))))
+
+(defun replace-chunk-variables (fc first-chunk-var last-chunk-var new-slot-var)
+  (when (equalp first-chunk-var (third fc))
+    (setf (nth 2 fc) new-slot-var))
+  (when (equalp last-chunk-var (second fc))
+    (setf (nth 1 fc) new-slot-var))
+   fc
+  )
+
+
+
 
 (defun make-cxn-placeholder-name (form cxn-inventory)
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)
@@ -409,23 +473,6 @@
         for var = (second fc)
         for meet = (find var item-based-form-constraints  :key #'second)
         collect meet)))
-(defun fix-item-based-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
- (let* (( filtered-form-constraints (set-difference item-based-meet-constraints chunk-meet-constraints))
-        (first-chunk-var (second (first (last chunk-meet-constraints))))
-        (last-chunk-var (third (first chunk-meet-constraints)))
-        (new-slot-var (intern "x"))
-        (final-form-constraints (loop for fc in filtered-form-constraints
-                                      collect (replace-chunk-variables fc first-chunk-var last-chunk-var new-slot-var))))
-   final-form-constraints
-   ))
-
-(defun replace-chunk-variables (fc first-chunk-var last-chunk-var new-slot-var)
-  (when (equalp first-chunk-var (third fc))
-    (setf (nth 2 fc) new-slot-var))
-  (when (equalp last-chunk-var (second fc))
-    (setf (nth 1 fc) new-slot-var))
-   fc
-  )
 
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
   (loop for cxn in (constructions cxn-inventory)
@@ -435,21 +482,20 @@
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
                     (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
                     (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
-                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
-                    (chunk-meets-constraints-cxn (find-all 'meets non-overlapping-form-cxn :key #'first))
-                    (overlapping-form-cxn-with-meets-constraints (fix-item-based-meets-constraints chunk-meets-constraints-cxn overlapping-form-cxn))) ;
-               
+                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)))
                (when (and
                       (> (length non-overlapping-meaning-observation) 0)
                       (> (length non-overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-form-observation) 0)
-                      (> (length non-overlapping-form-cxn)) 0)
+                      (> (length non-overlapping-form-cxn) 0)
+                      (check-holistic-meets-connectivity non-overlapping-form-cxn)
+                      (check-holistic-meets-connectivity non-overlapping-form-observation))
                  (return (values non-overlapping-meaning-observation
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
                                  overlapping-meaning-cxn
-                                 overlapping-form-cxn-with-meets-constraints
+                                 overlapping-form-cxn
                                  cxn)))))))
 
 (defun find-matching-lex-cxns (cxn-inventory observed-form gold-standard-meaning utterance)

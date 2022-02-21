@@ -61,10 +61,8 @@
                (syn-cat (phrase-type item-based))
                (subunits (?large-gray-unit)))
               (?large-gray-unit
-               (syn-cat (lex-class large-gray))
-               (boundaries
-                (left ?large-unit)
-                (right ?gray-unit)))
+               (syn-cat (lex-class large-gray)))
+               
               <-
               (?item-based-unit
                (HASH meaning ((query ?target-8 ?source-10 ?attribute-2)
