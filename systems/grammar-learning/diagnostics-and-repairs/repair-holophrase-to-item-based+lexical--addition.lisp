@@ -40,23 +40,17 @@
         for cxn-form-constraints = (extract-form-predicates cxn)
         for cxn-meaning-constraints = (extract-meaning-predicates cxn)
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
-        for non-overlapping-form = (diff-subset-superset-form cxn superset-form)
-        for non-overlapping-meaning = (set-difference gold-standard-meaning (extract-meaning-predicates cxn) :test #'irl:unify-irl-programs)
+        for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-observation t)
+        for non-overlapping-form-inverted = (set-difference cxn-form-constraints superset-form  :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning-inverted = (set-difference (extract-meaning-predicates cxn) gold-standard-meaning :test #'irl:unify-irl-programs)
         for cxn-type =  (phrase-type cxn)
-        when (and (eql cxn-type 'holophrase)
-                  (equal 1 (length non-overlapping-meaning))
-                  (equal 1 (length non-overlapping-form))
-                  ;; check if all the strings in the form constraints are present in the superset
-                  ;; todo: include precedes relations
-                  (loop for cxn-fc in cxn-form-constraints
-                        always (if (equal (first cxn-fc) 'string)
-                                 (find (third cxn-fc) ts-form-constraints :key #'third :test #'equalp)
-                                 t)) ;; loop returns true if all are true, the third elem is the string
-                  (loop for predicate in cxn-meaning-constraints
-                        always (if (equal (first predicate) 'bind)
-                                 (find (fourth predicate) gold-standard-meaning :key #'fourth)
-                                 (find (first predicate) gold-standard-meaning :key #'first))))
-        ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too (todo: see if this is really the case in IRL)
+        when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
+                  (not non-overlapping-form-inverted) ; the set diff of smaller - larger = nil
+                  (not non-overlapping-meaning-inverted)
+                  (check-meets-continuity non-overlapping-form))
+                  
+        ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too, and the meets of the new holistic cxn should all be connected
         return (values cxn superset-form non-overlapping-form non-overlapping-meaning)))
 
 
@@ -88,18 +82,19 @@
       
       
         ;;(when (and non-overlapping-form non-overlapping-meaning) ;; this check needs to happen while selecting cxns
-        (let* ((overlapping-form
-                (set-difference superset-form non-overlapping-form :test #'irl:unify-irl-programs))
-               (overlapping-meaning
-                (set-difference gold-standard-meaning non-overlapping-meaning :test #'equal))
-               (existing-lex-cxn
-                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
-               (lex-cxn-name
-                (make-cxn-name non-overlapping-form cxn-inventory))
-               (cxn-name-item-based-cxn
-                (make-cxn-name overlapping-form cxn-inventory :add-cxn-suffix nil))
+        (let* ((overlapping-form (set-difference superset-form non-overlapping-form :test #'equal))
+               (overlapping-meaning (set-difference gold-standard-meaning non-overlapping-meaning :test #'equal))
+               (existing-lex-cxn (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
+               (boundaries-holistic-cxn (get-boundary-units non-overlapping-form))
+               (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
+               (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
+               (lex-cxn-name (make-cxn-name non-overlapping-form cxn-inventory))
+               ;
+               (cxn-name-item-based-cxn (make-cxn-name
+                                         (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-cxn-suffix nil))
                (unit-name-lex-cxn
-                (second (find 'string non-overlapping-form :key #'first)))
+                (variablify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
+                )
                ;; lex-class
                (lex-class-lex-cxn
                 (if existing-lex-cxn
@@ -112,16 +107,20 @@
                 (cons lex-class-item-based-cxn lex-class-lex-cxn))
                ;; args: 
                (args-lex-cxn
-                (extract-args-from-predicate (first non-overlapping-meaning) meaning-representation-formalism))
-               ;; unit names
+                (loop for predicate in non-overlapping-meaning
+                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+               
                (lex-cxn
                 (or existing-lex-cxn
                     (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,lex-cxn-name
                                                                 ((,unit-name-lex-cxn
-                                                                  (args (,args-lex-cxn))
+                                                                  (args ,args-lex-cxn)
                                                                   (syn-cat (phrase-type lexical)
-                                                                           (lex-class ,lex-class-lex-cxn)))
+                                                                           (lex-class ,lex-class-lex-cxn))
+                                                                  (boundaries
+                                                                   (left ,leftmost-unit-holistic-cxn)
+                                                                   (right ,rightmost-unit-holistic-cxn)))
                                                                  <-
                                                                  (,unit-name-lex-cxn
                                                                   (HASH meaning ,non-overlapping-meaning)
@@ -146,8 +145,11 @@
                                                               --
                                                               (HASH form ,overlapping-form))
                                                              (,unit-name-lex-cxn
-                                                              (args (,args-lex-cxn))
-                                                              --))
+                                                              (args ,args-lex-cxn)
+                                                              --
+                                                              (boundaries
+                                                                   (left ,leftmost-unit-holistic-cxn)
+                                                                   (right ,rightmost-unit-holistic-cxn))))
                                                             :attributes (:cxn-type item-based
                                                                          :repair holophrase->item-based+lexical--addition
                                                                          :meaning ,(loop for predicate in overlapping-meaning
