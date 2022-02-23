@@ -188,17 +188,21 @@ based on existing construction with sufficient overlap."
            (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
            (th (loop for th-link in (subseq (restart-data fix) 3)
                      do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy :recompute-transitive-closure nil)
-                         (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
+                     (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy))) 
            ;; apply holistic-cxn and add node
            ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application
+           (dbg (progn
+                  (add-element (make-html holistic-cxn))
+                  (add-element (make-html item-based-cxn))))
            (new-node-lex (fcg::cip-add-child (initial-node node) (first (fcg-apply holistic-cxn (car-source-cfs (cipn-car (initial-node node))) (direction (cip node))
-                                                                    :configuration (configuration (construction-inventory node))
-                                                                    :cxn-inventory (construction-inventory node)))))
+                                                                                   :configuration (configuration (construction-inventory node))
+                                                                                   :cxn-inventory (construction-inventory node)))))
            ;; apply item-based cxn to this new node, and add second new node
            (new-node-item-based (fcg::cip-add-child new-node-lex (first (fcg-apply item-based-cxn (car-resulting-cfs (cipn-car new-node-lex)) (direction (cip node))
                                                                                    :configuration (configuration (construction-inventory node))
-                                                                                    :cxn-inventory (construction-inventory node))))))
+                                                                                   :cxn-inventory (construction-inventory node))))))
+      
       ;; ignore
       ;; Reset type hierarchy
       (set-categorial-network (construction-inventory node) orig-type-hierarchy)

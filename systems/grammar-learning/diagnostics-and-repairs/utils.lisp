@@ -4,7 +4,7 @@
 (defun sort-cxns-by-form-string (cxns-to-sort utterance)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
   ;; warning, this function depends on space separation without further punctuation!
-  ;; todo: replace by looking up bindings?
+  ;; todo: replace by looking up meets constraints!
   (if (< (length cxns-to-sort) 2)
     cxns-to-sort
     (let ((resulting-list (make-list (length utterance))))
@@ -30,7 +30,7 @@
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
 
-(defun check-holistic-meets-connectivity (form-constraints)
+(defun check-meets-continuity (form-constraints)
   "check if within a holistic chunk, all form strings are connected"
   (let* ((left-units (loop for fc in form-constraints
                            when (equal 'meets (first fc))
@@ -140,12 +140,12 @@
   (multiple-value-bind (non-overlapping-form-observation non-overlapping-form-cxn)
       (non-overlapping-predicates-ignore-length utterance-form-constraints
                                                 (extract-form-predicates cxn))
-    (let* ((meets-constraints-cxn (find-chunk-meets-constraints
+    (let* ((meets-constraints-cxn (cdr (find-meets-constraints
                                    (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)
-                                   non-overlapping-form-cxn))
-           (meets-constraints-observation (find-chunk-meets-constraints
+                                   non-overlapping-form-cxn)))
+           (meets-constraints-observation (cdr (find-meets-constraints
                                            (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)
-                                           non-overlapping-form-observation)))
+                                           non-overlapping-form-observation))))
       (cond (nof-cxn (append non-overlapping-form-cxn meets-constraints-cxn))
             (nof-observation (append non-overlapping-form-observation meets-constraints-observation))))))
 
@@ -468,11 +468,13 @@
         return (values cxn non-overlapping-form non-overlapping-meaning)))
 
 
-(defun find-chunk-meets-constraints (item-based-form-constraints chunk-form-constraints)
-  (cdr (loop for fc in chunk-form-constraints
+(defun find-meets-constraints (superset-with-meets subset-without-meets)
+  (loop for fc in subset-without-meets
         for var = (second fc)
-        for meet = (find var item-based-form-constraints  :key #'second)
-        collect meet)))
+        for superset-meets-constraints = (extract-form-predicate-by-type superset-with-meets 'meets)
+        for meet = (or (find var superset-meets-constraints :key #'second)
+                       (find var superset-meets-constraints :key #'third))
+        collect meet))
 
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
   (loop for cxn in (constructions cxn-inventory)
@@ -488,8 +490,8 @@
                       (> (length non-overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-form-observation) 0)
                       (> (length non-overlapping-form-cxn) 0)
-                      (check-holistic-meets-connectivity non-overlapping-form-cxn)
-                      (check-holistic-meets-connectivity non-overlapping-form-observation))
+                      (check-meets-continuity non-overlapping-form-cxn)
+                      (check-meets-continuity non-overlapping-form-observation))
                  (return (values non-overlapping-meaning-observation
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation

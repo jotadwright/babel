@@ -66,7 +66,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  42)
+;(run-series *experiment*  41)
 #|
 
 QUESTIONS
@@ -80,9 +80,7 @@ NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van varia
  
 ISSUES
 ------
-compute-transitive-closure: also called in consolidate-repairs
-=> make it a configuration of the cip?
-=> make the default nil!
+
 
 TODO
 ----
@@ -98,12 +96,4 @@ TODO
 - stage 2 loopt vast! assertion error, dus repairs failen en comprehension failt
 
 
-1 epoch
-test set (uiteindelijke metric)
-
-DONE
-----
-- 2 epochs: plak de data 2x aan elkaar (geshuffeld)
-- maak een export monitor voor categorial networks die om de n interacties een timestep toevoegt met de volledige graph, in JSON formaat
-- maak het een optie om een grammatica mee te geven waarop hij verder leert (zonder in evaluation mode te zitten)
 |#
