@@ -56,6 +56,8 @@ based on existing construction with sufficient overlap."
         
         (let* ((cxn-name-item-based-cxn
                 (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn) cxn-inventory :add-cxn-suffix nil))
+               (cxn-name-holistic-cxn-1 (make-cxn-name non-overlapping-form-cxn cxn-inventory))
+               (cxn-name-holistic-cxn-2 (make-cxn-name non-overlapping-form-observation cxn-inventory))
                (holistic-cxn-1
                 (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
                (holistic-cxn-2
@@ -71,19 +73,19 @@ based on existing construction with sufficient overlap."
                
                ;; unit names
                (unit-name-holistic-cxn-1
-               (variablify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
+               (unit-ify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
                (unit-name-holistic-cxn-2
-               (variablify (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil)))
+               (unit-ify (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil)))
                
                ;; args and syn-cat
                (lex-class-holistic-cxn-1
                 (if holistic-cxn-1
                   (lex-class-cxn holistic-cxn-1)
-                  (intern (get-base-name unit-name-holistic-cxn-1) :grammar-learning)))
+                  (intern (string-downcase (symbol-name (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))) :grammar-learning)))
                (lex-class-holistic-cxn-2
                 (if holistic-cxn-2
                   (lex-class-cxn holistic-cxn-2)
-                  (intern (get-base-name unit-name-holistic-cxn-2) :grammar-learning)))
+                  (intern (string-downcase (symbol-name (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil))) :grammar-learning)))
                (lex-class-item-based-cxn
                 (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
                ;; Type hierachy links
@@ -106,7 +108,7 @@ based on existing construction with sufficient overlap."
                (new-holistic-cxn-1
                 (or holistic-cxn-1
                     (second (multiple-value-list (eval
-                                                  `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-cxn cxn-inventory)
+                                                  `(def-fcg-cxn ,cxn-name-holistic-cxn-1
                                                                 ((,unit-name-holistic-cxn-1
                                                                   (args ,args-holistic-cxn-1)
                                                                   (syn-cat (phrase-type holistic)
@@ -127,7 +129,7 @@ based on existing construction with sufficient overlap."
                (new-holistic-cxn-2
                 (or holistic-cxn-2
                     (second (multiple-value-list (eval
-                                                  `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-observation cxn-inventory)
+                                                  `(def-fcg-cxn ,cxn-name-holistic-cxn-2
                                                                 ((,unit-name-holistic-cxn-2
                                                                   (args ,args-holistic-cxn-2)
                                                                   (syn-cat (phrase-type holistic)
@@ -192,9 +194,7 @@ based on existing construction with sufficient overlap."
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy))) 
            ;; apply holistic-cxn and add node
            ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application
-           (dbg (progn
-                  (add-element (make-html holistic-cxn))
-                  (add-element (make-html item-based-cxn))))
+           
            (new-node-lex (fcg::cip-add-child (initial-node node) (first (fcg-apply holistic-cxn (car-source-cfs (cipn-car (initial-node node))) (direction (cip node))
                                                                                    :configuration (configuration (construction-inventory node))
                                                                                    :cxn-inventory (construction-inventory node)))))

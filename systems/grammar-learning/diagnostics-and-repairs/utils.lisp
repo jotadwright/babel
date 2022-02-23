@@ -336,7 +336,11 @@
         
 
  ;; (meaning-predicates-with-variables '((get-context source) (bind attribute-category attribute color) (bind shape-category shape cube) (unique object cubes) (filter cubes source shape) (query response object attribute)))
-                              
+
+
+(defun unit-ify (symbol)
+  (intern  (format nil "?~a-unit" (get-base-name symbol))))
+
 (defun variablify (symbol)
   "Turn a symbol into a variable if it isn't one yet."
   (if (variable-p symbol)
@@ -590,23 +594,22 @@
         for lex-cxn-unit-name = (second (find 'string lex-cxn-form :key #'first))
         collect lex-cxn-unit-name))
 
-(defun subunit-blocks-for-holistic-cxns (holistic-cxns holistic-subunit-names args th-links)
+(defun subunit-blocks-for-holistic-cxns (holistic-cxns holistic-subunit-names boundaries args th-links)
   (loop for holistic-cxn in holistic-cxns
         for arg in args
         for holistic-cxn-unit-name in holistic-subunit-names
         for th-link in th-links
         for holistic-slot-lex-class = (cdr th-link)
-        for boundaries-holistic-cxn = (get-boundary-units (extract-form-predicates holistic-cxn))
-        for leftmost-unit-holistic-cxn = (first boundaries-holistic-cxn)
-        for rightmost-unit-holistic-cxn = (second boundaries-holistic-cxn)
+        for leftmost-unit-holistic-cxn = (first boundaries)
+        for rightmost-unit-holistic-cxn = (second boundaries)
         collect `(,holistic-cxn-unit-name
-                  (syn-cat (gl::lex-class ,holistic-slot-lex-class))
-                  (boundaries
-                   (left ,leftmost-unit-holistic-cxn)
-                   (right ,rightmost-unit-holistic-cxn))) into contributing-units
+                  (syn-cat (gl::lex-class ,holistic-slot-lex-class))) into contributing-units
         collect `(,holistic-cxn-unit-name
                   (args (,arg))
-                  --) into conditional-units
+                  --
+                  (boundaries
+                   (left ,leftmost-unit-holistic-cxn)
+                   (right ,rightmost-unit-holistic-cxn))) into conditional-units
         finally (return (values conditional-units contributing-units))))
 
 (defun create-type-hierarchy-links (lex-cxns item-based-name placeholders

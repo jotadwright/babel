@@ -74,5 +74,7 @@
                                        (bind size-category ?size-4 large)
                                        (query ?target-4 ?target-object-1 ?attribute-4)))))
 
+;; ISSUE: when calculating the boundaries, don't take them from the matching holistic cxn, but from the set diff between the source cxn and the substraction of the item-based cxn, so you get the correct item based variable bindings for the holistic part, still doesn't work
+;; => write cxn by hand
 
-(test-lexical-to-item-based-repair-comprehension)
+;(test-lexical-to-item-based-repair-comprehension)

@@ -73,13 +73,13 @@
                (cxn-name-item-based-cxn (make-cxn-name
                                          (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-cxn-suffix nil))
                (unit-name-holistic-cxn
-                (variablify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
+                (unit-ify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
                 )
                ;; lex-class
                (lex-class-holistic-cxn
                 (if existing-holistic-cxn
                   (lex-class-cxn existing-holistic-cxn)
-                  (intern (get-base-name unit-name-holistic-cxn) :grammar-learning)))
+                  (intern (string-downcase (symbol-name holistic-cxn-name)) :grammar-learning)))
                (lex-class-item-based-cxn
                 (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
                ;; type hierachy links

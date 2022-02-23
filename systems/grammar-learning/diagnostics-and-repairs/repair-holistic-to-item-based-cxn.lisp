@@ -52,8 +52,13 @@ based on existing construction with sufficient overlap."
               (form-constraints-with-variables utterance (get-configuration (cxn-inventory (first matching-holistic-cxns)) :de-render-mode)))
              (subunit-names-and-non-overlapping-form
               (multiple-value-list (diff-non-overlapping-form var-form matching-holistic-cxns)))
+             (boundaries
+              (list (first (first subunit-names-and-non-overlapping-form)) (first (first subunit-names-and-non-overlapping-form)))) ; remove this!
              (subunit-names
-              (first subunit-names-and-non-overlapping-form))
+              (loop for name in (first subunit-names-and-non-overlapping-form)
+                    collect (unit-ify name))
+              )
+             
              (non-overlapping-form
               (second subunit-names-and-non-overlapping-form))
              (args-and-non-overlapping-meaning
@@ -76,7 +81,7 @@ based on existing construction with sufficient overlap."
              (th-links
               (create-type-hierarchy-links matching-holistic-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
              (holistic-cxn-subunit-blocks
-              (multiple-value-list (subunit-blocks-for-holistic-cxns matching-holistic-cxns subunit-names args th-links)))
+              (multiple-value-list (subunit-blocks-for-holistic-cxns matching-holistic-cxns subunit-names boundaries args th-links)))
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -103,6 +108,8 @@ based on existing construction with sufficient overlap."
                                                                          :string ,(third (find 'string non-overlapping-form :key #'first)))
                                                                                       
                                                                          :cxn-inventory ,(copy-object cxn-inventory)))))))
+        (add-element (make-html item-based-cxn))
+        (add-element (make-html (first matching-holistic-cxns)))
         (list item-based-cxn matching-holistic-cxns th-links)))))
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-holistic->item-based-cxn) (problem problem) (node cip-node) &key &allow-other-keys) 
