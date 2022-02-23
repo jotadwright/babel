@@ -38,6 +38,9 @@
          (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (cxn-name (make-cxn-name utterance cxn-inventory))
          (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
+         (boundaries-holophrase-cxn (get-boundary-units form-constraints))
+               (leftmost-unit-holophrase-cxn (first boundaries-holophrase-cxn))
+               (rightmost-unit-holophrase-cxn (second boundaries-holophrase-cxn))
          ;; take the last element of the form constraints (the last word) and use it for hashing
          (hash-string (loop for fc in form-constraints
                         when (equalp (first fc) 'string)
@@ -46,7 +49,10 @@
          (holophrase-cxn (second (multiple-value-list  (eval
                                                         `(def-fcg-cxn ,cxn-name
                                                                       ((?holophrase-unit
-                                                                        (syn-cat (phrase-type holophrase)))
+                                                                        (syn-cat (phrase-type holophrase))
+                                                                        (boundaries
+                                                                         (left ,leftmost-unit-holophrase-cxn)
+                                                                         (right ,rightmost-unit-holophrase-cxn)))
                                                                        <-
                                                                        (?holophrase-unit
                                                                         (HASH meaning ,meaning)

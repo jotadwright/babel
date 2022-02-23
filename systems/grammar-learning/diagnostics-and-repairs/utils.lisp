@@ -442,7 +442,25 @@
   (set-difference (extract-form-predicates superset-cxn)
                   (form-constraints-with-variables utterance (get-configuration (cxn-inventory superset-cxn) :de-render-mode))
                   :test #'irl:unify-irl-programs))
-  
+
+(defun find-subset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
+  (loop with ts-form-constraints = (transient-structure-form-constraints transient-structure)
+        for cxn in (constructions cxn-inventory)
+        for cxn-form-constraints = (extract-form-predicates cxn)
+        for cxn-meaning-constraints = (extract-meaning-predicates cxn)
+        for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
+        for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-observation t)
+        for non-overlapping-form-inverted = (set-difference cxn-form-constraints superset-form  :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning-inverted = (set-difference cxn-meaning-constraints gold-standard-meaning :test #'irl:unify-irl-programs)
+        for cxn-type =  (phrase-type cxn)
+        when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
+                  (not non-overlapping-form-inverted) ; the set diff of smaller - larger = nil
+                  (not non-overlapping-meaning-inverted)
+                  (check-meets-continuity non-overlapping-form))
+                  
+        ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too, and the meets of the new holistic cxn should all be connected
+        return (values cxn superset-form non-overlapping-form non-overlapping-meaning)))
 
 (defun find-superset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
   ;; todo: there could also be more than one superset cxn!
@@ -451,19 +469,15 @@
         for cxn-form-constraints = (extract-form-predicates cxn)
         for cxn-meaning-constraints = (extract-meaning-predicates cxn)
         for cxn-type =  (phrase-type cxn)
-        for non-overlapping-form = (diff-superset-subset-form cxn utterance)
-        for non-overlapping-meaning = (set-difference (extract-meaning-predicates cxn) gold-standard-meaning :test #'irl:unify-irl-programs)
-        when (and (eql cxn-type 'holophrase)
-                  (equal 1 (length non-overlapping-meaning))
-                  (equal 1 (length non-overlapping-form))
-                  ;; check if all the strings in the form constraints are present in the superset
-                  ;; precedes relations are not important
-                  (loop for ts-fc in ts-form-constraints
-                        always (find (third ts-fc) cxn-form-constraints :key #'third :test #'equalp)) ;; loop returns true if all are true, the third elem is the string
-                  (loop for predicate in gold-standard-meaning
-                        always (if (equal (first predicate) 'bind)
-                                 (find (fourth predicate) cxn-meaning-constraints :key #'fourth)
-                                 (find (first predicate) cxn-meaning-constraints :key #'first))))
+        for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
+        for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-cxn t)
+        for non-overlapping-meaning = (set-difference cxn-meaning-constraints gold-standard-meaning :test #'irl:unify-irl-programs)
+        for non-overlapping-form-inverted = (set-difference superset-form cxn-form-constraints :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning-inverted = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
+        when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
+                  (not non-overlapping-form-inverted) ; the set diff of smaller - larger = nil
+                  (not non-overlapping-meaning-inverted)
+                  (check-meets-continuity non-overlapping-form))
         ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too (todo: see if this is really the case in IRL)
         return (values cxn non-overlapping-form non-overlapping-meaning)))
 

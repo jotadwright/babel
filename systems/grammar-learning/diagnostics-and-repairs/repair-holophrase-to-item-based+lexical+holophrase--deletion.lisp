@@ -71,12 +71,15 @@
                 (set-difference (extract-meaning-predicates superset-holophrase-cxn) non-overlapping-meaning :test #'equal))
                (existing-lex-cxn
                 (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
+               (boundaries-holistic-cxn (get-boundary-units non-overlapping-form))
+               (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
+               (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
                (lex-cxn-name
                 (make-cxn-name non-overlapping-form cxn-inventory))
-               (cxn-name-item-based-cxn
-                (make-cxn-name overlapping-form cxn-inventory :add-cxn-suffix nil))
+               (cxn-name-item-based-cxn (make-cxn-name
+                                         (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-cxn-suffix nil))
                (unit-name-lex-cxn
-                (second (find 'string non-overlapping-form :key #'first)))
+                (variablify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil)))
                ;; lex-class
                (lex-class-lex-cxn
                 (if existing-lex-cxn
@@ -89,7 +92,8 @@
                 (cons lex-class-lex-cxn lex-class-item-based-cxn))
                ;; args: 
                (args-lex-cxn
-               (extract-args-from-predicate (first non-overlapping-meaning) meaning-representation-formalism))
+               (loop for predicate in non-overlapping-meaning
+                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
 
                (meaning
                 (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
@@ -98,11 +102,18 @@
                 (make-cxn-name utterance cxn-inventory))
                (form-constraints
                 (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
+               (boundaries-holophrase-cxn (get-boundary-units form-constraints))
+               (leftmost-unit-holophrase-cxn (first boundaries-holophrase-cxn))
+               (rightmost-unit-holophrase-cxn (second boundaries-holophrase-cxn))
                (holophrase-cxn
                 (second (multiple-value-list  (eval
                                                `(def-fcg-cxn ,cxn-name
                                                              ((?holophrase-unit
-                                                               (syn-cat (phrase-type holophrase)))
+                                                               (syn-cat (phrase-type holophrase))
+                                                               (boundaries
+                                                                   (left ,leftmost-unit-holophrase-cxn)
+                                                                   (right ,rightmost-unit-holophrase-cxn))
+                                                               )
                                                               <-
                                                               (?holophrase-unit
                                                                (HASH meaning ,meaning)
@@ -118,9 +129,12 @@
                     (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,lex-cxn-name
                                                                 ((,unit-name-lex-cxn
-                                                                  (args (,args-lex-cxn))
+                                                                  (args ,args-lex-cxn)
                                                                   (syn-cat (phrase-type lexical)
-                                                                           (lex-class ,lex-class-lex-cxn)))
+                                                                           (lex-class ,lex-class-lex-cxn))
+                                                                  (boundaries
+                                                                   (left ,leftmost-unit-holistic-cxn)
+                                                                   (right ,rightmost-unit-holistic-cxn)))
                                                                  <-
                                                                  (,unit-name-lex-cxn
                                                                   (HASH meaning ,non-overlapping-meaning)
@@ -145,8 +159,11 @@
                                                               --
                                                               (HASH form ,overlapping-form))
                                                              (,unit-name-lex-cxn
-                                                              (args (,args-lex-cxn))
-                                                              --))
+                                                              (args ,args-lex-cxn)
+                                                              --
+                                                              (boundaries
+                                                                   (left ,leftmost-unit-holistic-cxn)
+                                                                   (right ,rightmost-unit-holistic-cxn))))
                                                             :attributes (:cxn-type item-based
                                                                          :repair holophrase->item-based+lexical+holophrase--deletion
                                                                          :meaning ,(loop for predicate in overlapping-meaning

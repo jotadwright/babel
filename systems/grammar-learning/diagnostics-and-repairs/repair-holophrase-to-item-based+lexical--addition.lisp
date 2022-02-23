@@ -33,24 +33,6 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-(defun find-subset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
-  (loop with ts-form-constraints = (transient-structure-form-constraints transient-structure)
-        for cxn in (constructions cxn-inventory)
-        for cxn-form-constraints = (extract-form-predicates cxn)
-        for cxn-meaning-constraints = (extract-meaning-predicates cxn)
-        for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
-        for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-observation t)
-        for non-overlapping-form-inverted = (set-difference cxn-form-constraints superset-form  :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning-inverted = (set-difference (extract-meaning-predicates cxn) gold-standard-meaning :test #'irl:unify-irl-programs)
-        for cxn-type =  (phrase-type cxn)
-        when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
-                  (not non-overlapping-form-inverted) ; the set diff of smaller - larger = nil
-                  (not non-overlapping-meaning-inverted)
-                  (check-meets-continuity non-overlapping-form))
-                  
-        ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too, and the meets of the new holistic cxn should all be connected
-        return (values cxn superset-form non-overlapping-form non-overlapping-meaning)))
 
 (defun create-repair-cxns-holophrase-single-addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
   "Creates item-based construction and a lexical construction
