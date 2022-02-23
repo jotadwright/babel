@@ -519,53 +519,6 @@
               (<
                (search (third (first (extract-form-predicates x))) utterance)
                (search (third (first (extract-form-predicates y))) utterance))))))
-
-#|
-(defun diff-non-overlapping-form (observed-form matching-lex-cxns)
-  "subtract all lexical forms from the gold standard"
-  (let ((resulting-form observed-form)
-        (lex-unit-names nil))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-form = (extract-form-predicates lex-cxn)
-          do (let ((prev-res-form resulting-form))
-               (setf resulting-form
-                     (set-difference resulting-form lex-cxn-form
-                                     :test #'irl:unify-irl-programs))
-               (setf lex-unit-names
-                     (append lex-unit-names
-                             (list
-                              (second
-                               (find 'string
-                                     (set-difference prev-res-form resulting-form
-                                                     :test #'irl:unify-irl-programs)
-                                     :key #'first)))))))
-    (values lex-unit-names resulting-form)))
-|#
-
-#|
-(defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
-    "subtract all lexical meanings (bind statements) from the gold standard"
-  (let ((resulting-meaning gold-standard-meaning)
-        (args nil))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-meaning = (first (extract-meaning-predicates lex-cxn))
-          do (let ((prev-res-meaning resulting-meaning))
-               ;; problem! set difference will remove both instances if there are identical meanings (e.g cylinder & cylinders)
-               ;; solution: take only one e.g with find and remove by index
-               ;(setf resulting-meaning (remove lex-cxn-meaning resulting-meaning :test #'equal :count 1))
-               (setf resulting-meaning
-                     (set-difference resulting-meaning (list lex-cxn-meaning)
-                                     :test #'irl:unify-irl-programs))
-               ;(setf args (append args (list (third lex-cxn-meaning))))))
-               (setf args
-                     (append args
-                             (list
-                              (third
-                               (find 'bind (set-difference prev-res-meaning resulting-meaning
-                                                           :test #'irl:unify-irl-programs)
-                                     :key #'first)))))))
-    (values args resulting-meaning)))
-|#
  
 (defun diff-non-overlapping-form (observed-form matching-lex-cxns)
   "subtract all lexical forms from the gold standard,
@@ -590,31 +543,6 @@
                  (push unit-name lex-unit-names))))
     (values (reverse lex-unit-names) resulting-form)))
 
-
-
-#|(defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
-  "subtract all lexical meanings (bind statements) from the gold standard
-   taking into account possible duplicates in the matching lex cxns
-   by always taking the first unification result and removing it
-   manually instead of using set-difference."
-  ;; !! it is assumed the matching lex cxns are provided
-  ;; in the same order as which they occur in the form
-  ;; the ordering of the gold standard meaning cannot be guaranteed?
-  (let ((resulting-meaning gold-standard-meaning)
-        (args nil))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-meaning = (extract-meaning-predicates lex-cxn)
-          do (let* ((prev-res-meaning (copy-object resulting-meaning))
-                    (elm-to-remove
-                     (loop for elm in resulting-meaning
-                           when (irl::unify-irl-programs lex-cxn-meaning (list elm))
-                           return elm)))
-               (setf resulting-meaning (remove elm-to-remove resulting-meaning :test #'equal))
-               (let* ((arg-predicate (set-difference prev-res-meaning resulting-meaning :test #'equal))
-                      (arg (third (find 'bind arg-predicate :key #'first))))
-                 (push arg args))))
-    (values (reverse args) resulting-meaning)))|#
-
 (defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
   "subtract all lexical meanings (bind statements) from the gold standard
    taking into account possible duplicates in the matching lex cxns
@@ -638,8 +566,6 @@
                  (push arg args))))
     (values (reverse args) resulting-meaning)))
  
-
-
 (defun subunit-names-for-lex-cxns (lex-cxns)
   (loop for lex-cxn in lex-cxns
         for lex-cxn-form = (extract-form-predicates lex-cxn)
@@ -700,9 +626,6 @@
 
 (defmethod extract-args-from-predicate (predicate (mode (eql :amr)))
   (second predicate))
-
-
-
 
 (defgeneric equivalent-meaning-networks (m1 m2 mode))
 

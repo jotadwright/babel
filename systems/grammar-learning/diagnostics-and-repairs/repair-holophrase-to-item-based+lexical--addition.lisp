@@ -33,7 +33,6 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-;; todo: there could also be more than one subset cxn
 (defun find-subset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
   (loop with ts-form-constraints = (transient-structure-form-constraints transient-structure)
         for cxn in (constructions cxn-inventory)
@@ -52,7 +51,6 @@
                   
         ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too, and the meets of the new holistic cxn should all be connected
         return (values cxn superset-form non-overlapping-form non-overlapping-meaning)))
-
 
 (defun create-repair-cxns-holophrase-single-addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
   "Creates item-based construction and a lexical construction

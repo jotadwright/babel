@@ -1,15 +1,7 @@
 (ql:quickload :grammar-learning)
 (in-package :grammar-learning)
 
-;; full logging
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor display-metrics)
-  (activate-monitor trace-fcg)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions)
-  (activate-monitor trace-interactions-in-wi))
+
 
 ;; full logging except trace-fcg
 (progn
@@ -36,6 +28,16 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
+
+;; full logging
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor display-metrics)
+  (activate-monitor trace-fcg)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
+  (activate-monitor trace-interactions-in-wi))
 
 (progn
   (wi::reset)
