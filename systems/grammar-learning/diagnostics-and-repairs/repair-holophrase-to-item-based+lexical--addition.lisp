@@ -96,7 +96,7 @@
                                                   `(def-fcg-cxn ,lex-cxn-name
                                                                 ((,unit-name-lex-cxn
                                                                   (args ,args-lex-cxn)
-                                                                  (syn-cat (phrase-type lexical)
+                                                                  (syn-cat (phrase-type holistic)
                                                                            (lex-class ,lex-class-lex-cxn))
                                                                   (boundaries
                                                                    (left ,leftmost-unit-holistic-cxn)
@@ -106,7 +106,7 @@
                                                                   (HASH meaning ,non-overlapping-meaning)
                                                                   --
                                                                   (HASH form ,non-overlapping-form)))
-                                                                :attributes (:cxn-type lexical
+                                                                :attributes (:cxn-type holistic
                                                                              :repair holophrase->item-based+lexical--addition
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form :key #'first)))

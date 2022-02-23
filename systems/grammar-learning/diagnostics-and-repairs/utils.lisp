@@ -455,6 +455,8 @@
         for non-overlapping-meaning-inverted = (set-difference cxn-meaning-constraints gold-standard-meaning :test #'irl:unify-irl-programs)
         for cxn-type =  (phrase-type cxn)
         when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
+                  non-overlapping-form
+                  non-overlapping-meaning
                   (not non-overlapping-form-inverted) ; the set diff of smaller - larger = nil
                   (not non-overlapping-meaning-inverted)
                   (check-meets-continuity non-overlapping-form))
@@ -475,6 +477,8 @@
         for non-overlapping-form-inverted = (set-difference superset-form cxn-form-constraints :test #'irl:unify-irl-programs)
         for non-overlapping-meaning-inverted = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
         when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
+                  non-overlapping-form
+                  non-overlapping-meaning
                   (not non-overlapping-form-inverted) ; the set diff of smaller - larger = nil
                   (not non-overlapping-meaning-inverted)
                   (check-meets-continuity non-overlapping-form))
