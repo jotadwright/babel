@@ -13,12 +13,12 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction."
   (when (initial-node-p node)
-    (let ((constructions-and-th-links (create-item-based-cxn problem node)))
-      (when constructions-and-th-links
+    (let ((constructions-and-categorial-links (create-item-based-cxn problem node)))
+      (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
-                       :restart-data constructions-and-th-links)))))
+                       :restart-data constructions-and-categorial-links)))))
 
 (defmethod repair ((repair holophrase->item-based+holistic+holistic--substitution)
                    (problem non-gold-standard-utterance)
@@ -26,12 +26,12 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction."
   (when (initial-node-p node)
-    (let ((constructions-and-th-links (create-item-based-cxn problem node)))
-      (when constructions-and-th-links
+    (let ((constructions-and-categorial-links (create-item-based-cxn problem node)))
+      (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
-                       :restart-data constructions-and-th-links)))))
+                       :restart-data constructions-and-categorial-links)))))
 
 (defun create-item-based-cxn (problem node)
   "Creates item-based construction and holistic constructions
@@ -87,9 +87,9 @@ based on existing construction with sufficient overlap."
                (lex-class-item-based-cxn
                 (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
                ;; Type hierachy links
-               (th-link-1
+               (categorial-link-1
                 (cons lex-class-holistic-cxn-1 lex-class-item-based-cxn))
-               (th-link-2
+               (categorial-link-2
                 (cons lex-class-holistic-cxn-2 lex-class-item-based-cxn))
                ;; Args
                (args-holistic-cxn-1
@@ -174,8 +174,8 @@ based on existing construction with sufficient overlap."
                                                                            
                                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
           (list new-holistic-cxn-1 new-holistic-cxn-2 item-based-cxn
-                th-link-1 th-link-2 (cons (cdr th-link-1) (car th-link-1))
-                (cons (cdr th-link-2) (car th-link-2))))))))
+                categorial-link-1 categorial-link-2 (cons (cdr categorial-link-1) (car categorial-link-1))
+                (cons (cdr categorial-link-2) (car categorial-link-2))))))))
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair holophrase->item-based+holistic+holistic--substitution) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
@@ -186,9 +186,9 @@ based on existing construction with sufficient overlap."
            ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
            (orig-type-hierarchy (categorial-network (construction-inventory node)))
            (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
-           (th (loop for th-link in (subseq (restart-data fix) 3)
-                     do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy :recompute-transitive-closure nil)
-                     (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
+           (th (loop for categorial-link in (subseq (restart-data fix) 3)
+                     do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-type-hierarchy :recompute-transitive-closure nil)
+                     (add-link (car categorial-link) (cdr categorial-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy))) 
            ;; apply holistic-cxn and add node
            ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application

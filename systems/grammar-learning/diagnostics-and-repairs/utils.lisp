@@ -518,13 +518,13 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
-(defun find-matching-lex-cxns (cxn-inventory observed-form gold-standard-meaning utterance)
-  "return all lexical cxns that can apply by checking whether they are a subset of the observed form and meaning"
+(defun find-matching-holistic-cxns (cxn-inventory observed-form gold-standard-meaning utterance)
+  "return all holistic cxns that can apply by checking whether they are a subset of the observed form and meaning"
   ;; if a certain item matches twice, we'll discard it to avoid ambiguity
   ;; e.g.: is there a cylinder next to the blue cylinder? will only return blue (if in inventory), not cylinder
   (let ((remaining-form (form-predicates-with-variables observed-form)))
     (sort (loop for cxn in (constructions cxn-inventory)
-                when (and (eql (phrase-type cxn) 'lexical) 
+                when (and (eql (phrase-type cxn) 'holistic) 
                           (irl:unify-irl-programs (extract-form-predicates cxn) remaining-form)
                           (setf remaining-form (set-difference remaining-form (extract-form-predicates cxn) :test #'irl:unify-irl-programs))
                           (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning)
@@ -590,15 +590,15 @@
         for lex-cxn-unit-name = (second (find 'string lex-cxn-form :key #'first))
         collect lex-cxn-unit-name))
 
-(defun subunit-blocks-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
-  (loop for lex-cxn in lex-cxns
+(defun subunit-blocks-for-holistic-cxns (holistic-cxns holistic-subunit-names args th-links)
+  (loop for holistic-cxn in holistic-cxns
         for arg in args
-        for lex-cxn-unit-name in lex-subunit-names
+        for holistic-cxn-unit-name in holistic-subunit-names
         for th-link in th-links
-        for lex-slot-lex-class = (cdr th-link)
-        collect `(,lex-cxn-unit-name
-                  (syn-cat (gl::lex-class ,lex-slot-lex-class))) into contributing-units
-        collect `(,lex-cxn-unit-name
+        for holistic-slot-lex-class = (cdr th-link)
+        collect `(,holistic-cxn-unit-name
+                  (syn-cat (gl::lex-class ,holistic-slot-lex-class))) into contributing-units
+        collect `(,holistic-cxn-unit-name
                   (args (,arg))
                   --) into conditional-units
         finally (return (values conditional-units contributing-units))))
@@ -617,7 +617,7 @@
                                                   :add-numeric-tail item-based-numeric-tail)
         collect (cons lex-cxn-lex-class item-slot-lex-class)))
 
-(defun find-matching-lex-cxns-in-root (cxn-inventory root-strings)
+(defun find-matching-holistic-cxns-in-root (cxn-inventory root-strings)
   (remove nil (loop for remaining-form in root-strings
         for root-string = (third remaining-form)
         collect (loop for cxn in (constructions cxn-inventory)
@@ -625,13 +625,13 @@
                                 (string= (third (first (extract-form-predicates cxn))) root-string))
                       return cxn))))
 
-(defun subtract-lex-cxn-meanings (lex-cxns gold-standard-meaning)
+(defun subtract-holistic-cxn-meanings (lex-cxns gold-standard-meaning)
   (let ((lex-cxn-meanings (map 'list #'extract-meaning-predicates lex-cxns)))
     (loop for lex-cxn-meaning in lex-cxn-meanings
           do (setf gold-standard-meaning (set-difference gold-standard-meaning lex-cxn-meaning :test #'irl:unify-irl-programs)))
     gold-standard-meaning))
 
-(defun subtract-lex-cxn-forms (lex-cxns string-predicates-in-root)
+(defun subtract-holistic-cxn-forms (lex-cxns string-predicates-in-root)
     (loop for lex-cxn in lex-cxns
           for lex-form = (extract-form-predicates lex-cxn)
           do (setf string-predicates-in-root (set-difference string-predicates-in-root lex-form :test #'irl:unify-irl-programs)))
