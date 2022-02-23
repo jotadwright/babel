@@ -596,8 +596,14 @@
         for holistic-cxn-unit-name in holistic-subunit-names
         for th-link in th-links
         for holistic-slot-lex-class = (cdr th-link)
+        for boundaries-holistic-cxn = (get-boundary-units (extract-form-predicates holistic-cxn))
+        for leftmost-unit-holistic-cxn = (first boundaries-holistic-cxn)
+        for rightmost-unit-holistic-cxn = (second boundaries-holistic-cxn)
         collect `(,holistic-cxn-unit-name
-                  (syn-cat (gl::lex-class ,holistic-slot-lex-class))) into contributing-units
+                  (syn-cat (gl::lex-class ,holistic-slot-lex-class))
+                  (boundaries
+                   (left ,leftmost-unit-holistic-cxn)
+                   (right ,rightmost-unit-holistic-cxn))) into contributing-units
         collect `(,holistic-cxn-unit-name
                   (args (,arg))
                   --) into conditional-units

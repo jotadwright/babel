@@ -6,7 +6,6 @@
 ;; full logging except trace-fcg
 (progn
   (deactivate-all-monitors)
-  (activate-monitor display-metrics)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)

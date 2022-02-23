@@ -13,7 +13,7 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction."
   (when (initial-node-p node)
-    (let ((constructions-and-th-links (create-item-based-cxn-from-lex problem node)))
+    (let ((constructions-and-th-links (create-item-based-cxn-from-holistic problem node)))
       (when constructions-and-th-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
@@ -26,7 +26,7 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction."
   (when (initial-node-p node)
-    (let ((constructions-and-th-links (create-item-based-cxn-from-lex problem node)))
+    (let ((constructions-and-th-links (create-item-based-cxn-from-holistic problem node)))
       (when constructions-and-th-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
@@ -34,7 +34,7 @@
                        :restart-data constructions-and-th-links)))))
 
 
-(defun create-item-based-cxn-from-lex (problem node)
+(defun create-item-based-cxn-from-holistic (problem node)
   "Creates item-based construction and holistic constructions
 based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
