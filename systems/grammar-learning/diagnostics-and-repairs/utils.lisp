@@ -670,15 +670,12 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :amr)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
-
 (defun anti-unify-irl-programs (network-1 network-2)
   (let ((start-network-1 (get-target-var network-1))
         (start-network-2 (get-target-var network-2)))))
 
-(unify-irl-programs
-
 (defun extract-args-from-irl-network (irl-network)
-  "return the ordered list of args, starting with the open var, ending with the target var"
+  "return the ordered list of args, (in-var out-var) with the input var, ending with output (target) var"
   (list (first (get-open-vars irl-network))
         (get-target-var irl-network)))
         
