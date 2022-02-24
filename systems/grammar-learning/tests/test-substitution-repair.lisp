@@ -341,6 +341,9 @@
 todo:
 'what shape is the X' vs 'the X is what shape', tries to apply 'what shape is the X', but why not just learn 'the X is what shape?', this will always work.
 
+test eens een langere en kortere
+
+deftest invoeren, zie test-construction-
 |#
 
 

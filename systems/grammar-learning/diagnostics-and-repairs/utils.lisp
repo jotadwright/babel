@@ -651,6 +651,9 @@
           do (setf string-predicates-in-root (set-difference string-predicates-in-root lex-form :test #'irl:unify-irl-programs)))
     string-predicates-in-root)
 
+
+; todo: replace the below with a fn that returns the open variables:
+
 (defgeneric extract-args-from-predicate (predicate mode))
 
 (defmethod extract-args-from-predicate (predicate (mode (eql :irl)))
