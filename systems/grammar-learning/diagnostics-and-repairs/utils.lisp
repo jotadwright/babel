@@ -671,8 +671,9 @@
   (amr::equivalent-amr-predicate-networks m1 m2))
 
 (defun anti-unify-irl-programs (network-1 network-2)
-  (let ((start-network-1 (get-target-var network-1))
-        (start-network-2 (get-target-var network-2)))))
+  "simultaneously traverse both networks, keeping track of bindings, create new vars if there is a difference, keep the difference in a list, substitute known var for new var"
+  (let ((target-network-1 (get-target-var network-1))
+        (target-network-2 (get-target-var network-2)))))
 
 (defun extract-args-from-irl-network (irl-network)
   "return the ordered list of args, (in-var out-var) with the input var, ending with output (target) var"
@@ -682,27 +683,28 @@
 
 
 #|
-(defparameter *irl-test-program-1* '((get-context ?source-1)
-                                   (filter ?target-33324 ?target-33323 ?size-4)
-                                   (unique ?target-object-1 ?target-33324)
-                                   (bind color-category ?color-2 gray)
-                                   (filter ?target-2 ?target-1 ?material-4)
-                                   (bind material-category ?material-4 metal)
-                                   (filter ?target-1 ?source-1 ?shape-8)
-                                   (bind shape-category ?shape-8 thing)
-                                   (bind attribute-category ?attribute-2 shape)
-                                   (filter ?target-33323 ?target-2 ?color-2)
-                                   (bind size-category ?size-4 large)
-                                   (query ?target-4 ?target-object-1 ?attribute-2)))
-
-(defparameter *irl-test-program-2* '((get-context ?source-1)
-                                     (filter ?target-2 ?target-1 ?size-4)
-                                     (unique ?target-object-1 ?target-2)
-                                     (bind attribute-category ?attribute-2 shape)
-                                     (bind shape-category ?shape-8 thing)
+(defparameter *irl-test-program-1* '((query ?target-4 ?target-object-1 ?attribute-2)
+                                     (unique ?target-object-1 ?target-33324)
+                                     (filter ?target-33324 ?target-33323 ?size-4)
+                                     (filter ?target-33323 ?target-2 ?color-2)
+                                     (filter ?target-2 ?target-1 ?material-4)
                                      (filter ?target-1 ?source-1 ?shape-8)
+                                     (get-context ?source-1)
+                                     (bind attribute-category ?attribute-2 shape)
                                      (bind size-category ?size-4 large)
-                                     (query ?target-4 ?target-object-1 ?attribute-2)))
+                                     (bind color-category ?color-2 gray)
+                                     (bind material-category ?material-4 metal)
+                                     (bind shape-category ?shape-8 thing)))
+
+(defparameter *irl-test-program-2* '((query ?target-4 ?target-object-1 ?attribute-2)
+                                     (unique ?target-object-1 ?target-2)
+                                     (filter ?target-2 ?target-1 ?size-4)
+                                     (filter ?target-1 ?source-1 ?shape-8)
+                                     (get-context ?source-1)
+                                     (bind attribute-category ?attribute-2 shape)
+                                     (bind size-category ?size-4 large)
+                                     (bind shape-category ?shape-8 thing)))
+                                     
 ;; expected diff
 (defparameter *irl-test-expected-diff*
 '((filter ?target-33323 ?target-2 ?color-2)
