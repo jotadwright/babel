@@ -671,18 +671,18 @@
   (amr::equivalent-amr-predicate-networks m1 m2))
 
 
-(defun anti-unify-irl-predicates (network-1 network-2)
+(defun anti-unify-irl-programs (network-1 network-2)
   (let ((start-network-1 (get-target-var network-1))
         (start-network-2 (get-target-var network-2)))))
 
-
+(unify-irl-programs
 
 (defun extract-args-from-irl-network (irl-network)
   "return the ordered list of args, starting with the open var, ending with the target var"
   (list (first (get-open-vars irl-network))
         (get-target-var irl-network)))
         
-        
+
 
 #|
 (defparameter *irl-test-program-1* '((get-context ?source-1)
@@ -719,6 +719,6 @@
 (extract-args-from-irl-network *irl-test-program-2*)
 (extract-args-from-irl-network *irl-test-program-1*)
 
-(anti-unify-irl-predicates *irl-test-program-1* *irl-test-program-2*)
+(anti-unify-irl-programs *irl-test-program-1* *irl-test-program-2*)
 
 |#
