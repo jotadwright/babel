@@ -49,11 +49,13 @@ based on existing construction with sufficient overlap."
     (when (< 0 (length matching-holistic-cxns))
       (let* (
              (var-form
-              (form-constraints-with-variables utterance (get-configuration (cxn-inventory (first matching-holistic-cxns)) :de-render-mode)))
+              (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
              (subunit-names-and-non-overlapping-form
               (multiple-value-list (diff-non-overlapping-form var-form matching-holistic-cxns)))
              (boundaries
-              (list (first (first subunit-names-and-non-overlapping-form)) (first (first subunit-names-and-non-overlapping-form)))) ; remove this!
+              (loop for name in (first subunit-names-and-non-overlapping-form)
+                    collect (list name name)))
+              ;(list (first (first subunit-names-and-non-overlapping-form)) (first (first subunit-names-and-non-overlapping-form)))) ; remove this!
              (subunit-names
               (loop for name in (first subunit-names-and-non-overlapping-form)
                     collect (unit-ify name))

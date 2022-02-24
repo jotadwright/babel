@@ -597,11 +597,12 @@
 (defun subunit-blocks-for-holistic-cxns (holistic-cxns holistic-subunit-names boundaries args th-links)
   (loop for holistic-cxn in holistic-cxns
         for arg in args
+        for boundary-list in boundaries
         for holistic-cxn-unit-name in holistic-subunit-names
         for th-link in th-links
         for holistic-slot-lex-class = (cdr th-link)
-        for leftmost-unit-holistic-cxn = (first boundaries)
-        for rightmost-unit-holistic-cxn = (second boundaries)
+        for leftmost-unit-holistic-cxn = (first boundary-list)
+        for rightmost-unit-holistic-cxn = (second boundary-list)
         collect `(,holistic-cxn-unit-name
                   (syn-cat (gl::lex-class ,holistic-slot-lex-class))) into contributing-units
         collect `(,holistic-cxn-unit-name
