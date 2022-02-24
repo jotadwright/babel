@@ -504,9 +504,11 @@
              (let* ((non-overlapping-meaning-observation (non-overlapping-meaning meaning cxn :nom-observation t))
                     (non-overlapping-meaning-cxn (non-overlapping-meaning meaning cxn :nom-cxn t))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
+                    (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
                     (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
                     (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
-                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)))
+                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
+                    (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)))
                (when (and
                       (> (length non-overlapping-meaning-observation) 0)
                       (> (length non-overlapping-meaning-cxn) 0)
@@ -518,7 +520,9 @@
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
+                                 overlapping-meaning-observation
                                  overlapping-meaning-cxn
+                                 overlapping-form-observation
                                  overlapping-form-cxn
                                  cxn)))))))
 
