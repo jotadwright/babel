@@ -775,6 +775,22 @@
                (funcall do-fn current-predicate)
                (push current-predicate visited)))))
 
+(defun set-diff-irl-with-bind-parent-lookup (network-1 network-2)
+  "assuming that there are no bind statements without filter in IRL, look up the parent predicate for differing bind statements, and add them to the diffs network-1 is assumed to be longer or equal in length to network-2"
+  (let* ((unified-set-diff (set-difference network-1 network-2 :test #'unify-irl-programs)))
+         
+         (loop for predicate in unified-set-diff
+                                      for parent = (get-next-irl-predicate predicate network-1)
+                                      for result = (nconc (list predicate) parent)
+                                      nconc result)))
+        
+
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-2*)
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-2* *irl-test-program-1*)
+
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-3*)
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-3* *irl-test-program-1*)
+
 #|
 (defparameter *irl-test-program-1* '((query ?target-4 ?target-object-1 ?attribute-2)
                                      (unique ?target-object-1 ?target-33324)
@@ -789,6 +805,8 @@
                                      (bind material-category ?material-4 metal)
                                      (bind shape-category ?shape-8 thing)))
 
+
+
 (defparameter *irl-test-program-2* '((query ?target-4 ?target-object-1 ?attribute-2)
                                      (unique ?target-object-1 ?target-2)
                                      (filter ?target-2 ?target-1 ?size-4)
@@ -797,7 +815,19 @@
                                      (bind attribute-category ?attribute-2 shape)
                                      (bind size-category ?size-4 large)
                                      (bind shape-category ?shape-8 thing)))
-                                     
+
+(defparameter *irl-test-program-3* '((query ?target-4 ?target-object-1 ?attribute-2)
+                                     (unique ?target-object-1 ?target-33324)
+                                     (filter ?target-33324 ?target-33323 ?size-4)
+                                     (filter ?target-33323 ?target-2 ?color-2)
+                                     (filter ?target-2 ?target-1 ?material-4)
+                                     (filter ?target-1 ?source-1 ?shape-8)
+                                     (get-context ?source-1)
+                                     (bind attribute-category ?attribute-2 shape)
+                                     (bind size-category ?size-4 large)
+                                     (bind color-category ?color-2 blue)
+                                     (bind material-category ?material-4 metal)
+                                     (bind shape-category ?shape-8 thing)))                                    
 ;; expected diff
 (defparameter *irl-test-expected-diff*
 '((filter ?target-33323 ?target-2 ?color-2)
