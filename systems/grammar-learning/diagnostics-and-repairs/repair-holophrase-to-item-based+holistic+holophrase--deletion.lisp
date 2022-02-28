@@ -90,13 +90,16 @@
                ;; type hierachy links
                (categorial-link
                 (cons lex-class-holistic-cxn lex-class-item-based-cxn))
-               ;; args: 
-               (args-holistic-cxn
-                (extract-args-from-irl-network non-overlapping-meaning))
+               
+               
 
                (meaning
                 (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
                                                    meaning-representation-formalism))
+               ;; args: 
+               (args-holistic-cxn
+                (extract-args-from-irl-network non-overlapping-meaning))
+               (args-holophrase-cxn (extract-args-from-irl-network meaning))
                (cxn-name
                 (make-cxn-name utterance cxn-inventory))
                (form-constraints
@@ -109,6 +112,7 @@
                                                `(def-fcg-cxn ,cxn-name
                                                              ((?holophrase-unit
                                                                (syn-cat (phrase-type holophrase))
+                                                               (args ,args-holophrase-cxn)
                                                                (boundaries
                                                                    (left ,leftmost-unit-holophrase-cxn)
                                                                    (right ,rightmost-unit-holophrase-cxn))
