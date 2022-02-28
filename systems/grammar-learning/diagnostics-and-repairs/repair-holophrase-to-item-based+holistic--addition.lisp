@@ -86,10 +86,9 @@
                (categorial-link
                 (cons lex-class-item-based-cxn lex-class-holistic-cxn))
                ;; args: 
-               (vars-holistic-cxn
-                (multiple-value-list (extract-vars-from-irl-network non-overlapping-meaning)))
+               
                (args-holistic-cxn
-                (list (first vars-holistic-cxn) (second vars-holistic-cxn)))
+                (extract-args-from-irl-network non-overlapping-meaning))
                
                (holistic-cxn
                 (or existing-holistic-cxn

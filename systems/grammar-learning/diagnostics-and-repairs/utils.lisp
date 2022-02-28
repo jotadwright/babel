@@ -477,9 +477,9 @@
         for cxn-type =  (phrase-type cxn)
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-cxn t)
-        for non-overlapping-meaning = (set-difference cxn-meaning-constraints gold-standard-meaning :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning = (set-diff-irl-with-bind-parent-lookup cxn-meaning-constraints gold-standard-meaning)
         for non-overlapping-form-inverted = (set-difference superset-form cxn-form-constraints :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning-inverted = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning-inverted = (set-diff-irl-with-bind-parent-lookup gold-standard-meaning cxn-meaning-constraints)
         when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
                   non-overlapping-form
                   non-overlapping-meaning
@@ -501,8 +501,8 @@
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
   (loop for cxn in (constructions cxn-inventory)
         do (when (eql (phrase-type cxn) 'holophrase)
-             (let* ((non-overlapping-meaning-observation (non-overlapping-meaning meaning cxn :nom-observation t))
-                    (non-overlapping-meaning-cxn (non-overlapping-meaning meaning cxn :nom-cxn t))
+             (let* ((non-overlapping-meaning-observation (set-diff-irl-with-bind-parent-lookup meaning (extract-meaning-predicates cxn)))
+                    (non-overlapping-meaning-cxn (set-diff-irl-with-bind-parent-lookup (extract-meaning-predicates cxn) meaning))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
                     (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
@@ -736,7 +736,12 @@
                  (push current-predicate-1 visited-1)
                  (push current-predicate-2 visited-2))))
     (values unified-1 unified-2)))
-    
+
+(defun extract-args-from-irl-network (irl-network)
+  "return the in-var, out-var as args list"
+  (list (last-elt (get-open-vars irl-network))
+        (get-target-var irl-network)))
+
 (defun extract-vars-from-irl-network (irl-network)
   "return the in-var, out-var and list of open variables from a network"
   (values (last-elt (get-open-vars irl-network))
@@ -776,7 +781,7 @@
                (push current-predicate visited)))))
 
 (defun set-diff-irl-with-bind-parent-lookup (network-1 network-2)
-  "assuming that there are no bind statements without filter in IRL, look up the parent predicate for differing bind statements, and add them to the diffs network-1 is assumed to be longer or equal in length to network-2"
+  "assuming that there are no bind statements without filter in IRL, look up the parent predicate for differing bind statements, and add them to the diffs network-1 is assumed to be longer or equal in length to network-2. will also include query!"
   (let* ((unified-set-diff (set-difference network-1 network-2 :test #'unify-irl-programs)))
          
          (loop for predicate in unified-set-diff
@@ -785,13 +790,12 @@
                                       nconc result)))
         
 
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-2*)
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-2* *irl-test-program-1*)
 
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-3*)
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-3* *irl-test-program-1*)
 
 #|
+
+
+  
 (defparameter *irl-test-program-1* '((query ?target-4 ?target-object-1 ?attribute-2)
                                      (unique ?target-object-1 ?target-33324)
                                      (filter ?target-33324 ?target-33323 ?size-4)
@@ -834,6 +838,13 @@
   (filter ?target-2 ?target-1 ?material-4)
   (bind color-category ?color-2 gray)
   (bind material-category ?material-4 metal)))
+
+
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-2*)
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-2* *irl-test-program-1*)
+
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-3*)
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-3* *irl-test-program-1*)
 
 ;; expected args '(in-var out-var);
 ;; '(?target-1 ?target-33323)

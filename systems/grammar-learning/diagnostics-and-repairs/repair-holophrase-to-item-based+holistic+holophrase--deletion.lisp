@@ -92,8 +92,7 @@
                 (cons lex-class-holistic-cxn lex-class-item-based-cxn))
                ;; args: 
                (args-holistic-cxn
-               (loop for predicate in non-overlapping-meaning
-                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+                (extract-args-from-irl-network non-overlapping-meaning))
 
                (meaning
                 (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
