@@ -739,8 +739,8 @@
 
 (defun extract-args-from-irl-network (irl-network)
   "return the in-var, out-var as args list"
-  (list (last-elt (get-open-vars irl-network))
-        (get-target-var irl-network)))
+  (remove nil (list (last-elt (get-open-vars irl-network))
+        (get-target-var irl-network))))
 
 (defun extract-vars-from-irl-network (irl-network)
   "return the in-var, out-var and list of open variables from a network"
