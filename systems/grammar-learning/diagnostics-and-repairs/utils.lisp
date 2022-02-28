@@ -455,8 +455,8 @@
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-observation t)
         for non-overlapping-form-inverted = (set-difference cxn-form-constraints superset-form  :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning-inverted = (set-difference cxn-meaning-constraints gold-standard-meaning :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning = (set-diff-irl-with-bind-parent-lookup gold-standard-meaning cxn-meaning-constraints)
+        for non-overlapping-meaning-inverted = (set-diff-irl-with-bind-parent-lookup cxn-meaning-constraints gold-standard-meaning)
         for cxn-type =  (phrase-type cxn)
         when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
                   non-overlapping-form
