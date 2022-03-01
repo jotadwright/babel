@@ -102,12 +102,6 @@
         collect (* (certainty prototype) similarity) into weighted-similarities
         finally (return (average weighted-similarities))))
 
-(defmethod weighted-similarity ((object mwm-object) (concept mwm-evaluation::concept-entity))
-  (loop for prototype in (meaning concept)
-        for similarity = (similarity object prototype)
-        collect (* (mwm::certainty prototype) similarity) into weighted-similarities
-        finally (return (average weighted-similarities))))
-
 
 (defgeneric similarity (object prototype)
   (:documentation "Similarity on the level of a single prototype"))
