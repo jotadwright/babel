@@ -63,21 +63,21 @@
   "the standard inferior lisp used in run-client-processes")
 
 (defun run-client-processes (&key asdf-system package experiment-class
-                             number-of-interactions number-of-series 
-                             (max-nr-parallel-processes *max-nr-parallel-processes*)
-                             monitors configurations number-of-data-points
-                             (configuration-output-directory 
-                              (babel-pathname :directory '(".tmp")))
-                             (inferior-lisp *inferior-lisp*)
-                             (heap-size 1024))
+                                  number-of-interactions number-of-series 
+                                  (max-nr-parallel-processes *max-nr-parallel-processes*)
+                                  monitors configurations number-of-data-points
+                                  (configuration-output-directory 
+                                   (babel-pathname :directory '(".tmp")))
+                                  (inferior-lisp *inferior-lisp*)
+                                  (heap-size 1024))
   "A helper function for run-parallel-batch and
    create-graphs-for-different-experimental-conditions"
   (declare (ignorable heap-size))
   ;; start client lisps
   (let* ((temp-file-names (loop for i from 1 to number-of-series
-                             collect (mkstr (babel-pathname :directory '(".tmp"))
-                                            "data-" (get-universal-time) "-"
-                                            (make-random-string) ".dat")))
+                                collect (mkstr (babel-pathname :directory '(".tmp"))
+                                               "data-" (get-universal-time) "-"
+                                               (make-random-string) ".dat")))
          (external-process-fn #+sbcl 'sb-ext:run-program
                               #+ccl 'ccl:run-program
                               #+lispworks 'system::run-shell-command)
@@ -97,198 +97,198 @@
        for series-to-run = (if max-nr-parallel-processes
                                (min max-nr-parallel-processes
                                     (- number-of-series series-run))
-                               number-of-series)
+                             number-of-series)
        for processes = nil
        for input-streams = nil
        for output-streams = nil
        do
-       ;; collect processes and i/o streams
-       (loop
-          for j from 1 to series-to-run
-          for process = nil
-          for input-stream = nil
-          for output-stream = nil
-          do
-          (format t "~%.. starting process ~a:" (+ series-run j))
-            (format t "~%  ~(~w~)~%" (cons external-process-fn
-                                           (list (car inferior-lisp)
-                                                 (substitute (mkstr heap-size) "heap-size"
-                                                             (cadr inferior-lisp) :test #'string=))))
-          do
-          #+:sbcl
-          (progn
-            (setf process (apply (symbol-function external-process-fn)
-                                 (append (list (car inferior-lisp)
-                                               (substitute (mkstr heap-size)
-                                                           "heap-size"
-                                                           (cadr inferior-lisp)
-                                                           :test #'string=))
-                                         external-process-fn-options)))
-            (setf output-stream (sb-ext:process-input process))
-            (setf input-stream (sb-ext:process-output process)))
-          #+:ccl
-          (progn
-            (setf process (apply (symbol-function external-process-fn)
-                                 (append inferior-lisp external-process-fn-options)))
-            (setf output-stream (ccl:external-process-input-stream
-                                 process))
-            (setf input-stream
-                  (ccl:external-process-output-stream process)))
-          #+:lispworks
-          (multiple-value-bind (in/out/err temp pid)
-              (apply (symbol-function external-process-fn)
-                     (format nil "~a ~{~a~^ ~}" (first inferior-lisp) (second inferior-lisp))
-                     external-process-fn-options)
-            (declare (ignore temp))
-            (setf process pid)
-            (setf output-stream in/out/err)
-            (setf input-stream in/out/err))
-          do (pushend process processes)
-          (pushend output-stream output-streams)
-          (pushend input-stream input-streams))
+         ;; collect processes and i/o streams
+         (loop
+            for j from 1 to series-to-run
+            for process = nil
+            for input-stream = nil
+            for output-stream = nil
+            do
+              (format t "~%.. starting process ~a:" (+ series-run j))
+              (format t "~%  ~(~w~)~%" (cons external-process-fn
+                                             (list (car inferior-lisp)
+                                                   (substitute (mkstr heap-size) "heap-size"
+                                                               (cadr inferior-lisp) :test #'string=))))
+            do
+              #+:sbcl
+              (progn
+                (setf process (apply (symbol-function external-process-fn)
+                                     (append (list (car inferior-lisp)
+                                                   (substitute (mkstr heap-size)
+                                                               "heap-size"
+                                                               (cadr inferior-lisp)
+                                                               :test #'string=))
+                                             external-process-fn-options)))
+                (setf output-stream (sb-ext:process-input process))
+                (setf input-stream (sb-ext:process-output process)))
+              #+:ccl
+              (progn
+                (setf process (apply (symbol-function external-process-fn)
+                                     (append inferior-lisp external-process-fn-options)))
+                (setf output-stream (ccl:external-process-input-stream
+                                     process))
+                (setf input-stream
+                      (ccl:external-process-output-stream process)))
+              #+:lispworks
+              (multiple-value-bind (in/out/err temp pid)
+                  (apply (symbol-function external-process-fn)
+                         (format nil "~a ~{~a~^ ~}" (first inferior-lisp) (second inferior-lisp))
+                         external-process-fn-options)
+                (declare (ignore temp))
+                (setf process pid)
+                (setf output-stream in/out/err)
+                (setf input-stream in/out/err))
+            do (pushend process processes)
+               (pushend output-stream output-streams)
+               (pushend input-stream input-streams))
          
-       ;; test process pipes
-       (loop
-          for input-stream in input-streams
-          for c = (read-char input-stream nil)
-          if c
-          do (unread-char c input-stream)
-          else
-          do
-          (error "could not start lisp process~% ~a"
-                 (format nil "~(~w~)"
-                         (cons external-process-fn 
-                               (append inferior-lisp external-process-fn-options)))))
-
-       ;; piping the commands
-       (loop
-        for output-stream in output-streams
-        for counter from (+ series-run 1)
-        for file-name = (nth (1- counter) temp-file-names)
-        for commands = (list
-                        "(setf cl-user::*automatically-start-web-interface* nil)"
-                        "(setf test-framework::*dont-run-tests-when-loading-asdf-systems* t)"
-                        "(ql:quickload :experiment-framework :verbose nil)"
-                        (mkstr 
-                         "(experiment-framework::parallel-batch-run-client-process"
-                         " :asdf-system :" asdf-system 
-                         " :package \"" package 
-                         "\" :experiment-class \"" experiment-class 
-                         "\" :number-of-interactions " number-of-interactions
-                         " :series-number " counter
-                         " :monitors " (format nil "'(~{\"~a\"~^ ~})" monitors) 
-                         " :configurations " (format nil "~s" (format nil "~s" configurations))
-                         " :number-of-data-points " (format nil "\"~a\"" number-of-data-points)
-                         " :file-name \"" file-name  "\" "
-                         (if (= counter 1)
-                           (mkstr " :configuration-output-directory \"" 
-                                  configuration-output-directory "\"") "")
-                         ")")
-                        "(utils:quit-lisp)"
-                        "(sleep 0.1)" ;; make sure the status of the process can be changed
-                        )
-        do
-        ;; write commands to processes
-        (format t ".. writing commands to process ~a:~%" counter)
-        (loop for c in commands
+         ;; test process pipes
+         (loop
+            for input-stream in input-streams
+            for c = (read-char input-stream nil)
+            if c
+              do (unread-char c input-stream)
+            else
               do
-              (format t "  ~a~%" c)
-              (write-string c output-stream)
-              (princ  #\lf output-stream))
-        (force-output t)
-        (force-output output-stream)
-        (finish-output output-stream)
-        #-lispworks
-        (close output-stream))
-     
-       ;; wait until the clients terminate and print the output
-       (format t "~%.. waiting for processes ~a to ~a to finish~%~%"
-               (1+ series-run) (+ series-run series-to-run))
-       (loop
-          with running-processes = (copy-list processes)
-          with running-input-streams = (copy-list input-streams)
-          with running-process-numbers = (loop for i from 1 to (length running-processes)
-                                            collect (+ series-run i))
-          while running-processes
-          do
-          ;; wait
-          (sleep 0.01)
-          ;; output stdout/stderr of processes
-          (loop
-             for input-stream in running-input-streams
-             for n in running-process-numbers
-             for char = nil
-             while (setf char (read-char-no-hang input-stream nil))
-             do
-             (unread-char char input-stream)
-             (format t "~%process ~d: ~a" n (read-line input-stream)))
+                (error "could not start lisp process~% ~a"
+                       (format nil "~(~w~)"
+                               (cons external-process-fn 
+                                     (append inferior-lisp external-process-fn-options)))))
 
-          ;; check processes if still running
-          (loop
-             for p in running-processes
-             when 
-             #+sbcl(not (equal (sb-ext:process-status p) :running))
-             #+ccl(not (equal (ccl:external-process-status p) :running))
-             #+(or lispworks6 lispworks5) (sys:pid-exit-status p :wait nil)
-             #+lispworks7 (loop for stream in output-streams
-                                when (eql (system::pipe-stream-pid stream) p)
-                                return (sys:pipe-exit-status stream :wait nil))
-             collect p into processes-finished
-             finally
-             (loop for p in processes-finished
-                for i = (position p running-processes)
-                do
-                (setf running-processes (remove p running-processes))
-                (setf running-input-streams (remove (nth i running-input-streams)
-                                                    running-input-streams))
-                (setf running-process-numbers
-                      (remove (nth i running-process-numbers)
-                              running-process-numbers)))))
-       #+sbcl(loop for p in processes
-                do (sb-ext:process-close p))
-       (setf series-run (+ series-run series-to-run)))
+         ;; piping the commands
+         (loop
+            for output-stream in output-streams
+            for counter from (+ series-run 1)
+            for file-name = (nth (1- counter) temp-file-names)
+            for commands = (list
+                            "(setf cl-user::*automatically-start-web-interface* nil)"
+                            "(setf test-framework::*dont-run-tests-when-loading-asdf-systems* t)"
+                            "(ql:quickload :experiment-framework :verbose nil)"
+                            (mkstr 
+                             "(experiment-framework::parallel-batch-run-client-process"
+                             " :asdf-system :" asdf-system 
+                             " :package \"" package 
+                             "\" :experiment-class \"" experiment-class 
+                             "\" :number-of-interactions " number-of-interactions
+                             " :series-number " counter
+                             " :monitors " (format nil "'(~{\"~a\"~^ ~})" monitors) 
+                             " :configurations " (format nil "~s" (format nil "~s" configurations))
+                             " :number-of-data-points " (format nil "\"~a\"" number-of-data-points)
+                             " :file-name \"" file-name  "\" "
+                             (if (= counter 1)
+                                 (mkstr " :configuration-output-directory \"" 
+                                        configuration-output-directory "\"") "")
+                             ")")
+                            "(utils:quit-lisp)"
+                            "(sleep 0.1)" ;; make sure the status of the process can be changed
+                            )
+            do
+              ;; write commands to processes
+              (format t ".. writing commands to process ~a:~%" counter)
+              (loop for c in commands
+                    do
+                      (format t "  ~a~%" c)
+                      (write-string c output-stream)
+                      (princ  #\lf output-stream))
+              (force-output t)
+              (force-output output-stream)
+              (finish-output output-stream)
+              #-lispworks
+              (close output-stream))
+     
+         ;; wait until the clients terminate and print the output
+         (format t "~%.. waiting for processes ~a to ~a to finish~%~%"
+                 (1+ series-run) (+ series-run series-to-run))
+         (loop
+            with running-processes = (copy-list processes)
+            with running-input-streams = (copy-list input-streams)
+            with running-process-numbers = (loop for i from 1 to (length running-processes)
+                                                 collect (+ series-run i))
+            while running-processes
+            do
+              ;; wait
+              (sleep 0.01)
+              ;; output stdout/stderr of processes
+              (loop
+                 for input-stream in running-input-streams
+                 for n in running-process-numbers
+                 for char = nil
+                 while (setf char (read-char-no-hang input-stream nil))
+                 do
+                   (unread-char char input-stream)
+                   (format t "~%process ~d: ~a" n (read-line input-stream)))
+
+              ;; check processes if still running
+              (loop
+                 for p in running-processes
+                 when 
+                   #+sbcl(not (equal (sb-ext:process-status p) :running))
+                   #+ccl(not (equal (ccl:external-process-status p) :running))
+                   #+(or lispworks6 lispworks5) (sys:pid-exit-status p :wait nil)
+                   #+(or lispworks7 lispworks8) (loop for stream in output-streams
+                                                      when (eql (system::pipe-stream-pid stream) p)
+                                                        return (sys:pipe-exit-status stream :wait nil))
+                   collect p into processes-finished
+                 finally
+                   (loop for p in processes-finished
+                         for i = (position p running-processes)
+                         do
+                           (setf running-processes (remove p running-processes))
+                           (setf running-input-streams (remove (nth i running-input-streams)
+                                                               running-input-streams))
+                           (setf running-process-numbers
+                                 (remove (nth i running-process-numbers)
+                                         running-process-numbers)))))
+         #+sbcl(loop for p in processes
+                     do (sb-ext:process-close p))
+         (setf series-run (+ series-run series-to-run)))
 
     ;; after all processes finished read data
     (format t "~%.. reading the temp files written by the client processes~%")
     (force-output t)
     (sleep 0.1)
     (loop
-     with series-number = 0
-     with results = nil
-     with monitor-names = nil
-     for file-name in temp-file-names
-     do (with-open-file (stream file-name :direction :input)
-          (unless stream (error "could not open ~s" file-name))
-          (let ((*package* (find-package (read-from-string package))))
-            (setf results (read stream)))
-          (loop for result in results
-                for monitor = (monitors::get-monitor (first result))
-                do
-                (push (first result) monitor-names)
-                (cond ((subtypep (type-of monitor) 'monitors:data-recorder)
-                       (loop for x in (reverse (second result))
-                             do (push x (caar (slot-value monitor 'monitors::values))))
-                       (loop for x in (reverse (third result))
-                             do (push x (caar (slot-value monitor 'monitors::average-values)))))
-                      ((subtypep (type-of monitor) 'monitors:alist-recorder)
-                       (loop for (symbol values) in (reverse (second result))
-                             if (assoc symbol (slot-value monitor 'monitors::values))
-                             do (push (car values) (cadr (assoc symbol (slot-value monitor 'monitors::values))))
-                             else do (push (list symbol values) (slot-value monitor 'monitors::values)))
-                       (loop for (symbol average-values) in (reverse (car (third result)))
-                             if (assoc symbol (car (slot-value monitor 'monitors::average-values)))
-                             do (push (car average-values) (cadr (assoc symbol (car (slot-value monitor 'monitors::average-values)))))
-                             else do (push (list symbol average-values) (car (slot-value monitor 'monitors::average-values)))))))
-          (setf series-number (incf series-number))
-          (monitors:notify monitors:series-finished series-number))
-    finally
-    (loop for monitor-name in monitor-names
-          for monitor = (monitors::get-monitor monitor-name)
-          when (subtypep (type-of monitor) 'monitors:alist-recorder)
-          do (loop for (symbol average-values) in (reverse (car (slot-value monitor 'monitors::average-values)))
-                   unless (length= average-values number-of-series)
-                   do (push (make-list number-of-interactions)
-                            (cadr (assoc symbol (car (slot-value monitor 'monitors::average-values))))))))))
+       with series-number = 0
+       with results = nil
+       with monitor-names = nil
+       for file-name in temp-file-names
+       do (with-open-file (stream file-name :direction :input)
+            (unless stream (error "could not open ~s" file-name))
+            (let ((*package* (find-package (read-from-string package))))
+              (setf results (read stream)))
+            (loop for result in results
+                  for monitor = (monitors::get-monitor (first result))
+                  do
+                    (push (first result) monitor-names)
+                    (cond ((subtypep (type-of monitor) 'monitors:data-recorder)
+                           (loop for x in (reverse (second result))
+                                 do (push x (caar (slot-value monitor 'monitors::values))))
+                           (loop for x in (reverse (third result))
+                                 do (push x (caar (slot-value monitor 'monitors::average-values)))))
+                          ((subtypep (type-of monitor) 'monitors:alist-recorder)
+                           (loop for (symbol values) in (reverse (second result))
+                                 if (assoc symbol (slot-value monitor 'monitors::values))
+                                   do (push (car values) (cadr (assoc symbol (slot-value monitor 'monitors::values))))
+                                 else do (push (list symbol values) (slot-value monitor 'monitors::values)))
+                           (loop for (symbol average-values) in (reverse (car (third result)))
+                                 if (assoc symbol (car (slot-value monitor 'monitors::average-values)))
+                                   do (push (car average-values) (cadr (assoc symbol (car (slot-value monitor 'monitors::average-values)))))
+                                 else do (push (list symbol average-values) (car (slot-value monitor 'monitors::average-values)))))))
+            (setf series-number (incf series-number))
+            (monitors:notify monitors:series-finished series-number))
+       finally
+         (loop for monitor-name in monitor-names
+               for monitor = (monitors::get-monitor monitor-name)
+               when (subtypep (type-of monitor) 'monitors:alist-recorder)
+                 do (loop for (symbol average-values) in (reverse (car (slot-value monitor 'monitors::average-values)))
+                          unless (length= average-values number-of-series)
+                            do (push (make-list number-of-interactions)
+                                     (cadr (assoc symbol (car (slot-value monitor 'monitors::average-values))))))))))
 
 ;; this is the function that is run by the inferior/client lisp
 (defun parallel-batch-run-client-process (&key asdf-system package experiment-class 

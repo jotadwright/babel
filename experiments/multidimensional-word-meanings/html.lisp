@@ -12,6 +12,12 @@
      ,@(loop for object in (objects set)
              collect (make-html object :expand-initially t)))))
 
+;; make-html of concept
+(defmethod make-html ((concept concept) &key)
+  `((div)
+    ,(s-dot->svg
+      (concept->s-dot concept))))
+
 ;; make html of mwm-category
 (defmethod make-html-for-entity-details ((prototype prototype) &key)
   `(((div :class "entity-detail")

@@ -58,5 +58,5 @@
 
 
 ;; Abstract repair class
-(defclass add-cxns-and-th-links (repair)
+(defclass add-cxns-and-categorial-links (repair)
   ())

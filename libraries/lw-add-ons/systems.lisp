@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: LW-ADD-ONS; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/systems.lisp,v 1.21 2015-05-29 18:23:24 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/systems.lisp,v 1.21 2015/05/29 18:23:24 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved.
 
@@ -31,7 +31,7 @@
 
 (defun list-all-systems-known-to-asdf ()
   "Returns a list of all systems ASDF knows already."
-  (loop for name being the hash-keys of asdf::*defined-systems*
+  (loop for name being the hash-keys of asdf/system-registry:*registered-systems*
         collect name))
 
 (defun list-all-systems-in-central-registry ()
@@ -97,9 +97,9 @@ name strings and the name of an internal module itself."
           :cl-user))
 
 (let ((load-op (load-time-value
-                (asdf/operation:make-operation 'ASDF/LISP-ACTION:BASIC-LOAD-OP)))
+                (asdf:make-operation 'asdf:load-op)))
       (compile-op (load-time-value
-                    (asdf/operation:make-operation 'ASDF/LISP-ACTION:BASIC-COMPILE-OP))))
+                    (asdf:make-operation 'asdf:compile-op))))
   (defun translate-module (module &optional parent-names)
     "Translates the ASDF module MODULE into a Common Defsystem
 system definition.  If the module is not a `stand-alone' system
@@ -241,7 +241,7 @@ as members of type :SYSTEM.  Returns its original argument."
           (gc-if-needed)
           module-name)))))
 
-#-:lispworks7
+#-(or :lispworks7 :lispworks8)
 (defadvice (asdf::parse-component-form translate :around
                                        :documentation "Whenever
 an ASDF system is parsed we translate it to a Common Defsystem
@@ -254,7 +254,7 @@ system definition on the fly.")
         (translate-module candidate)))
     candidate))
 
-#-:lispworks7
+#-(or :lispworks7 :lispworks8)
 ;; translate the systems that have already been loaded
 (dolist (sys-name '(:cl-ppcre :cl-who :lw-doc :lw-add-ons))
   (translate-module (asdf:find-system sys-name)))

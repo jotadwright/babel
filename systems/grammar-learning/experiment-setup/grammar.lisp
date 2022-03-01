@@ -63,11 +63,11 @@
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (gl::add-categorial-links
-                             gl::item-based->lexical
-                             gl::holophrase->item-based+lexical+lexical--substitution
-                             gl::holophrase->item-based+lexical--addition
-                             gl::holophrase->item-based+lexical+holophrase--deletion
-                             gl::repair-lexical->item-based-cxn
+                             gl::item-based->holistic
+                             gl::holophrase->item-based+holistic+holistic--substitution
+                             gl::holophrase->item-based+holistic--addition
+                             gl::holophrase->item-based+holistic+holophrase--deletion
+                             gl::repair-holistic->item-based-cxn
                              gl::nothing->holophrase)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy)))))))
