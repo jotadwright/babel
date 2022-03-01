@@ -696,39 +696,43 @@
         
 
 
-(defun anti-unify-irl-programs (network-1 network-2)
-  "traverse both networks, network 1 should be longer or equal than network 2 keep track of the unified predicates, return the difference"
-  (let ((network-1-target (get-target-var network-1))
-        (network-2-target (get-target-var network-2))
-        (visited-predicates-n1 '())
-        (visited-predicates-n2 '())
-        (stack-1 (get-first-irl-predicate network-1))
-        (stack-2 (get-first-irl-predicate network-2))
-        bindings
-        unified-1
-        unified-2)
-    (loop while (and stack-1 stack-2) ;todo: if one is empty; jump back to the last successful unification
-          for current-predicate-1 = (pop stack-1)
-          for current-predicate-2 = (pop stack-2)
-          for next-predicates-1 = (get-next-irl-predicate current-predicate-1 network-1)
-          for next-predicates-2 = (get-next-irl-predicate current-predicate-2 network-2)
-          ; add edge cases if one or the other is visited!
-          do (multiple-value-bind (equivalent-predicates-p visit-1 visit-2)
+(defun diff-clevr-networks (network-1 network-2)
+  "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
+    (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
+          with current-predicate-2 = (get-predicate-with-target-var network-2)
+          with last-equivalent-predicate-1 = nil
+          with overlapping-predicates-1 = nil
+          with overlapping-predicates-2 = nil
+          while (or current-predicate-1 current-predicate-2) 
+          for next-predicate-1 = (get-next-irl-predicate current-predicate-1 network-1) ; this fails for unique
+          for next-predicate-2 = (get-next-irl-predicate current-predicate-2 network-2)
+          do (multiple-value-bind (equivalent-predicates-p bind-1 bind-2)
                  (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
-               (format t "~a " current-predicate-1)
-               (format t "~a~%" current-predicate-2)
+               #+dbg
+               (progn (format t "~a " current-predicate-1)
+                 (format t "~a~%" current-predicate-2))
                (if equivalent-predicates-p
                  (progn ;; true condition
-                   (mapcar #'(lambda (p) (push p stack-1)) next-predicates-1)
-                   (mapcar #'(lambda (p) (push p stack-2)) next-predicates-2)
-                   (push current-predicate-1 unified-1)
-                   (push current-predicate-2 unified-2)
-                   (when visit-1 (push visit-1 unified-1))
-                   (when visit-2 (push visit-2 unified-2)))
-                 (progn ;; false condition
-                   (mapcar #'(lambda (p) (push p stack-1)) next-predicates-1)
-                   (push current-predicate-2 stack-2)))))                                    
-    (values (set-difference network-1 unified-1) (set-difference network-2 unified-2))))
+                   ;; keep track of last successful comparison
+                   (setf last-equivalent-predicate-1 current-predicate-1)
+                   (push current-predicate-1 overlapping-predicates-1)
+                   (push current-predicate-2 overlapping-predicates-2)
+                   (when bind-1 (push bind-1 overlapping-predicates-1))
+                   (when bind-2 (push bind-2 overlapping-predicates-2))
+                   (setf current-predicate-1 next-predicate-1)
+                   (setf current-predicate-2 next-predicate-2))
+                  ;; false condition
+                  (setf current-predicate-1 next-predicate-1)) ; continue traversing network 1 while network 2 stays static
+                   
+               (when (and (not current-predicate-1)
+                          (not current-predicate-2))
+                 (return (values (set-difference network-1 overlapping-predicates-1) (set-difference network-2 overlapping-predicates-2))))
+               (when (and (not current-predicate-1) current-predicate-2) ;; stack 1 is empty, stack 2 is not so go back to the last equivalent predicate, and take the next predicate
+                 (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 network-1))
+                 (setf current-predicate-2 next-predicate-2)
+                 ))))
+    
+           
 
 (defun extract-args-from-irl-network (irl-network)
   "return the in-var, out-var as args list"
@@ -741,15 +745,15 @@
           (get-target-var irl-network)
           (set-difference (get-open-vars irl-network) (last (get-open-vars irl-network)))))
 
-(defun get-first-irl-predicate (irl-program)
-  "Find the first predicate, given an irl program"
-  (find-all (get-target-var irl-program) irl-program :test #'member))
+(defun get-predicate-with-target-var (irl-program)
+  "Find the predicate with the target var, given an irl program"
+  (find (get-target-var irl-program) irl-program :test #'member))
 
 (defun get-next-irl-predicate (predicate irl-program)
   "Find the next predicate, given a variable"
   (multiple-value-bind (in-var out-var open-vars)
       (extract-vars-from-irl-network (list predicate))
-  (find-all in-var (remove predicate irl-program) :test #'member)))
+  (find in-var (remove predicate irl-program) :test #'member)))
 
 (defun get-irl-predicate-from-in-var (var irl-program)
   "Find the next predicate, given an input variable"
@@ -785,8 +789,8 @@
 
 
 #|
-  (anti-unify-irl-programs *irl-test-program-1* *irl-test-program-2*)
-  (anti-unify-irl-programs *irl-test-program-2* *irl-test-program-1*)
+  (diff-clevr-networks *irl-test-program-1* *irl-test-program-2*)
+  (diff-clevr-networks *irl-test-program-2* *irl-test-program-1*)
   
 (defparameter *irl-test-program-1* '((query ?target-4 ?target-object-1 ?attribute-2)
                                      (unique ?target-object-1 ?target-33324)
@@ -823,7 +827,36 @@
                                      (bind size-category ?size-4 large)
                                      (bind color-category ?color-2 blue)
                                      (bind material-category ?material-4 metal)
-                                     (bind shape-category ?shape-8 thing)))                                    
+                                     (bind shape-category ?shape-8 thing)))
+
+
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-count-1* *irl-test-program-count-2*)
+
+;; "Are there more big green things than large purple shiny cubes?"
+(defparameter *irl-test-program-count-1* '((bind size-category ?size-4 large) (filter ?target-123 ?target-1 ?color-8) (bind size-category ?size-5 large) (filter ?target-120 ?target-2 ?color-12) (bind material-category ?material-4 metal) (filter ?target-115 ?source-48 ?shape-2) (bind shape-category ?shape-8 thing) (bind shape-category ?shape-2 cube) (filter ?target-2 ?target-115 ?material-4) (bind color-category ?color-12 purple) (filter ?target-1 ?source-48 ?shape-8) (bind color-category ?color-8 green) (get-context ?source-48) (filter ?target-122 ?target-120 ?size-5) (filter ?target-125 ?target-123 ?size-4) (count! ?count-7 ?target-125) (count! ?count-8 ?target-122) (greater-than ?target-75 ?count-7 ?count-8)))
+
+;"Are there more small blue things than large purple shiny cubes?"
+(defparameter *irl-test-program-count-2* '((bind size-category ?size-4 small)
+                                           (filter ?target-123 ?target-1 ?color-8)
+                                           (bind size-category ?size-5 large)
+                                           (filter ?target-120 ?target-2 ?color-12)
+                                           (bind material-category ?material-4 metal)
+                                           (filter ?target-115 ?source-48 ?shape-2)
+                                           (bind shape-category ?shape-8 thing)
+                                           (bind shape-category ?shape-2 cube)
+                                           (filter ?target-2 ?target-115 ?material-4)
+                                           (bind color-category ?color-12 purple)
+                                           (filter ?target-1 ?source-48 ?shape-8)
+                                           (bind color-category ?color-8 blue)
+                                           (get-context ?source-48)
+                                           (filter ?target-122 ?target-120 ?size-5)
+                                           (filter ?target-125 ?target-123 ?size-4)
+                                           (count! ?count-7 ?target-125)
+                                           (count! ?count-8 ?target-122)
+                                           (greater-than ?target-75 ?count-7 ?count-8)))
+
+
+
 ;; expected diff 1 vs 2
 (defparameter *irl-test-expected-diff*
 '((filter ?target-33323 ?target-2 ?color-2)
