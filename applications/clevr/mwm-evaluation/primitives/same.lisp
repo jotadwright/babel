@@ -12,8 +12,8 @@
   (:documentation "Filter the given set by the attribute of the given object;
    also remove the object itself from this set."))
 
-(defmethod same-set-by-object-attribute ((set clevr-object-set)
-                                         (object clevr-object)
+(defmethod same-set-by-object-attribute ((set mwm::mwm-object-set)
+                                         (object mwm::mwm-object)
                                          (attribute-category attribute-category))
   (let* ((object-attribute (case (attribute attribute-category)
                              (shape (shape object))
@@ -30,12 +30,12 @@
                          when (eq object-attribute (funcall attribute-fn obj))
                          collect obj)))
     (when same-set
-      (make-instance 'clevr-object-set :objects same-set))))
+      (make-instance 'mwm::mwm-object-set :objects same-set))))
 
 
-(defprimitive same ((target-set clevr-object-set)
-                    (source-object clevr-object)
-                    (segmented-scene clevr-object-set)
+(defprimitive same ((target-set mwm::mwm-object-set)
+                    (source-object mwm::mwm-object)
+                    (segmented-scene mwm::mwm-object-set)
                     (scene pathname-entity)
                     (attribute attribute-category))
   ;; first case; given source-object and attribute, compute the target-set
@@ -43,7 +43,7 @@
    (let ((same-set (same-set-by-object-attribute segmented-scene source-object attribute)))
      (if same-set
        (bind (target-set 1.0 same-set))
-       (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
+       (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
 
   ;; second case; given source-object and target-set, compute the attribute
   ((scene segmented-scene source-object target-set => attribute)
@@ -64,7 +64,7 @@
          do (bind (target-set 1.0 set)
                   (attribute 1.0 attr))
          else
-         do (bind (target-set 1.0 (make-instance 'clevr-object-set
+         do (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set
                                                  :id (make-id 'empty-set)))
                   (attribute 1.0 attr))))
 
