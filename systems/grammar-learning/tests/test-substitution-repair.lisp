@@ -323,12 +323,12 @@
 
 (defun run-substitution-tests ()
   (test-substitution-repair-comprehension) ;ok
-  (test-substitution-repair-comprehension-right) ;ok
+  (test-substitution-repair-comprehension-right) ;includes query!
   (test-substitution-repair-comprehension-multi-diff) ;should be holophrase
   (test-double-substitution-repair-comprehension) ;ok
   (test-double-discontinuous-substitution-repair-comprehension) ;should be holophrase
   (test-triple-substitution-repair-comprehension) ;ok
-  (test-reordered-form-substitution-repair-comprehension) ;fails!
+  (test-reordered-form-substitution-repair-comprehension) ;ok
   )
   
 

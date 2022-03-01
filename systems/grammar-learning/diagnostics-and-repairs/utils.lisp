@@ -455,8 +455,8 @@
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-observation t)
         for non-overlapping-form-inverted = (set-difference cxn-form-constraints superset-form  :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning-inverted = (set-difference cxn-meaning-constraints gold-standard-meaning :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning = (set-diff-irl-with-bind-parent-lookup gold-standard-meaning cxn-meaning-constraints)
+        for non-overlapping-meaning-inverted = (set-diff-irl-with-bind-parent-lookup cxn-meaning-constraints gold-standard-meaning)
         for cxn-type =  (phrase-type cxn)
         when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
                   non-overlapping-form
@@ -477,9 +477,9 @@
         for cxn-type =  (phrase-type cxn)
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-cxn t)
-        for non-overlapping-meaning = (set-difference cxn-meaning-constraints gold-standard-meaning :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning = (set-diff-irl-with-bind-parent-lookup cxn-meaning-constraints gold-standard-meaning)
         for non-overlapping-form-inverted = (set-difference superset-form cxn-form-constraints :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning-inverted = (set-difference gold-standard-meaning cxn-meaning-constraints :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning-inverted = (set-diff-irl-with-bind-parent-lookup gold-standard-meaning cxn-meaning-constraints)
         when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
                   non-overlapping-form
                   non-overlapping-meaning
@@ -501,8 +501,8 @@
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
   (loop for cxn in (constructions cxn-inventory)
         do (when (eql (phrase-type cxn) 'holophrase)
-             (let* ((non-overlapping-meaning-observation (non-overlapping-meaning meaning cxn :nom-observation t))
-                    (non-overlapping-meaning-cxn (non-overlapping-meaning meaning cxn :nom-cxn t))
+             (let* ((non-overlapping-meaning-observation (set-diff-irl-with-bind-parent-lookup meaning (extract-meaning-predicates cxn)))
+                    (non-overlapping-meaning-cxn (set-diff-irl-with-bind-parent-lookup (extract-meaning-predicates cxn) meaning))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
                     (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
@@ -670,19 +670,132 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :amr)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
-(defun anti-unify-irl-programs (network-1 network-2)
-  "simultaneously traverse both networks, keeping track of bindings, create new vars if there is a difference, keep the difference in a list, substitute known var for new var"
-  (let ((target-network-1 (get-target-var network-1))
-        (target-network-2 (get-target-var network-2)))))
-
-(defun extract-args-from-irl-network (irl-network)
-  "return the ordered list of args, (in-var out-var) with the input var, ending with output (target) var"
-  (list (first (get-open-vars irl-network))
-        (get-target-var irl-network)))
+(defun compare-irl-predicates (predicate-1 predicate-2 network-1 network-2)
+  (format t "~a~%" (list predicate-1 predicate-2))
+  (multiple-value-bind (in-var-1 out-var-1 open-vars-1)
+      (extract-vars-from-irl-network (list predicate-1))
+    (multiple-value-bind (in-var-2 out-var-2 open-vars-2)
+        (extract-vars-from-irl-network (list predicate-2))
+      (let* ((predicate-unification-bindings (unify-irl-programs (list predicate-1) (list predicate-2)))
+             (sub-predicate-1 (get-irl-predicate-from-in-var (first open-vars-1) network-1))
+             (sub-predicate-2 (get-irl-predicate-from-in-var (first open-vars-2) network-2))
+             (sub-predicate-unification-bindings (unify-irl-programs (list sub-predicate-1)
+                                                                     (list sub-predicate-2))))
+        (cond ((and (not (or open-vars-1 open-vars-2))
+                    predicate-unification-bindings)
+               ;; no open vars, and it unifies
+               (values t nil nil predicate-unification-bindings nil nil))
+             
+              ((and open-vars-1
+                    open-vars-2
+                    predicate-unification-bindings
+                    sub-predicate-unification-bindings)
+               ;; both have open vars, and the bound predicates unify
+               (values t nil nil predicate-unification-bindings sub-predicate-1 sub-predicate-2))
+               )))))
         
 
 
+(defun anti-unify-irl-programs (network-1 network-2)
+  "simultaneously traverse both networks, keeping track of bindings, create new vars if there is a difference, keep the difference in a list, substitute known var for new var"
+  (let ((network-1-target (get-target-var network-1))
+        (network-2-target (get-target-var network-2))
+        (visited-predicates-n1 '())
+        (visited-predicates-n2 '())
+        (stack-1 (get-first-irl-predicate network-1))
+        (stack-2 (get-first-irl-predicate network-2))
+        bindings
+        unified-1
+        unified-2
+        visited-1
+        visited-2
+        diff-1
+        diff-2)
+    (loop while (or stack-1 stack-2)
+          for current-predicate-1 = (pop stack-1)
+          for current-predicate-2 = (pop stack-2)
+          for next-predicates-1 = (get-next-irl-predicate current-predicate-1 network-1)
+          for next-predicates-2 = (get-next-irl-predicate current-predicate-2 network-2)
+          do (mapcar #'(lambda (p) (push p stack-1)) next-predicates-1)
+          do (mapcar #'(lambda (p) (push p stack-2)) next-predicates-2)
+          ; add edge cases if one or the other is visited!
+          do (unless (or (find current-predicate-1 visited-1 :test #'equal)
+                         (find current-predicate-2 visited-2 :test #'equal))
+               (multiple-value-bind (equivalent-predicates-p difference-1 difference-2 bindings visit-1 visit-2)
+                   (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
+                 (when equivalent-predicates-p
+                   (progn
+                     (push current-predicate-1 unified-1)
+                     (push visit-1 unified-1)
+                     (push current-predicate-2 unified-2)
+                     (push visit-2 unified-2)
+                     ))
+                   
+                 (push visit-1 visited-1)
+                 (push visit-2 visited-2)
+                 (push current-predicate-1 visited-1)
+                 (push current-predicate-2 visited-2))))
+    (values unified-1 unified-2)))
+
+(defun extract-args-from-irl-network (irl-network)
+  "return the in-var, out-var as args list"
+  (remove nil (list (last-elt (get-open-vars irl-network))
+        (get-target-var irl-network))))
+
+(defun extract-vars-from-irl-network (irl-network)
+  "return the in-var, out-var and list of open variables from a network"
+  (values (last-elt (get-open-vars irl-network))
+          (get-target-var irl-network)
+          (set-difference (get-open-vars irl-network) (last (get-open-vars irl-network)))))
+
+(defun get-first-irl-predicate (irl-program)
+  "Find the first predicate, given an irl program"
+  (find-all (get-target-var irl-program) irl-program :test #'member))
+
+(defun get-next-irl-predicate (predicate irl-program)
+  "Find the next predicate, given a variable"
+  (multiple-value-bind (in-var out-var open-vars)
+      (extract-vars-from-irl-network (list predicate))
+  (find-all in-var (remove predicate irl-program) :test #'member)))
+
+(defun get-irl-predicate-from-in-var (var irl-program)
+  "Find the next predicate, given an input variable"
+  (loop for predicate in irl-program
+        for (in-var out-var open-vars) = (multiple-value-list (extract-vars-from-irl-network (list predicate)))
+        when (equal var in-var)
+        return predicate))
+ 
+(defun traverse-meaning-network (meaning-network &key first-predicate-fn next-predicate-fn do-fn)
+  "General utility function that traverses a meaning network.
+   first-predicate-fn is used to compute the first meaning predicate from the network.
+   next-predicate-fn takes a predicate and the network and computes the next predicate(s)
+   do-fn is called on every predicate"
+  (let ((stack (funcall first-predicate-fn meaning-network))
+        visited)
+    (loop while stack
+          for current-predicate = (pop stack)
+          for next-predicates = (funcall next-predicate-fn current-predicate meaning-network)
+          do (mapcar #'(lambda (p) (push p stack)) next-predicates)
+          do (unless (find current-predicate visited :test #'equal)
+               (funcall do-fn current-predicate)
+               (push current-predicate visited)))))
+
+(defun set-diff-irl-with-bind-parent-lookup (network-1 network-2)
+  "assuming that there are no bind statements without filter in IRL, look up the parent predicate for differing bind statements, and add them to the diffs network-1 is assumed to be longer or equal in length to network-2. will also include query!"
+  (let* ((unified-set-diff (set-difference network-1 network-2 :test #'unify-irl-programs)))
+         
+         (loop for predicate in unified-set-diff
+                                      for parent = (get-next-irl-predicate predicate network-1)
+                                      for result = (nconc (list predicate) parent)
+                                      nconc result)))
+        
+
+
+
 #|
+
+
+  
 (defparameter *irl-test-program-1* '((query ?target-4 ?target-object-1 ?attribute-2)
                                      (unique ?target-object-1 ?target-33324)
                                      (filter ?target-33324 ?target-33323 ?size-4)
@@ -696,6 +809,8 @@
                                      (bind material-category ?material-4 metal)
                                      (bind shape-category ?shape-8 thing)))
 
+
+
 (defparameter *irl-test-program-2* '((query ?target-4 ?target-object-1 ?attribute-2)
                                      (unique ?target-object-1 ?target-2)
                                      (filter ?target-2 ?target-1 ?size-4)
@@ -704,7 +819,19 @@
                                      (bind attribute-category ?attribute-2 shape)
                                      (bind size-category ?size-4 large)
                                      (bind shape-category ?shape-8 thing)))
-                                     
+
+(defparameter *irl-test-program-3* '((query ?target-4 ?target-object-1 ?attribute-2)
+                                     (unique ?target-object-1 ?target-33324)
+                                     (filter ?target-33324 ?target-33323 ?size-4)
+                                     (filter ?target-33323 ?target-2 ?color-2)
+                                     (filter ?target-2 ?target-1 ?material-4)
+                                     (filter ?target-1 ?source-1 ?shape-8)
+                                     (get-context ?source-1)
+                                     (bind attribute-category ?attribute-2 shape)
+                                     (bind size-category ?size-4 large)
+                                     (bind color-category ?color-2 blue)
+                                     (bind material-category ?material-4 metal)
+                                     (bind shape-category ?shape-8 thing)))                                    
 ;; expected diff
 (defparameter *irl-test-expected-diff*
 '((filter ?target-33323 ?target-2 ?color-2)
@@ -712,12 +839,39 @@
   (bind color-category ?color-2 gray)
   (bind material-category ?material-4 metal)))
 
+
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-2*)
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-2* *irl-test-program-1*)
+
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-3*)
+(set-diff-irl-with-bind-parent-lookup *irl-test-program-3* *irl-test-program-1*)
+
 ;; expected args '(in-var out-var);
 ;; '(?target-1 ?target-33323)
-(extract-args-from-irl-network *irl-test-expected-diff*)
-(extract-args-from-irl-network *irl-test-program-2*)
-(extract-args-from-irl-network *irl-test-program-1*)
+(extract-vars-from-irl-network *irl-test-expected-diff*)
+(extract-vars-from-irl-network *irl-test-program-2*)
+(extract-vars-from-irl-network *irl-test-program-1*)
+(extract-vars-from-irl-network '((bind color-category ?color-2 gray)))
 
 (anti-unify-irl-programs *irl-test-program-1* *irl-test-program-2*)
+
+(extract-args-from-irl-network '((query ?target-4 ?target-object-1 ?attribute-2)))
+
+
+((UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE)
+ (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-33324 GRAMMAR-LEARNING::?TARGET-33323 GRAMMAR-LEARNING::?SIZE-4)
+ NIL
+ (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?TARGET-33324)
+ (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?ATTRIBUTE-2 CLEVR-WORLD:SHAPE)
+ (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?TARGET-4 GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?ATTRIBUTE-2))
+
+((UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE)
+ (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?SIZE-4)
+ NIL
+ (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?TARGET-2)
+ (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?ATTRIBUTE-2 CLEVR-WORLD:SHAPE)
+ (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?TARGET-4 GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?ATTRIBUTE-2))
+
+
 
 |#

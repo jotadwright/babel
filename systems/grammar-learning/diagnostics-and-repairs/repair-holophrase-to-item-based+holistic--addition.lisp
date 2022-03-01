@@ -86,9 +86,9 @@
                (categorial-link
                 (cons lex-class-item-based-cxn lex-class-holistic-cxn))
                ;; args: 
+               
                (args-holistic-cxn
-                (loop for predicate in non-overlapping-meaning
-                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+                (extract-args-from-irl-network non-overlapping-meaning))
                
                (holistic-cxn
                 (or existing-holistic-cxn

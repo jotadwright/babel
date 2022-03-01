@@ -119,5 +119,3 @@
 
 ;(run-addition-tests)
 
-;; TODO: fix the args! there should only be a single arg for holistic cxns, so the filter should be included!
-;; where did the filters go???

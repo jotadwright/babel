@@ -98,13 +98,11 @@ based on existing construction with sufficient overlap."
                 (cons lex-class-holistic-cxn-2 lex-class-item-based-cxn))
                ;; Args
                (args-holistic-cxn-1
-                (loop for predicate in non-overlapping-meaning-cxn
-                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+                (extract-args-from-irl-network non-overlapping-meaning-cxn))
                
                
                (args-holistic-cxn-2
-                (loop for predicate in non-overlapping-meaning-observation
-                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+                (extract-args-from-irl-network non-overlapping-meaning-observation))
                (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
                ;; CXNs
                
