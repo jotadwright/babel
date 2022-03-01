@@ -4,27 +4,7 @@
 (activate-monitor trace-fcg)
 (activate-monitor trace-irl)
 
-;; geleerde concepten staan onder
-;; Babel/experiments/multidimensional-word-meanings/learned-concepts.zip
-;; cl-store:restore om .store files in te lezen
-(defclass concept-entity (concept entity)
-  ())
 
-(defclass color-concept (concept-entity) ())
-(defclass size-concept (concept-entity) ())
-(defclass material-concept (concept-entity) ())
-(defclass shape-concept (concept-entity) ())
-(defclass spatial-concept (concept-entity) ())
-
-(defun restore-concept (path class)
-  (let ((concept (cl-store:restore path)))
-    (Make-instance class
-                   :id (pathname->conceptname path)
-                   :form (form concept)
-                   :meaning (copy-object (meaning concept)))))
-
-(defun pathname->conceptname (path)
-  (intern (upcase (first (split (pathname-name path) #\-)))))
   
 ;; concepten zijn gedefinieerd in Babel/experiments/multidimensional-word-meanings/concept.lisp
 ;; alsook weighted-similarity methods
@@ -49,6 +29,11 @@
 (set-data *my-ontology* 'shapes
           (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "shapes")))
                 collect (restore-concept pathname 'shape-concept)))
+
+(set-data *my-ontology* 'thing
+          (list (make-instance 'shape-concept :id 'thing
+                               :form "thing"
+                               :meaning nil)))
 
 (set-data *my-ontology* 'sizes
           (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "sizes")))
@@ -93,7 +78,7 @@
                (substitute-categories irl-program))
          *my-ontology* :primitive-inventory *mwm-primitives*)))))
 
-;(test-utterance-in-first-scene "How many blue cubes are there?")
+;(test-utterance-in-first-scene "How many gray things are there?")
 ;(test-utterance-in-first-scene "What color is the large sphere?")
 
 (defparameter *substitution-dict*

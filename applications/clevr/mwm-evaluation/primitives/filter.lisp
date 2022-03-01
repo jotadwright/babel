@@ -22,12 +22,13 @@
                                (shape-category shape-concept))
   "Filter the set by the given shape category.
    If the shape is 'thing', return the entire set."
-  (if (eq shape-category 'thing)
+  (if (eq (id shape-category) 'thing)
     set
-    (let ((filtered-objects (loop for object in (objects set)
-                                  if (equal-entity shape-category
-                                                 (find-best-category object (get-data *my-ontology* 'shapes)))
-                                collect object)))
+    (let ((filtered-objects
+           (loop for object in (objects set)
+                 if (equal-entity shape-category
+                                  (find-best-category object (get-data *my-ontology* 'shapes)))
+                 collect object)))
       (when filtered-objects
         (make-instance 'mwm::mwm-object-set :objects filtered-objects)))))
 
