@@ -49,6 +49,14 @@
     :accessor concept :initarg :concept :initform nil))
   (:documentation "Prototype category"))
 
+(defmethod copy-object-content ((source prototype) (destination prototype))
+  (setf (attribute destination) (attribute source)
+        (value destination) (value source)
+        (certainty destination) (certainty source)
+        (M2 destination) (M2 source)
+        (nr-samples destination) (nr-samples source)
+        (concept destination) (concept source)))
+
 
 (defmethod my-copy-object ((p prototype) &key concept)
   (make-instance 'prototype
@@ -93,6 +101,13 @@
         for similarity = (similarity object prototype)
         collect (* (certainty prototype) similarity) into weighted-similarities
         finally (return (average weighted-similarities))))
+
+(defmethod weighted-similarity ((object mwm-object) (concept mwm-evaluation::concept-entity))
+  (loop for prototype in (meaning concept)
+        for similarity = (similarity object prototype)
+        collect (* (mwm::certainty prototype) similarity) into weighted-similarities
+        finally (return (average weighted-similarities))))
+
 
 (defgeneric similarity (object prototype)
   (:documentation "Similarity on the level of a single prototype"))

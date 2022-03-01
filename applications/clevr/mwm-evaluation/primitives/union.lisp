@@ -8,17 +8,17 @@
 
 ;(export '(union!))
 
-(defprimitive union! ((target-set clevr-object-set)
-                      (source-set-1 clevr-object-set)
-                      (source-set-2 clevr-object-set))
+(defprimitive union! ((target-set mwm::mwm-object-set)
+                      (source-set-1 mwm::mwm-object-set)
+                      (source-set-2 mwm::mwm-object-set))
   ;; first case; given both source sets, compute the target set
   ((source-set-1 source-set-2 => target-set)
    (let ((unioned (union (objects source-set-1)
                          (objects source-set-2)
                          :key #'id)))
      (if unioned
-       (bind (target-set 1.0 (make-instance 'clevr-object-set :objects unioned)))
-       (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
+       (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :objects unioned)))
+       (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
 
   ;; second case; given a source and target set, compute the other source set
   ;; the other source set contains at least the set-difference of the
@@ -32,7 +32,7 @@
                                            :key #'id))
            (all-subsets-1 (all-subsets (objects source-set-1))))
        (loop for possible-addition-set in (cons '() all-subsets-1)
-             for union-set = (make-instance 'clevr-object-set
+             for union-set = (make-instance 'mwm::mwm-object-set
                                             :objects (append difference-set possible-addition-set))
              do (bind (source-set-2 1.0 union-set))))))
 
@@ -45,7 +45,7 @@
                                            :key #'id))
            (all-subsets-2 (all-subsets (objects source-set-2))))
        (loop for possible-addition-set in (cons '() all-subsets-2)
-             for union-set = (make-instance 'clevr-object-set
+             for union-set = (make-instance 'mwm::mwm-object-set
                                             :objects (append difference-set possible-addition-set))
              do (bind (source-set-1 1.0 union-set))))))
 
@@ -61,6 +61,6 @@
                          (objects source-set-2)
                          :key #'id)))
      (equal-entity target-set
-                   (make-instance 'clevr-object-set
+                   (make-instance 'mwm::mwm-object-set
                                   :objects unioned))))
   :primitive-inventory *mwm-primitives*)

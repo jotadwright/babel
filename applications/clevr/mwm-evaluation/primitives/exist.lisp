@@ -9,7 +9,7 @@
 ;(export '(exist))
 
 (defprimitive exist ((target-bool boolean-category)
-                     (source-set clevr-object-set))
+                     (source-set mwm::mwm-object-set))
   ;; first case; give source-set, compute target-bool
   ((source-set => target-bool)
    (let ((boolean-category

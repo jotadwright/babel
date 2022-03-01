@@ -7,11 +7,11 @@
 ;; SEGMENT-SCENE primitive ;;
 ;; --------------------------
 
-(defprimitive segment-scene ((segmented-scene clevr-object-set)
+(defprimitive segment-scene ((segmented-scene mwm::mwm-object-set)
                              (scene pathname-entity))
   ;; first case; read the scene file and create a clevr-scene
   ((scene => segmented-scene)
-   (bind (segmented-scene 1.0 (load-clevr-scene (pathname scene)))))
+   (bind (segmented-scene 1.0 (mwm::clevr->simulated (load-clevr-scene (pathname scene))))))
 
   ;; second case; get the pathname from the segmented-scene
   ((segmented-scene => scene)
