@@ -684,20 +684,20 @@
         (cond ((and (not (or open-vars-1 open-vars-2))
                     predicate-unification-bindings)
                ;; no open vars, and it unifies
-               (values t nil nil predicate-unification-bindings nil nil))
+               (values t nil nil))
              
               ((and open-vars-1
                     open-vars-2
                     predicate-unification-bindings
                     sub-predicate-unification-bindings)
                ;; both have open vars, and the bound predicates unify
-               (values t nil nil predicate-unification-bindings sub-predicate-1 sub-predicate-2))
+               (values t sub-predicate-1 sub-predicate-2))
                )))))
         
 
 
 (defun anti-unify-irl-programs (network-1 network-2)
-  "simultaneously traverse both networks, keeping track of bindings, create new vars if there is a difference, keep the difference in a list, substitute known var for new var"
+  "traverse both networks, network 1 should be longer or equal than network 2 keep track of the unified predicates, return the difference"
   (let ((network-1-target (get-target-var network-1))
         (network-2-target (get-target-var network-2))
         (visited-predicates-n1 '())
@@ -706,36 +706,29 @@
         (stack-2 (get-first-irl-predicate network-2))
         bindings
         unified-1
-        unified-2
-        visited-1
-        visited-2
-        diff-1
-        diff-2)
-    (loop while (or stack-1 stack-2)
+        unified-2)
+    (loop while (and stack-1 stack-2) ;todo: if one is empty; jump back to the last successful unification
           for current-predicate-1 = (pop stack-1)
           for current-predicate-2 = (pop stack-2)
           for next-predicates-1 = (get-next-irl-predicate current-predicate-1 network-1)
           for next-predicates-2 = (get-next-irl-predicate current-predicate-2 network-2)
-          do (mapcar #'(lambda (p) (push p stack-1)) next-predicates-1)
-          do (mapcar #'(lambda (p) (push p stack-2)) next-predicates-2)
           ; add edge cases if one or the other is visited!
-          do (unless (or (find current-predicate-1 visited-1 :test #'equal)
-                         (find current-predicate-2 visited-2 :test #'equal))
-               (multiple-value-bind (equivalent-predicates-p difference-1 difference-2 bindings visit-1 visit-2)
-                   (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
-                 (when equivalent-predicates-p
-                   (progn
-                     (push current-predicate-1 unified-1)
-                     (push visit-1 unified-1)
-                     (push current-predicate-2 unified-2)
-                     (push visit-2 unified-2)
-                     ))
-                   
-                 (push visit-1 visited-1)
-                 (push visit-2 visited-2)
-                 (push current-predicate-1 visited-1)
-                 (push current-predicate-2 visited-2))))
-    (values unified-1 unified-2)))
+          do (multiple-value-bind (equivalent-predicates-p visit-1 visit-2)
+                 (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
+               (format t "~a " current-predicate-1)
+               (format t "~a~%" current-predicate-2)
+               (if equivalent-predicates-p
+                 (progn ;; true condition
+                   (mapcar #'(lambda (p) (push p stack-1)) next-predicates-1)
+                   (mapcar #'(lambda (p) (push p stack-2)) next-predicates-2)
+                   (push current-predicate-1 unified-1)
+                   (push current-predicate-2 unified-2)
+                   (when visit-1 (push visit-1 unified-1))
+                   (when visit-2 (push visit-2 unified-2)))
+                 (progn ;; false condition
+                   (mapcar #'(lambda (p) (push p stack-1)) next-predicates-1)
+                   (push current-predicate-2 stack-2)))))                                    
+    (values (set-difference network-1 unified-1) (set-difference network-2 unified-2))))
 
 (defun extract-args-from-irl-network (irl-network)
   "return the in-var, out-var as args list"
@@ -791,10 +784,9 @@
         
 
 
-
 #|
-
-
+  (anti-unify-irl-programs *irl-test-program-1* *irl-test-program-2*)
+  (anti-unify-irl-programs *irl-test-program-2* *irl-test-program-1*)
   
 (defparameter *irl-test-program-1* '((query ?target-4 ?target-object-1 ?attribute-2)
                                      (unique ?target-object-1 ?target-33324)
@@ -832,12 +824,17 @@
                                      (bind color-category ?color-2 blue)
                                      (bind material-category ?material-4 metal)
                                      (bind shape-category ?shape-8 thing)))                                    
-;; expected diff
+;; expected diff 1 vs 2
 (defparameter *irl-test-expected-diff*
 '((filter ?target-33323 ?target-2 ?color-2)
   (filter ?target-2 ?target-1 ?material-4)
   (bind color-category ?color-2 gray)
   (bind material-category ?material-4 metal)))
+
+;; expected diff 1 vs 3
+(bind color-category ?color-2 blue)
+or
+(bind color-category ?color-2 gray)
 
 
 (set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-2*)
