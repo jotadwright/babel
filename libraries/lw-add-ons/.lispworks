@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/.lispworks,v 1.40 2015-06-13 08:25:45 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/.lispworks,v 1.40 2015/06/13 08:25:45 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved.
 
@@ -44,7 +44,7 @@
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
 
-#+(and (or :lispworks5 :lispworks6 :lispworks7) :win32)
+#+(and (or :lispworks5 :lispworks6 :lispworks7 :lispworks8) :win32)
 (define-action "Initialize LispWorks Tools"
                "Dismiss Splash Screen Quickly"
                #'(lambda (screen)
@@ -135,7 +135,7 @@ FASL version recompiles it."
 (editor:setup-indent "if" 1 2 4)
 
 ;; `canonical' indentation for FLI:DEFINE-FOREIGN-FUNCALLABLE
-#-(or :lispworks5 :lispworks6 :lispworks7)
+#-(or :lispworks5 :lispworks6 :lispworks7 :lispworks8)
 (editor:setup-indent "define-foreign-funcallable" 2 2 4)
 
 ;; `canonical' indentation for DEFINE-SYMBOL-MACRO
@@ -180,7 +180,7 @@ FASL version recompiles it."
 (define-action "Initialize LispWorks Tools" "Open Editor And Tile Windows"
                'lw-add-ons::open-editor-and-tile-windows-vertically)
 
-#+:lispworks7
+#+(lispworks7 :lispworks8)
 (setq lw-add-ons:*use-abbreviated-complete-symbol* nil)
 
 ;;; some key bindings

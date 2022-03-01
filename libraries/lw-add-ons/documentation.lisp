@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: LW-ADD-ONS; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/documentation.lisp,v 1.20 2015-05-29 18:23:24 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/documentation.lisp,v 1.20 2015/05/29 18:23:24 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved.
 
@@ -34,9 +34,11 @@
 directory, optionally appending the string RELATIVE-PATH."
   (namestring (sys:lispworks-dir
                (format nil
+                       #+:lispworks8
+                       "manual/html-m/~A"
                        #+(or :lispworks6.1 :lispworks7)
                        "manual/online/~A"
-                       #-(or :lispworks6.1 :lispworks7)
+                       #-(or :lispworks6.1 :lispworks7 :lispworks8)
                        "manual/online/web/~A"
                        (or relative-path "")))))
 
