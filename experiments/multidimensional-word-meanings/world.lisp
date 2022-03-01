@@ -1,5 +1,7 @@
 (in-package :mwm)
 
+(export '(mwm-object))
+
 ;; --------------
 ;; + MWM object +
 ;; --------------
@@ -36,7 +38,8 @@
 (defclass mwm-object-set (entity)
   ((objects
     :documentation "the objects in the set"
-    :type list :accessor objects :initarg :objects)
+    :type list :accessor objects :initarg :objects
+    :initform nil)
    (image
     :documentation "path of the image of this set"
     :type pathname :accessor image :initarg :image))

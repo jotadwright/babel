@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: LW-ADD-ONS; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/completions.lisp,v 1.14 2015-03-06 12:54:25 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/completions.lisp,v 1.14 2015/03/06 12:54:25 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved.
 

@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/packages.lisp,v 1.21 2015-05-29 18:23:24 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/packages.lisp,v 1.21 2015/05/29 18:23:24 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved.
 
@@ -43,7 +43,7 @@
            :*product-registry-path*
            :*show-doc-string-when-showing-arglist*
            :*swank-loader-pathname*
-           #-:lispworks7
+           #-(or :lispworks7 :lispworks8)
            :*translate-asdf-systems*
            :*use-abbreviated-complete-symbol*
            :*use-quicklisp-for-shortcut-l*

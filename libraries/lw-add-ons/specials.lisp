@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: LW-ADD-ONS; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/specials.lisp,v 1.41 2015-03-06 12:54:25 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/specials.lisp,v 1.41 2015/03/06 12:54:25 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved.
 
@@ -33,7 +33,7 @@
 (in-package :lw-add-ons)
 
 (defvar *show-doc-string-when-showing-arglist* nil
-  "Whether the editor command \"Insert Space and Show Arglist\"
+  "Whether the editor command `Insert Space and Show Arglist`
 is supposed to show the documentation string as well.")
 
 (defvar *max-completions-to-show* 14
@@ -47,19 +47,21 @@ argument list.")
 
 (defvar *mop-page* "c:/home/lisp/doc/mop/dictionary.html"
   "A pathname specifier denoting the location of the dictionary
-page from the AMOP HTML version.  The page is available online at
-<http://www.lisp.org/mop/dictionary.html>")
+page from the `AMOP` `HTML` version. The page is available online at
+<http://www.lisp.org/mop/dictionary.html>
+
+**TODO:** A link above does not work anymore. We need to find another source.")
 
 (defvar *completion-match-function* 'compound-prefix-match
-  "The function used by \"Complete Symbol Without Dialog\" to
-check possible completions.  Should be a designator for a
-function of two arguments and return true iff the second argument
-is a possible completion of the first one.")
+  "The function used by **\"Complete Symbol Without Dialog\"** to
+   check possible completions.  Should be a designator for a
+   function of two arguments and return true iff the second argument
+   is a possible completion of the first one.")
 
 (defvar *use-abbreviated-complete-symbol* t
-  "Whether \"Indent And Complete Symbol\" should call \"Abbreviated
-Complete Symbol\" \(only available in LispWorks 5.1 or higher) instead
-of \"Complete Symbol Without Dialog\".")
+  "Whether **\"Indent And Complete Symbol\"** should call
+   **\"Abbreviated Complete Symbol\"** \(only available in LispWorks 5.1 or higher) instead
+   of **\"Complete Symbol Without Dialog\"**.")
 
 (defvar *make-backup-filename-function* nil
   "If the value of this variable is not NIL, then it should be a

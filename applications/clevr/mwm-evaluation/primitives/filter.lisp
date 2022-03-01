@@ -8,60 +8,73 @@
 
 ;(export '(filter))
 
+(defun find-best-category (object categories)
+  (reduce #'(lambda (cat1 cat2)
+              (if (> (weighted-similarity object cat1)
+                     (weighted-similarity object cat2))
+                cat1 cat2))
+          categories))
+
 (defgeneric filter-by-category (set category)
   (:documentation "Filter the set by the given category."))
 
-(defmethod filter-by-category ((set clevr-object-set)
-                               (shape-category shape-category))
+(defmethod filter-by-category ((set mwm::mwm-object-set)
+                               (shape-category shape-concept))
   "Filter the set by the given shape category.
    If the shape is 'thing', return the entire set."
-  (if (eq (shape shape-category) 'thing)
+  (if (eq (id shape-category) 'thing)
     set
-    (let ((filtered-objects (loop for object in (objects set)
-                                  if (eq (shape object) (shape shape-category))
-                                  collect object)))
+    (let ((filtered-objects
+           (loop for object in (objects set)
+                 if (equal-entity shape-category
+                                  (find-best-category object (get-data *my-ontology* 'shapes)))
+                 collect object)))
       (when filtered-objects
-        (make-instance 'clevr-object-set :objects filtered-objects)))))
+        (make-instance 'mwm::mwm-object-set :objects filtered-objects)))))
 
-(defmethod filter-by-category ((set clevr-object-set)
-                               (size-category size-category))
+
+(defmethod filter-by-category ((set mwm::mwm-object-set)
+                               (size-category size-concept))
   "Filter the set by the given size category."
-  (let ((filtered-objects (loop for object in (objects set)
-                                if (eq (size object) (size size-category))
+ (let ((filtered-objects (loop for object in (objects set)
+                                  if (equal-entity size-category
+                                                 (find-best-category object (get-data *my-ontology* 'sizes)))
                                 collect object)))
       (when filtered-objects
-        (make-instance 'clevr-object-set :objects filtered-objects))))
+        (make-instance 'mwm::mwm-object-set :objects filtered-objects))))
 
-(defmethod filter-by-category ((set clevr-object-set)
-                               (color-category color-category))
+(defmethod filter-by-category ((set mwm::mwm-object-set)
+                               (color-category color-concept))
   "Filter the set by the given color category."
-  (let ((filtered-objects (loop for object in (objects set)
-                                if (eq (color object) (color color-category))
+ (let ((filtered-objects (loop for object in (objects set)
+                                  if (equal-entity color-category
+                                                 (find-best-category object (get-data *my-ontology* 'colors)))
                                 collect object)))
       (when filtered-objects
-        (make-instance 'clevr-object-set :objects filtered-objects))))
+        (make-instance 'mwm::mwm-object-set :objects filtered-objects))))
 
-(defmethod filter-by-category ((set clevr-object-set)
-                               (material-category material-category))
+(defmethod filter-by-category ((set mwm::mwm-object-set)
+                               (material-category material-concept))
   "Filter the set by the given material category."
-  (let ((filtered-objects (loop for object in (objects set)
-                                if (eq (material object) (material material-category))
+(let ((filtered-objects (loop for object in (objects set)
+                                  if (equal-entity material-category
+                                                 (find-best-category object (get-data *my-ontology* 'materials)))
                                 collect object)))
       (when filtered-objects
-        (make-instance 'clevr-object-set :objects filtered-objects))))
+        (make-instance 'mwm::mwm-object-set :objects filtered-objects))))
 
 
 
-(defprimitive filter ((target-set clevr-object-set)
-                      (source-set clevr-object-set)
+(defprimitive filter ((target-set mwm::mwm-object-set)
+                      (source-set mwm::mwm-object-set)
                       (scene pathname-entity)
-                      (category attribute))
+                      (category concept-entity))
   ;; first case: if given source-set and category, compute target-set
   ((scene source-set category => target-set)
    (let ((computed-set (filter-by-category source-set category)))
      (if computed-set
        (bind (target-set 1.0 computed-set))
-       (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
+       (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
   
   ;; second case: if given source-set and target-set, compute category
   ((scene source-set target-set => category)
@@ -70,20 +83,20 @@
                                     target-set
                                     (filter-by-category source-set cat)))
                    (append
-                    (get-data ontology 'shapes)
-                    (get-data ontology 'sizes)
-                    (get-data ontology 'colors)
-                    (get-data ontology 'materials)))))
+                    (get-data *my-ontology* 'shapes)
+                    (get-data *my-ontology* 'sizes)
+                    (get-data *my-ontology* 'colors)
+                    (get-data *my-ontology* 'materials)))))
      (when computed-category
        (bind (category 1.0 computed-category)))))
 
   ;; third case: if given source-set, compute pairs of target-set and category
   ((scene source-set => target-set category)
    (let ((categories (append
-                      (get-data ontology 'shapes)
-                      (get-data ontology 'sizes)
-                      (get-data ontology 'colors)
-                      (get-data ontology 'materials))))
+                      (get-data *my-ontology* 'shapes)
+                      (get-data *my-ontology* 'sizes)
+                      (get-data *my-ontology* 'colors)
+                      (get-data *my-ontology* 'materials))))
      (loop for cat in categories
            for computed-set = (filter-by-category source-set cat)
            if computed-set
@@ -91,7 +104,7 @@
                     (target-set 1.0 computed-set))
            else
            do (bind (category 1.0 cat)
-                    (target-set 1.0 (make-instance 'clevr-object-set
+                    (target-set 1.0 (make-instance 'mwm::mwm-object-set
                                                    :id (make-id 'empty-set)))))))
 
   ;; fourth case: if given source-set, target-set and category, check for consistency

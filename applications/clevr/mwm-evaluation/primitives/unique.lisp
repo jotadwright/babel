@@ -8,8 +8,8 @@
 
 ;(export '(unique))
 
-(defprimitive unique ((target-object clevr-object)
-                      (source-set clevr-object-set))
+(defprimitive unique ((target-object mwm::mwm-object)
+                      (source-set mwm::mwm-object-set))
   ;; first case; given source set, compute target object
   ((source-set => target-object)
    (when (length= (objects source-set) 1)

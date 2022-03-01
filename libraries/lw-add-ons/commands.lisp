@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: LW-ADD-ONS; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/commands.lisp,v 1.31 2015-03-06 12:54:25 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/commands.lisp,v 1.31 2015/03/06 12:54:25 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved. 
 
@@ -30,17 +30,17 @@
 (in-package :lw-add-ons)
 
 (defcommand "Insert Space And Show Arglist" (p)
-     "Displays arglist of nearest enclosing operator in the echo
+  "Displays arglist of nearest enclosing operator in the echo
 area after inserting a space."
-     "Displays arglist."
+  "Displays arglist."
   (self-insert-command p #\Space)
   (show-arglist))
 
 (defcommand "Set Mark And Highlight" (p)
-      "Sets the mark and turns on highlighting.  To be used as a
+  "Sets the mark and turns on highlighting.  To be used as a
 replacement for the normal \"Set Mark\" command if you want
 something similar to `transient mark mode.'"
-      "Sets the mark and turns on highlighting."
+  "Sets the mark and turns on highlighting."
   ;; from Barry Wilkes
   (set-mark-command p)
   (hl-on-command p))
@@ -134,12 +134,12 @@ function."
                (show-arglist)))))))
 
 (defcommand "Meta Documentation" (p)
-     "Finds and displays documentation for the given symbol if it is
+  "Finds and displays documentation for the given symbol if it is
 supported by Hyperdoc or can be found in one of the online manuals
 \(CLHS, LW, MOP).  If point is on a symbol which is known to have
 documentation the page is immediately shown.  Otherwise, or with a
 prefix argument, the user is queried for the symbol."
-     "Shows CLHS/LW/MOP online documentation in browser."
+  "Shows CLHS/LW/MOP online documentation in browser."
   (let* ((symbol (and (not p)
                       (symbol-at-point :previous t)))
          (string (and symbol

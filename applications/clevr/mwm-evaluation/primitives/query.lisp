@@ -12,7 +12,7 @@
   (:documentation "Extract the attribute from the object and
    get the corresponding category from the ontology"))
 
-(defmethod query-object-attribute ((object clevr-object)
+(defmethod query-object-attribute ((object mwm::mwm-object)
                                    (attribute-category attribute-category)
                                    ontology)
   "Given an object and an attribute; get the attribute
@@ -24,7 +24,7 @@
     (material (find-entity-by-id ontology (material object)))))
 
 (defprimitive query ((target-category attribute)
-                     (source-object clevr-object)
+                     (source-object mwm::mwm-object)
                      (scene pathname-entity)
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
