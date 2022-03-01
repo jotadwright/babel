@@ -20,6 +20,7 @@
                )
   :serial t
   :components ((:file "package")
+               (:file "mwm-ontology")
                (:module "primitives"
                 :serial t
                 :components ((:file "primitive-inventory")
