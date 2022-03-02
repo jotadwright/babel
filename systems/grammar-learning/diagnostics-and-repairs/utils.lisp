@@ -698,42 +698,36 @@
 
 (defun diff-clevr-networks (network-1 network-2)
   "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
-    (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
-          with current-predicate-2 = (get-predicate-with-target-var network-2)
-          with last-equivalent-predicate-1 = nil
-          with overlapping-predicates-1 = nil
-          with overlapping-predicates-2 = nil
-          while (or current-predicate-1 current-predicate-2) 
-          for next-predicate-1 = (get-next-irl-predicate current-predicate-1 network-1) ; this fails for unique
-          for next-predicate-2 = (get-next-irl-predicate current-predicate-2 network-2)
-          do (multiple-value-bind (equivalent-predicates-p bind-1 bind-2)
-                 (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
-               #+dbg
-               (progn (format t "~a " current-predicate-1)
-                 (format t "~a~%" current-predicate-2))
-               (if equivalent-predicates-p
-                 (progn ;; true condition
-                   ;; keep track of last successful comparison
-                   (setf last-equivalent-predicate-1 current-predicate-1)
-                   (push current-predicate-1 overlapping-predicates-1)
-                   (push current-predicate-2 overlapping-predicates-2)
-                   (when bind-1 (push bind-1 overlapping-predicates-1))
-                   (when bind-2 (push bind-2 overlapping-predicates-2))
-                   (setf current-predicate-1 next-predicate-1)
-                   (setf current-predicate-2 next-predicate-2))
-                  ;; false condition
-                  (setf current-predicate-1 next-predicate-1)) ; continue traversing network 1 while network 2 stays static
-                   
-               (when (and (not current-predicate-1)
-                          (not current-predicate-2))
-                 (return (values (set-difference network-1 overlapping-predicates-1) (set-difference network-2 overlapping-predicates-2))))
-               (when (and (not current-predicate-1) current-predicate-2) ;; stack 1 is empty, stack 2 is not so go back to the last equivalent predicate, and take the next predicate
-                 (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 network-1))
-                 (setf current-predicate-2 next-predicate-2)
-                 ))))
+  (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
+        with current-predicate-2 = (get-predicate-with-target-var network-2)
+        with last-equivalent-predicate-1 = nil
+        with overlapping-predicates-1 = nil
+        with overlapping-predicates-2 = nil
+        while (or current-predicate-1 current-predicate-2) 
+        for next-predicate-1 = (get-next-irl-predicate current-predicate-1 network-1)
+        for next-predicate-2 = (get-next-irl-predicate current-predicate-2 network-2)
+        do (multiple-value-bind (equivalent-predicates-p bind-1 bind-2)
+               (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
+             #+dbg
+             (progn (format t "~a " current-predicate-1)
+               (format t "~a~%" current-predicate-2))
+             (if equivalent-predicates-p
+               (progn ;; true condition
+                 (setf last-equivalent-predicate-1 current-predicate-1) ;; keep track of last successful comparison
+                 (push current-predicate-1 overlapping-predicates-1)
+                 (push current-predicate-2 overlapping-predicates-2)
+                 (when bind-1 (push bind-1 overlapping-predicates-1))
+                 (when bind-2 (push bind-2 overlapping-predicates-2))
+                 (setf current-predicate-1 next-predicate-1)
+                 (setf current-predicate-2 next-predicate-2))
+               ;; false condition
+               (setf current-predicate-1 next-predicate-1)) ; traverse network 1 while network 2 stays static
+             (when (and (not current-predicate-1) current-predicate-2) ;; stack 1 is empty, stack 2 is not so go back to the last equivalent predicate, and take the next predicate
+               (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 network-1))
+               (setf current-predicate-2 next-predicate-2)))    
+        finally (return (values (set-difference network-1 overlapping-predicates-1)
+                                (set-difference network-2 overlapping-predicates-2)))))
     
-           
-
 (defun extract-args-from-irl-network (irl-network)
   "return the in-var, out-var as args list"
   (remove nil (list (last-elt (get-open-vars irl-network))
@@ -761,36 +755,14 @@
         for (in-var out-var open-vars) = (multiple-value-list (extract-vars-from-irl-network (list predicate)))
         when (equal var in-var)
         return predicate))
- 
-(defun traverse-meaning-network (meaning-network &key first-predicate-fn next-predicate-fn do-fn)
-  "General utility function that traverses a meaning network.
-   first-predicate-fn is used to compute the first meaning predicate from the network.
-   next-predicate-fn takes a predicate and the network and computes the next predicate(s)
-   do-fn is called on every predicate"
-  (let ((stack (funcall first-predicate-fn meaning-network))
-        visited)
-    (loop while stack
-          for current-predicate = (pop stack)
-          for next-predicates = (funcall next-predicate-fn current-predicate meaning-network)
-          do (mapcar #'(lambda (p) (push p stack)) next-predicates)
-          do (unless (find current-predicate visited :test #'equal)
-               (funcall do-fn current-predicate)
-               (push current-predicate visited)))))
 
-(defun set-diff-irl-with-bind-parent-lookup (network-1 network-2)
-  "assuming that there are no bind statements without filter in IRL, look up the parent predicate for differing bind statements, and add them to the diffs network-1 is assumed to be longer or equal in length to network-2. will also include query!"
-  (let* ((unified-set-diff (set-difference network-1 network-2 :test #'unify-irl-programs)))
-         
-         (loop for predicate in unified-set-diff
-                                      for parent = (get-next-irl-predicate predicate network-1)
-                                      for result = (nconc (list predicate) parent)
-                                      nconc result)))
-        
-
+       
 
 #|
   (diff-clevr-networks *irl-test-program-1* *irl-test-program-2*)
   (diff-clevr-networks *irl-test-program-2* *irl-test-program-1*)
+  (diff-clevr-networks *irl-test-program-1* *irl-test-program-3*)
+  (diff-clevr-networks *irl-test-program-3* *irl-test-program-1*)
   
 (defparameter *irl-test-program-1* '((query ?target-4 ?target-object-1 ?attribute-2)
                                      (unique ?target-object-1 ?target-33324)
@@ -864,44 +836,8 @@
   (bind color-category ?color-2 gray)
   (bind material-category ?material-4 metal)))
 
-;; expected diff 1 vs 3
-(bind color-category ?color-2 blue)
-or
-(bind color-category ?color-2 gray)
-
-
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-2*)
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-2* *irl-test-program-1*)
-
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-1* *irl-test-program-3*)
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-3* *irl-test-program-1*)
 
 ;; expected args '(in-var out-var);
 ;; '(?target-1 ?target-33323)
-(extract-vars-from-irl-network *irl-test-expected-diff*)
-(extract-vars-from-irl-network *irl-test-program-2*)
-(extract-vars-from-irl-network *irl-test-program-1*)
-(extract-vars-from-irl-network '((bind color-category ?color-2 gray)))
-
-(anti-unify-irl-programs *irl-test-program-1* *irl-test-program-2*)
-
-(extract-args-from-irl-network '((query ?target-4 ?target-object-1 ?attribute-2)))
-
-
-((UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE)
- (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-33324 GRAMMAR-LEARNING::?TARGET-33323 GRAMMAR-LEARNING::?SIZE-4)
- NIL
- (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?TARGET-33324)
- (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?ATTRIBUTE-2 CLEVR-WORLD:SHAPE)
- (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?TARGET-4 GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?ATTRIBUTE-2))
-
-((UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE)
- (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?SIZE-4)
- NIL
- (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?TARGET-2)
- (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?ATTRIBUTE-2 CLEVR-WORLD:SHAPE)
- (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?TARGET-4 GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?ATTRIBUTE-2))
-
-
 
 |#
