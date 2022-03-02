@@ -103,8 +103,7 @@
       (setf (question-data experiment)
             (loop repeat num-epochs
                   append ordered-stage-data))))
-  (format t "~%Done!")
-  (notify corpus-utterances-loaded))
+    (notify corpus-utterances-loaded))
 
 
 (defgeneric load-utterances (experiment mode)
@@ -112,16 +111,14 @@
 
 (defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :train)))
-  (format t "~%Loading data...")
-  (let* ((challenge-file (merge-pathnames
+    (let* ((challenge-file (merge-pathnames
                           (get-configuration experiment :corpus-data-file)
                           (get-configuration experiment :corpus-files-root))))
     (load-question-data experiment challenge-file (get-configuration experiment :number-of-epochs) :shuffle-data-p t)))
 
 (defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :sort-length-ascending)))
-  (format t "~%Loading data...")
-  (let* ((challenge-file (merge-pathnames
+    (let* ((challenge-file (merge-pathnames
                           (get-configuration experiment :corpus-data-file)
                           (get-configuration experiment :corpus-files-root))))
     
@@ -129,7 +126,6 @@
 
 (defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :debug)))
-  (format t "~%Loading data...")
   (let* ((challenge-file (merge-pathnames
                           (get-configuration experiment :corpus-data-file)
                           (get-configuration experiment :corpus-files-root))))
@@ -138,7 +134,6 @@
 
 (defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :evaluation)))
-  (format t "~%Loading evaluation data...")
   (let* ((challenge-file (merge-pathnames
                           (get-configuration experiment :corpus-data-file)
                           (get-configuration experiment :corpus-files-root))))
@@ -146,7 +141,6 @@
 
 (defmethod load-utterances ((experiment grammar-learning-experiment)
                                                        (mode (eql :development)))
-  (format t "~%Loading evaluation data...")
   (let* ((challenge-file (merge-pathnames
                           (get-configuration experiment :corpus-data-file)
                           (get-configuration experiment :corpus-files-root))))
