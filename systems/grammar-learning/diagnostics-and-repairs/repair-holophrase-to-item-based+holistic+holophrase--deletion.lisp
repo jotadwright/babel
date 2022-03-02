@@ -52,8 +52,7 @@
    - right-deletion: 'the cube red' => 'the cube' (e.g. French) or 'the cat jumps' => 'the cat'
    - left deletion: 'two red cubes' => 'red cubes'
    "
-  (let* ((initial-transient-structure (initial-transient-structure node))
-         (cxn-inventory (original-cxn-set (construction-inventory node)))
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
                                                                    meaning-representation-formalism))

@@ -13,7 +13,7 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction and holistic cxn."
   (when (initial-node-p node)
-    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-single-addition problem node)))
+    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-addition problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
@@ -34,7 +34,7 @@
                        :restart-data constructions-and-categorial-links)))))
 
 
-(defun create-repair-cxns-holophrase-single-addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
+(defun create-repair-cxns-holophrase-addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
   "Creates item-based construction and a holistic construction
    based on an existing holophrase construction of which the form/meaning are a subset of the observed phrase, and there is a maximum of one differing meaning predicate
 
@@ -46,8 +46,7 @@
    - holistic-cxn: red-cxn
    - item based-cxn: the-X-cube-cxn
    "
-  (let* ((initial-transient-structure (initial-transient-structure node))
-         (cxn-inventory (original-cxn-set (construction-inventory node)))
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
                                                                    meaning-representation-formalism))
