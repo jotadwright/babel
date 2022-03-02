@@ -39,7 +39,11 @@
                                              ))))
                (:module tests
                 :serial t
-                :components ((:file "test-utils"))))
+                :components ((:file "utils")
+                             (:file "test-utils")
+                             (:file "test-substitution-repair")
+                             (:file "test-addition-repair")
+                             (:file "test-deletion-repair"))))
                              
 
   :description "A Common Lisp package for learning construction grammars.")

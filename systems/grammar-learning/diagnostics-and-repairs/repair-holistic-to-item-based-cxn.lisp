@@ -83,7 +83,7 @@ based on existing construction with sufficient overlap."
              (th-links
               (create-type-hierarchy-links matching-holistic-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
              (holistic-cxn-subunit-blocks
-              (multiple-value-list (subunit-blocks-for-holistic-cxns matching-holistic-cxns subunit-names boundaries args th-links)))
+              (multiple-value-list (subunit-blocks-for-holistic-cxns subunit-names boundaries args th-links)))
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -130,8 +130,8 @@ based on existing construction with sufficient overlap."
                      (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
                      (setf th-flat-list (append th-flat-list (list th-link)))
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
-           (holistic-nodes (loop for holistic-cxn in holistic-cxns
-                            with last-node = (initial-node node)
+           (holistic-nodes (loop with last-node = (initial-node node)
+                            for holistic-cxn in holistic-cxns
                             do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply holistic-cxn (if (initial-node-p last-node)
                                                                                                               (car-source-cfs (cipn-car (initial-node last-node)))
                                                                                                               (car-resulting-cfs (cipn-car last-node)))
@@ -149,6 +149,7 @@ based on existing construction with sufficient overlap."
 
            )
       ;; ignore
+      (declare (ignore th))
       ;; Reset type hierarchy
       (set-categorial-network (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node

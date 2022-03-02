@@ -62,7 +62,7 @@
     (multiple-value-bind (superset-holophrase-cxn
                           non-overlapping-form
                           non-overlapping-meaning)
-        (find-superset-holophrase-cxn initial-transient-structure cxn-inventory gold-standard-meaning utterance)
+        (find-superset-holophrase-cxn cxn-inventory gold-standard-meaning utterance)
 
       (when superset-holophrase-cxn
         (let* ((overlapping-form
