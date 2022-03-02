@@ -455,8 +455,9 @@
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-observation t)
         for non-overlapping-form-inverted = (set-difference cxn-form-constraints superset-form  :test #'irl:unify-irl-programs)
-        for non-overlapping-meaning = (set-diff-irl-with-bind-parent-lookup gold-standard-meaning cxn-meaning-constraints)
-        for non-overlapping-meaning-inverted = (set-diff-irl-with-bind-parent-lookup cxn-meaning-constraints gold-standard-meaning)
+        for non-overlapping-meanings = (multiple-value-list (diff-clevr-networks gold-standard-meaning cxn-meaning-constraints))
+        for non-overlapping-meaning = (first non-overlapping-meanings)
+        for non-overlapping-meaning-inverted = (second non-overlapping-meanings)
         for cxn-type =  (phrase-type cxn)
         when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
                   non-overlapping-form
@@ -501,8 +502,9 @@
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
   (loop for cxn in (constructions cxn-inventory)
         do (when (eql (phrase-type cxn) 'holophrase)
-             (let* ((non-overlapping-meaning-observation (set-diff-irl-with-bind-parent-lookup meaning (extract-meaning-predicates cxn)))
-                    (non-overlapping-meaning-cxn (set-diff-irl-with-bind-parent-lookup (extract-meaning-predicates cxn) meaning))
+             (let* ((non-overlapping-meanings (multiple-value-list (diff-clevr-networks meaning (extract-meaning-predicates cxn))))
+                    (non-overlapping-meaning-observation (first non-overlapping-meanings))
+                    (non-overlapping-meaning-cxn (second non-overlapping-meanings))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
                     (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
@@ -699,7 +701,7 @@
   "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
   (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
         with current-predicate-2 = (get-predicate-with-target-var network-2)
-        with last-equivalent-predicate-1 = nil
+        with last-equivalent-predicate-1 = current-predicate-1
         with overlapping-predicates-1 = nil
         with overlapping-predicates-2 = nil
         while (or current-predicate-1 current-predicate-2) 
@@ -739,7 +741,7 @@
   "Find the predicate with the target var, given an irl program"
   (find (get-target-var irl-program) irl-program :test #'member))
 
-(defun get-next-irl-predicate (predicate irl-program)
+(defun get-next-irl-predicate (predicate irl-program) ;todo: loop while not visited
   "Find the next predicate, given a variable"
   (multiple-value-bind (in-var out-var open-vars)
       (extract-vars-from-irl-network (list predicate))
