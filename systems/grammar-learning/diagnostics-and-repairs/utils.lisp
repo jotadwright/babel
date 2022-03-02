@@ -671,7 +671,6 @@
   (amr::equivalent-amr-predicate-networks m1 m2))
 
 (defun compare-irl-predicates (predicate-1 predicate-2 network-1 network-2)
-  (format t "~a~%" (list predicate-1 predicate-2))
   (multiple-value-bind (in-var-1 out-var-1 open-vars-1)
       (extract-vars-from-irl-network (list predicate-1))
     (multiple-value-bind (in-var-2 out-var-2 open-vars-2)
@@ -708,9 +707,6 @@
         for next-predicate-2 = (get-next-irl-predicate current-predicate-2 network-2)
         do (multiple-value-bind (equivalent-predicates-p bind-1 bind-2)
                (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
-             #+dbg
-             (progn (format t "~a " current-predicate-1)
-               (format t "~a~%" current-predicate-2))
              (if equivalent-predicates-p
                (progn ;; true condition
                  (setf last-equivalent-predicate-1 current-predicate-1) ;; keep track of last successful comparison
@@ -759,82 +755,7 @@
        
 
 #|
-  (diff-clevr-networks *irl-test-program-1* *irl-test-program-2*)
-  (diff-clevr-networks *irl-test-program-2* *irl-test-program-1*)
-  (diff-clevr-networks *irl-test-program-1* *irl-test-program-3*)
-  (diff-clevr-networks *irl-test-program-3* *irl-test-program-1*)
-  
-(defparameter *irl-test-program-1* '((query ?target-4 ?target-object-1 ?attribute-2)
-                                     (unique ?target-object-1 ?target-33324)
-                                     (filter ?target-33324 ?target-33323 ?size-4)
-                                     (filter ?target-33323 ?target-2 ?color-2)
-                                     (filter ?target-2 ?target-1 ?material-4)
-                                     (filter ?target-1 ?source-1 ?shape-8)
-                                     (get-context ?source-1)
-                                     (bind attribute-category ?attribute-2 shape)
-                                     (bind size-category ?size-4 large)
-                                     (bind color-category ?color-2 gray)
-                                     (bind material-category ?material-4 metal)
-                                     (bind shape-category ?shape-8 thing)))
 
-
-
-(defparameter *irl-test-program-2* '((query ?target-4 ?target-object-1 ?attribute-2)
-                                     (unique ?target-object-1 ?target-2)
-                                     (filter ?target-2 ?target-1 ?size-4)
-                                     (filter ?target-1 ?source-1 ?shape-8)
-                                     (get-context ?source-1)
-                                     (bind attribute-category ?attribute-2 shape)
-                                     (bind size-category ?size-4 large)
-                                     (bind shape-category ?shape-8 thing)))
-
-(defparameter *irl-test-program-3* '((query ?target-4 ?target-object-1 ?attribute-2)
-                                     (unique ?target-object-1 ?target-33324)
-                                     (filter ?target-33324 ?target-33323 ?size-4)
-                                     (filter ?target-33323 ?target-2 ?color-2)
-                                     (filter ?target-2 ?target-1 ?material-4)
-                                     (filter ?target-1 ?source-1 ?shape-8)
-                                     (get-context ?source-1)
-                                     (bind attribute-category ?attribute-2 shape)
-                                     (bind size-category ?size-4 large)
-                                     (bind color-category ?color-2 blue)
-                                     (bind material-category ?material-4 metal)
-                                     (bind shape-category ?shape-8 thing)))
-
-
-(set-diff-irl-with-bind-parent-lookup *irl-test-program-count-1* *irl-test-program-count-2*)
-
-;; "Are there more big green things than large purple shiny cubes?"
-(defparameter *irl-test-program-count-1* '((bind size-category ?size-4 large) (filter ?target-123 ?target-1 ?color-8) (bind size-category ?size-5 large) (filter ?target-120 ?target-2 ?color-12) (bind material-category ?material-4 metal) (filter ?target-115 ?source-48 ?shape-2) (bind shape-category ?shape-8 thing) (bind shape-category ?shape-2 cube) (filter ?target-2 ?target-115 ?material-4) (bind color-category ?color-12 purple) (filter ?target-1 ?source-48 ?shape-8) (bind color-category ?color-8 green) (get-context ?source-48) (filter ?target-122 ?target-120 ?size-5) (filter ?target-125 ?target-123 ?size-4) (count! ?count-7 ?target-125) (count! ?count-8 ?target-122) (greater-than ?target-75 ?count-7 ?count-8)))
-
-;"Are there more small blue things than large purple shiny cubes?"
-(defparameter *irl-test-program-count-2* '((bind size-category ?size-4 small)
-                                           (filter ?target-123 ?target-1 ?color-8)
-                                           (bind size-category ?size-5 large)
-                                           (filter ?target-120 ?target-2 ?color-12)
-                                           (bind material-category ?material-4 metal)
-                                           (filter ?target-115 ?source-48 ?shape-2)
-                                           (bind shape-category ?shape-8 thing)
-                                           (bind shape-category ?shape-2 cube)
-                                           (filter ?target-2 ?target-115 ?material-4)
-                                           (bind color-category ?color-12 purple)
-                                           (filter ?target-1 ?source-48 ?shape-8)
-                                           (bind color-category ?color-8 blue)
-                                           (get-context ?source-48)
-                                           (filter ?target-122 ?target-120 ?size-5)
-                                           (filter ?target-125 ?target-123 ?size-4)
-                                           (count! ?count-7 ?target-125)
-                                           (count! ?count-8 ?target-122)
-                                           (greater-than ?target-75 ?count-7 ?count-8)))
-
-
-
-;; expected diff 1 vs 2
-(defparameter *irl-test-expected-diff*
-'((filter ?target-33323 ?target-2 ?color-2)
-  (filter ?target-2 ?target-1 ?material-4)
-  (bind color-category ?color-2 gray)
-  (bind material-category ?material-4 metal)))
 
 
 ;; expected args '(in-var out-var);

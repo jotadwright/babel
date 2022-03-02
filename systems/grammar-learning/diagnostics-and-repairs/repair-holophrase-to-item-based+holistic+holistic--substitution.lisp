@@ -195,7 +195,8 @@ based on existing construction with sufficient overlap."
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy))) 
            ;; apply holistic-cxn and add node
            ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application
-           
+           (bla (progn (add-element (make-html holistic-cxn))
+                  (add-element (make-html item-based-cxn))))
            (new-node-lex (fcg::cip-add-child (initial-node node) (first (fcg-apply holistic-cxn (car-source-cfs (cipn-car (initial-node node))) (direction (cip node))
                                                                                    :configuration (configuration (construction-inventory node))
                                                                                    :cxn-inventory (construction-inventory node)))))
