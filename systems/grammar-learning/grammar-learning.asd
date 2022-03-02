@@ -18,9 +18,7 @@
                              (:file "repair-holophrase-to-item-based+holistic--addition")
                              (:file "repair-holophrase-to-item-based+holistic+holophrase--deletion")
                              (:file "repair-holistic-to-item-based-cxn")
-                             (:file "repair-item-based-to-holistic")
-                             (:file "monitors")
-                             (:file "web-monitors")))
+                             (:file "repair-item-based-to-holistic")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")

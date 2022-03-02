@@ -26,7 +26,7 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction and holistic cxn."
   (when (initial-node-p node)
-    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-single-addition problem node)))
+    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-addition problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair

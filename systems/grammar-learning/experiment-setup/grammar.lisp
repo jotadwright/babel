@@ -82,10 +82,8 @@
     (setf (attr-val cxn :score) upper-bound))
   cxn)
 
-(defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0)
-                            (remove-on-lower-bound t))
-  "decrease the score of the cxn.
-   remove it when it reaches 0"
+(defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0))
+  "decrease the score of the cxn."
   (decf (attr-val cxn :score) delta)
   (when (<= (attr-val cxn :score) lower-bound)
     (if (get-configuration (experiment agent) :remove-cxn-on-lower-bound) 
@@ -100,11 +98,11 @@
          (loop for unit in (contributing-part cxn)
                for lex-class = (gl::lex-class-item-based unit)
                when lex-class return lex-class))
-        (type-hierarchy (categorial-network (grammar agent))))
+        (cat-net (categorial-network (grammar agent))))
     (delete-cxn cxn (grammar agent))
     (notify lexicon-changed)
     (when lex-class
-      (delete-category lex-class type-hierarchy))))
+      (remove-category lex-class cat-net))))
 
 ;;;;  COMPETITORS
 ;;;; -------------
