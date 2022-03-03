@@ -49,11 +49,18 @@ based on existing construction with sufficient overlap."
     (when (< 0 (length matching-holistic-cxns))
       (let* (
              (var-form
-              (form-constraints-with-variables utterance (get-configuration (cxn-inventory (first matching-holistic-cxns)) :de-render-mode)))
+              (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
              (subunit-names-and-non-overlapping-form
               (multiple-value-list (diff-non-overlapping-form var-form matching-holistic-cxns)))
+             (boundaries
+              (loop for name in (first subunit-names-and-non-overlapping-form)
+                    collect (list name name)))
+              ;(list (first (first subunit-names-and-non-overlapping-form)) (first (first subunit-names-and-non-overlapping-form)))) ; remove this!
              (subunit-names
-              (first subunit-names-and-non-overlapping-form))
+              (loop for name in (first subunit-names-and-non-overlapping-form)
+                    collect (unit-ify name))
+              )
+             
              (non-overlapping-form
               (second subunit-names-and-non-overlapping-form))
              (args-and-non-overlapping-meaning
@@ -76,7 +83,7 @@ based on existing construction with sufficient overlap."
              (th-links
               (create-type-hierarchy-links matching-holistic-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
              (holistic-cxn-subunit-blocks
-              (multiple-value-list (subunit-blocks-for-holistic-cxns matching-holistic-cxns subunit-names args th-links)))
+              (multiple-value-list (subunit-blocks-for-holistic-cxns subunit-names boundaries args th-links)))
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -103,6 +110,8 @@ based on existing construction with sufficient overlap."
                                                                          :string ,(third (find 'string non-overlapping-form :key #'first)))
                                                                                       
                                                                          :cxn-inventory ,(copy-object cxn-inventory)))))))
+        (add-element (make-html item-based-cxn))
+        (add-element (make-html (first matching-holistic-cxns)))
         (list item-based-cxn matching-holistic-cxns th-links)))))
 
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-holistic->item-based-cxn) (problem problem) (node cip-node) &key &allow-other-keys) 
@@ -121,29 +130,35 @@ based on existing construction with sufficient overlap."
                      (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
                      (setf th-flat-list (append th-flat-list (list th-link)))
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
-           (new-node-item-based (fcg::cip-add-child (initial-node node) (first (fcg-apply item-based-cxn (car-source-cfs (cipn-car (initial-node node))) (direction (cip node))
-                                                                                   :configuration (configuration (construction-inventory node))
-                                                                                   :cxn-inventory (construction-inventory node)))))
-           (holistic-nodes (loop for holistic-cxn in holistic-cxns
-                            with last-node = new-node-item-based
-                            do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply holistic-cxn (car-resulting-cfs (cipn-car last-node))
+           (holistic-nodes (loop with last-node = (initial-node node)
+                            for holistic-cxn in holistic-cxns
+                            do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply holistic-cxn (if (initial-node-p last-node)
+                                                                                                              (car-source-cfs (cipn-car (initial-node last-node)))
+                                                                                                              (car-resulting-cfs (cipn-car last-node)))
                                                                                                (direction (cip node))
                                                                                                       :configuration (configuration (construction-inventory node))
                                                                                                       :cxn-inventory (construction-inventory node)))))
                             collect last-node))
            (last-applied-node (last-elt holistic-nodes))
+           
+           (new-node-item-based (fcg::cip-add-child last-applied-node (first (fcg-apply item-based-cxn (car-resulting-cfs (cipn-car last-applied-node)) (direction (cip node))
+                                                                                   :configuration (configuration (construction-inventory node))
+                                                                                   :cxn-inventory (construction-inventory node)))))
+           
+           
 
            )
       ;; ignore
+      (declare (ignore th))
       ;; Reset type hierarchy
       (set-categorial-network (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node
-      (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-cxns (append (second (restart-data fix)) (list (original-cxn item-based-cxn))))
-      (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-categorial-links th-flat-list)
+      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (append (second (restart-data fix)) (list (original-cxn item-based-cxn))))
+      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-categorial-links th-flat-list)
       ;; set cxn-supplier to second new node
-      (setf (cxn-supplier last-applied-node) (cxn-supplier node))
+      (setf (cxn-supplier new-node-item-based) (cxn-supplier node))
       ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses last-applied-node))
-      (push 'added-by-repair (statuses last-applied-node))
+      (push (type-of repair) (statuses new-node-item-based))
+      (push 'added-by-repair (statuses new-node-item-based))
       ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block
-      (cip-enqueue last-applied-node (cip node) (get-configuration node :queue-mode)))))
+      (cip-enqueue new-node-item-based (cip node) (get-configuration node :queue-mode)))))

@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/lw-add-ons.asd,v 1.63 2015-08-09 15:18:49 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/lw-add-ons.asd,v 1.63 2015/08/09 15:18:49 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved.
 
@@ -57,7 +57,8 @@
 
 (pushnew :lw-add-ons *features*)
 
-#-:lispworks7
+#-(or :lispworks7
+      :lispworks8)
 (require "hqn-web")
 
 #+(and :win32 (not :console-image))
@@ -66,6 +67,15 @@
 (asdf:defsystem :lw-add-ons
   :version "0.10.3"
   :serial t
+  :author "Edmund Weitz"
+  :maintainer "Alexander Artemenko"
+  :description "A bunch of extensions for LispWorks IDE, originally written by Edmund Weitz."
+  :license "BSD-2-Clause"
+  :homepage "https://40ants.com/lw-add-ons"
+  :bug-tracker "https://github.com/40ants/lw-add-ons/issues"
+  ;; With this piece, documentation builder fails because it
+  ;; is unable to locate code for custom LW commands yet:
+  ;; :source-control (:git "https://github.com/40ants/lw-add-ons")
   :components ((:file "packages")
                (:file "specials")
                (:file "misc")
@@ -76,4 +86,4 @@
                (:file "systems")
                (:file "editor")
                (:file "commands"))
-  :depends-on (:lw-doc))
+  :depends-on ("lw-doc"))

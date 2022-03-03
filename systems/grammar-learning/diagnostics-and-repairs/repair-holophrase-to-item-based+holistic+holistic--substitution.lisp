@@ -47,7 +47,8 @@ based on existing construction with sufficient overlap."
                           non-overlapping-meaning-cxn
                           non-overlapping-form-observation
                           non-overlapping-form-cxn
-                          overlapping-meaning-cxn
+                          overlapping-meaning-observation
+                          overlapping-form-observation
                           overlapping-form-cxn
                           cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning)
@@ -55,7 +56,9 @@ based on existing construction with sufficient overlap."
       (when (and cxn overlapping-form-cxn)
         
         (let* ((cxn-name-item-based-cxn
-                (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn) cxn-inventory :add-cxn-suffix nil))
+                (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation) cxn-inventory :add-cxn-suffix nil))
+               (cxn-name-holistic-cxn-1 (make-cxn-name non-overlapping-form-cxn cxn-inventory))
+               (cxn-name-holistic-cxn-2 (make-cxn-name non-overlapping-form-observation cxn-inventory))
                (holistic-cxn-1
                 (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
                (holistic-cxn-2
@@ -71,19 +74,19 @@ based on existing construction with sufficient overlap."
                
                ;; unit names
                (unit-name-holistic-cxn-1
-               (variablify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
+               (unit-ify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
                (unit-name-holistic-cxn-2
-               (variablify (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil)))
+               (unit-ify (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil)))
                
                ;; args and syn-cat
                (lex-class-holistic-cxn-1
                 (if holistic-cxn-1
                   (lex-class-cxn holistic-cxn-1)
-                  (intern (get-base-name unit-name-holistic-cxn-1) :grammar-learning)))
+                  (intern (string-downcase (symbol-name (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))) :grammar-learning)))
                (lex-class-holistic-cxn-2
                 (if holistic-cxn-2
                   (lex-class-cxn holistic-cxn-2)
-                  (intern (get-base-name unit-name-holistic-cxn-2) :grammar-learning)))
+                  (intern (string-downcase (symbol-name (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil))) :grammar-learning)))
                (lex-class-item-based-cxn
                 (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
                ;; Type hierachy links
@@ -93,20 +96,18 @@ based on existing construction with sufficient overlap."
                 (cons lex-class-holistic-cxn-2 lex-class-item-based-cxn))
                ;; Args
                (args-holistic-cxn-1
-                (loop for predicate in non-overlapping-meaning-cxn
-                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+                (extract-args-from-irl-network non-overlapping-meaning-cxn))
                
                
                (args-holistic-cxn-2
-                (loop for predicate in non-overlapping-meaning-observation
-                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+                (extract-args-from-irl-network non-overlapping-meaning-observation))
                (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
                ;; CXNs
                
                (new-holistic-cxn-1
                 (or holistic-cxn-1
                     (second (multiple-value-list (eval
-                                                  `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-cxn cxn-inventory)
+                                                  `(def-fcg-cxn ,cxn-name-holistic-cxn-1
                                                                 ((,unit-name-holistic-cxn-1
                                                                   (args ,args-holistic-cxn-1)
                                                                   (syn-cat (phrase-type holistic)
@@ -127,7 +128,7 @@ based on existing construction with sufficient overlap."
                (new-holistic-cxn-2
                 (or holistic-cxn-2
                     (second (multiple-value-list (eval
-                                                  `(def-fcg-cxn ,(make-cxn-name non-overlapping-form-observation cxn-inventory)
+                                                  `(def-fcg-cxn ,cxn-name-holistic-cxn-2
                                                                 ((,unit-name-holistic-cxn-2
                                                                   (args ,args-holistic-cxn-2)
                                                                   (syn-cat (phrase-type holistic)
@@ -149,28 +150,28 @@ based on existing construction with sufficient overlap."
                                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                            ((?item-based-unit
                                                                              (syn-cat (phrase-type item-based))
-                                                                             (subunits (,unit-name-holistic-cxn-1)))
-                                                                            (,unit-name-holistic-cxn-1
+                                                                             (subunits (,unit-name-holistic-cxn-2)))
+                                                                            (,unit-name-holistic-cxn-2
                                                                              (syn-cat (lex-class ,lex-class-item-based-cxn)))
                                                                             <-
                                                                             (?item-based-unit
-                                                                             (HASH meaning ,overlapping-meaning-cxn)
+                                                                             (HASH meaning ,overlapping-meaning-observation)
                                                                              --
-                                                                             (HASH form ,overlapping-form-cxn))
-                                                                            (,unit-name-holistic-cxn-1
-                                                                             (args ,args-holistic-cxn-1)
+                                                                             (HASH form ,overlapping-form-observation))
+                                                                            (,unit-name-holistic-cxn-2
+                                                                             (args ,args-holistic-cxn-2)
                                                                              --
                                                                              (boundaries
-                                                                              (left ,leftmost-unit-holistic-cxn-1)
-                                                                              (right ,rightmost-unit-holistic-cxn-1))))
+                                                                              (left ,leftmost-unit-holistic-cxn-2)
+                                                                              (right ,rightmost-unit-holistic-cxn-2))))
                                                                            :attributes (:cxn-type item-based
                                                                                         :repair holophrase->item-based+holistic+holistic--substitution
-                                                                                        :meaning ,(loop for predicate in overlapping-meaning-cxn
+                                                                                        :meaning ,(loop for predicate in overlapping-meaning-observation
                                                                                                         unless (or
                                                                                                                 (equal (first predicate) 'get-context)
                                                                                                                 (equal (first predicate) 'bind))
                                                                                                         return (first predicate))
-                                                                                        :string ,(third (find 'string overlapping-form-cxn :key #'first)))
+                                                                                        :string ,(third (find 'string overlapping-form-observation :key #'first)))
                                                                            
                                                                            :cxn-inventory ,(copy-object cxn-inventory)))))))
           (list new-holistic-cxn-1 new-holistic-cxn-2 item-based-cxn
@@ -192,9 +193,7 @@ based on existing construction with sufficient overlap."
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy))) 
            ;; apply holistic-cxn and add node
            ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application
-           (dbg (progn
-                  (add-element (make-html holistic-cxn))
-                  (add-element (make-html item-based-cxn))))
+           
            (new-node-lex (fcg::cip-add-child (initial-node node) (first (fcg-apply holistic-cxn (car-source-cfs (cipn-car (initial-node node))) (direction (cip node))
                                                                                    :configuration (configuration (construction-inventory node))
                                                                                    :cxn-inventory (construction-inventory node)))))
@@ -204,6 +203,7 @@ based on existing construction with sufficient overlap."
                                                                                    :cxn-inventory (construction-inventory node))))))
       
       ;; ignore
+      (declare (ignore th))
       ;; Reset type hierarchy
       (set-categorial-network (construction-inventory node) orig-type-hierarchy)
       ;; Add cxns to blackboard of second new node

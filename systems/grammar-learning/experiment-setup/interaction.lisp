@@ -65,14 +65,14 @@
 (defmethod interact ((experiment grammar-learning-experiment)
                      interaction &key)
   "the learner attempts to comprehend the utterance with its grammar, and applies any repairs if necessary"
-  (multiple-value-bind (learner-meaning cipn) (run-learner-comprehension-task (learner experiment))
-    (let* ((successp (determine-communicative-success cipn)))
+    (let* ((cipn (second (multiple-value-list (run-learner-comprehension-task (learner experiment)))))
+           (successp (determine-communicative-success cipn)))
       (setf (success-buffer experiment) (append (success-buffer experiment)
                                                 (list (if successp 1 0))))
       (setf (repair-buffer experiment) (append (repair-buffer experiment)
                                                 (list (get-last-repair-symbol cipn))))            
       (loop for agent in (population experiment)
-            do (setf (communicated-successfully agent) successp)))))
+            do (setf (communicated-successfully agent) successp))))
     
 (define-event agent-confidence-level (level float))
 
@@ -96,24 +96,6 @@
     (when (get-configuration experiment :enable-autotelic-levels)
       (notify agent-confidence-level (average (confidence-buffer experiment))))
 
-    ;; check the confidence level and (maybe) transition to the next challenge
-    (maybe-increase-level experiment)))
+    ))
 
-(defun maybe-increase-level (experiment)
-  (when (and (get-configuration experiment :enable-autotelic-levels)
-             (> (average (confidence-buffer experiment))
-                (get-configuration experiment :confidence-threshold))
-             (< (get-configuration experiment :current-challenge-level)
-                (get-configuration experiment :max-challenge-level)))
-    ;; increase the current challenge level
-    (set-configuration experiment :current-challenge-level
-                       (1+ (get-configuration experiment :current-challenge-level))
-                       :replace t)
-    ;; reset the confidence buffer to all zeros
-    (setf (confidence-buffer experiment)
-          (make-list (get-configuration experiment :evaluation-window-size)
-                     :initial-element 0))
-    ;; load the questions for the current challenge level
-    (load-questions-for-current-challenge-level
-     experiment (get-configuration experiment :observation-sample-mode))))
     

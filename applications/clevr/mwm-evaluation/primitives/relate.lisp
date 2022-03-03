@@ -11,9 +11,9 @@
 (defgeneric apply-spatial-relation (object spatial-relation-category context)
   (:documentation "Apply the spatial relation to the object"))
 
-(defmethod apply-spatial-relation ((object clevr-object)
-                                   (spatial-relation-category spatial-relation-category)
-                                   (context clevr-object-set))
+(defmethod apply-spatial-relation ((object mwm::mwm-object)
+                                   (spatial-relation-category spatial-concept)
+                                   (context mwm::mwm-object-set))
   (let* ((related-ids (rest
                        (assoc (spatial-relation spatial-relation-category)
                               (relationships object))))
@@ -22,14 +22,14 @@
                                 when found
                                 collect found)))
     (when related-objects
-      (make-instance 'clevr-object-set :objects related-objects))))
+      (make-instance 'mwm::mwm-object-set :objects related-objects))))
 
 
-(defprimitive relate ((target-set clevr-object-set)
-                      (source-object clevr-object)
-                      (segmented-scene clevr-object-set)
+(defprimitive relate ((target-set mwm::mwm-object-set)
+                      (source-object mwm::mwm-object)
+                      (segmented-scene mwm::mwm-object-set)
                       (scene pathname-entity)
-                      (spatial-relation spatial-relation-category))
+                      (spatial-relation spatial-concept))
   ;; first case; given source-object and spatial relation, compute the target set
   ((scene segmented-scene source-object spatial-relation => target-set)
    (let ((related-set (apply-spatial-relation
@@ -38,7 +38,7 @@
                        segmented-scene)))
      (if related-set
        (bind (target-set 1.0 related-set))
-       (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
+       (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
 
   ;; second case; given source-object and target set, compute the spatial relation
   ((scene segmented-scene source-object target-set => spatial-relation)

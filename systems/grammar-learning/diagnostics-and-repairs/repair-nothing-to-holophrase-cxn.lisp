@@ -39,8 +39,9 @@
          (cxn-name (make-cxn-name utterance cxn-inventory))
          (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
          (boundaries-holophrase-cxn (get-boundary-units form-constraints))
-               (leftmost-unit-holophrase-cxn (first boundaries-holophrase-cxn))
-               (rightmost-unit-holophrase-cxn (second boundaries-holophrase-cxn))
+         (leftmost-unit-holophrase-cxn (first boundaries-holophrase-cxn))
+         (rightmost-unit-holophrase-cxn (second boundaries-holophrase-cxn))
+         (args-holophrase-cxn (extract-args-from-irl-network meaning))
          ;; take the last element of the form constraints (the last word) and use it for hashing
          (hash-string (loop for fc in form-constraints
                         when (equalp (first fc) 'string)
@@ -50,6 +51,7 @@
                                                         `(def-fcg-cxn ,cxn-name
                                                                       ((?holophrase-unit
                                                                         (syn-cat (phrase-type holophrase))
+                                                                        (args ,args-holophrase-cxn)
                                                                         (boundaries
                                                                          (left ,leftmost-unit-holophrase-cxn)
                                                                          (right ,rightmost-unit-holophrase-cxn)))

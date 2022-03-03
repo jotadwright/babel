@@ -1,5 +1,5 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: LW-ADD-ONS; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/lw-add-ons/editor.lisp,v 1.47 2015-03-06 12:54:25 edi Exp $
+;;; $Header: /usr/local/cvsrep/lw-add-ons/editor.lisp,v 1.47 2015/03/06 12:54:25 edi Exp $
 
 ;;; Copyright (c) 2005-2015, Dr. Edmund Weitz.  All rights reserved. 
 
@@ -280,12 +280,13 @@ until *SEARCH-END* unless the value of this variable is NIL.")
          (call-next-advice point pattern *search-end*))
         (t (call-next-advice point pattern limit))))
 
+
 (defadvice (editor::query-replace-string region-only :around
-                                         :documentation "Performs
+            :documentation "Performs
 operation only up until *SEARCH-END* unless the value of this variable
 is NIL.  Also makes sure that all replacements can be undone with one
 undo command.")
-    (&rest rest &key (point (current-point)) &allow-other-keys)
+           (&rest rest &key (point (current-point)) &allow-other-keys)
   (let* ((current-mark (and (variable-value-if-bound 'editor::active-region-overlay
                                                      :buffer (current-buffer))
                             (current-mark nil t)))
@@ -299,18 +300,18 @@ undo command.")
                       (current-mark (current-point))
                       (t point))))
     (unwind-protect
-        (with-point ((%start start)
-                     (%end (or *search-end*
-                               (current-point))))
-          (unless *search-end*
-            (editor:buffer-end %end))
-          #+:editor-has-dont-undo
-          (recording-for-undo %start %end
-            (apply #'call-next-advice :point start rest))
-          ;; in new LispWorks versions it is no longer necessary to
-          ;; record for undo here
-          #-:editor-has-dont-undo          
-          (apply #'call-next-advice :point start rest))
+         (with-point ((%start start)
+                      (%end (or *search-end*
+                                (current-point))))
+           (unless *search-end*
+             (editor:buffer-end %end))
+           #+:editor-has-dont-undo
+           (recording-for-undo %start %end
+             (apply #'call-next-advice :point start rest))
+           ;; in new LispWorks versions it is no longer necessary to
+           ;; record for undo here
+           #-:editor-has-dont-undo          
+           (apply #'call-next-advice :point start rest))
       (when *search-end*
         (delete-point *search-end*)))))
 
@@ -446,28 +447,28 @@ that is named by this abbreviation."
             do (return long))
       (loop for (nil . long) in *listener-shortcuts*
             when (starts-with-p long abbrev)
-            do (return long))))
+              do (return long))))
 
 (defun prompt-for-listener-shortcut ()
   "Prompts for a listener shortcut."
   (let ((input
-         (editor::parse-for-something
-          :prompt (format nil "Shortcut [~{~A~^,~}] or Command: "
-                          (sort (mapcar #'car *listener-shortcuts*) #'string-lessp))
-          :must-exist t
-          :help (format nil "Type the name or abbreviation of a listener shortcut:~%~%~{~A: ~A~%~}"
-                        (loop for (short . long) in *listener-shortcuts*
-                              collect short
-                              collect long))
-          :default ""
-          :default-string ""
-          :verify-func (lambda (string parse-inf)
-                         (declare (ignore parse-inf))
-                         (and (find-full-name string)
-                              string))
-          :type :string
-          :default-in-prompt nil
-          :complete-func 'complete-shortcut)))
+          (editor::parse-for-something
+           :prompt (format nil "Shortcut [~{~A~^,~}] or Command: "
+                           (sort (mapcar #'car *listener-shortcuts*) #'string-lessp))
+           :must-exist t
+           :help (format nil "Type the name or abbreviation of a listener shortcut:~%~%~{~A: ~A~%~}"
+                         (loop for (short . long) in *listener-shortcuts*
+                               collect short
+                               collect long))
+           :default ""
+           :default-string ""
+           :verify-func (lambda (string parse-inf)
+                          (declare (ignore parse-inf))
+                          (and (find-full-name string)
+                               string))
+           :type :string
+           :default-in-prompt nil
+           :complete-func 'complete-shortcut)))
     (find-full-name input)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)

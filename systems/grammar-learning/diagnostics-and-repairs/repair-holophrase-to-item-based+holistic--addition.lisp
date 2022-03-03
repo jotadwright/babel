@@ -13,7 +13,7 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction and holistic cxn."
   (when (initial-node-p node)
-    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-single-addition problem node)))
+    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-addition problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
@@ -26,7 +26,7 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction and holistic cxn."
   (when (initial-node-p node)
-    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-single-addition problem node)))
+    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-addition problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
@@ -34,7 +34,7 @@
                        :restart-data constructions-and-categorial-links)))))
 
 
-(defun create-repair-cxns-holophrase-single-addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
+(defun create-repair-cxns-holophrase-addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
   "Creates item-based construction and a holistic construction
    based on an existing holophrase construction of which the form/meaning are a subset of the observed phrase, and there is a maximum of one differing meaning predicate
 
@@ -46,8 +46,7 @@
    - holistic-cxn: red-cxn
    - item based-cxn: the-X-cube-cxn
    "
-  (let* ((initial-transient-structure (initial-transient-structure node))
-         (cxn-inventory (original-cxn-set (construction-inventory node)))
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
                                                                    meaning-representation-formalism))
@@ -56,7 +55,7 @@
                           superset-form
                           non-overlapping-form
                           non-overlapping-meaning)
-        (find-subset-holophrase-cxn initial-transient-structure cxn-inventory gold-standard-meaning utterance)
+        (find-subset-holophrase-cxn cxn-inventory gold-standard-meaning utterance)
 
       (when subset-holophrase-cxn
       
@@ -73,22 +72,22 @@
                (cxn-name-item-based-cxn (make-cxn-name
                                          (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-cxn-suffix nil))
                (unit-name-holistic-cxn
-                (variablify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
+                (unit-ify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
                 )
                ;; lex-class
                (lex-class-holistic-cxn
                 (if existing-holistic-cxn
                   (lex-class-cxn existing-holistic-cxn)
-                  (intern (get-base-name unit-name-holistic-cxn) :grammar-learning)))
+                  (intern (string-downcase (symbol-name holistic-cxn-name)) :grammar-learning)))
                (lex-class-item-based-cxn
                 (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
                ;; type hierachy links
                (categorial-link
                 (cons lex-class-item-based-cxn lex-class-holistic-cxn))
                ;; args: 
+               
                (args-holistic-cxn
-                (loop for predicate in non-overlapping-meaning
-                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+                (extract-args-from-irl-network non-overlapping-meaning))
                
                (holistic-cxn
                 (or existing-holistic-cxn

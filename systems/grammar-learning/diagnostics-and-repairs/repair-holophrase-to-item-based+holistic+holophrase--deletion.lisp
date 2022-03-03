@@ -52,8 +52,7 @@
    - right-deletion: 'the cube red' => 'the cube' (e.g. French) or 'the cat jumps' => 'the cat'
    - left deletion: 'two red cubes' => 'red cubes'
    "
-  (let* ((initial-transient-structure (initial-transient-structure node))
-         (cxn-inventory (original-cxn-set (construction-inventory node)))
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
                                                                    meaning-representation-formalism))
@@ -62,7 +61,7 @@
     (multiple-value-bind (superset-holophrase-cxn
                           non-overlapping-form
                           non-overlapping-meaning)
-        (find-superset-holophrase-cxn initial-transient-structure cxn-inventory gold-standard-meaning utterance)
+        (find-superset-holophrase-cxn cxn-inventory gold-standard-meaning utterance)
 
       (when superset-holophrase-cxn
         (let* ((overlapping-form
@@ -79,25 +78,27 @@
                (cxn-name-item-based-cxn (make-cxn-name
                                          (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-cxn-suffix nil))
                (unit-name-holistic-cxn
-                (variablify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil)))
+                (unit-ify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil)))
                ;; lex-class
                (lex-class-holistic-cxn
                 (if existing-holistic-cxn
                   (lex-class-cxn existing-holistic-cxn)
-                  (intern (get-base-name unit-name-holistic-cxn) :grammar-learning)))
+                  (intern (get-base-name (variablify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))) :grammar-learning)))
                (lex-class-item-based-cxn
                 (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
                ;; type hierachy links
                (categorial-link
                 (cons lex-class-holistic-cxn lex-class-item-based-cxn))
-               ;; args: 
-               (args-holistic-cxn
-               (loop for predicate in non-overlapping-meaning
-                      collect (extract-args-from-predicate predicate meaning-representation-formalism)))
+               
+               
 
                (meaning
                 (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
                                                    meaning-representation-formalism))
+               ;; args: 
+               (args-holistic-cxn
+                (extract-args-from-irl-network non-overlapping-meaning))
+               (args-holophrase-cxn (extract-args-from-irl-network meaning))
                (cxn-name
                 (make-cxn-name utterance cxn-inventory))
                (form-constraints
@@ -110,6 +111,7 @@
                                                `(def-fcg-cxn ,cxn-name
                                                              ((?holophrase-unit
                                                                (syn-cat (phrase-type holophrase))
+                                                               (args ,args-holophrase-cxn)
                                                                (boundaries
                                                                    (left ,leftmost-unit-holophrase-cxn)
                                                                    (right ,rightmost-unit-holophrase-cxn))
