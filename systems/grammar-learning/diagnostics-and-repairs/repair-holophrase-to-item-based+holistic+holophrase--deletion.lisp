@@ -194,34 +194,3 @@
            cxns-to-consolidate
            )
           )))))
-            
-          
-#|
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair holophrase->item-based+holistic+holophrase--deletion) (problem problem) (node cip-node) &key &allow-other-keys) 
-  "Apply the constructions provided by fix to the result of the node and return the construction-application-result"
-  (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
-  (with-disabled-monitor-notifications ;; avoid notifications in web interace
-    (let* ((holophrase-cxn (first (restart-data fix)))
-           (holistic-cxn (second (restart-data fix)))
-           (item-based-cxn (third (restart-data fix)))
-           (categorial-links (subseq (restart-data fix) 3))
-           ;; we don't create a temp type hierarchy because we're only applying the holophrase
-           ;; apply holophrase-cxn and add node
-           ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application
-           (new-node (fcg::cip-add-child node (first (fcg-apply (get-processing-cxn holophrase-cxn) (car-resulting-cfs (cipn-car node)) (direction (cip node))
-                                                                    :configuration (configuration (construction-inventory node))
-                                                                    :cxn-inventory (construction-inventory node)))))
-           )
-
-      ;; Add cxns to blackboard of second new node
-      (set-data (car-resulting-cfs  (cipn-car new-node)) :fix-cxns (list holophrase-cxn holistic-cxn item-based-cxn))
-      (set-data (car-resulting-cfs  (cipn-car new-node)) :fix-categorial-links categorial-links)
-      ;; set cxn-supplier to second new node
-      (setf (cxn-supplier new-node) (cxn-supplier node))
-      ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses new-node))
-      (push 'added-by-repair (statuses new-node))
-      ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block
-      (cip-enqueue new-node (cip node) (get-configuration node :queue-mode)))))
-
-|#
