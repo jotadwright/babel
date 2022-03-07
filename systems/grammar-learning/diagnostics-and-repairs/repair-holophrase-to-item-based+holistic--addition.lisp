@@ -70,7 +70,7 @@
                (holistic-cxn-name (make-cxn-name non-overlapping-form cxn-inventory :add-numeric-tail t))
                ;
                (cxn-name-item-based-cxn (make-cxn-name
-                                         (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-cxn-suffix nil))
+                                         (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-numeric-tail t))
                (unit-name-holistic-cxn
                 (unit-ify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
                 )
@@ -78,9 +78,9 @@
                (lex-class-holistic-cxn
                 (if existing-holistic-cxn
                   (lex-class-cxn existing-holistic-cxn)
-                  (intern (string-downcase (symbol-name holistic-cxn-name)) :grammar-learning)))
-               (lex-class-item-based-cxn
-                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
+                  (make-lex-class holistic-cxn-name :trim-cxn-suffix t)))
+               (lex-class-item-based-cxn ; todo check if it exists!
+                (make-lex-class cxn-name-item-based-cxn :trim-cxn-suffix t)) 
                ;; type hierachy links
                (categorial-link
                 (cons lex-class-item-based-cxn lex-class-holistic-cxn))
@@ -112,7 +112,7 @@
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))));; trick to get the cxn without adding it to the cxn-inventory: make a copy of the cxn-inventory, make the cxn, get it, then forget about the copy
                (item-based-cxn
                 (second (multiple-value-list (eval
-                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn :add-numeric-tail t)
+                                              `(def-fcg-cxn ,cxn-name-item-based-cxn
                                                             ((?item-based-unit
                                                               (syn-cat (phrase-type item-based))
                                                               (subunits (,unit-name-holistic-cxn)))

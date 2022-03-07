@@ -81,21 +81,18 @@ NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van varia
  
 ISSUES
 ------
-overwriting of cxns is dangerous! they might have different meanings, example: observation 27 rewrites the "is-there-a-cxn"
-solution: look up by form and meaning, if match, reuse, if not, make new cxn suffix!
+existin
 
 TODO
 ----
+- fix cxn names OK
+- fix lex class names (share suffix with cxn!) OK
+- add checks for existing cxns in all repairs!
+- don't add existing cxns to fix cxns
 - fix namen van monitors
 - reverse exported jsonl graph
 - 
 
-
-- add th links: weg met die comprehend, gwn links maken, niet checken of de indirecte bestaat
-
-
-- stage 1 en dan stage 2 met dezelfde grammatica
-- stage 2 loopt vast! assertion error, dus repairs failen en comprehension failt
 
 
 |#

@@ -56,7 +56,7 @@ based on existing construction with sufficient overlap."
       (when (and cxn overlapping-form-cxn)
         
         (let* ((cxn-name-item-based-cxn
-                (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation) cxn-inventory :add-cxn-suffix nil))
+                (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation) cxn-inventory :add-numeric-tail t))
                (cxn-name-holistic-cxn-1 (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-numeric-tail t))
                (cxn-name-holistic-cxn-2 (make-cxn-name non-overlapping-form-observation cxn-inventory :add-numeric-tail t))
                (holistic-cxn-1
@@ -82,13 +82,13 @@ based on existing construction with sufficient overlap."
                (lex-class-holistic-cxn-1
                 (if holistic-cxn-1
                   (lex-class-cxn holistic-cxn-1)
-                  (intern (string-downcase (symbol-name (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))) :grammar-learning)))
+                  (make-lex-class cxn-name-holistic-cxn-1 :trim-cxn-suffix t)))
                (lex-class-holistic-cxn-2
                 (if holistic-cxn-2
                   (lex-class-cxn holistic-cxn-2)
-                  (intern (string-downcase (symbol-name (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil))) :grammar-learning)))
+                  (make-lex-class cxn-name-holistic-cxn-2 :trim-cxn-suffix t)))
                (lex-class-item-based-cxn
-                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
+                (make-lex-class cxn-name-item-based-cxn :trim-cxn-suffix t)) 
                ;; Type hierachy links
                (categorial-link-1
                 (cons lex-class-holistic-cxn-1 lex-class-item-based-cxn))
@@ -147,7 +147,7 @@ based on existing construction with sufficient overlap."
                                                                              :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (item-based-cxn (second (multiple-value-list (eval
-                                                             `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn :add-numeric-tail t)
+                                                             `(def-fcg-cxn ,cxn-name-item-based-cxn
                                                                            ((?item-based-unit
                                                                              (syn-cat (phrase-type item-based))
                                                                              (subunits (,unit-name-holistic-cxn-2)))

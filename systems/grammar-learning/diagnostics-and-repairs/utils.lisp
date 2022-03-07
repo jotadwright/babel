@@ -175,13 +175,18 @@
     (make-id (upcase (string-append string "-CXN")))
     (intern (upcase (string-append string "-CXN")))))
 
-(defun make-lex-class (cat-name &key add-numeric-tail)
+(defun make-lex-class (cat-name &key add-numeric-tail trim-cxn-suffix)
+  (let* ((name-string (if (equal (type-of cat-name) 'SYMBOL)
+                       (string-downcase (symbol-name cat-name))
+                       (string-downcase cat-name)))
+        (cat-name (if trim-cxn-suffix (fcg::replace-all name-string "-cxn" "")
+                    name-string)))
   (intern
-   (symbol-name
+   (string-downcase (symbol-name
     (funcall (if add-numeric-tail #'make-const #'make-symbol)
              (upcase
-              (if cat-name cat-name "CAT"))))
-   :grammar-learning))
+              (if cat-name cat-name "CAT")))))
+   :grammar-learning)))
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix add-numeric-tail))
 
@@ -336,7 +341,7 @@
 
 
 (defun unit-ify (symbol)
-  (intern  (format nil "?~a-unit" (get-base-name symbol))))
+  (intern  (string-downcase (format nil "?~a-unit" (get-base-name symbol)))))
 
 (defun variablify (symbol)
   "Turn a symbol into a variable if it isn't one yet."
