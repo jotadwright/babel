@@ -67,7 +67,7 @@
                (boundaries-holistic-cxn (get-boundary-units non-overlapping-form))
                (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
                (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
-               (holistic-cxn-name (make-cxn-name non-overlapping-form cxn-inventory))
+               (holistic-cxn-name (make-cxn-name non-overlapping-form cxn-inventory :add-numeric-tail t))
                ;
                (cxn-name-item-based-cxn (make-cxn-name
                                          (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-cxn-suffix nil))
@@ -112,7 +112,7 @@
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))));; trick to get the cxn without adding it to the cxn-inventory: make a copy of the cxn-inventory, make the cxn, get it, then forget about the copy
                (item-based-cxn
                 (second (multiple-value-list (eval
-                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
+                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn :add-numeric-tail t)
                                                             ((?item-based-unit
                                                               (syn-cat (phrase-type item-based))
                                                               (subunits (,unit-name-holistic-cxn)))

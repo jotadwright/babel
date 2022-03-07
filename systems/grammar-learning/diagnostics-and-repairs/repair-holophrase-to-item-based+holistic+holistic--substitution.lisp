@@ -57,8 +57,8 @@ based on existing construction with sufficient overlap."
         
         (let* ((cxn-name-item-based-cxn
                 (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation) cxn-inventory :add-cxn-suffix nil))
-               (cxn-name-holistic-cxn-1 (make-cxn-name non-overlapping-form-cxn cxn-inventory))
-               (cxn-name-holistic-cxn-2 (make-cxn-name non-overlapping-form-observation cxn-inventory))
+               (cxn-name-holistic-cxn-1 (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-numeric-tail t))
+               (cxn-name-holistic-cxn-2 (make-cxn-name non-overlapping-form-observation cxn-inventory :add-numeric-tail t))
                (holistic-cxn-1
                 (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
                (holistic-cxn-2

@@ -36,7 +36,7 @@
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (utterance (random-elt (get-data problem :utterances)))
          (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
-         (cxn-name (make-cxn-name utterance cxn-inventory))
+         (cxn-name (make-cxn-name utterance cxn-inventory :add-numeric-tail t))
          (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
          (boundaries-holophrase-cxn (get-boundary-units form-constraints))
          (leftmost-unit-holophrase-cxn (first boundaries-holophrase-cxn))

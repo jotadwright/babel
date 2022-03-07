@@ -183,20 +183,20 @@
               (if cat-name cat-name "CAT"))))
    :grammar-learning))
 
-(defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix))
+(defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix add-numeric-tail))
 
 (defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t))
+                          &key (add-cxn-suffix t) (add-numeric-tail nil))
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
-  (intern
-   (symbol-name
-    (make-symbol
-     (substitute #\- #\Space
-                 (upcase
-                  (if add-cxn-suffix
-                    (string-append string "-cxn")
-                    string)))))))
+  (let ((name-string (substitute #\- #\Space
+                   (upcase
+                    (if add-cxn-suffix
+                      (string-append string "-cxn")
+                      string)))))
+  (if add-numeric-tail
+    (make-id name-string)
+    (intern name-string))))
 
 
   
@@ -204,7 +204,7 @@
 ;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
 
 (defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t))
+                          &key (add-cxn-suffix t) (add-numeric-tail nil))
   "Transform a list of form constraints into a suitable construction name"
   (loop with string-constraints = (extract-form-predicate-by-type form-constraints 'string)
         with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
@@ -227,7 +227,7 @@
                  (make-cxn-name (format nil "~{~a~^-~}"
                                         (render (append form-constraints new-string-constraints)
                                                 (get-configuration cxn-inventory :render-mode)))
-                                cxn-inventory :add-cxn-suffix add-cxn-suffix))))
+                                cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail))))
 
 (defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
   (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
