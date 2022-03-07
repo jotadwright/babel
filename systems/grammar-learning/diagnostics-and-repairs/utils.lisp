@@ -118,8 +118,9 @@
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure unit) :key #'first)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
-(defun lex-class-cxn (lexical-cxn)
-  (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
+(defun lex-class-cxn (cxn)
+  "return the lex-class of a cxn"
+  (let ((syn-cat (find 'syn-cat (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
          
 
@@ -724,8 +725,15 @@
     
 (defun extract-args-from-irl-network (irl-network)
   "return the in-var, out-var as args list"
-  (remove nil (list (last-elt (get-open-vars irl-network))
-        (get-target-var irl-network))))
+  (let* ((in-vars (loop for predicate in irl-network
+                           when (not (equal (first predicate) 'bind))
+                           collect (third predicate)))
+            (out-vars (loop for predicate in irl-network
+                           when (not (equal (first predicate) 'bind))
+                           collect (second predicate)))
+            (unresolved-vars (remove nil (append (set-difference in-vars out-vars) (set-difference out-vars in-vars)))))
+        unresolved-vars
+      ))
 
 (defun extract-vars-from-irl-network (irl-network)
   "return the in-var, out-var and list of open variables from a network"

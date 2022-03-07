@@ -103,16 +103,48 @@
                      (filter ?target-33323 ?target-2 ?color-2)
                      ))
         (network-3 '((bind color-category ?color-2 blue)
-                     (filter ?target-33323 ?target-2 ?color-2))))
+                     (filter ?target-33323 ?target-2 ?color-2)))
+        (network-4 '((filter ?target-140354 ?target-2 ?color-6)
+                     (filter ?target-1 ?source-1 ?shape-6)
+                     (bind color-category ?color-6 blue)
+                     (bind shape-category ?shape-6 cylinder))))
                                 
     (test-equal (extract-args-from-irl-network network-1) '(?target-4))
                        
     (test-equal (extract-args-from-irl-network network-2) '(?target-1 ?target-33323))
                        
-    (test-equal (extract-args-from-irl-network network-3) '(?target-2 ?target-33323))))
+    (test-equal (extract-args-from-irl-network network-3) '(?target-2 ?target-33323))
+
+    (test-equal (extract-args-from-irl-network network-4) '(?source-1 ?target-2 ?target-1 ?target-140354))))
                        
-           
+(deftest test-extract-vars-from-irl-network ()
+  (let ((network-1 '((query ?target-4 ?target-object-1 ?attribute-2)
+                     (unique ?target-object-1 ?target-33324)
+                     (filter ?target-33324 ?target-33323 ?size-4)
+                     (filter ?target-33323 ?target-2 ?color-2)
+                     (filter ?target-2 ?target-1 ?material-4)
+                     (filter ?target-1 ?source-1 ?shape-8)
+                     (get-context ?source-1)
+                     (bind attribute-category ?attribute-2 shape)
+                     (bind size-category ?size-4 large)
+                     (bind color-category ?color-2 gray)
+                     (bind material-category ?material-4 metal)
+                     (bind shape-category ?shape-8 thing)))
+        (network-2 '((bind material-category ?material-4 metal)
+                     (bind color-category ?color-2 gray)
+                     (filter ?target-2 ?target-1 ?material-4)
+                     (filter ?target-33323 ?target-2 ?color-2)
+                     ))
+        (network-3 '((bind color-category ?color-2 blue)
+                     (filter ?target-33323 ?target-2 ?color-2))))
+                                
+    (test-equal (multiple-value-list (extract-vars-from-irl-network network-1)) '(nil ?target-4 nil))
+                       
+    (test-equal (multiple-value-list (extract-vars-from-irl-network network-2)) '(?target-1 ?target-33323 nil))
+                       
+    (test-equal (multiple-value-list (extract-vars-from-irl-network network-3)) '(?target-2 ?target-33323 nil))))
            
 
 ;(test-diff-clevr-networks)
 ;(test-extract-args-from-irl-network)
+;(test-extract-vars-from-irl-network)
