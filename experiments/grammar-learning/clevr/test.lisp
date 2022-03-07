@@ -67,7 +67,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  29)
+;(run-series *experiment*  40)
 #|
 
 QUESTIONS
@@ -75,7 +75,7 @@ QUESTIONS
 
 NOTES
 ------
-OVERAL ORIGINAL behalve in FCG apply!
+use original-cxn everywhere, except in fcg apply (uses processing-cxn)
 
 NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van variantie
  

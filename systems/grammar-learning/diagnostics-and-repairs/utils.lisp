@@ -724,7 +724,7 @@
                                 (set-difference network-2 overlapping-predicates-2)))))
     
 (defun extract-args-from-irl-network (irl-network)
-  "return the in-var, out-var as args list"
+  "return all unbound variables as list"
   (let* ((in-vars (loop for predicate in irl-network
                            when (not (equal (first predicate) 'bind))
                            collect (third predicate)))
@@ -736,7 +736,7 @@
       ))
 
 (defun extract-vars-from-irl-network (irl-network)
-  "return the in-var, out-var and list of open variables from a network"
+  "return the in-var, out-var and list of open variables from a predicate"
   (values (last-elt (get-open-vars irl-network))
           (get-target-var irl-network)
           (set-difference (get-open-vars irl-network) (last (get-open-vars irl-network)))))
@@ -756,12 +756,3 @@
         for in-var = (first (multiple-value-list (extract-vars-from-irl-network (list predicate))))
         when (equal var in-var)
         return predicate))
-
-#|
-
-
-
-;; expected args '(in-var out-var);
-;; '(?target-1 ?target-33323)
-
-|#
