@@ -35,8 +35,7 @@
 (in-package :grammar-learning)
 
 
-(defun empty-cxn-set (hide-type-hierarchy cxn-supplier th-connected-mode de-render-mode meaning-representation-formalism)
-
+(defun empty-cxn-set (experiment)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions
@@ -48,17 +47,17 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
+                   :fcg-configurations ((:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
                                         (:parse-goal-tests :non-gold-standard-meaning)
                                         (:production-goal-tests :non-gold-standard-utterance)
-                                        (:de-render-mode . ,de-render-mode)
-                                        (:meaning-representation-formalism . ,meaning-representation-formalism)
+                                        (:de-render-mode . ,(get-configuration experiment :de-render-mode))
+                                        (:meaning-representation-formalism . ,(get-configuration experiment :meaning-representation))
                                         (:render-mode . :generate-and-test)
-                                        (:category-linking-mode . ,th-connected-mode)
+                                        (:category-linking-mode . ,(get-configuration experiment :category-linking-mode))
                                         (:update-categorial-links . t)
                                         (:consolidate-repairs . t)
                                         (:use-meta-layer . t)
-                                        (:initial-categorial-link-weight . 0.0)
+                                        (:initial-categorial-link-weight . ,(get-configuration experiment :initial-categorial-link-weight))
                                         (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
@@ -70,7 +69,7 @@
                              gl::repair-holistic->item-based-cxn
                              gl::nothing->holophrase)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                  (:show-categorial-network . ,(not hide-type-hierarchy)))))))
+                                                  (:show-categorial-network . t))))))
     cxn-inventory))
 
 (define-event lexicon-changed)

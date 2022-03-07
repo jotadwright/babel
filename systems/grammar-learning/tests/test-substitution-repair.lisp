@@ -215,7 +215,33 @@
                                          (bind attribute-category ?attribute-2 shape)
                                          (query ?target-8 ?source-10 ?attribute-2))))))))
 
-
+(deftest test-varying-length-substitution-repair-comprehension ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "The large gray object is what shape?"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((get-context ?source-1)
+                                             (filter ?target-39552 ?target-2 ?size-4)
+                                             (unique ?source-10 ?target-39552)
+                                             (bind color-category ?color-2 gray)
+                                             (filter ?target-1 ?source-1 ?shape-8)
+                                             (bind attribute-category ?attribute-2 shape)
+                                             (bind shape-category ?shape-8 thing)
+                                             (filter ?target-2 ?target-1 ?color-2)
+                                             (bind size-category ?size-4 large)
+                                             (query ?target-8 ?source-10 ?attribute-2)))
+    (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
+                        (second (multiple-value-list
+                                 (comprehend "The yellow object is what shape?"
+                :cxn-inventory cxn-inventory
+                :gold-standard-meaning '((get-context ?source-1)
+                                         (unique ?source-10 ?target-14197)
+                                         (bind color-category ?color-16 yellow)
+                                         (filter ?target-1 ?source-1 ?shape-8)
+                                         (bind attribute-category ?attribute-2 shape)
+                                         (bind shape-category ?shape-8 thing)
+                                         (filter ?target-14197 ?target-1 ?color-16)
+                                         (query ?target-8 ?source-10 ?attribute-2))))))))
 
 
 ;;  (test-substitution-repair-comprehension) ;ok
@@ -225,6 +251,7 @@
 ;;  (test-double-discontinuous-substitution-repair-comprehension) ;should be holophrase
 ;;  (test-triple-substitution-repair-comprehension) ;ok
 ;;  (test-reordered-form-substitution-repair-comprehension) ;ok
+;;  (test-varying-length-substitution-repair-comprehension) ;ok
   
 
 

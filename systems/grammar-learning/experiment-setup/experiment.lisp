@@ -29,16 +29,16 @@
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
 (define-configuration-default-value :categorial-network-export-interval 100)
+(define-configuration-default-value :initial-categorial-link-weight 0.0)
 
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
-(define-configuration-default-value :learner-th-connected-mode :neighbours)
+(define-configuration-default-value :category-linking-mode :neighbours)
 
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)
 (define-configuration-default-value :result-display-interval 100)
-(define-configuration-default-value :hide-type-hierarchy nil)
 
 ;; --------------
 ;; + Experiment +

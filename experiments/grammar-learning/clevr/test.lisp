@@ -67,7 +67,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  24)
+;(run-series *experiment*  27)
 #|
 
 QUESTIONS
@@ -81,7 +81,8 @@ NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van varia
  
 ISSUES
 ------
-
+overwriting of cxns is dangerous! they might have different meanings, example: observation 27 rewrites the "is-there-a-cxn"
+solution: look up by form and meaning, if match, reuse, if not, make new cxn suffix!
 
 TODO
 ----

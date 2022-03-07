@@ -170,8 +170,10 @@
   "return t if node is initial node"
   (null (all-parents node)))
 
-(defun add-cxn-suffix (string)
-  (intern (string-append string "-CXN")))
+(defun add-cxn-suffix (string &key add-numeric-tail)
+  (if add-numeric-tail
+    (make-id (upcase (string-append string "-CXN")))
+    (intern (upcase (string-append string "-CXN")))))
 
 (defun make-lex-class (cat-name &key add-numeric-tail)
   (intern

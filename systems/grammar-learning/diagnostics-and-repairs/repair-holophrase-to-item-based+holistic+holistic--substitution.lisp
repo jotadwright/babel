@@ -147,7 +147,7 @@ based on existing construction with sufficient overlap."
                                                                              :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (item-based-cxn (second (multiple-value-list (eval
-                                                             `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
+                                                             `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn :add-numeric-tail t)
                                                                            ((?item-based-unit
                                                                              (syn-cat (phrase-type item-based))
                                                                              (subunits (,unit-name-holistic-cxn-2)))
