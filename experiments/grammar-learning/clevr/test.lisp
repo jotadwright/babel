@@ -81,7 +81,6 @@ NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van varia
  
 ISSUES
 ------
-existin
 
 TODO
 ----

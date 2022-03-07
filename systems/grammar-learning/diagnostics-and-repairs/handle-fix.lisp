@@ -6,7 +6,7 @@
 
 ;; Generic handle fix for grammar learning
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-cxns-and-categorial-links) (problem problem) (node cip-node) &key &allow-other-keys) 
-  "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
+  "Apply the constructions provided by the fix to the result of the node and return the construction-application-result"
   ;; generic handle fix, which takes the following positional args in a list:
   ;; cxns-to-apply (list) applied in the order they appear in!
   ;; categorial links (list)
@@ -36,7 +36,7 @@
            (last-applied-node (last-elt applied-nodes)))
       ;; ignore
       (declare (ignore cat-links))
-      ;; Reset type hierarchy
+      ;; Reset categorial network
       (set-categorial-network (construction-inventory node) orig-categorial-network)
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-cxns original-cxns-to-consolidate)

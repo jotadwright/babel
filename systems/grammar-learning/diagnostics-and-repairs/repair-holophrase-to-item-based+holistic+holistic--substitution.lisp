@@ -174,9 +174,13 @@ based on existing construction with sufficient overlap."
                                                                                         :string ,(third (find 'string overlapping-form-observation :key #'first)))
                                                                            
                                                                            :cxn-inventory ,(copy-object cxn-inventory))))))
+               (existing-cxns (list holistic-cxn-2 holistic-cxn-1))
                (cxns-to-apply (list new-holistic-cxn-2 item-based-cxn))
-               (cat-links-to-add (list categorial-link-1 categorial-link-2)) ; don't do this if they already exist!
-               (cxns-to-consolidate (list new-holistic-cxn-1 new-holistic-cxn-2 item-based-cxn))) ; don't do this if they already exist!
+               (cat-links-to-add (list categorial-link-1 categorial-link-2)) 
+               (cxns-to-consolidate (loop for cxn in (list new-holistic-cxn-1 new-holistic-cxn-2 item-based-cxn)
+                                          when (not (member cxn existing-cxns))
+                                          collect cxn)))
+                                          
           (list
            cxns-to-apply
            cat-links-to-add
