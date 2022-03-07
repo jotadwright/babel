@@ -1,0 +1,449 @@
+
+(def-fcg-constructions german-case-grammar
+  :feature-types ((args sequence)
+                  (form set-of-predicates)
+                  (meaning set-of-predicates)
+                  (constituents sequence)
+                  (dependents sequence)
+                  (case sequence)
+                  (referent set))
+  :hierarchy-features (constituents dependents))
+
+
+
+
+(def-fcg-cxn der-cxn
+             (<-
+              (?the-word
+               (syn-cat (lex-class article)
+                        (case ((?nm ?nm - - -)      ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (?gf - ?gf - -)      ;genitive feminine
+                               (?df - ?df - -))))
+               --
+               (HASH form ((string ?the-word "der"))))))
+
+
+(def-fcg-cxn den-cxn  
+             (<-
+              (?the-word
+               (syn-cat (lex-class article)
+                        (definite +)
+                        (case ((- - - - -)          ;nom, acc, gen, dat  (nom masculine)
+                               (?am ?am - - -)        ;masc, fem, neut, plural
+                               (- - - - -)          ;genitive feminine
+                               (?dp - - - ?dp))))
+               --
+               (HASH form ((string ?the-word "den"))))))
+
+(def-fcg-cxn die-cxn  
+             (<-
+              (?the-word
+               (syn-cat (lex-class article)
+                        (case ((?nom - ?nf - ?np)     ;nom, acc, gen, dat  (nom masculine)
+                               (?acc - ?af - ?ap)        ; masc, fem, neut, plural
+                               (- - - - -)   ;genitive feminine
+                               (- - - - -))))
+               --
+               (HASH form ((string ?the-word "die"))))))
+
+
+;;;;;;;;;;;;;;LEXICAL CXNs
+
+(def-fcg-cxn Polizist-cxn
+             ((?policeman-word
+               (referent (?x))                   ;set of values
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)         ;feature value pair
+                        (case ((?nm ?nm - - -)     ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)     ;masc, fem, neut, plural
+                               (- - - - -)     ;genitive feminine
+                               (- - - - -))))
+                        
+               (boundaries (leftmost-unit ?policeman-word)
+                           (rightmost-unit ?policeman-word)))
+              <-
+              (?policeman-word
+               (HASH meaning ((policeman ?x)))                     
+               --
+               (HASH form ((string ?policeman-word  "Polizist"))))))
+
+
+(def-fcg-cxn Bäcker-cxn
+             ((?baker-word                        ; UNIT- postcondition or contributing part 
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nom ?nm - - ?np)     ;nom, acc, gen, dat  (nom masculine)
+                               (?acc ?am - - ?ap)      ; masc, fem, neut, plural
+                               (?pg - - - ?pg)       ;genitive feminine
+                               (?dm ?dm - - -)))
+                        )
+               (boundaries (leftmost-unit ?baker-word)
+                           (rightmost-unit ?baker-word)))
+              <-
+              (?baker-word                            ; UNIT - containing pre-conditions or conditional part for cxn to apply to transient structure
+               (HASH meaning ((baker ?x)))            ; formulation lock         
+               --
+               (HASH form ((string ?baker-word  "Bäcker"))))))  ;comprehension
+
+(def-fcg-cxn Hund-cxn
+             ((?dog-word
+               (referent (?x))                   ;set of values
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)         ;feature value pair
+                        (case ((?nm ?nm - - -)     ;nom, acc, gen, dat  (nom masculine)
+                               (?am ?am - - -)      ; masc, fem, neut, plural
+                               (- - - - -)       ;genitive feminine
+                               (?dm ?dm - - -))))
+                        
+               (boundaries (leftmost-unit ?dog-word)
+                           (rightmost-unit ?dog-word)))
+              <-
+              (?dog-word
+               (HASH meaning ((dog ?x)))                     
+               --
+               (HASH form ((string ?dog-word  "Hund"))))))
+
+(def-fcg-cxn Mann-cxn
+             ((?man-word
+               (referent (?x))                   ;set of values
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)         ;feature value pair
+                        (case ((?nm ?nm - - -)     ;nom, acc, gen, dat  (nom masculine)
+                               (?am ?am - - -)      ; masc, fem, neut, plural
+                               (- - - - -)       ;genitive feminine
+                               (?dm ?dm - - -))))
+                        
+               (boundaries (leftmost-unit ?man-word)
+                           (rightmost-unit ?man-word)))
+              <-
+              (?man-word
+               (HASH meaning ((man ?x)))                     
+               --
+               (HASH form ((string ?man-word  "Mann"))))))
+
+(def-fcg-cxn Kellner-cxn
+             ((?waiter-word                        ; UNIT- postcondition or contributing part 
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nom ?nm - - ?np)     ;nom, acc, gen, dat  (nom masculine)
+                               (?acc ?am - - ?ap)      ; masc, fem, neut, plural
+                               (?pg - - - ?pg)       ;genitive feminine
+                               (?dm ?dm - - -)))
+                        )
+               (boundaries (leftmost-unit ?waiter-word)
+                           (rightmost-unit ?waiter-word)))
+              <-
+              (?waiter-word                            ; UNIT - containing pre-conditions or conditional part for cxn to apply to transient structure
+               (HASH meaning ((waiter ?x)))            ; formulation lock         
+               --
+               (HASH form ((string ?waiter-word  "Kellner"))))))
+
+(def-fcg-cxn König-cxn
+             ((?king-word                        ; UNIT- postcondition or contributing part 
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     ;nom, acc, gen, dat  (nom masculine)
+                               (?am ?am - - -)      ; masc, fem, neut, plural
+                               (- - - - -)       ;genitive feminine
+                               (?dm ?dm - - -)))
+                        )
+               (boundaries (leftmost-unit ?king-word)
+                           (rightmost-unit ?king-word)))
+              <-
+              (?king-word                            ; UNIT - containing pre-conditions or conditional part for cxn to apply to transient structure
+               (HASH meaning ((king ?x)))            ; formulation lock         
+               --
+               (HASH form ((string ?king-word  "König"))))))
+
+(def-fcg-cxn Tiger-cxn
+             ((?tiger-word                        ; UNIT- postcondition or contributing part 
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nom ?nm - - ?np)     ;nom, acc, gen, dat  (nom masculine)
+                               (?acc ?am - - ?ap)      ; masc, fem, neut, plural
+                               (?pg - - - ?pg)       ;genitive feminine
+                               (?dm ?dm - - -)))
+                        )
+               (boundaries (leftmost-unit ?tiger-word)
+                           (rightmost-unit ?tiger-word)))
+              <-
+              (?tiger-word                            ; UNIT - containing pre-conditions or conditional part for cxn to apply to transient structure
+               (HASH meaning ((tiger ?x)))            ; formulation lock         
+               --
+               (HASH form ((string ?tiger-word  "Tiger"))))))
+
+
+(def-fcg-cxn Jäger-cxn
+             ((?hunter-word                        ; UNIT- postcondition or contributing part 
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nom ?nm - - ?np)     ;nom, acc, gen, dat  (nom masculine)
+                               (?acc ?am - - ?ap)      ; masc, fem, neut, plural
+                               (?pg - - - ?pg)       ;genitive feminine
+                               (?dm ?dm - - -)))
+                        )
+               (boundaries (leftmost-unit ?hunter-word)
+                           (rightmost-unit ?hunter-word)))
+              <-
+              (?hunter-word                            ; UNIT - containing pre-conditions or conditional part for cxn to apply to transient structure
+               (HASH meaning ((hunter ?x)))            ; formulation lock         
+               --
+               (HASH form ((string ?hunter-word  "Jäger"))))))
+
+
+;;;;;;CXNS
+
+(def-fcg-cxn noun-phrase-cxn
+             ((?noun-phrase
+               (referent (?x))
+               (syn-cat (lex-class noun-phrase)
+                        (case ?case))
+               (constituents (?article ?noun))
+               (boundaries (leftmost-unit ?article)
+                           (rightmost-unit ?rightmost-unit-noun)))
+              (?article
+               (part-of-noun-phrase +))
+              <-
+              (?article 
+               --
+               (syn-cat (lex-class article)
+                        (case ?case)))
+              (?noun
+               (referent (?x))
+               (syn-cat (lex-class noun)
+                        (case ?case))
+                 
+               --
+               (syn-cat (lex-class noun)
+                        (case ?case))
+               (boundaries (leftmost-unit ?leftmost-unit-noun)
+                           (rightmost-unit ?rightmost-unit-noun)))
+              (?noun-phrase
+               --
+               (HASH form ((meets ?article ?leftmost-unit-noun)))
+              )))
+
+
+
+;;;;;;;VERBS
+
+(def-fcg-cxn sucht-cxn
+             ((?search-word                        ; UNIT- postcondition or contributing part 
+               (syn-cat (lex-class verb)
+                        (tense present))
+               (referent (?s)))  
+                        
+              <-
+              (?search-word                           
+               (HASH meaning ((suchen ?s)))            ; formulation lock         
+               --
+               (HASH form ((string ?search-word  "sucht"))))))
+
+(def-fcg-cxn verfolgt-cxn
+             ((?follow-word                        ; UNIT- postcondition or contributing part 
+               (syn-cat (lex-class verb)
+                        (tense present))
+               (referent (?f)))  
+                        
+              <-
+              (?follow-word                           
+               (HASH meaning ((follow ?f)))            ; formulation lock         
+               --
+               (HASH form ((string ?follow-word  "verfolgt"))))))
+
+
+(def-fcg-cxn ruft-cxn
+             ((?call-word                        ; UNIT- postcondition or contributing part 
+               (syn-cat (lex-class verb)
+                        (tense present))
+               (referent (?r)))  
+                        
+              <-
+              (?call-word                           
+               (HASH meaning ((call ?r)))            ; formulation lock         
+               --
+               (HASH form ((string ?call-word  "ruft"))))))
+
+
+(def-fcg-cxn tötet-cxn
+             ((?kill-word                        ; UNIT- postcondition or contributing part 
+               (syn-cat (lex-class verb)
+                        (tense present))
+               (referent (?k)))  
+                        
+              <-
+              (?kill-word                           
+               (HASH meaning ((kill ?k)))            ; formulation lock         
+               --
+               (HASH form ((string ?kill-word  "tötet"))))))
+
+
+;;;;;;;;verbal cxns 
+
+
+(def-fcg-cxn transitive-cxn
+             ((?transitive-unit
+               (args (?subject-unit ?object-unit))
+               (sem-cat (sem-class action))
+               (syn-cat (lex-class verb)
+                        (type transitive))
+              (constituents (?verb-unit ?subject-unit ?object-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense ?tense))     
+              (referent (?v)))
+              
+              (?subject-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) ;nom, acc, gen, dat  (nom masculine)
+                               (?acc - - - -)         ; masc, fem, neut, plural
+                               (?gen - - - -)         ;genitive feminine
+                               (?dat - - - -))))
+              (referent (?subject))
+              (boundaries (leftmost-unit ?leftmost-subject-unit)
+                          (rightmost-unit ?rightmost-subject-unit)))
+              
+              (?object-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((?nom - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (?gen - - - -)         
+                               (?dat - - - -))))
+              (referent (?object))
+              (boundaries (leftmost-unit ?leftmost-object-unit)
+                          (rightmost-unit ?rightmost-object-unit)))
+              
+              (?transitive-unit
+               (HASH meaning ((nom ?v ?subject)
+                              (acc ?v ?object)))                  
+               --
+               (HASH form ((meets ?rightmost-subject-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-object-unit))
+               ))))
+
+
+
+; EX. Der Junge geht zum Arzt.
+
+(def-fcg-cxn intransitive-cxn
+             ((?transitive-unit
+               (args (?subject-unit ?indirect-object-unit))
+               (sem-cat (sem-class action))
+               (syn-cat (lex-class verb)
+                        (type intransitive))
+              (constituents (?verb-unit ?subject-unit ?indirect-object-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense ?tense))     
+              (referent (?v)))
+              
+              (?subject-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) ;nom, acc, gen, dat  (nom masculine)
+                               (?acc - - - -)         ; masc, fem, neut, plural
+                               (?gen - - - -)         ;genitive feminine
+                               (?dat - - - -))))
+              (referent (?subject))
+              (boundaries (leftmost-unit ?leftmost-subject-unit)
+                          (rightmost-unit ?rightmost-subject-unit)))
+              
+              (?indirect-object-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((?nom - - - -) 
+                               (?acc - - - -)         
+                               (?gen ?gm ?gf ?gn ?gp)         
+                               (?dat ?dm ?df ?dn ?dp))))
+              (referent (?indirect-object))
+              (boundaries (leftmost-unit ?leftmost-indirect-object-unit)
+                          (rightmost-unit ?rightmost-indirect-object-unit)))
+              
+              (?transitive-unit
+               (HASH meaning ((nom ?v ?subject)
+                              (acc ?v ?indirect-object)))                  
+               --
+               (HASH form ((meets ?rightmost-subject-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-indirect-object-unit))
+               ))))
+
+
+
+
+(def-fcg-cxn topicalized-transitive-cxn
+             ((?transitive-unit
+               (args (?subject-unit ?object-unit))
+               (sem-cat (sem-class action))
+               (syn-cat (lex-class verb)
+                        (type transitive))
+              (constituents (?verb-unit ?subject-unit ?object-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense ?tense))     
+              (referent (?v)))
+              
+              (?subject-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)         ; masc, fem, neut, plural
+                               (- - - - -)         ;genitive feminine
+                               (- - - - -))))
+              (referent (?subject))
+              (boundaries (leftmost-unit ?leftmost-subject-unit)
+                          (rightmost-unit ?rightmost-subject-unit)))
+              
+              (?object-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((?nom - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (?gen - - - -)         
+                               (?dat - - - -))))
+              (referent (?object))
+              (boundaries (leftmost-unit ?leftmost-object-unit)
+                          (rightmost-unit ?rightmost-object-unit)))
+              
+              (?transitive-unit
+               (HASH meaning ((nom ?v ?subject)
+                              (acc ?v ?object)))                  
+               --
+               (HASH form ((meets ?rightmost-object-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-subject-unit))
+               ))))
+
+
+
+
+
+;;;; COMPREHENSION
+(comprehend-all "den Bäcker sucht der Polizist")
+(comprehend-all "der Polizist sucht den Bäcker")
+
+
+
+;;;; FORMULATION
+(formulate-all '((king ?x)))
+
+
+
+
+
+
+
+
+
