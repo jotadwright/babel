@@ -63,8 +63,7 @@ based on existing construction with sufficient overlap."
                 (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
                (holistic-cxn-2
                 (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
-               (existing-item-based-cxn
-                (find-cxn-by-form-and-meaning overlapping-form-observation overlapping-meaning-observation cxn-inventory))
+               
                ;; holistic cxn boundaries (leftmost/rightmost)
                (boundaries-cxn-1 (get-boundary-units non-overlapping-form-cxn))
                (leftmost-unit-holistic-cxn-1 (first boundaries-cxn-1))
@@ -73,6 +72,12 @@ based on existing construction with sufficient overlap."
                (boundaries-cxn-2 (get-boundary-units non-overlapping-form-observation))
                (leftmost-unit-holistic-cxn-2 (first boundaries-cxn-2))
                (rightmost-unit-holistic-cxn-2 (second boundaries-cxn-2))
+
+               (existing-item-based-cxn (find-cxn-by-form-and-meaning
+                                         overlapping-form-observation
+                                         overlapping-meaning-observation
+                                         cxn-inventory :boundary-list boundaries-cxn-2))
+
                
                ;; unit names
                (unit-name-holistic-cxn-1

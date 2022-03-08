@@ -64,8 +64,7 @@
         (let* ((overlapping-form (set-difference superset-form non-overlapping-form :test #'equal))
                (overlapping-meaning (set-difference gold-standard-meaning non-overlapping-meaning :test #'equal))
                (existing-holistic-cxn (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
-               (existing-item-based-cxn
-                (find-cxn-by-form-and-meaning overlapping-form overlapping-meaning cxn-inventory))
+               
                (boundaries-holistic-cxn (get-boundary-units non-overlapping-form))
                (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
                (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
@@ -73,6 +72,8 @@
                ;
                (cxn-name-item-based-cxn (make-cxn-name
                                          (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-numeric-tail t))
+               (existing-item-based-cxn
+                (find-cxn-by-form-and-meaning overlapping-form overlapping-meaning cxn-inventory :boundary-list boundaries-holistic-cxn))
                (unit-name-holistic-cxn
                 (unit-ify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
                 )

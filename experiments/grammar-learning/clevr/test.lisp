@@ -27,7 +27,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
-
+#|
 ;; full logging
 (progn
   (deactivate-all-monitors)
@@ -37,7 +37,7 @@
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
-
+|#
 (progn
   (wi::reset)
   (notify reset-monitors)
@@ -67,7 +67,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  40)
+;(run-series *experiment*  )
 #|
 
 QUESTIONS

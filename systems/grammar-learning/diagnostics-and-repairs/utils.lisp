@@ -97,6 +97,15 @@
         when phrase-type
         return phrase-type))
 
+(defun boundary-list (cxn)
+  (loop for unit in (conditional-part cxn)
+        for comprehension-lock = (comprehension-lock unit)
+        for boundaries = (cdr (find 'boundaries comprehension-lock :key #'first))
+        when boundaries
+        return (list (second (first boundaries)) (second (second boundaries)))
+  ))
+
+
 (defun transient-structure-form-constraints (transient-structure)
   (remove-if-not #'(lambda (fc)
                      (equal 'string (first fc)))
@@ -159,12 +168,16 @@
                                              (set-difference network-2 unique-part-network-2)))
       (values unique-part-network-1 unique-part-network-2))))
 
-(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory)
+(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory &key boundary-list)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (constructions cxn-inventory)
         when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
-                  (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
+                  (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+                  (when boundary-list ;; needed for item-based cxns!
+                    (and (irl::embedding boundary-list (boundary-list cxn))
+                         (irl::embedding (boundary-list cxn) boundary-list))))
         return cxn))
+
 
 
 (defun initial-node-p (node)
