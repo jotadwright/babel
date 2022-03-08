@@ -465,7 +465,7 @@
                   :test #'irl:unify-irl-programs))
 
 (defun find-subset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance)
-  (loop for cxn in (constructions cxn-inventory)
+  (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-form-constraints = (extract-form-predicates cxn)
         for cxn-meaning-constraints = (extract-meaning-predicates cxn)
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
@@ -487,7 +487,7 @@
 
 (defun find-superset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance)
   ;; todo: there could also be more than one superset cxn!
-  (loop for cxn in (constructions cxn-inventory)
+  (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-form-constraints = (extract-form-predicates cxn)
         for cxn-meaning-constraints = (extract-meaning-predicates cxn)
         for cxn-type =  (phrase-type cxn)
@@ -516,7 +516,7 @@
         collect meet))
 
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
-  (loop for cxn in (constructions cxn-inventory)
+  (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         do (when (eql (phrase-type cxn) 'holophrase)
              (let* ((non-overlapping-meanings (multiple-value-list (diff-clevr-networks meaning (extract-meaning-predicates cxn))))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
