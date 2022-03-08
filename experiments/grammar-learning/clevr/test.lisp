@@ -67,7 +67,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  )
+;(run-series *experiment*  500)
 #|
 
 QUESTIONS
@@ -81,13 +81,10 @@ NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van varia
  
 ISSUES
 ------
-
+duplicate holistic cxns?
 TODO
 ----
-- fix cxn names OK
-- fix lex class names (share suffix with cxn!) OK
-- add checks for existing cxns in all repairs!
-- don't add existing cxns to fix cxns
+
 - fix namen van monitors
 - reverse exported jsonl graph
 - 

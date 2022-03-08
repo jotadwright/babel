@@ -173,9 +173,10 @@
   (loop for cxn in (constructions cxn-inventory)
         when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
                   (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-                  (when boundary-list ;; needed for item-based cxns!
+                  (if boundary-list ;; needed for item-based cxns!
                     (and (irl::embedding boundary-list (boundary-list cxn))
-                         (irl::embedding (boundary-list cxn) boundary-list))))
+                         (irl::embedding (boundary-list cxn) boundary-list))
+                    t))
         return cxn))
 
 
