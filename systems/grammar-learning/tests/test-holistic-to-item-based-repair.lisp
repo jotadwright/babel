@@ -23,15 +23,7 @@
   (set-configuration grammar :use-meta-layer t)
   (set-configuration grammar :consolidate-repairs t))
 
-(defun set-up-cxn-inventory-and-repairs ()
-  (wi::reset)
-  (notify reset-monitors)
-  (make-instance 'grammar-learning-experiment
-                 :entries '((:observation-sample-mode . :debug) ;; random or sequential
-                            (:determine-interacting-agents-mode . :corpus-learner)
-                            (:de-render-mode . :de-render-string-meets-no-punct)
-                            (:remove-cxn-on-lower-bound . nil)
-                            (:learner-th-connected-mode . :neighbours))))
+
 
 (defun test-lexical-to-item-based-from-substitution-repair-comprehension ()
   (defparameter *experiment* (set-up-cxn-inventory-and-repairs))

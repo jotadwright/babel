@@ -547,15 +547,12 @@
   ;; if a certain item matches twice, we'll discard it to avoid ambiguity
   ;; e.g.: is there a cylinder next to the blue cylinder? will only return blue (if in inventory), not cylinder
   (let ((remaining-form (form-predicates-with-variables observed-form)))
-    (sort (loop for cxn in (constructions cxn-inventory)
+    (sort (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
                 when (and (eql (phrase-type cxn) 'holistic) 
                           (irl:unify-irl-programs (extract-form-predicates cxn) remaining-form)
                           (setf remaining-form (set-difference remaining-form (extract-form-predicates cxn) :test #'irl:unify-irl-programs))
-                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning)
-                          ;;we need to check if a cxn could match twice based on the meaning and discard these cases,
-                          ;; if it matches multiple times, the size of the set diff will be larger than 1
-                          (= 1 (- (length gold-standard-meaning)
-                                  (length (set-difference gold-standard-meaning (extract-meaning-predicates cxn) :test #'irl:unify-irl-programs)))))   
+                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning))
+                             
                 collect cxn)
           #'(lambda (x y)
               (<
@@ -586,27 +583,24 @@
     (values (reverse lex-unit-names) resulting-form)))
 
 (defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
-  "subtract all lexical meanings (bind statements) from the gold standard
+  "subtract all lexical meanings from the gold standard
    taking into account possible duplicates in the matching lex cxns
    by always taking the first unification result and removing it
    manually instead of using set-difference."
   ;; !! it is assumed the matching lex cxns are provided
   ;; in the same order as which they occur in the form
   ;; the ordering of the gold standard meaning cannot be guaranteed?
-  (let ((resulting-meaning gold-standard-meaning)
-        (args nil))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-meaning = (extract-meaning-predicates lex-cxn)
-          do (let* ((prev-res-meaning (copy-object resulting-meaning))
-                    (elm-to-remove
-                     (loop for elm in resulting-meaning
-                           when (irl::unify-irl-programs lex-cxn-meaning (list elm))
-                           return elm)))
-               (setf resulting-meaning (remove elm-to-remove resulting-meaning :test #'equal))
-               (let* ((arg-predicate (set-difference prev-res-meaning resulting-meaning :test #'equal))
-                      (arg (third (find 'bind arg-predicate :key #'first))))
-                 (push arg args))))
-    (values (reverse args) resulting-meaning)))
+  (loop with resulting-meaning = gold-standard-meaning
+        for lex-cxn in matching-lex-cxns
+        for lex-cxn-meaning = (extract-meaning-predicates lex-cxn)
+        do (let* ((prev-res-meaning (copy-object resulting-meaning))
+                  (elm-to-remove
+                   (loop for elm in resulting-meaning
+                         when (irl::unify-irl-programs lex-cxn-meaning (list elm))
+                         return elm)))
+             (setf resulting-meaning (remove elm-to-remove resulting-meaning :test #'equal))
+             ))
+  resulting-meaning)
  
 (defun subunit-names-for-lex-cxns (lex-cxns)
   (loop for lex-cxn in lex-cxns
