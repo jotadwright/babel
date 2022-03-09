@@ -265,9 +265,6 @@
    fc
   )
 
-
-
-
 (defun make-cxn-placeholder-name (form cxn-inventory)
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)
         with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
@@ -532,7 +529,10 @@
                       (> (length non-overlapping-form-observation) 0)
                       (> (length non-overlapping-form-cxn) 0)
                       (check-meets-continuity non-overlapping-form-cxn)
-                      (check-meets-continuity non-overlapping-form-observation))
+                      (check-meets-continuity non-overlapping-form-observation)
+                      (equivalent-irl-programs?
+                       (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation)
+                       (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)))
                  (return (values non-overlapping-meaning-observation
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation
@@ -699,8 +699,6 @@
            ;; both have open vars, and the bound predicates unify
            (values t sub-predicate-1 sub-predicate-2))
           )))
-        
-
 
 (defun diff-clevr-networks (network-1 network-2)
   "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
