@@ -153,6 +153,18 @@
                --
                (HASH form ((string ?across-word "durch"))))))
 
+(def-fcg-cxn gegen-cxn
+             (<-
+              (?against-word
+               (syn-cat (lex-class preposition)
+                        (preposition +)
+                        (case ((- - - - -)      
+                               (?acc ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -))))
+               --
+               (HASH form ((string ?against-word "gegen"))))))
+
 
 ;;;;;;;;;;;;;;LEXICAL CXNs
 
@@ -649,6 +661,25 @@
                (HASH form ((string ?flowers-word  "Blumen"))))))
 
 
+(def-fcg-cxn Baum-cxn
+             ((?tree-word
+               (referent (?x))                  
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)    
+                               (?am ?am - - -)     
+                               (- - - - -)       
+                               (?dm ?dm - - -))))
+                        
+               (boundaries (leftmost-unit ?tree-word)
+                           (rightmost-unit ?tree-word)))
+              <-
+              (?tree-word
+               (HASH meaning ((tree ?x)))                     
+               --
+               (HASH form ((string ?tree-word  "Baum"))))))
+
+
 ;;;;;;CXNS
 
 (def-fcg-cxn noun-phrase-cxn
@@ -908,6 +939,58 @@
                (HASH meaning ((show ?z)))
                --
                (HASH form ((string ?show-word  "zeigt"))))))
+
+
+(def-fcg-cxn ist-gefahren-cxn
+             ((?drove-word
+               (constituents (?aux-unit ?participle-unit))
+               (syn-cat (lex-class verb)
+                        (tense past))
+               (boundaries (leftmost-unit ?aux-unit)
+                           (rightmost-unit ?participle-unit))
+               (referent (?ig)))
+            
+              <-
+
+              (?aux-unit
+               --
+               (HASH form ((string ?aux-unit "ist"))))
+
+              (?participle-unit
+               --
+               (HASH form ((string ?participle-unit "gefahren"))))
+
+              (?drove-word                           
+               (HASH meaning ((drove ?ig)))                    
+               --
+               )))
+
+(def-fcg-cxn hat-mitgebracht-cxn
+             ((?brought-word
+               (constituents (?aux-unit ?participle-unit))
+               (syn-cat (lex-class verb)
+                        (tense past))
+               (boundaries (leftmost-unit ?aux-unit)
+                           (rightmost-unit ?participle-unit))
+               (referent (?hm)))
+            
+              <-
+
+              (?aux-unit
+               --
+               (HASH form ((string ?aux-unit "hat"))))
+
+              (?participle-unit
+               --
+               (HASH form ((string ?participle-unit "mitgebracht"))))
+
+              (?brought-word                           
+               (HASH meaning ((brought ?hm)))                    
+               --
+               )))
+
+
+
 
 
 ;;;;;;;;VERBAL cxns
@@ -1279,6 +1362,117 @@
                            (meets ?rightmost-prep-obj-unit ?leftmost-comp-prep-unit))
                ))))
 
+
+(def-fcg-cxn intransitive-acc-past-cxn
+             ((?intransitive-past-unit
+               (args (?subject-unit ?indirect-object-unit))
+               (sem-cat (sem-class action))
+               (syn-cat (lex-class verb)
+                        (type intransitive))
+              (constituents (?verb-unit ?subject-unit ?indirect-object-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense past))
+              (boundaries (leftmost-unit ?aux-unit)
+                           (rightmost-unit ?participle-unit))
+              (referent (?v)))
+              
+              (?subject-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (?acc - - - -)         
+                               (?gen - - - -)         
+                               (?dat - - - -))))
+              (referent (?subject))
+              (boundaries (leftmost-unit ?leftmost-subject-unit)
+                          (rightmost-unit ?rightmost-subject-unit)))
+              
+              (?indirect-object-unit
+                --
+              (syn-cat ;(lex-class compound-prep-phrase)
+                        (case ((?nom - - - -) 
+                               (?acc ?am ?af ?an ?ap)         
+                               (?gen - - - -)         
+                               (?dat - - - -))))
+              (referent (?indirect-object))
+              (boundaries (leftmost-unit ?leftmost-indirect-object-unit)
+                          (rightmost-unit ?rightmost-indirect-object-unit)))
+              
+              (?intransitive-past-unit
+               (HASH meaning ((subject ?v ?subject)
+                              (indirect-obj ?v ?indirect-object)))                  
+               --
+               (HASH form ((meets ?rightmost-subject-unit ?aux-unit)
+                           (meets ?aux-unit ?leftmost-indirect-object-unit)
+                           (meets ?rightmost-indirect-object-unit ?participle-unit))
+               ))))
+
+
+
+
+#|(def-fcg-cxn ditransitive-topicalized-past-cxn
+             ((?ditransitive-topicalized-past
+               (args (?subject-unit ?indirect-object-unit ?direct-object-unit))
+               (sem-cat (sem-class action))
+               (syn-cat (lex-class verb)
+                        (type intransitive))
+              (constituents (?verb-unit ?subject-unit ?indirect-object-unit ?direct-object-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense past))
+              (boundaries (leftmost-unit ?aux-unit)
+                           (rightmost-unit ?participle-unit))
+              (referent (?v)))
+              
+              (?subject-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (?acc - - - -)         
+                               (?gen - - - -)         
+                               (?dat - - - -))))
+              (referent (?subject))
+              (boundaries (leftmost-unit ?leftmost-subject-unit)
+                          (rightmost-unit ?rightmost-subject-unit)))
+              
+              (?indirect-object-unit
+                --
+              (syn-cat ;(lex-class compound-prep-phrase)
+                        (case ((?nom - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (?gen - - - -)         
+                               (?dat - - - -))))
+              (referent (?indirect-object))
+              (boundaries (leftmost-unit ?leftmost-indirect-object-unit)
+                          (rightmost-unit ?rightmost-indirect-object-unit)))
+
+              (?direct-object-unit
+                --
+              (syn-cat ;(lex-class compound-prep-phrase)
+                        (case ((?nom - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (?gen - - - -)         
+                               (?dat - - - -))))
+              (referent (?direct-object))
+              (boundaries (leftmost-unit ?leftmost-direct-object-unit)
+                          (rightmost-unit ?rightmost-direct-object-unit)))
+
+              
+              (?ditransitive-topicalized-past
+               (HASH meaning ((subject ?v ?subject)
+                              (indirect-obj ?v ?indirect-object)
+                              (direct-obj ?v ?direct-object)
+                              (topicalized ?indirect-object +)))                  
+               --
+               (HASH form ((meets ?rightmost-indirect-object-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-subject-unit)
+                           (meets ?rightmost-subject-unit ?leftmost-direct-object-unit ))
+               ))))|#
 
 
 
