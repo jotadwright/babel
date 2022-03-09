@@ -5,7 +5,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defclass holophrase->item-based+holistic+holophrase--deletion (repair) 
+(defclass holophrase->item-based+holistic+holophrase--deletion (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node))) ;; it's always fcg::new-node, we created a new node in the search process
 
 (defmethod repair ((repair holophrase->item-based+holistic+holophrase--deletion)
@@ -70,22 +70,27 @@
                 (set-difference (extract-meaning-predicates superset-holophrase-cxn) non-overlapping-meaning :test #'equal))
                (existing-holistic-cxn
                 (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
+               
                (boundaries-holistic-cxn (get-boundary-units non-overlapping-form))
                (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
                (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
                (holistic-cxn-name
-                (make-cxn-name non-overlapping-form cxn-inventory))
+                (make-cxn-name non-overlapping-form cxn-inventory :add-numeric-tail t))
                (cxn-name-item-based-cxn (make-cxn-name
-                                         (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-cxn-suffix nil))
+                                         (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-numeric-tail t))
+               (existing-item-based-cxn
+                (find-cxn-by-form-and-meaning overlapping-form overlapping-meaning cxn-inventory :boundary-list boundaries-holistic-cxn))
                (unit-name-holistic-cxn
                 (unit-ify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil)))
                ;; lex-class
                (lex-class-holistic-cxn
                 (if existing-holistic-cxn
                   (lex-class-cxn existing-holistic-cxn)
-                  (intern (get-base-name (variablify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))) :grammar-learning)))
+                  (make-lex-class holistic-cxn-name :trim-cxn-suffix t)))
                (lex-class-item-based-cxn
-                (intern (string-downcase (symbol-name cxn-name-item-based-cxn)) :grammar-learning)) 
+                (if existing-item-based-cxn
+                  (lex-class-cxn existing-item-based-cxn)
+                  (make-lex-class cxn-name-item-based-cxn :trim-cxn-suffix t)))
                ;; type hierachy links
                (categorial-link
                 (cons lex-class-holistic-cxn lex-class-item-based-cxn))
@@ -100,7 +105,7 @@
                 (extract-args-from-irl-network non-overlapping-meaning))
                (args-holophrase-cxn (extract-args-from-irl-network meaning))
                (cxn-name
-                (make-cxn-name utterance cxn-inventory))
+                (make-cxn-name utterance cxn-inventory :add-numeric-tail t))
                (form-constraints
                 (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
                (boundaries-holophrase-cxn (get-boundary-units form-constraints))
@@ -148,8 +153,9 @@
                                                                              :string ,(third (find 'string non-overlapping-form :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))));; trick to get the cxn without adding it to the cxn-inventory: make a copy of the cxn-inventory, make the cxn, get it, then forget about the copy
                (item-based-cxn
-                (second (multiple-value-list (eval
-                                              `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
+                (or existing-item-based-cxn
+                    (second (multiple-value-list (eval
+                                              `(def-fcg-cxn ,cxn-name-item-based-cxn
                                                             ((?item-based-unit
                                                               (syn-cat (phrase-type item-based))
                                                               (subunits (,unit-name-holistic-cxn)))
@@ -175,35 +181,17 @@
                                                                                          return (first predicate))
                                                                          :string ,(third (find 'string overlapping-form :key #'first)))
                                                             :cxn-inventory ,(copy-object cxn-inventory)))))))
+               (existing-cxns (list existing-holistic-cxn existing-item-based-cxn))
+               (cxns-to-apply (list holophrase-cxn))
+               (cat-links-to-add (list categorial-link)) 
+               (cxns-to-consolidate (loop for cxn in (list holistic-cxn item-based-cxn holophrase-cxn)
+                                          when (not (member cxn existing-cxns))
+                                          collect cxn)))
 
-          ;; return the holophrase-cxn, item-based and holistic cxns
-          (list holophrase-cxn holistic-cxn item-based-cxn categorial-link))))))
-            
-          
-
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair holophrase->item-based+holistic+holophrase--deletion) (problem problem) (node cip-node) &key &allow-other-keys) 
-  "Apply the constructions provided by fix to the result of the node and return the construction-application-result"
-  (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
-  (with-disabled-monitor-notifications ;; avoid notifications in web interace
-    (let* ((holophrase-cxn (first (restart-data fix)))
-           (holistic-cxn (second (restart-data fix)))
-           (item-based-cxn (third (restart-data fix)))
-           (categorial-links (subseq (restart-data fix) 3))
-           ;; we don't create a temp type hierarchy because we're only applying the holophrase
-           ;; apply holophrase-cxn and add node
-           ;; add new cip (green box) to node with first car-resulting cfs = resulting transient structure after application
-           (new-node (fcg::cip-add-child node (first (fcg-apply (get-processing-cxn holophrase-cxn) (car-resulting-cfs (cipn-car node)) (direction (cip node))
-                                                                    :configuration (configuration (construction-inventory node))
-                                                                    :cxn-inventory (construction-inventory node)))))
+          ;; return
+          (list
+           cxns-to-apply
+           cat-links-to-add
+           cxns-to-consolidate
            )
-
-      ;; Add cxns to blackboard of second new node
-      (set-data (car-resulting-cfs  (cipn-car new-node)) :fix-cxns (list holophrase-cxn holistic-cxn item-based-cxn))
-      (set-data (car-resulting-cfs  (cipn-car new-node)) :fix-categorial-links categorial-links)
-      ;; set cxn-supplier to second new node
-      (setf (cxn-supplier new-node) (cxn-supplier node))
-      ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses new-node))
-      (push 'added-by-repair (statuses new-node))
-      ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block
-      (cip-enqueue new-node (cip node) (get-configuration node :queue-mode)))))
+          )))))

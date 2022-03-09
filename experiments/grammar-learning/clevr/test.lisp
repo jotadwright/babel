@@ -27,7 +27,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
-
+#|
 ;; full logging
 (progn
   (deactivate-all-monitors)
@@ -37,7 +37,7 @@
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
-
+|#
 (progn
   (wi::reset)
   (notify reset-monitors)
@@ -67,7 +67,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  24)
+;(run-series *experiment*  30)
 #|
 
 QUESTIONS
@@ -75,26 +75,20 @@ QUESTIONS
 
 NOTES
 ------
-OVERAL ORIGINAL behalve in FCG apply!
+use original-cxn everywhere, except in fcg apply (uses processing-cxn)
 
 NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van variantie
  
 ISSUES
 ------
-
-
+duplicate holistic cxns?
 TODO
 ----
+
 - fix namen van monitors
 - reverse exported jsonl graph
 - 
 
-
-- add th links: weg met die comprehend, gwn links maken, niet checken of de indirecte bestaat
-
-
-- stage 1 en dan stage 2 met dezelfde grammatica
-- stage 2 loopt vast! assertion error, dus repairs failen en comprehension failt
 
 
 |#

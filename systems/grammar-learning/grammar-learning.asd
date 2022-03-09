@@ -11,6 +11,7 @@
                 :components ((:file "fcg-utils")
                              (:file "utils")
                              (:file "goal-tests")
+                             (:file "handle-fix")
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
@@ -41,7 +42,8 @@
                              (:file "test-utils")
                              (:file "test-substitution-repair")
                              (:file "test-addition-repair")
-                             (:file "test-deletion-repair"))))
+                             (:file "test-deletion-repair")
+                             (:file "test-holistic-to-item-based-repair"))))
                              
 
   :description "A Common Lisp package for learning construction grammars.")
