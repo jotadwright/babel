@@ -542,16 +542,19 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
-(defun find-matching-holistic-cxns (cxn-inventory observed-form gold-standard-meaning utterance)
+(defun find-matching-holistic-cxns (cxn-inventory var-form gold-standard-meaning utterance)
   "return all holistic cxns that can apply by checking whether they are a subset of the observed form and meaning"
   ;; if a certain item matches twice, we'll discard it to avoid ambiguity
   ;; e.g.: is there a cylinder next to the blue cylinder? will only return blue (if in inventory), not cylinder
-  (let ((remaining-form (form-predicates-with-variables observed-form)))
+  (let ((remaining-form var-form))
     (sort (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
+                for prev-remaining-form-length = (length (extract-form-predicate-by-type remaining-form 'string))
+                for string-predicates-cxn = (extract-form-predicate-by-type (extract-form-predicates cxn) 'string)
                 when (and (eql (phrase-type cxn) 'holistic) 
                           (irl:unify-irl-programs (extract-form-predicates cxn) remaining-form)
                           (setf remaining-form (set-difference remaining-form (extract-form-predicates cxn) :test #'irl:unify-irl-programs))
-                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning))
+                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning)
+                          (= (length string-predicates-cxn) (- prev-remaining-form-length (length (extract-form-predicate-by-type remaining-form 'string))))) ;; make sure it can only apply once, if multiple times, the resulting set diff is shorter
                              
                 collect cxn)
           #'(lambda (x y)

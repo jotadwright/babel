@@ -39,18 +39,17 @@
 based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
+         (var-form
+              (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
                                                                    meaning-representation-formalism))
          (observed-form (extract-forms (left-pole-structure (car-source-cfs (cipn-car (initial-node node))))))
-         (matching-holistic-cxns (find-matching-holistic-cxns cxn-inventory observed-form gold-standard-meaning utterance)))
+         (matching-holistic-cxns (find-matching-holistic-cxns cxn-inventory var-form gold-standard-meaning utterance)))
          
     ;; we need at least one matching lex cxn
     (when (< 0 (length matching-holistic-cxns))
-      (let* (
-             (var-form
-              (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
-             (subunit-names-and-non-overlapping-form
+      (let* ((subunit-names-and-non-overlapping-form
               (multiple-value-list (diff-non-overlapping-form var-form matching-holistic-cxns)))
              (boundaries
               (loop for name in (first subunit-names-and-non-overlapping-form)

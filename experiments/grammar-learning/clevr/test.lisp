@@ -67,7 +67,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  30)
+;(run-series *experiment*  300)
 #|
 
 QUESTIONS
@@ -81,10 +81,11 @@ NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van varia
  
 ISSUES
 ------
-duplicate holistic cxns?
+
 TODO
 ----
-
+- for holistic to item-based, use fcg-apply for all holistic cxns, then create item-based cxn from whatever is in root
+- for item-based to holistic cxn, use fcg-apply for all holistic cxns, then the item-based cxns (must be at least one!), then create the missing holistic cxns for whatever is left in the root if it's continuous
 - fix namen van monitors
 - reverse exported jsonl graph
 - 
