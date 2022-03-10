@@ -5,32 +5,117 @@
                   (meaning set-of-predicates)
                   (constituents sequence)
                   (dependents sequence)
+                  (footprints set)
                   (case sequence)
                   (referent set))
   :hierarchy-features (constituents dependents)
     :fcg-configurations (
                        (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
                        (:production-goal-tests
-                        :no-applicable-cxns :no-meaning-in-root :re-enter-produced-utterance)))
+                        :no-applicable-cxns :connected-structure :no-meaning-in-root)))
 
 
 
 
 (def-fcg-cxn der-cxn
-             (<-
+             ((?the-word
+               (footprints (article)))    ;once applied
+              <-
               (?the-word
+               (footprints (not article))
                (syn-cat (lex-class article)
-                        (definite +)
                         (case ((?nm ?nm - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
-                               (?gf - ?gf - -)    ;genitive feminine
-                               (?df - ?df - -))))
+                               (?gen - ?gf - ?gp)    ;genitive feminine
+                               (?df - ?df - -)
+                               (?s ?m ?f - ?p))))   ;sing, masc, fem, neut, plural
                
                --
-               (HASH form ((string ?the-word "der"))))))
+               (HASH form ((string ?the-word "der")))))
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn die-cxn
+             ((?the-word
+               (footprints (article))) 
+             <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((?nom - ?nf - ?np)    ;nom, acc, gen, dat  (nom masculine)
+                               (?acc - ?af - ?ap)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (- - - - -)
+                               (?f - ?f - ?p))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "die")))))
+             :disable-automatic-footprints t)     ;add to all determiners
+
+(def-fcg-cxn Polizist-cxn
+             ((?policeman-word
+               (referent (?x))                             ;set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((+ + - - -)           
+                               (- - - - -)    
+                               (- - - - -)     
+                               (- - - - -)
+                               (+ + - - -)))))
+              <-
+              (?policeman-word
+               (HASH meaning ((policeman ?x)))                     
+               --
+               (HASH form ((string ?policeman-word  "Polizist"))))))
+
+(def-fcg-cxn Frau-cxn
+             ((?woman-word
+               (referent (?x))                             ;set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -)
+                               (+ - + - -)))))
+              <-
+              (?woman-word
+               (HASH meaning ((woman ?x)))                     
+               --
+               (HASH form ((string ?woman-word  "Frau"))))))
 
 
-(def-fcg-cxn den-cxn  
+
+(formulate-all '((woman x)))   ;;;check all possible solutions
+    
+
+(def-fcg-cxn determined-noun-phrase-cxn
+             ((?noun-phrase
+               (referent (?x))
+               (syn-cat (lex-class noun-phrase)
+                        (case ?case))
+               (constituents (?article ?noun))
+               (boundaries (leftmost-unit ?article)
+                           (rightmost-unit ?noun)))
+              (?article
+               (part-of-noun-phrase +))
+              <-
+              (?article
+               --
+               (syn-cat (lex-class article)
+                        (case ?case)))
+              (?noun
+               (referent (?x))
+               (syn-cat (lex-class noun)
+                        (case ?case))
+                 
+               --
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              (?noun-phrase
+               --
+               (HASH form ((meets ?article ?noun)))
+              )))
+
+
+#|(def-fcg-cxn den-cxn  
              (<-
               (?the-word
                (syn-cat (lex-class article)
@@ -50,7 +135,8 @@
                         (case ((?nom - ?nf - ?np)    
                                (?acc - ?af - ?ap)       
                                (- - - - -)   
-                               (- - - - -))))
+                               (- - - - -)
+                               (?f - ?f - ?p))))
                --
                (HASH form ((string ?the-word "die"))))))
 
@@ -153,6 +239,31 @@
                --
                (HASH form ((string ?across-word "durch"))))))
 
+(def-fcg-cxn für-cxn
+             (<-
+              (?for-word
+               (syn-cat (lex-class preposition)
+                        (preposition +)
+                        (case ((- - - - -)      
+                               (?acc ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -))))
+               --
+               (HASH form ((string ?for-word "für"))))))
+
+
+(def-fcg-cxn ohne-cxn
+             (<-
+              (?without-word
+               (syn-cat (lex-class preposition)
+                        (preposition +)
+                        (case ((- - - - -)      
+                               (?acc ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -))))
+               --
+               (HASH form ((string ?without-word "ohne"))))))
+
 (def-fcg-cxn gegen-cxn
              (<-
               (?against-word
@@ -176,7 +287,8 @@
                         (case ((?nm ?nm - - -)           
                                (- - - - -)    
                                (- - - - -)     
-                               (- - - - -))))
+                               (- - - - -)
+                               (+ + - - -))))
                         
                (boundaries (leftmost-unit ?policeman-word)
                            (rightmost-unit ?policeman-word)))
@@ -336,6 +448,24 @@
                --
                (HASH form ((string ?clown-word  "Clown"))))))
 
+(def-fcg-cxn Prinz-cxn
+             ((?prince-word
+               (referent (?x))                             ;set of values
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)                   ;feature value pair
+                        (case ((?nm ?nm - - -)           
+                               (- - - - -)    
+                               (- - - - -)     
+                               (- - - - -))))
+                        
+               (boundaries (leftmost-unit ?prince-word)
+                           (rightmost-unit ?prince-word)))
+              <-
+              (?prince-word
+               (HASH meaning ((prince ?x)))                     
+               --
+               (HASH form ((string ?prince-word  "Prinz"))))))
+
 
 (def-fcg-cxn Jäger-cxn
              ((?hunter-word
@@ -371,7 +501,6 @@
                (HASH meaning ((father ?x)))                    
                --
                (HASH form ((string ?father-word  "Vater"))))))
-
 
 
 (def-fcg-cxn Junge-cxn
@@ -445,6 +574,24 @@
                --
                (HASH form ((string ?woman-word  "Frau"))))))
 
+(def-fcg-cxn Mutter-cxn
+             ((?mother-word                        
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -)))
+                        )
+               (boundaries (leftmost-unit ?mother-word)
+                           (rightmost-unit ?mother-word)))
+              <-
+              (?mother-word
+               (HASH meaning ((mother ?x)))                     
+               --
+               (HASH form ((string ?mother-word  "Mutter"))))))
+
 
 (def-fcg-cxn Lehrerin-cxn
              ((?teacher-word                        
@@ -463,6 +610,26 @@
                (HASH meaning ((teacher-fem ?x)))                     
                --
                (HASH form ((string ?teacher-word  "Lehrerin"))))))
+
+
+(def-fcg-cxn Königin-cxn
+             ((?queen-word                        
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -)))
+                        )
+               (boundaries (leftmost-unit ?queen-word)
+                           (rightmost-unit ?queen-word)))
+              <-
+              (?queen-word
+               (HASH meaning ((queen ?x)))                     
+               --
+               (HASH form ((string ?queen-word  "Königin"))))))
+
 
 (def-fcg-cxn Arbeit-cxn
              ((?work-word                        
@@ -595,8 +762,8 @@
                (referent (?x))
                (sem-cat (sem-class physical-entity))
                (syn-cat (lex-class noun)
-                        (case ((?nom ?nm - - -)     
-                               (?acc ?am - - -)      
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
                                (- - - - -)       
                                (?dm ?dm - - -))))
                (boundaries (leftmost-unit ?apple-word)
@@ -661,6 +828,24 @@
                (HASH form ((string ?flowers-word  "Blumen"))))))
 
 
+(def-fcg-cxn Blume-cxn
+             ((?flower-word                        
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -))))
+               (boundaries (leftmost-unit ?flower-word)
+                           (rightmost-unit ?flower-word)))
+              <-
+              (?flower-word                            
+               (HASH meaning ((flower ?x)))                
+               --
+               (HASH form ((string ?flower-word  "Blume"))))))
+
+
 (def-fcg-cxn Baum-cxn
              ((?tree-word
                (referent (?x))                  
@@ -679,8 +864,57 @@
                --
                (HASH form ((string ?tree-word  "Baum"))))))
 
+(def-fcg-cxn Wagen-cxn
+             ((?auto-word                        
+               (referent (?x))
+               (sem-cat (sem-class physical-entity))
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -))))
+               (boundaries (leftmost-unit ?auto-word)
+                           (rightmost-unit ?auto-word)))
+              <-
+              (?auto-word                            
+               (HASH meaning ((auto ?x)))                
+               --
+               (HASH form ((string ?auto-word  "Wagen"))))))
+
 
 ;;;;;;CXNS
+
+(def-fcg-cxn bare-noun-phrase-cxn
+             ((?bare-noun-phrase
+               (referent (?x))
+               (syn-cat (lex-class noun-phrase)
+                        (case ((?np - - - ?np)     
+                               (?ap - - - ?ap)      
+                               (- - - - -)       
+                               (?dp - - - ?dp))))
+               (constituents (?noun))
+               (boundaries (leftmost-unit ?lefmost-noun)
+                           (rightmost-unit ?rightmost-noun)))
+              (?noun
+               (bare-unit-noun-phrase +))
+              <-
+              (?noun
+               (referent (?x))
+               (syn-cat (lex-class noun)
+                        (case ((?np - - - ?np)     
+                               (?ap - - - ?ap)      
+                               (- - - - -)       
+                               (?dp - - - ?dp)))) 
+               --
+               (syn-cat (lex-class noun)
+                        (case ((?np - - - ?np)     
+                               (?ap - - - ?ap)      
+                               (- - - - -)       
+                               (?dp - - - ?dp))))
+               (boundaries (leftmost-unit ?lefmost-noun)
+                           (rightmost-unit ?rightmost-noun)))
+              ))
+
 
 (def-fcg-cxn noun-phrase-cxn
              ((?noun-phrase
@@ -995,7 +1229,7 @@
 
 ;;;;;;;;VERBAL cxns
 
-
+;der Hund verfolgt den Mann 
 (def-fcg-cxn transitive-cxn
              ((?transitive-unit
                (args (?subject-unit ?object-unit))
@@ -1070,10 +1304,10 @@
               (?object-unit
                 --
               (syn-cat (lex-class noun-phrase)
-                        (case ((?nom - - - -) 
+                        (case ((- - - - -) 
                                (+ ?am ?af ?an ?ap)         
-                               (?gen - - - -)         
-                               (?dat - - - -))))
+                               (- - - - -)         
+                               (- - - - -))))
               (referent (?object))
               (boundaries (leftmost-unit ?leftmost-object-unit)
                           (rightmost-unit ?rightmost-object-unit)))
@@ -1098,6 +1332,8 @@
 ;Der Hund verfolgt den Mann.
 
 
+
+;die Frau ist beim Bäcker
 (def-fcg-cxn intransitive-dat-cxn
              ((?intransitive-unit
                (args (?subject-unit ?indirect-object-unit))
@@ -1144,6 +1380,7 @@
                ))))
 
 
+;der Mann spaziert durch den Park
 (def-fcg-cxn intransitive-acc-cxn
              ((?intransitive-unit
                (args (?subject-unit ?indirect-object-unit))
@@ -1171,7 +1408,7 @@
               
               (?indirect-object-unit
                 --
-              (syn-cat ;(lex-class compound-prep-phrase)
+              (syn-cat (lex-class compound-prep-phrase)
                         (case ((?nom - - - -) 
                                (?acc ?am ?af ?an ?ap)         
                                (?gen - - - -)         
@@ -1190,7 +1427,7 @@
                ))))
 
 
-
+;der Vater zeigt den Sohn die Brille
 (def-fcg-cxn ditransitive-cxn
              ((?ditransitive-unit
                (args (?subject-unit ?indirect-object-unit ?direct-object-unit))
@@ -1251,6 +1488,7 @@
                ))))
 
 
+;dem Sohn zeigt der Vater die Brille
 (def-fcg-cxn ditransitive-topicalized-cxn
              ((?ditransitive-top-unit
                (args (?subject-unit ?indirect-object-unit ?direct-object-unit))
@@ -1311,7 +1549,7 @@
                ))))
 
 
-
+;der Mann fährt mit der Wagen zur Arbeit         ;contracted(?)
 (def-fcg-cxn double-prep-obj-cxn
              ((?double-prep-obj-unit
                (args (?subject-unit ?prep-obj-unit ?comp-prep-unit))
@@ -1362,7 +1600,7 @@
                            (meets ?rightmost-prep-obj-unit ?leftmost-comp-prep-unit))
                ))))
 
-
+;Der Mann ist gegen den Baum gefahren.
 (def-fcg-cxn intransitive-acc-past-cxn
              ((?intransitive-past-unit
                (args (?subject-unit ?indirect-object-unit))
@@ -1412,13 +1650,13 @@
 
 
 
-
-#|(def-fcg-cxn ditransitive-topicalized-past-cxn
-             ((?ditransitive-topicalized-past
+;Die Königin hat für den König Blume mitgebracht.
+(def-fcg-cxn ditransitive-past-cxn
+             ((?ditransitive-past
                (args (?subject-unit ?indirect-object-unit ?direct-object-unit))
                (sem-cat (sem-class action))
                (syn-cat (lex-class verb)
-                        (type intransitive))
+                        (type transitive))
               (constituents (?verb-unit ?subject-unit ?indirect-object-unit ?direct-object-unit)))
               <-
               (?verb-unit
@@ -1453,7 +1691,7 @@
 
               (?direct-object-unit
                 --
-              (syn-cat ;(lex-class compound-prep-phrase)
+              (syn-cat ;(lex-class single-noun-phrase)
                         (case ((?nom - - - -) 
                                (+ ?am ?af ?an ?ap)         
                                (?gen - - - -)         
@@ -1463,15 +1701,16 @@
                           (rightmost-unit ?rightmost-direct-object-unit)))
 
               
-              (?ditransitive-topicalized-past
+              (?ditransitive-past
                (HASH meaning ((subject ?v ?subject)
                               (indirect-obj ?v ?indirect-object)
-                              (direct-obj ?v ?direct-object)
+                              (undetermined-direct-obj ?v ?direct-object)
                               (topicalized ?indirect-object +)))                  
                --
-               (HASH form ((meets ?rightmost-indirect-object-unit ?verb-unit)
-                           (meets ?verb-unit ?leftmost-subject-unit)
-                           (meets ?rightmost-subject-unit ?leftmost-direct-object-unit ))
+               (HASH form ((meets ?rightmost-subject-unit ?aux-unit)
+                           (meets ?aux-unit ?leftmost-indirect-object-unit)
+                           (meets ?rightmost-indirect-object-unit ?leftmost-direct-object-unit)
+                           (meets ?rightmost-direct-object-unit ?participle-unit))
                ))))|#
 
 
@@ -1515,7 +1754,7 @@
 
 
 ;;;; FORMULATION
-;(formulate-all '((Mann ?x)))
+;(formulate-all '((Polizist ?x)))
 
 
 ;(comprehend-and-formulate "der Tiger tötet den Mann")    ;gives back meaning representation in list
@@ -1524,5 +1763,6 @@
 
 
 
+; for production use constants in the test grammar (POLICEMAN X)
 
 
