@@ -5,6 +5,7 @@
 ;; ---------------------
 ;; INTERSECT primtive ;;
 ;; ---------------------
+;; Find the intersection of two sets
 
 ;(export '(intersect))
 

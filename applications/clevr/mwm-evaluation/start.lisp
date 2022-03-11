@@ -4,53 +4,78 @@
 (activate-monitor trace-fcg)
 (activate-monitor trace-irl)
 
+;;--------------;;
+;; The ontology ;;
+;;--------------;;
 
-  
-;; concepten zijn gedefinieerd in Babel/experiments/multidimensional-word-meanings/concept.lisp
-;; alsook weighted-similarity methods
+;; Files containing the concepts are under: "Babel/experiments/multidimensional-word-meanings/learned-concepts.zip"
+;; Concepts are defined in "Babel/experiments/multidimensional-word-meanings/concept.lisp"
 
-;; ontology aanmaken met geleerde concepten
-;; ontology is een instance van #'blackboard
+;; Make an ontology (instance of #'blackboard)
 (defparameter *my-ontology* (make-blackboard))
 
-(set-data *my-ontology* 'spatial-relations
-          (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships")))
-                collect (restore-concept pathname 'spatial-concept)))
+;; Load spatial concepts
+;; Meanings for the spatial concepts 'front' and 'behind' are switched to contain the right values
+(set-data *my-ontology* 'spatial-relations (list (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "behind-cxn.store")))))
+    (Make-instance 'spatial-concept
+                   :id 'front
+                   :form "front"
+                   :meaning (copy-object (meaning concept))))(let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "front-cxn.store")))))
+    (Make-instance 'spatial-concept
+                   :id 'behind
+                   :form "behind"
+                   :meaning (copy-object (meaning concept))))(let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "left-cxn.store")))))
+    (Make-instance 'spatial-concept
+                   :id 'left
+                   :form (form concept)
+                   :meaning (copy-object (meaning concept))))(let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "right-cxn.store")))))
+    (Make-instance 'spatial-concept
+                   :id 'right
+                   :form (form concept)
+                   :meaning (copy-object (meaning concept)))) ))
 
+;; Load color concepts
 (set-data *my-ontology* 'colors
           (loop for pathname in (directory
                                  (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "colors")))
                 collect (restore-concept pathname 'color-concept)))
-
+;; Load material concepts
 (set-data *my-ontology* 'materials
           (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "materials")))
                 collect (restore-concept pathname 'material-concept)))
 
+;; Load shape concepts
 (set-data *my-ontology* 'shapes
           (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "shapes")))
                 collect (restore-concept pathname 'shape-concept)))
 
+;; Add 'thing as a shape-concept
 (set-data *my-ontology* 'thing
           (list (make-instance 'shape-concept :id 'thing
                                :form "thing"
                                :meaning nil)))
 
+;; Load size concepts
 (set-data *my-ontology* 'sizes
           (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "sizes")))
                 collect (restore-concept pathname 'size-concept)))
 
+;; Load boolean categories
 (push-data *my-ontology* 'booleans (make-instance 'boolean-category :id 'yes :bool t))
 (push-data *my-ontology* 'booleans (make-instance 'boolean-category :id 'no :bool nil))
+
+;; Load attribute categories
 (loop for attribute in '(shape size material color)
           do (clevr-world::add-category-to-ontology *my-ontology* attribute 'attribute))
-;(clevr-world::add-category-to-ontology *my-ontology* 'thing 'shape)
 
-;(add-element (make-html *my-ontology*))
 
-;; segment-scene; symbolische clevr data omzetten naar continue features
-;; zie Babel/experiments/multidimensional-word-meanings/world.lisp
+;; Show the ontology in the web-interface:
+;; (add-element (make-html *my-ontology*))
 
-;; voorbeeldzinnen in Babel/grammars/clevr-grammar/start.lisp
+;;---------;;
+;; Testing ;;
+;;---------;;
+
 ;; fcg gebruiken om van zin naar meaning te gaan met #'understand
 
 (defun extract-scene-unit-variable (cipn)
@@ -63,7 +88,7 @@
 (defparameter *clevr-scene*
   (merge-pathnames
    (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val")
-                  :name "CLEVR_val_000000" :type "json")
+                  :name "CLEVR_val_000004" :type "json")
    cl-user:*babel-corpora*))
 
 (defun test-utterance-in-first-scene (utterance)
@@ -78,8 +103,17 @@
                (substitute-categories irl-program))
          *my-ontology* :primitive-inventory *mwm-primitives*)))))
 
-;(test-utterance-in-first-scene "How many gray things are there?")
-;(test-utterance-in-first-scene "What color is the large sphere?")
+
+;; Test sentences (see "Babel/grammars/clevr-grammar/start.lisp" for more examples):
+;(test-utterance-in-first-scene "there is a big gray object that is the same shape as the purple rubber object; what is it made of?")
+;(test-utterance-in-first-scene "What color is the small sphere?")
+;(test-utterance-in-first-scene "How many things have the same shape as the large red thing?")
+;(test-utterance-in-first-scene "How many things are left of the small gray sphere that is in front of the large sphere that is right of the large blue cube?")
+;(test-utterance-in-first-scene "How many things are left of the purple sphere that is behind the yellow thing?")
+
+;;-----------------------------------------------------------------;;
+;; substitute category names in bind statements with concept names ;;
+;;-----------------------------------------------------------------;;
 
 (defparameter *substitution-dict*
   '((color-category . color-concept)
@@ -91,10 +125,110 @@
 (defun substitute-category-in-bind (bind-statement)
   (let* ((bind-type (second bind-statement))
          (replacement (rest (assoc bind-type *substitution-dict*))))
-    (substitute replacement bind-type bind-statement)))
+    (if replacement
+      (substitute replacement bind-type bind-statement)
+      bind-statement)))
 
 (defun substitute-categories (irl-program)
   (loop for predicate in irl-program
         if (eql (first predicate) 'bind)
         collect (substitute-category-in-bind predicate)
         else collect predicate))
+
+;;------------;;
+;; Evaluation ;;
+;;------------;;
+;; See "ehai-babel/applications/clevr/clevr-evaluation/accuracy.lisp" for the example code
+
+;; Compute the accuracy on the clevr dataset using the learned concepts
+(defun answer->str (answer-value)
+  (case #+lispworks (type-of answer-value)
+        #+ccl (if (listp (type-of answer-value))
+                  (first (type-of answer-value))
+                  (type-of answer-value))
+        #+sbcl (if (listp (type-of answer-value))
+                  (first (type-of answer-value))
+                  (type-of answer-value))
+    (number (mkstr answer-value))
+    (fixnum (mkstr answer-value))
+    (integer (mkstr answer-value))
+    (bit (mkstr answer-value))
+    (shape-concept (mkstr (id answer-value)))
+    (size-concept (mkstr (id answer-value)))
+    (color-concept (mkstr (id answer-value)))
+    (material-concept (mkstr (id answer-value)))
+    (boolean-category (mkstr (id answer-value)))))
+
+
+
+(defun compute-answer (irl-program scene-var scene-path-entity)
+  "Given an irl-program, a variable and a scene path,
+   compute the answer."
+  (let ((solutions
+         (evaluate-irl-program
+          (cons `(bind pathname-entity ,scene-var ,scene-path-entity)(substitute-categories irl-program))
+          *my-ontology* :primitive-inventory *mwm-primitives*)))
+    (when (and solutions (length= solutions 1))
+      (let* ((target-var (get-target-var irl-program))
+             (target-value (value (find target-var (first solutions) :key #'var))))
+        (answer->str target-value)))))
+
+(defgeneric evaluate-mwm-accuracy (data-split &key nr-of-scenes nr-of-questions)
+  (:documentation "Evaluate the accuracy of the mwm-concepts."))
+
+
+(defmethod evaluate-mwm-accuracy (data-split &key nr-of-scenes nr-of-questions)
+  (let ((clevr-world
+         (make-instance 'clevr-world
+                        :data-sets (list data-split)
+                        :load-questions t))
+        (logfile
+         (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
+                         :name "mwm-evaluation" :type "txt")))
+    (ensure-directories-exist logfile)
+    (with-open-file (log logfile :direction :output
+                         :if-does-not-exist :create
+                         :if-exists :overwrite)
+    (average
+     (remove nil
+             (loop with processed-questions = 0
+                   with processed-scenes = 0
+                   for scene-path in (scenes clevr-world)
+                   for question-path in (question-sets clevr-world)
+                   for set-of-questions = (load-clevr-question-set question-path)
+                   for path-entity = (make-instance 'pathname-entity :pathname scene-path)
+                   for scene-name = (pathname-name scene-path)
+                   if (and nr-of-scenes (>= processed-scenes nr-of-scenes))
+                   return accuracy
+                   else
+                   append (loop for clevr-question in (questions set-of-questions)
+                                for q = (question clevr-question)
+                                for answer = (answer clevr-question)
+                                for (irl-program cipn nil)
+                                = (multiple-value-list
+                                   (clevr-grammar::understand q))
+                                for scene-var = (extract-scene-unit-variable cipn)
+                                for computed-answer = (compute-answer irl-program scene-var path-entity)
+                                do (incf processed-questions)
+                                (format t ".")
+                                if (and nr-of-questions (>= processed-questions nr-of-questions))
+                                return scene-accuracy
+                                else if (and (find 'fcg::succeeded (fcg::statuses cipn))
+                                             (string= (upcase answer)
+                                                      (upcase computed-answer)))
+                                collect 1 into scene-accuracy
+                                and do (progn
+                                         (write-line
+                                          (format nil "~a,~a,~a,~a,1" scene-name q answer computed-answer) log)
+                                         (force-output log))
+                                else collect 0 into scene-accuracy
+                                and do (progn
+                                         (write-line
+                                          (format nil "~a,~a,~a,~a,0" scene-name q answer computed-answer) log)
+                                         (force-output log))
+                                finally return scene-accuracy)
+                   into accuracy
+                   do (incf processed-scenes)
+                   finally return accuracy))))))
+
+(evaluate-mwm-accuracy "val" :nr-of-scenes 1)
