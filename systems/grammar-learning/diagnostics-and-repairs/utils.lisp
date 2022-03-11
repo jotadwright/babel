@@ -1,6 +1,8 @@
 
 (in-package :grammar-learning)
 
+(defconstant +placeholder-vars+ '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W"))
+
 (defun sort-cxns-by-form-string (cxns-to-sort utterance)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
   ;; warning, this function depends on space separation without further punctuation!
@@ -219,17 +221,12 @@
     (intern name-string))))
 
 
-  
 
-;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
-
-(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
-  "Transform a list of form constraints into a suitable construction name"
+(defun variablify-missing-form-strings (form-constraints)
+  "create X Y Z etc variables by checking which strings are missing in meets constraints return a list of placeholder bindings in the form of string predicates"
   (loop with string-constraints = (extract-form-predicate-by-type form-constraints 'string)
-        with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
         with placeholder-index = 0
-        with new-string-constraints = '()
+        with new-string-constraints = nil
         with meets-constraints = (set-difference form-constraints string-constraints)
         for meets-constraint in meets-constraints
         for first-word-var = (second meets-constraint)
@@ -237,25 +234,34 @@
         do
         (unless (or (find first-word-var string-constraints :key #'second)
                     (find first-word-var new-string-constraints :key #'second))
-          (push `(string ,first-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
+          (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
           (incf placeholder-index))
         (unless (or (find second-word-var string-constraints :key #'second)
                     (find second-word-var new-string-constraints :key #'second))
-          (push `(string ,second-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
+          (push `(string ,second-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
           (incf placeholder-index))
         finally (return
-                 (make-cxn-name (format nil "~{~a~^-~}"
-                                        (render (append form-constraints new-string-constraints)
-                                                (get-configuration cxn-inventory :render-mode)))
-                                cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail))))
+                 new-string-constraints)))
+  
+
+;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
+
+(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+  "Transform a list of form constraints into a suitable construction name"
+  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
+    (make-cxn-name (format nil "~{~a~^-~}"
+                           (render (append form-constraints new-string-constraints)
+                                   (get-configuration cxn-inventory :render-mode)))
+                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
 
 (defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
   (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
          (left-boundary (first slot-boundaries))
-         (right-boundary (second slot-boundaries))
-         (new-slot-var (variablify "X")))
+         (right-boundary (second slot-boundaries)))
+         ;(new-slot-var (variablify "X")))
     (loop for fc in (copy-object item-based-meet-constraints)
-          collect (replace-chunk-variables fc left-boundary right-boundary new-slot-var))))
+          collect (replace-chunk-variables fc left-boundary right-boundary left-boundary))))
 
 (defun replace-chunk-variables (fc first-chunk-var last-chunk-var new-slot-var)
   (when (equalp first-chunk-var (third fc))
@@ -553,8 +559,8 @@
                            :configuration (configuration cxn-inventory)
                            :cxn-inventory cxn-inventory)
                       nil)
-          when car
-          collect car)))
+          when (= (length car) 1) ;cxns that apply multiple times have length > 1, skip because ambiguous
+          collect (first car))))
 
 (defun find-optimal-coverage-cars (matching-holistic-cars node)
        "make hypotetical cars, return the one with highest coverage"
@@ -573,16 +579,16 @@
           with applied-cars = (list (first matching-holistic-cars))
           with unapplied-cars = nil
           with cxn-inventory = (construction-inventory node)
-          with start-node = (car-resulting-cfs (first (first matching-holistic-cars)))
+          with start-node = (car-resulting-cfs (first matching-holistic-cars))
           for car in rest-cars
-          for cxn = (car-applied-cxn (first car))
+          for cxn = (car-applied-cxn car)
           for new-car = (fcg-apply cxn start-node
                              (direction (cip node))
                              :configuration (configuration cxn-inventory)
                              :cxn-inventory cxn-inventory)
           do (if new-car
                (progn
-                 (push new-car applied-cars)
+                 (push (first new-car) applied-cars)
                  (setf start-node (car-resulting-cfs (first new-car)))
                  )
                (push car unapplied-cars))
