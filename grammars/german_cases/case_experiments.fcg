@@ -51,6 +51,62 @@
                (HASH form ((string ?the-word "die")))))
              :disable-automatic-footprints t)     ;add to all determiners
 
+
+#|(def-fcg-cxn das-cxn
+             ((?the-word
+               (footprints (article)))    ;once applied
+              <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((?nn - - ?nn -)    ;nom, acc, gen, dat  (nom masculine)
+                               (?an - - ?an -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (- - - - -)
+                               (+ - - + -))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "das")))))
+             :disable-automatic-footprints t)|#
+
+
+(def-fcg-cxn dem-cxn
+             ((?the-word
+               (footprints (article))) 
+             <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (?dat ?dm - ?dn -)
+                               (+ ?m - ?n -))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "dem")))))
+             :disable-automatic-footprints t)
+
+#|(def-fcg-cxn zum-cxn
+             ((?the-word
+               (footprints (contr-preposition))) 
+             <-
+              (?the-word
+               (footprints (not contr-preposition))
+               (syn-cat (lex-class contracted-preposition)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (?dat ?dm - ?dn -)
+                               (+ ?m - ?n -))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "zum")))))
+             :disable-automatic-footprints t)|#
+
+
+
+
 (def-fcg-cxn Polizist-cxn
              ((?policeman-word
                (referent (?x))                             ;set of values
@@ -81,9 +137,24 @@
                --
                (HASH form ((string ?woman-word  "Frau"))))))
 
+#|(def-fcg-cxn Buch-cxn
+             ((?book-word
+               (referent (?x))                             ;set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?nn - - ?nn -)     
+                               (?an - - ?an -)      
+                               (- - - - -)       
+                               (?dn - - ?dn -)
+                               (+ - - + -)))))
+              <-
+              (?book-word
+               (HASH meaning ((book ?x)))                     
+               --
+               (HASH form ((string ?book-word  "Buch"))))))|#
 
 
-(formulate-all '((woman x)))   ;;;check all possible solutions
+
+(formulate-all '((policeman x)))   ;;;check all possible solutions
     
 
 (def-fcg-cxn determined-noun-phrase-cxn
@@ -113,6 +184,34 @@
                --
                (HASH form ((meets ?article ?noun)))
               )))
+
+#|(def-fcg-cxn determined-prepositional-phrase-cxn
+             ((?noun-phrase
+               (referent (?x))
+               (syn-cat (lex-class determined-prepositional-phrase)
+                        (case ?case))
+               (constituents (?contracted-preposition ?noun))
+               (boundaries (leftmost-unit ?contracted-preposition)
+                           (rightmost-unit ?noun)))
+              (?contracted-preposition
+               (part-of-noun-phrase +))
+              <-
+              (?contracted-preposition
+               --
+               (syn-cat (lex-class contracted-preposition)
+                        (case ?case)))
+              (?noun
+               (referent (?x))
+               (syn-cat (lex-class noun)
+                        (case ?case))
+                 
+               --
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              (?noun-phrase
+               --
+               (HASH form ((meets ?contracted-preposition ?noun)))
+              )))|#
 
 
 #|(def-fcg-cxn den-cxn  
