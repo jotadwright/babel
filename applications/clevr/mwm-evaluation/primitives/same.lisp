@@ -5,6 +5,7 @@
 ;; ----------------
 ;; SAME primtive ;;
 ;; ----------------
+;; Find objects that have the same value for an attribute as the given object
 
 ;(export '(same))
 
@@ -15,19 +16,10 @@
 (defmethod same-set-by-object-attribute ((set mwm::mwm-object-set)
                                          (object mwm::mwm-object)
                                          (attribute-category attribute-category))
-  (let* ((object-attribute (case (attribute attribute-category)
-                             (shape (shape object))
-                             (size (size object))
-                             (color (color object))
-                             (material (material object))))
-         (attribute-fn (case (attribute attribute-category)
-                         (shape #'shape)
-                         (size #'size)
-                         (color #'color)
-                         (material #'material)))
+  (let* ((object-attribute (query-object-attribute object attribute-category *my-ontology*))
          (consider-set (remove (id object) (objects set) :key #'id))
          (same-set (loop for obj in consider-set
-                         when (eq object-attribute (funcall attribute-fn obj))
+                         when (eq object-attribute (query-object-attribute obj attribute-category *my-ontology*))
                          collect obj)))
     (when same-set
       (make-instance 'mwm::mwm-object-set :objects same-set))))

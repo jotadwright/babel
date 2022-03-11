@@ -5,6 +5,7 @@
 ;; -----------------
 ;; EXIST primtive ;;
 ;; -----------------
+;; Check whether there is an element in a set
 
 ;(export '(exist))
 
