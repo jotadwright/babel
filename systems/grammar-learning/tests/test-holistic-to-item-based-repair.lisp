@@ -84,7 +84,7 @@
                                        (filter ?target-77105 ?target-2 ?size-2)
                                        (query ?target-4 ?target-object-1 ?attribute-8))))))))
 
-(deftest test-multiple-holistic-to-item-based-repair-comprehension ()
+(defun test-multiple-holistic-to-item-based-repair-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The gray object is what shape?"
@@ -137,30 +137,22 @@
 (defun test-holistic-to-item-based-duplicates-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
-    (comprehend "The tiny gray object is what shape?"
+    (comprehend "Are any green cubes visible?"
               :cxn-inventory cxn-inventory
               :gold-standard-meaning '((get-context ?source-1)
-                                       (filter ?target-39552 ?target-2 ?size-4)
-                                       (unique ?source-10 ?target-39552)
-                                       (bind color-category ?color-2 gray)
-                                       (filter ?target-1 ?source-1 ?shape-8)
-                                       (bind attribute-category ?attribute-2 shape)
-                                       (bind shape-category ?shape-8 thing)
-                                       (filter ?target-2 ?target-1 ?color-2)
-                                       (bind size-category ?size-4 small)
-                                       (query ?target-8 ?source-10 ?attribute-2)))
-    (comprehend "The large gray object is what shape?"
+                                       (exist ?target-44 ?target-2)
+                                       (bind color-category ?color-8 green)
+                                       (filter ?target-1 ?source-1 ?shape-2)
+                                       (bind shape-category ?shape-2 cube)
+                                       (filter ?target-2 ?target-1 ?color-8)))
+    (comprehend "Are any green spheres visible?"
               :cxn-inventory cxn-inventory
               :gold-standard-meaning '((get-context ?source-1)
-                                       (filter ?target-39552 ?target-2 ?size-4)
-                                       (unique ?source-10 ?target-39552)
-                                       (bind color-category ?color-2 gray)
-                                       (filter ?target-1 ?source-1 ?shape-8)
-                                       (bind attribute-category ?attribute-2 shape)
-                                       (bind shape-category ?shape-8 thing)
-                                       (filter ?target-2 ?target-1 ?color-2)
-                                       (bind size-category ?size-4 large)
-                                       (query ?target-8 ?source-10 ?attribute-2)))
+                                       (exist ?target-44 ?target-2)
+                                       (bind color-category ?color-8 green)
+                                       (filter ?target-1 ?source-1 ?shape-2)
+                                       (bind shape-category ?shape-2 sphere)
+                                       (filter ?target-2 ?target-1 ?color-8)))
     (test-repair-status 'repair-holistic->item-based-cxn
                         (second (multiple-value-list
                                  (comprehend "Are there fewer matte cubes than large green shiny cubes?"
@@ -186,6 +178,7 @@
   (test-holistic-to-item-based-from-substitution-comprehension)
   (test-holistic-to-item-based-from-double-substitution-comprehension)
   (test-multiple-holistic-to-item-based-repair-comprehension)
+  (test-holistic-to-item-based-duplicates-comprehension)
   )
 
 #|
