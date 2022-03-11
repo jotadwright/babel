@@ -12,8 +12,7 @@
     :fcg-configurations (
                        (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
                        (:production-goal-tests
-                        :no-applicable-cxns :connected-structure :no-meaning-in-root)))
-
+                        :no-applicable-cxns :connected-structure :no-meaning-in-root :re-enter-produced-utterance)))
 
 
 
@@ -52,7 +51,7 @@
              :disable-automatic-footprints t)     ;add to all determiners
 
 
-#|(def-fcg-cxn das-cxn
+(def-fcg-cxn das-cxn
              ((?the-word
                (footprints (article)))    ;once applied
               <-
@@ -67,7 +66,7 @@
                
                --
                (HASH form ((string ?the-word "das")))))
-             :disable-automatic-footprints t)|#
+             :disable-automatic-footprints t)
 
 
 (def-fcg-cxn dem-cxn
@@ -87,7 +86,7 @@
                (HASH form ((string ?the-word "dem")))))
              :disable-automatic-footprints t)
 
-#|(def-fcg-cxn zum-cxn
+(def-fcg-cxn zum-cxn
              ((?the-word
                (footprints (contr-preposition))) 
              <-
@@ -99,12 +98,9 @@
                                (- - - - -)    ;genitive feminine
                                (?dat ?dm - ?dn -)
                                (+ ?m - ?n -))))   ;sing, masc, fem, neut, plural
-               
                --
                (HASH form ((string ?the-word "zum")))))
-             :disable-automatic-footprints t)|#
-
-
+             :disable-automatic-footprints t)
 
 
 (def-fcg-cxn Polizist-cxn
@@ -137,7 +133,22 @@
                --
                (HASH form ((string ?woman-word  "Frau"))))))
 
-#|(def-fcg-cxn Buch-cxn
+(def-fcg-cxn Blumen-cxn
+             ((?flowers-word
+               (referent (?x))                             ;set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?np - - - ?np)     
+                               (?ap - - - ?ap)      
+                               (?gp - - - ?gp)       
+                               (?dp - - - ?dp)
+                               (- - - - +)))))
+              <-
+              (?flowers-word
+               (HASH meaning ((flowers ?x)))                     
+               --
+               (HASH form ((string ?flowers-word  "Blumen"))))))
+
+(def-fcg-cxn Buch-cxn
              ((?book-word
                (referent (?x))                             ;set of values
                (syn-cat (lex-class noun)                   ;sure nominative and masculine
@@ -150,8 +161,7 @@
               (?book-word
                (HASH meaning ((book ?x)))                     
                --
-               (HASH form ((string ?book-word  "Buch"))))))|#
-
+               (HASH form ((string ?book-word  "Buch"))))))
 
 
 (formulate-all '((policeman x)))   ;;;check all possible solutions
@@ -185,8 +195,9 @@
                (HASH form ((meets ?article ?noun)))
               )))
 
-#|(def-fcg-cxn determined-prepositional-phrase-cxn
-             ((?noun-phrase
+
+(def-fcg-cxn determined-prepositional-phrase-cxn
+             ((?contracted-prep-phrase
                (referent (?x))
                (syn-cat (lex-class determined-prepositional-phrase)
                         (case ?case))
@@ -194,7 +205,7 @@
                (boundaries (leftmost-unit ?contracted-preposition)
                            (rightmost-unit ?noun)))
               (?contracted-preposition
-               (part-of-noun-phrase +))
+               (part-of-prep-phrase +))
               <-
               (?contracted-preposition
                --
@@ -208,10 +219,12 @@
                --
                (syn-cat (lex-class noun)
                         (case ?case)))
-              (?noun-phrase
+              (?contracted-prep-phrase
                --
                (HASH form ((meets ?contracted-preposition ?noun)))
-              )))|#
+              )))
+
+
 
 
 #|(def-fcg-cxn den-cxn  

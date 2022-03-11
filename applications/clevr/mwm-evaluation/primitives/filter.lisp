@@ -5,9 +5,11 @@
 ;; ------------------
 ;; FILTER primtive ;;
 ;; ------------------
+;; Filter set on a given category
 
 ;(export '(filter))
 
+;; attach category to an object that yields the highest weighted similarity out of a set of categories
 (defun find-best-category (object categories)
   (reduce #'(lambda (cat1 cat2)
               (if (> (weighted-similarity object cat1)

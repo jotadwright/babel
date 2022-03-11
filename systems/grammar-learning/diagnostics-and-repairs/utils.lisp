@@ -265,9 +265,6 @@
    fc
   )
 
-
-
-
 (defun make-cxn-placeholder-name (form cxn-inventory)
   (loop with string-constraints = (extract-form-predicate-by-type form 'string)
         with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
@@ -532,7 +529,10 @@
                       (> (length non-overlapping-form-observation) 0)
                       (> (length non-overlapping-form-cxn) 0)
                       (check-meets-continuity non-overlapping-form-cxn)
-                      (check-meets-continuity non-overlapping-form-observation))
+                      (check-meets-continuity non-overlapping-form-observation)
+                      (equivalent-irl-programs?
+                       (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation)
+                       (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)))
                  (return (values non-overlapping-meaning-observation
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation
@@ -542,16 +542,37 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
-(defun find-matching-holistic-cxns (cxn-inventory observed-form gold-standard-meaning utterance)
+(defun find-all-matching-cxns-for-node (cxn-inventory node) ;; todo, make a loop, see if a cxn can apply multiple times  to the car resulting cfs (until apply fails)
+  (with-disabled-monitor-notifications
+    (loop for cxn in (constructions cxn-inventory)
+          for start-node = (copy-object (car-source-cfs (cipn-car (initial-node node))))
+          when (and
+                (equal (attr-val cxn :cxn-type) 'holistic)
+                (fcg-apply cxn start-node
+                           (direction (cip node))
+                           :configuration (configuration cxn-inventory)
+                           :cxn-inventory cxn-inventory))
+          collect it)))
+
+(defun find-optimal-coverage-cxns (matching-holistic-cxns node)
+  "make hypotetical cars, return the one with highest coverage" nil)
+
+(defun make-hypothetical-car (candidate-cxns node)
+  "try to apply all cxns return the construction application result, its coverage and the non matching cxns, everything after the no-match needs to be retried in a next iteration" nil)
+
+(defun find-matching-holistic-cxns (cxn-inventory var-form gold-standard-meaning utterance)
   "return all holistic cxns that can apply by checking whether they are a subset of the observed form and meaning"
   ;; if a certain item matches twice, we'll discard it to avoid ambiguity
   ;; e.g.: is there a cylinder next to the blue cylinder? will only return blue (if in inventory), not cylinder
-  (let ((remaining-form (form-predicates-with-variables observed-form)))
+  (let ((remaining-form var-form))
     (sort (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
+                for prev-remaining-form-length = (length (extract-form-predicate-by-type remaining-form 'string))
+                for string-predicates-cxn = (extract-form-predicate-by-type (extract-form-predicates cxn) 'string)
                 when (and (eql (phrase-type cxn) 'holistic) 
                           (irl:unify-irl-programs (extract-form-predicates cxn) remaining-form)
                           (setf remaining-form (set-difference remaining-form (extract-form-predicates cxn) :test #'irl:unify-irl-programs))
-                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning))
+                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning)
+                          (= (length string-predicates-cxn) (- prev-remaining-form-length (length (extract-form-predicate-by-type remaining-form 'string))))) ;; make sure it can only apply once, if multiple times, the resulting set diff is shorter
                              
                 collect cxn)
           #'(lambda (x y)
@@ -680,6 +701,7 @@
   (amr::equivalent-amr-predicate-networks m1 m2))
 
 (defun compare-irl-predicates (predicate-1 predicate-2 network-1 network-2)
+  ; todo: find subnetworks of open vars, then use equivalent-irl-programs? on those! these subnetworks can have a depth larger than 1!
   (let* ((open-vars-1 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-1)))))
          (open-vars-2 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-2)))))
          (predicate-unification-bindings (unify-irl-programs (list predicate-1) (list predicate-2)))
@@ -699,21 +721,22 @@
            ;; both have open vars, and the bound predicates unify
            (values t sub-predicate-1 sub-predicate-2))
           )))
-        
-
 
 (defun diff-clevr-networks (network-1 network-2)
   "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
+  ;todo: identify all subnetworks, resolve them, then loop through parent network and combine resolved result with subnetwork
   (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
         with current-predicate-2 = (get-predicate-with-target-var network-2)
         with last-equivalent-predicate-1 = current-predicate-1
         with overlapping-predicates-1 = nil
         with overlapping-predicates-2 = nil
-        while (or current-predicate-1 current-predicate-2) 
-        for next-predicate-1 = (get-next-irl-predicate current-predicate-1 network-1)
-        for next-predicate-2 = (get-next-irl-predicate current-predicate-2 network-2)
+        with rest-network-1 = (set-difference network-1 overlapping-predicates-1)
+        with rest-network-2 = (set-difference network-2 overlapping-predicates-2)
+        while (or current-predicate-1 current-predicate-2)
+        for next-predicate-1 = (get-next-irl-predicate current-predicate-1 rest-network-1)
+        for next-predicate-2 = (get-next-irl-predicate current-predicate-2 rest-network-2)
         do (multiple-value-bind (equivalent-predicates-p bind-1 bind-2)
-               (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
+               (compare-irl-predicates current-predicate-1 current-predicate-2 rest-network-1 rest-network-2)
              (if equivalent-predicates-p
                (progn ;; true condition
                  (setf last-equivalent-predicate-1 current-predicate-1) ;; keep track of last successful comparison
@@ -726,8 +749,9 @@
                ;; false condition
                (setf current-predicate-1 next-predicate-1)) ; traverse network 1 while network 2 stays static
              (when (and (not current-predicate-1) current-predicate-2) ;; stack 1 is empty, stack 2 is not so go back to the last equivalent predicate, and take the next predicate
-               (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 network-1))
-               (setf current-predicate-2 next-predicate-2)))    
+               (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 rest-network-1))
+               (setf current-predicate-2 next-predicate-2)))
+               
         finally (return (values (set-difference network-1 overlapping-predicates-1)
                                 (set-difference network-2 overlapping-predicates-2)))))
     
