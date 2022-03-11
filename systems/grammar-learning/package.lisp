@@ -6,6 +6,7 @@
    :monitors
    :plot-raw-data
    :experiment-framework
+   :test-framework
    :irl
    :clevr-world
    :web-interface

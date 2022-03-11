@@ -67,7 +67,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  50)
+;(run-series *experiment*  300)
 #|
 
 QUESTIONS
@@ -75,26 +75,21 @@ QUESTIONS
 
 NOTES
 ------
-OVERAL ORIGINAL behalve in FCG apply!
+use original-cxn everywhere, except in fcg apply (uses processing-cxn)
 
 NOOIT AVERAGEN OVER SERIES! Error bars gebruiken bijv 75 25= indicatie van variantie
  
 ISSUES
 ------
 
-
 TODO
 ----
+- for holistic to item-based, use fcg-apply for all holistic cxns, then create item-based cxn from whatever is in root
+- for item-based to holistic cxn, use fcg-apply for all holistic cxns, then the item-based cxns (must be at least one!), then create the missing holistic cxns for whatever is left in the root if it's continuous
 - fix namen van monitors
 - reverse exported jsonl graph
 - 
 
-
-- add th links: weg met die comprehend, gwn links maken, niet checken of de indirecte bestaat
-
-
-- stage 1 en dan stage 2 met dezelfde grammatica
-- stage 2 loopt vast! assertion error, dus repairs failen en comprehension failt
 
 
 |#

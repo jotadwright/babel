@@ -35,8 +35,7 @@
 (in-package :grammar-learning)
 
 
-(defun empty-cxn-set (hide-type-hierarchy cxn-supplier th-connected-mode de-render-mode meaning-representation-formalism)
-
+(defun empty-cxn-set (experiment)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
           (eval `(def-fcg-constructions
@@ -48,17 +47,17 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
+                   :fcg-configurations ((:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
                                         (:parse-goal-tests :non-gold-standard-meaning)
                                         (:production-goal-tests :non-gold-standard-utterance)
-                                        (:de-render-mode . ,de-render-mode)
-                                        (:meaning-representation-formalism . ,meaning-representation-formalism)
+                                        (:de-render-mode . ,(get-configuration experiment :de-render-mode))
+                                        (:meaning-representation-formalism . ,(get-configuration experiment :meaning-representation))
                                         (:render-mode . :generate-and-test)
-                                        (:category-linking-mode . ,th-connected-mode)
+                                        (:category-linking-mode . ,(get-configuration experiment :category-linking-mode))
                                         (:update-categorial-links . t)
                                         (:consolidate-repairs . t)
                                         (:use-meta-layer . t)
-                                        (:initial-categorial-link-weight . 0.0)
+                                        (:initial-categorial-link-weight . ,(get-configuration experiment :initial-categorial-link-weight))
                                         (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
@@ -70,7 +69,7 @@
                              gl::repair-holistic->item-based-cxn
                              gl::nothing->holophrase)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                  (:show-categorial-network . ,(not hide-type-hierarchy)))))))
+                                                  (:show-categorial-network . t))))))
     cxn-inventory))
 
 (define-event lexicon-changed)
@@ -82,10 +81,8 @@
     (setf (attr-val cxn :score) upper-bound))
   cxn)
 
-(defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0)
-                            (remove-on-lower-bound t))
-  "decrease the score of the cxn.
-   remove it when it reaches 0"
+(defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0))
+  "decrease the score of the cxn."
   (decf (attr-val cxn :score) delta)
   (when (<= (attr-val cxn :score) lower-bound)
     (if (get-configuration (experiment agent) :remove-cxn-on-lower-bound) 
@@ -100,11 +97,11 @@
          (loop for unit in (contributing-part cxn)
                for lex-class = (gl::lex-class-item-based unit)
                when lex-class return lex-class))
-        (type-hierarchy (categorial-network (grammar agent))))
+        (cat-net (categorial-network (grammar agent))))
     (delete-cxn cxn (grammar agent))
     (notify lexicon-changed)
     (when lex-class
-      (delete-category lex-class type-hierarchy))))
+      (remove-category lex-class cat-net))))
 
 ;;;;  COMPETITORS
 ;;;; -------------

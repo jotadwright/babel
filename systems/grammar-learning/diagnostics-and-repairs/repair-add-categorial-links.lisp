@@ -93,7 +93,7 @@
             (list applied-cxns categorial-links)))))))
 
 
-
+#|
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-cxns-and-categorial-links) (problem problem) (node cip-node) &key &allow-other-keys)
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
@@ -132,4 +132,4 @@
       ;; enqueue only last new node; never backtrack over the first applied construction, we applied them as a block
       (cip-enqueue last-node (cip node) (get-configuration node :queue-mode)))))
 
-
+|#
