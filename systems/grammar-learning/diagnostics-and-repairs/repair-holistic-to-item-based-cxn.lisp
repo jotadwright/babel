@@ -34,7 +34,7 @@
                        :restart-data constructions-and-th-links)))))
 
 (defun create-item-based-lex-class-with-var (placeholder-var-string-predicates cxn-name-item-based-cxn slot-var)
-  "create the what-is-the-size-of-the-?Y-?X-(X)-12 lex class for a specific slot var"
+  "create the what-is-the-size-of-the-?Y-?X-12-(?X) lex class for a specific slot var"
   (let ((placeholder (third (find slot-var placeholder-var-string-predicates :key #'second))))
     (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(" placeholder ")"))))
   
@@ -64,7 +64,7 @@
              (cxn-name-item-based-cxn (make-cxn-name
                                        (append placeholder-var-string-predicates chunk-item-based-cxn-form-constraints)
                                        original-cxn-set :add-numeric-tail t))
-             (categorial-links nil)
+             
              (holistic-cxn-subunit-blocks (multiple-value-list
                                            (loop for unit in resulting-units
                                                  for holistic-cxn-unit-name = (first unit)
@@ -76,6 +76,7 @@
                                                  for categorial-link = nil
                                                  for leftmost-unit-holistic-cxn = nil
                                                  for rightmost-unit-holistic-cxn = nil
+                                                 collect categorial-link into categorial-links
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
                                                  collect `(,holistic-cxn-unit-name
                                                            (syn-cat (gl::lex-class ,holistic-slot-lex-class))) into contributing-units
@@ -84,7 +85,7 @@
                                                            --
                                                            ,boundaries
                                                             ) into conditional-units
-                                                 finally (return (values conditional-units contributing-units holistic-subunit-names)))))
+                                                 finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links)))))
                                                 
                                                 
               
@@ -94,6 +95,7 @@
               (second holistic-cxn-subunit-blocks))
              (holistic-subunit-names
               (third holistic-cxn-subunit-blocks))
+             (categorial-links (fourth holistic-cxn-subunit-blocks))
              (item-based-cxn (second (multiple-value-list (eval
                                                            `(def-fcg-cxn ,cxn-name-item-based-cxn
                                                                          ((?item-based-unit
