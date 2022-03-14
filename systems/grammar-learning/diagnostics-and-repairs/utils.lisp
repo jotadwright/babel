@@ -1,6 +1,8 @@
 
 (in-package :grammar-learning)
 
+(defconstant +placeholder-vars+ '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W"))
+
 (defun sort-cxns-by-form-string (cxns-to-sort utterance)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
   ;; warning, this function depends on space separation without further punctuation!
@@ -219,17 +221,12 @@
     (intern name-string))))
 
 
-  
 
-;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
-
-(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
-  "Transform a list of form constraints into a suitable construction name"
+(defun variablify-missing-form-strings (form-constraints)
+  "create X Y Z etc variables by checking which strings are missing in meets constraints return a list of placeholder bindings in the form of string predicates"
   (loop with string-constraints = (extract-form-predicate-by-type form-constraints 'string)
-        with placeholders = '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W")
         with placeholder-index = 0
-        with new-string-constraints = '()
+        with new-string-constraints = nil
         with meets-constraints = (set-difference form-constraints string-constraints)
         for meets-constraint in meets-constraints
         for first-word-var = (second meets-constraint)
@@ -237,25 +234,34 @@
         do
         (unless (or (find first-word-var string-constraints :key #'second)
                     (find first-word-var new-string-constraints :key #'second))
-          (push `(string ,first-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
+          (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
           (incf placeholder-index))
         (unless (or (find second-word-var string-constraints :key #'second)
                     (find second-word-var new-string-constraints :key #'second))
-          (push `(string ,second-word-var ,(nth placeholder-index placeholders)) new-string-constraints)
+          (push `(string ,second-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
           (incf placeholder-index))
         finally (return
-                 (make-cxn-name (format nil "~{~a~^-~}"
-                                        (render (append form-constraints new-string-constraints)
-                                                (get-configuration cxn-inventory :render-mode)))
-                                cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail))))
+                 new-string-constraints)))
+  
+
+;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
+
+(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+  "Transform a list of form constraints into a suitable construction name"
+  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
+    (make-cxn-name (format nil "~{~a~^-~}"
+                           (render (append form-constraints new-string-constraints)
+                                   (get-configuration cxn-inventory :render-mode)))
+                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
 
 (defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
   (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
          (left-boundary (first slot-boundaries))
-         (right-boundary (second slot-boundaries))
-         (new-slot-var (variablify "X")))
+         (right-boundary (second slot-boundaries)))
+         ;(new-slot-var (variablify "X")))
     (loop for fc in (copy-object item-based-meet-constraints)
-          collect (replace-chunk-variables fc left-boundary right-boundary new-slot-var))))
+          collect (replace-chunk-variables fc left-boundary right-boundary left-boundary))))
 
 (defun replace-chunk-variables (fc first-chunk-var last-chunk-var new-slot-var)
   (when (equalp first-chunk-var (third fc))
@@ -542,6 +548,56 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
+(defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
+  ;; handles duplicates by default!  return all first cars (not applied to eachother)
+  (with-disabled-monitor-notifications
+    (loop for cxn in (constructions cxn-inventory)
+          for start-node = (copy-object (car-source-cfs (cipn-car (initial-node node))))
+          for car = (if (equal (attr-val cxn :cxn-type) 'holistic)
+                      (fcg-apply cxn start-node
+                           (direction (cip node))
+                           :configuration (configuration cxn-inventory)
+                           :cxn-inventory cxn-inventory)
+                      nil)
+          when (= (length car) 1) ;cxns that apply multiple times have length > 1, skip because ambiguous
+          collect (first car))))
+
+(defun find-optimal-coverage-cars (matching-holistic-cars node)
+       "make hypotetical cars, return the one with highest coverage"
+       (let* ((cars (multiple-value-list (make-hypothetical-car matching-holistic-cars node)))
+              (applied-cars (first cars))
+              (unapplied-cars (second cars))
+       )
+         applied-cars))
+
+
+(defun make-hypothetical-car (matching-holistic-cars node)
+  "try to apply all cxns return the construction application result, its coverage and the non matching cxns, everything after the no-match needs to be retried in a next iteration"
+  (if (= (length matching-holistic-cars) 1)
+    matching-holistic-cars
+    (loop with rest-cars = (rest matching-holistic-cars)
+          with applied-cars = (list (first matching-holistic-cars))
+          with unapplied-cars = nil
+          with cxn-inventory = (construction-inventory node)
+          with start-node = (car-resulting-cfs (first matching-holistic-cars))
+          for car in rest-cars
+          for cxn = (car-applied-cxn car)
+          for new-car = (fcg-apply cxn start-node
+                             (direction (cip node))
+                             :configuration (configuration cxn-inventory)
+                             :cxn-inventory cxn-inventory)
+          do (if new-car
+               (progn
+                 (push (first new-car) applied-cars)
+                 (setf start-node (car-resulting-cfs (first new-car)))
+                 )
+               (push car unapplied-cars))
+               ; there was some conflict between cxns, handle it!
+          
+          finally return (values applied-cars unapplied-cars)
+                 
+    )))
+
 (defun find-matching-holistic-cxns (cxn-inventory var-form gold-standard-meaning utterance)
   "return all holistic cxns that can apply by checking whether they are a subset of the observed form and meaning"
   ;; if a certain item matches twice, we'll discard it to avoid ambiguity
@@ -683,6 +739,7 @@
   (amr::equivalent-amr-predicate-networks m1 m2))
 
 (defun compare-irl-predicates (predicate-1 predicate-2 network-1 network-2)
+  ; todo: find subnetworks of open vars, then use equivalent-irl-programs? on those! these subnetworks can have a depth larger than 1!
   (let* ((open-vars-1 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-1)))))
          (open-vars-2 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-2)))))
          (predicate-unification-bindings (unify-irl-programs (list predicate-1) (list predicate-2)))
@@ -705,16 +762,19 @@
 
 (defun diff-clevr-networks (network-1 network-2)
   "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
+  ;todo: identify all subnetworks, resolve them, then loop through parent network and combine resolved result with subnetwork
   (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
         with current-predicate-2 = (get-predicate-with-target-var network-2)
         with last-equivalent-predicate-1 = current-predicate-1
         with overlapping-predicates-1 = nil
         with overlapping-predicates-2 = nil
-        while (or current-predicate-1 current-predicate-2) 
-        for next-predicate-1 = (get-next-irl-predicate current-predicate-1 network-1)
-        for next-predicate-2 = (get-next-irl-predicate current-predicate-2 network-2)
+        with rest-network-1 = (set-difference network-1 overlapping-predicates-1)
+        with rest-network-2 = (set-difference network-2 overlapping-predicates-2)
+        while (or current-predicate-1 current-predicate-2)
+        for next-predicate-1 = (get-next-irl-predicate current-predicate-1 rest-network-1)
+        for next-predicate-2 = (get-next-irl-predicate current-predicate-2 rest-network-2)
         do (multiple-value-bind (equivalent-predicates-p bind-1 bind-2)
-               (compare-irl-predicates current-predicate-1 current-predicate-2 network-1 network-2)
+               (compare-irl-predicates current-predicate-1 current-predicate-2 rest-network-1 rest-network-2)
              (if equivalent-predicates-p
                (progn ;; true condition
                  (setf last-equivalent-predicate-1 current-predicate-1) ;; keep track of last successful comparison
@@ -727,8 +787,9 @@
                ;; false condition
                (setf current-predicate-1 next-predicate-1)) ; traverse network 1 while network 2 stays static
              (when (and (not current-predicate-1) current-predicate-2) ;; stack 1 is empty, stack 2 is not so go back to the last equivalent predicate, and take the next predicate
-               (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 network-1))
-               (setf current-predicate-2 next-predicate-2)))    
+               (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 rest-network-1))
+               (setf current-predicate-2 next-predicate-2)))
+               
         finally (return (values (set-difference network-1 overlapping-predicates-1)
                                 (set-difference network-2 overlapping-predicates-2)))))
     
