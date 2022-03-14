@@ -88,16 +88,18 @@
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
              (cxn-name-item-based-cxn (make-cxn-name
                                        (append placeholder-var-string-predicates chunk-item-based-cxn-form-constraints)
-                                       original-cxn-set :add-numeric-tail t))
+                                       original-cxn-set :add-numeric-tail t :add-cxn-suffix nil))
              
              (holistic-cxn-subunit-blocks (multiple-value-list
                                            (loop for unit in resulting-units
-                                                 for holistic-cxn-unit-name = (first unit)
                                                  for form-constraints = (unit-feature-value unit 'form)
+                                                 for holistic-cxn-unit-name = (unit-ify (make-cxn-name form-constraints original-cxn-set :add-cxn-suffix nil))
                                                  for string-var = (first (get-boundary-units form-constraints))
                                                  for car = (get-car-for-unit unit optimal-coverage-cars)
                                                  for args = (get-args-from-car car)
                                                  for boundaries = (unit-feature-value unit 'boundaries)
+                                                 for leftmost-unit-holistic-cxn = (second (first boundaries))
+                                                 for rightmost-unit-holistic-cxn = (second (second boundaries))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
@@ -108,8 +110,10 @@
                                                  collect `(,holistic-cxn-unit-name
                                                            (args ,args)
                                                            --
-                                                           (boundaries ,@boundaries)
-                                                            ) into conditional-units
+                                                           (boundaries
+                                                            (left ,leftmost-unit-holistic-cxn)
+                                                            (right ,rightmost-unit-holistic-cxn))
+                                                           ) into conditional-units
                                                  finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links)))))
                                                 
                                                 
@@ -124,7 +128,7 @@
              
                                                                          
              (item-based-cxn (second (multiple-value-list (eval
-                                                           `(def-fcg-cxn ,cxn-name-item-based-cxn
+                                                           `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                          ((?item-based-unit
                                                                            (syn-cat (phrase-type item-based))
                                                                            (subunits ,holistic-subunit-names))

@@ -549,14 +549,6 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
-(defun node-test-no-invalid-irl-unifications (car)
-  (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
-         (resulting-unit-meaning (unit-feature-value (first (left-pole-structure (car-resulting-cfs car))) 'meaning))
-         (resulting-root-meaning (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs car))) 'meaning))
-         )
-    (loop for predicate in resulting-unit-meaning
-          never (member predicate resulting-root-meaning :test #'equal))))
-
 
 (defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
   ;; handles duplicates by default!  return all first cars (not applied to eachother)
@@ -585,30 +577,31 @@
 
 (defun make-hypothetical-car (matching-holistic-cars node)
   "try to apply all cxns return the construction application result, its coverage and the non matching cxns, everything after the no-match needs to be retried in a next iteration"
-  (if (= (length matching-holistic-cars) 1)
-    matching-holistic-cars
-    (loop with rest-cars = (rest matching-holistic-cars)
-          with applied-cars = (list (first matching-holistic-cars))
-          with unapplied-cars = nil
-          with cxn-inventory = (construction-inventory node)
-          with start-node = (car-resulting-cfs (first matching-holistic-cars))
-          for car in rest-cars
-          for cxn = (car-applied-cxn car)
-          for new-car = (fcg-apply cxn start-node
-                             (direction (cip node))
-                             :configuration (configuration cxn-inventory)
-                             :cxn-inventory cxn-inventory)
-          do (if new-car
-               (progn
-                 (push (first new-car) applied-cars)
-                 (setf start-node (car-resulting-cfs (first new-car)))
-                 )
-               (push car unapplied-cars))
+  (with-disabled-monitor-notifications
+    (if (= (length matching-holistic-cars) 1)
+      matching-holistic-cars
+      (loop with rest-cars = (rest matching-holistic-cars)
+            with applied-cars = (list (first matching-holistic-cars))
+            with unapplied-cars = nil
+            with cxn-inventory = (construction-inventory node)
+            with start-node = (car-resulting-cfs (first matching-holistic-cars))
+            for car in rest-cars
+            for cxn = (car-applied-cxn car)
+            for new-car = (fcg-apply cxn start-node
+                                     (direction (cip node))
+                                     :configuration (configuration cxn-inventory)
+                                     :cxn-inventory cxn-inventory)
+            do (if new-car
+                 (progn
+                   (push (first new-car) applied-cars)
+                   (setf start-node (car-resulting-cfs (first new-car)))
+                   )
+                 (push car unapplied-cars))
                ; there was some conflict between cxns, handle it!
           
-          finally return (values applied-cars unapplied-cars)
+            finally return (values applied-cars unapplied-cars)
                  
-    )))
+            ))))
 
 (defun find-matching-holistic-cxns (cxn-inventory var-form gold-standard-meaning utterance)
   "return all holistic cxns that can apply by checking whether they are a subset of the observed form and meaning"
