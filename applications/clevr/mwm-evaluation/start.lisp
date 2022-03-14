@@ -17,27 +17,30 @@
 ;; Load spatial concepts
 ;; Meanings for the spatial concepts 'front' and 'behind' are switched to contain the right values
 (set-data *my-ontology* 'spatial-relations (list (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "behind-cxn.store")))))
-    (Make-instance 'spatial-concept
-                   :id 'front
-                   :form "front"
-                   :meaning (copy-object (meaning concept))))(let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "front-cxn.store")))))
-    (Make-instance 'spatial-concept
-                   :id 'behind
-                   :form "behind"
-                   :meaning (copy-object (meaning concept))))(let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "left-cxn.store")))))
-    (Make-instance 'spatial-concept
-                   :id 'left
-                   :form (form concept)
-                   :meaning (copy-object (meaning concept))))(let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "right-cxn.store")))))
-    (Make-instance 'spatial-concept
-                   :id 'right
-                   :form (form concept)
-                   :meaning (copy-object (meaning concept)))) ))
+                                                   (Make-instance 'spatial-concept
+                                                                  :id 'front
+                                                                  :form "front"
+                                                                  :meaning (copy-object (meaning concept))))
+
+                                                 (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "front-cxn.store")))))
+                                                   (Make-instance 'spatial-concept
+                                                                  :id 'behind
+                                                                  :form "behind"
+                                                                  :meaning (copy-object (meaning concept))))
+                                                 (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "left-cxn.store")))))
+                                                   (Make-instance 'spatial-concept
+                                                                  :id 'left
+                                                                  :form (form concept)
+                                                                  :meaning (copy-object (meaning concept))))
+                                                 (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "right-cxn.store")))))
+                                                   (Make-instance 'spatial-concept
+                                                                  :id 'right
+                                                                  :form (form concept)
+                                                                  :meaning (copy-object (meaning concept)))) ))
 
 ;; Load color concepts
 (set-data *my-ontology* 'colors
-          (loop for pathname in (directory
-                                 (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "colors")))
+          (loop for pathname in (directory(babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "colors")))
                 collect (restore-concept pathname 'color-concept)))
 ;; Load material concepts
 (set-data *my-ontology* 'materials
@@ -51,7 +54,8 @@
 
 ;; Add 'thing as a shape-concept
 (set-data *my-ontology* 'thing
-          (list (make-instance 'shape-concept :id 'thing
+          (list (make-instance 'shape-concept
+                               :id 'thing
                                :form "thing"
                                :meaning nil)))
 
@@ -139,8 +143,9 @@
 ;; Evaluation ;;
 ;;------------;;
 ;; See "ehai-babel/applications/clevr/clevr-evaluation/accuracy.lisp" for the example code
-
 ;; Compute the accuracy on the clevr dataset using the learned concepts
+
+;; Make a string from the computed answer so that it can be compared to the ground-truth string
 (defun answer->str (answer-value)
   (case #+lispworks (type-of answer-value)
         #+ccl (if (listp (type-of answer-value))
@@ -160,7 +165,7 @@
     (boolean-category (mkstr (id answer-value)))))
 
 
-
+;; Compute the answer for an irll-program
 (defun compute-answer (irl-program scene-var scene-path-entity)
   "Given an irl-program, a variable and a scene path,
    compute the answer."
@@ -173,6 +178,79 @@
              (target-value (value (find target-var (first solutions) :key #'var))))
         (answer->str target-value)))))
 
+;; Function that adds frequencies for primitives to a hash table (for error analysis)
+(defun get-primitives (irl-program hash-table)
+  (let ((unique-predicates
+         (remove-duplicates (mapcar #'first irl-program))))
+    (loop for predicate in unique-predicates
+          do
+          (case predicate
+            ('count (incf (gethash 'count hash-table 0)))
+            ('equal (incf (gethash 'equal hash-table 0)))
+            ('equal-integer (incf (gethash 'equal-integer hash-table 0)))
+            ('less-than (incf (gethash 'less-than hash-table 0)))
+            ('greater-than (incf (gethash 'greater-than hash-table 0)))
+            ('exist (incf (gethash 'exist hash-table 0)))
+            ('filter (incf (gethash 'filter hash-table 0)))
+            ('intersect (incf (gethash 'intersect hash-table 0)))
+            ('query (incf (gethash 'query hash-table 0)))
+            ('relate (incf (gethash 'relate hash-table 0)))
+            ('same (incf (gethash 'same hash-table 0)))
+            ('union (incf (gethash 'union hash-table 0)))
+            ('unique (incf (gethash 'unique hash-table 0)))))))
+
+
+
+(defun compute-scene-accuracy (scene-path
+                               set-of-questions
+                               processed-questions
+                               nr-of-questions
+                               stream
+                               hashtable
+                               scene-name)
+  
+  (loop for clevr-question in (questions set-of-questions)
+                                for q = (question clevr-question)
+                                for answer = (answer clevr-question)
+                                for (irl-program cipn nil)
+                                     = (multiple-value-list
+                                        (clevr-grammar::understand q))
+                                for scene-var = (extract-scene-unit-variable cipn)
+                                for computed-answer = (compute-answer irl-program scene-var scene-path)
+                                do (incf processed-questions)
+                                (format t ".")
+                                if (and nr-of-questions (>= processed-questions nr-of-questions))
+                                return scene-accuracy
+                                else if (and (find 'fcg::succeeded (fcg::statuses cipn))
+                                             (string= (upcase answer)
+                                                      (upcase computed-answer)))
+                                collect 1 into scene-accuracy
+                                and do (progn
+                                         (write-line
+                                          (format nil "~a,~a,~a,~a,1" scene-name q answer computed-answer) stream)
+                                         (force-output stream))
+                                else collect 0 into scene-accuracy
+                                and do (progn
+                                         (write-line
+                                          (format nil "~a,~a,~a,~a,0" scene-name q answer computed-answer) stream)
+                                         (force-output stream)
+                                         (get-primitives irl-program hashtable))
+                                finally return scene-accuracy))
+
+(defun compute-error-rate (hash-table)
+  (with-open-file (stream (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
+                                          :name "primitives-errors" :type "txt")
+                          :direction :output
+                          :if-does-not-exist :create
+                          :if-exists :overwrite)
+      (loop for key being the hash-keys of hash-table
+        using (hash-value value)
+        if (not (eql key 'nr-of-questions))
+        do (progn
+             (write-line
+              (format nil "The error rate for ~a is ~,2f" key (/ value (gethash 'nr-of-questions hash-table))) stream)
+          (force-output stream)))))
+
 (defgeneric evaluate-mwm-accuracy (data-split &key nr-of-scenes nr-of-questions)
   (:documentation "Evaluate the accuracy of the mwm-concepts."))
 
@@ -182,6 +260,8 @@
          (make-instance 'clevr-world
                         :data-sets (list data-split)
                         :load-questions t))
+        (errors-per-primitive
+         (setq errors-per-primitive (make-hash-table)))
         (logfile
          (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
                          :name "mwm-evaluation" :type "txt")))
@@ -205,8 +285,8 @@
                                 for q = (question clevr-question)
                                 for answer = (answer clevr-question)
                                 for (irl-program cipn nil)
-                                = (multiple-value-list
-                                   (clevr-grammar::understand q))
+                                     = (multiple-value-list
+                                        (clevr-grammar::understand q))
                                 for scene-var = (extract-scene-unit-variable cipn)
                                 for computed-answer = (compute-answer irl-program scene-var path-entity)
                                 do (incf processed-questions)
@@ -225,10 +305,14 @@
                                 and do (progn
                                          (write-line
                                           (format nil "~a,~a,~a,~a,0" scene-name q answer computed-answer) log)
-                                         (force-output log))
+                                         (force-output log)
+                                         (get-primitives irl-program errors-per-primitive))
                                 finally return scene-accuracy)
                    into accuracy
                    do (incf processed-scenes)
-                   finally return accuracy))))))
+                   do (setf (gethash 'nr-of-questions errors-per-primitive) processed-questions)
+                   finally (return accuracy)))))
+    (compute-error-rate errors-per-primitive)))
 
-(evaluate-mwm-accuracy "val" :nr-of-scenes 1)
+(evaluate-mwm-accuracy "val" :nr-of-scenes 10)
+
