@@ -256,6 +256,7 @@
                    cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
 
 (defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
+  "for slots that hold larger chunks, replace the rightmost boundary of the chunk with the leftmost variable, so that it appears as one slot in the cxn name"
   (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
          (left-boundary (first slot-boundaries))
          (right-boundary (second slot-boundaries)))
@@ -548,28 +549,39 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
+(defun node-test-no-invalid-irl-unifications (car)
+  (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
+         (resulting-unit-meaning (unit-feature-value (first (left-pole-structure (car-resulting-cfs car))) 'meaning))
+         (resulting-root-meaning (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs car))) 'meaning))
+         )
+    (loop for predicate in resulting-unit-meaning
+          never (member predicate resulting-root-meaning :test #'equal))))
+
+
 (defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
   ;; handles duplicates by default!  return all first cars (not applied to eachother)
   (with-disabled-monitor-notifications
-    (loop for cxn in (constructions cxn-inventory)
-          for start-node = (copy-object (car-source-cfs (cipn-car (initial-node node))))
-          for car = (if (equal (attr-val cxn :cxn-type) 'holistic)
-                      (fcg-apply cxn start-node
-                           (direction (cip node))
-                           :configuration (configuration cxn-inventory)
-                           :cxn-inventory cxn-inventory)
-                      nil)
-          when (= (length car) 1) ;cxns that apply multiple times have length > 1, skip because ambiguous
-          collect (first car))))
+    (let* ((start-node (copy-object (car-source-cfs (cipn-car (initial-node node)))))
+           (start-node-root (get-root (left-pole-structure start-node))))
+      (setf (unit-feature-value start-node-root 'meaning)
+            (random-elt (get-data start-node :meanings)))
+      (loop for cxn in (constructions cxn-inventory)
+            for cars = (if (equal (attr-val cxn :cxn-type) 'holistic)
+                         (fcg-apply cxn start-node
+                                    (direction (cip node))
+                                    :configuration (configuration cxn-inventory)
+                                    :cxn-inventory cxn-inventory)
+                         nil)
+            when cars
+            collect (first cars)))))
 
 (defun find-optimal-coverage-cars (matching-holistic-cars node)
-       "make hypotetical cars, return the one with highest coverage"
-       (let* ((cars (multiple-value-list (make-hypothetical-car matching-holistic-cars node)))
-              (applied-cars (first cars))
-              (unapplied-cars (second cars))
-       )
-         applied-cars))
-
+  "make hypotetical cars, return the one with highest coverage"
+  ; todo make overlapping testcases, retry until no overlap or tried combinations of cxns, return car with best score
+  (let* ((cars (multiple-value-list (make-hypothetical-car matching-holistic-cars node)))
+         (applied-cars (reverse (first cars)))
+         (unapplied-cars (second cars)))
+    applied-cars))
 
 (defun make-hypothetical-car (matching-holistic-cars node)
   "try to apply all cxns return the construction application result, its coverage and the non matching cxns, everything after the no-match needs to be retried in a next iteration"

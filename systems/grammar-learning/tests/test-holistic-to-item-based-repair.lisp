@@ -40,7 +40,7 @@
                                        (bind size-category ?size-4 large)
                                        (query ?target-4 ?target-object-1 ?attribute-4))))))))
 
-(deftest test-holistic-to-item-based-from-double-substitution-comprehension ()
+(defun test-holistic-to-item-based-from-double-substitution-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The tiny gray object is what shape?"
