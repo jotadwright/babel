@@ -199,44 +199,6 @@
             ('union (incf (gethash 'union hash-table 0)))
             ('unique (incf (gethash 'unique hash-table 0)))))))
 
-
-
-(defun compute-scene-accuracy (scene-path
-                               set-of-questions
-                               processed-questions
-                               nr-of-questions
-                               stream
-                               hashtable
-                               scene-name)
-  
-  (loop for clevr-question in (questions set-of-questions)
-                                for q = (question clevr-question)
-                                for answer = (answer clevr-question)
-                                for (irl-program cipn nil)
-                                     = (multiple-value-list
-                                        (clevr-grammar::understand q))
-                                for scene-var = (extract-scene-unit-variable cipn)
-                                for computed-answer = (compute-answer irl-program scene-var scene-path)
-                                do (incf processed-questions)
-                                (format t ".")
-                                if (and nr-of-questions (>= processed-questions nr-of-questions))
-                                return scene-accuracy
-                                else if (and (find 'fcg::succeeded (fcg::statuses cipn))
-                                             (string= (upcase answer)
-                                                      (upcase computed-answer)))
-                                collect 1 into scene-accuracy
-                                and do (progn
-                                         (write-line
-                                          (format nil "~a,~a,~a,~a,1" scene-name q answer computed-answer) stream)
-                                         (force-output stream))
-                                else collect 0 into scene-accuracy
-                                and do (progn
-                                         (write-line
-                                          (format nil "~a,~a,~a,~a,0" scene-name q answer computed-answer) stream)
-                                         (force-output stream)
-                                         (get-primitives irl-program hashtable))
-                                finally return scene-accuracy))
-
 (defun compute-error-rate (hash-table)
   (with-open-file (stream (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
                                           :name "primitives-errors" :type "txt")
@@ -248,24 +210,12 @@
         if (not (eql key 'nr-of-questions))
         do (progn
              (write-line
-              (format nil "The error rate for ~a is ~,2f" key (/ value (gethash 'nr-of-questions hash-table))) stream)
+              (format nil "The error rate for ~a is ~,1f" key (/ value (gethash 'nr-of-questions hash-table))) stream)
           (force-output stream)))))
 
-(defgeneric evaluate-mwm-accuracy (data-split &key nr-of-scenes nr-of-questions)
-  (:documentation "Evaluate the accuracy of the mwm-concepts."))
 
-
-(defmethod evaluate-mwm-accuracy (data-split &key nr-of-scenes nr-of-questions)
-  (let ((clevr-world
-         (make-instance 'clevr-world
-                        :data-sets (list data-split)
-                        :load-questions t))
-        (errors-per-primitive
-         (setq errors-per-primitive (make-hash-table)))
-        (logfile
-         (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                         :name "mwm-evaluation" :type "txt")))
-    (ensure-directories-exist logfile)
+(defun compute-accuracy (logfile clevr-world nr-of-scenes nr-of-questions hash-table)
+  (ensure-directories-exist logfile)
     (with-open-file (log logfile :direction :output
                          :if-does-not-exist :create
                          :if-exists :overwrite)
@@ -306,13 +256,37 @@
                                          (write-line
                                           (format nil "~a,~a,~a,~a,0" scene-name q answer computed-answer) log)
                                          (force-output log)
-                                         (get-primitives irl-program errors-per-primitive))
+                                         (get-primitives irl-program hash-table))
                                 finally return scene-accuracy)
                    into accuracy
                    do (incf processed-scenes)
-                   do (setf (gethash 'nr-of-questions errors-per-primitive) processed-questions)
-                   finally (return accuracy)))))
-    (compute-error-rate errors-per-primitive)))
+                   finally (progn
+                             (setf (gethash 'nr-of-questions hash-table) processed-questions)
+                             (compute-error-rate hash-table)
+                             (return accuracy)))))))
 
-(evaluate-mwm-accuracy "val" :nr-of-scenes 10)
+
+
+(defgeneric evaluate-mwm-accuracy (data-split &key nr-of-scenes nr-of-questions)
+  (:documentation "Evaluate the accuracy of the mwm-concepts."))
+
+
+(defmethod evaluate-mwm-accuracy (data-split &key nr-of-scenes nr-of-questions)
+  (let ((clevr-world
+         (make-instance 'clevr-world
+                        :data-sets (list data-split)
+                        :load-questions t))
+        (errors-per-primitive
+         (setq errors-per-primitive (make-hash-table)))
+        (logfile
+         (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
+                         :name "mwm-evaluation" :type "txt")))
+    (compute-accuracy logfile
+                      clevr-world
+                      nr-of-scenes
+                      nr-of-questions
+                      errors-per-primitive)
+    ))
+
+(evaluate-mwm-accuracy "val" :nr-of-scenes 1)
 
