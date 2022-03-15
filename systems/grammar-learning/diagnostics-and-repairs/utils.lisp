@@ -542,23 +542,55 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
-(defun find-all-matching-cxns-for-node (cxn-inventory node) ;; todo, make a loop, see if a cxn can apply multiple times  to the car resulting cfs (until apply fails)
+(defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
+  ;; handles duplicates by default!  return all first cars (not applied to eachother)
   (with-disabled-monitor-notifications
     (loop for cxn in (constructions cxn-inventory)
           for start-node = (copy-object (car-source-cfs (cipn-car (initial-node node))))
-          when (and
-                (equal (attr-val cxn :cxn-type) 'holistic)
-                (fcg-apply cxn start-node
+          for car = (if (equal (attr-val cxn :cxn-type) 'holistic)
+                      (fcg-apply cxn start-node
                            (direction (cip node))
                            :configuration (configuration cxn-inventory)
-                           :cxn-inventory cxn-inventory))
-          collect it)))
+                           :cxn-inventory cxn-inventory)
+                      nil)
+          when car
+          collect car)))
 
-(defun find-optimal-coverage-cxns (matching-holistic-cxns node)
-  "make hypotetical cars, return the one with highest coverage" nil)
+(defun find-optimal-coverage-cars (matching-holistic-cars node)
+       "make hypotetical cars, return the one with highest coverage"
+       (let* ((cars (multiple-value-list (make-hypothetical-car matching-holistic-cars node)))
+              (applied-cars (first cars))
+              (unapplied-cars (second cars))
+       )
+         applied-cars))
 
-(defun make-hypothetical-car (candidate-cxns node)
-  "try to apply all cxns return the construction application result, its coverage and the non matching cxns, everything after the no-match needs to be retried in a next iteration" nil)
+
+(defun make-hypothetical-car (matching-holistic-cars node)
+  "try to apply all cxns return the construction application result, its coverage and the non matching cxns, everything after the no-match needs to be retried in a next iteration"
+  (if (= (length matching-holistic-cars) 1)
+    matching-holistic-cars
+    (loop with rest-cars = (rest matching-holistic-cars)
+          with applied-cars = (list (first matching-holistic-cars))
+          with unapplied-cars = nil
+          with cxn-inventory = (construction-inventory node)
+          with start-node = (car-resulting-cfs (first (first matching-holistic-cars)))
+          for car in rest-cars
+          for cxn = (car-applied-cxn (first car))
+          for new-car = (fcg-apply cxn start-node
+                             (direction (cip node))
+                             :configuration (configuration cxn-inventory)
+                             :cxn-inventory cxn-inventory)
+          do (if new-car
+               (progn
+                 (push new-car applied-cars)
+                 (setf start-node (car-resulting-cfs (first new-car)))
+                 )
+               (push car unapplied-cars))
+               ; there was some conflict between cxns, handle it!
+          
+          finally return (values applied-cars unapplied-cars)
+                 
+    )))
 
 (defun find-matching-holistic-cxns (cxn-inventory var-form gold-standard-meaning utterance)
   "return all holistic cxns that can apply by checking whether they are a subset of the observed form and meaning"

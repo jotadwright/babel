@@ -36,46 +36,51 @@
 (defun create-item-based-cxn-from-partial-holistic-analysis (problem node)
   "Creates item-based construction around matching holistic constructions"
   (let* ((cxn-inventory (construction-inventory node))
+         (original-cxn-set (original-cxn-set cxn-inventory))
          (utterance (random-elt (get-data problem :utterances)))
-         (matching-holistic-cxns (find-all-matching-cxns-for-node cxn-inventory node))) ; find all holistic cxns - what if it can apply twice?, make testcase!
-         (when matching-holistic-cxns
-           (let* (
-                  (optimal-coverage-cxns (find-optimal-coverage-cxns matching-holistic-cxns node)) ; eliminate overlaps and take the combination of cxns with the highest coverage
-         (ordered-holistic-cxns (sort-cxns-by-form-string optimal-coverage-cxns utterance)) ;  do we care about the order at all? no! but easier to read the cxn if units are ordered
-         (cxn-name-item-based-cxn nil)
-         (item-based-cxn-form-constraints nil)
-         (item-based-cxn-meaning nil)
-         (holistic-subunit-names nil)
-         (holistic-boundaries nil)
-         (holistic-args nil)
-         (categorial-links nil)
-         (holistic-cxn-subunit-blocks
-          (multiple-value-list (subunit-blocks-for-holistic-cxns holistic-subunit-names holistic-boundaries holistic-args categorial-links)))
-         (holistic-cxn-conditional-units
-          (first holistic-cxn-subunit-blocks))
-         (holistic-cxn-contributing-units
-          (second holistic-cxn-subunit-blocks))
-         (item-based-cxn (second (multiple-value-list (eval
-                                                       `(def-fcg-cxn ,cxn-name-item-based-cxn
-                                                                     ((?item-based-unit
-                                                                       (syn-cat (phrase-type item-based))
-                                                                       (subunits ,holistic-subunit-names))
-                                                                      ,@holistic-cxn-contributing-units
-                                                                      <-
-                                                                      (?item-based-unit
-                                                                       (HASH meaning ,item-based-cxn-meaning)
-                                                                       --
-                                                                       (HASH form ,item-based-cxn-form-constraints))
-                                                                      ,@holistic-cxn-conditional-units)
-                                                                     :attributes (:cxn-type item-based
-                                                                                  :repair holistic->item-based
-                                                                                  :meaning ,(loop for predicate in item-based-cxn-meaning
-                                                                                                  unless (or
-                                                                                                          (equal (first predicate) 'get-context)
-                                                                                                          (equal (first predicate) 'bind))
-                                                                                                  return (first predicate))
-                                                                                  :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))              
-                                                                     :cxn-inventory ,(copy-object cxn-inventory)))))))))) nil)
+         (matching-holistic-cxns (find-all-matching-cxn-cars-for-node cxn-inventory node)))
+    (when matching-holistic-cxns
+      (let* (
+             (optimal-coverage-cars (find-optimal-coverage-cars matching-holistic-cxns node))
+         ;(ordered-holistic-cxns (sort-cxns-by-form-string optimal-coverage-cxns utterance)) ;  do we care about the order at all? no! but easier to read the cxn if units are ordered
+             (car-res-cfs (car-resulting-cfs (first (first optimal-coverage-cars))))
+             (resulting-left-pole-structure (left-pole-structure car-res-cfs))
+             (resulting-root (get-root resulting-left-pole-structure))
+             (resulting-units (remove resulting-root resulting-left-pole-structure))
+             (item-based-cxn-form-constraints (unit-feature-value resulting-root 'form))
+             (item-based-cxn-meaning nil)
+             (cxn-name-item-based-cxn (make-cxn-name item-based-cxn-form-constraints original-cxn-set :add-numeric-tail t))
+             (holistic-subunit-names nil)
+             (holistic-boundaries nil)
+             (holistic-args nil)
+             (categorial-links nil)
+             (holistic-cxn-subunit-blocks
+              (multiple-value-list (subunit-blocks-for-holistic-cxns holistic-subunit-names holistic-boundaries holistic-args categorial-links)))
+             (holistic-cxn-conditional-units
+              (first holistic-cxn-subunit-blocks))
+             (holistic-cxn-contributing-units
+              (second holistic-cxn-subunit-blocks))
+             (item-based-cxn (second (multiple-value-list (eval
+                                                           `(def-fcg-cxn ,cxn-name-item-based-cxn
+                                                                         ((?item-based-unit
+                                                                           (syn-cat (phrase-type item-based))
+                                                                           (subunits ,holistic-subunit-names))
+                                                                          ,@holistic-cxn-contributing-units
+                                                                          <-
+                                                                          (?item-based-unit
+                                                                           (HASH meaning ,item-based-cxn-meaning)
+                                                                           --
+                                                                           (HASH form ,item-based-cxn-form-constraints))
+                                                                          ,@holistic-cxn-conditional-units)
+                                                                         :attributes (:cxn-type item-based
+                                                                                      :repair holistic->item-based
+                                                                                      :meaning ,(loop for predicate in item-based-cxn-meaning
+                                                                                                      unless (or
+                                                                                                              (equal (first predicate) 'get-context)
+                                                                                                              (equal (first predicate) 'bind))
+                                                                                                      return (first predicate))
+                                                                                      :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))              
+                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))))) nil)
 
 
 #|
