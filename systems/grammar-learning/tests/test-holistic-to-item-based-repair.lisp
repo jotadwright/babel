@@ -1,6 +1,6 @@
 (in-package :grammar-learning)
 
-(defun test-holistic-to-item-based-from-substitution-comprehension ()
+(deftest test-holistic-to-item-based-from-substitution-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The tiny gray object is what shape?"
@@ -40,7 +40,7 @@
                                        (bind size-category ?size-4 large)
                                        (query ?target-4 ?target-object-1 ?attribute-4))))))))
 
-(defun test-holistic-to-item-based-from-double-substitution-comprehension ()
+(deftest test-holistic-to-item-based-from-double-substitution-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The tiny gray object is what shape?"
@@ -84,7 +84,7 @@
                                        (filter ?target-77105 ?target-2 ?size-2)
                                        (query ?target-4 ?target-object-1 ?attribute-8))))))))
 
-(defun test-multiple-holistic-to-item-based-repair-comprehension ()
+(deftest test-multiple-holistic-to-item-based-repair-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The gray object is what shape?"

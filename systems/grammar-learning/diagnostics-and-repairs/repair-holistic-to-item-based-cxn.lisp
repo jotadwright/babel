@@ -56,17 +56,25 @@
         if renaming
         collect renaming
         else collect arg))
-
+#|
 (defun get-args-from-car (car)
   (let* ((initial-meaning (unit-feature-value (get-root (left-pole-structure (car-source-cfs car))) 'meaning))
-         (resulting-meaning (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs car))) 'meaning))
-         (missing-meaning (set-difference initial-meaning resulting-meaning :test #'equal)))
-    (extract-args-from-irl-network missing-meaning)))
+         (holistic-meaning (unit-feature-value (first (left-pole-structure (car-resulting-cfs car))) 'meaning))
+         (missing-meaning (set-difference initial-meaning holistic-meaning :test #'equal)))
+    (extract-args-from-irl-network holistic-meaning)))
+|#
+(defun get-subtracted-meaning-from-car (car gold-standard-meaning)
+  (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
+         (subtracted-meaning (first (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
+    subtracted-meaning))
+
 
 (defun create-item-based-cxn-from-partial-holistic-analysis (problem node)
   "Creates item-based construction around matching holistic constructions"
   (let* ((cxn-inventory (construction-inventory node))
          (original-cxn-set (original-cxn-set cxn-inventory))
+         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (matching-holistic-cxns (find-all-matching-cxn-cars-for-node cxn-inventory node)))
     (when matching-holistic-cxns
       (let* (
@@ -78,7 +86,7 @@
              (resulting-root (get-root resulting-left-pole-structure))
              (resulting-units (remove resulting-root resulting-left-pole-structure))
              (item-based-cxn-form-constraints (unit-feature-value resulting-root 'form))
-             (item-based-cxn-meaning (unit-feature-value resulting-root 'meaning))
+             
              (chunk-item-based-cxn-form-constraints (loop with item-based-fc = item-based-cxn-form-constraints
                                                      for unit in resulting-units
                                                      for fc = (unit-feature-value unit 'form)
@@ -96,13 +104,15 @@
                                                  for holistic-cxn-unit-name = (unit-ify (make-cxn-name form-constraints original-cxn-set :add-cxn-suffix nil))
                                                  for string-var = (first (get-boundary-units form-constraints))
                                                  for car = (get-car-for-unit unit optimal-coverage-cars)
-                                                 for args = (get-args-from-car car)
+                                                 for subtracted-meaning = (get-subtracted-meaning-from-car car gold-standard-meaning)
+                                                 for args = (extract-args-from-irl-network subtracted-meaning)
                                                  for boundaries = (unit-feature-value unit 'boundaries)
                                                  for leftmost-unit-holistic-cxn = (second (first boundaries))
                                                  for rightmost-unit-holistic-cxn = (second (second boundaries))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
+                                                 collect subtracted-meaning into subtracted-meanings
                                                  collect categorial-link into categorial-links
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
                                                  collect `(,holistic-cxn-unit-name
@@ -114,7 +124,7 @@
                                                             (left ,leftmost-unit-holistic-cxn)
                                                             (right ,rightmost-unit-holistic-cxn))
                                                            ) into conditional-units
-                                                 finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links)))))
+                                                 finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links subtracted-meanings)))))
                                                 
                                                 
               
@@ -125,7 +135,11 @@
              (holistic-subunit-names
               (third holistic-cxn-subunit-blocks))
              (cat-links-to-add (fourth holistic-cxn-subunit-blocks))
-             
+             (subtracted-meanings (fifth holistic-cxn-subunit-blocks))
+             (item-based-cxn-meaning (loop with item-based-meaning = (copy-object gold-standard-meaning)
+                                           for network in subtracted-meanings
+                                           do (setf item-based-meaning (set-difference item-based-meaning network :test #'equal))
+                                           finally return item-based-meaning))
                                                                          
              (item-based-cxn (second (multiple-value-list (eval
                                                            `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
