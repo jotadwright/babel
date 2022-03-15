@@ -167,7 +167,7 @@
                (HASH form ((string ?baker-word  "Bäcker"))))))
 
 
-#|(def-fcg-cxn Frau-cxn
+(def-fcg-cxn Frau-cxn
              ((?woman-word
                (referent (?x))                             ;set of values
                (syn-cat (lex-class noun)                   ;sure nominative and masculine
@@ -642,11 +642,7 @@
               (?auto-word                            
                (HASH meaning ((auto ?x)))                
                --
-               (HASH form ((string ?auto-word  "Wagen"))))))|#
-
-
-
-
+               (HASH form ((string ?auto-word  "Wagen"))))))
 
 
 ;;;;;;;;;;PHRASES
@@ -684,7 +680,7 @@
 
 (formulate-all '((woman x))) ;;;check all possible solutions
 
-(def-fcg-cxn contracted-prepositional-phrase-cxn
+#|(def-fcg-cxn contracted-prepositional-phrase-cxn
              ((?contracted-prep-phrase
                (referent (?x))
                (syn-cat (lex-class contracted-prepositional-phrase)
@@ -710,7 +706,7 @@
               (?contracted-prep-phrase
                --
                (HASH form ((meets ?contracted-preposition ?noun)))
-              )))
+              )))|#
 
 
 

@@ -256,6 +256,7 @@
                    cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
 
 (defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
+  "for slots that hold larger chunks, replace the rightmost boundary of the chunk with the leftmost variable, so that it appears as one slot in the cxn name"
   (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
          (left-boundary (first slot-boundaries))
          (right-boundary (second slot-boundaries)))
@@ -548,55 +549,58 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
+
 (defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
   ;; handles duplicates by default!  return all first cars (not applied to eachother)
   (with-disabled-monitor-notifications
-    (loop for cxn in (constructions cxn-inventory)
-          for start-node = (copy-object (car-source-cfs (cipn-car (initial-node node))))
-          for car = (if (equal (attr-val cxn :cxn-type) 'holistic)
-                      (fcg-apply cxn start-node
-                           (direction (cip node))
-                           :configuration (configuration cxn-inventory)
-                           :cxn-inventory cxn-inventory)
-                      nil)
-          when (= (length car) 1) ;cxns that apply multiple times have length > 1, skip because ambiguous
-          collect (first car))))
+    (let* ((start-node (copy-object (car-source-cfs (cipn-car (initial-node node)))))
+           (start-node-root (get-root (left-pole-structure start-node))))
+      (loop for cxn in (constructions cxn-inventory)
+            for cars = (if (equal (attr-val cxn :cxn-type) 'holistic)
+                         (fcg-apply cxn start-node
+                                    (direction (cip node))
+                                    :configuration (configuration cxn-inventory)
+                                    :cxn-inventory cxn-inventory)
+                         nil)
+            when (and cars
+                      (= 1 (length cars))) ; if not 1, the cxn matches multiple times
+            collect (first cars)))))
 
 (defun find-optimal-coverage-cars (matching-holistic-cars node)
-       "make hypotetical cars, return the one with highest coverage"
-       (let* ((cars (multiple-value-list (make-hypothetical-car matching-holistic-cars node)))
-              (applied-cars (first cars))
-              (unapplied-cars (second cars))
-       )
-         applied-cars))
-
+  "make hypotetical cars, return the one with highest coverage"
+  ; todo make overlapping testcases, retry until no overlap or tried combinations of cxns, return car with best score
+  (let* ((cars (multiple-value-list (make-hypothetical-car matching-holistic-cars node)))
+         (applied-cars (reverse (first cars)))
+         (unapplied-cars (second cars)))
+    applied-cars))
 
 (defun make-hypothetical-car (matching-holistic-cars node)
   "try to apply all cxns return the construction application result, its coverage and the non matching cxns, everything after the no-match needs to be retried in a next iteration"
-  (if (= (length matching-holistic-cars) 1)
-    matching-holistic-cars
-    (loop with rest-cars = (rest matching-holistic-cars)
-          with applied-cars = (list (first matching-holistic-cars))
-          with unapplied-cars = nil
-          with cxn-inventory = (construction-inventory node)
-          with start-node = (car-resulting-cfs (first matching-holistic-cars))
-          for car in rest-cars
-          for cxn = (car-applied-cxn car)
-          for new-car = (fcg-apply cxn start-node
-                             (direction (cip node))
-                             :configuration (configuration cxn-inventory)
-                             :cxn-inventory cxn-inventory)
-          do (if new-car
-               (progn
-                 (push (first new-car) applied-cars)
-                 (setf start-node (car-resulting-cfs (first new-car)))
-                 )
-               (push car unapplied-cars))
+  (with-disabled-monitor-notifications
+    (if (= (length matching-holistic-cars) 1)
+      matching-holistic-cars
+      (loop with rest-cars = (rest matching-holistic-cars)
+            with applied-cars = (list (first matching-holistic-cars))
+            with unapplied-cars = nil
+            with cxn-inventory = (construction-inventory node)
+            with start-node = (car-resulting-cfs (first matching-holistic-cars))
+            for car in rest-cars
+            for cxn = (car-applied-cxn car)
+            for new-car = (fcg-apply cxn start-node
+                                     (direction (cip node))
+                                     :configuration (configuration cxn-inventory)
+                                     :cxn-inventory cxn-inventory)
+            do (if new-car
+                 (progn
+                   (push (first new-car) applied-cars)
+                   (setf start-node (car-resulting-cfs (first new-car)))
+                   )
+                 (push car unapplied-cars))
                ; there was some conflict between cxns, handle it!
           
-          finally return (values applied-cars unapplied-cars)
+            finally return (values applied-cars unapplied-cars)
                  
-    )))
+            ))))
 
 (defun find-matching-holistic-cxns (cxn-inventory var-form gold-standard-meaning utterance)
   "return all holistic cxns that can apply by checking whether they are a subset of the observed form and meaning"
@@ -792,7 +796,30 @@
                
         finally (return (values (set-difference network-1 overlapping-predicates-1)
                                 (set-difference network-2 overlapping-predicates-2)))))
-    
+
+(defun substitute-predicate-bindings (predicate bindings)
+  (loop with frame-bindings = (irl::map-frame-bindings bindings)
+        for elt in predicate
+        for assoc-res = (assoc elt frame-bindings)
+        collect (if assoc-res
+                  (cdr assoc-res)
+                 elt)))
+
+(defun commutative-irl-subset-diff (network-1 network-2)
+  "given two networks where one is a superset of the other, return non-overlapping and overlapping predicates
+   if the shortest is subtracted from the longest"
+  (let* ((longest-network (if (< (length network-1) (length network-2))
+                            network-2
+                            network-1))
+         (shortest-network (if (< (length network-1) (length network-2))
+                             network-1
+                             network-2))            
+         (bindings (first (irl::embedding shortest-network longest-network)))
+         (overlapping-predicates (loop for predicate in shortest-network
+                                       collect (substitute-predicate-bindings predicate bindings)))
+         (non-overlapping-predicates (set-difference longest-network overlapping-predicates :test #'equal)))
+    (values non-overlapping-predicates overlapping-predicates)))
+
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
   (let* ((in-vars (loop for predicate in irl-network
