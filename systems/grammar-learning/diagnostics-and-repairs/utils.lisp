@@ -797,12 +797,13 @@
         finally (return (values (set-difference network-1 overlapping-predicates-1)
                                 (set-difference network-2 overlapping-predicates-2)))))
 
-(defun predicate-matches-bindings (predicate bindings)
+(defun substitute-predicate-bindings (predicate bindings)
   (loop with frame-bindings = (irl::map-frame-bindings bindings)
         for elt in predicate
-        always (if (variable-p elt)
-                 (rassoc elt frame-bindings)
-                 t)))
+        for assoc-res = (assoc elt frame-bindings)
+        collect (if assoc-res
+                  (cdr assoc-res)
+                 elt)))
 
 (defun commutative-irl-subset-diff (network-1 network-2)
   "given two networks where one is a superset of the other, return non-overlapping and overlapping predicates
@@ -814,15 +815,10 @@
                              network-1
                              network-2))            
          (bindings (first (irl::embedding shortest-network longest-network)))
-         (diff (multiple-value-list (if bindings
-                     (loop for predicate in longest-network
-                                          if (predicate-matches-bindings predicate bindings)
-                                          collect predicate into non-overlapping-predicates
-                                          else
-                                          collect predicate into overlapping-predicates
-                                          finally return (values non-overlapping-predicates overlapping-predicates))
-                     (values nil nil)))))                                                            
-    (values (first diff) (second diff))))
+         (overlapping-predicates (loop for predicate in shortest-network
+                                       collect (substitute-predicate-bindings predicate bindings)))
+         (non-overlapping-predicates (set-difference longest-network overlapping-predicates :test #'equal)))
+    (values non-overlapping-predicates overlapping-predicates)))
 
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"

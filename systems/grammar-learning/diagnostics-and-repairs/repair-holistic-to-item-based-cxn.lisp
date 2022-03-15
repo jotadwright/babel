@@ -47,25 +47,9 @@
         when (equal res-unit unit)
         return car))
 
-
-(defun look-up-args-bindings-in-car (args car)
-  (loop with second-merge-bindings = (car-second-merge-bindings car)
-        for arg in args
-        for binding = (car (rassoc arg second-merge-bindings))
-        for renaming = (car (rassoc binding (renamings (car-applied-cxn car))))
-        if renaming
-        collect renaming
-        else collect arg))
-#|
-(defun get-args-from-car (car)
-  (let* ((initial-meaning (unit-feature-value (get-root (left-pole-structure (car-source-cfs car))) 'meaning))
-         (holistic-meaning (unit-feature-value (first (left-pole-structure (car-resulting-cfs car))) 'meaning))
-         (missing-meaning (set-difference initial-meaning holistic-meaning :test #'equal)))
-    (extract-args-from-irl-network holistic-meaning)))
-|#
 (defun get-subtracted-meaning-from-car (car gold-standard-meaning)
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
-         (subtracted-meaning (first (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
+         (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
     subtracted-meaning))
 
 
@@ -87,10 +71,10 @@
              (item-based-cxn-form-constraints (unit-feature-value resulting-root 'form))
              ; create function for this with a descriptive name
              (chunk-item-based-cxn-form-constraints (loop with item-based-fc = item-based-cxn-form-constraints
-                                                     for unit in resulting-units
-                                                     for fc = (unit-feature-value unit 'form)
-                                                     do (setf item-based-fc (substitute-slot-meets-constraints fc item-based-fc))
-                                                     finally return item-based-fc))
+                                                          for unit in resulting-units
+                                                          for fc = (unit-feature-value unit 'form)
+                                                          do (setf item-based-fc (substitute-slot-meets-constraints fc item-based-fc))
+                                                          finally return item-based-fc))
              
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
              (cxn-name-item-based-cxn (make-cxn-name
@@ -124,9 +108,6 @@
                                                             (right ,rightmost-unit-holistic-cxn))
                                                            ) into conditional-units
                                                  finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links subtracted-meanings)))))
-                                                
-                                                
-              
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -164,141 +145,10 @@
              (cxns-to-apply (append (mapcar #'original-cxn (mapcar #'car-applied-cxn optimal-coverage-cars)) (list item-based-cxn)))
              (cxns-to-consolidate (list item-based-cxn)))
         (add-element (make-html item-based-cxn))
+        
         (list
-           cxns-to-apply
-           cat-links-to-add
-           cxns-to-consolidate
-           )
+         cxns-to-apply
+         cat-links-to-add
+         cxns-to-consolidate)
         ))))
 
-#|
-(defun create-item-based-cxn-from-holistic (problem node)
-  "Creates item-based construction and holistic constructions
-based on existing construction with sufficient overlap."
-  (let* ((processing-cxn-inventory (original-cxn-set (construction-inventory node)))
-         (utterance (random-elt (get-data problem :utterances)))
-         (var-form
-              (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
-         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
-                                                                   meaning-representation-formalism))
-         (observed-form (extract-forms (left-pole-structure (car-source-cfs (cipn-car (initial-node node))))))
-         (matching-holistic-cxns (find-matching-holistic-cxns cxn-inventory var-form gold-standard-meaning utterance)))
-         
-    ;; we need at least one matching lex cxn
-    (when (< 0 (length matching-holistic-cxns))
-      (let* ((subunit-names-and-non-overlapping-form
-              (multiple-value-list (diff-non-overlapping-form var-form matching-holistic-cxns)))
-             (boundaries
-              (loop for name in (first subunit-names-and-non-overlapping-form)
-                    collect (list name name)))
-              ;(list (first (first subunit-names-and-non-overlapping-form)) (first (first subunit-names-and-non-overlapping-form)))) ; remove this!
-             (subunit-names
-              (loop for name in (first subunit-names-and-non-overlapping-form)
-                    collect (unit-ify name))
-              )
-             
-             (non-overlapping-form
-              (second subunit-names-and-non-overlapping-form))
-             (args-and-non-overlapping-meaning
-              (multiple-value-list (diff-non-overlapping-meaning gold-standard-meaning matching-holistic-cxns)))
-             (args
-              (first args-and-non-overlapping-meaning))
-             (non-overlapping-meaning
-              (second args-and-non-overlapping-meaning))
-             ;(existing-item-based-cxn
-             ;     (find-cxn-by-type-form-and-meaning 'item-based
-             ;                                        non-overlapping-form
-             ;                                        non-overlapping-meaning
-             ;                                        cxn-inventory))
-             (cxn-name-item-based-cxn
-              (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
-             (rendered-cxn-name-list
-              (make-cxn-placeholder-name non-overlapping-form cxn-inventory))
-             (placeholder-list
-              (extract-placeholder-var-list rendered-cxn-name-list))
-             (th-links
-              (create-type-hierarchy-links matching-holistic-cxns (format nil "~{~a~^-~}" rendered-cxn-name-list) placeholder-list))
-             (holistic-cxn-subunit-blocks
-              (multiple-value-list (subunit-blocks-for-holistic-cxns subunit-names boundaries args th-links)))
-             (holistic-cxn-conditional-units
-              (first holistic-cxn-subunit-blocks))
-             (holistic-cxn-contributing-units
-              (second holistic-cxn-subunit-blocks))
-             (item-based-cxn (second (multiple-value-list (eval
-                                                           `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
-                                                                         ((?item-based-unit
-                                                                           (syn-cat (phrase-type item-based))
-                                                                           (subunits ,subunit-names))
-                                                                          ,@holistic-cxn-contributing-units
-                                                                          <-
-                                                                          (?item-based-unit
-                                                                           (HASH meaning ,non-overlapping-meaning)
-                                                                           --
-                                                                           (HASH form ,non-overlapping-form))
-                                                                          ,@holistic-cxn-conditional-units)
-                                                                         :attributes (:cxn-type item-based
-                                                                                      :repair holistic->item-based
-                                                                                      :meaning ,(loop for predicate in non-overlapping-meaning
-                                                                                         unless (or
-                                                                                                 (equal (first predicate) 'get-context)
-                                                                                                 (equal (first predicate) 'bind))
-                                                                                         return (first predicate))
-                                                                         :string ,(third (find 'string non-overlapping-form :key #'first)))
-                                                                                      
-                                                                         :cxn-inventory ,(copy-object cxn-inventory)))))))
-        (add-element (make-html item-based-cxn))
-        (add-element (make-html (first matching-holistic-cxns)))
-        (list item-based-cxn matching-holistic-cxns th-links)))))
-
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair repair-holistic->item-based-cxn) (problem problem) (node cip-node) &key &allow-other-keys) 
-  "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
-  (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
-  (with-disabled-monitor-notifications
-    (let* ((item-based-cxn (get-processing-cxn (first (restart-data fix))))
-           (holistic-cxns (map 'list #'get-processing-cxn (second (restart-data fix))))
-           (th-links (third (restart-data fix)))
-           ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
-           (orig-type-hierarchy (categorial-network (construction-inventory node)))
-           (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
-           (th-flat-list nil)
-           (th (loop for th-link in th-links
-                     do (add-categories (list (car th-link) (cdr th-link)) temp-type-hierarchy :recompute-transitive-closure nil)
-                     (add-link (car th-link) (cdr th-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
-                     (setf th-flat-list (append th-flat-list (list th-link)))
-                     finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
-           (holistic-nodes (loop with last-node = (initial-node node)
-                            for holistic-cxn in holistic-cxns
-                            do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply holistic-cxn (if (initial-node-p last-node)
-                                                                                                              (car-source-cfs (cipn-car (initial-node last-node)))
-                                                                                                              (car-resulting-cfs (cipn-car last-node)))
-                                                                                               (direction (cip node))
-                                                                                                      :configuration (configuration (construction-inventory node))
-                                                                                                      :cxn-inventory (construction-inventory node)))))
-                            collect last-node))
-           (last-applied-node (last-elt holistic-nodes))
-           
-           (new-node-item-based (fcg::cip-add-child last-applied-node (first (fcg-apply item-based-cxn (car-resulting-cfs (cipn-car last-applied-node)) (direction (cip node))
-                                                                                   :configuration (configuration (construction-inventory node))
-                                                                                   :cxn-inventory (construction-inventory node)))))
-           
-           
-
-           )
-      ;; ignore
-      (declare (ignore th))
-      ;; Reset type hierarchy
-      (set-categorial-network (construction-inventory node) orig-type-hierarchy)
-      ;; Add cxns to blackboard of second new node
-      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-cxns (append (second (restart-data fix)) (list (original-cxn item-based-cxn))))
-      (set-data (car-resulting-cfs  (cipn-car new-node-item-based)) :fix-categorial-links th-flat-list)
-      ;; set cxn-supplier to second new node
-      (setf (cxn-supplier new-node-item-based) (cxn-supplier node))
-      ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses new-node-item-based))
-      (push 'added-by-repair (statuses new-node-item-based))
-      ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block
-      (cip-enqueue new-node-item-based (cip node) (get-configuration node :queue-mode)))))
-
-
-|#
