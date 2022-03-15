@@ -556,10 +556,11 @@
 
 
 (defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
-  ;; handles duplicates by default!  return all first cars (not applied to eachother)
+  ;; handles duplicates by skipping them.  return all first cars (not applied to eachother)
   (with-disabled-monitor-notifications
     (let* ((start-node (copy-object (car-source-cfs (cipn-car (initial-node node)))))
-           (start-node-root (get-root (left-pole-structure start-node))))
+           (start-node-root (get-root (left-pole-structure start-node)))
+           (root-meaning (unit-feature-value start-node-root 'meaning)))
       (loop for cxn in (constructions cxn-inventory)
             for cars = (if (equal (attr-val cxn :cxn-type) 'holistic)
                          (fcg-apply cxn start-node
@@ -568,6 +569,8 @@
                                     :cxn-inventory cxn-inventory)
                          nil)
             when (and cars
+                      (commutative-irl-subset-diff root-meaning
+                                                   (extract-meaning-predicates (original-cxn (car-applied-cxn (first cars)))))
                       (= 1 (length cars))) ; if not 1, the cxn matches multiple times
             collect (first cars)))))
 
@@ -820,8 +823,10 @@
                              network-1
                              network-2))            
          (bindings (first (irl::embedding shortest-network longest-network)))
-         (overlapping-predicates (loop for predicate in shortest-network
-                                       collect (substitute-predicate-bindings predicate bindings)))
+         (overlapping-predicates (if bindings
+                                   (loop for predicate in shortest-network
+                                       collect (substitute-predicate-bindings predicate bindings))
+                                   nil))
          (non-overlapping-predicates (set-difference longest-network overlapping-predicates :test #'equal)))
     (values non-overlapping-predicates overlapping-predicates)))
 

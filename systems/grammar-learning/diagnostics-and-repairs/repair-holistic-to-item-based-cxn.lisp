@@ -144,7 +144,7 @@
                                                                          :cxn-inventory ,(copy-object original-cxn-set))))))
              (cxns-to-apply (append (mapcar #'original-cxn (mapcar #'car-applied-cxn optimal-coverage-cars)) (list item-based-cxn)))
              (cxns-to-consolidate (list item-based-cxn)))
-        (add-element (make-html item-based-cxn))
+        ;(add-element (make-html item-based-cxn))
         
         (list
          cxns-to-apply
