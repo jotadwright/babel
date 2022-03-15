@@ -192,10 +192,15 @@
     (make-id (upcase (string-append string "-CXN")))
     (intern (upcase (string-append string "-CXN")))))
 
+(defun replace-initial-question-mark (string)
+  (if (string= (subseq string 0 1) "?")
+    (string-append "-" string)
+    string))
+
 (defun make-lex-class (cat-name &key add-numeric-tail trim-cxn-suffix)
-  (let* ((name-string (if (equal (type-of cat-name) 'SYMBOL)
+  (let* ((name-string (replace-initial-question-mark (if (equal (type-of cat-name) 'SYMBOL)
                        (string-downcase (symbol-name cat-name))
-                       (string-downcase cat-name)))
+                       (string-downcase cat-name))))
         (cat-name (if trim-cxn-suffix (fcg::replace-all name-string "-cxn" "")
                     name-string)))
   (intern
