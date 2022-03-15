@@ -555,8 +555,6 @@
   (with-disabled-monitor-notifications
     (let* ((start-node (copy-object (car-source-cfs (cipn-car (initial-node node)))))
            (start-node-root (get-root (left-pole-structure start-node))))
-      (setf (unit-feature-value start-node-root 'meaning)
-            (random-elt (get-data start-node :meanings)))
       (loop for cxn in (constructions cxn-inventory)
             for cars = (if (equal (attr-val cxn :cxn-type) 'holistic)
                          (fcg-apply cxn start-node
@@ -564,7 +562,8 @@
                                     :configuration (configuration cxn-inventory)
                                     :cxn-inventory cxn-inventory)
                          nil)
-            when cars
+            when (and cars
+                      (= 1 (length cars))) ; if not 1, the cxn matches multiple times
             collect (first cars)))))
 
 (defun find-optimal-coverage-cars (matching-holistic-cars node)

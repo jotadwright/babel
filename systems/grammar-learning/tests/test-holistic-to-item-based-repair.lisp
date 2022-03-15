@@ -134,7 +134,7 @@
                                        (bind size-category ?size-4 large)
                                        (query ?target-4 ?target-object-1 ?attribute-2))))))))
 
-(defun test-holistic-to-item-based-duplicates-comprehension ()
+(deftest test-holistic-to-item-based-duplicates-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "Are any green cubes visible?"
@@ -153,7 +153,7 @@
                                        (filter ?target-1 ?source-1 ?shape-2)
                                        (bind shape-category ?shape-2 sphere)
                                        (filter ?target-2 ?target-1 ?color-8)))
-    (test-repair-status 'repair-holistic->item-based-cxn
+    (test-repair-status 'nothing->holophrase
                         (second (multiple-value-list
                                  (comprehend "Are there fewer matte cubes than large green shiny cubes?"
               :cxn-inventory cxn-inventory

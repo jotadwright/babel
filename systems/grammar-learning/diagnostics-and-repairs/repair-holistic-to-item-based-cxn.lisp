@@ -79,14 +79,13 @@
     (when matching-holistic-cxns
       (let* (
              (optimal-coverage-cars (find-optimal-coverage-cars matching-holistic-cxns node))
-         ;(ordered-holistic-cxns (sort-cxns-by-form-string optimal-coverage-cxns utterance)) ;  do we care about the order at all? no! but easier to read the cxn if units are ordered
              (last-car (last-elt optimal-coverage-cars))
              (car-res-cfs (car-resulting-cfs last-car))
              (resulting-left-pole-structure (left-pole-structure car-res-cfs))
              (resulting-root (get-root resulting-left-pole-structure))
              (resulting-units (remove resulting-root resulting-left-pole-structure))
              (item-based-cxn-form-constraints (unit-feature-value resulting-root 'form))
-             
+             ; create function for this with a descriptive name
              (chunk-item-based-cxn-form-constraints (loop with item-based-fc = item-based-cxn-form-constraints
                                                      for unit in resulting-units
                                                      for fc = (unit-feature-value unit 'form)
