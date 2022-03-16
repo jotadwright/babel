@@ -1,6 +1,6 @@
 (in-package :grammar-learning)
-
-(deftest test-categorial-links-repair-comprehension ()
+;(activate-monitor trace-fcg)
+(defun test-categorial-links-repair-comprehension ()
          (let* ((experiment (set-up-cxn-inventory-and-repairs))
                 (cxn-inventory (grammar (first (agents experiment)))))
            (comprehend "What is the size of the red cube?"
@@ -33,7 +33,7 @@
                                                 (filter ?target-1 ?source-1 ?shape-2)
                                                 (bind color-category ?color-16 yellow)
                                                 (query ?target-4 ?target-object-1 ?attribute-6)))
-           (comprehend "What is the size of the green sphere?"
+           (comprehend "What size is the green sphere?"
                        :cxn-inventory cxn-inventory
                        :gold-standard-meaning '((get-context ?source-1)
                                                 (filter ?target-2 ?target-1 ?color-8)
@@ -44,7 +44,7 @@
                                                 (bind color-category ?color-8 green)
                                                 (query ?target-4 ?target-object-1 ?attribute-6)))
     
-           (comprehend "What is the size of the purple sphere?"
+           (comprehend "What size is the purple sphere?"
                        :cxn-inventory cxn-inventory
                        :gold-standard-meaning '((get-context ?source-1)
                                                 (filter ?target-2 ?target-1 ?color-8)
@@ -66,7 +66,7 @@
                                                 (query ?target-4 ?target-object-1 ?attribute-6)))
            (test-repair-status 'add-categorial-links
                                (second (multiple-value-list
-                                        (comprehend "What is the size of the yellow sphere?"
+                                        (comprehend "What size is the yellow sphere?"
                                                     :cxn-inventory cxn-inventory
                                                     :gold-standard-meaning '((get-context ?source-1)
                                                                              (filter ?target-2 ?target-1 ?color-8)
@@ -78,7 +78,13 @@
                                                                              (query ?target-4 ?target-object-1 ?attribute-6))))))))
 
 (defun run-tests ()
-  (test-categorial-links-repair-comprehension))
+  (test-categorial-links-repair-comprehension)
+  )
 
 ;(run-tests)
+; issues:
+; 1. why aren't the equivalent 'what is the size of the x cube' cxns recognised as existing in the substitution repair?
+; 2. NIL is not of type HASH-TABLE when accessing slot SYSTEM::GETHASH-FN.
+; - in method connected-categories-p
+; -> we didn't calculate the transitive closure
 

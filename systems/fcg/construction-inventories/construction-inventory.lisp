@@ -103,7 +103,7 @@ is overwritten."
   (set-configuration construction-inventory
                      :use-meta-layer t :replace nil)
   (set-configuration construction-inventory
-                      :consolidate-repairs nil :replace nil)
+                     :consolidate-repairs nil :replace nil)
   (set-configuration construction-inventory
                      :form-predicates'(meets precedes fields first) :replace nil)
   (set-configuration construction-inventory 

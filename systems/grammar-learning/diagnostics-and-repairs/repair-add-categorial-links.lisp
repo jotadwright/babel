@@ -36,14 +36,14 @@
                      :restart-data cxns-and-categorial-links))))
 
 (defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :th-connected-mode :path-exists)
-  (set-configuration cxn-inventory :update-th-links nil)
+  (set-configuration cxn-inventory :category-linking-mode :path-exists)
+  (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :th-connected-mode :neighbours)
-  (set-configuration cxn-inventory :update-th-links t)
+  (set-configuration cxn-inventory :category-linking-mode :neighbours)
+  (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
   (set-configuration cxn-inventory :consolidate-repairs t))
 
