@@ -179,46 +179,66 @@
         (answer->str target-value)))))
 
 ;; Function that adds frequencies for primitives to a hash table (for error analysis)
-(defun get-primitives (irl-program hash-table)
+(defun adjust-primitive-errors (irl-program hash-table)
   (let ((unique-predicates
          (remove-duplicates (mapcar #'first irl-program))))
     (loop for predicate in unique-predicates
           do
           (case predicate
-            ('count (incf (gethash 'count hash-table 0)))
-            ('equal (incf (gethash 'equal hash-table 0)))
-            ('equal-integer (incf (gethash 'equal-integer hash-table 0)))
-            ('less-than (incf (gethash 'less-than hash-table 0)))
-            ('greater-than (incf (gethash 'greater-than hash-table 0)))
-            ('exist (incf (gethash 'exist hash-table 0)))
-            ('filter (incf (gethash 'filter hash-table 0)))
-            ('intersect (incf (gethash 'intersect hash-table 0)))
-            ('query (incf (gethash 'query hash-table 0)))
-            ('relate (incf (gethash 'relate hash-table 0)))
-            ('same (incf (gethash 'same hash-table 0)))
-            ('union (incf (gethash 'union hash-table 0)))
-            ('unique (incf (gethash 'unique hash-table 0)))))))
+            ('count! (incf (car (gethash 'count! hash-table))))
+            ('equal? (incf (car (gethash 'equal? hash-table))))
+            ('equal-integer (incf (car (gethash 'equal-integer hash-table))))
+            ('less-than (incf (car (gethash 'less-than hash-table))))
+            ('greater-than (incf (car (gethash 'greater-than hash-table))))
+            ('exist (incf (car (gethash 'exist hash-table))))
+            ('filter (incf (car (gethash 'filter hash-table))))
+            ('intersect (incf (car (gethash 'intersect hash-table))))
+            ('query (incf (car (gethash 'query hash-table))))
+            ('relate (incf (car (gethash 'relate hash-table))))
+            ('same (incf (car (gethash 'same hash-table))))
+            ('union! (incf (car (gethash 'union! hash-table))))
+            ('unique (incf (car (gethash 'unique hash-table))))))))
+
+(defun adjust-primitive-frequencies (irl-program hash-table)
+  (let ((unique-predicates
+         (remove-duplicates (mapcar #'first irl-program))))
+    (loop for predicate in unique-predicates
+          do
+          (case predicate
+            ('count! (incf (cdr (gethash 'count! hash-table))))
+            ('equal? (incf (cdr (gethash 'equal? hash-table))))
+            ('equal-integer (incf (cdr (gethash 'equal-integer hash-table))))
+            ('less-than (incf (cdr (gethash 'less-than hash-table))))
+            ('greater-than (incf (cdr (gethash 'greater-than hash-table))))
+            ('exist (incf (cdr (gethash 'exist hash-table))))
+            ('filter (incf (cdr (gethash 'filter hash-table))))
+            ('intersect (incf (cdr (gethash 'intersect hash-table))))
+            ('query (incf (cdr (gethash 'query hash-table))))
+            ('relate (incf (cdr (gethash 'relate hash-table))))
+            ('same (incf (cdr (gethash 'same hash-table))))
+            ('union! (incf (cdr (gethash 'union! hash-table))))
+            ('unique (incf (cdr (gethash 'unique hash-table))))))))
 
 (defun compute-error-rate (hash-table)
-  (with-open-file (stream (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                                          :name "primitives-errors" :type "txt")
+  (let ((logfile (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
+                                          :name "primitives-errors" :type "txt")))
+    (ensure-directories-exist logfile)
+  (with-open-file (stream logfile
                           :direction :output
                           :if-does-not-exist :create
                           :if-exists :overwrite)
       (loop for key being the hash-keys of hash-table
-        using (hash-value value)
-        if (not (eql key 'nr-of-questions))
-        do (progn
-             (write-line
-              (format nil "The error rate for ~a is ~,1f" key (/ value (gethash 'nr-of-questions hash-table))) stream)
-          (force-output stream)))))
+            if (not (eql 0 (cdr (gethash key hash-table))))
+            do (progn
+                 (write-line
+                  (format nil "The error rate for ~a is ~,2f" key (/ (car (gethash key hash-table)) (cdr (gethash key hash-table)))) stream)
+                  (force-output stream))
+            else do (progn
+                 (write-line
+                  (format nil "The error rate for ~a is ~,2f" key  0 ) stream)
+                  (force-output stream))))))
 
-
-(defun compute-accuracy (logfile clevr-world nr-of-scenes nr-of-questions hash-table)
-  (ensure-directories-exist logfile)
-    (with-open-file (log logfile :direction :output
-                         :if-does-not-exist :create
-                         :if-exists :overwrite)
+(defun compute-accuracy (log clevr-world nr-of-scenes nr-of-questions hash-table)
     (average
      (remove nil
              (loop with processed-questions = 0
@@ -248,22 +268,21 @@
                                                       (upcase computed-answer)))
                                 collect 1 into scene-accuracy
                                 and do (progn
+                                         (adjust-primitive-frequencies irl-program hash-table)
                                          (write-line
                                           (format nil "~a,~a,~a,~a,1" scene-name q answer computed-answer) log)
                                          (force-output log))
                                 else collect 0 into scene-accuracy
                                 and do (progn
+                                         (adjust-primitive-frequencies irl-program hash-table)
                                          (write-line
                                           (format nil "~a,~a,~a,~a,0" scene-name q answer computed-answer) log)
                                          (force-output log)
-                                         (get-primitives irl-program hash-table))
+                                         (adjust-primitive-errors irl-program hash-table))
                                 finally return scene-accuracy)
                    into accuracy
                    do (incf processed-scenes)
-                   finally (progn
-                             (setf (gethash 'nr-of-questions hash-table) processed-questions)
-                             (compute-error-rate hash-table)
-                             (return accuracy)))))))
+                   finally (return accuracy)))))
 
 
 
@@ -276,17 +295,37 @@
          (make-instance 'clevr-world
                         :data-sets (list data-split)
                         :load-questions t))
-        (errors-per-primitive
-         (setq errors-per-primitive (make-hash-table)))
+        (accuracy 0)
+        (errors-per-primitive (make-hash-table))
         (logfile
          (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
                          :name "mwm-evaluation" :type "txt")))
-    (compute-accuracy logfile
+    
+    (setf (gethash 'count! errors-per-primitive) '(0 . 0))
+    (setf (gethash 'equal? errors-per-primitive) '(0 . 0))
+    (setf (gethash 'equal-integer errors-per-primitive) '(0 . 0))
+    (setf (gethash 'less-than errors-per-primitive) '(0 . 0))
+    (setf (gethash 'greater-than errors-per-primitive) '(0 . 0))
+    (setf (gethash 'exist errors-per-primitive) '(0 . 0))
+    (setf (gethash 'filter errors-per-primitive) '(0 . 0))
+    (setf (gethash 'intersect errors-per-primitive) '(0 . 0))
+    (setf (gethash 'query errors-per-primitive) '(0 . 0))
+    (setf (gethash 'relate errors-per-primitive) '(0 . 0))
+    (setf (gethash 'same errors-per-primitive) '(0 . 0))
+    (setf (gethash 'union! errors-per-primitive) '(0 . 0))
+    (setf (gethash 'unique errors-per-primitive) '(0 . 0))
+    
+    (ensure-directories-exist logfile)
+    (with-open-file (log logfile :direction :output
+                         :if-does-not-exist :create
+                         :if-exists :overwrite)
+    (setf accuracy (compute-accuracy log
                       clevr-world
                       nr-of-scenes
                       nr-of-questions
-                      errors-per-primitive)
-    ))
+                      errors-per-primitive)))
+    (compute-error-rate errors-per-primitive)
+    accuracy))
 
 (evaluate-mwm-accuracy "val" :nr-of-scenes 1)
 

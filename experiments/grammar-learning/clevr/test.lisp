@@ -38,6 +38,14 @@
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
+;; full logging except trace-fcg
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
+  (activate-monitor trace-interactions-in-wi))
+
 (progn
   (wi::reset)
   (notify reset-monitors)
@@ -67,7 +75,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  300)
+;(run-series *experiment*  470)
 #|
 
 QUESTIONS

@@ -135,12 +135,36 @@
                      (count! ?count-5 ?target-9845)
                      (count! ?count-6 ?target-9843)
                      (less-than ?target-74 ?count-5 ?count-6)))
+        (network-3 '((get-context ?source-1)
+                     (exist ?target-44 ?target-5444)
+                     (bind size-category ?size-2 small)
+                     (filter ?target-5443 ?target-2 ?color-10)
+                     (bind material-category ?material-4 metal)
+                     (filter ?target-1 ?source-1 ?shape-2)
+                     (bind shape-category ?shape-2 cube)
+                     (filter ?target-2 ?target-1 ?material-4)
+                     (bind color-category ?color-10 brown)
+                     (filter ?target-5444 ?target-5443 ?size-2)))
+        (network-4 '((bind shape-category ?shape-2 cube)
+                     (filter ?target-1 ?source-1 ?shape-2)))
         (result-1-vs-2 (multiple-value-list (commutative-irl-subset-diff network-2 network-1)))
+        (result-3-vs-4 '(((filter ?target-5444 ?target-5443 ?size-2)
+                          (bind color-category ?color-10 brown)
+                          (filter ?target-2 ?target-1 ?material-4)
+                          (bind material-category ?material-4 metal)
+                          (filter ?target-5443 ?target-2 ?color-10)
+                          (bind size-category ?size-2 small)
+                          (exist ?target-44 ?target-5444)
+                          (get-context ?source-1))
+                         ((bind shape-category ?shape-2 cube)
+                          (filter ?target-1 ?source-1 ?shape-2))))
         
         )
 
     (test-equal (multiple-value-list (commutative-irl-subset-diff network-1 network-2))
                 (multiple-value-list (commutative-irl-subset-diff network-2 network-1)))
+    (test-equal (multiple-value-list (commutative-irl-subset-diff network-3 network-4))
+                result-3-vs-4)
                 
     (test-assert (equivalent-irl-programs?
                    (append (first result-1-vs-2)
@@ -207,7 +231,8 @@
                        
     (test-equal (multiple-value-list (extract-vars-from-irl-network network-3)) '(?target-2 ?target-33323 nil))))
 
-;(test-commutative-irl-diff)
+;(test-commutative-irl-subset-diff)
 ;(test-diff-clevr-networks)
 ;(test-extract-args-from-irl-network)
 ;(test-extract-vars-from-irl-network)
+
