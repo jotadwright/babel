@@ -7,7 +7,7 @@
                   (dependents sequence)
                   (footprints set)
                   (case sequence)
-                  (referent set))
+                  )
   :hierarchy-features (constituents dependents)
     :fcg-configurations (
                        (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
@@ -57,7 +57,7 @@
 
 (def-fcg-cxn Mann-cxn
              ((?man-word
-               (referent (?x))                  
+               (referent ?x)                  
                (syn-cat (lex-class noun)         
                         (case ((?nm ?nm - - -)     
                                (?am ?am - - -)      
@@ -75,7 +75,7 @@
 
 (def-fcg-cxn Clown-cxn
              ((?clown-word                        
-               (referent (?x))
+               (referent ?x)
                (syn-cat (lex-class noun)
                         (case ((?nm ?nm - - -)     
                                (?am ?am - - -)      
@@ -91,7 +91,7 @@
 
 (def-fcg-cxn noun-phrase-cxn
              ((?noun-phrase
-               (referent (?x))
+               (referent ?x)
                (syn-cat (lex-class noun-phrase)
                         (case ?case))
                (constituents (?article ?noun))
@@ -105,7 +105,7 @@
                (syn-cat (lex-class article)
                         (case ?case)))
               (?noun
-               (referent (?x))
+               (referent ?x)
                (syn-cat (lex-class noun)
                         (case ?case))
                  
@@ -124,7 +124,7 @@
                (syn-cat (lex-class verb)
                         (tense present)
                         (type transitive))
-               (referent (?s)))  
+               (referent ?s))  
                         
               <-
               (?search-word                           
@@ -137,10 +137,16 @@
              ((?transitive-argument-structure-unit
                (args (?agent-unit ?patient-unit))
               (constituents (?verb-unit ?agent-unit ?patient-unit))
-              ;(boundaries-arg0 (leftmost-unit ?leftmost-agent-unit)
-                          ;(rightmost-unit ?rightmost-agent-unit))
-              ;(boundaries-arg1 (leftmost-unit ?leftmost-patient-unit)
-                          ;(rightmost-unit ?rightmost-patient-unit))
+              (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+              (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
+              (verb ?verb-unit)
+              
              )
               <-
               (?verb-unit
@@ -148,10 +154,15 @@
               (syn-cat (lex-class verb)
                        (type transitive)
                        (tense ?tense))     
-              (referent (?v)))
+              (referent ?v))
               
               (?agent-unit
-               (agent +)
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (?acc - - - -)         
+                               (?gen - - - -)        
+                               (?dat - - - -)
+                               (?s ?m ?f ?n ?p))))
                 --
               (syn-cat (lex-class noun-phrase)
                         (case ((+ ?nm ?nf ?nn ?np) 
@@ -159,12 +170,17 @@
                                (?gen - - - -)        
                                (?dat - - - -)
                                (?s ?m ?f ?n ?p))))
-              (referent (?arg0))
+              (referent ?arg0)
               (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit)))
               
               (?patient-unit
-               (patient +)
+               (syn-cat (lex-class noun-phrase)
+                        (case ((?nom - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (?gen - - - -)         
+                               (?dat - - - -)
+                               (?s ?m ?f ?n ?p))))
                 --
               (syn-cat (lex-class noun-phrase)
                         (case ((?nom - - - -) 
@@ -172,7 +188,7 @@
                                (?gen - - - -)         
                                (?dat - - - -)
                                (?s ?m ?f ?n ?p))))
-              (referent (?arg1))
+              (referent ?arg1)
               (boundaries (leftmost-unit ?leftmost-patient-unit)
                           (rightmost-unit ?rightmost-patient-unit)))
               
@@ -182,42 +198,39 @@
                --
                )))
 
-(def-fcg-cxn topicalized-transitive-with-information-structure-cxn
-             ((?topicalized-transitive-with-information-structure-unit
-               (args (?agent-unit ?patient-unit))
-               (constituents (?verb-unit ?agent-unit ?patient-unit)))
+(def-fcg-cxn topicalized-transitive-information-structure-cxn
+             ((?topicalized-transitive-information-structure-unit
+               (args (?argument-structure-unit))
+               (constituents (?argument-structure-unit)))
               <-
-              (?verb-unit
+              (?argument-structure-unit
+               (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+               (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
                 --
-              (syn-cat (lex-class verb)
-                       (type transitive)
-                       (tense ?tense))     
-              (referent (?v)))
-              
-              (?agent-unit
-
-                --
-              (agent +)
-              (referent (?arg0))
-              (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit)))
-              
-              (?patient-unit
-                --
-              (patient +)
-              (referent (?arg1))
-              (boundaries(leftmost-unit ?leftmost-patient-unit)
-                          (rightmost-unit ?rightmost-patient-unit)))
-              
-              (?topicalized-transitive-with-information-structure-unit
+              (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+              (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
+              (verb ?verb-unit))        
+              (?topicalized-transitive-information-structure-unit
                (HASH meaning ((topicalized ?arg1 +)))                  
                --
                (HASH form ((meets ?rightmost-patient-unit ?verb-unit)
                            (meets ?verb-unit ?leftmost-agent-unit)))
                )))
 
+;(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c)))
+;(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
-(formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
-
-
+(comprehend-all "den Mann sucht der Clown")
 
