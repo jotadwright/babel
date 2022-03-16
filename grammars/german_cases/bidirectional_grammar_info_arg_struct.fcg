@@ -122,7 +122,8 @@
 (def-fcg-cxn sucht-cxn
              ((?search-word                         
                (syn-cat (lex-class verb)
-                        (tense present))
+                        (tense present)
+                        (type transitive))
                (referent (?s)))  
                         
               <-
@@ -135,18 +136,22 @@
 (def-fcg-cxn transitive-argument-structure-cxn
              ((?transitive-argument-structure-unit
                (args (?agent-unit ?patient-unit))
-               (sem-cat (sem-class action))
-               (syn-cat (lex-class verb)
-                        (type transitive))
-              (constituents (?verb-unit ?agent-unit ?patient-unit)))
+              (constituents (?verb-unit ?agent-unit ?patient-unit))
+              ;(boundaries-arg0 (leftmost-unit ?leftmost-agent-unit)
+                          ;(rightmost-unit ?rightmost-agent-unit))
+              ;(boundaries-arg1 (leftmost-unit ?leftmost-patient-unit)
+                          ;(rightmost-unit ?rightmost-patient-unit))
+             )
               <-
               (?verb-unit
                 --
               (syn-cat (lex-class verb)
+                       (type transitive)
                        (tense ?tense))     
               (referent (?v)))
               
               (?agent-unit
+               (agent +)
                 --
               (syn-cat (lex-class noun-phrase)
                         (case ((+ ?nm ?nf ?nn ?np) 
@@ -159,6 +164,7 @@
                           (rightmost-unit ?rightmost-agent-unit)))
               
               (?patient-unit
+               (patient +)
                 --
               (syn-cat (lex-class noun-phrase)
                         (case ((?nom - - - -) 
@@ -176,7 +182,42 @@
                --
                )))
 
-(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c)))
+(def-fcg-cxn topicalized-transitive-with-information-structure-cxn
+             ((?topicalized-transitive-with-information-structure-unit
+               (args (?agent-unit ?patient-unit))
+               (constituents (?verb-unit ?agent-unit ?patient-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive)
+                       (tense ?tense))     
+              (referent (?v)))
+              
+              (?agent-unit
+
+                --
+              (agent +)
+              (referent (?arg0))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+                --
+              (patient +)
+              (referent (?arg1))
+              (boundaries(leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+              
+              (?topicalized-transitive-with-information-structure-unit
+               (HASH meaning ((topicalized ?arg1 +)))                  
+               --
+               (HASH form ((meets ?rightmost-patient-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)))
+               )))
+
+
+(formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
 
 
