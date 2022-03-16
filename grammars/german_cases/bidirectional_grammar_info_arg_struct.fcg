@@ -1,0 +1,182 @@
+ 
+(def-fcg-constructions german-case-grammar
+  :feature-types ((args sequence)
+                  (form set-of-predicates)
+                  (meaning set-of-predicates)
+                  (constituents sequence)
+                  (dependents sequence)
+                  (footprints set)
+                  (case sequence)
+                  (referent set))
+  :hierarchy-features (constituents dependents)
+    :fcg-configurations (
+                       (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
+                       (:production-goal-tests
+                        :no-applicable-cxns :connected-structure :no-meaning-in-root)))
+
+
+
+
+(def-fcg-cxn der-cxn
+             ((?the-word
+               (footprints (article)))    ;once applied
+              <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((?nm ?nm - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (?gen - ?gf - ?gp)    ;genitive feminine
+                               (?df - ?df - -)
+                               (?s ?m ?f - ?p))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "der")))))
+             :disable-automatic-footprints t)
+
+
+
+
+(def-fcg-cxn den-cxn
+             ((?the-word
+               (footprints (article)))    ;once applied
+              <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)        
+                               (?am ?am - - -)        
+                               (- - - - -)          
+                               (?dp - - - ?dp)
+                               (?s ?m - - ?p))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "den")))))
+             :disable-automatic-footprints t)
+
+
+(def-fcg-cxn Mann-cxn
+             ((?man-word
+               (referent (?x))                  
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -)))))
+              <-
+              (?man-word
+               (HASH meaning ((man ?x)))                     
+               --
+               (HASH form ((string ?man-word  "Mann"))))))
+
+
+
+
+(def-fcg-cxn Clown-cxn
+             ((?clown-word                        
+               (referent (?x))
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -)))))
+              <-
+              (?clown-word                            
+               (HASH meaning ((clown ?x)))                    
+               --
+               (HASH form ((string ?clown-word  "Clown"))))))
+
+
+(def-fcg-cxn noun-phrase-cxn
+             ((?noun-phrase
+               (referent (?x))
+               (syn-cat (lex-class noun-phrase)
+                        (case ?case))
+               (constituents (?article ?noun))
+               (boundaries (leftmost-unit ?article)
+                           (rightmost-unit ?noun)))
+              (?article
+               (part-of-noun-phrase +))
+              <-
+              (?article
+               --
+               (syn-cat (lex-class article)
+                        (case ?case)))
+              (?noun
+               (referent (?x))
+               (syn-cat (lex-class noun)
+                        (case ?case))
+                 
+               --
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              (?noun-phrase
+               --
+               (HASH form ((meets ?article ?noun)))
+              )))
+
+
+
+(def-fcg-cxn sucht-cxn
+             ((?search-word                         
+               (syn-cat (lex-class verb)
+                        (tense present))
+               (referent (?s)))  
+                        
+              <-
+              (?search-word                           
+               (HASH meaning ((suchen-01 ?s)))                   
+               --
+               (HASH form ((string ?search-word  "sucht"))))))
+
+
+(def-fcg-cxn transitive-argument-structure-cxn
+             ((?transitive-argument-structure-unit
+               (args (?agent-unit ?patient-unit))
+               (sem-cat (sem-class action))
+               (syn-cat (lex-class verb)
+                        (type transitive))
+              (constituents (?verb-unit ?agent-unit ?patient-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense ?tense))     
+              (referent (?v)))
+              
+              (?agent-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (?acc - - - -)         
+                               (?gen - - - -)        
+                               (?dat - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent (?arg0))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((?nom - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (?gen - - - -)         
+                               (?dat - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent (?arg1))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+              
+              (?transitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)))                  
+               --
+               )))
+
+(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c)))
+
+
+
