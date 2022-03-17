@@ -192,10 +192,15 @@
     (make-id (upcase (string-append string "-CXN")))
     (intern (upcase (string-append string "-CXN")))))
 
+(defun replace-initial-question-mark (string)
+  (if (string= (subseq string 0 1) "?")
+    (string-append "-" string)
+    string))
+
 (defun make-lex-class (cat-name &key add-numeric-tail trim-cxn-suffix)
-  (let* ((name-string (if (equal (type-of cat-name) 'SYMBOL)
+  (let* ((name-string (replace-initial-question-mark (if (equal (type-of cat-name) 'SYMBOL)
                        (string-downcase (symbol-name cat-name))
-                       (string-downcase cat-name)))
+                       (string-downcase cat-name))))
         (cat-name (if trim-cxn-suffix (fcg::replace-all name-string "-cxn" "")
                     name-string)))
   (intern
@@ -551,10 +556,11 @@
 
 
 (defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
-  ;; handles duplicates by default!  return all first cars (not applied to eachother)
+  ;; handles duplicates by skipping them.  return all first cars (not applied to eachother)
   (with-disabled-monitor-notifications
     (let* ((start-node (copy-object (car-source-cfs (cipn-car (initial-node node)))))
-           (start-node-root (get-root (left-pole-structure start-node))))
+           (start-node-root (get-root (left-pole-structure start-node)))
+           (root-meaning (unit-feature-value start-node-root 'meaning)))
       (loop for cxn in (constructions cxn-inventory)
             for cars = (if (equal (attr-val cxn :cxn-type) 'holistic)
                          (fcg-apply cxn start-node
@@ -563,6 +569,8 @@
                                     :cxn-inventory cxn-inventory)
                          nil)
             when (and cars
+                      (commutative-irl-subset-diff root-meaning
+                                                   (extract-meaning-predicates (original-cxn (car-applied-cxn (first cars)))))
                       (= 1 (length cars))) ; if not 1, the cxn matches multiple times
             collect (first cars)))))
 
@@ -815,8 +823,10 @@
                              network-1
                              network-2))            
          (bindings (first (irl::embedding shortest-network longest-network)))
-         (overlapping-predicates (loop for predicate in shortest-network
-                                       collect (substitute-predicate-bindings predicate bindings)))
+         (overlapping-predicates (if bindings
+                                   (loop for predicate in shortest-network
+                                       collect (substitute-predicate-bindings predicate bindings))
+                                   nil))
          (non-overlapping-predicates (set-difference longest-network overlapping-predicates :test #'equal)))
     (values non-overlapping-predicates overlapping-predicates)))
 

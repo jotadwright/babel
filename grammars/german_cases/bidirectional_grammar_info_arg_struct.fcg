@@ -1,0 +1,494 @@
+ 
+(def-fcg-constructions german-case-grammar
+  :feature-types ((args sequence)
+                  (form set-of-predicates)
+                  (meaning set-of-predicates)
+                  (constituents sequence)
+                  (dependents sequence)
+                  (footprints set)
+                  (case sequence)
+                  )
+  :hierarchy-features (constituents dependents)
+    :fcg-configurations (
+                       (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
+                       (:production-goal-tests
+                        :no-applicable-cxns :connected-structure :no-meaning-in-root)))
+
+
+
+
+(def-fcg-cxn der-cxn
+             ((?the-word
+               (footprints (article)))    ;once applied
+              <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((?nm ?nm - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (?gen - ?gf - ?gp)    ;genitive feminine
+                               (?df - ?df - -)
+                               (?s ?m ?f - ?p))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "der")))))
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn die-cxn
+             ((?the-word
+               (footprints (article))) 
+             <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((?nom - ?nf - ?np)    ;nom, acc, gen, dat  (nom masculine)
+                               (?acc - ?af - ?ap)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (- - - - -)
+                               (?s - ?f - ?p))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "die")))))
+             :disable-automatic-footprints t)
+
+
+
+
+(def-fcg-cxn den-cxn
+             ((?the-word
+               (footprints (article)))    ;once applied
+              <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)        
+                               (?am ?am - - -)        
+                               (- - - - -)          
+                               (?dp - - - ?dp)
+                               (?s ?m - - ?p))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "den")))))
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn dem-cxn
+             ((?the-word
+               (footprints (article))) 
+             <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (?dat ?dm - ?dn -)
+                               (+ ?m - ?n -))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "dem")))))
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn zum-cxn
+             ((?to-word
+               (footprints (article))) 
+             <-
+              (?to-word
+               (footprints (not article))
+               (syn-cat (lex-class contracted-preposition)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (?dat ?dm - ?dn -)
+                               (+ ?m - ?n -))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?to-word "zum")))))
+             :disable-automatic-footprints t)
+
+
+
+
+(def-fcg-cxn Blumen-cxn
+             ((?flowers-word
+               (referent ?x)                             ;set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?np - - - ?np)     
+                               (?ap - - - ?ap)      
+                               (?gp - - - ?gp)       
+                               (?dp - - - ?dp)
+                               (- - - - +)))))
+              <-
+              (?flowers-word
+               (HASH meaning ((flowers ?x)))                     
+               --
+               (HASH form ((string ?flowers-word  "Blumen"))))))
+
+
+(def-fcg-cxn Mann-cxn
+             ((?man-word
+               (referent ?x)                  
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -)))))
+              <-
+              (?man-word
+               (HASH meaning ((man ?x)))                     
+               --
+               (HASH form ((string ?man-word  "Mann"))))))
+
+
+
+
+(def-fcg-cxn Clown-cxn
+             ((?clown-word                        
+               (referent ?x)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -)))))
+              <-
+              (?clown-word                            
+               (HASH meaning ((clown ?x)))                    
+               --
+               (HASH form ((string ?clown-word  "Clown"))))))
+
+
+(def-fcg-cxn noun-phrase-cxn
+             ((?noun-phrase-unit
+               (referent ?x)
+               (syn-cat (lex-class noun-phrase)
+                        (case ?case))
+               (constituents (?article ?noun))
+               (boundaries (leftmost-unit ?article)
+                           (rightmost-unit ?noun)))
+              (?article
+               (part-of-noun-phrase +))
+              <-
+              (?article
+               --
+               (syn-cat (lex-class article)
+                        (case ?case)))
+              (?noun
+               (referent ?x)
+               (syn-cat (lex-class noun)
+                        (case ?case))
+                 
+               --
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              (?noun-phrase-unit
+               --
+               (HASH form ((meets ?article ?noun)))
+              )))
+
+
+;;; does not work in production
+
+#|(def-fcg-cxn contracted-prep-phrase-cxn
+             ((?contracted-prep-phrase-unit
+               (referent ?x)
+               (syn-cat (lex-class contracted-prepositional-phrase)
+                        (case ?case))
+               (constituents (?contracted-preposition ?noun))
+               (boundaries (leftmost-unit ?contracted-preposition)
+                           (rightmost-unit ?noun)))
+              (?contracted-preposition
+               (part-of-noun-phrase +))
+              <-
+              (?contracted-preposition
+               --
+               (syn-cat (lex-class contracted-preposition)
+                        (case ?case)))
+              (?noun
+               (referent ?x)
+               (syn-cat (lex-class noun)
+                        (case ?case))
+                 
+               --
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              (?contracted-prep-phrase-unit
+               --
+               (HASH form ((meets ?contracted-preposition ?noun)))
+              )))|#
+
+
+
+(def-fcg-cxn sucht-cxn
+             ((?search-word                         
+               (syn-cat (lex-class verb)
+                        (tense present)
+                        (type transitive))
+               (referent ?s))  
+                        
+              <-
+              (?search-word                           
+               (HASH meaning ((suchen-01 ?s)))                   
+               --
+               (HASH form ((string ?search-word  "sucht"))))))
+
+(def-fcg-cxn schenkt-cxn
+             ((?gift-word
+               (syn-cat (lex-class verb)
+                        (tense present)
+                        (type ditransitive))
+               (referent ?g))  
+                        
+              <-
+              (?gift-word                           
+               (HASH meaning ((schenken-01 ?g)))
+               --
+               (HASH form ((string ?gift-word  "schenkt"))))))
+
+
+(def-fcg-cxn transitive-argument-structure-cxn                 ;can be both topicalized and not (make topicalized -)
+             ((?transitive-argument-structure-unit
+              ; (args (?agent-unit ?patient-unit))
+              (constituents (?verb-unit ?agent-unit ?patient-unit))
+              (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+              (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
+              (verb ?verb-unit)
+              
+             )
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive)
+                       (tense ?tense))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent ?arg0)
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent ?arg1)
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+              
+              (?transitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)))                  
+               --
+               )))
+
+
+(def-fcg-cxn topicalized-transitive-information-structure-cxn
+             ((?topicalized-transitive-information-structure-unit
+               (args (?argument-structure-unit))
+               (constituents (?argument-structure-unit)))
+              <-
+              (?argument-structure-unit
+               (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+               (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
+                --
+              (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+              (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
+              (verb ?verb-unit))        
+              (?topicalized-transitive-information-structure-unit
+               (HASH meaning ((topicalized ?arg1 +)))                  
+               --
+               (HASH form ((meets ?rightmost-patient-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)))
+               )))
+
+
+
+;;; does not work cause the verb is not linked to the NPs
+
+(def-fcg-cxn ditransitive-argument-structure-cxn                
+             ((?ditransitive-argument-structure-unit
+              ; (args (?agent-unit ?patient-unit))
+              (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+              
+              (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+              (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
+              (arg2
+               (referent ?arg2)
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                           (rightmost-unit ?rightmost-receiver-unit)))
+
+              (verb ?verb-unit)
+              
+             )
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense ?tense)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent ?arg0)
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent ?arg1)
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)         
+                               (+ ?dm ?df ?dn ?dp)         
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)         
+                               (+ ?dm ?df ?dn ?dp)         
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent ?arg2)
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))
+              
+              (?ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg2 ?v ?arg2)))                  
+               --
+               )))
+
+
+
+;;;; does not work because verb is not linked (but goal test fails on NP)
+
+(def-fcg-cxn ditransitive-information-structure-cxn
+             ((?ditransitive-information-structure-unit
+               (constituents (?argument-structure-unit)))
+              <-
+              (?argument-structure-unit
+               (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+               (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
+
+              (arg2
+               (referent ?arg2)
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                           (rightmost-unit ?rightmost-receiver-unit)))
+              
+                --
+              (arg0
+               (referent ?arg0)
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit)))
+              (arg1
+               (referent ?arg1)
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                           (rightmost-unit ?rightmost-patient-unit)))
+
+              (arg2
+               (referent ?arg2)
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                           (rightmost-unit ?rightmost-receiver-unit)))
+              (verb ?verb-unit))        
+              (?ditransitive-information-structure-unit                  
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit leftmost-receiver-unit)
+                           (meets rightmost-receiver-unit leftmost-patient-unit)))
+               )))
+
+
+
+
+;(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c)))
+(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
+
+(formulate-all '((clown x)))
+
+(comprehend "der Clown schenkt dem Mann die Blumen")
+
