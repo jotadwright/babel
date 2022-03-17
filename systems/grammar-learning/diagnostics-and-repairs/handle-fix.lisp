@@ -8,13 +8,13 @@
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-cxns-and-categorial-links) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Apply the constructions provided by the fix to the result of the node and return the construction-application-result"
   ;; generic handle fix, which takes the following positional args in a list:
-  ;; cxns-to-apply (list) applied in the order they appear in!
+  ;; cxns-to-apply (list of original cxns) applied in the order they appear in!
   ;; categorial links (list)
   ;; original-cxns-to-consolidate (list) ! exclude existing!
 
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications
-    (let* ((processing-cxns-to-apply (map 'list #'get-processing-cxn (first (restart-data fix))))
+    (let* ((processing-cxns-to-apply (mapcar #'get-processing-cxn (first (restart-data fix))))
            (original-cxns-to-consolidate (third (restart-data fix)))
            (categorial-links (second (restart-data fix)))
            ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
