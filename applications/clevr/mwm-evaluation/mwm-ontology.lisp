@@ -30,43 +30,35 @@
                    :meaning (copy-object (meaning concept)))))
 
 ;; Make an ontology (instance of #'blackboard)
-(defun make-mwm-ontology (concepts-pathname ontology-name)
-  (defparameter ontology-name (make-blackboard))
-  (loop for pathname in (directory concepts-pathname)
+(defun make-mwm-ontology (concepts-pathname)
+  (defparameter *my-ontology* (make-blackboard))
+      (loop for pathname in (directory concepts-pathname)
         do (cond ((if (member (pathname->conceptname pathname) '(blue brown cyan gray green purple red yellow)) t nil)
-                   (push-data ontology-name 'colors (restore-concept pathname 'color-concept)))
+                   (push-data *my-ontology* 'colors (restore-concept pathname 'color-concept)))
               ((if (member (pathname->conceptname pathname) '(metal rubber)) t nil)
-                   (push-data ontology-name 'materials (restore-concept pathname 'material-concept)))
+                   (push-data *my-ontology* 'materials (restore-concept pathname 'material-concept)))
               ((if (member (pathname->conceptname pathname) '(cube cylinder sphere)) t nil)
-                   (push-data ontology-name 'shapes (restore-concept pathname 'shape-concept)))
+                   (push-data *my-ontology* 'shapes (restore-concept pathname 'shape-concept)))
               ((if (member (pathname->conceptname pathname) '(large small)) t nil)
-                   (push-data ontology-name 'sizes (restore-concept pathname 'size-concept)))
+                   (push-data *my-ontology* 'sizes (restore-concept pathname 'size-concept)))
               ((if (member (pathname->conceptname pathname) '(left right)) t nil)
-                   (push-data ontology-name 'spatial-relations (restore-concept pathname 'spatial-concept)))
-              ((eql (pathname->conceptname pathname) 'front) (push-data ontology-name 'spatial-relations (let ((concept (cl-store:restore pathname)))
+                   (push-data *my-ontology* 'spatial-relations (restore-concept pathname 'spatial-concept)))
+              ((eql (pathname->conceptname pathname) 'front) (push-data *my-ontology* 'spatial-relations (let ((concept (cl-store:restore pathname)))
                                                    (Make-instance 'spatial-concept
                                                                   :id 'behind
                                                                   :form "behind"
                                                                   :meaning (copy-object (meaning concept))))))
-              ((eql (pathname->conceptname pathname) 'behind) (push-data ontology-name 'spatial-relations (let ((concept (cl-store:restore pathname)))
+              ((eql (pathname->conceptname pathname) 'behind) (push-data *my-ontology* 'spatial-relations (let ((concept (cl-store:restore pathname)))
                                                    (Make-instance 'spatial-concept
                                                                   :id 'front
                                                                   :form "front"
                                                                   :meaning (copy-object (meaning concept))))))
               ))
-  (set-data ontology-name 'thing (list (make-instance 'shape-concept
+       (set-data *my-ontology* 'thing (list (make-instance 'shape-concept
                                                       :id 'thing
                                                       :form "thing"
                                                       :meaning nil)))
-  (push-data ontology-name 'booleans (make-instance 'boolean-category :id 'yes :bool t))
-  (push-data ontology-name 'booleans (make-instance 'boolean-category :id 'no :bool nil))
-  (loop for attribute in '(shape size material color)
-          do (clevr-world::add-category-to-ontology ontology-name attribute 'attribute)))
-
-
-;; weighted similarity method that can be used to compare the prototypical values of an object and a concept (see: "Babel/experiments/multidimensional-word-meanings/concept.lisp" for the original method)
-(defmethod weighted-similarity ((object mwm-object) (concept concept-entity))
-  (loop for prototype in (meaning concept)
-        for similarity = (mwm::similarity object prototype)
-        collect (* (mwm::certainty prototype) similarity) into weighted-similarities
-        finally (return (average weighted-similarities))))
+       (push-data *my-ontology* 'booleans (make-instance 'boolean-category :id 'yes :bool t))
+       (push-data *my-ontology* 'booleans (make-instance 'boolean-category :id 'no :bool nil))
+       (loop for attribute in '(shape size material color)
+             do (clevr-world::add-category-to-ontology *my-ontology* attribute 'attribute)))
