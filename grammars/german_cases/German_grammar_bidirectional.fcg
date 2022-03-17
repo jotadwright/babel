@@ -12,14 +12,15 @@
     :fcg-configurations (
                        (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
                        (:production-goal-tests
-                        :no-applicable-cxns :connected-structure :no-meaning-in-root :re-enter-produced-utterance)))
+                        :no-applicable-cxns :connected-structure :no-meaning-in-root)))
 
 
 ;;;;;;;;;;:DETERMINERS
 
 (def-fcg-cxn der-cxn
              ((?the-word
-               (footprints (article)))    ;once applied
+               (footprints (article)) ;once applied
+               (referent (?x)))
               <-
               (?the-word
                (footprints (not article))
@@ -29,7 +30,7 @@
                                (?gen - ?gf - ?gp)    ;genitive feminine
                                (?df - ?df - -)
                                (?s ?m ?f - ?p))))   ;sing, masc, fem, neut, plural
-               
+               (HASH meaning ((definite ?x)))
                --
                (HASH form ((string ?the-word "der")))))
              :disable-automatic-footprints t)
@@ -45,7 +46,7 @@
                                (?acc - ?af - ?ap)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
                                (- - - - -)
-                               (?f - ?f - ?p))))   ;sing, masc, fem, neut, plural
+                               (?s - ?f - ?p))))   ;sing, masc, fem, neut, plural
                
                --
                (HASH form ((string ?the-word "die")))))
@@ -54,8 +55,8 @@
 
 (def-fcg-cxn das-cxn
              ((?the-word
-               (footprints (article)))    ;once applied
-              <-
+               (footprints (article))) 
+             <-
               (?the-word
                (footprints (not article))
                (syn-cat (lex-class article)
@@ -69,17 +70,6 @@
                (HASH form ((string ?the-word "das")))))
              :disable-automatic-footprints t)
 
-(def-fcg-cxn den-cxn  
-             (<-
-              (?the-word
-               (syn-cat (lex-class article)
-                        (definite +)
-                        (case ((- - - - -)        
-                               (?am ?am - - -)        
-                               (- - - - -)          
-                               (?dp - - - ?dp))))
-               --
-               (HASH form ((string ?the-word "den"))))))
 
 (def-fcg-cxn den-cxn
              ((?the-word
@@ -116,21 +106,22 @@
                (HASH form ((string ?the-word "dem")))))
              :disable-automatic-footprints t)
 
-(def-fcg-cxn zum-cxn
+#|(def-fcg-cxn zum-cxn
              ((?to-word
-               (footprints (contr-preposition))) 
-             <-
-              (?to-word
-               (footprints (not contr-preposition))
+               (footprints (article))
                (syn-cat (lex-class contracted-preposition)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
                                (?dat ?dm - ?dn -)
-                               (+ ?m - ?n -))))   ;sing, masc, fem, neut, plural
+                               (+ ?m - ?n -)))))
+             <-
+              (?to-word
+               (footprints (not article))
+                  ;sing, masc, fem, neut, plural
                --
                (HASH form ((string ?to-word "zum")))))
-             :disable-automatic-footprints t)
+             :disable-automatic-footprints t)|#
 
 
 ;;;;;;;;NOUNS
@@ -647,7 +638,7 @@
 
 ;;;;;;;;;;PHRASES
 
-(def-fcg-cxn determined-noun-phrase-cxn
+(def-fcg-cxn noun-phrase-cxn
              ((?noun-phrase
                (referent (?x))
                (syn-cat (lex-class noun-phrase)
@@ -659,6 +650,9 @@
                (part-of-noun-phrase +))
               <-
               (?article
+               (referent (?x))
+               (syn-cat (lex-class article)
+                        (case ?case))
                --
                (syn-cat (lex-class article)
                         (case ?case)))
@@ -678,7 +672,7 @@
 
 
 
-(formulate-all '((woman x))) ;;;check all possible solutions
+(formulate-all '((park x) (definite x))) ;;;check all possible solutions
 
 #|(def-fcg-cxn contracted-prepositional-phrase-cxn
              ((?contracted-prep-phrase
@@ -692,6 +686,8 @@
                (part-of-noun-phrase +))
               <-
               (?contracted-preposition
+               (syn-cat (lex-class contracted-preposition)
+                        (case ?case))
                --
                (syn-cat (lex-class contracted-preposition)
                         (case ?case)))
@@ -707,6 +703,116 @@
                --
                (HASH form ((meets ?contracted-preposition ?noun)))
               )))|#
+
+
+
+(def-fcg-cxn sucht-cxn
+             ((?search-word                         
+               (syn-cat (lex-class verb)
+                        (tense present))
+               (referent (?s)))  
+                        
+              <-
+              (?search-word                           
+               (HASH meaning ((suchen-01 ?s)))                   
+               --
+               (HASH form ((string ?search-word  "sucht"))))))
+
+
+(def-fcg-cxn transitive-cxn
+             ((?transitive-unit
+               (args (?subject-unit ?object-unit))
+               (sem-cat (sem-class action))
+               (syn-cat (lex-class verb)
+                        (type transitive))
+              (constituents (?verb-unit ?subject-unit ?object-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense ?tense))     
+              (referent (?v)))
+              
+              (?subject-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (?acc - - - -)         
+                               (?gen - - - -)        
+                               (?dat - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent (?subject))
+              (boundaries (leftmost-unit ?leftmost-subject-unit)
+                          (rightmost-unit ?rightmost-subject-unit)))
+              
+              (?object-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((?nom - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (?gen - - - -)         
+                               (?dat - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent (?object))
+              (boundaries (leftmost-unit ?leftmost-object-unit)
+                          (rightmost-unit ?rightmost-object-unit)))
+              
+              (?transitive-unit
+               (HASH meaning ((:arg0 ?v ?subject)
+                              (:arg1 ?v ?object)
+                              (topicalized ?object -)))                  
+               --
+               (HASH form ((meets ?rightmost-subject-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-object-unit))
+               ))))
+
+
+(def-fcg-cxn topicalized-transitive-cxn
+             ((?transitive-unit
+               (args (?subject-unit ?object-unit))
+               (sem-cat (sem-class action))
+               (syn-cat (lex-class verb)
+                        (type transitive))
+              (constituents (?verb-unit ?subject-unit ?object-unit)))
+              <-
+              (?verb-unit
+                --
+              (syn-cat (lex-class verb)
+                       (tense ?tense))     
+              (referent (?v)))
+              
+              (?subject-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent (?subject))
+              (boundaries (leftmost-unit ?leftmost-subject-unit)
+                          (rightmost-unit ?rightmost-subject-unit)))
+              
+              (?object-unit
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+              (referent (?object))
+              (boundaries (leftmost-unit ?leftmost-object-unit)
+                          (rightmost-unit ?rightmost-object-unit)))
+              
+              (?transitive-unit
+               (HASH meaning ((subject ?v ?subject)
+                              (object ?v ?object)
+                              (topicalized ?object +)))                  
+               --
+               (HASH form ((meets ?rightmost-object-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-subject-unit))
+               ))))
 
 
 
