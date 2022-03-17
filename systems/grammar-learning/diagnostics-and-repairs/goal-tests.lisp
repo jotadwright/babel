@@ -13,7 +13,7 @@
            (gold-standard-meanings (get-data resulting-cfs :meanings)))
       (when (find meaning gold-standard-meanings :test #'(lambda (m1 m2)
                                                          (equivalent-meaning-networks m1 m2 meaning-representation-formalism)))
-        (set-data (blackboard (construction-inventory node)) :add-th-links-repair-failed nil)
+        (set-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed nil)
         t))))
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :non-gold-standard-utterance)))
@@ -23,5 +23,5 @@
            (utterance (render node (get-configuration (construction-inventory node) :render-mode)))
            (gold-standard-utterances (get-data resulting-cfs :utterances)))
       (when (find (format nil "~{~a~^ ~}" utterance) gold-standard-utterances :test #'equalp)
-        (set-data (blackboard (construction-inventory node)) :add-th-links-repair-failed nil)
+        (set-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed nil)
         t))))
