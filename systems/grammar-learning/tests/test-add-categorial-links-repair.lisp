@@ -1,6 +1,6 @@
 (in-package :grammar-learning)
 ;(activate-monitor trace-fcg)
-(defun test-categorial-links-repair-comprehension ()
+(deftest test-categorial-links-repair-comprehension ()
          (let* ((experiment (set-up-cxn-inventory-and-repairs))
                 (cxn-inventory (grammar (first (agents experiment)))))
            (comprehend "What is the size of the red cube?"
@@ -80,10 +80,7 @@
  ; (test-categorial-links-repair-comprehension)
  
 
-;(run-tests)
 ; issues:
 ; 1. why aren't the equivalent 'what is the size of the x cube' cxns recognised as existing in the substitution repair?
-; 2. NIL is not of type HASH-TABLE when accessing slot SYSTEM::GETHASH-FN.
-; - in method connected-categories-p
-; -> we didn't calculate the transitive closure
+
 
