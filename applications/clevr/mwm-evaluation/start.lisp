@@ -8,70 +8,7 @@
 ;; The ontology ;;
 ;;--------------;;
 
-;; Files containing the concepts are under: "Babel/experiments/multidimensional-word-meanings/learned-concepts.zip"
-;; Concepts are defined in "Babel/experiments/multidimensional-word-meanings/concept.lisp"
-
-;; Make an ontology (instance of #'blackboard)
-(defparameter *my-ontology* (make-blackboard))
-
-;; Load spatial concepts
-;; Meanings for the spatial concepts 'front' and 'behind' are switched to contain the right values
-(set-data *my-ontology* 'spatial-relations (list (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "behind-cxn.store")))))
-                                                   (Make-instance 'spatial-concept
-                                                                  :id 'front
-                                                                  :form "front"
-                                                                  :meaning (copy-object (meaning concept))))
-
-                                                 (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "front-cxn.store")))))
-                                                   (Make-instance 'spatial-concept
-                                                                  :id 'behind
-                                                                  :form "behind"
-                                                                  :meaning (copy-object (meaning concept))))
-                                                 (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "left-cxn.store")))))
-                                                   (Make-instance 'spatial-concept
-                                                                  :id 'left
-                                                                  :form (form concept)
-                                                                  :meaning (copy-object (meaning concept))))
-                                                 (let ((concept (cl-store:restore (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships" "right-cxn.store")))))
-                                                   (Make-instance 'spatial-concept
-                                                                  :id 'right
-                                                                  :form (form concept)
-                                                                  :meaning (copy-object (meaning concept)))) ))
-
-;; Load color concepts
-(set-data *my-ontology* 'colors
-          (loop for pathname in (directory(babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "colors")))
-                collect (restore-concept pathname 'color-concept)))
-;; Load material concepts
-(set-data *my-ontology* 'materials
-          (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "materials")))
-                collect (restore-concept pathname 'material-concept)))
-
-;; Load shape concepts
-(set-data *my-ontology* 'shapes
-          (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "shapes")))
-                collect (restore-concept pathname 'shape-concept)))
-
-;; Add 'thing as a shape-concept
-(set-data *my-ontology* 'thing
-          (list (make-instance 'shape-concept
-                               :id 'thing
-                               :form "thing"
-                               :meaning nil)))
-
-;; Load size concepts
-(set-data *my-ontology* 'sizes
-          (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "sizes")))
-                collect (restore-concept pathname 'size-concept)))
-
-;; Load boolean categories
-(push-data *my-ontology* 'booleans (make-instance 'boolean-category :id 'yes :bool t))
-(push-data *my-ontology* 'booleans (make-instance 'boolean-category :id 'no :bool nil))
-
-;; Load attribute categories
-(loop for attribute in '(shape size material color)
-          do (clevr-world::add-category-to-ontology *my-ontology* attribute 'attribute))
-
+(make-mwm-ontology (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1")) *my-ontology*)
 
 ;; Show the ontology in the web-interface:
 ;; (add-element (make-html *my-ontology*))
@@ -92,7 +29,7 @@
 (defparameter *clevr-scene*
   (merge-pathnames
    (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val")
-                  :name "CLEVR_val_000004" :type "json")
+                  :name "CLEVR_val_000000" :type "json")
    cl-user:*babel-corpora*))
 
 (defun test-utterance-in-first-scene (utterance)
@@ -110,7 +47,7 @@
 
 ;; Test sentences (see "Babel/grammars/clevr-grammar/start.lisp" for more examples):
 ;(test-utterance-in-first-scene "there is a big gray object that is the same shape as the purple rubber object; what is it made of?")
-;(test-utterance-in-first-scene "What color is the small sphere?")
+;(test-utterance-in-first-scene "What color is the large sphere?")
 ;(test-utterance-in-first-scene "How many things have the same shape as the large red thing?")
 ;(test-utterance-in-first-scene "How many things are left of the small gray sphere that is in front of the large sphere that is right of the large blue cube?")
 ;(test-utterance-in-first-scene "How many things are left of the purple sphere that is behind the yellow thing?")
