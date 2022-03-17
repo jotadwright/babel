@@ -77,9 +77,8 @@
                                                                              (bind color-category ?color-8 yellow)
                                                                              (query ?target-4 ?target-object-1 ?attribute-6))))))))
 
-(defun run-tests ()
-  (test-categorial-links-repair-comprehension)
-  )
+ ; (test-categorial-links-repair-comprehension)
+ 
 
 ;(run-tests)
 ; issues:

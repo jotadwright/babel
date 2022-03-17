@@ -43,7 +43,8 @@
                              (:file "test-substitution-repair")
                              (:file "test-addition-repair")
                              (:file "test-deletion-repair")
-                             (:file "test-holistic-to-item-based-repair"))))
+                             (:file "test-holistic-to-item-based-repair")
+                             (:file "test-add-categorial-links-repair"))))
                              
 
   :description "A Common Lisp package for learning construction grammars.")
