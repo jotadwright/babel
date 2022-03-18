@@ -137,7 +137,7 @@
                                 for (irl-program cipn nil)
                                      = (multiple-value-list
                                         (clevr-grammar::understand q))
-                                for scene-var = (fcg::extract-scene-unit-variable cipn)
+                                for scene-var = (extract-scene-unit-variable cipn)
                                 for computed-answer = (compute-answer irl-program scene-var path-entity)
                                 for result = (get-result cipn answer computed-answer)
                                 do (incf processed-questions)
@@ -195,7 +195,17 @@
     (compute-error-rate error-table errors-filename)
     accuracy))
 
+(defun evaluate-mwm-serie (serie-number)
+  (let* ((serie-name (format nil "serie-~a" serie-number))
+         (directory (list "experiments""multidimensional-word-meanings" "learned-concepts"
+                          "thesis-main-results" "baseline-simulated-default-lexicon" serie-name))
+         (output-filename (format nil "mwm-evaluation-~a" serie-number))
+         (error-filename (format nil "mwm-errors-~a" serie-number)))
+    (make-mwm-ontology (babel-pathname :directory directory))
+    (evaluate-mwm-accuracy "val" output-filename error-filename)))
+
+
 (defun evaluate-all-series ()
   (loop for serie in '("serie-1" "serie-2" "serie-3" "serie-3" "serie-4" "serie-5" "serie-6" "serie-7" "serie-8" "serie-9" "serie-10")
         do (make-mwm-ontology (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" serie)))
-  (evaluate-mwm-accuracy "val" (concatenate 'string serie "-evaluation") (concatenate 'string serie "-errors")  :nr-of-scenes 1)))
+  (evaluate-mwm-accuracy "val" (concatenate 'string serie "-evaluation") (concatenate 'string serie "-errors"))))

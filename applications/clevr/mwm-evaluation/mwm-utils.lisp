@@ -12,12 +12,19 @@
         finally (return (average weighted-similarities))))
 
 ;; attach category to an object that yields the highest weighted similarity out of a set of categories
-(defun find-best-category (object categories)
-  (reduce #'(lambda (cat1 cat2)
-              (if (> (weighted-similarity object cat1)
-                     (weighted-similarity object cat2))
-                cat1 cat2))
-          categories))
+
+(defun find-best-category (object categories) 
+  (loop with best-category = nil
+        with best-similarity = nil
+        for cat in categories
+        for similarity = (weighted-similarity object cat)
+        when (or (null best-category)
+                 (> similarity best-similarity))
+        do (setf best-category cat
+                 best-similarity similarity)
+        finally
+        return best-category))
+
 ;;-----------------------------;;
 ;; Utils for testing questions ;;
 ;;-----------------------------;;
