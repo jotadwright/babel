@@ -129,6 +129,12 @@
     :components ((:file "application-dependencies")
                  (:file "data")
                  (:file "html")))
+   (:module grammar-configurator
+    :serial t
+    :components ((:file "grammar-configurator")
+                 (:file "html")
+                 (:file "css")
+                 (:file "js")))
    (:module tests
     :serial t
     :components ((:file "helpers")
