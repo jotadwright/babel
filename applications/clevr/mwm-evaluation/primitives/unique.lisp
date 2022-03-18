@@ -5,6 +5,7 @@
 ;; ------------------
 ;; UNIQUE primtive ;;
 ;; ------------------
+;; Check if a set contains one unique value
 
 ;(export '(unique))
 

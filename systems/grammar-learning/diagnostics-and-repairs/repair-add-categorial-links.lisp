@@ -13,14 +13,14 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
-  (unless (find-data (blackboard (construction-inventory node)) :add-th-links-repair-failed)
+  (unless (find-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed)
     (let ((cxns-and-categorial-links (create-categorial-links problem node)))
       (if cxns-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
                        :restart-data cxns-and-categorial-links)
-        (progn (set-data (blackboard (construction-inventory node)) :add-th-links-repair-failed t)
+        (progn (set-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed t)
           nil)))))
 
 (defmethod repair ((repair add-categorial-links)
@@ -36,14 +36,14 @@
                      :restart-data cxns-and-categorial-links))))
 
 (defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :th-connected-mode :path-exists)
-  (set-configuration cxn-inventory :update-th-links nil)
+  (set-configuration cxn-inventory :category-linking-mode :path-exists)
+  (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :th-connected-mode :neighbours)
-  (set-configuration cxn-inventory :update-th-links t)
+  (set-configuration cxn-inventory :category-linking-mode :neighbours)
+  (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
   (set-configuration cxn-inventory :consolidate-repairs t))
 
@@ -55,81 +55,46 @@
         when (equal phrase-type type)
         collect orig-cxn))
 
-(defun create-new-categorial-links (lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy)
+(defun create-new-categorial-links (lex-classes-holistic-cxns lex-classes-item-based-units categorial-network)
   "Creates all TH links for matching lexical cxns using their original lex-class."
-  (loop for lex-cxn-lex-class in lex-classes-lex-cxns
+  (loop for holistic-cxn-lex-class in lex-classes-holistic-cxns
         for item-slot-lex-class in lex-classes-item-based-units
-        unless (neighbouring-categories-p lex-cxn-lex-class item-slot-lex-class type-hierarchy)
-        collect (cons lex-cxn-lex-class item-slot-lex-class)))
+        unless (neighbouring-categories-p holistic-cxn-lex-class item-slot-lex-class categorial-network)
+        collect (cons holistic-cxn-lex-class item-slot-lex-class)))
 
 (defun create-categorial-links (problem node)
-  "Return the TH links and applied cxns from a comprehend with :th-connected-mode :path-exists instead of :neighbours"
+  "Return the categorial links and applied cxns from a comprehend with :categorial-linking-mode :path-exists instead of :neighbours"
+  (compute-transitive-closure (categorial-network (construction-inventory node)))
   (let* ((utterance (random-elt (get-data problem :utterances)))
          (gold-standard-meaning (random-elt (get-data problem :meanings)))
          (cxn-inventory (construction-inventory node))
          (orig-cxn-set (original-cxn-set cxn-inventory))
-         (type-hierarchy (categorial-network (construction-inventory node))))
+         (categorial-network (categorial-network (construction-inventory node))))
     (disable-meta-layer-configuration cxn-inventory) ;(fcg::unify-atom
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend utterance :cxn-inventory orig-cxn-set :gold-standard-meaning gold-standard-meaning)))
-             (meaning-network (first comprehension-result))
-             (cip-node (second comprehension-result))
-             (cip (third comprehension-result)))
+             (cip-node (second comprehension-result)))  
         (enable-meta-layer-configuration cxn-inventory)
-
-        ;;there is a solution with connected links in the TH
+        ;;there is a solution with connected links in the categorial-network
         (when (member 'succeeded (statuses cip-node) :test #'string=)
           (let* ((applied-cxns (applied-constructions cip-node))
-                 (lex-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'lexical applied-cxns) utterance))
-                 (lex-classes-lex-cxns (when lex-cxns
-                                         (map 'list #'lex-class-cxn lex-cxns)))
+                 (holistic-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'holistic applied-cxns) utterance)) ; why sort? reuse the same lookup function from the holistic->item-based repair
+                 (lex-classes-holistic-cxns (when holistic-cxns
+                                         (map 'list #'lex-class-cxn holistic-cxns)))
                  (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
                  (lex-classes-item-based-units (when item-based-cxn
                                                  (get-all-unit-lex-classes item-based-cxn)))
-                 (categorial-links (when (and lex-classes-lex-cxns lex-classes-item-based-units (= (length lex-classes-lex-cxns) (length lex-classes-item-based-units)))
-                             (create-new-categorial-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
-            (when (filter-by-phrase-type 'holophrase applied-cxns)
-                   (format t "Something has gone horribly wrong!"))
-            (list applied-cxns categorial-links)))))))
+                 (categorial-links (when (and
+                                          lex-classes-holistic-cxns
+                                          lex-classes-item-based-units
+                                          (= (length lex-classes-holistic-cxns) (length lex-classes-item-based-units)))
+                                     (create-new-categorial-links lex-classes-holistic-cxns lex-classes-item-based-units categorial-network)))
+                 (cxns-to-apply (append holistic-cxns (list item-based-cxn))))
+            
+            (list
+             cxns-to-apply
+             categorial-links
+             nil)))))))
 
-
-
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair add-cxns-and-categorial-links) (problem problem) (node cip-node) &key &allow-other-keys)
-  "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
-  (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
-  (with-disabled-monitor-notifications
-    (let* ((cxns (first (restart-data fix)))
-           (categorial-links (second (restart-data fix)))
-           ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
-           (orig-type-hierarchy (categorial-network (construction-inventory node)))
-           (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
-           (categorial-flat-list nil)
-           (th (loop for categorial-link in categorial-links
-                     do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-type-hierarchy)
-                     (add-link (car categorial-link) (cdr categorial-link) temp-type-hierarchy :weight 0.5)
-                     (setf categorial-flat-list (append categorial-flat-list (list categorial-link)))
-                     finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
-           (last-node  (initial-node node))
-           (applied-nodes (loop for cxn in cxns
-                                do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply cxn (if (initial-node-p last-node)
-                                                                                                         (car-source-cfs (cipn-car last-node))
-                                                                                                         (car-resulting-cfs (cipn-car last-node)))
-                                                                                                   (direction (cip node))
-                                                                                                   :configuration (configuration (construction-inventory node))
-                                                                                                   :cxn-inventory (construction-inventory node)))))
-                                collect last-node)))
-      ;; ignore
-      ;; Reset type hierarchy
-      (set-categorial-network (construction-inventory node) orig-type-hierarchy)
-      ;; Add cxns to blackboard of last new node
-      (set-data (car-resulting-cfs (cipn-car last-node)) :fix-cxns nil) ;; add cxns that aren't applied here! cube + sphere are learned but only cube applied
-      (set-data (car-resulting-cfs (cipn-car last-node)) :fix-th-links categorial-flat-list)
-      ;; set cxn-supplier to last new node
-      (setf (cxn-supplier last-node) (cxn-supplier node))
-      ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses last-node))
-      (push 'added-by-repair (statuses last-node))
-      ;; enqueue only last new node; never backtrack over the first applied construction, we applied them as a block
-      (cip-enqueue last-node (cip node) (get-configuration node :queue-mode)))))
-
-
+;; todo: make flag in categorial-network class to indicate whether the network was modified after calculating the transitive closure the last time
+;; when calling the connected-path-p function, set calculate the transitive closure, which resets the flag.

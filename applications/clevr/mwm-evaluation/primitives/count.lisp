@@ -5,6 +5,7 @@
 ;; -----------------
 ;; COUNT primtive ;;
 ;; -----------------
+;; Count the number of objects in a given set
 
 ;(export '(count!))
 

@@ -4,97 +4,32 @@
 (activate-monitor trace-fcg)
 (activate-monitor trace-irl)
 
+;;--------------;;
+;; The ontology ;;
+;;--------------;;
 
-  
-;; concepten zijn gedefinieerd in Babel/experiments/multidimensional-word-meanings/concept.lisp
-;; alsook weighted-similarity methods
+(make-mwm-ontology (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1")))
 
-;; ontology aanmaken met geleerde concepten
-;; ontology is een instance van #'blackboard
-(defparameter *my-ontology* (make-blackboard))
+;; Show the ontology in the web-interface:
+;; (add-element (make-html *my-ontology*))
 
-(set-data *my-ontology* 'spatial-relations
-          (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "relationships")))
-                collect (restore-concept pathname 'spatial-concept)))
+;;---------;;
+;; Testing ;;
+;;---------;;
 
-(set-data *my-ontology* 'colors
-          (loop for pathname in (directory
-                                 (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "colors")))
-                collect (restore-concept pathname 'color-concept)))
-
-(set-data *my-ontology* 'materials
-          (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "materials")))
-                collect (restore-concept pathname 'material-concept)))
-
-(set-data *my-ontology* 'shapes
-          (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "shapes")))
-                collect (restore-concept pathname 'shape-concept)))
-
-(set-data *my-ontology* 'thing
-          (list (make-instance 'shape-concept :id 'thing
-                               :form "thing"
-                               :meaning nil)))
-
-(set-data *my-ontology* 'sizes
-          (loop for pathname in (directory (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1" "sizes")))
-                collect (restore-concept pathname 'size-concept)))
-
-(push-data *my-ontology* 'booleans (make-instance 'boolean-category :id 'yes :bool t))
-(push-data *my-ontology* 'booleans (make-instance 'boolean-category :id 'no :bool nil))
-(loop for attribute in '(shape size material color)
-          do (clevr-world::add-category-to-ontology *my-ontology* attribute 'attribute))
-;(clevr-world::add-category-to-ontology *my-ontology* 'thing 'shape)
-
-;(add-element (make-html *my-ontology*))
-
-;; segment-scene; symbolische clevr data omzetten naar continue features
-;; zie Babel/experiments/multidimensional-word-meanings/world.lisp
-
-;; voorbeeldzinnen in Babel/grammars/clevr-grammar/start.lisp
-;; fcg gebruiken om van zin naar meaning te gaan met #'understand
-
-(defun extract-scene-unit-variable (cipn)
-  "returns scene-variable from resulting cfs of given cipn"
-  (let* ((cfs (pole-structure (left-pole (car-resulting-cfs (cipn-car cipn)))))
-         (scene-unit (find 'fcg::scene-unit cfs :key #'first))
-         (scene-var (second (find 'fcg::scene (rest scene-unit) :key #'first))))
-    scene-var))
-
-(defparameter *clevr-scene*
-  (merge-pathnames
-   (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val")
-                  :name "CLEVR_val_000000" :type "json")
-   cl-user:*babel-corpora*))
-
-(defun test-utterance-in-first-scene (utterance)
-  (multiple-value-bind (irl-program cipn cip) 
-      (understand utterance)
-    (when (find 'fcg::succeeded (fcg::statuses cipn))
-      (let ((scene-var (extract-scene-unit-variable cipn))
-            (scene-path (make-instance 'pathname-entity
-                                       :pathname *clevr-scene*)))
-        (evaluate-irl-program
-         (cons `(bind pathname-entity ,scene-var ,scene-path)
-               (substitute-categories irl-program))
-         *my-ontology* :primitive-inventory *mwm-primitives*)))))
-
-;(test-utterance-in-first-scene "How many gray things are there?")
+;; Test sentences (see "Babel/grammars/clevr-grammar/start.lisp" for more examples):
+;(test-utterance-in-first-scene "there is a big gray object that is the same shape as the purple rubber object; what is it made of?")
 ;(test-utterance-in-first-scene "What color is the large sphere?")
+;(test-utterance-in-first-scene "How many things have the same shape as the large red thing?")
+;(test-utterance-in-first-scene "How many things are left of the small gray sphere that is in front of the large sphere that is right of the large blue cube?")
+;(test-utterance-in-first-scene "How many things are left of the purple sphere that is behind the yellow thing?")
 
-(defparameter *substitution-dict*
-  '((color-category . color-concept)
-    (shape-category . shape-concept)
-    (size-category . size-concept)
-    (material-category . material-concept)
-    (spatial-relation-category . spatial-concept)))
+;;------------;;
+;; Evaluation ;;
+;;------------;;
 
-(defun substitute-category-in-bind (bind-statement)
-  (let* ((bind-type (second bind-statement))
-         (replacement (rest (assoc bind-type *substitution-dict*))))
-    (substitute replacement bind-type bind-statement)))
+;; Evaluate on the ontology that is loaded manually
+(evaluate-mwm-accuracy "val" "mwm-evaluation" "mwm-errors"  :nr-of-scenes 1)
 
-(defun substitute-categories (irl-program)
-  (loop for predicate in irl-program
-        if (eql (first predicate) 'bind)
-        collect (substitute-category-in-bind predicate)
-        else collect predicate))
+;; Evaluate on all series of concepts by loading the different series into the ontology
+(evaluate-all-series)

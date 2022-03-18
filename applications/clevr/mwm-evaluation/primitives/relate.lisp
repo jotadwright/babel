@@ -5,22 +5,22 @@
 ;; ------------------
 ;; RELATE primtive ;;
 ;; ------------------
+;; Find the set of objects that are in the given spatial relation to an object
 
 ;(export '(relate))
 
 (defgeneric apply-spatial-relation (object spatial-relation-category context)
   (:documentation "Apply the spatial relation to the object"))
 
+;; Related objects have a higher similarity to the spatial-concept than the queried object
 (defmethod apply-spatial-relation ((object mwm::mwm-object)
                                    (spatial-relation-category spatial-concept)
                                    (context mwm::mwm-object-set))
-  (let* ((related-ids (rest
-                       (assoc (spatial-relation spatial-relation-category)
-                              (relationships object))))
-         (related-objects (loop for id in related-ids
-                                for found = (find-entity-by-id context id)
-                                when found
-                                collect found)))
+  (let ((related-objects (loop for context-item in (objects context)
+                               if (> (weighted-similarity context-item spatial-relation-category)
+                     (weighted-similarity object spatial-relation-category))
+                         collect context-item)))
+
     (when related-objects
       (make-instance 'mwm::mwm-object-set :objects related-objects))))
 
@@ -47,13 +47,13 @@
                        (equal-entity
                         target-set
                         (apply-spatial-relation source-object relation segmented-scene)))
-                   (get-data ontology 'spatial-relations))))
+                   (get-data *my-ontology* 'spatial-relations))))
      (when computed-relation
        (bind (spatial-relation 1.0 computed-relation)))))
 
   ;; third case; given source-object, compute pairs of target-set and spatial-relation
   ((scene segmented-scene source-object => target-set spatial-relation)
-   (loop for relation in (get-data ontology 'spatial-relations)
+   (loop for relation in (get-data *my-ontology* 'spatial-relations)
          for set = (apply-spatial-relation source-object relation segmented-scene)
          when set
          do (bind (target-set 1.0 set)

@@ -6,6 +6,7 @@
 ;; --------------------------
 ;; SEGMENT-SCENE primitive ;;
 ;; --------------------------
+;; go from pathname to a segmented scene containing continuous valued objects
 
 (defprimitive segment-scene ((segmented-scene mwm::mwm-object-set)
                              (scene pathname-entity))

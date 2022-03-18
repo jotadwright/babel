@@ -5,6 +5,7 @@
 ;; -----------------
 ;; UNION primtive ;;
 ;; -----------------
+;; Find the union of two sets
 
 ;(export '(union!))
 

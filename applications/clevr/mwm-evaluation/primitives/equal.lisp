@@ -5,6 +5,7 @@
 ;; -----------------
 ;; EQUAL primtive ;;
 ;; -----------------
+;; Check if two categories are the same
 
 ;(export '(equal?))
 
@@ -25,25 +26,25 @@
                               (shape-2 shape-concept)
                               (attribute attribute-category))
   (declare (ignorable attribute))
-  (eq (shape shape-1) (shape shape-2)))
+  (equal-entity shape-1 shape-2))
 
 (defmethod equal-attribute-p ((size-1 size-concept)
                               (size-2 size-concept)
                               (attribute attribute-category))
   (declare (ignorable attribute))
-  (eq (size size-1) (size size-2)))
+   (equal-entity size-1 size-2))
 
 (defmethod equal-attribute-p ((color-1 color-concept)
                               (color-2 color-concept)
                               (attribute attribute-category))
   (declare (ignorable attribute))
-  (eq (color color-1) (color color-2)))
+   (equal-entity color-1 color-2))
 
 (defmethod equal-attribute-p ((material-1 material-concept)
                               (material-2 material-concept)
                               (attribute attribute-category))
   (declare (ignorable attribute))
-  (eq (material material-1) (material material-2)))
+   (equal-entity material-1 material-2))
 
 (defprimitive equal? ((target-bool boolean-category)
                       (source-1 concept-entity)

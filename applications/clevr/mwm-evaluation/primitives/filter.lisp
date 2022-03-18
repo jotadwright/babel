@@ -5,15 +5,9 @@
 ;; ------------------
 ;; FILTER primtive ;;
 ;; ------------------
+;; Filter set on a given category
 
 ;(export '(filter))
-
-(defun find-best-category (object categories)
-  (reduce #'(lambda (cat1 cat2)
-              (if (> (weighted-similarity object cat1)
-                     (weighted-similarity object cat2))
-                cat1 cat2))
-          categories))
 
 (defgeneric filter-by-category (set category)
   (:documentation "Filter the set by the given category."))
