@@ -29,7 +29,7 @@
     (:shape . ,(shape object))
     (:material . ,(material object))
     (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
-    (:ypos . ,(if (< (y-pos object) 160) 'front 'behind))
+    (:ypos . ,(if (> (y-pos object) 160) 'front 'behind))
     ))
 
 ;; ------------------
