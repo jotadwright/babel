@@ -92,7 +92,8 @@
                   (arg1 set)
                   (referents set)
                   (contents set-of-feature-value-pairs)
-                  (footprints set))
+                  (footprints set)
+                  (items set-of-feature-value-pairs))
   :fcg-configurations ((:de-render-mode . :de-render-recipe-utterance)
                        (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-structure)
                        (:construction-inventory-processor-mode . :heuristic-search)
@@ -1362,6 +1363,8 @@
 
 ;(clear-output)
 
+#|
+
 (defparameter *pdm* (initialise-personal-dynamic-memory
                     *fcg-constructions*
                     `((get-kitchen ,(make-var 'kitchen-state)))))
@@ -1391,3 +1394,5 @@
                    ; *fcg-constructions*
                    ; `((get-kitchen ,(make-var 'kitchen-state))))
                    )
+
+|#
