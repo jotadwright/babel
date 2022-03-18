@@ -14,6 +14,9 @@
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
 
+;(comprehend "den Mann")
+(formulate-all '((shop x)))
+
 
 (def-fcg-cxn der-cxn
              ((?the-word
@@ -105,9 +108,7 @@
 
 
 (def-fcg-cxn zum-cxn
-             (
-               
-              <-
+             (<-
               (?to-word
                (syn-cat (lex-class contracted-preposition) 
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
@@ -118,7 +119,18 @@
                --
                (HASH form ((string ?to-word "zum"))))))
 
-
+(def-fcg-cxn aus-cxn
+             (<-
+              (?from-word
+               (syn-cat (lex-class preposition)
+                        (preposition +)
+                        (case ((- - - - -)      
+                               (- - - - -)        
+                               (- - - - -)      
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?dm ?df ?dn ?dp))))
+               --
+               (HASH form ((string ?from-word "aus"))))))
 
 
 (def-fcg-cxn Blumen-cxn
@@ -151,6 +163,21 @@
                (HASH meaning ((man ?x)))                     
                --
                (HASH form ((string ?man-word  "Mann"))))))
+
+(def-fcg-cxn Shop-cxn
+             ((?shop-word                        
+               (referent ?x)
+               (syn-cat (lex-class noun)
+                        (case ((?nom ?nm - - ?np)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (?sm + - - ?np)))))
+              <-
+              (?shop-word                            
+               (HASH meaning ((shop ?x)))                
+               --
+               (HASH form ((string ?shop-word  "Shop"))))))
 
 
 (def-fcg-cxn Bäcker-cxn
@@ -223,9 +250,6 @@
               ))
              :disable-automatic-footprints t)
 
-;(comprehend "den Mann")
-(formulate-all '((man x)))
-
 
 (def-fcg-cxn contracted-prep-phrase-cxn
              ((?contracted-prep-phrase
@@ -261,8 +285,42 @@
               ))
              :disable-automatic-footprints t)
 
-(comprehend "zum Mann")
-(formulate '((man x)))
+;(comprehend "zum Mann")
+;(formulate '((aus x)))
+
+
+(def-fcg-cxn prep-phrase-cxn
+             ((?prep-phrase
+               (referent ?x)
+               (syn-cat (lex-class prep-phrase)
+                        (case ?case))
+               (constituents (?preposition ?noun-phrase))
+               (boundaries (leftmost-unit ?preposition)
+                           (rightmost-unit ?leftmost-noun-phrase)))
+              (?preposition
+               (part-of-prep-phrase +)
+               (referent ?x))
+              (?noun-phrase
+               (footprints (determined)))
+              <-
+              (?preposition
+               --
+               (syn-cat (lex-class preposition)
+                        (case ?case)))
+              (?noun-phrase
+               (footprints (not determined))
+               (referent ?x)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ?case))
+              (boundaries (leftmost-unit ?leftmost-noun-phrase)
+                          (rightmost-unit ?rightmost-noun-phrase)))
+              
+              (?prep-phrase
+               --
+               (HASH form ((meets ?preposition ?leftmost-noun-phrase)))
+              ))
+             :disable-automatic-footprints t)
 
 (def-fcg-cxn sucht-cxn
              ((?search-word                         
@@ -403,7 +461,6 @@
 
 
 
-;;; does not work cause the verb is not linked to the NPs
 
 
 (def-fcg-cxn ditransitive-argument-structure-cxn                 ;can be both topicalized and not (make topicalized -)
@@ -535,7 +592,9 @@
               ))
 
 
-(formulate-all '((schenken-01 g) (man m) (arg0 g m) (clown c) (arg2 g c) (flowers f) (arg1 g f) (topicalized c)))
 
 
-; topicalized ?
+
+;(formulate-all '((schenken-01 g) (man m) (arg0 g m) (clown c) (arg2 g c) (flowers f) (arg1 g f) (topicalized c)))
+
+

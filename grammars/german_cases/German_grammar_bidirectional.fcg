@@ -7,7 +7,7 @@
                   (dependents sequence)
                   (footprints set)
                   (case sequence)
-                  (referent set))
+              )
   :hierarchy-features (constituents dependents)
     :fcg-configurations (
                        (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
@@ -19,38 +19,37 @@
 
 (def-fcg-cxn der-cxn
              ((?the-word
-               (footprints (article)) ;once applied
-               (referent (?x)))
-              <-
-              (?the-word
-               (footprints (not article))
-               (syn-cat (lex-class article)
+               (referent ?x)
+               (syn-cat (lex-class article) 
                         (case ((?nm ?nm - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (?gen - ?gf - ?gp)    ;genitive feminine
-                               (?df - ?df - -)
-                               (?s ?m ?f - ?p))))   ;sing, masc, fem, neut, plural
+                               (?df - ?df - -)      ;sing, masc, fem, neut, plural
+                               (?s ?m ?f - ?p)))))
+              <-
+              (?the-word
                (HASH meaning ((definite ?x)))
                --
-               (HASH form ((string ?the-word "der")))))
-             :disable-automatic-footprints t)
+               (HASH form ((string ?the-word "der"))))))
+
+(comprehend "zum Mann")
+(formulate-all '((definite ?x)))
 
 (def-fcg-cxn die-cxn
              ((?the-word
-               (footprints (article))) 
-             <-
-              (?the-word
-               (footprints (not article))
                (syn-cat (lex-class article)
                         (case ((?nom - ?nf - ?np)    ;nom, acc, gen, dat  (nom masculine)
                                (?acc - ?af - ?ap)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
-                               (- - - - -)
-                               (?s - ?f - ?p))))   ;sing, masc, fem, neut, plural
-               
+                               (- - - - -) ;sing, masc, fem, neut, plural
+                               (?s - ?f - ?p))))
+               (referent (?x)))
+             <-
+              (?the-word
+                  
+               (HASH meaning ((definite ?x)))
                --
-               (HASH form ((string ?the-word "die")))))
-             :disable-automatic-footprints t)     ;add to all determiners
+               (HASH form ((string ?the-word "die"))))))
 
 
 (def-fcg-cxn das-cxn
@@ -106,10 +105,9 @@
                (HASH form ((string ?the-word "dem")))))
              :disable-automatic-footprints t)
 
-#|(def-fcg-cxn zum-cxn
+(def-fcg-cxn zum-cxn
              ((?to-word
-               (footprints (article))
-               (syn-cat (lex-class contracted-preposition)
+               (syn-cat (lex-class article)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
@@ -117,11 +115,41 @@
                                (+ ?m - ?n -)))))
              <-
               (?to-word
-               (footprints (not article))
-                  ;sing, masc, fem, neut, plural
+               (HASH meaning ((definite ?x)))
                --
                (HASH form ((string ?to-word "zum")))))
-             :disable-automatic-footprints t)|#
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn noun-phrase-cxn
+             ((?noun-phrase
+               (referent (?x))
+               (syn-cat (lex-class noun-phrase)
+                        (case ?case))
+               (constituents (?article ?noun))
+               (boundaries (leftmost-unit ?article)
+                           (rightmost-unit ?noun)))
+              (?article
+               (part-of-noun-phrase +))
+              <-
+              (?article
+               (referent (?x))
+               (syn-cat (lex-class article)
+                        (case ?case))
+               --
+               (syn-cat (lex-class article)
+                        (case ?case)))
+              (?noun
+               (referent (?x))
+               (syn-cat (lex-class noun)
+                        (case ?case))
+                 
+               --
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              (?noun-phrase
+               --
+               (HASH form ((meets ?article ?noun)))
+              )))
 
 
 ;;;;;;;;NOUNS
