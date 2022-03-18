@@ -172,12 +172,12 @@
 
 (defun find-cxn-by-form-and-meaning (form meaning cxn-inventory &key boundary-list)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
-  (loop for cxn in (constructions cxn-inventory)
+  (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
+        for boundary-list-cxn = (boundary-list cxn)
         when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
                   (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-                  (if boundary-list ;; needed for item-based cxns!
-                    (and (irl::embedding boundary-list (boundary-list cxn))
-                         (irl::embedding (boundary-list cxn) boundary-list))
+                  (if boundary-list ;; needed for item-based cxns! check if variables unify
+                    (unify boundary-list-cxn boundary-list)  ;; issue: large yellow vs blue wouldn't unify.
                     t))
         return cxn))
 

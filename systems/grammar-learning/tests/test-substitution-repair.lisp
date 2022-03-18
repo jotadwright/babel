@@ -328,7 +328,7 @@
            
            (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
                                (second (multiple-value-list
-                                        (comprehend "What is the size of the yellow cube?"
+                                        (comprehend "What is the size of the large yellow cube?"
                        :cxn-inventory cxn-inventory
                        :gold-standard-meaning '((get-context ?source-1)
                                                 (filter ?target-2 ?target-1 ?color-16)
@@ -349,7 +349,7 @@
 ;; (test-varying-word-order-substitution-comprehension) ;should be holophrase
 ;; (test-varying-length-substitution-repair-comprehension) ;ok
 ;; (test-varying-length-substitution-repair-comprehension-reversed) ;ok
-;; (test-no-duplicate-item-based-cxns-substitution-comprehension)
+;; (test-no-duplicate-item-based-cxns-substitution-comprehension) ;ok but we want to reuse the item-based cxn, the boundaries don't unify though... a case for anti-unification!
   
 
 
