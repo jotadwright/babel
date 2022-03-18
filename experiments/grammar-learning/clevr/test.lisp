@@ -76,7 +76,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  9000)
+;(run-series *experiment*  150)
 #|
 
 QUESTIONS

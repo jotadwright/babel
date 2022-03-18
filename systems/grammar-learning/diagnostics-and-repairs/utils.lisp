@@ -177,7 +177,7 @@
         when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
                   (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
                   (if boundary-list ;; needed for item-based cxns! check if variables unify
-                    (unify boundary-list-cxn boundary-list)  ;; issue: large yellow vs blue wouldn't unify.
+                    (unify boundary-list-cxn boundary-list)  ;; issue: blue1234 blue 1234 vs large134 red124 unifies, won't apply! we want to avoid that two variables are bound to one or maybe model the boundaries otherwise
                     t))
         return cxn))
 
