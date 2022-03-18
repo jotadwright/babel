@@ -26,3 +26,4 @@
 **/.tmp
 init-babel-user.lisp
 /grammars/English/lexicon
+*.fcg~ 

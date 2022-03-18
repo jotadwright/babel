@@ -80,7 +80,7 @@
                                        (container-with-ingredients transferable-container)
                                        (temperature-quantity quantity)
                                        (temperature-unit unit))
-  
+  ;;to do add default temperature = room temperature
   ((kitchen-state-in container-with-ingredients temperature-quantity temperature-unit
                      => kitchen-state-out container-with-ingredients-at-temperature)
    
@@ -112,25 +112,38 @@
   ((kitchen-state-in container-with-ingredients => kitchen-state-out container-with-ingredients-beaten tool)
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (tool (find-unused-kitchen-entity 'whisk kitchen-state-in))
-          (new-tool (find-object-by-persistent-id tool new-kitchen-state))
-          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-          (new-mixture (create-homogeneous-mixture-in-container new-container))
           (kitchen-state-available-at (+ 60 (max (kitchen-time kitchen-state-in)
-                                                 (available-at (find (id container-with-ingredients) binding-objects
+                                                (available-at (find (id container-with-ingredients) binding-objects
                                                                      :key #'(lambda (binding-object)
                                                                               (and (value binding-object)
                                                                                    (id (value binding-object)))))))))
           (container-available-at kitchen-state-available-at))
-   
-     (setf (used new-tool) t)
-     (setf (beaten new-mixture) t)
-     (setf (contents new-container) (list new-mixture))
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     ;; 1) find tool and place it on the countertop
+     (multiple-value-bind (target-tool-instance-old-ks target-tool-original-location)
+         (find-unused-kitchen-entity 'whisk kitchen-state-in)
+
+       (let ((target-tool-instance-new-ks
+              (find-object-by-persistent-id target-tool-instance-old-ks
+                                            (funcall (type-of target-tool-original-location) new-kitchen-state))))
+       
+         (change-kitchen-entity-location target-tool-instance-new-ks
+                                         (funcall (type-of target-tool-original-location) new-kitchen-state)
+                                         (counter-top new-kitchen-state))
+         
+         ;; 2) find container with integredients on countertop
+         (let* ((new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+                (new-mixture (create-homogeneous-mixture-in-container new-container)))
+          
+           (setf (used target-tool-instance-new-ks) t)
+           (setf (beaten new-mixture) t)
+           (setf (contents new-container) (list new-mixture))
+
+           (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (tool 0.0 tool nil)))))
+           (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
+                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                 (tool 0.0 target-tool-instance-old-ks nil))))))))
 
 
 (defprimitive transfer-contents ((container-with-all-ingredients transferable-container)

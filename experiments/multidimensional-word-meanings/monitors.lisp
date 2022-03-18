@@ -4,238 +4,6 @@
 ;; + Monitors +
 ;; ------------
 
-;;;; Show lexicon in web interface
-(defun display-lexicon (agent)
-  (loop for cxn in (constructions (grammar agent))
-        do (add-element `((div)
-                          ,(s-dot->svg
-                            (cxn->s-dot cxn))))
-        do (add-element '((hr)))))
-
-;;;; Export learner lexicon to pdf
-(defun experiment-name-from-configurations (experiment)
-  (downcase
-   (string-append (get-configuration experiment :experiment-type) "-"
-                  (get-configuration experiment :data-type) "-"
-                  (get-configuration experiment :category-representation) "-"
-                  (if (eql (get-configuration experiment :experiment-type) :cogent)
-                    (string-append "train-" (mkstr (get-configuration experiment :switch-conditions-after-n-interactions)) "-") "")
-                  (if (eql (get-configuration experiment :experiment-type) :incremental)
-                    (string-append "condition-" (mkstr (uiop:last-char (first (get-configuration experiment :data-sets)))) "-") "")
-                  "lexicon")))
-
-(defun lexicon->pdf (agent &key name serie)
-  (let* ((experiment-name (if name name (experiment-name-from-configurations (experiment agent))))
-         (base-path (if serie
-                      (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
-                                                   "graphs" ,(downcase experiment-name)
-                                                   ,(format nil "run-~a" serie)))
-                      (babel-pathname :directory `("experiments" "multidimensional-word-meanings"
-                                                   "graphs" ,(downcase experiment-name))))))
-    (ensure-directories-exist base-path)
-    (loop for json-cxn in (average-over-cxn-history agent)
-          do (s-dot->image
-              (json-cxn->s-dot json-cxn)
-              :path (merge-pathnames
-                     (make-pathname :name (format nil "~a-cxn" (rest (assoc :form json-cxn)))
-                                    :type "pdf")
-                     base-path)
-              :format "pdf"
-              :open nil))))
-
-;; lexicon -> function plots
-(defun lexicon->function-plots (agent)
-  (loop for cxn in (constructions (grammar agent)) 
-        for experiment-name = (downcase (mkstr (get-configuration agent :category-representation)))
-        do (cxn->function-plot cxn (get-configuration agent :category-representation)
-                               :directory `("experiments" "multidimensional-word-meanings"
-                                            "graphs" ,experiment-name "function-plots"))))
-
-;;;; Export concepts (= cxns) as functions
-(defgeneric cxn->function-plot (cxn category-representation &key directory)
-  (:documentation "Plot the functions that are stored in the categories"))
-
-(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype))
-                                &key (directory '(".tmp")))
-  (let ((equations
-         (loop for (category . certainty) in (attr-val cxn :meaning)
-               collect (format nil "normal(x,~a,~a)"
-                               (prototype category)
-                               (sqrt (/ (M2 category) (nr-samples category)))))))
-    (create-function-plot equations
-                          :function-definitions '("normal(x,mu,sd) = (1/(sd*sqrt(2*pi)))*exp(-(x-mu)**2/(2*sd**2))")
-                          :title (format nil "~a" (downcase (mkstr (name cxn))))
-                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
-                                          collect (format nil "~a" (downcase (mkstr (attribute category)))))
-                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
-                          :plot-directory directory
-                          :x-label nil :y-min 0 :y-max nil
-                          :open nil)))
-
-#|(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :min-max))
-                               &key (directory '(".tmp")))
-  (let ((equations
-         (loop for (category . certainty) in (attr-val cxn :meaning)
-               when (< (abs (- (lower-bound category) (upper-bound category))) 0.5)
-               collect (format nil "box(x,~a,~a)"
-                               (lower-bound category)
-                               (upper-bound category)))))
-    (create-function-plot equations
-                          :function-definitions '("box(x,a,b)=(x>a && x<b) ? 1 : -1")
-                          :title (format nil "~a" (downcase (mkstr (name cxn))))
-                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
-                                          when (< (abs (- (lower-bound category) (upper-bound category))) 0.5)
-                                          collect (format nil "~a" (downcase (mkstr (attribute category)))))
-                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
-                          :plot-directory directory
-                          :x-label nil :y-min -1.1 :y-max 1.1
-                          :open nil)))
-
-(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :prototype-min-max))
-                                &key (directory '(".tmp")))
-  (let ((equations
-         (loop for (category . certainty) in (attr-val cxn :meaning)
-               append (list (if (null (lower-m category))
-                              (format nil "box(x,~a)"
-                                      (prototype category))
-                              (format nil "lin(x,~a,~a)"
-                                      (lower-m category) (lower-b category)))
-                            (if (null (upper-m category))
-                              (format nil "box(x,~a)"
-                                      (prototype category))
-                              (format nil "lin(x,~a,~a)"
-                                      (upper-m category) (upper-b category)))))))
-    (create-function-plot equations
-                          :function-definitions '("lin(x,m,b) = m*x+b"
-                                                  "box(x,a) = (x > a-0.1 && x < a+0.1) ? 1 : -1")
-                          :title (format nil "~a" (downcase (mkstr (name cxn))))
-                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
-                                          append (list (format nil "~a-lower" (downcase (mkstr (attribute category))))
-                                                       (format nil "~a-upper" (downcase (mkstr (attribute category))))))
-                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
-                          :plot-directory directory
-                          :x-label nil :y-min 0
-                          :open nil)))
-
-
-(defmethod cxn->function-plot ((cxn fcg-construction) (category-representation (eql :exponential))
-                               &key (directory '(".tmp")))
-  (let* ((p-values
-          (loop for (category . certainty) in (attr-val cxn :meaning)
-                append (list (sqrt (/ 1.0 (expt 2 (/ (* (- (left-sigma category)) (prototype category)) (log 2)))))
-                             (sqrt (/ 1.0 (expt 2 (/ (* (- (right-sigma category)) (prototype category)) (log 2))))))))
-         (equations
-          (loop for (category . certainty) in (attr-val cxn :meaning)
-                for i from 0
-                append (list (format nil "decay(x,~a,~a)"
-                                     (left-sigma category)
-                                     (- (nth (* 2 i) p-values)))
-                             (format nil "decay(x,~a,~a)"
-                                     (- (right-sigma category))
-                                     (nth (+ (* 2 i) 1) p-values))))))
-    (create-function-plot equations
-                          :function-definitions '("decay(x,s,p)=2**(((s*x)/log(2))+p)")
-                          :title (format nil "~a" (downcase (mkstr (name cxn))))
-                          :captions (loop for (category . certainty) in (attr-val cxn :meaning)
-                                          append (list (format nil "~a-lower" (downcase (mkstr (attribute category))))
-                                                       (format nil "~a-upper" (downcase (mkstr (attribute category))))))
-                          :plot-file-name (format nil "~a" (downcase (mkstr (name cxn))))
-                          :plot-directory directory
-                          :x-label nil :y-min 0
-                          :open nil)))|#
-
-;;;; Learner used attribute
-;; a-list monitor that keeps track of the attributes used by the learner
-(define-monitor record-learner-attribute-use
-                :documentation "Record how often the learner uses each type of attribute"
-                :class 'alist-recorder
-                :average-window 100)
-
-(defparameter *attribute-count* nil)
-
-(define-event-handler (record-learner-attribute-use interaction-finished)
-  (let ((learner (find 'learner (population experiment) :key #'id)))
-    (when (find-data learner 'parsed-meaning)
-      (loop for (category . score) in (find-data learner 'parsed-meaning)
-            for attr = (attribute category)
-            if (> score 0.0)
-            do (if (assoc attr *attribute-count*)
-                 (incf (cdr (assoc attr *attribute-count*)))
-                 (push (cons attr 1) *attribute-count*))))
-    (loop for (attr . count) in *attribute-count*
-          do (set-value-for-symbol monitor attr count))))
-
-(define-monitor plot-learner-attribute-use
-    :class 'alist-gnuplot-graphic-generator
-    :recorder 'record-learner-attribute-use
-    :draw-y-1-grid t
-    :y-label "Learner attribute use"
-    :x-label "# Games"
-    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
-			       :name "learner-attribute-use"
-			       :type "pdf")
-    :graphic-type "pdf")
-
-(defun create-learner-attribute-use-graph (&key 
-                                           (configurations nil)
-                                           (nr-of-interactions 5000))
-  (format t "~%Running ~a interactions in order to create a learner attribute use graph." nr-of-interactions)
-  (activate-monitor plot-learner-attribute-use)
-  (run-batch 'mwm-experiment nr-of-interactions 1
-             :configuration (make-configuration :entries configurations))
-  (deactivate-monitor plot-learner-attribute-use)
-  (format t "~%Graphs have been created"))
-
-;;;; Record reason for failure
-;; a-list monitor that keeps track of the reason why the game failed
-(define-monitor record-game-outcome
-                :documentation "records in a few symbols the game outcome"
-                :class 'alist-recorder
-                :average-window 100)
-
-(define-event-handler (record-game-outcome interaction-finished)
-  (let ((learner (find 'learner (population experiment) :key #'id))
-        (tutor (find 'tutor (population experiment) :key 'id)))
-    (if (communicated-successfully interaction)
-      (set-value-for-symbol monitor 'success 1)
-      ;; if the tutor speaks
-      ;; - either the word is new for the learner
-      ;; - either the interpreted object is wrong
-      ;; if the learner speaks
-      ;; - either the learner cannot discriminate the topic
-      ;; - either the tutor cannot interpret the utterance
-      ;; - either the agents do not agree
-      (set-value-for-symbol monitor
-                            (if (speakerp tutor)
-                              (cond ((null (find-data learner 'parsed-meaning)) 'new-word-for-learner)
-                                    (t 'agents-not-agree))
-                              (cond ((null (find-data learner 'applied-cxns)) 'not-discriminate)
-                                    ((null (find-data tutor 'interpreted-topic)) 'tutor-not-interpret)
-                                    (t 'agents-not-agree)))
-                            1))))
-
-(define-monitor plot-game-outcomes
-    :class 'alist-gnuplot-graphic-generator
-    :recorder 'record-game-outcome
-    :draw-y-1-grid t
-    :y-label "Game outcomes"
-    :x-label "# Games"
-    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
-			       :name "game-outcomes"
-			       :type "pdf")
-    :graphic-type "pdf")
-
-(defun create-game-outcome-graph (&key
-                                  (configurations nil)
-                                  (nr-of-interactions 5000))
-  (format t "~%Running ~a interactions in order to create a game outcome graph." nr-of-interactions)
-  (activate-monitor plot-game-outcomes)
-  (run-batch 'mwm-experiment nr-of-interactions 1
-             :configuration (make-configuration :entries configurations))
-  (deactivate-monitor plot-game-outcomes)
-  (format t "~%Graphs have been created"))
-        
-
 ;;;; Communicative success
 (define-monitor record-communicative-success
                 :class 'data-recorder
@@ -245,7 +13,7 @@
 (define-monitor display-communicative-success
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
-                :data-sources '((average record-communicative-success))
+                :data-sources '(record-communicative-success)
                 :update-interval 100
                 :caption '("communicative success")
                 :x-label "# Games" 
@@ -256,7 +24,7 @@
 (define-monitor export-communicative-success
                 :class 'lisp-data-file-writer
                 :documentation "Exports communicative success"
-                :data-sources '(record-communicative-success)
+                :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
                                            :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
@@ -265,6 +33,33 @@
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
+
+;;;; Communicative Success given Conceptualisation
+(define-monitor record-communicative-success-given-conceptualisation
+                :class 'data-recorder
+                :average-window 100
+                :documentation "records the game outcome of each game (1 or 0).")
+
+(define-monitor export-communicative-success-given-conceptualisation
+                :class 'lisp-data-file-writer
+                :documentation "Exports communicative success"
+                :data-sources '((average record-communicative-success-given-conceptualisation))
+                :file-name (babel-pathname :name "communicative-success-given-conceptualisation" :type "lisp"
+                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                :add-time-and-experiment-to-file-name nil
+                :column-separator " "
+                :comment-string "#")
+
+(define-event-handler (record-communicative-success-given-conceptualisation interaction-finished)
+  (record-value monitor (determine-communicative-success-given-conceptualisation interaction monitor)))
+
+(defun determine-communicative-success-given-conceptualisation (interaction monitor)
+  (if (eql (tutor interaction) (speaker interaction))
+    (if (communicated-successfully interaction) 1 0)
+    (if (find-data (speaker interaction) 'applied-concept)
+      (if (communicated-successfully interaction) 1 0)
+      (if (caaar (monitors::get-values monitor)) (caaar (monitors::get-values monitor)) 0))))
+
 
 ;;;; Lexicon size
 (define-monitor record-lexicon-size
@@ -283,11 +78,131 @@
                 :comment-string "#")
 
 (defun get-lexicon-size (agent)
-  (length (constructions (grammar agent))))
+  (length (lexicon agent)))
 
 (define-event-handler (record-lexicon-size interaction-finished)
-  (record-value monitor (get-lexicon-size (hearer experiment))))
+  (record-value monitor (get-lexicon-size (learner experiment))))
 
+
+;;;; Monitor that tracks what the tutor uses when the interaction fails
+(define-monitor record-tutor-conceptualisation-in-failed-interactions
+                :class 'alist-recorder :average-window 1)
+
+(defparameter *used-features* nil)
+
+(define-event-handler (record-tutor-conceptualisation-in-failed-interactions interaction-finished)
+  (when (eql (tutor experiment) (speaker experiment))
+    (let ((tutor-feature (find-data (tutor experiment) 'tutor-conceptualisation)))
+      (unless (communicated-successfully (current-interaction experiment))
+        (if (assoc tutor-feature *used-features*)
+          (incf (cdr (assoc tutor-feature *used-features*)))
+          (push (cons tutor-feature 1) *used-features*)))))
+  (loop for (feature . count) in *used-features*
+        do (set-value-for-symbol monitor feature count)))
+
+(define-monitor plot-tutor-conceptualisation-in-failed-interactions
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-tutor-conceptualisation-in-failed-interactions
+    :draw-y-1-grid t
+    :y-label "Tutor word use"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "tutor-word-use" :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-tutor-word-use-graph (&key (configurations nil)
+                                         (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create a tutor word use graph." nr-of-interactions)
+  (setf *used-features* nil)
+  (activate-monitor plot-tutor-conceptualisation-in-failed-interactions)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-tutor-conceptualisation-in-failed-interactions)
+  (format t "~%Graphs have been created"))
+
+;;;; Monitor that tracks what the learner uses when the interaction fails
+(define-monitor record-learner-failed-conceptualisations
+                :class 'alist-recorder :average-window 1)
+
+(defparameter *failed-conceptualisations* nil)
+
+(define-event-handler (record-learner-failed-conceptualisations interaction-finished)
+  (when (eql (learner experiment) (speaker experiment))
+    (let ((symbolic-feature (find-data (tutor experiment) 'tutor-conceptualisation)))
+      (unless (communicated-successfully (current-interaction experiment))
+        (if (assoc symbolic-feature *failed-conceptualisations*)
+          (incf (cdr (assoc symbolic-feature *failed-conceptualisations*)))
+          (push (cons symbolic-feature 1) *failed-conceptualisations*)))))
+  (loop for (feature . count) in *failed-conceptualisations*
+        do (set-value-for-symbol monitor feature count)))
+
+(define-monitor plot-learner-failed-conceptualisations
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-learner-failed-conceptualisations
+    :draw-y-1-grid t
+    :y-label "Learner failed conceptualisation"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "learner-failed-conceptualisation" :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-learner-failed-conceptualisation-graph (&key configurations
+                                                           (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create a graph." nr-of-interactions)
+  (setf *failed-conceptualisations* nil)
+  (activate-monitor plot-learner-failed-conceptualisations)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-learner-failed-conceptualisations)
+  (format t "~%Graphs have been created"))
+
+;;;; Export the lexicon to pdf at the end of a series
+(define-monitor export-learner-concepts-to-pdf)
+
+(define-event-handler (export-learner-concepts-to-pdf run-series-finished)
+  (lexicon->pdf (learner experiment) :serie (series-number experiment)))
+
+
+;;;; Export the lexicon to .store at the end of a series
+(define-monitor export-learner-concepts-to-store)
+
+(define-event-handler (export-learner-concepts-to-store run-series-finished)
+  (lexicon->store (learner experiment) :serie (series-number experiment)))
+
+
+;;;; Export the configurations of the experiment at the end of the first series
+(define-monitor export-experiment-configurations)
+
+(define-event-handler (export-experiment-configurations run-series-finished)
+  (when (= (series-number experiment) 1)
+    (let* ((experiment-name (experiment-name-from-configurations experiment))
+           (path (babel-pathname
+                  :directory `("experiments" "multidimensional-word-meanings"
+                               "raw-data" ,(downcase experiment-name))
+                  :name "experiment-configurations" :type "lisp")))
+      (ensure-directories-exist path)
+      (with-open-file (stream path :direction :output
+                              :if-exists :overwrite
+                              :if-does-not-exist :create)
+        (write (entries experiment)
+               :stream stream)))))
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#|
 ;;;; Utterance length
 (define-monitor record-utterance-length
                 :class 'data-recorder
@@ -307,6 +222,7 @@
 (define-event-handler (record-utterance-length interaction-finished)
   (record-value monitor (length (utterance (speaker interaction)))))
 
+
 ;;;; monitor tutor word use (a-list)
 (define-monitor record-tutor-word-use
                 :documentation "Record how often the tutor uses each word"
@@ -317,7 +233,7 @@
 
 (define-event-handler (record-tutor-word-use interaction-finished)
   (let* ((tutor (find 'tutor (population experiment) :key #'id))
-         (used-words (find-data tutor 'clevr-conceptualisation)))
+         (used-words (find-data tutor 'tutor-conceptualisation)))
     (loop for used-word in used-words
           if (assoc used-word *word-count*)
           do (incf (cdr (assoc used-word *word-count*)))
@@ -332,8 +248,7 @@
     :y-label "Tutor word use"
     :x-label "# Games"
     :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
-			       :name "tutor-word-use"
-			       :type "pdf")
+			       :name "tutor-word-use" :type "pdf")
     :graphic-type "pdf")
 
 (defun create-tutor-word-use-graph (&key (configurations nil)
@@ -344,6 +259,7 @@
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-tutor-word-use)
   (format t "~%Graphs have been created"))
+
 
 ;;;; success per attribute type
 (define-monitor record-success-per-attribute-type
@@ -439,6 +355,7 @@
       (unless (listp (current-value monitor))
         (record-value monitor '())))))
 
+
 ;; recording tutor utterance length for bar plots
 (define-monitor record-tutor-utterance-length-1
                 :class 'data-recorder
@@ -499,7 +416,8 @@
 (define-event-handler (record-tutor-utterance-length-4 interaction-finished)
   (let ((tutor-utterance-len (length (utterance (speaker interaction)))))
     (record-value monitor  (if (= tutor-utterance-len 4) 1 0))))
-                
+
+
 ;; recording tutor attribute use for bar plots
 (define-monitor record-tutor-uses-color
                 :class 'data-recorder :average-window 1)
@@ -602,3 +520,97 @@
                       for type = (rest (assoc word *word->type-map* :test #'string=))
                       collect type)))
     (record-value monitor (if (find 'ypos types) (/ 1 (length utterance)) 0))))
+
+
+;;;; Record reason for failure
+;; a-list monitor that keeps track of the reason why the game failed
+(define-monitor record-game-outcome
+                :documentation "records in a few symbols the game outcome"
+                :class 'alist-recorder
+                :average-window 100)
+
+(define-event-handler (record-game-outcome interaction-finished)
+  (let ((learner (find 'learner (population experiment) :key #'id))
+        (tutor (find 'tutor (population experiment) :key 'id)))
+    (if (communicated-successfully interaction)
+      (set-value-for-symbol monitor 'success 1)
+      ;; if the tutor speaks
+      ;; - either the word is new for the learner
+      ;; - either the interpreted object is wrong
+      ;; if the learner speaks
+      ;; - either the learner cannot discriminate the topic
+      ;; - either the tutor cannot interpret the utterance
+      ;; - either the agents do not agree
+      (set-value-for-symbol monitor
+                            (if (speakerp tutor)
+                              (cond ((null (find-data learner 'parsed-meaning)) 'new-word-for-learner)
+                                    (t 'agents-not-agree))
+                              (cond ((null (find-data learner 'applied-cxns)) 'not-discriminate)
+                                    ((null (find-data tutor 'interpreted-topic)) 'tutor-not-interpret)
+                                    (t 'agents-not-agree)))
+                            1))))
+
+(define-monitor plot-game-outcomes
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-game-outcome
+    :draw-y-1-grid t
+    :y-label "Game outcomes"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "game-outcomes"
+			       :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-game-outcome-graph (&key
+                                  (configurations nil)
+                                  (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create a game outcome graph." nr-of-interactions)
+  (activate-monitor plot-game-outcomes)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-game-outcomes)
+  (format t "~%Graphs have been created"))
+
+
+;;;; Learner used attribute
+;; a-list monitor that keeps track of the attributes used by the learner
+(define-monitor record-learner-attribute-use
+                :documentation "Record how often the learner uses each type of attribute"
+                :class 'alist-recorder
+                :average-window 100)
+
+(defparameter *attribute-count* nil)
+
+(define-event-handler (record-learner-attribute-use interaction-finished)
+  (let ((learner (find 'learner (population experiment) :key #'id)))
+    (when (find-data learner 'parsed-meaning)
+      (loop for (category . score) in (find-data learner 'parsed-meaning)
+            for attr = (attribute category)
+            if (> score 0.0)
+            do (if (assoc attr *attribute-count*)
+                 (incf (cdr (assoc attr *attribute-count*)))
+                 (push (cons attr 1) *attribute-count*))))
+    (loop for (attr . count) in *attribute-count*
+          do (set-value-for-symbol monitor attr count))))
+
+(define-monitor plot-learner-attribute-use
+    :class 'alist-gnuplot-graphic-generator
+    :recorder 'record-learner-attribute-use
+    :draw-y-1-grid t
+    :y-label "Learner attribute use"
+    :x-label "# Games"
+    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+			       :name "learner-attribute-use"
+			       :type "pdf")
+    :graphic-type "pdf")
+
+(defun create-learner-attribute-use-graph (&key 
+                                           (configurations nil)
+                                           (nr-of-interactions 5000))
+  (format t "~%Running ~a interactions in order to create a learner attribute use graph." nr-of-interactions)
+  (activate-monitor plot-learner-attribute-use)
+  (run-batch 'mwm-experiment nr-of-interactions 1
+             :configuration (make-configuration :entries configurations))
+  (deactivate-monitor plot-learner-attribute-use)
+  (format t "~%Graphs have been created"))
+|#

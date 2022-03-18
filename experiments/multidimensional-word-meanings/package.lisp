@@ -8,6 +8,7 @@
         :monitors
         :plot-raw-data
         :experiment-framework
+        :irl
         :fcg
         :clevr-world)
   (:import-from :cl-mop
@@ -17,4 +18,4 @@
    :decode-json-from-string
    :encode-json-to-string
    :encode-json-alist-to-string)
-  (:shadowing-import-from :fcg :attributes))
+  (:shadowing-import-from :fcg :size :attributes))

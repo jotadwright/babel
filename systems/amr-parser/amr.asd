@@ -4,6 +4,8 @@
   :license ""
   :homepage "https://gitlab.ai.vub.ac.be/ehai/amr"
   :serial t
+  :depends-on (:utils)
   :components ((:file "package")
-               (:file "amr"))
+               (:file "amr")
+               (:file "equivalent-amr-networks"))
   :description "A Common Lisp package for manipulating AMR meaning representations.")

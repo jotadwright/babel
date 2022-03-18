@@ -16,7 +16,7 @@
                         (definite +))
                (sem-cat (sem-function spatial-relation))
                (subunits (?spatial-relation-unit-1 ?determined-noun-phrase-unit-1))
-               (leftmost-unit ?spatial-relation-unit-1)
+               (leftmost-unit ?leftmost-spatial-unit-1)
                (rightmost-unit ?rightmost-np-unit-1))
               (?prepositional-phrase-2
                (args ((sources ?source)
@@ -26,7 +26,7 @@
                         (definite +))
                (sem-cat (sem-function spatial-relation))
                (subunits (?spatial-relation-unit-2 ?determined-noun-phrase-unit-2))
-               (leftmost-unit ?spatial-relation-unit-2)
+               (leftmost-unit ?leftmost-spatial-unit-2)
                (rightmost-unit ?rightmost-np-unit-2))
               (?intersect-unit
                (args ((sources ?source)
@@ -34,20 +34,25 @@
                (syn-cat (phrase-type conjuncted-clauses)
                         (conjunction intersect))
                (sem-cat (sem-function referring-expression))
-               (leftmost-unit ?spatial-relation-unit-1)
+               (leftmost-unit ?leftmost-spatial-unit-1)
                (rightmost-unit ?rightmost-np-unit-2)
                (subunits (?prepositional-phrase-1 ?prepositional-phrase-2)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?prepositional-phrase-1
-               (HASH meaning ((relate ?related-set-1 ?object-1 ?spatial-relation-1)))
+               (HASH meaning ((relate ?related-set-1 ?object-1 ?source ?scene ?spatial-relation-1)))
                --
                )
               (?spatial-relation-unit-1
                (args ((target ?spatial-relation-1)))
                (sem-cat (sem-class spatial-relation))
                --
+               (leftmost-unit ?leftmost-spatial-unit-1)
+               (rightmost-unit ?rightmost-spatial-unit-1)
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?spatial-relation-unit-1 ?leftmost-np-unit-1))))
+               (HASH form ((meets ?rightmost-spatial-unit-1 ?leftmost-np-unit-1))))
               (?determined-noun-phrase-unit-1
                (args ((sources ?source)
                       (target ?object-1)))
@@ -64,17 +69,19 @@
                --
                (HASH form ((string ?intersect-unit "and")
                            (meets ?rightmost-np-unit-1 ?intersect-unit)
-                           (meets ?intersect-unit ?spatial-relation-unit-2))))
+                           (meets ?intersect-unit ?leftmost-spatial-unit-2))))
               (?prepositional-phrase-2
-               (HASH meaning ((relate ?related-set-2 ?object-2 ?spatial-relation-2)))
+               (HASH meaning ((relate ?related-set-2 ?object-2 ?source ?scene ?spatial-relation-2)))
                --
                )
               (?spatial-relation-unit-2
                (args ((target ?spatial-relation-2)))
                (sem-cat (sem-class spatial-relation))
                --
+               (leftmost-unit ?leftmost-spatial-unit-2)
+               (rightmost-unit ?rightmost-spatial-unit-2)
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?spatial-relation-unit-2 ?leftmost-np-unit-2))))
+               (HASH form ((meets ?rightmost-spatial-unit-2 ?leftmost-np-unit-2))))
               (?determined-noun-phrase-unit-2
                (args ((sources ?source)
                       (target ?object-2)))
@@ -98,7 +105,7 @@
                         (definite +))
                (sem-cat (sem-function spatial-relation))
                (subunits (?spatial-relation-unit-1 ?determined-noun-phrase-unit-1))
-               (leftmost-unit ?spatial-relation-unit-1)
+               (leftmost-unit ?leftmost-spatial-unit-1)
                (rightmost-unit ?rightmost-np-unit-1))
               (?prepositional-phrase-2
                (args ((sources ?source)
@@ -108,7 +115,7 @@
                         (definite +))
                (sem-cat (sem-function spatial-relation))
                (subunits (?spatial-relation-unit-2 ?determined-noun-phrase-unit-2))
-               (leftmost-unit ?spatial-relation-unit-2)
+               (leftmost-unit ?leftmost-spatial-unit-2)
                (rightmost-unit ?rightmost-np-unit-2))
               (?intersect-unit
                (args ((sources ?source)
@@ -123,17 +130,22 @@
               (?both
                --
                (HASH form ((string ?both "both")
-                           (meets ?both ?spatial-relation-unit-1))))
+                           (meets ?both ?leftmost-spatial-unit-1))))
+              (scene-unit
+               --
+               (scene ?scene))
               (?prepositional-phrase-1
-               (HASH meaning ((relate ?related-set-1 ?object-1 ?spatial-relation-1)))
+               (HASH meaning ((relate ?related-set-1 ?object-1 ?source ?scene ?spatial-relation-1)))
                --
                )
               (?spatial-relation-unit-1
                (args ((target ?spatial-relation-1)))
                (sem-cat (sem-class spatial-relation))
                --
+               (leftmost-unit ?leftmost-spatial-unit-1)
+               (rightmost-unit ?rightmost-spatial-unit-1)
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?spatial-relation-unit-1 ?leftmost-np-unit-1))))
+               (HASH form ((meets ?rightmost-spatial-unit-1 ?leftmost-np-unit-1))))
               (?determined-noun-phrase-unit-1
                (args ((sources ?source)
                       (target ?object-1)))
@@ -150,17 +162,19 @@
                --
                (HASH form ((string ?intersect-unit "and")
                            (meets ?rightmost-np-unit-1 ?intersect-unit)
-                           (meets ?intersect-unit ?spatial-relation-unit-2))))
+                           (meets ?intersect-unit ?leftmost-spatial-unit-2))))
               (?prepositional-phrase-2
-               (HASH meaning ((relate ?related-set-2 ?object-2 ?spatial-relation-2)))
+               (HASH meaning ((relate ?related-set-2 ?object-2 ?source ?scene ?spatial-relation-2)))
                --
                )
               (?spatial-relation-unit-2
                (args ((target ?spatial-relation-2)))
                (sem-cat (sem-class spatial-relation))
                --
+               (leftmost-unit ?leftmost-spatial-unit-2)
+               (rightmost-unit ?rightmost-spatial-unit-2)
                (syn-cat (lex-class preposition))
-               (HASH form ((meets ?spatial-relation-unit-2 ?leftmost-np-unit-2))))
+               (HASH form ((meets ?rightmost-spatial-unit-2 ?leftmost-np-unit-2))))
               (?determined-noun-phrase-unit-2
                (args ((sources ?source)
                       (target ?object-2)))
@@ -177,14 +191,17 @@
                
 (def-fcg-cxn intersect-count-cxn
              ((?count-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?counting-unit ?intersect-unit)))
               (?counting-unit
                (footprints (single-and)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?count-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                )
               (?counting-unit
@@ -202,7 +219,7 @@
                (rightmost-unit ?rightmost-counting-unit)
                (HASH form ((meets ?rightmost-counting-unit ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -219,12 +236,15 @@
 
 (def-fcg-cxn intersect-query-property-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?query-type-unit ?determined-noun-phrase-unit ?that-is ?intersect-unit)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                )
               (?query-type-unit
@@ -257,7 +277,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -274,12 +294,15 @@
 
 (def-fcg-cxn intersect-query-property-reverse-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?determined-noun-phrase-unit ?that-is ?intersect-unit ?query-type-unit)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                )
               (?determined-noun-phrase-unit
@@ -299,7 +322,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -330,12 +353,15 @@
 
 (def-fcg-cxn intersect-query-property-anaphoric-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?declared-noun-phrase-unit ?that-is ?intersect-unit ?semicolon ?query-type-unit)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                )
               (?declared-noun-phrase-unit
@@ -355,7 +381,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -390,13 +416,16 @@
 ;; how big is X
 (def-fcg-cxn intersect-how-big-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?determined-noun-phrase-unit ?that-is ?intersect-unit)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?target ?object ?attribute)
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)
+                              (query ?target ?object ?scene ?attribute)
                               (bind attribute-category ?attribute size)))
                --
                (HASH form ((string ?query-unit "how big is")
@@ -418,7 +447,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -436,7 +465,7 @@
 ;; there is a X; how big is it
 (def-fcg-cxn intersect-how-big-anaphoric-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?declared-noun-phrase-unit ?that-is ?intersect-unit ?semicolon)))
               <-
@@ -457,7 +486,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -473,9 +502,12 @@
                (HASH form ((string ?semicolon ";")
                            (meets ?rightmost-intersect-unit ?semicolon)
                            (meets ?semicolon ?query-unit))))
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?target ?object ?attribute)
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)
+                              (query ?target ?object ?scene ?attribute)
                               (bind attribute-category ?attribute size)))
                --
                (HASH form ((string ?query-unit "how big is it")))))
@@ -486,7 +518,7 @@
 ;; what is the X made of
 (def-fcg-cxn intersect-made-of-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?what-is ?determined-noun-phrase-unit ?that-is ?intersect-unit)))
               <-
@@ -511,7 +543,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -522,9 +554,12 @@
                         (conjunction intersect))
                (leftmost-unit ?leftmost-intersect-unit)
                (rightmost-unit ?rightmost-intersect-unit))
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?target ?object ?attribute)
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)
+                              (query ?target ?object ?scene ?attribute)
                               (bind attribute-category ?attribute material)))
                --
                (HASH form ((string ?query-unit "made of")
@@ -536,7 +571,7 @@
 ;; the X is made of what material
 (def-fcg-cxn intersect-made-of-reverse-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?determined-noun-phrase-unit ?that-is ?intersect-unit ?type-unit)))
               <-
@@ -557,7 +592,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -568,9 +603,12 @@
                         (conjunction intersect))
                (leftmost-unit ?leftmost-intersect-unit)
                (rightmost-unit ?rightmost-intersect-unit))
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?target ?object ?attribute)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)
+                              (query ?target ?object ?scene ?attribute)))
                --
                (HASH form ((string ?query-unit "is made of what")
                            (meets ?rightmost-intersect-unit ?query-unit)
@@ -591,7 +629,7 @@
 ;; there is a X; what [material] is it made of
 (def-fcg-cxn intersect-made-of-anaphoric-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?declared-noun-phrase-unit ?that-is ?intersect-unit ?semicolon)))
               <-
@@ -612,7 +650,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -628,9 +666,12 @@
                (HASH form ((string ?semicolon ";")
                            (meets ?rightmost-intersect-unit ?semicolon)
                            (meets ?semicolon ?query-unit))))
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?target ?object ?attribute)
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)
+                              (query ?target ?object ?scene ?attribute)
                               (bind attribute-category ?attribute material)))
                --
                (HASH form ((string ?query-unit "what is it made of")))))
@@ -640,7 +681,7 @@
 
 (def-fcg-cxn intersect-made-of-anaphoric-extended-cxn
              ((?query-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?declared-noun-phrase-unit ?that-is ?intersect-unit ?semicolon ?what ?type-unit)))
               <-
@@ -661,7 +702,7 @@
                            (meets ?rightmost-np-unit ?that-is)
                            (meets ?that-is ?leftmost-intersect-unit))))
               (?intersect-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?intersected-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)
@@ -690,9 +731,12 @@
                (property-type material)
                (syn-cat (lex-class noun))
                (sem-cat (sem-class attribute)))
+              (scene-unit
+               --
+               (scene ?scene))
               (?query-unit
-               (HASH meaning ((get-context ?context)
-                              (query ?target ?object ?attribute)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)
+                              (query ?target ?object ?scene ?attribute)))
                --
                (HASH form ((string ?query-unit "is it made of")
                            (meets ?type-unit ?query-unit)))))

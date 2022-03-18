@@ -103,7 +103,7 @@ is overwritten."
   (set-configuration construction-inventory
                      :use-meta-layer t :replace nil)
   (set-configuration construction-inventory
-                      :consolidate-repairs nil :replace nil)
+                     :consolidate-repairs nil :replace nil)
   (set-configuration construction-inventory
                      :form-predicates'(meets precedes fields first) :replace nil)
   (set-configuration construction-inventory 
@@ -130,6 +130,9 @@ is overwritten."
                      :equivalent-cxn-fn #'eql)
   (set-configuration construction-inventory
                      :category-linking-mode :neighbours)
+  (set-configuration construction-inventory
+                     :initial-categorial-link-weight 0.0)
+  
   
   ;; Set default visualization configuration
   (set-configuration (visualization-configuration construction-inventory) :coupled-mode nil :replace nil)

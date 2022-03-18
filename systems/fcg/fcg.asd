@@ -22,7 +22,8 @@
   :depends-on (:experiment-framework :test-framework :utils :monitors :meta-layer-learning :cl-store :graph-utils
                #+:hunchentoot-available-on-this-platform :web-interface
                :network
-               :s-dot)
+               :s-dot
+               :cl-json)
   :serial t
   :components 
   ((:file "package")
@@ -58,6 +59,7 @@
     :serial t
     :components ((:file "construction-inventory-processor")
                  (:file "cxn-suppliers")
+                 (:file "hashed-cxn-suppliers")
                  (:file "node-tests")
                  (:file "goal-tests")))
    (:module heuristic-search
@@ -99,7 +101,8 @@
                  (:file "graph-utils-additions")
                  (:file "categorial-network")
                  (:file "html")
-                 (:file "web-monitor")))
+                 (:file "web-monitor")
+                 (:file "export-utils")))
    
    (:module meta-layer
     :serial t

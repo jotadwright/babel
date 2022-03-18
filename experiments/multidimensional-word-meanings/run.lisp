@@ -14,90 +14,61 @@
 ;; + Run interactions +
 ;; --------------------
 
-;; define some import path variables
-(progn
-  (defparameter *baseline-simulated-data-sets* '("val"))
-  (defparameter *baseline-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val-ns-vqa"))
-                     cl-user:*babel-corpora*))
-  
-  (defparameter *cogent-simulated-data-sets* '("valA"))
-  (defparameter *cogent-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-CoGenT" "scenes" "valA-ns-vqa"))
-                     cl-user:*babel-corpora*))
-  
-  
-  (defparameter *incremental-simulated-data-sets* '("phase_1"))
-  (defparameter *incremental-extracted-data-path*
-    (merge-pathnames (make-pathname :directory '(:relative "CLEVR-incremental" "scenes" "phase_1-ns_vqa"))
-                     cl-user:*babel-corpora*)))
-
-;; define some configurations
-(progn
-(defparameter *baseline-simulated-configuration*
+;;;; CONFIGURATIONS
+(defparameter *baseline-simulated*
   (make-configuration
-   :entries `((:experiment-type . :baseline)
-              (:data-type . :simulated)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks) 
-              (:data-sets . ,*baseline-simulated-data-sets*))))
-
-(defparameter *baseline-extracted-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :baseline)
-              (:data-type . :extracted)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:data-sets . ,*baseline-simulated-data-sets*)
-              (:data-path . ,*baseline-extracted-data-path*)
-              (:extracted-colour-space . :hsv))))
-
-(defparameter *cogent-simulated-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :cogent)
-              (:data-type . :simulated)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,500)
-              (:data-sets . ,*cogent-simulated-data-sets*))))
-
-(defparameter *cogent-extracted-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :cogent)
-              (:data-type . :extracted)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,100)
-              (:data-sets . ,*cogent-simulated-data-sets*)
-              (:data-path . ,*cogent-extracted-data-path*))))
-
-(defparameter *incremental-simulated-configuration*
-  (make-configuration
-   :entries `((:experiment-type . :incremental)
-              (:data-type . :simulated)
-              (:category-representation . :prototype)
+   :entries '((:experiment-type . :baseline)
+              (:world-type . :simulated)
               (:determine-interacting-agents-mode . :default)
-              (:switch-conditions-after-n-interactions . 1000)
-              (:data-sets . ,*incremental-simulated-data-sets*))))
+              (:alignment-filter . :all))))
 
-(defparameter *incremental-extracted-configuration*
+(defparameter *baseline-extracted*
   (make-configuration
-   :entries `((:experiment-type . :incremental)
-              (:data-type . :extracted)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . 10)
-              (:data-sets . ,*incremental-simulated-data-sets*)
-              (:data-path . ,*incremental-extracted-data-path*))))
-)
+   :entries '((:experiment-type . :baseline)
+              (:world-type . :extracted)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all))))
 
+(defparameter *cogent-simulated*
+  (make-configuration
+   :entries '((:experiment-type . :cogent)
+              (:world-type . :simulated)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all)
+              (:switch-conditions-after-n-interactions . 100))))
+
+(defparameter *cogent-extracted*
+  (make-configuration
+   :entries '((:experiment-type . :cogent)
+              (:world-type . :extracted)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all)
+              (:switch-conditions-after-n-interactions . 100))))
+
+(defparameter *incremental-simulated*
+  (make-configuration
+   :entries '((:experiment-type . :incremental)
+              (:world-type . :simulated)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all)
+              (:switch-conditions-after-n-interactions . 100))))
+
+(defparameter *incremental-extracted*
+  (make-configuration
+   :entries '((:experiment-type . :incremental)
+              (:world-type . :extracted)
+              (:determine-interacting-agents-mode . :default)
+              (:alignment-filter . :all)
+              (:switch-conditions-after-n-interactions . 100))))
+
+;;;; EXPERIMENT
 (defparameter *experiment*
   (make-instance 'mwm-experiment
-                 :configuration *baseline-simulated-configuration*))
+                 :configuration *cogent-extracted*))
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 300)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -105,105 +76,267 @@
 ;; + Running series of experiments +
 ;; ---------------------------------
 
-(make-configuration
-   :entries `((:experiment-type . :cogent)
-              (:data-type . :simulated)
-              (:category-representation . :prototype)
-              (:determine-interacting-agents-mode . :tutor-speaks)
-              (:switch-conditions-after-n-interactions . ,500)
-              (:data-sets . ,*cogent-simulated-data-sets*)))
-
 (run-experiments `(
                    (test
-                    ((:experiment-type . :cogent)
-                     (:data-type . :simulated)
-                     (:category-representation . :prototype)
-                     (:determine-interacting-agents-mode . :tutor-speaks)
-                     (:data-sets . ,*cogent-simulated-data-sets*)
-                     (:data-path . ,*cogent-extracted-data-path*)
-                     (:switch-conditions-after-n-interactions . ,500)
-                     (:extracted-colour-space . :hsv)))
+                    ((:experiment-type . :baseline)
+                     (:world-type . :simulated)
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)))
                    )
-                 :number-of-interactions 2500
-                 :number-of-series 5
+                 :number-of-interactions 2000
+                 :number-of-series 1
                  :monitors (list "export-communicative-success"
-                                 ;"export-lexicon-size"
-                                 ;"export-features-per-form"
-                                 ;"export-lexicon-evolution"
-                                 ;"export-tutor-utterance-length-1"
-                                 ;"export-tutor-utterance-length-2"
-                                 ;"export-tutor-utterance-length-3"
-                                 ;"export-tutor-utterance-length-4"
-                                 ;"export-tutor-uses-xpos"
-                                 ;"export-tutor-uses-ypos"
-                                 ;"export-tutor-uses-color"
-                                 ;"export-tutor-uses-size"
-                                 ;"export-tutor-uses-material"
-                                 ;"export-tutor-uses-shape"
+                                 "export-lexicon-size"
+                                 "export-communicative-success-given-conceptualisation"
+                                 ;"export-learner-concepts-to-pdf"
+                                 ;"export-learner-concepts-to-store"
+                                 ;"export-experiment-configurations"
                                  ))
 
 (create-graph-for-single-strategy
- :experiment-name "test"
- :measure-names '("com-success")
- :y-axis '(1)
- :y1-max 1
- :xlabel "Number of games"
- :y1-label "Success"
- :start 0)
-
-(create-graph-for-single-strategy
- :experiment-name "test-extracted-filter-one"
- :measure-names '("communicative-success")
- :y-axis '(1)
- :y1-max 1
- :xlabel "Number of games"
- :y1-label "Success")
-
-(create-graph-comparing-strategies
- :experiment-names '("final/experiment-type-baseline-data-type-extracted"
-                     "final/max-tutor-utterance-length-4-experiment-type-baseline-data-type-extracted")
- :measure-name "communicative-success"
- :y-min 0 :y-max 1 :xlabel "Number of games" :y1-label "Communicative Success"
- :title nil :captions '("1 word" "up to 4 words")
- :start 0 :end 2500 :window 250)
-
-
-(create-grouped-bars-comparing-strategies
- :experiment-names '("final/max-tutor-utterance-length-4-experiment-type-baseline-data-type-simulated")
- :measure-names '("tutor-utterance-length-1"
-                  "tutor-utterance-length-2"
-                  "tutor-utterance-length-3"
-                  "tutor-utterance-length-4")
- :cluster-labels '("tutor word use")
- :bar-labels '("1 word" "2 words" "3 words" "4 words")
- )
-
-;; ------------------------------------------
-;; + Running experiments for alist monitors +
-;; ------------------------------------------
+ "test" '("communicative-success" "lexicon-size")
+ :plot-file-name "baseline-simulated"
+ :average-windows '(100 1)
+ :use-y-axis '(1 2)
+ :y1-min 0 :y1-max 1
+ :y2-min 0 :y2-max 30
+ :x-label "Number of Games"
+ :y1-label "Communicative Success"
+ :y2-label "Number of Concepts"
+ :captions '("communicative success"
+             "concept repertoire size")
+ :error-bars '(:percentile 5 95)
+ :error-bar-modes '(:lines)
+ :key-location "bottom"
+ :open nil)
 
 (create-tutor-word-use-graph
- :configurations (entries *baseline-simulated-configuration*)
+ :configurations
+ '((:experiment-type . :baseline)
+   (:world-type . :extracted)
+   (:determine-interacting-agents-mode . :tutor-speaks))
+ :nr-of-interactions 2500)
+
+(create-learner-failed-conceptualisation-graph
+ :configurations
+ '((:experiment-type . :baseline)
+   (:world-type . :extracted)
+   (:determine-interacting-agents-mode . :default))
  :nr-of-interactions 5000)
 
-(create-learner-attribute-use-graph
- :configurations (entries *baseline-simulated-configuration*)
- :nr-of-interactions 5000)
 
-(create-success-per-attribute-type-graph
- :configurations (entries *baseline-simulated-configuration*)
- :nr-of-interactions 5000)
 
-(create-game-outcome-graph
- :configurations `((:experiment-type . :baseline)
-                   (:data-type . :extracted)
-                   (:scale-world . ,nil)
-                   (:category-representation . :prototype)
-                   (:determine-interacting-agents-mode . :learner-speaks-after-training-period)
-                   (:training-period . 2000)
-                   (:data-sets . ,*baseline-simulated-data-sets*)
-                   (:data-path . ,*baseline-extracted-data-path*)
-                   (:max-tutor-utterance-length . ,4)
-                   (:extracted-colour-space . :lab)
-                   (:alignment-filter . :all))
- :nr-of-interactions 5000)
+;; -------------
+;; + All plots +
+;; -------------
+(create-graph-mixing-strategies
+ :experiment-measure-conses
+ '(("baseline-simulated" . "communicative-success")
+   ("baseline-simulated-bidirectional" . "communicative-success")
+   ("baseline-simulated-bidirectional" . "communicative-success-given-conceptualisation")
+   ("baseline-simulated-bidirectional" . "lexicon-size"))
+ :plot-file-name "baseline-simulated-comparison"
+ :xlabel "Number of Games"
+ :y1-label "Communicative Success"
+ :y2-label "Number of Concepts"
+ :captions '("communicative success (always listener)"
+             "communicative success (both roles)"
+             "communicative success given conceptualisation (both roles)"
+             "concept repertoire size")
+ :window '(100 100 100 1)
+ :use-y-axis '(1 1 1 2) :y1-max 1 :y2-max 30
+ :end 5000)
+
+(create-graph-mixing-strategies
+ :experiment-measure-conses
+ '(("baseline-extracted" . "communicative-success")
+   ("baseline-extracted-bidirectional" . "communicative-success")
+   ("baseline-extracted-bidirectional" . "communicative-success-given-conceptualisation")
+   ("baseline-extracted-bidirectional" . "lexicon-size"))
+ :plot-file-name "baseline-extracted-comparison"
+ :xlabel "Number of Games"
+ :y1-label "Communicative Success"
+ :y2-label "Number of Concepts"
+ :captions '("communicative success (always listener)"
+             "communicative success (both roles)"
+             "communicative success given conceptualisation (both roles)"
+             "concept repertoire size")
+ :window '(100 100 100 1)
+ :use-y-axis '(1 1 1 2) :y1-max 1 :y2-max 30
+ :end 5000)
+
+
+(create-graph-mixing-strategies
+ '(("cogent-simulated-bidirectional-switch-1000" . "communicative-success")
+   ("cogent-extracted-bidirectional-switch-500" . "communicative-success"))
+ :plot-file-name "cogent-bidirectional-switch-500"
+ :x-label "Number of Games"
+ :y1-label "Communicative Success"
+ :captions '("simulated environment"
+             "noisy environment")
+ :average-windows '(100 100)
+ :use-y-axis '(1 1) :y1-min 0 :y1-max 1
+ :error-bars '(:percentile 5 95)
+ :error-bar-modes '(:lines)
+ :key-location "bottom"
+ :fsize 12 :open nil)
+
+
+;; -----------------------------
+;; + Computing average success +
+;; -----------------------------
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-main-results"
+                          "baseline-simulated")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *simulated-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-main-results"
+                          "baseline-simulated-bidirectional")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *bidirectional-simulated-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-main-results"
+                          "baseline-simulated-bidirectional")
+             :name "communicative-success-given-conceptualisation"
+             :type "lisp"))
+  (defparameter *bidirectional-simulated-success-given-conceptualisation-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-main-results"
+                          "baseline-extracted")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *extracted-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-main-results"
+                          "baseline-extracted-bidirectional")
+             :name "communicative-success" :type "lisp"))
+  (defparameter *bidirectional-extracted-success-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-main-results"
+                          "baseline-extracted-bidirectional")
+             :name "communicative-success-given-conceptualisation"
+             :type "lisp"))
+  (defparameter *bidirectional-extracted-success-given-conceptualisation-data* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-cogent"
+                          "cogent-simulated-switch-500")
+             :name "communicative-success"
+             :type "lisp"))
+  (defparameter *cogent-simulated-switch-500* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-cogent"
+                          "cogent-simulated-switch-1000")
+             :name "communicative-success"
+             :type "lisp"))
+  (defparameter *cogent-simulated-switch-1000* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-cogent"
+                          "cogent-simulated-bidirectional-switch-500")
+             :name "communicative-success"
+             :type "lisp"))
+  (defparameter *cogent-simulated-bidirectional-switch-500* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-cogent"
+                          "cogent-simulated-bidirectional-switch-1000")
+             :name "communicative-success"
+             :type "lisp"))
+  (defparameter *cogent-simulated-bidirectional-switch-1000* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-cogent"
+                          "cogent-extracted-switch-500")
+             :name "communicative-success"
+             :type "lisp"))
+  (defparameter *cogent-extracted-switch-500* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-cogent"
+                          "cogent-extracted-switch-1000")
+             :name "communicative-success"
+             :type "lisp"))
+  (defparameter *cogent-extracted-switch-1000* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-cogent"
+                          "cogent-extracted-bidirectional-switch-500")
+             :name "communicative-success"
+             :type "lisp"))
+  (defparameter *cogent-extracted-bidirectional-switch-500* (read stream)))
+
+(with-open-file
+    (stream (babel-pathname
+             :directory '("experiments" "multidimensional-word-meanings"
+                          "raw-data" "thesis-cogent"
+                          "cogent-extracted-bidirectional-switch-1000")
+             :name "communicative-success"
+             :type "lisp"))
+  (defparameter *cogent-extracted-bidirectional-switch-1000* (read stream)))
+
+(defun compute-success-at-point (data point &optional last-n)
+  (loop for series in (first data)
+        if last-n
+        sum (average (subseq series (- point last-n) point)) into sum-list
+        else
+        sum (nth point series) into sum-list
+        end
+        count series into denom
+        finally (return (float (/ sum-list denom)))))
+
+(compute-success-at-point *simulated-success-data* 5000 100) ;; 0.996
+(compute-success-at-point *cogent-simulated-switch-500* 5000 100) ;; 0.983
+(compute-success-at-point *cogent-simulated-switch-1000* 5000 100) ;; 0.993
+
+
+(compute-success-at-point *bidirectional-simulated-success-data* 5000 100) ;; 0.983
+(compute-success-at-point *bidirectional-simulated-success-given-conceptualisation-data* 5000 100)
+(compute-success-at-point *cogent-simulated-bidirectional-switch-500* 5000 100) ;; 0.948
+(compute-success-at-point *cogent-simulated-bidirectional-switch-1000* 5000 100) ;; 0.968
+
+
+(compute-success-at-point *extracted-success-data* 5000 100) ;; 0.913
+(compute-success-at-point *cogent-extracted-switch-500* 5000 100) ;; 0.879
+(compute-success-at-point *cogent-extracted-switch-1000* 5000 100) ;; 0.892
+
+
+(compute-success-at-point *bidirectional-extracted-success-data* 5000 100) ;; 0.812
+(compute-success-at-point *bidirectional-extracted-success-given-conceptualisation-data* 5000 100)
+(compute-success-at-point *cogent-extracted-bidirectional-switch-500* 5000 100) ;; 0.799
+(compute-success-at-point *cogent-extracted-bidirectional-switch-1000* 5000 100) ;; 0.805
+
+

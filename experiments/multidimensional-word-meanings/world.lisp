@@ -1,5 +1,7 @@
 (in-package :mwm)
 
+(export '(mwm-object))
+
 ;; --------------
 ;; + MWM object +
 ;; --------------
@@ -21,13 +23,23 @@
     (push (cons attr val) (attributes object)))
   nil)
 
+(defmethod object->alist ((object clevr-object))
+  `((:color . ,(color object))
+    (:size . ,(clevr-world::size object))
+    (:shape . ,(shape object))
+    (:material . ,(material object))
+    (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
+    (:ypos . ,(if (> (y-pos object) 160) 'front 'behind))
+    ))
+
 ;; ------------------
 ;; + MWM object set +
 ;; ------------------
 (defclass mwm-object-set (entity)
   ((objects
     :documentation "the objects in the set"
-    :type list :accessor objects :initarg :objects)
+    :type list :accessor objects :initarg :objects
+    :initform nil)
    (image
     :documentation "path of the image of this set"
     :type pathname :accessor image :initarg :image))
@@ -52,89 +64,83 @@
 
 ;; when xpos and ypos are exactly equal to 0.5
 ;; they are considered to be left!
-(defmethod to-value ((object clevr-object) (attr (eql 'xpos)) scale-p)
-  (let* ((xpos (x-pos object))
-         (scaled-xpos (float (/ (- xpos 31) (- 460 31)))))
-    `((xpos . ,(if scale-p scaled-xpos xpos)))))
+(defmethod to-value ((object clevr-object) (attr (eql 'xpos)))
+  `((xpos . ,(x-pos object))))
 
-(defmethod to-value ((object clevr-object) (attr (eql 'ypos)) scale-p)
-  (let* ((ypos (y-pos object))
-         (scaled-ypos (float (/ (- ypos 58) (- 296 58)))))
-    `((ypos . ,(if scale-p scaled-ypos ypos)))))
+(defmethod to-value ((object clevr-object) (attr (eql 'ypos)))
+  `((ypos . ,(y-pos object))))
 
-(defmethod to-value ((object clevr-object) (attr (eql 'area)) scale-p)
-  (let* ((area (case (size object)
-                 (small 30) (large 70)))
-         (area-w-variance (add-random-value-from-range area 0 16 :max-bound 100))
-         (scaled-area (float (/ area-w-variance 100))))
-    `((area . ,(if scale-p scaled-area area-w-variance)))))
+(defmethod to-value ((object clevr-object) (attr (eql 'area)))
+  (let* ((area
+          (case (clevr-world::size object)
+            (small 30) (large 70)))
+         (area-w-variance
+          (add-random-value-from-range area 0 16 :max-bound 100)))
+    `((area . ,area-w-variance))))
 
-(defmethod to-value ((object clevr-object) (attr (eql 'sides-and-corners)) scale-p)
-  (let ((sides (case (shape object)
-                 (cube 6) (sphere 1) (cylinder 3)))
-        (corners (case (shape object)
-                   (cube 8) (sphere 0) (cylinder 2))))
-    `((nr-of-sides . ,(if scale-p (/ (- sides 1) 5) sides))
-      (nr-of-corners . ,(if scale-p (/ corners 8) corners)))))
+(defmethod to-value ((object clevr-object) (attr (eql 'sides-and-corners)))
+  (let ((sides
+         (case (shape object)
+           (cube 6) (sphere 1) (cylinder 3)))
+        (corners
+         (case (shape object)
+           (cube 8) (sphere 0) (cylinder 2))))
+    `((nr-of-sides . ,sides)
+      (nr-of-corners . ,corners))))
 
-(defmethod to-value ((object clevr-object) (attr (eql 'color)) scale-p)
-  (let* ((rgb-color (case (color object)
-                      (gray   '(87  87  87))
-                      (red    '(173 34  35))
-                      (blue   '(44  76  215))
-                      (green  '(29  105 20))
-                      (brown  '(126 72  25))
-                      (purple '(130 39  192))
-                      (cyan   '(40  208 208))
-                      (yellow '(255 238 51))))
+(defmethod to-value ((object clevr-object) (attr (eql 'color)))
+  (let* ((rgb-color
+          (case (color object)
+            (gray   '(87  87  87))
+            (red    '(173 34  35))
+            (blue   '(44  76  215))
+            (green  '(29  105 20))
+            (brown  '(126 72  25))
+            (purple '(130 39  192))
+            (cyan   '(40  208 208))
+            (yellow '(255 238 51))))
          (rgb-with-variance
-          (mapcar #'(lambda (c)
-                      (add-random-value-from-range c 0.0 2.0 :max-bound 255.0))
-                  rgb-color))
-         (scaled-rgb
-          (mapcar #'(lambda (c)
-                      (/ c 255.0))
-                  rgb-with-variance)))
-    `((r . ,(if scale-p (first scaled-rgb) (first rgb-with-variance)))
-      (g . ,(if scale-p (second scaled-rgb) (second rgb-with-variance)))
-      (b . ,(if scale-p (third scaled-rgb) (third rgb-with-variance))))))
+          (loop for channel in rgb-color
+                collect (add-random-value-from-range channel 0.0 2.0 :max-bound 255.0))))
+    `((r . ,(first rgb-with-variance))
+      (g . ,(second rgb-with-variance))
+      (b . ,(third rgb-with-variance)))))
 
-(defmethod to-value ((object clevr-object) (attr (eql 'roughness)) scale-p)
+(defmethod to-value ((object clevr-object) (attr (eql 'roughness)))
   (let* ((roughness
           (case (material object)
             (metal 8)
             (rubber 2)))
          (roughness-with-variance
-          (add-random-value-from-range roughness 0.0 2.5 :max-bound 10.0))
-         (scaled-roughness (/ roughness-with-variance 10.0)))
-    `((roughness . ,(if scale-p scaled-roughness roughness-with-variance)))))
+          (add-random-value-from-range roughness 0.0 2.5 :max-bound 10.0)))
+    `((roughness . ,roughness-with-variance))))
 
-(defmethod to-value ((object clevr-object) (attr (eql 'wh-ratio)) scale-p)
-  (let* ((ratio (case (shape object)
-                  (cube 1.0)
-                  (sphere 1.0)
-                  (cylinder 0.5)))
-         (ratio-with-variance (add-random-value-from-range ratio 0.0 0.25)))
-    `((wh-ratio . ,(if scale-p (min ratio-with-variance 1.0) ratio-with-variance)))))
+(defmethod to-value ((object clevr-object) (attr (eql 'wh-ratio)))
+  (let* ((ratio
+          (case (shape object)
+            (cube 1.0)
+            (sphere 1.0)
+            (cylinder 0.5)))
+         (ratio-with-variance
+          (add-random-value-from-range ratio 0.0 0.25)))
+    `((wh-ratio . ,ratio-with-variance))))
 
 ;;;; clevr -> mwm
-(defmethod clevr->simulated ((scene clevr-scene)
-                             &key (scale nil))
+(defmethod clevr->simulated ((scene clevr-scene))
   (make-instance 'mwm-object-set :id (id scene)
                  :image (image scene)
                  :objects (loop for obj in (objects scene)
-                                collect (clevr->simulated obj :scale scale))))
+                                collect (clevr->simulated obj))))
 
-(defmethod clevr->simulated ((object clevr-object)
-                             &key (scale nil))
+(defmethod clevr->simulated ((object clevr-object))
   (make-instance 'mwm-object :id (id object) ;; !!!
-                 :attributes (append (to-value object 'xpos scale)
-                                     (to-value object 'ypos scale)
-                                     (to-value object 'area scale)
-                                     (to-value object 'wh-ratio scale)
-                                     (to-value object 'color scale)
-                                     (to-value object 'roughness scale)
-                                     (to-value object 'sides-and-corners scale))
+                 :attributes (append (to-value object 'xpos)
+                                     (to-value object 'ypos)
+                                     (to-value object 'area)
+                                     (to-value object 'wh-ratio)
+                                     (to-value object 'color)
+                                     (to-value object 'roughness)
+                                     (to-value object 'sides-and-corners))
                  :description (object->alist object)))
 
 ;; ---------
@@ -151,78 +157,26 @@
              (set-attr-val object attr
                            (add-random-value-from-range val 0.0 amount)))))
 
-;;; object -> a-list
-(defmethod object->alist ((object clevr-object))
-  ;240x160
-  ;245.5x177
-  `((:color . ,(color object))
-    (:size . ,(size object))
-    (:shape . ,(shape object))
-    (:material . ,(material object))
-    (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
-    (:ypos . ,(if (> (y-pos object) 160) 'front 'behind))))
-
 ;; ------------------------
 ;; + Continous CLEVR data +
 ;; ------------------------
 
-(defparameter *continuous-clevr-boundaries*
-  '((xpos . ((min . 12) (max . 464)))
-    (ypos . ((min . 43) (max . 304)))
-    (width . ((min . 10) (max . 260)))
-    (height . ((min . 11) (max . 247)))
-    (size-ratio . nil)
-    (angle . ((min . 0) (max . 90)))
-    (corners . ((min . 3) (max . 16)))
-    (hamming-distance . ((min . 0.5) (max . 1)))
-    (area . ((min . 5) (max . 26414)))
-    (relative-area . nil)
-    (bb-area . ((min . 100) (max . 45314)))
-    (area-ratio . nil)
-    (white-level . ((min . 0) (max . 3)))
-    (mean-h . ((min . 0) (max . 180)))
-    (mean-s . ((min . 0) (max . 255)))
-    (mean-v . ((min . 0) (max . 255)))
-    (std-h . ((min . 0) (max . 85)))
-    (std-s . ((min . 0) (max . 85)))
-    (std-v . ((min . 0) (max . 85)))))
-
-(defun scale-continuous-clevr (object)
-  (loop for (key . value) in (attributes object)
-        for boundaries = (rest (assoc key *continuous-clevr-boundaries*))
-        when boundaries
-        do (setf (cdr (assoc key (attributes object)))
-                 (/ (- value (cdr (assoc 'min boundaries)))
-                    (- (cdr (assoc 'max boundaries)) (cdr (assoc 'min boundaries)))))))
-
-(defun extracted->mwm-object (alist &key (colour :hsv))
+(defun extracted->mwm-object (alist)
   "Load a single object"
-  (let ((mean-color (rest (assoc :color-mean alist))))
+  (let* ((mean-color (rest (assoc :color-mean alist)))
+         (lab (hsv->lab mean-color)))
     ;; create an alist
     (setf alist
           (mapcar #'(lambda (pair)
-                      (cons (internal-symb (car pair)) (cdr pair)))
+                      (cons (internal-symb (car pair))
+                            (cdr pair)))
                   alist))
     ;; split the color channels
-    (case colour
-      (:hsv (setf alist
-                  (append `((mean-h . ,(first mean-color))
-                            (mean-s . ,(second mean-color))
-                            (mean-v . ,(third mean-color))
-                            ;(std-h . ,(first std-color))
-                            ;(std-s . ,(second std-color))
-                            ;(std-v . ,(third std-color))
-                            ) alist)))
-      (:rgb (let ((rgb (hsv->rgb mean-color)))
-              (setf alist
-                    (append `((mean-r . ,(first rgb))
-                              (mean-g . ,(second rgb))
-                              (mean-b . ,(third rgb))) alist))))
-      (:lab (let ((lab (hsv->lab mean-color)))
-              (setf alist
-                    (append `((mean-l . ,(first lab))
-                              (mean-a . ,(second lab))
-                              (mean-b . ,(third lab))) alist)))))
+    (setf alist
+          (append `((mean-l . ,(first lab))
+                    (mean-a . ,(second lab))
+                    (mean-b . ,(third lab)))
+                  alist))
     (setf alist (remove 'color-mean alist :key #'car))
     (setf alist (remove 'color-std alist :key #'car))
     (setf alist (remove 'bb-area alist :key #'car))
@@ -230,24 +184,23 @@
     (setf (cdr (assoc 'angle alist))
           (- (cdr (assoc 'angle alist))))
     ;; create an object
-    (make-instance 'mwm-object :id (make-id 'object)
+    (make-instance 'mwm-object
+                   :id (make-id 'object)
                    :attributes alist)))
 
-(defmethod clevr->extracted ((scene clevr-scene) &key directory (scale nil)
-                             (colour :hsv))
+(defmethod clevr->extracted ((scene clevr-scene) &key directory)
   ;; take the name of the scene
   ;; look it up in 'directory'
   ;; and load the data
-  (let* ((path (merge-pathnames
-                (make-pathname :name (name scene) :type "json")
-                directory))
-         (objects (with-open-file (stream path :direction :input)
-                    (mapcar #'(lambda (object)
-                                (extracted->mwm-object object :colour colour))
-                            (mapcar #'decode-json-from-string
-                                    (stream->list stream))))))
-    (when scale
-      (loop for object in objects
-            do (scale-continuous-clevr object)))
-    (make-instance 'mwm-object-set :id (make-id 'scene)
+  (let* ((path
+          (merge-pathnames
+           (make-pathname :name (name scene) :type "json")
+           directory))
+         (objects
+          (with-open-file (stream path :direction :input)
+            (mapcar #'extracted->mwm-object
+                    (mapcar #'decode-json-from-string
+                            (stream->list stream))))))
+    (make-instance 'mwm-object-set
+                   :id (make-id 'scene)
                    :objects objects)))

@@ -130,12 +130,15 @@
 (def-fcg-cxn compare-equal-countable-cxn
              ;; are-there + C + Xs + and + Ys
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?there ?comparator-unit ?plural-nominal-unit-1 ?and ?plural-nominal-unit-2)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "are")
                            (meets ?compare-unit ?there))))
@@ -154,7 +157,7 @@
                (sem-cat (comparison equal))
                (HASH form ((meets ?comparator-unit ?leftmost-nom-unit-1))))
               (?plural-nominal-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?set-1)))
                (syn-cat (syn-function nominal)
                         (lex-class np)
@@ -173,7 +176,7 @@
                            (meets ?rightmost-nom-unit-1 ?and)
                            (meets ?and ?leftmost-nom-unit-2))))
               (?plural-nominal-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?set-2)))
                (syn-cat (syn-function nominal)
                         (lex-class np)
@@ -193,12 +196,15 @@
 (def-fcg-cxn compare-unequal-countable-cxn
              ;; are-there + C + Xs + than + Ys
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?there ?comparator-unit ?plural-nominal-unit-1 ?than ?plural-nominal-unit-2)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "are")
                            (meets ?compare-unit ?there))))
@@ -217,7 +223,7 @@
                (sem-cat (NOT (comparison equal)))
                (HASH form ((meets ?comparator-unit ?leftmost-nom-unit-1))))
               (?plural-nominal-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?set-1)))
                (syn-cat (syn-function nominal)
                         (lex-class np)
@@ -236,7 +242,7 @@
                            (meets ?rightmost-nom-unit-1 ?than)
                            (meets ?than ?leftmost-nom-unit-2))))
               (?plural-nominal-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?set-2)))
                (syn-cat (syn-function nominal)
                         (lex-class np)
@@ -256,17 +262,20 @@
 (def-fcg-cxn compare-uncountable-cxn
              ;; is the number of + Xs + C + the number of + Ys
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?plural-nominal-unit-1 ?comparator-unit ?number-of-unit ?plural-nominal-unit-2)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "is the number of")
                            (meets ?compare-unit ?leftmost-nom-unit-1))))
               (?plural-nominal-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?set-1)))
                (syn-cat (syn-function nominal)
                         (lex-class np)
@@ -292,7 +301,7 @@
                            (meets ?comparator-unit ?number-of-unit)
                            (meets ?number-of-unit ?leftmost-nom-unit-2))))
               (?plural-nominal-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?set-2)))
                (syn-cat (syn-function nominal)
                         (lex-class np)
