@@ -195,6 +195,16 @@
     (compute-error-rate error-table errors-filename)
     accuracy))
 
+(defun evaluate-mwm-serie (serie-number)
+  (let* ((serie-name (format nil "serie-~a" serie-number))
+         (directory (list "experiments""multidimensional-word-meanings" "learned-concepts"
+                          "thesis-main-results" "baseline-simulated-default-lexicon" serie-name))
+         (output-filename (format nil "mwm-evaluation-~a" serie-number))
+         (error-filename (format nil "mwm-errors-~a" serie-number)))
+    (make-mwm-ontology (babel-pathname :directory directory))
+    (evaluate-mwm-accuracy "val" output-filename error-filename)))
+
+
 (defun evaluate-all-series ()
   (loop for serie in '("serie-1" "serie-2" "serie-3" "serie-3" "serie-4" "serie-5" "serie-6" "serie-7" "serie-8" "serie-9" "serie-10")
         do (make-mwm-ontology (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" serie)))
