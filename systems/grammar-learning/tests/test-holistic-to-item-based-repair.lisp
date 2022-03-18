@@ -27,7 +27,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind size-category ?size-4 large)
                                        (query ?target-8 ?source-10 ?attribute-2)))
-    (test-repair-status 'repair-holistic->item-based-cxn
+    (test-repair-status 'holistic->item-based
                         (second (multiple-value-list
                                  (comprehend "What is the color of the large object?"
               :cxn-inventory cxn-inventory
@@ -69,7 +69,7 @@
                                        (filter ?target-61008 ?target-2 ?color-4)
                                        (bind size-category ?size-4 large)
                                        (query ?target-7 ?source-9 ?attribute-2)))
-    (test-repair-status 'repair-holistic->item-based-cxn
+    (test-repair-status 'holistic->item-based
                         (second (multiple-value-list
                                  (comprehend "What is the material of the tiny gray object?"
               :cxn-inventory cxn-inventory
@@ -119,7 +119,7 @@
                                        (filter ?target-1 ?source-1 ?shape-8)
                                        (bind color-category ?color-2 yellow)
                                        (query ?target-7 ?source-9 ?attribute-2)))
-    (test-repair-status 'repair-holistic->item-based-cxn
+    (test-repair-status 'holistic->item-based
                         (second (multiple-value-list
                                  (comprehend "What is the shape of the large gray thing?"
               :cxn-inventory cxn-inventory
@@ -201,7 +201,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind size-category ?size-4 large)
                                        (query ?target-8 ?source-10 ?attribute-2)))
-    (test-repair-status 'repair-holistic->item-based-cxn
+    (test-repair-status 'holistic->item-based
                         (second (multiple-value-list
                                  (comprehend "What is the shape of the large yellow object?"
               :cxn-inventory cxn-inventory

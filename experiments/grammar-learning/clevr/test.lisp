@@ -43,8 +43,9 @@
   (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions)
-  (activate-monitor trace-interactions-in-wi))
+  ;(activate-monitor show-type-hierarchy-after-n-interactions)
+  ;(activate-monitor trace-interactions-in-wi)
+  )
 
 (progn
   (wi::reset)
@@ -75,7 +76,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  800)
+;(run-series *experiment*  9000)
 #|
 
 QUESTIONS

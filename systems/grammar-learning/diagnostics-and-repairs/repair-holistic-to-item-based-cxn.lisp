@@ -4,10 +4,10 @@
 ;; Repair from holistic to item-based cxn ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass repair-holistic->item-based-cxn (add-cxns-and-categorial-links) 
+(defclass holistic->item-based (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node)))
 
-(defmethod repair ((repair repair-holistic->item-based-cxn)
+(defmethod repair ((repair holistic->item-based)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -20,7 +20,7 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-(defmethod repair ((repair repair-holistic->item-based-cxn)
+(defmethod repair ((repair holistic->item-based)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
                    &key &allow-other-keys)
