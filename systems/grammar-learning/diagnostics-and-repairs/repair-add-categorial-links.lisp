@@ -36,7 +36,7 @@
                      :restart-data cxns-and-categorial-links))))
 
 (defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :category-linking-mode :path-exists)
+  (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
@@ -63,8 +63,7 @@
         collect (cons holistic-cxn-lex-class item-slot-lex-class)))
 
 (defun create-categorial-links (problem node)
-  "Return the categorial links and applied cxns from a comprehend with :categorial-linking-mode :path-exists instead of :neighbours"
-  (compute-transitive-closure (categorial-network (construction-inventory node)))
+  "Return the categorial links and applied cxns from a comprehend with :category-linking-mode :path-exists instead of :neighbours"
   (let* ((utterance (random-elt (get-data problem :utterances)))
          (gold-standard-meaning (random-elt (get-data problem :meanings)))
          (cxn-inventory (construction-inventory node))

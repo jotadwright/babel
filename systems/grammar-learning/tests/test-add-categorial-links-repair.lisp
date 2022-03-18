@@ -81,6 +81,5 @@
  
 
 ; issues:
-; 1. why aren't the equivalent 'what is the size of the x cube' cxns recognised as existing in the substitution repair?
-
-
+; 1. why aren't the equivalent 'what is the size of the x cube' cxns recognised as existing in the substitution repair
+; 2. restore the category-linking-mode with some other flag
