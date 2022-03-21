@@ -90,11 +90,15 @@
                                                  for subtracted-meaning = (get-subtracted-meaning-from-car car gold-standard-meaning)
                                                  for args = (extract-args-from-irl-network subtracted-meaning)
                                                  for boundaries = (unit-feature-value unit 'boundaries)
-                                                 for leftmost-unit-holistic-cxn = (second (first boundaries))
-                                                 for rightmost-unit-holistic-cxn = (second (second boundaries))
+                                                 for boundary-list = (list (second (first boundaries)) (second (second boundaries)))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
+                                                 for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
+                                                 for updated-form-constraints-and-boundaries = (multiple-value-list (add-boundaries-to-form-constraints item-based-cxn-form-constraints boundary-list :placeholder-var placeholder-var))
+                                                 for updated-form-constraints = (first updated-form-constraints-and-boundaries)
+                                                 for updated-boundaries = (second updated-form-constraints-and-boundaries)
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
+                                                 do (setf item-based-cxn-form-constraints updated-form-constraints)
                                                  collect subtracted-meaning into subtracted-meanings
                                                  collect categorial-link into categorial-links
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
@@ -104,8 +108,8 @@
                                                            (args ,args)
                                                            --
                                                            (boundaries
-                                                            (left ,leftmost-unit-holistic-cxn)
-                                                            (right ,rightmost-unit-holistic-cxn))
+                                                            (left ,(first updated-boundaries))
+                                                            (right ,(second updated-boundaries)))
                                                            ) into conditional-units
                                                  finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links subtracted-meanings)))))
              (holistic-cxn-conditional-units

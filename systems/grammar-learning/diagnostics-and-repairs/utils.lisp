@@ -56,6 +56,24 @@
            (not meets-string-diff))
       t)))
 
+(defun add-boundaries-to-form-constraints (form-constraints boundaries &key placeholder-var)
+  "given a list of boundaries that correspond to a certain slot and a list of form constraints,
+   create a new variable for left and right boundary, also if the original left and right boundary vars were identical
+   return both the form constraints and the new boundary list"
+  (let* ((new-form-constraints (copy-object form-constraints))
+         (placeholder-var (string-upcase (if placeholder-var placeholder-var "?X")))
+         (left-var (intern (format nil "?LEFT-~a-BOUNDARY" placeholder-var)))
+         (right-var (intern (format nil "?RIGHT-~a-BOUNDARY" placeholder-var)))
+         (left-boundary (first boundaries))
+         (right-boundary (second boundaries))
+         (matching-left-predicate (find left-boundary new-form-constraints :key #'third))
+         (matching-right-predicate (find right-boundary new-form-constraints :key #'second)))
+    (when matching-left-predicate
+      (setf (nth 2 matching-left-predicate) left-var))
+    (when matching-right-predicate
+      (setf (nth 1 matching-right-predicate) right-var))
+    (values new-form-constraints (list left-var right-var))))
+
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"
   (let* ((left-units (loop for fc in form-constraints
@@ -170,15 +188,14 @@
                                              (set-difference network-2 unique-part-network-2)))
       (values unique-part-network-1 unique-part-network-2))))
 
-(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory &key boundary-list)
+(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for boundary-list-cxn = (boundary-list cxn)
         when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
                   (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-                  (if boundary-list ;; needed for item-based cxns! check if variables unify
-                    (unify boundary-list-cxn boundary-list)  ;; issue: blue1234 blue 1234 vs large134 red124 unifies, won't apply! we want to avoid that two variables are bound to one or maybe model the boundaries otherwise
-                    t))
+                  ; note: boundaries and args are ignored, as they are designed to always match, and fully depend on form and meaning anyway.
+                  )
         return cxn))
 
 
