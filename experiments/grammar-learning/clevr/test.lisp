@@ -65,7 +65,7 @@
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
-;(add-element (make-html (get-type-hierarchy (grammar (first (agents *experiment*)))) :weights t))
+;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t))
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
 
 ;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
@@ -76,7 +76,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  157)
+;(run-series *experiment*  1000)
 #|
 
 QUESTIONS
