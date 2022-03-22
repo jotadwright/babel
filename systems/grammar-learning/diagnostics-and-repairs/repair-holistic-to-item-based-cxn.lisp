@@ -33,26 +33,6 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-(defun create-item-based-lex-class-with-var (placeholder-var-string-predicates cxn-name-item-based-cxn slot-var)
-  "create the what-is-the-size-of-the-?Y-?X-12-(?X) lex class for a specific slot var"
-  (let ((placeholder (third (find slot-var placeholder-var-string-predicates :key #'second))))
-    (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(" placeholder ")"))))
-
-
-(defun get-car-for-unit (unit cars)
-  (loop for car in cars
-        for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs car))
-        for root = (get-root resulting-left-pole-structure)
-        for res-unit = (last-elt (remove root resulting-left-pole-structure)) ;;match with last
-        when (equal res-unit unit)
-        return car))
-
-(defun get-subtracted-meaning-from-car (car gold-standard-meaning)
-  (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
-         (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
-    subtracted-meaning))
-
-
 (defun create-item-based-cxn-from-partial-holistic-analysis (problem node)
   "Creates item-based construction around matching holistic constructions"
   (let* ((cxn-inventory (construction-inventory node))
@@ -69,13 +49,7 @@
              (resulting-root (get-root resulting-left-pole-structure))
              (resulting-units (remove resulting-root resulting-left-pole-structure))
              (item-based-cxn-form-constraints (unit-feature-value resulting-root 'form))
-             ; create function for this with a descriptive name
-             (chunk-item-based-cxn-form-constraints (loop with item-based-fc = item-based-cxn-form-constraints
-                                                          for unit in resulting-units
-                                                          for fc = (unit-feature-value unit 'form)
-                                                          do (setf item-based-fc (substitute-slot-meets-constraints fc item-based-fc))
-                                                          finally return item-based-fc))
-             
+             (chunk-item-based-cxn-form-constraints (make-item-based-name-form-constraints-from-units item-based-cxn-form-constraints resulting-units))
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
              (cxn-name-item-based-cxn (make-cxn-name
                                        (append placeholder-var-string-predicates chunk-item-based-cxn-form-constraints)
@@ -120,10 +94,7 @@
               (third holistic-cxn-subunit-blocks))
              (cat-links-to-add (fourth holistic-cxn-subunit-blocks))
              (subtracted-meanings (fifth holistic-cxn-subunit-blocks))
-             (item-based-cxn-meaning (loop with item-based-meaning = (copy-object gold-standard-meaning)
-                                           for network in subtracted-meanings
-                                           do (setf item-based-meaning (set-difference item-based-meaning network :test #'equal))
-                                           finally return item-based-meaning))
+             (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning gold-standard-meaning subtracted-meanings))
                                                                          
              (item-based-cxn (second (multiple-value-list (eval
                                                            `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)

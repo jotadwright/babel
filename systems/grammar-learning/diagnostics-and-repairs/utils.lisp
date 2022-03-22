@@ -344,7 +344,37 @@
                                    (mapcar #'variablify (rest fc-with-const)))
           collect (cons first-fc-with-var rest-fc-with-var))))
 
+(defun create-item-based-lex-class-with-var (placeholder-var-string-predicates cxn-name-item-based-cxn slot-var)
+  "create the what-is-the-size-of-the-?Y-?X-12-(?X) lex class for a specific slot var"
+  (let ((placeholder (third (find slot-var placeholder-var-string-predicates :key #'second))))
+    (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(" placeholder ")"))))
 
+
+(defun get-car-for-unit (unit cars)
+  (loop for car in cars
+        for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs car))
+        for root = (get-root resulting-left-pole-structure)
+        for res-unit = (last-elt (remove root resulting-left-pole-structure)) ;;match with last
+        when (equal res-unit unit)
+        return car))
+
+(defun get-subtracted-meaning-from-car (car gold-standard-meaning)
+  (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
+         (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
+    subtracted-meaning))
+
+(defun subtract-holistic-from-item-based-meaning (gold-standard-meaning subtracted-meanings)
+  (loop with item-based-meaning = (copy-object gold-standard-meaning)
+        for network in subtracted-meanings
+        do (setf item-based-meaning (set-difference item-based-meaning network :test #'equal))
+        finally return item-based-meaning))
+
+(defun make-item-based-name-form-constraints-from-units (item-based-cxn-form-constraints resulting-units)
+  (loop with item-based-fc = item-based-cxn-form-constraints
+        for unit in resulting-units
+        for fc = (unit-feature-value unit 'form)
+        do (setf item-based-fc (substitute-slot-meets-constraints fc item-based-fc))
+        finally return item-based-fc))
 
 
 (defgeneric meaning-predicates-with-variables (meaning mode))
