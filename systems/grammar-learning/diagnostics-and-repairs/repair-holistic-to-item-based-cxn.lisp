@@ -48,7 +48,7 @@
              (resulting-left-pole-structure (left-pole-structure car-res-cfs))
              (resulting-root (get-root resulting-left-pole-structure))
              (resulting-units (remove resulting-root resulting-left-pole-structure))
-             (item-based-cxn-form-constraints (unit-feature-value resulting-root 'form))
+             (item-based-cxn-form-constraints (variablify-form-constraints-with-constants (unit-feature-value resulting-root 'form)))
              (chunk-item-based-cxn-form-constraints (make-item-based-name-form-constraints-from-units item-based-cxn-form-constraints resulting-units))
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
              (cxn-name-item-based-cxn (make-cxn-name
@@ -57,14 +57,14 @@
              
              (holistic-cxn-subunit-blocks (multiple-value-list
                                            (loop for unit in resulting-units
-                                                 for form-constraints = (unit-feature-value unit 'form)
+                                                 for form-constraints = (variablify-form-constraints-with-constants (unit-feature-value unit 'form))
                                                  for holistic-cxn-unit-name = (unit-ify (make-cxn-name form-constraints original-cxn-set :add-cxn-suffix nil))
                                                  for string-var = (first (get-boundary-units form-constraints))
                                                  for car = (get-car-for-unit unit optimal-coverage-cars)
                                                  for subtracted-meaning = (get-subtracted-meaning-from-car car gold-standard-meaning)
                                                  for args = (extract-args-from-irl-network subtracted-meaning)
                                                  for boundaries = (unit-feature-value unit 'boundaries)
-                                                 for boundary-list = (list (second (first boundaries)) (second (second boundaries)))
+                                                 for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
                                                  for updated-form-constraints-and-boundaries = (multiple-value-list (add-boundaries-to-form-constraints item-based-cxn-form-constraints boundary-list :placeholder-var placeholder-var))
@@ -95,8 +95,15 @@
              (cat-links-to-add (fourth holistic-cxn-subunit-blocks))
              (subtracted-meanings (fifth holistic-cxn-subunit-blocks))
              (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning gold-standard-meaning subtracted-meanings))
-                                                                         
-             (item-based-cxn (second (multiple-value-list (eval
+             (existing-item-based-cxn (find-cxn-by-form-and-meaning
+                                         item-based-cxn-form-constraints
+                                         item-based-cxn-meaning
+                                         original-cxn-set
+                                         :cxn-type 'item-based))
+             (bla (when existing-item-based-cxn
+                    (format t "existing found")))
+             (item-based-cxn (or existing-item-based-cxn
+                                 (second (multiple-value-list (eval
                                                            `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                          ((?item-based-unit
                                                                            (syn-cat (phrase-type item-based))
@@ -116,9 +123,10 @@
                                                                                                               (equal (first predicate) 'bind))
                                                                                                       return (first predicate))
                                                                                       :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))              
-                                                                         :cxn-inventory ,(copy-object original-cxn-set))))))
+                                                                         :cxn-inventory ,(copy-object original-cxn-set)))))))
              (cxns-to-apply (append (mapcar #'original-cxn (mapcar #'car-applied-cxn optimal-coverage-cars)) (list item-based-cxn)))
-             (cxns-to-consolidate (list item-based-cxn)))
+             (cxns-to-consolidate (unless existing-item-based-cxn
+                                    (list item-based-cxn))))
         ;(add-element (make-html item-based-cxn))
         
         (list

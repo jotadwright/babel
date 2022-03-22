@@ -82,7 +82,10 @@
                (cxn-name-item-based-cxn (make-cxn-name
                                          (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-numeric-tail t))
                (existing-item-based-cxn
-                (find-cxn-by-form-and-meaning overlapping-form-with-rewritten-boundaries overlapping-meaning cxn-inventory))
+                (find-cxn-by-form-and-meaning overlapping-form-with-rewritten-boundaries
+                                              overlapping-meaning
+                                              cxn-inventory
+                                              :cxn-type 'item-based))
                (unit-name-holistic-cxn
                 (unit-ify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil)))
                ;; lex-class

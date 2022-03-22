@@ -51,7 +51,7 @@
   "returns all cxns in the list for the given type"
   (loop for cxn in cxns
         for orig-cxn = (get-original-cxn cxn)
-        for phrase-type = (phrase-type orig-cxn)
+        for phrase-type = (attr-val cxn :cxn-type)
         when (equal phrase-type type)
         collect orig-cxn))
 

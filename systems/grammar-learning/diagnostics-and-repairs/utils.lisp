@@ -62,8 +62,8 @@
    return both the form constraints and the new boundary list"
   (let* ((new-form-constraints (copy-object form-constraints))
          (placeholder-var (string-upcase (if placeholder-var placeholder-var "?X")))
-         (left-var (intern (format nil "?LEFT-~a-BOUNDARY" placeholder-var)))
-         (right-var (intern (format nil "?RIGHT-~a-BOUNDARY" placeholder-var)))
+         (left-var (make-var (make-const (format nil "?LEFT-~a-BOUNDARY" placeholder-var))))
+         (right-var (make-var (make-const (format nil "?RIGHT-~a-BOUNDARY" placeholder-var))))
          (left-boundary (first boundaries))
          (right-boundary (second boundaries))
          (matching-left-predicate (find left-boundary new-form-constraints :key #'third))
@@ -110,13 +110,6 @@
         for lex-class = (lex-class-item-based unit)
         collect lex-class))
 
-(defun phrase-type (cxn)
-  (loop for unit in (contributing-part cxn)
-        for syn-cat = (cdr (find 'syn-cat (fcg::unit-structure unit) :key #'first))
-        for phrase-type = (when syn-cat (second (find 'phrase-type syn-cat :key #'first)))
-        when phrase-type
-        return phrase-type))
-
 (defun boundary-list (cxn)
   (loop for unit in (conditional-part cxn)
         for comprehension-lock = (comprehension-lock unit)
@@ -130,12 +123,6 @@
   (remove-if-not #'(lambda (fc)
                      (equal 'string (first fc)))
                  (extract-forms (left-pole-structure transient-structure))))
-
-(defun diff-subset-superset-form (subset-cxn superset-form)
-  (set-difference 
-   superset-form
-   (extract-form-predicates subset-cxn)
-   :test #'irl:unify-irl-programs))
 
 (defun lex-class (unit)
   (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
@@ -188,14 +175,16 @@
                                              (set-difference network-2 unique-part-network-2)))
       (values unique-part-network-1 unique-part-network-2))))
 
-(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory)
+(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory &key cxn-type)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-        for boundary-list-cxn = (boundary-list cxn)
-        when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
-                  (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+        for cxn-type-cxn = (attr-val cxn :cxn-type)
+        when (and
+              (if cxn-type (equal cxn-type cxn-type-cxn) t)
+              (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
+              (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
                   ; note: boundaries and args are ignored, as they are designed to always match, and fully depend on form and meaning anyway.
-                  )
+              )
         return cxn))
 
 
@@ -282,7 +271,6 @@
   (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
          (left-boundary (first slot-boundaries))
          (right-boundary (second slot-boundaries)))
-         ;(new-slot-var (variablify "X")))
     (loop for fc in (copy-object item-based-meet-constraints)
           collect (replace-chunk-variables fc left-boundary right-boundary left-boundary))))
 
@@ -331,6 +319,14 @@
         when (and (consp form-value) (eq (first form-value) symbol))
         collect form-value))
 
+(defun variablify-form-constraints-with-constants (form-constraints-with-constants)
+  (loop for fc-with-const in form-constraints-with-constants
+        for first-fc-with-var = (first fc-with-const)
+        for rest-fc-with-var = (if (equal 'string (first fc-with-const))
+                                 (list (variablify (second fc-with-const)) (third fc-with-const))
+                                 (mapcar #'variablify (rest fc-with-const)))
+        collect (cons first-fc-with-var rest-fc-with-var)))
+
 (defun form-constraints-with-variables (utterance mode)
   "Extract form constraints from utterance in the format they would appear in a construction."
   (let ((form-constraints-with-constants (remove 'sequence
@@ -372,7 +368,7 @@
 (defun make-item-based-name-form-constraints-from-units (item-based-cxn-form-constraints resulting-units)
   (loop with item-based-fc = item-based-cxn-form-constraints
         for unit in resulting-units
-        for fc = (unit-feature-value unit 'form)
+        for fc = (variablify-form-constraints-with-constants (unit-feature-value unit 'form))
         do (setf item-based-fc (substitute-slot-meets-constraints fc item-based-fc))
         finally return item-based-fc))
 
@@ -530,7 +526,7 @@
         for non-overlapping-meanings = (multiple-value-list (diff-clevr-networks gold-standard-meaning cxn-meaning-constraints))
         for non-overlapping-meaning = (first non-overlapping-meanings)
         for non-overlapping-meaning-inverted = (second non-overlapping-meanings)
-        for cxn-type =  (phrase-type cxn)
+        for cxn-type = (attr-val cxn :cxn-type)
         when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
                   non-overlapping-form
                   non-overlapping-meaning
@@ -546,7 +542,7 @@
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-form-constraints = (extract-form-predicates cxn)
         for cxn-meaning-constraints = (extract-meaning-predicates cxn)
-        for cxn-type =  (phrase-type cxn)
+        for cxn-type =  (attr-val cxn :cxn-type)
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-cxn t)
         for non-overlapping-meanings = (multiple-value-list (diff-clevr-networks cxn-meaning-constraints gold-standard-meaning))
@@ -573,7 +569,7 @@
 
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-        do (when (eql (phrase-type cxn) 'holophrase)
+        do (when (eql (attr-val cxn :cxn-type) 'holophrase)
              (let* ((non-overlapping-meanings (multiple-value-list (diff-clevr-networks meaning (extract-meaning-predicates cxn))))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
@@ -656,26 +652,6 @@
             finally return (values applied-cars unapplied-cars)
                  
             ))))
-
-(defun find-matching-holistic-cxns (cxn-inventory var-form gold-standard-meaning utterance)
-  "return all holistic cxns that can apply by checking whether they are a subset of the observed form and meaning"
-  ;; if a certain item matches twice, we'll discard it to avoid ambiguity
-  ;; e.g.: is there a cylinder next to the blue cylinder? will only return blue (if in inventory), not cylinder
-  (let ((remaining-form var-form))
-    (sort (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-                for prev-remaining-form-length = (length (extract-form-predicate-by-type remaining-form 'string))
-                for string-predicates-cxn = (extract-form-predicate-by-type (extract-form-predicates cxn) 'string)
-                when (and (eql (phrase-type cxn) 'holistic) 
-                          (irl:unify-irl-programs (extract-form-predicates cxn) remaining-form)
-                          (setf remaining-form (set-difference remaining-form (extract-form-predicates cxn) :test #'irl:unify-irl-programs))
-                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning)
-                          (= (length string-predicates-cxn) (- prev-remaining-form-length (length (extract-form-predicate-by-type remaining-form 'string))))) ;; make sure it can only apply once, if multiple times, the resulting set diff is shorter
-                             
-                collect cxn)
-          #'(lambda (x y)
-              (<
-               (search (third (first (extract-form-predicates x))) utterance)
-               (search (third (first (extract-form-predicates y))) utterance))))))
  
 (defun diff-non-overlapping-form (observed-form matching-lex-cxns)
   "subtract all lexical forms from the gold standard,
@@ -762,7 +738,7 @@
   (remove nil (loop for remaining-form in root-strings
         for root-string = (third remaining-form)
         collect (loop for cxn in (constructions cxn-inventory)
-                      when (and (eql (phrase-type cxn) 'lexical)
+                      when (and (eql (attr-val cxn :cxn-type) 'lexical)
                                 (string= (third (first (extract-form-predicates cxn))) root-string))
                       return cxn))))
 

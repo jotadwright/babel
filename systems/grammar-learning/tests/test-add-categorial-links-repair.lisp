@@ -77,9 +77,64 @@
                                                                              (bind color-category ?color-8 yellow)
                                                                              (query ?target-4 ?target-object-1 ?attribute-6))))))))
 
- ; (test-categorial-links-repair-comprehension)
+(deftest test-add-categorial-link-after-holistic-to-item-based-comprehension ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "The tiny gray object is what shape?"
+              :cxn-inventory cxn-inventory
+              :gold-standard-meaning '((get-context ?source-1)
+                                       (filter ?target-39552 ?target-2 ?size-4)
+                                       (unique ?source-10 ?target-39552)
+                                       (bind color-category ?color-2 gray)
+                                       (filter ?target-1 ?source-1 ?shape-8)
+                                       (bind attribute-category ?attribute-2 shape)
+                                       (bind shape-category ?shape-8 thing)
+                                       (filter ?target-2 ?target-1 ?color-2)
+                                       (bind size-category ?size-4 small)
+                                       (query ?target-8 ?source-10 ?attribute-2)))
+    (comprehend "The large yellow object is what shape?"
+              :cxn-inventory cxn-inventory
+              :gold-standard-meaning '((get-context ?source-1)
+                                       (filter ?target-39552 ?target-2 ?size-4)
+                                       (unique ?source-10 ?target-39552)
+                                       (bind color-category ?color-2 yellow)
+                                       (filter ?target-1 ?source-1 ?shape-8)
+                                       (bind attribute-category ?attribute-2 shape)
+                                       (bind shape-category ?shape-8 thing)
+                                       (filter ?target-2 ?target-1 ?color-2)
+                                       (bind size-category ?size-4 large)
+                                       (query ?target-8 ?source-10 ?attribute-2)))
+    (test-repair-status 'holistic->item-based
+                        (second (multiple-value-list
+                                 (comprehend "What is the shape of the tiny gray object?"
+              :cxn-inventory cxn-inventory
+              :gold-standard-meaning '((get-context ?source-1)
+                                       (filter ?target-39552 ?target-2 ?size-4)
+                                       (unique ?source-10 ?target-39552)
+                                       (bind color-category ?color-2 gray)
+                                       (filter ?target-1 ?source-1 ?shape-8)
+                                       (bind attribute-category ?attribute-2 shape)
+                                       (bind shape-category ?shape-8 thing)
+                                       (filter ?target-2 ?target-1 ?color-2)
+                                       (bind size-category ?size-4 small)
+                                       (query ?target-8 ?source-10 ?attribute-2))))))
+    (test-repair-status 'add-categorial-links
+                        (second (multiple-value-list
+                                 (comprehend "What is the shape of the large yellow object?"
+              :cxn-inventory cxn-inventory
+              :gold-standard-meaning '((get-context ?source-1)
+                                       (filter ?target-56342 ?target-2 ?size-4)
+                                       (unique ?target-object-1 ?target-56342)
+                                       (bind color-category ?color-16 yellow)
+                                       (filter ?target-1 ?source-1 ?shape-8)
+                                       (bind attribute-category ?attribute-2 shape)
+                                       (bind shape-category ?shape-8 thing)
+                                       (filter ?target-2 ?target-1 ?color-16)
+                                       (bind size-category ?size-4 large)
+                                       (query ?target-4 ?target-object-1 ?attribute-2))))))))
+
+; (activate-monitor trace-fcg)
+; (test-categorial-links-repair-comprehension)
+; (test-add-categorial-link-after-holistic-to-item-based-comprehension)
  
 
-; issues:
-; 1. why aren't the equivalent 'what is the size of the x cube' cxns recognised as existing in the substitution repair
-; 2. restore the category-linking-mode with some other flag

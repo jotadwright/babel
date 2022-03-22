@@ -80,7 +80,8 @@ based on existing construction with sufficient overlap."
                (existing-item-based-cxn (find-cxn-by-form-and-meaning
                                          overlapping-form-with-rewritten-boundaries
                                          overlapping-meaning-observation
-                                         cxn-inventory))
+                                         cxn-inventory
+                                         :cxn-type 'item-based))
                ;; unit names
                (unit-name-holistic-cxn-1
                 (unit-ify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
