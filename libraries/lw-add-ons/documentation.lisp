@@ -38,6 +38,8 @@ directory, optionally appending the string RELATIVE-PATH."
                        "manual/html-m/~A"
                        #+(and :lispworks8 :win32)
                        "manual/html-w/~A"
+                       #+(and :lispworks8 :linux) 
+                       "manual/html-l/~A"
                        #+(or :lispworks6.1 :lispworks7)
                        "manual/online/~A"
                        #-(or :lispworks6.1 :lispworks7 :lispworks8)
