@@ -73,7 +73,7 @@
                  (form-predicates-holistic-cxn (if (= 1 (length string-predicates-in-root))
                                             string-predicates-in-root
                                             (subtract-holistic-cxn-forms matching-holistic-cxns string-predicates-in-root)))
-                 (existing-holistic-cxn (find-cxn-by-form-and-meaning form-predicates-holistic-cxn meaning-predicates-holistic-cxn original-cxn-inventory))
+                 (existing-holistic-cxn (find-cxn-by-form-and-meaning form-predicates-holistic-cxn meaning-predicates-holistic-cxn original-cxn-inventory :cxn-type 'holistic))
                  (cxn-name (make-cxn-name (third (first form-predicates-holistic-cxn)) original-cxn-inventory))
                  (unit-name (second (first form-predicates-holistic-cxn)))
                  (lex-class (if existing-holistic-cxn

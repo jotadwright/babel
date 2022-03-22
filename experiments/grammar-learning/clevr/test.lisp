@@ -65,7 +65,7 @@
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
-;(add-element (make-html (get-type-hierarchy (grammar (first (agents *experiment*)))) :weights t))
+;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t))
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
 
 ;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
@@ -76,7 +76,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment*  150)
+;(run-series *experiment*  50)
 #|
 
 QUESTIONS
@@ -109,7 +109,7 @@ TODO
       uncovered = length of what is left in root = what is the = 3
  try: yellow object, shape
 
-voorbeeld:
+example:
 utterance: what is the color of the sphere
 step 1: find all matching cxns:
         what is the color of the, what is the, color of the cube
@@ -119,7 +119,7 @@ step 3: try collisions (while collisions: try)
         what is the + color of the cube: uncovered = 0
  
 - for item-based to holistic cxn, use fcg-apply for all holistic cxns, then the item-based cxns (must be at least one!), then create the missing holistic cxns for whatever is left in the root if it's continuous
-- fix namen van monitors
+- fix monitor names
 - reverse exported jsonl graph
 
 |#

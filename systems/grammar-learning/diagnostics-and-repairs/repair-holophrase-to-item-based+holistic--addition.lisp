@@ -13,7 +13,7 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction and holistic cxn."
   (when (initial-node-p node)
-    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-addition problem node)))
+    (let ((constructions-and-categorial-links (repair-holophrase->item-based+holistic--addition problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
@@ -26,7 +26,7 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction and holistic cxn."
   (when (initial-node-p node)
-    (let ((constructions-and-categorial-links (create-repair-cxns-holophrase-addition problem node)))
+    (let ((constructions-and-categorial-links (repair-holophrase->item-based+holistic--addition problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
@@ -34,7 +34,7 @@
                        :restart-data constructions-and-categorial-links)))))
 
 
-(defun create-repair-cxns-holophrase-addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
+(defun repair-holophrase->item-based+holistic--addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
   "Creates item-based construction and a holistic construction
    based on an existing holophrase construction of which the form/meaning are a subset of the observed phrase, and there is a maximum of one differing meaning predicate
 
@@ -66,6 +66,9 @@
                (existing-holistic-cxn (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory))
                
                (boundaries-holistic-cxn (get-boundary-units non-overlapping-form))
+               (overlapping-form-and-rewritten-boundaries (multiple-value-list (add-boundaries-to-form-constraints overlapping-form boundaries-holistic-cxn)))
+               (overlapping-form-with-rewritten-boundaries (first overlapping-form-and-rewritten-boundaries))
+               (rewritten-boundaries (second overlapping-form-and-rewritten-boundaries))
                (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
                (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
                (holistic-cxn-name (make-cxn-name non-overlapping-form cxn-inventory :add-numeric-tail t))
@@ -73,7 +76,10 @@
                (cxn-name-item-based-cxn (make-cxn-name
                                          (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-numeric-tail t))
                (existing-item-based-cxn
-                (find-cxn-by-form-and-meaning overlapping-form overlapping-meaning cxn-inventory :boundary-list boundaries-holistic-cxn))
+                (find-cxn-by-form-and-meaning overlapping-form-with-rewritten-boundaries
+                                              overlapping-meaning
+                                              cxn-inventory
+                                              :cxn-type 'item-based))
                (unit-name-holistic-cxn
                 (unit-ify (make-cxn-name non-overlapping-form cxn-inventory :add-cxn-suffix nil))
                 )
@@ -82,9 +88,9 @@
                 (if existing-holistic-cxn
                   (lex-class-cxn existing-holistic-cxn)
                   (make-lex-class holistic-cxn-name :trim-cxn-suffix t)))
-               (lex-class-item-based-cxn(if existing-item-based-cxn
+               (lex-class-item-based-cxn (if existing-item-based-cxn
                                           (lex-class-cxn existing-item-based-cxn)
-                                          (make-lex-class cxn-name-item-based-cxn :trim-cxn-suffix t)))
+                                          (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t)))
                 
                ;; categorial links
                (categorial-link
@@ -128,13 +134,13 @@
                                                                  (?item-based-unit
                                                                   (HASH meaning ,overlapping-meaning)
                                                                   --
-                                                                  (HASH form ,overlapping-form))
+                                                                  (HASH form ,overlapping-form-with-rewritten-boundaries))
                                                                  (,unit-name-holistic-cxn
                                                                   (args ,args-holistic-cxn)
                                                                   --
                                                                   (boundaries
-                                                                   (left ,leftmost-unit-holistic-cxn)
-                                                                   (right ,rightmost-unit-holistic-cxn))))
+                                                                   (left ,(first rewritten-boundaries))
+                                                                   (right ,(second rewritten-boundaries)))))
                                                                 :attributes (:cxn-type item-based
                                                                              :repair holophrase->item-based+holistic--addition
                                                                              :meaning ,(loop for predicate in overlapping-meaning
@@ -144,6 +150,7 @@
                                                                                              return (first predicate))
                                                                              :string ,(third (find 'string overlapping-form :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
+               
                (existing-cxns (list existing-holistic-cxn existing-item-based-cxn))
                (cxns-to-apply (list holistic-cxn item-based-cxn))
                (cat-links-to-add (list categorial-link)) 

@@ -216,11 +216,16 @@
                                        (bind size-category ?size-4 large)
                                        (query ?target-4 ?target-object-1 ?attribute-2))))))))
 
+
+
+;; (activate-monitor trace-fcg)
+
 (defun run-holistic-to-item-based-tests ()
   (test-holistic-to-item-based-from-substitution-comprehension)
-  (test-holistic-to-item-based-from-double-substitution-comprehension)
+  (test-holistic-to-item-based-from-double-substitution-comprehension) 
   (test-multiple-holistic-to-item-based-repair-comprehension)
   (test-holistic-to-item-based-duplicates-comprehension)
   (test-double-holistic-to-item-based-from-substitution-repair-comprehension)
+  
   )
 
