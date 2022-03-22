@@ -129,6 +129,32 @@
                --
                (HASH form ((string ?to-word "zum"))))))
 
+(def-fcg-cxn gegen-cxn
+             (<-
+              (?against-word
+               (syn-cat (lex-class preposition)
+                        (preposition +)
+                        (case ((- - - - -)      
+                               (?acc ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap))))
+               --
+               (HASH form ((string ?against-word "gegen"))))))
+
+(def-fcg-cxn für-cxn
+             (<-
+              (?for-word
+               (syn-cat (lex-class preposition)
+                        (preposition +)
+                        (case ((- - - - -)      
+                               (?acc ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap))))
+               --
+               (HASH form ((string ?for-word "für"))))))
+
 (def-fcg-cxn mit-cxn
              (<-
               (?with-word
@@ -429,6 +455,56 @@
                (HASH form ((string ?gift-word  "schenkt"))))))
 
 
+(def-fcg-cxn ist-gefahren-cxn
+             ((?drove-word
+               (constituents (?aux-unit ?participle-unit))
+               (syn-cat (lex-class verb)
+                        (aspect perfect)
+                        (type intransitive))
+               (boundaries (leftmost-unit ?aux-unit)
+                           (rightmost-unit ?participle-unit))
+               (referent ?ig))
+            
+              <-
+
+              (?aux-unit
+               --
+               (HASH form ((string ?aux-unit "ist"))))
+
+              (?participle-unit
+               --
+               (HASH form ((string ?participle-unit "gefahren"))))
+
+              (?drove-word                           
+               (HASH meaning ((drove-01 ?ig)))                    
+               --
+               )))
+
+(def-fcg-cxn hat-mitgebracht-cxn
+             ((?brought-word
+               (constituents (?aux-unit ?participle-unit))
+               (syn-cat (lex-class verb)
+                        (aspect perfect)
+                        (type ditransitive))
+               (boundaries (leftmost-unit ?aux-unit)
+                           (rightmost-unit ?participle-unit))
+               (referent ?hm))
+            
+              <-
+
+              (?aux-unit
+               --
+               (HASH form ((string ?aux-unit "hat"))))
+
+              (?participle-unit
+               --
+               (HASH form ((string ?participle-unit "mitgebracht"))))
+
+              (?brought-word                           
+               (HASH meaning ((brought-01 ?hm)))                    
+               --
+               )))
+
 (def-fcg-cxn transitive-argument-structure-cxn                 
              ((?transitive-argument-structure-unit
               (constituents (?verb-unit ?agent-unit ?patient-unit)))
@@ -597,20 +673,12 @@
               (referent ?arg1)
               )
               (?receiver-unit
-               (syn-cat (lex-class noun-phrase)
-                        (case ((- - - - -) 
-                               (- - - - -)        
-                               (- - - - -)         
-                               (+ ?dm ?df ?dn ?dp)
-                               (?rs ?dm ?df ?dn ?dp))))
+               (syn-cat 
+                        (case ?case))
                (referent ?arg2)
                 --
-              (syn-cat (lex-class noun-phrase)
-                        (case ((- - - - -) 
-                               (- - - - -)        
-                               (- - - - -)         
-                               (+ ?dm ?df ?dn ?dp)
-                               (?rs ?dm ?df ?dn ?dp))))
+              (syn-cat 
+                        (case ?case))
               (referent ?arg2))
               
               (?ditransitive-argument-structure-unit
@@ -622,18 +690,24 @@
 
 
 (def-fcg-cxn topicalized-ditransitive-information-structure-cxn
-             (
+              ((?topicalized-ditransitive-information-structure-unit
+               (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?arg-and-info-struct-unit
+               (constituents (?topicalized-ditransitive-information-structure-unit ?argument-structure-unit)))
               <-
+              
+              (?argument-structure-unit
+               (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+                --
+                (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
               
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type ditransitive)
-                       (aspect non-perfect))     
+                       (type ditransitive))     
               
                 --
               (syn-cat (lex-class verb)
-                       (type ditransitive)
-                       (aspect non-perfect)))
+                       (type ditransitive)))
               
               (?agent-unit
                (syn-cat (syn-role subject))
@@ -675,6 +749,8 @@
 
 ;(formulate-all '((schenken-01 g) (man m) (arg0 g m) (clown c) (arg2 g c) (flowers f) (arg1 g f) (topicalized c)))
 
+(formulate-all '((drove-01 ig) (man m) (arg0 g m) (clown c) (arg2 g c) (flowers f) (arg1 g f) (topicalized c)))
+
 
 ;der Mann geht zur Arbeit
 (def-fcg-cxn intransitive-argument-structure-cxn
@@ -714,24 +790,16 @@
          
               (?location-unit
                (syn-cat (lex-class prep-phrase)
-                        (case ((- - - - -) 
-                               (- - - - -)        
-                               (- - - - -)         
-                               (+ ?dm ?df ?dn ?dp)
-                               (?ls ?dm ?df ?dn ?dp))))
-               (referent ?arg3)
+                        (case ?case))
+               (referent ?arg1)
                 --
               (syn-cat (lex-class prep-phrase)
-                        (case ((- - - - -) 
-                               (- - - - -)        
-                               (- - - - -)         
-                               (+ ?dm ?df ?dn ?dp)
-                               (?ls ?dm ?df ?dn ?dp))))
-              (referent ?arg3))
+                        (case ?case))
+              (referent ?arg1))
               
               (?intransitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
-                              (:arg3 ?v ?arg3)))                  
+                              (:arg1 ?v ?arg1)))                  
                --
                )))
 
@@ -777,6 +845,78 @@
                           (rightmost-unit ?rightmost-location-unit)))
               
               ))
+
+
+
+
+;Der Mann ist gegen den Baum gefahren.
+
+
+#|(def-fcg-cxn intransitive-acc-past-arg-structure-cxn
+             ((?intransitive-acc-past-arg-structure-unit
+              (constituents (?verb-unit ?agent-unit ?location-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?location-unit
+               (syn-cat (syn-role complement)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (aspect perfect))
+               (boundaries (leftmost-unit ?aux-unit)
+                           (rightmost-unit ?participle-unit))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (aspect perfect))
+              (boundaries (leftmost-unit ?aux-unit)
+                           (rightmost-unit ?participle-unit))
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                           (rightmost-unit ?rightmost-agent-unit))
+              (referent ?arg0))
+              
+         
+              (?location-unit
+               (syn-cat (lex-class prep-phrase)
+                        (case ?case))
+               (boundaries (leftmost-unit ?leftmost-loc-unit)
+                           (rightmost-unit ?rightmost-loc-unit))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        (case ?case))
+              (boundaries (leftmost-unit ?leftmost-loc-unit)
+                           (rightmost-unit ?rightmost-loc-unit))
+              (referent ?arg1))
+              
+              (?intransitive-acc-past-arg-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)))                  
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?aux-unit)
+                           (meets ?aux-unit ?leftmost-loc-unit)
+                           (meets ?rightmost-loc-unit ?participle-unit))
+               )
+               )))|#
 
 ;(formulate-all '((gehen-01 g) (man m) (arg0 g m) (arbeit a) (arg3 g a)))
 
@@ -916,7 +1056,7 @@
                           (rightmost-unit ?rightmost-location-unit)))
               
               ))|#
-
+;;; DOESNT GET APPLIED BUT THE INTRANSITIVE ARG STRUCTURE WITH ONE LESS UNIT DOES 
 
 (def-fcg-cxn diintransitive-argument-structure-cxn
              ((?diintransitive-argument-structure-unit
