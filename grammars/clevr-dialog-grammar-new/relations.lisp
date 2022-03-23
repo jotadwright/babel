@@ -912,7 +912,7 @@
                (syn-cat (syn-class adjective)
                         (leftmost-unit ?the-unit)
                         (rightmost-unit ?thing-unit))
-               (subunits (?the-unit ?leftmost-unit ?thing-unit))
+               (subunits (?the-unit ?midmost-unit ?thing-unit))
                (footprints (xmost-thing)))
               <-
               (?the-midmost-thing-unit
@@ -941,7 +941,7 @@
                (syn-cat (syn-class adjective)
                         (leftmost-unit ?the-unit)
                         (rightmost-unit ?thing-unit))
-               (subunits (?the-unit ?leftmost-unit ?thing-unit))
+               (subunits (?the-unit ?midmost-unit ?thing-unit))
                (footprints (xmost-thing)))
               <-
               (?the-midmost-thing-unit
