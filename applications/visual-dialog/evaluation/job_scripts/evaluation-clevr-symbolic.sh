@@ -3,7 +3,7 @@
 #SBATCH --job-name=evaluation_clevr_symbolic
 #SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=20gb
-#SBATCH --error /user/brussel/102/vsc10279/evaluation-clevr-symbolic/evaluation-clevr-symbolic_%a.log
+#SBATCH --error /user/brussel/102/vsc10279/evaluation-clevr-symbolic/evaluation-clevr-symbolic_%a.err
 #SBATCH --output /user/brussel/102/vsc10279/evaluation-clevr-symbolic/evaluation-clevr-symbolic_%a.log
 #SBATCH --array=0-149
 
@@ -13,7 +13,7 @@ export TMPDIR=${TMPDIR/[/-}
 export TMPDIR=${TMPDIR/]/}
 mkdir -p $TMPDIR
 
-cd $VSC_DATA/ehai-babel/applications/visual-dialog/job_scripts
+cd $VSC_DATA/babel/applications/visual-dialog/evaluation/job_scripts/
 
 module purge
 module load SBCL/2.2.1-GCCcore-10.3.0 
