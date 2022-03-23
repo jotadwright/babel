@@ -55,6 +55,7 @@
                  (loop for scene from start-scene to end-scene
                        append (progn
                                  (format str "evaluation of scene ~a~%" scene) (force-output str)
+                                 (format t "evaluation of scene ~a~%" scene)
                                  (loop for dialog from 0 to number-of-dialogs
                                        for (result-whole-dialog result-one-dialog) = (multiple-value-list
                                                                                       (evaluate-dialog :scene-index scene
