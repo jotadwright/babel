@@ -34,11 +34,15 @@
 (defun evaluate-dialogs (start-scene end-scene world )
   "evaluate all dialogs from start-scene to end-scene"
   "returns question-level-accuracy"
-  (with-open-file (str (make-file-name-with-time
-                        (babel-pathname
-                         :directory '("applications" "visual-dialog" "evaluation" "results")
-                         :name (format nil "evaluation-~a-~a-~a" (get-configuration world :dataset) start-scene end-scene)
-                         :type "txt"))
+  (ensure-directories-exist
+   (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "results"
+                                ,(format nil "~a-~a" (get-configuration world :dataset) (get-configuration world :mode)))))
+                 (with-open-file (str (make-file-name-with-time 
+                                       (babel-pathname
+                                        :directory `("applications" "visual-dialog" "evaluation" "results" ,(format nil "~a-~a" (get-configuration world :dataset) (get-configuration world :mode)))
+                                        :name (format nil "evaluation-~a-~a-~a" (get-configuration world :dataset) start-scene end-scene)
+                                        :type "txt"))
+                      
                        :direction :output
                        :if-exists :supersede
                        :if-does-not-exist :create)
