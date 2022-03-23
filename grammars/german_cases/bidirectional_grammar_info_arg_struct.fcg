@@ -1217,7 +1217,63 @@
                )))
 
 
+(def-fcg-cxn double-intransitive-information-structure-cxn
+              ((?double-intransitive-information-structure-unit
+               (constituents (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
+              (?arg-and-info-struct-unit
+               (constituents (?double-intransitive-information-structure-unit ?argument-structure-unit)))
+              <-
+              
+              (?argument-structure-unit
+               (constituents (?verb-unit ?agent-unit ?ad-info-unit ?location-unit))
+                --
+                (constituents (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type intransitive)))
+              
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?ad-info-unit
+               (syn-cat (syn-role extra-complement))
+               (boundaries (leftmost-unit ?leftmost-ad-info-unit)
+                          (rightmost-unit ?rightmost-ad-info-unit))
+                --
+              
+              (syn-cat (syn-role extra-complement))
+              (boundaries (leftmost-unit ?leftmost-ad-info-unit)
+                          (rightmost-unit ?rightmost-ad-info-unit)))
 
+              (?location-unit
+               (syn-cat (syn-role location-complement))
+               (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit))
+               (referent ?arg2)
+                --
+              (referent ?arg2)
+              (syn-cat (syn-role location-complement))
+              (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit)))
+              
+              (?double-intransitive-information-structure-unit
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-ad-info-unit)
+                           (meets ?rightmost-ad-info-unit ?leftmost-location-unit))))
+              
+              ))
 
 
 
