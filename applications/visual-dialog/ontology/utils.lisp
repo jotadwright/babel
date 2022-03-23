@@ -304,7 +304,7 @@
                  :id (id wm)
                  :set-items (loop for item in (set-items wm)
                                   collect (copy-object item))
-                 :pathname (pathname wm)))
+                 :path (path wm)))
 
 (defmethod copy-object ((turn turn))
   (make-instance 'turn

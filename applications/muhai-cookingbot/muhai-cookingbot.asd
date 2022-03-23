@@ -10,6 +10,7 @@
                :fcg
                :cl-json
                :closer-mop
+               :nlp-tools
                #+lispworks :drakma)
   :serial t
   :components ((:file "package")

@@ -1363,7 +1363,7 @@
 
 ;(clear-output)
 
-#|
+
 
 (defparameter *pdm* (initialise-personal-dynamic-memory
                     *fcg-constructions*
@@ -1389,10 +1389,10 @@
                      "dust with powdered sugar"
                      "end"
                      )
-                   *pdm*
-                   ;(initialise-personal-dynamic-memory
-                   ; *fcg-constructions*
-                   ; `((get-kitchen ,(make-var 'kitchen-state))))
+                  ; *pdm*
+                   (initialise-personal-dynamic-memory
+                    *fcg-constructions*
+                    `((get-kitchen ,(make-var 'kitchen-state))))
                    )
 
-|#
+
