@@ -19,7 +19,7 @@
 (evaluate-mnist-dialogs-symbolic 10 20)
 
 (evaluate-clevr-dialogs-symbolic 50 60)
-(evaluate-clevr-dialogs-symbolic 75 75)
+(evaluate-clevr-dialogs-symbolic 70 80)
 
 (understand "does the earlier brown object have objects to its right")
 
@@ -53,8 +53,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
+ 
+(let* ((ontology (initialize-agent-ontology-and-world *ontology* *world*))
+       (scene-pathname (get-scene-pathname-by-index 0 *world*))
+       (scene-pathname-2 (get-scene-pathname-by-index 1 *world*))
+       (pathname-entity (make-instance 'pathname-entity :pathname scene-pathname))
+       (pathname-entity-2 (make-instance 'pathname-entity :pathname scene-pathname-2)))
+  (evaluate-irl-program `((segment-scene ?scene ?pathname)
+                          (bind pathname-entity ?pathname ,pathname-entity)
+                          (filter-by-attribute ?out ?scene ?pathname ?category)
+                          (bind shape-category ?category cube)
+                          (segment-scene ?scene-2 ?pathname-2)
+                          (bind pathname-entity ?pathname-2 ,pathname-entity-2)
+                          (filter-by-attribute ?out-2 ?scene-2 ?pathname-2 ?category-2)
+                          (bind shape-category ?category-2 cylinder)) ontology :primitive-inventory (get-primitive-inventory (get-data ontology 'world))))
 
       
 

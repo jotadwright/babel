@@ -6,7 +6,7 @@
   (multiple-value-bind (irl-program cipn)
       (clevr-dialog-grammar::understand-until-solution input-sentence :silent (if silent silent))
     (let* ((scene-var (extract-scene-unit-variable cipn))
-           (scene-var-bind-statement `(bind pathname-entity ,scene-var ,(make-instance 'pathname-entity :pathname scene-pathname)))
+           (scene-var-bind-statement `(bind pathname-entity ,scene-var ,(make-instance 'pathname-entity :path scene-pathname)))
            (irl-program (append (list scene-var-bind-statement) irl-program))
            (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
       (if solutions
@@ -36,7 +36,7 @@
   (multiple-value-bind (irl-program cipn)
       (clevr-dialog-grammar::understand-until-solution input-sentence :silent (if silent silent))
   (let* ((scene-var (extract-scene-unit-variable cipn))
-         (scene-var-bind-statement `(bind pathname-entity ,scene-var ,(make-instance 'pathname-entity :pathname scene-pathname)))
+         (scene-var-bind-statement `(bind pathname-entity ,scene-var ,(make-instance 'pathname-entity :path scene-pathname)))
          (irl-program (push scene-var-bind-statement irl-program))
          (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
     (if solutions
@@ -79,7 +79,7 @@
         (multiple-value-bind (irl-program cipn)
             (clevr-dialog-grammar::understand-until-solution input-sentence :silent (if silent silent))
           (let* ((scene-var (extract-scene-unit-variable cipn))
-                 (scene-var-bind-statement `(bind pathname-entity ,scene-var ,(make-instance 'pathname-entity :pathname scene-pathname)))
+                 (scene-var-bind-statement `(bind pathname-entity ,scene-var ,(make-instance 'pathname-entity :path scene-pathname)))
                  (irl-program (push scene-var-bind-statement irl-program))
                  (memory-var (extract-memory-unit-variable cipn))
                  (memory-var-bind-statement `(bind world-model ,memory-var ,memory))
