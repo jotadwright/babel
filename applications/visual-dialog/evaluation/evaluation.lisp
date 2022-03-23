@@ -36,7 +36,7 @@
   "returns question-level-accuracy"
   (with-open-file (str (make-file-name-with-time
                         (babel-pathname
-                         :directory '("applications" "visual-dialog" "evaluation")
+                         :directory '("applications" "visual-dialog" "evaluation" "results")
                          :name (format nil "evaluation-~a-~a-~a" (get-configuration world :dataset) start-scene end-scene)
                          :type "txt"))
                        :direction :output
@@ -48,9 +48,8 @@
                (number-of-dialogs
                 (compute-number-of-dialogs world))
                (results
-                (first
                  (loop for scene from start-scene to end-scene
-                       collect (progn
+                       append (progn
                                  (format str "evaluation of scene ~a~%" scene) (force-output str)
                                  (loop for dialog from 0 to number-of-dialogs
                                        for (result-whole-dialog result-one-dialog) = (multiple-value-list
@@ -60,7 +59,7 @@
                                                                                                        :ontology ontology))
                                        do (progn
                                             (format str "~a : ~a~%" dialog result-one-dialog) (force-output str))
-                                       collect (list result-whole-dialog result-one-dialog))))))
+                                       collect (list result-whole-dialog result-one-dialog)))))
                (dialog-level-accuracy
                 (average (loop for result in results
                                         collect (if (eql (first result) T)
