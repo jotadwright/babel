@@ -62,7 +62,10 @@
                (syn-cat (phrase-type item-based))
                (subunits (?large-gray-unit)))
               (?large-gray-unit
-               (syn-cat (lex-class categorial-network-lookup)))
+               (syn-cat (lex-class categorial-network-lookup))
+               (boundaries
+                (left ?large-unit)
+                (right ?gray-unit)))
                
               <-
               (?item-based-unit
@@ -86,9 +89,7 @@
               (?large-gray-unit
                (args (?target-1 ?target-39552))
                --
-               (boundaries
-                (left ?large-unit)
-                (right ?gray-unit)))))
-
+               )))
+;(comprehend "The yellow object is what shape?")
 ;(comprehend-and-formulate "The yellow object is what shape?")
 ;(comprehend-and-formulate "The tiny yellow object is what shape?")
