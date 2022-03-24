@@ -25,8 +25,7 @@
                         (lex-class categorial-network-lookup))
                (boundaries
                 (left ?tiny-unit)
-                (right ?yellow-unit))
-               )
+                (right ?yellow-unit)))
               <-
               (?tiny-yellow-unit
                (HASH meaning ((filter ?target-39552 ?target-2 ?size-4)
@@ -46,16 +45,16 @@
                         (lex-class categorial-network-lookup))
                (boundaries
                 (left ?yellow-unit)
-                (right ?yellow-unit))
-               )
+                (right ?yellow-unit)))
+              
               <-
-              (?tiny-yellow-unit
+              (?yellow-unit
                (HASH meaning ((filter ?target-39552 ?target-1 ?color-2)
                               (bind color-category ?color-2 yellow)))
                --
-               (HASH form (
-                           (string ?yellow-unit "yellow")
-                           )))))
+               (HASH form ((string ?yellow-unit "yellow"))))
+              ))
+                           
 
 (def-fcg-cxn the-x-object-is-what-shape-cxn
              ((?item-based-unit
@@ -66,7 +65,6 @@
                (boundaries
                 (left ?large-unit)
                 (right ?gray-unit)))
-               
               <-
               (?item-based-unit
                (HASH meaning ((query ?target-8 ?source-10 ?attribute-2)
@@ -90,6 +88,6 @@
                (args (?target-1 ?target-39552))
                --
                )))
-;(comprehend "The yellow object is what shape?")
+;(comprehend-all "The yellow object is what shape?")
 ;(comprehend-and-formulate "The yellow object is what shape?")
 ;(comprehend-and-formulate "The tiny yellow object is what shape?")
