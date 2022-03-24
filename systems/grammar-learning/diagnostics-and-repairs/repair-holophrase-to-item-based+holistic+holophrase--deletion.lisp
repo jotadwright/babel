@@ -96,7 +96,7 @@
                (lex-class-item-based-cxn
                 (if existing-item-based-cxn
                   (lex-class-cxn existing-item-based-cxn)
-                  (make-lex-class cxn-name-item-based-cxn :trim-cxn-suffix t)))
+                  (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t)))
                ;; type hierachy links
                (categorial-link
                 (cons lex-class-holistic-cxn lex-class-item-based-cxn))

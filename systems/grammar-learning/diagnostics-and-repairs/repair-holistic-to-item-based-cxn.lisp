@@ -37,6 +37,7 @@
   "Creates item-based construction around matching holistic constructions"
   (let* ((cxn-inventory (construction-inventory node))
          (original-cxn-set (original-cxn-set cxn-inventory))
+         (utterance (random-elt (get-data problem :utterances)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (matching-holistic-cxns (find-all-matching-cxn-cars-for-node cxn-inventory node)))
@@ -47,7 +48,7 @@
              (car-res-cfs (car-resulting-cfs last-car))
              (resulting-left-pole-structure (left-pole-structure car-res-cfs))
              (resulting-root (get-root resulting-left-pole-structure))
-             (resulting-units (remove resulting-root resulting-left-pole-structure))
+             (resulting-units (sort-units-by-form-string (remove resulting-root resulting-left-pole-structure) utterance original-cxn-set))
              (item-based-cxn-form-constraints (variablify-form-constraints-with-constants (unit-feature-value resulting-root 'form)))
              (chunk-item-based-cxn-form-constraints (make-item-based-name-form-constraints-from-units item-based-cxn-form-constraints resulting-units))
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
@@ -100,8 +101,6 @@
                                          item-based-cxn-meaning
                                          original-cxn-set
                                          :cxn-type 'item-based))
-             (bla (when existing-item-based-cxn
-                    (format t "existing found")))
              (item-based-cxn (or existing-item-based-cxn
                                  (second (multiple-value-list (eval
                                                            `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
@@ -127,6 +126,14 @@
              (cxns-to-apply (append (mapcar #'original-cxn (mapcar #'car-applied-cxn optimal-coverage-cars)) (list item-based-cxn)))
              (cxns-to-consolidate (unless existing-item-based-cxn
                                     (list item-based-cxn))))
+        (when existing-item-based-cxn ; we ordered the units, so they'll always be in the order in which they appear in the utterance
+          (loop for item-lc in (get-all-unit-lex-classes existing-item-based-cxn)
+                for cat-link in cat-links-to-add
+                for holistic-lc = (first cat-link)
+                collect (cons holistic-lc item-lc) into new-cat-links
+                finally do (setf cat-links-to-add new-cat-links))
+          ;(add-element (make-html (categorial-network original-cxn-set)))
+          )
         ;(add-element (make-html item-based-cxn))
         
         (list

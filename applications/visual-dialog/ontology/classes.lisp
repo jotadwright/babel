@@ -158,13 +158,14 @@
 (defclass world-model (object-or-set)
   ((set-items :type list :initarg :set-items :accessor set-items :initform nil)
    (dataset :type symbol :initarg :dataset :accessor dataset :initform nil)
-   (pathname :type pathname :initarg :pathname :accessor pathname :initform nil)))
+   (path :type path :initarg :path :accessor path :initform nil)
+   ))
 
 (defmethod make-context ((world world))
   (make-instance 'world-model
                  :id 'context
                  ;:dataset (dataset world)
-                 :pathname (image (current-scene world))
+                 :path (image (current-scene world))
                  :set-items
                  (list
                   (make-instance 'turn
@@ -209,4 +210,5 @@
 ;; ################################
 
 (defclass pathname-entity (entity)
-  ((pathname :type pathname :initarg :pathname :accessor pathname)))
+  ((path :type pathname :initarg :path :accessor path)))
+

@@ -32,6 +32,35 @@
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
 
+(defun sort-units-by-form-string (units-to-sort utterance cxn-inventory)
+  "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
+  ;; warning, this function depends on space separation without further punctuation!
+  ;; todo: replace by looking up meets constraints!
+  (if (< (length units-to-sort) 2)
+    units-to-sort
+    (let ((resulting-list (make-list (length utterance))))
+      (loop for cxn-obj in units-to-sort
+            for cxn-string = (format nil "~{~a~^ ~}" (render (unit-feature-value cxn-obj 'form) (get-configuration cxn-inventory :render-mode)))
+            do (loop
+                with sub-length = (length cxn-string)
+                for i from 0 to (- (length utterance) sub-length)
+                when (string= utterance cxn-string
+                              :start1 i :end1 (+ i sub-length))
+                do (when (and
+                          (or
+                           (= (+ i sub-length) (length utterance)) ;; end of utterance
+                           (loop for punct across ".;,!?: "
+                                 thereis (string= punct utterance
+                                                  :start2 (+ i sub-length)
+                                                  :end2 (+ i sub-length 1)))) ;; next char is word boundary
+                          (or
+                           (= i 0) ;; start of utterance
+                           (string= " " utterance
+                                    :start2 (- i 1)
+                                    :end2 i))) ;; prev char is space
+                     (setf (nth i resulting-list) cxn-obj))))
+      (remove nil resulting-list))))
+
 (defun check-meets-continuity (form-constraints)
   "check if within a holistic chunk, all form strings are connected"
   (let* ((left-units (loop for fc in form-constraints

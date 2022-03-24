@@ -90,7 +90,7 @@
                   (make-lex-class holistic-cxn-name :trim-cxn-suffix t)))
                (lex-class-item-based-cxn (if existing-item-based-cxn
                                           (lex-class-cxn existing-item-based-cxn)
-                                          (make-lex-class cxn-name-item-based-cxn :trim-cxn-suffix t)))
+                                          (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t)))
                 
                ;; categorial links
                (categorial-link
