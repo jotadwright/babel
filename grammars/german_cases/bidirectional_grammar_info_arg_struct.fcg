@@ -336,8 +336,6 @@
                (footprints (determined)))
               <-
               (?article
-               
-               
                --
                (syn-cat (lex-class article)
                         (case ?case)))
@@ -346,7 +344,6 @@
                (referent ?x)
                (syn-cat (lex-class noun)
                         (case ?case))
-                 
                --
                (footprints (not determined))
                (syn-cat (lex-class noun)
@@ -387,12 +384,13 @@
                (syn-cat (lex-class noun)
                         (case ?case)))
               (?contracted-prep-phrase
+               (HASH meaning ((contracted-preposition ?contracted-prep +)))
                --
                (HASH form ((meets ?contracted-prep ?noun)))
               ))
              :disable-automatic-footprints t)
 
-;(comprehend "zum Mann")
+(comprehend "zum Mann")
 ;(formulate-all '((bike x)))
 
 
@@ -705,12 +703,20 @@
               (referent ?arg1)
               )
               (?receiver-unit
-               (syn-cat 
-                        (case ?case))
+               (syn-cat (lex-class noun-phrase)
+                (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (?dat ?dm ?df ?dn ?dp)
+                      (?ds ?dm ?df ?dn ?dp))))
                (referent ?arg2)
                 --
-              (syn-cat 
-                        (case ?case))
+              (syn-cat (lex-class noun-phrase)
+               (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (?dat ?dm ?df ?dn ?dp)
+                      (?ds ?dm ?df ?dn ?dp))))
               (referent ?arg2))
               
               (?ditransitive-argument-structure-unit
@@ -720,96 +726,63 @@
                --
                )))
 
-
-
-;;;this cxn contains boundaries for formulation (?)
-#|(def-fcg-cxn ditransitive-argument-structure-cxn
-             ((?ditransitive-argument-structure-unit
-              (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
-              (?agent-unit
-               (syn-cat (syn-role subject)))
-              (?patient-unit
-               (syn-cat (syn-role direct-object)))
-              (?receiver-unit
-               (syn-cat (syn-role indirect-object)))
+(def-fcg-cxn ditransitive-information-structure-cxn
+              ((?ditransitive-information-structure-unit
+               (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?arg-and-info-struct-unit
+               (constituents (?ditransitive-information-structure-unit ?argument-structure-unit)))
               <-
+              
+              (?argument-structure-unit
+               (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+                --
+                (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type ditransitive))
-               (referent ?v)
+                       (type ditransitive))     
+              
                 --
               (syn-cat (lex-class verb)
-                       (type ditransitive))     
-              (referent ?v))
+                       (type ditransitive)))
               
               (?agent-unit
-               (syn-cat (lex-class noun-phrase)
-                        (case ((+ ?nm ?nf ?nn ?np) 
-                               (- - - - -)         
-                               (- - - - -)        
-                               (- - - - -)
-                               (?as ?nm ?nf ?nn ?np))))
+               (syn-cat (syn-role subject))
                (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit))
-               (referent ?arg0)
                 --
-              (syn-cat (lex-class noun-phrase)
-                        (case ((+ ?nm ?nf ?nn ?np) 
-                               (- - - - -)         
-                               (- - - - -)        
-                               (- - - - -)
-                               (?as ?nm ?nf ?nn ?np))))
+              (syn-cat (syn-role subject))
               (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit))
-              (referent ?arg0))
+                          (rightmost-unit ?rightmost-agent-unit)))
               
               (?patient-unit
-               (syn-cat (lex-class noun-phrase)
-                        (case ((- - - - -) 
-                               (+ ?am ?af ?an ?ap)         
-                               (- - - - -)         
-                               (- - - - -)
-                               (?ps ?am ?af ?an ?ap))))
+               (syn-cat (syn-role direct-object))
                (boundaries (leftmost-unit ?leftmost-patient-unit)
                           (rightmost-unit ?rightmost-patient-unit))
-               (referent ?arg1)
                 --
-              (syn-cat (lex-class noun-phrase)
-                        (case ((- - - - -) 
-                               (+ ?am ?af ?an ?ap)         
-                               (- - - - -)         
-                               (- - - - -)
-                               (?ps ?am ?af ?an ?ap))))
+              
+              (syn-cat (syn-role direct-object))
               (boundaries (leftmost-unit ?leftmost-patient-unit)
-                          (rightmost-unit ?rightmost-patient-unit))
-              (referent ?arg1)
-              )
+                          (rightmost-unit ?rightmost-patient-unit)))
+
               (?receiver-unit
-               (syn-cat 
-                        (case ?case))
+               (syn-cat (syn-role indirect-object))
                (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit))
-               (referent ?arg2)
                 --
-              (syn-cat 
-                        (case ?case))
-              (boundaries (leftmost-unit ?leftmost-receiver-unit)
-                          (rightmost-unit ?rightmost-receiver-unit))
-              (referent ?arg2))
               
-              (?ditransitive-argument-structure-unit
-               (HASH meaning ((:arg0 ?v ?arg0)
-                              (:arg1 ?v ?arg1)
-                              (:arg2 ?v ?arg2)))                  
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))
+
+              (?ditransitive-information-structure-unit
                --
                (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
                            (meets ?verb-unit ?leftmost-receiver-unit)
                            (meets ?rightmost-receiver-unit ?leftmost-patient-unit)))
-               )))|#
+              
+              )))
 
-
-
-;;; this cxn does not work if I add boundaries in the previous one for formulation
 
 
 (def-fcg-cxn topicalized-ditransitive-information-structure-cxn
@@ -856,17 +829,20 @@
                (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit))
                (referent ?arg2)
-               (HASH meaning ((topicalized ?arg2)))
                 --
-              (HASH form ((meets ?rightmost-receiver-unit ?verb-unit)
-                           (meets ?verb-unit ?leftmost-agent-unit)
-                           (meets ?rightmost-agent-unit ?leftmost-patient-unit)))
               (referent ?arg2)
               (syn-cat (syn-role indirect-object))
               (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit)))
+
+              (?topicalized-ditransitive-information-structure-unit
+               (HASH meaning ((topicalized ?arg2 +)))
+               --
+               (HASH form ((meets ?rightmost-receiver-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)
+                           (meets ?rightmost-agent-unit ?leftmost-patient-unit)))
               
-              ))
+              )))
 
 
 
@@ -1277,21 +1253,82 @@
 
 
 
+
+
+
+;;;;;;;;VERBS' ARGUMENTS
+
+;DITRANSITIVES (DIRECT ACC. AND INDIRECT OBJECT DATIVE)
+;;;geben (arg0 giver - arg1 thing given - arg2 entity or person given to)
+;Die Frau gibt dem Mann den Apfel.
+
+;;;;schenken (arg0 giver- arg1 thing given- arg2 entity or person given to)
+;Die Lehrerin schenkt dem Direktor die Blumen.
+
+;;;;zeigen (arg0 shower- arg1 thing seen or shown - arg2 seer)
+;Der Vater zeigt dem Sohn die Brille.
+
+
+;;;;verkaufen (arg0 seller- arg1 thing sold- arg2 buyer - arg3 price payed - arg4 benefactive)
+;Der Doktor verkauft dem Clown das Buch. 
+
+
+
+
+;TRANSITIVES
+;;;;verfolgen (arg0 follower- arg1 thing followed)
+;Der Hund verfolgt den Mann.
+
+;;;;töten (arg0 killer - arg1 corpse - arg2 instrument)
+;Der Tiger tötet den Jäger.
+
+;;;;suchen (arg0 looker - arg1 thing looked for - arg2 attribute/complement of arg1)
+;Der Polizist sucht den Bäcker. 
+
+
+;;;;rufen (arg0 caller - arg1 entity summoned/person called - arg2 benefactive/complement)
+;Der König ruft der Kellner.
+
+
+
+
+
+;;;;fahren (arg0 driver- arg1 vehicle or path)
+;Der Mann fährt mit dem Fahrrad zur Arbeit.
+;Der Mann ist gegen den Baum gefahren.
+
+;;;;gehen (arg0 goer - arg1 journey - arg3 start point - arg4 end point)
+;Der Junge geht zum Arzt.
+;Die Mutter geht ohne den Sohn zum Laden.
+
+
+;;;;mitbringen (arg0 bringen - arg1 thing brought - arg2 benefactive or destination - arg3 attribute - arg4 brought from)
+;Die Königin hat für den König Blume mitgebracht.
+
+
+
+
 ;;; NPs with Determiners and PPs with NP+P or Contracted P
-;(formulate-all '((baker x)))
+(formulate-all '((work x)))
 
 ;;;; der Mann sucht den Clown
-;(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c)))
+(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c)))
 
 ;;; den Clown sucht der Mann
-;(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
+(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
+
+;;; der Mann schenkt dem Clown die Blumen
+(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c)))
+
+;;; der Mann schenkt dem Clown die Blumen
+(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +)))
 
 
 ;;; der Mann kommt aus dem Shop
 ;(formulate-all '((kommen-01 k) (man m) (arg0 k m) (shop s) (arg1 k s)))
 
 ;;; aus dem Shop kommt der Mann
-;(formulate-all '((kommen-01 k) (man m) (arg0 k m) (shop s) (arg1 k s) (topicalized s +)))
+;(formulate-all '((kommen-01 k) (man m) (arg1 k m) (shop s) (arg3 k s) (topicalized s +)))
 
 
 ;;;der Mann schenkt dem Clown die Blumen
