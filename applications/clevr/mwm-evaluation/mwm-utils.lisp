@@ -4,15 +4,18 @@
 ;; similarity and category matching ;;
 ;;----------------------------------;;
 
-;; weighted similarity method that can be used to compare the prototypical values of an object and a concept (see: "Babel/experiments/multidimensional-word-meanings/concept.lisp" for the original method)
+;; weighted similarity method that can be used to
+;; compare the prototypical values of an object
+;; and a concept
+;; (see: "Babel/experiments/multidimensional-word-meanings/concept.lisp" for the original method)
 (defmethod weighted-similarity ((object mwm-object) (concept concept-entity))
   (loop for prototype in (meaning concept)
         for similarity = (mwm::similarity object prototype)
         collect (* (mwm::certainty prototype) similarity) into weighted-similarities
         finally (return (average weighted-similarities))))
 
-;; attach category to an object that yields the highest weighted similarity out of a set of categories
 
+;; attach category to an object that yields the highest weighted similarity out of a set of categories
 (defun find-best-category (object categories) 
   (loop with best-category = nil
         with best-similarity = nil
@@ -23,7 +26,7 @@
         do (setf best-category cat
                  best-similarity similarity)
         finally
-        return best-category))
+        (return best-category)))
 
 ;;-----------------------------;;
 ;; Utils for testing questions ;;
@@ -42,9 +45,10 @@
                   :name "CLEVR_val_000000" :type "json")
    cl-user:*babel-corpora*))
 
-(defun test-utterance-in-first-scene (utterance)
+(defun test-utterance-in-first-scene (utterance ontology)
   (multiple-value-bind (irl-program cipn cip) 
       (understand utterance)
+    (declare (ignorable cip))
     (when (find 'fcg::succeeded (fcg::statuses cipn))
       (let ((scene-var (extract-scene-unit-variable cipn))
             (scene-path (make-instance 'pathname-entity
@@ -52,7 +56,7 @@
         (evaluate-irl-program
          (cons `(bind pathname-entity ,scene-var ,scene-path)
                (substitute-categories irl-program))
-         *my-ontology* :primitive-inventory *mwm-primitives*)))))
+         ontology :primitive-inventory *mwm-primitives*)))))
 
 ;;-----------------------------------------------------------------;;
 ;; substitute category names in bind statements with concept names ;;

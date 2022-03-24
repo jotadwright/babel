@@ -9,17 +9,18 @@
 
 ;(export '(same))
 
-(defgeneric same-set-by-object-attribute (set object attribute)
+(defgeneric same-set-by-object-attribute (set object attribute ontology)
   (:documentation "Filter the given set by the attribute of the given object;
    also remove the object itself from this set."))
 
 (defmethod same-set-by-object-attribute ((set mwm::mwm-object-set)
                                          (object mwm::mwm-object)
-                                         (attribute-category attribute-category))
-  (let* ((object-attribute (query-object-attribute object attribute-category *my-ontology*))
+                                         (attribute-category attribute-category)
+                                         (ontology blackboard))
+  (let* ((object-attribute (query-object-attribute object attribute-category ontology))
          (consider-set (remove (id object) (objects set) :key #'id))
          (same-set (loop for obj in consider-set
-                         when (eq object-attribute (query-object-attribute obj attribute-category *my-ontology*))
+                         when (eq object-attribute (query-object-attribute obj attribute-category ontology))
                          collect obj)))
     (when same-set
       (make-instance 'mwm::mwm-object-set :objects same-set))))
@@ -32,7 +33,7 @@
                     (attribute attribute-category))
   ;; first case; given source-object and attribute, compute the target-set
   ((scene segmented-scene source-object attribute => target-set)
-   (let ((same-set (same-set-by-object-attribute segmented-scene source-object attribute)))
+   (let ((same-set (same-set-by-object-attribute segmented-scene source-object attribute ontology)))
      (if same-set
        (bind (target-set 1.0 same-set))
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
@@ -43,7 +44,7 @@
           (find-if #'(lambda (attr)
                        (equal-entity
                         target-set
-                        (same-set-by-object-attribute segmented-scene source-object attr)))
+                        (same-set-by-object-attribute segmented-scene source-object attr ontology)))
                    (get-data ontology 'attributes))))
      (when computed-attribute
        (bind (attribute 1.0 computed-attribute)))))
@@ -51,7 +52,7 @@
   ;; third case; given source-object, compute pairs of attribute and target-set
   ((scene segmented-scene source-object => target-set attribute)
    (loop for attr in (get-data ontology 'attributes)
-         for set = (same-set-by-object-attribute segmented-scene source-object attr)
+         for set = (same-set-by-object-attribute segmented-scene source-object attr ontology)
          if set
          do (bind (target-set 1.0 set)
                   (attribute 1.0 attr))
@@ -66,6 +67,7 @@
    (equal-entity target-set (same-set-by-object-attribute
                              segmented-scene
                              source-object
-                             attribute)))
+                             attribute
+                             ontology)))
   :primitive-inventory *mwm-primitives*)
 
