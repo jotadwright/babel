@@ -14,60 +14,38 @@
                   (dependents sequence))
   :hierarchy-features (constituents dependents))
 
-
-
-(def-fcg-cxn large-gray-cxn
-             ((?large-gray-unit
-               (args (?size-4 ?color-2))
-               (syn-cat (phrase-type holistic)
-                        (lex-class large-gray))
-               (boundaries
-                (left ?large-unit)
-                (right ?gray-unit))
-               )
-              <-
-              (?large-gray-unit
-               (HASH meaning ((bind size-category ?size-4 large)
-                              (bind color-category ?color-2 gray)))
-               --
-               (HASH form ((string ?large-unit "large")
-                           (string ?gray-unit "gray")
-                           (meets ?large-unit ?gray-unit))))))
-
-(comprehend "large gray")
-
-
 (def-fcg-cxn tiny-yellow-cxn
              ((?tiny-yellow-unit
-               (args (?size-4 ?color-2))
+               (args (?target-1 ?target-39552))
                (syn-cat (phrase-type holistic)
-                        (lex-class large-gray))
+                        (lex-class categorial-network-lookup))
                (boundaries
                 (left ?tiny-unit)
                 (right ?yellow-unit))
                )
               <-
               (?tiny-yellow-unit
-               (HASH meaning ((bind size-category ?size-4 tiny)
+               (HASH meaning ((filter ?target-39552 ?target-2 ?size-4)
+                              (bind size-category ?size-4 tiny)
+                              (filter ?target-2 ?target-1 ?color-2)
                               (bind color-category ?color-2 yellow)))
                --
                (HASH form ((string ?tiny-unit "tiny")
                            (string ?yellow-unit "yellow")
                            (meets ?tiny-unit ?yellow-unit))))))
 
-
 (def-fcg-cxn yellow-cxn
              ((?yellow-unit
-               (args (?size-4 ?color-2))
+               (args (?target-1 ?target-39552))
                (syn-cat (phrase-type holistic)
-                        (lex-class large-gray))
+                        (lex-class categorial-network-lookup))
                (boundaries
                 (left ?yellow-unit)
                 (right ?yellow-unit))
                )
               <-
               (?tiny-yellow-unit
-               (HASH meaning ((bind size-category ?size-4 tiny)
+               (HASH meaning ((filter ?target-39552 ?target-1 ?color-2)
                               (bind color-category ?color-2 yellow)))
                --
                (HASH form (
@@ -80,17 +58,15 @@
                (syn-cat (phrase-type item-based))
                (subunits (?large-gray-unit)))
               (?large-gray-unit
-               (syn-cat (lex-class large-gray)))
+               (syn-cat (lex-class categorial-network-lookup)))
                
               <-
               (?item-based-unit
                (HASH meaning ((query ?target-8 ?source-10 ?attribute-2)
-                              (filter ?target-2 ?target-1 ?color-2)
                               (bind shape-category ?shape-8 thing)
                               (bind attribute-category ?attribute-2 shape)
                               (filter ?target-1 ?source-1 ?shape-8)
                               (unique ?source-10 ?target-39552)
-                              (filter ?target-39552 ?target-2 ?size-4)
                               (get-context ?source-1)))
                --
                (HASH form ((string ?the-66 "The")
@@ -104,13 +80,12 @@
                            (meets ?is-66 ?what-66)
                            (meets ?what-66 ?shape?-66))))
               (?large-gray-unit
-               (args (?size-4 ?color-2))
+               (args (?target-1 ?target-39552))
                --
                (boundaries
                 (left ?large-unit)
                 (right ?gray-unit)))))
 
 
-(comprehend-and-formulate "The yellow object is what shape?")
-(comprehend-and-formulate "The tiny yellow object is what shape?")
-(comprehend-and-formulate "The large gray object is what shape?")
+;(comprehend-and-formulate "The yellow object is what shape?")
+;(comprehend-and-formulate "The tiny yellow object is what shape?")
