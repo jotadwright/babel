@@ -12,6 +12,10 @@
                   (de-render-mode de-render-string-meets)
                   (constituents sequence)
                   (dependents sequence))
+  :fcg-configurations ((:parse-goal-tests
+                         :no-strings-in-root :connected-semantic-network ) 
+                       (:production-goal-tests
+                         :no-meaning-in-root ))
   :hierarchy-features (constituents dependents))
 
 (def-fcg-cxn tiny-yellow-cxn
@@ -34,6 +38,7 @@
                            (string ?yellow-unit "yellow")
                            (meets ?tiny-unit ?yellow-unit))))))
 
+
 (def-fcg-cxn yellow-cxn
              ((?yellow-unit
                (args (?target-1 ?target-39552))
@@ -51,7 +56,6 @@
                (HASH form (
                            (string ?yellow-unit "yellow")
                            )))))
-
 
 (def-fcg-cxn the-x-object-is-what-shape-cxn
              ((?item-based-unit
@@ -85,7 +89,6 @@
                (boundaries
                 (left ?large-unit)
                 (right ?gray-unit)))))
-
 
 ;(comprehend-and-formulate "The yellow object is what shape?")
 ;(comprehend-and-formulate "The tiny yellow object is what shape?")
