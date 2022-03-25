@@ -47,13 +47,13 @@
                        (equal-entity
                         target-set
                         (apply-spatial-relation source-object relation segmented-scene)))
-                   (get-data *my-ontology* 'spatial-relations))))
+                   (get-data ontology 'spatial-relations))))
      (when computed-relation
        (bind (spatial-relation 1.0 computed-relation)))))
 
   ;; third case; given source-object, compute pairs of target-set and spatial-relation
   ((scene segmented-scene source-object => target-set spatial-relation)
-   (loop for relation in (get-data *my-ontology* 'spatial-relations)
+   (loop for relation in (get-data ontology 'spatial-relations)
          for set = (apply-spatial-relation source-object relation segmented-scene)
          when set
          do (bind (target-set 1.0 set)

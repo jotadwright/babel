@@ -16,8 +16,7 @@
                :fcg
                :clevr-world
                :clevr-grammar
-               :mwm
-               )
+               :mwm)
   :serial t
   :components ((:file "package")
                (:file "mwm-ontology")
@@ -37,5 +36,4 @@
                              (:file "same")
                              (:file "segment-scene")
                              (:file "union")
-                             (:file "unique")))
-               ))
+                             (:file "unique")))))

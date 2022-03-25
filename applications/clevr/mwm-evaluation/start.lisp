@@ -8,7 +8,9 @@
 ;; The ontology ;;
 ;;--------------;;
 
-(make-mwm-ontology (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts" "thesis-main-results" "baseline-simulated-default-lexicon" "serie-1")))
+(make-mwm-ontology
+ (merge-pathnames (make-pathname :directory '(:relative "serie-1"))
+                  *simulated-concepts-path*))
 
 ;; Show the ontology in the web-interface:
 ;; (add-element (make-html *my-ontology*))
@@ -18,18 +20,41 @@
 ;;---------;;
 
 ;; Test sentences (see "Babel/grammars/clevr-grammar/start.lisp" for more examples):
-;(test-utterance-in-first-scene "there is a big gray object that is the same shape as the purple rubber object; what is it made of?")
-;(test-utterance-in-first-scene "What color is the large sphere?")
-;(test-utterance-in-first-scene "How many things have the same shape as the large red thing?")
-;(test-utterance-in-first-scene "How many things are left of the small gray sphere that is in front of the large sphere that is right of the large blue cube?")
-;(test-utterance-in-first-scene "How many things are left of the purple sphere that is behind the yellow thing?")
+(let ((ontology
+       (make-mwm-ontology
+        (merge-pathnames (make-pathname :directory '(:relative "serie-1"))
+                         *simulated-concepts-path*))))
+  (test-utterance-in-first-scene "there is a big gray object that is the same shape as the purple rubber object; what is it made of?"
+                                 ontology)
+  (test-utterance-in-first-scene "What color is the large sphere?" ontology)
+  (test-utterance-in-first-scene "How many things have the same shape as the large red thing?" ontology)
+  (test-utterance-in-first-scene "How many things are left of the small gray sphere that is in front of the large sphere that is right of the large blue cube?"
+                                 ontology)
+  (test-utterance-in-first-scene "How many things are left of the purple sphere that is behind the yellow thing?"
+                                 ontology))
 
 ;;------------;;
 ;; Evaluation ;;
 ;;------------;;
 
-;; Evaluate on the ontology that is loaded manually
-(evaluate-mwm-accuracy "val" "mwm-evaluation" "mwm-errors"  :nr-of-scenes 1)
+(let ((ontology
+       (make-mwm-ontology
+        (merge-pathnames (make-pathname :directory '(:relative "serie-1"))
+                         *simulated-concepts-path*))))
+  ;; Evaluate on the ontology that is loaded manually
+  (evaluate-mwm-accuracy ontology :nr-of-scenes 10))
+
+;; Evaluate one particular serie
+(evaluate-mwm-serie 1)
+(evaluate-mwm-serie 2)
+(evaluate-mwm-serie 3)
+(evaluate-mwm-serie 4)
+(evaluate-mwm-serie 5)
+(evaluate-mwm-serie 6)
+(evaluate-mwm-serie 7)
+(evaluate-mwm-serie 8)
+(evaluate-mwm-serie 9)
+(evaluate-mwm-serie 10)
 
 ;; Evaluate on all series of concepts by loading the different series into the ontology
 (evaluate-all-series)

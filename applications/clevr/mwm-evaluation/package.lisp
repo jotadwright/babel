@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (defpackage :mwm-evaluation
-  (:documentation "Integrating the multi-dimensional concepts in vqa"s)
+  (:documentation "Integrating the multi-dimensional concepts in vqa")
   (:use :common-lisp
         :utils
         :monitors
