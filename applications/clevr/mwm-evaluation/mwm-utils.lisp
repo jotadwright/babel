@@ -1,5 +1,17 @@
 (in-package :mwm-evaluation)
 
+;;--------------------------;;
+;; path to learned concepts ;;
+;;--------------------------;;
+
+(defparameter *simulated-concepts-path*
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "store"
+                               "thesis-main-results" "baseline-simulated-default-lexicon")))
+
+(defparameter *extracted-concepts-path*
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "store"
+                               "thesis-main-results" "baseline-extracted-default-lexicon")))
+
 ;;----------------------------------;;
 ;; similarity and category matching ;;
 ;;----------------------------------;;

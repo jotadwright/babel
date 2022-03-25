@@ -30,12 +30,14 @@
 (defun compute-answer (irl-program scene-var scene-path-entity ontology)
   "Given an irl-program, a variable and a scene path,
    compute the answer."
-  (let ((solutions
-         (evaluate-irl-program
+  (let* ((irl-program-with-scene
           (cons `(bind pathname-entity ,scene-var ,scene-path-entity)
-                (substitute-categories irl-program))
-          ontology
-          :primitive-inventory *mwm-primitives*)))
+                (substitute-categories irl-program)))
+         (solutions
+          (evaluate-irl-program irl-program-with-scene ontology
+                                :primitive-inventory *mwm-primitives*
+                                :n 1 ;;; !!!
+                                )))
     (when (and solutions (length= solutions 1))
       (let* ((target-var (get-target-var irl-program))
              (target-value (value (find target-var (first solutions) :key #'var))))
@@ -213,21 +215,28 @@
 
 
 (defun evaluate-mwm-serie (serie-number)
-  (let* ((serie-name (format nil "serie-~a" serie-number))
-         (directory (list "experiments""multidimensional-word-meanings" "learned-concepts"
-                          "thesis-main-results" "baseline-simulated-default-lexicon" serie-name))
+  (let* ((serie-name
+          (format nil "serie-~a" serie-number))
+         (concepts-directory
+          (merge-pathnames
+           (make-pathname :directory (list :relative serie-name))
+           *simulated-concepts-path*))
+         (ontology
+          (make-mwm-ontology concepts-directory))
          (output-filename (format nil "mwm-evaluation-~a" serie-number))
          (error-filename (format nil "mwm-errors-~a" serie-number)))
-    (make-mwm-ontology (babel-pathname :directory directory))
-    (evaluate-mwm-accuracy "val" output-filename error-filename)))
+    (evaluate-mwm-accuracy ontology
+                           :csv-filename  output-filename
+                           :errors-filename error-filename)))
 
 
 (defun evaluate-all-series ()
   (loop for serie-nr from 1 to 10
         for serie = (format nil "serie-~a" serie-nr)
         for ontology = (make-mwm-ontology
-                        (babel-pathname :directory (list "experiments""multidimensional-word-meanings" "learned-concepts"
-                                                       "thesis-main-results" "baseline-simulated-default-lexicon" serie)))
+                        (merge-pathnames
+                         (make-pathname :directory (list :relative serie))
+                         *simulated-concepts-path*))
         do (evaluate-mwm-accuracy ontology
                                   :csv-filename (concatenate 'string serie "-evaluation")
                                   :errors-filename (concatenate 'string serie "-errors"))))
