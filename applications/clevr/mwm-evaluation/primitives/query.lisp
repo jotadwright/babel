@@ -34,6 +34,7 @@
   ((scene source-object attribute => target-category)
    (bind (target-category 1.0 (query-object-attribute source-object attribute ontology))))
 
+  #|
   ;; second case; given source-object and target-category, compute the attribute
   ((scene source-object target-category => attribute)
    (let ((computed-attribute
@@ -57,6 +58,7 @@
   ;; for consistency
   ((scene source-object attribute target-category =>)
    (equal-entity target-category (query-object-attribute source-object attribute ontology)))
+  |#
   :primitive-inventory *mwm-primitives*)
 
 

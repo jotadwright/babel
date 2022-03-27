@@ -21,6 +21,7 @@
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :objects intersected)))
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
 
+  #|
   ;; second case; given a source and target set, compute the other source set
   ((source-set-1 target-set => source-set-2)
    (let ((context (get-data ontology 'clevr-context)))
@@ -52,4 +53,5 @@
      (equal-entity target-set
                    (make-instance 'mwm::mwm-object-set
                                   :objects intersected))))
+  |#
   :primitive-inventory *mwm-primitives*)

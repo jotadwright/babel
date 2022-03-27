@@ -73,7 +73,8 @@
      (if computed-set
        (bind (target-set 1.0 computed-set))
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
-  
+
+  #|
   ;; second case: if given source-set and target-set, compute category
   ((scene source-set target-set => category)
    (let ((computed-category
@@ -108,5 +109,6 @@
   ;; fourth case: if given source-set, target-set and category, check for consistency
   ((scene source-set target-set category =>)
    (equal-entity target-set (filter-by-category source-set category ontology)))
+  |#
   :primitive-inventory *mwm-primitives*)
 

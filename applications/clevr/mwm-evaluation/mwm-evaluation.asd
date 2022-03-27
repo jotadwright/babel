@@ -22,6 +22,7 @@
                (:file "mwm-ontology")
                (:file "mwm-utils")
                (:file "evaluation")
+               (:file "irl-node-test")
                (:module "primitives"
                 :serial t
                 :components ((:file "primitive-inventory")
