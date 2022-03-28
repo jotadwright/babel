@@ -1,22 +1,21 @@
 (in-package :cl-user)
 
-(defpackage :mwm-evaluation
-  (:documentation "Integrating the multi-dimensional concepts in vqa")
+(defpackage :spatial-concepts
+  (:documentation "spatial concept learning experiment")
   (:use :common-lisp
         :utils
+        :web-interface
         :monitors
         :plot-raw-data
         :experiment-framework
-        :web-interface
-        :fcg
         :irl
-        :clevr-world
-        :clevr-grammar
-        :mwm)
+        :fcg
+        :clevr-world)
+  (:import-from :cl-mop
+                :slot-names
+                :map-slots)
   (:import-from :cl-json
    :decode-json-from-string
    :encode-json-to-string
    :encode-json-alist-to-string)
-  (:import-from :cl-store :restore)
   (:shadowing-import-from :fcg :size :attributes))
-  
