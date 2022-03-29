@@ -1132,9 +1132,141 @@
 
 
 
+;der Mann hat für den Clown die Blumen mitgebracht
+
+(def-fcg-cxn direct-and-indirect-obj-argument-structure-cxn
+             ((?direct-and-indirect-obj-argument-structure-cxn
+              (subunits (?verb-unit ?agent-unit ?benefactive-unit ?patient-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?benefactive-unit
+               (syn-cat (syn-role prepositional-object)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect perfect))
+               (referent ?v)
+                --
+              (referent ?v)
+              (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect perfect)))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?ns ?nm ?nf ?nn ?np))))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?ns ?nm ?nf ?nn ?np))))
+              (referent ?arg0))
+              
+              (?benefactive-unit
+               (syn-cat (lex-class prep-phrase))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        )
+              (referent ?arg2))
+              
+              (?patient-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)        
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)        
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+              (referent ?arg1))
+              
+              (?direct-and-indirect-obj-argument-structure-cxn
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg2 ?v ?arg2)))                  
+               --
+               )))
 
 
-
+(def-fcg-cxn topic-arg0-arg1-arg2-perfect-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?benefactive-unit ?patient-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?aux-unit)
+                           (meets ?aux-unit ?leftmost-benefactive-unit)
+                           (meets ?rightmost-patient-unit ?participle-unit)))
+               (subunits (?verb-unit ?agent-unit ?benefactive-unit ?patient-unit)))
+              
+              (?verb-unit
+               (subunits (?aux-unit ?participle-unit))
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect perfect))
+               (boundaries (leftmost-unit ?aux-unit)
+                          (rightmost-unit ?participle-unit))
+              
+                --
+              (subunits (?aux-unit ?participle-unit))
+              (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect perfect))
+              (boundaries (leftmost-unit ?aux-unit)
+                          (rightmost-unit ?participle-unit)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (referent ?arg0)
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?benefactive-unit
+               (syn-cat (syn-role prepositional-object)
+                        (lex-class prep-phrase))
+               (boundaries (leftmost-unit ?leftmost-benefactive-unit)
+                          (rightmost-unit ?rightmost-benefactive-unit))
+                --
+              (syn-cat (syn-role prepositional-object)
+                       (lex-class prep-phrase))
+              (boundaries (leftmost-unit ?leftmost-benefactive-unit)
+                          (rightmost-unit ?rightmost-benefactive-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object)
+                        (lex-class noun-phrase))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              (syn-cat (syn-role direct-object)
+                       (lex-class noun-phrase))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+              ))
 
 
 
@@ -1142,7 +1274,7 @@
 
 ;der Mann geht ohne den Clown zur Arbeit
 
-(def-fcg-cxn double-intransitive-argument-structure-cxn
+#|(def-fcg-cxn double-intransitive-argument-structure-cxn
              ((?double-intransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
               (?agent-unit
@@ -1269,7 +1401,7 @@
                            (meets ?verb-unit ?leftmost-ad-info-unit)
                            (meets ?rightmost-ad-info-unit ?leftmost-location-unit))))
               
-              ))
+              ))|#
 
 
 
@@ -1351,7 +1483,6 @@
 ;;; dem Clown schenkt der Mann die Blumen - stuck 
 (formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +)))
 
-
 ;;;der Mann geht zum Shop
 (formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized m +)))
 
@@ -1362,7 +1493,10 @@
 (formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg1 g c) (arg4 g w)))
 
 ;;; der Mann ist gegen den Shop gefahren 
-(formulate '((drove-01 ig) (man m) (arg0 ig m) (shop s) (arg4 ig s) (topicalized m +)))
+(formulate-all '((drove-01 ig) (man m) (arg0 ig m) (shop s) (arg4 ig s) (topicalized m +)))
+
+;; der Mann hat für den Clown die Blumen mitgebracht
+(formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit
 (formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg1 g c) (arg4 g w)))
