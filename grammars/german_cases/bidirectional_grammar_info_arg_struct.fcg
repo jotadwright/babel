@@ -16,6 +16,7 @@
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
 
+;;;;DETERMINERS
 
 (def-fcg-cxn der-cxn
              ((?the-word
@@ -215,6 +216,8 @@
 
 
 
+;;;;NOUNS
+
 (def-fcg-cxn Blumen-cxn
              ((?flowers-word
                (referent ?x)                             ;set of values
@@ -324,6 +327,8 @@
                --
                (HASH form ((string ?clown-word  "Clown"))))))
 
+;;;PHRASES
+
 (def-fcg-cxn noun-phrase-cxn
              ((?noun-phrase
                (referent ?x)
@@ -395,7 +400,6 @@
              :disable-automatic-footprints t)
 
 
-;;;; der twice
 (def-fcg-cxn prepositional-phrase-cxn
              ((?prep-phrase
                (referent ?x)
@@ -463,7 +467,7 @@
               ))
               :disable-automatic-footprints t)
              
-
+;;;VERBS
 
 (def-fcg-cxn kommt-cxn
              ((?come-word                         
@@ -568,6 +572,12 @@
                (HASH meaning ((brought-01 ?hm)))                    
                --
                )))
+
+
+;;;;;VERB CONSTRUCTIONS
+
+
+;TRANSITIVE VERBS
 
 (def-fcg-cxn transitive-argument-structure-cxn                 
              ((?transitive-argument-structure-unit
@@ -718,6 +728,7 @@
 
 
 
+;;;DITRANSITIVE VERBS 
 
 
 ;der Mann schenkt dem Clown die Blumen
@@ -910,9 +921,10 @@
 
 
 
-
+;MOTION VERBS 
 
 ;der Mann geht zur Arbeit
+
 (def-fcg-cxn intransitive-argument-structure-cxn
              ((?intransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?location-unit)))
@@ -971,78 +983,63 @@
                --
                )))
 
-#|(def-fcg-cxn intransitive-come-argument-structure-cxn
-             ((?intransitive-argument-structure-unit
-              (subunits (?verb-unit ?agent-unit ?location-unit)))
-              (?agent-unit
-               (syn-cat (syn-role subject)))
-              (?location-unit
-               (syn-cat (syn-role indirect-object)))
-              <-
-              (?verb-unit
-               (syn-cat (lex-class verb)
-                       (type intransitive)
-                       (location origin-only)
-                       )
-               (referent ?v)
-                --
-              (syn-cat (lex-class verb)
-                       (type intransitive)
-                       (location origin-only))     
-              (referent ?v))
-              
-              (?agent-unit
-               (syn-cat (lex-class noun-phrase)
-                        (case ((+ ?nm ?nf ?nn ?np) 
-                               (- - - - -)         
-                               (- - - - -)        
-                               (- - - - -)
-                               (?as ?nm ?nf ?nn ?np))))
-               (referent ?arg0)
-                --
-              (syn-cat (lex-class noun-phrase)
-                        (case ((+ ?nm ?nf ?nn ?np) 
-                               (- - - - -)         
-                               (- - - - -)        
-                               (- - - - -)
-                               (?as ?nm ?nf ?nn ?np))))
-              (referent ?arg0))
-              
-         
-              (?location-unit
-               (syn-cat (lex-class prep-phrase)
-                   (case ((- - - - -) 
-                      (?acc ?am ?af ?an ?ap)         
-                      (- - - - -)         
-                      (?dat ?dm ?df ?dn ?dp)
-                      (?ls ?m ?f ?n ?lp))))
-               (referent ?arg3)
-                --
-              (syn-cat (lex-class prep-phrase)
-                        (case ((- - - - -) 
-                              (?acc ?am ?af ?an ?ap)         
-                              (- - - - -)         
-                              (?dat ?dm ?df ?dn ?dp)
-                              (?ls ?m ?f ?n ?lp))))
-              (referent ?arg3))
-              
-              (?intransitive-argument-structure-unit
-               (HASH meaning ((:arg0 ?v ?arg0)
-                              (:arg4 ?v ?arg4)))                  
-               --
-               )))|#
-
-(def-fcg-cxn intransitive-information-structure-cxn
-             ((?intransitive-information-structure-unit
-               (subunits (?verb-unit ?agent-unit ?location-unit)))
-              (?arg-and-info-struct-unit
-               (subunits (?intransitive-information-structure-unit ?argument-structure-unit)))
+(def-fcg-cxn topic-arg0-arg4-information-structure-cxn
+             (
               <-
               (?argument-structure-unit
                (subunits (?verb-unit ?agent-unit ?location-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-location-unit)))
+               (subunits (?verb-unit ?agent-unit ?location-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect ?aspect))     
+              
                 --
-                (subunits (?verb-unit ?agent-unit ?location-unit))
-              )
+              (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect ?aspect)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (referent ?arg0)
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?location-unit
+               (syn-cat (syn-role locative-complement)
+                        (lex-class prep-phrase))
+               (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit))
+                --
+              
+              (syn-cat (syn-role locative-complement)
+                       (lex-class prep-phrase))
+              (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit)))
+              ))
+
+(def-fcg-cxn arg0-topic-arg4-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?location-unit))
+               (HASH meaning ((topicalized ?arg4 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-location-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)))
+               (subunits (?verb-unit ?agent-unit ?location-unit)))
               
               (?verb-unit
                (syn-cat (lex-class verb)
@@ -1059,96 +1056,40 @@
                (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit))
                 --
+              
               (syn-cat (syn-role subject))
-              (referent ?arg0)
               (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit)))
               
               (?location-unit
+               (referent ?arg4)
                (syn-cat (syn-role locative-complement)
                         (lex-class prep-phrase))
                (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit))
                 --
-              
+              (referent ?arg0)
               (syn-cat (syn-role locative-complement)
                        (lex-class prep-phrase))
-              (referent ?arg4)
               (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit)))
+              ))
 
-              (?intransitive-information-structure-unit                  
-               --
-               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
-                           (meets ?verb-unit ?leftmost-location-unit)))
-               )))
 
-#|(def-fcg-cxn intransitive-come-information-structure-cxn
-             ((?intransitive-information-structure-unit
-               (subunits (?verb-unit ?agent-unit ?location-unit)))
-              (?arg-and-info-struct-unit
-               (subunits (?intransitive-information-structure-unit ?argument-structure-unit)))
+;;;VERBS PERFECT
+
+(def-fcg-cxn topic-arg0-arg4-perfect-information-structure-cxn
+             (
               <-
               (?argument-structure-unit
                (subunits (?verb-unit ?agent-unit ?location-unit))
-                --
-                (subunits (?verb-unit ?agent-unit ?location-unit))
-              )
-              
-              (?verb-unit
-               (syn-cat (lex-class verb)
-                       (type intransitive)
-                       (aspect ?aspect)
-                       (location origin-only)
-                       )     
-              
-                --
-              (syn-cat (lex-class verb)
-                       (type intransitive)
-                       (aspect ?aspect)
-                       (location origin-only)))
-              
-              (?agent-unit
-               (syn-cat (syn-role subject))
-               (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit))
-                --
-              (syn-cat (syn-role subject))
-              (referent ?arg0)
-              (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit)))
-              
-              (?location-unit
-               (syn-cat (syn-role indirect-object)
-                        (lex-class prep-phrase))
-               (boundaries (leftmost-unit ?leftmost-location-unit)
-                          (rightmost-unit ?rightmost-location-unit))
-                --
-              
-              (syn-cat (syn-role indirect-object)
-                       (lex-class prep-phrase))
-              (referent ?arg4)
-              (boundaries (leftmost-unit ?leftmost-location-unit)
-                          (rightmost-unit ?rightmost-location-unit)))
-
-              (?intransitive-information-structure-unit                  
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
                --
-               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
-                           (meets ?verb-unit ?leftmost-location-unit)))
-               )))|#
-
-
-(def-fcg-cxn intransitive-information-structure-past-cxn
-             ((?intransitive-information-structure-past-unit
+               (HASH form ((meets ?rightmost-agent-unit ?aux-unit)
+                           (meets ?aux-unit ?leftmost-location-unit)
+                           (meets ?rightmost-location-unit ?participle-unit)))
                (subunits (?verb-unit ?agent-unit ?location-unit)))
-              (?arg-and-info-struct-unit
-               (subunits (?intransitive-information-structure-past-unit ?argument-structure-unit)))
-              <-
-              (?argument-structure-unit
-               (subunits (?verb-unit ?agent-unit ?location-unit))
-                --
-                (subunits (?verb-unit ?agent-unit ?location-unit))
-              )
               
               (?verb-unit
                (subunits (?aux-unit ?participle-unit))
@@ -1167,10 +1108,12 @@
                           (rightmost-unit ?participle-unit)))
               
               (?agent-unit
+               (referent ?arg0)
                (syn-cat (syn-role subject))
                (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit))
                 --
+              (referent ?arg0)
               (syn-cat (syn-role subject))
               (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit)))
@@ -1181,25 +1124,21 @@
                (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit))
                 --
-              
               (syn-cat (syn-role locative-complement)
                        (lex-class prep-phrase))
               (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit)))
-
-              (?intransitive-information-structure-past-unit
-
-               
-               --
-               (HASH form ((meets ?rightmost-agent-unit ?aux-unit)
-                           (meets ?aux-unit ?leftmost-location-unit)
-                           (meets ?rightmost-location-unit ?participle-unit)))
-               )
-              
               ))
 
 
 
+
+
+
+
+
+
+;;;VERBS WITH EXTRA INFORMATION
 
 ;der Mann geht ohne den Clown zur Arbeit
 
@@ -1378,8 +1317,6 @@
 
 ;MOTION verbs
 
-
-
 ;;;;gehen (arg0 goer - arg1 journey - arg3 start point - arg4 end point)
 ;Der Junge geht zum Arzt.
 ;Die Mutter geht ohne den Sohn zum Laden.
@@ -1389,9 +1326,10 @@
 
 ;;;;fahren (arg0 driver- arg1 vehicle or path)
 ;Der Mann fährt mit dem Fahrrad zur Arbeit.
+
+
+;;;PERFECT 
 ;Der Mann ist gegen den Shop gefahren.
-
-
 ;;;;mitbringen (arg0 bringen - arg1 thing brought - arg2 benefactive or destination - arg3 attribute - arg4 brought from)
 ;Die Königin hat für den König Blume mitgebracht.
 
@@ -1399,7 +1337,7 @@
 
 
 ;;; NPs with Determiners and PPs with NP+P or Contracted P
-(formulate-all '((clown x)))
+(formulate-all '((baker x)))
 
 ;;;; der Mann sucht den Clown
 (formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +)))
@@ -1415,21 +1353,16 @@
 
 
 ;;;der Mann geht zum Shop
-(formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s)))
+(formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized m +)))
 
+; zum Shop geht der Mann
+(formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized s +)))
 
-;;; der Mann kommt aus dem Shop
-;(formulate-all '((kommen-01 k) (man m) (arg0 k m) (shop s) (arg4 k s))) ;still same as gehen 
+;;; der Mann geht ohne den Clown zur Arbeit
+(formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg1 g c) (arg4 g w)))
 
-;;; aus dem Shop kommt der Mann
-;(formulate-all '((kommen-01 k) (man m) (arg1 k m) (shop s) (arg3 k s) (topicalized s +)))
-
-
-;;;der Mann schenkt dem Clown die Blumen
-;(formulate '((schenken-01 g) (man m) (arg0 g m) (clown c) (arg2 g c) (flowers f) (arg1 g f)))
-
-;;; der Mann ist gegen die Blumen gefahren 
-;(formulate-all '((drove-01 ig) (man m) (arg0 ig m) (flowers f) (arg1 ig f)))
+;;; der Mann ist gegen den Shop gefahren 
+(formulate '((drove-01 ig) (man m) (arg0 ig m) (shop s) (arg4 ig s) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit
 (formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg1 g c) (arg4 g w)))
