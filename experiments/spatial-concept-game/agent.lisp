@@ -166,7 +166,7 @@
     (let* ((objects-with-similarity
             (loop with concept = (find-data agent 'applied-concept)
                   for object in (objects (get-data agent 'context))
-                  for sim = (weighted-similarity object concept)
+                  for sim = (weighted-similarity object concept (pointed-object agent))
                   collect (cons object sim)))
            ;; if two objects have exactly the same
            ;; maximum similarity, interpretation fails
