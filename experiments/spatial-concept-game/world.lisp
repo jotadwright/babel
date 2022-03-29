@@ -142,11 +142,12 @@
   (make-instance 'spatial-object :id (id object) ;; !!!
                  :attributes (append (to-value object 'xpos)
                                      (to-value object 'ypos)
-                                     (to-value object 'area)
-                                     (to-value object 'wh-ratio)
-                                     (to-value object 'color)
-                                     (to-value object 'roughness)
-                                     (to-value object 'sides-and-corners))
+                                     ;(to-value object 'area)
+                                     ;(to-value object 'wh-ratio)
+                                     ;(to-value object 'color)
+                                     ;(to-value object 'roughness)
+                                     ;(to-value object 'sides-and-corners)
+                                     )
                  :description (object->alist object)))
 
 ;; ---------
