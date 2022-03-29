@@ -40,6 +40,7 @@
        (bind (target-set 1.0 related-set))
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
 
+  #|
   ;; second case; given source-object and target set, compute the spatial relation
   ((scene segmented-scene source-object target-set => spatial-relation)
    (let ((computed-relation
@@ -63,4 +64,5 @@
   ;; check for consistency
   ((scene segmented-scene source-object target-set spatial-relation =>)
    (equal-entity target-set (apply-spatial-relation source-object spatial-relation segmented-scene)))
+  |#
   :primitive-inventory *mwm-primitives*)

@@ -38,6 +38,7 @@
        (bind (target-set 1.0 same-set))
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
 
+  #|
   ;; second case; given source-object and target-set, compute the attribute
   ((scene segmented-scene source-object target-set => attribute)
    (let ((computed-attribute
@@ -69,5 +70,6 @@
                              source-object
                              attribute
                              ontology)))
+  |#
   :primitive-inventory *mwm-primitives*)
 
