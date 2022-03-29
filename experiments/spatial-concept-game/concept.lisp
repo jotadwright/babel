@@ -87,10 +87,7 @@
   ;; take the object pointed to by the tutor
   ;; and estimate the mean and variance of the category
   (incf (nr-samples prototype))
-  (let* ((attribute (attribute protoype))
-         (attribute-value (get-attr-val object attribute))
-         (pointed-attribute-value (get-attr-val pointed-object attribute))
-         (exemplar (relate-to-pointed-object attribute-value attribute pointed-object))
+  (let* ((exemplar (relate-to-pointed-object (get-attr-val object (attribute prototype)) (attribute prototype) pointed-object))
          (delta-1 (- exemplar (value prototype)))
          (new-prototypical-value (+ (value prototype) (/ delta-1 (nr-samples prototype))))
          (delta-2 (- exemplar new-prototypical-value))
