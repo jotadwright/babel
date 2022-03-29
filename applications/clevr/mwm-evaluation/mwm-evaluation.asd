@@ -16,13 +16,13 @@
                :fcg
                :clevr-world
                :clevr-grammar
-               :mwm
-               )
+               :mwm)
   :serial t
   :components ((:file "package")
                (:file "mwm-ontology")
                (:file "mwm-utils")
                (:file "evaluation")
+               (:file "irl-node-test")
                (:module "primitives"
                 :serial t
                 :components ((:file "primitive-inventory")
@@ -37,5 +37,4 @@
                              (:file "same")
                              (:file "segment-scene")
                              (:file "union")
-                             (:file "unique")))
-               ))
+                             (:file "unique")))))

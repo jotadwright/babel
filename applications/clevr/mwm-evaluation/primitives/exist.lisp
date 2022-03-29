@@ -20,6 +20,7 @@
              'yes 'no))))
      (bind (target-bool 1.0 boolean-category))))
 
+  #|
   ;; second case; given source-set and target-bool, check consistency
   ((source-set target-bool =>)
    (let ((boolean-category
@@ -28,4 +29,5 @@
            (if (length> (objects source-set) 0)
              'yes 'no))))
      (equal-entity target-bool boolean-category)))
+  |#
   :primitive-inventory *mwm-primitives*)

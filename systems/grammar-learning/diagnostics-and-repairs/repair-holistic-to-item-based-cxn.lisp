@@ -59,18 +59,19 @@
              (holistic-cxn-subunit-blocks (multiple-value-list
                                            (loop for unit in resulting-units
                                                  for form-constraints = (variablify-form-constraints-with-constants (unit-feature-value unit 'form))
-                                                 for holistic-cxn-unit-name = (unit-ify (make-cxn-name form-constraints original-cxn-set :add-cxn-suffix nil))
+                                                 for boundaries = (unit-feature-value unit 'boundaries)
+                                                 
                                                  for string-var = (first (get-boundary-units form-constraints))
                                                  for car = (get-car-for-unit unit optimal-coverage-cars)
                                                  for subtracted-meaning = (get-subtracted-meaning-from-car car gold-standard-meaning)
                                                  for args = (extract-args-from-irl-network subtracted-meaning)
-                                                 for boundaries = (unit-feature-value unit 'boundaries)
                                                  for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
                                                  for updated-form-constraints-and-boundaries = (multiple-value-list (add-boundaries-to-form-constraints item-based-cxn-form-constraints boundary-list :placeholder-var placeholder-var))
                                                  for updated-form-constraints = (first updated-form-constraints-and-boundaries)
                                                  for updated-boundaries = (second updated-form-constraints-and-boundaries)
+                                                 for holistic-cxn-unit-name = (first updated-boundaries)
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
                                                  do (setf item-based-cxn-form-constraints updated-form-constraints)
@@ -78,13 +79,13 @@
                                                  collect categorial-link into categorial-links
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
                                                  collect `(,holistic-cxn-unit-name
-                                                           (syn-cat (gl::lex-class ,holistic-slot-lex-class))) into contributing-units
+                                                           (syn-cat (gl::lex-class ,holistic-slot-lex-class))
+                                                           (boundaries
+                                                            (left ,(first updated-boundaries))
+                                                            (right ,(second updated-boundaries)))) into contributing-units
                                                  collect `(,holistic-cxn-unit-name
                                                            (args ,args)
                                                            --
-                                                           (boundaries
-                                                            (left ,(first updated-boundaries))
-                                                            (right ,(second updated-boundaries)))
                                                            ) into conditional-units
                                                  finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links subtracted-meanings)))))
              (holistic-cxn-conditional-units
@@ -123,7 +124,7 @@
                                                                                                       return (first predicate))
                                                                                       :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))              
                                                                          :cxn-inventory ,(copy-object original-cxn-set)))))))
-             (cxns-to-apply (append (mapcar #'original-cxn (mapcar #'car-applied-cxn optimal-coverage-cars)) (list item-based-cxn)))
+             (cxns-to-apply (append (list item-based-cxn) (mapcar #'original-cxn (mapcar #'car-applied-cxn optimal-coverage-cars))))
              (cxns-to-consolidate (unless existing-item-based-cxn
                                     (list item-based-cxn))))
         (when existing-item-based-cxn ; we ordered the units, so they'll always be in the order in which they appear in the utterance
