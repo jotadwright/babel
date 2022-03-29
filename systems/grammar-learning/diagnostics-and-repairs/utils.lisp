@@ -91,17 +91,16 @@
    return both the form constraints and the new boundary list"
   (let* ((new-form-constraints (copy-object form-constraints))
          (placeholder-var (string-upcase (if placeholder-var placeholder-var "?X")))
-         (left-var (make-var (make-const (format nil "?LEFT-~a-BOUNDARY" placeholder-var))))
          (right-var (make-var (make-const (format nil "?RIGHT-~a-BOUNDARY" placeholder-var))))
          (left-boundary (first boundaries))
          (right-boundary (second boundaries))
-         (matching-left-predicate (find left-boundary new-form-constraints :key #'third))
-         (matching-right-predicate (find right-boundary new-form-constraints :key #'second)))
-    (when matching-left-predicate
-      (setf (nth 2 matching-left-predicate) left-var))
+         ;(matching-left-predicate (find left-boundary new-form-constraints :key #'third))
+         (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
+    ;(when matching-left-predicate
+     ; (setf (nth 2 matching-left-predicate) left-var))
     (when matching-right-predicate
       (setf (nth 1 matching-right-predicate) right-var))
-    (values new-form-constraints (list left-var right-var))))
+    (values new-form-constraints (list left-boundary right-var))))
 
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"

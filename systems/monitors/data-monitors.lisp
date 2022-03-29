@@ -240,10 +240,14 @@
     :initform nil
     :initarg :add-experiment-to-file-name
     :accessor add-experiment-to-file-name)
+   (add-time-to-file-name
+    :documentation "When t, a yyyy-mm-dd-hh-mm-ss string is added to the file name"
+    :initform nil :initarg :add-time-to-file-name
+    :accessor add-time-to-file-name)
    (add-time-and-experiment-to-file-name
     :documentation "When t, the file name is prefixed with the name of the experiment
                     class and a yyyy-mm-dd-hh-mm-ss string."
-    :initform t
+    :initform nil
     :initarg :add-time-and-experiment-to-file-name
     :accessor add-time-and-experiment-to-file-name)
    (add-job-and-task-id-to-file-name
@@ -279,12 +283,14 @@
          (cond ((add-experiment-to-file-name monitor)
                 (make-file-name-with-experiment-class (file-name monitor)
                                                       experiment-class))
+               ((add-time-to-file-name monitor)
+                (make-file-name-with-time (file-name monitor)))
                ((add-time-and-experiment-to-file-name monitor)
                 (make-file-name-with-time-and-experiment-class (file-name monitor)
                                                                experiment-class))
                ((add-job-and-task-id-to-file-name monitor)
                 (make-file-name-with-job-and-task-id (file-name monitor)
-                                                               experiment-class))
+                                                     experiment-class))
                (t (file-name monitor)))))
     (with-open-file (file file-name :direction :output 
 			  :if-exists :supersede :if-does-not-exist :create)
@@ -339,17 +345,19 @@
 
 (defclass text-data-file-writer (data-file-writer)
   ((column-separator :initarg :column-separator :accessor column-separator
-		    :initform " " :documentation "a string used to separate columns")
+                     :type character :initform #\,
+                     :documentation "a character used to separate columns")
    (comment-string :initarg :comment-string :accessor comment-string
-		   :initform "#" :documentation "how to start a comment line"))
+                   :type character :initform #\# 
+		   :documentation "how to start a comment line"))
   (:documentation "Writes the data in columns to a text file"))
 
 (defmethod initialize-instance :around ((monitor text-data-file-writer)
 					&key column-separator comment-string
                                         &allow-other-keys)
   (setf (error-occured-during-initialization monitor) t)
-  (when column-separator (check-type column-separator string))
-  (when comment-string (check-type comment-string string))
+  (when column-separator (check-type column-separator character))
+  (when comment-string (check-type comment-string character))
   (setf (error-occured-during-initialization monitor) nil)
   (call-next-method))
 
@@ -362,12 +370,12 @@
                            for i from (- number-of-rows 1) downto 0 
                            do (vector-push i column)
                            finally (return column))))
-	 (column-names (list (format nil "~a interaction number" (comment-string monitor)))))
+	 (column-names (list (format nil "~c interaction number" (comment-string monitor)))))
     (loop for source in (reverse (sources monitor))
        for source-number from 0 
        do (loop for series-number from 0
 	     for series in (reverse (cdar source)) ; (cdr (car
-             do (push (format nil "~a ~a-~a" 
+             do (push (format nil "~c ~a-~a" 
                               (comment-string monitor)
                               (nth source-number (reverse (monitor-ids-of-sources monitor)))
                               series-number) column-names)
@@ -376,16 +384,16 @@
                         for el in series
                         do (vector-push el series-array)
                         finally (return series-array)) columns)))
-    (format stream "~%~a This file was created by the~%~a text-data-file-writer ~a."
+    (format stream "~%~c This file was created by the~%~c text-data-file-writer ~a."
 	    (comment-string monitor) (comment-string monitor) (id monitor))
-    (format stream "~%~a The columns are:~%~a ~{~%~a~}" 
+    (format stream "~%~c The columns are:~%~c ~{~%~a~}" 
 	    (comment-string monitor) (comment-string monitor) (reverse column-names))
     (loop 
        with reversed-columns = (reverse columns)
        for row from (- number-of-rows 1) downto 0  ; long
 	do (format stream "~%") 
 	 (loop for column in reversed-columns ;short
-	    do (format stream "~f~a" (aref column row) (column-separator monitor))))))
+	    do (format stream "~f~c" (aref column row) (column-separator monitor))))))
   
 
 ;; ############################################################################
@@ -405,9 +413,8 @@
     (loop for source in (reverse (sources monitor))
           for source-number from 0 
           do (loop for series-number from 0
-                   for series in (reverse (cdar source)) ; (cdr (car
+                   for series in (reverse (cdar source))
                    for column-name = (format nil "~a-~a" 
-                                        ;(comment-string monitor)
                                         (nth source-number
                                              (reverse (monitor-ids-of-sources monitor)))
                                         series-number)
@@ -421,7 +428,7 @@
                    (vector-push column-name column-data)
                    (push column-data columns)))
     
-    (format stream "~%~a This file was created by the~%~a csv-data-file-writer ~a."
+    (format stream "~%~c This file was created by the~%~c csv-data-file-writer ~a."
 	    (comment-string monitor) (comment-string monitor) (id monitor))
     (loop 
      with reversed-columns = (reverse columns)
@@ -432,5 +439,5 @@
            if (= i number-of-columns)
            do (format stream "~f" (aref column row))
            else
-           do (format stream "~f~a" (aref column row) (column-separator monitor))))))
+           do (format stream "~f~c" (aref column row) (column-separator monitor))))))
 
