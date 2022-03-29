@@ -7,11 +7,9 @@
   :feature-types ((args sequence)
                   (form set-of-predicates)
                   (meaning set-of-predicates)
-                  (constituents sequence)
-                  (dependents sequence)
+                  (subunits set)
                   (footprints set)
                   (case sequence))
-  :hierarchy-features (constituents dependents)
   :fcg-configurations ((:max-nr-of-nodes . 40000)
                        (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
                        (:production-goal-tests
@@ -216,6 +214,7 @@
              :disable-automatic-footprints t)
 
 
+
 (def-fcg-cxn Blumen-cxn
              ((?flowers-word
                (referent ?x)                             ;set of values
@@ -330,7 +329,7 @@
                (referent ?x)
                (syn-cat (lex-class noun-phrase)
                         (case ?case))
-               (constituents (?article ?noun))
+               (subunits (?article ?noun))
                (boundaries (leftmost-unit ?article)
                            (rightmost-unit ?noun)))
               (?article
@@ -365,7 +364,7 @@
                (referent ?x)
                (syn-cat (lex-class prep-phrase)
                         (case ?case))
-               (constituents (?contracted-prep ?noun))
+               (subunits (?contracted-prep ?noun))
                (boundaries (leftmost-unit ?contracted-prep)
                            (rightmost-unit ?noun)))
               (?contracted-prep
@@ -396,15 +395,17 @@
              :disable-automatic-footprints t)
 
 
-
-;;;; with this one prepositional phrases are generated even when there is only an article and no preposition
-
+;;;; der twice
 (def-fcg-cxn prepositional-phrase-cxn
              ((?prep-phrase
                (referent ?x)
                (syn-cat (lex-class prep-phrase)
-                        (case ?case))
-               (constituents (?preposition ?article ?noun))
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (?gen ?gm ?gf ?gn ?gp)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p))))
+               (subunits (?preposition ?article ?noun))
                (boundaries (leftmost-unit ?preposition)
                            (rightmost-unit ?noun)))
               (?preposition
@@ -413,38 +414,55 @@
               
               (?article
                (referent ?x)
-               (part-of-noun-phrase +))
+               ;(part-of-noun-phrase +))
+               )
 
               (?noun
-               (footprints (determined)))
+               (footprints (determined))
+               )
               <-
 
               (?preposition
                --
                (syn-cat (lex-class preposition)
-                        (case ?case)))
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (?gen ?gm ?gf ?gn ?gp)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))))
               (?article
                --
                (syn-cat (lex-class article)
-                        (case ?case)))
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (?gen ?gm ?gf ?gn ?gp)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))))
               (?noun
-               (footprints (not determined))
+               
                (referent ?x)
+               (footprints (not determined))
                (syn-cat (lex-class noun)
-                        (case ?case))
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (?gen ?gm ?gf ?gn ?gp)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p))))
                --
                (footprints (not determined))
                (syn-cat (lex-class noun)
-                        (case ?case)))
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (?gen ?gm ?gf ?gn ?gp)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))))
               (?prep-phrase
                --
                (HASH form ((meets ?preposition ?article)
                            (meets ?article ?noun)))
               ))
-             :disable-automatic-footprints t)
-
-
-
+              :disable-automatic-footprints t)
+             
 
 
 (def-fcg-cxn kommt-cxn
@@ -503,7 +521,7 @@
 
 (def-fcg-cxn ist-gefahren-cxn
              ((?drove-word
-               (constituents (?aux-unit ?participle-unit))
+               (subunits (?aux-unit ?participle-unit))
                (syn-cat (lex-class verb)
                         (aspect perfect)
                         (type intransitive))
@@ -528,7 +546,7 @@
 
 (def-fcg-cxn hat-mitgebracht-cxn
              ((?brought-word
-               (constituents (?aux-unit ?participle-unit))
+               (subunits (?aux-unit ?participle-unit))
                (syn-cat (lex-class verb)
                         (aspect perfect)
                         (type ditransitive))
@@ -553,7 +571,7 @@
 
 (def-fcg-cxn transitive-argument-structure-cxn                 
              ((?transitive-argument-structure-unit
-              (constituents (?verb-unit ?agent-unit ?patient-unit)))
+              (subunits (?verb-unit ?agent-unit ?patient-unit)))
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
@@ -608,19 +626,18 @@
                --
                )))
 
-
-(def-fcg-cxn topicalized-transitive-information-structure-cxn
-             ((?topicalized-transitive-information-structure-unit
-               (constituents (?verb-unit ?agent-unit ?patient-unit)))
-              (?arg-and-info-struct-unit
-               (constituents (?topicalized-transitive-information-structure-unit ?argument-structure-unit)))
+(def-fcg-cxn topic-arg0-arg1-information-structure-cxn
+             (
               <-
-              
               (?argument-structure-unit
-               (constituents (?verb-unit ?agent-unit ?patient-unit))
-                --
-                (constituents (?verb-unit ?agent-unit ?patient-unit))
-              )
+               (subunits (?verb-unit ?agent-unit ?patient-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              
               (?verb-unit
                (syn-cat (lex-class verb)
                        (type transitive)
@@ -633,28 +650,73 @@
               (referent ?v))
               
               (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
                (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit))
                 --
               (referent ?arg0)
+              (syn-cat (syn-role subject))
               (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit)))
               
               (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+              
+              ))
+
+(def-fcg-cxn arg0-topic-arg1-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit))
+               (HASH meaning ((topicalized ?arg1 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-patient-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect ?aspect))     
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect ?aspect)))
+              
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (referent ?arg1)
+               (syn-cat (syn-role direct-object))
                (boundaries (leftmost-unit ?leftmost-patient-unit)
                           (rightmost-unit ?rightmost-patient-unit))
                 --
               
               (referent ?arg1)
+              (syn-cat (syn-role direct-object))
               (boundaries (leftmost-unit ?leftmost-patient-unit)
                           (rightmost-unit ?rightmost-patient-unit)))
               
-              (?topicalized-transitive-information-structure-unit
-               (HASH meaning ((topicalized ?arg1 +)))                  
-               --
-               (HASH form ((meets ?rightmost-patient-unit ?verb-unit)
-                           (meets ?verb-unit ?leftmost-agent-unit)))
-               )))
+              ))
+
+
 
 
 
@@ -662,7 +724,7 @@
 
 (def-fcg-cxn ditransitive-argument-structure-cxn
              ((?ditransitive-argument-structure-unit
-              (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
               (?agent-unit
                (syn-cat (syn-role subject)))
               (?patient-unit
@@ -737,133 +799,123 @@
                --
                )))
 
-(def-fcg-cxn ditransitive-information-structure-cxn
-              ((?ditransitive-information-structure-unit
-               (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
-              (?arg-and-info-struct-unit
-               (constituents (?ditransitive-information-structure-unit ?argument-structure-unit)))
+(def-fcg-cxn topic-arg0-arg1-arg2-information-structure-cxn
+             (
               <-
-              
               (?argument-structure-unit
-               (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
-                --
-                (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
-              
-              (?verb-unit
-               (syn-cat (lex-class verb)
-                       (type ditransitive))     
-              
-                --
-              (syn-cat (lex-class verb)
-                       (type ditransitive)))
-              
-              (?agent-unit
-               (syn-cat (syn-role subject))
-               (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit))
-                --
-              (syn-cat (syn-role subject))
-              (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit)))
-              
-              (?patient-unit
-               (syn-cat (syn-role direct-object))
-               (boundaries (leftmost-unit ?leftmost-patient-unit)
-                          (rightmost-unit ?rightmost-patient-unit))
-                --
-              
-              (syn-cat (syn-role direct-object))
-              (boundaries (leftmost-unit ?leftmost-patient-unit)
-                          (rightmost-unit ?rightmost-patient-unit)))
-
-              (?receiver-unit
-               (syn-cat (syn-role indirect-object))
-               (boundaries (leftmost-unit ?leftmost-receiver-unit)
-                          (rightmost-unit ?rightmost-receiver-unit))
-                --
-              
-              (syn-cat (syn-role indirect-object))
-              (boundaries (leftmost-unit ?leftmost-receiver-unit)
-                          (rightmost-unit ?rightmost-receiver-unit)))
-
-              (?ditransitive-information-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
                --
                (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
                            (meets ?verb-unit ?leftmost-receiver-unit)
                            (meets ?rightmost-receiver-unit ?leftmost-patient-unit)))
-              )))
-
-
-
-;;;;WORKS ONLY IN COMPREHENSION - NO FORMULATION 
-(def-fcg-cxn topicalized-ditransitive-information-structure-cxn
-              ((?topicalized-ditransitive-information-structure-unit
-               (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
-              (?arg-and-info-struct-unit
-               (constituents (?topicalized-ditransitive-information-structure-unit ?argument-structure-unit)))
-              <-
-              (?argument-structure-unit
-               (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
-                --
-                (constituents (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
               
               (?verb-unit
                (syn-cat (lex-class verb)
                        (type ditransitive))     
+              
                 --
               (syn-cat (lex-class verb)
                        (type ditransitive)))
               
               (?agent-unit
+               (referent ?arg0)
                (syn-cat (syn-role subject))
                (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit))
-               
                 --
               (referent ?arg0)
               (syn-cat (syn-role subject))
               (boundaries (leftmost-unit ?leftmost-agent-unit)
                           (rightmost-unit ?rightmost-agent-unit)))
               
-              
               (?patient-unit
                (syn-cat (syn-role direct-object))
                (boundaries (leftmost-unit ?leftmost-patient-unit)
                           (rightmost-unit ?rightmost-patient-unit))
-              
                 --
-              (referent ?arg1)
+              
               (syn-cat (syn-role direct-object))
               (boundaries (leftmost-unit ?leftmost-patient-unit)
                           (rightmost-unit ?rightmost-patient-unit)))
-              
 
               (?receiver-unit
                (syn-cat (syn-role indirect-object))
                (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit))
-               (HASH meaning ((topicalized ?arg2 +)))
-               
+                --
+              
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))
+              
+              ))
+
+(def-fcg-cxn arg0-arg1-topic-arg2-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg2 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-receiver-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)
+                           (meets ?rightmost-agent-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)))
+              
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (referent ?arg2)
+               (syn-cat (syn-role indirect-object))
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))
                 --
               (referent ?arg2)
               (syn-cat (syn-role indirect-object))
               (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit)))
-
-              (?topicalized-ditransitive-information-structure-unit
-               --
-               (HASH form ((meets ?rightmost-receiver-unit ?verb-unit)
-                           (meets ?verb-unit ?leftmost-agent-unit)
-                           (meets ?rightmost-agent-unit ?leftmost-patient-unit)))
               
-              )))
+              ))
+
+
+
+
 
 
 
 ;der Mann geht zur Arbeit
 (def-fcg-cxn intransitive-argument-structure-cxn
              ((?intransitive-argument-structure-unit
-              (constituents (?verb-unit ?agent-unit ?location-unit)))
+              (subunits (?verb-unit ?agent-unit ?location-unit)))
               (?agent-unit
                (syn-cat (syn-role subject)))
               (?location-unit
@@ -921,7 +973,7 @@
 
 #|(def-fcg-cxn intransitive-come-argument-structure-cxn
              ((?intransitive-argument-structure-unit
-              (constituents (?verb-unit ?agent-unit ?location-unit)))
+              (subunits (?verb-unit ?agent-unit ?location-unit)))
               (?agent-unit
                (syn-cat (syn-role subject)))
               (?location-unit
@@ -982,14 +1034,14 @@
 
 (def-fcg-cxn intransitive-information-structure-cxn
              ((?intransitive-information-structure-unit
-               (constituents (?verb-unit ?agent-unit ?location-unit)))
+               (subunits (?verb-unit ?agent-unit ?location-unit)))
               (?arg-and-info-struct-unit
-               (constituents (?intransitive-information-structure-unit ?argument-structure-unit)))
+               (subunits (?intransitive-information-structure-unit ?argument-structure-unit)))
               <-
               (?argument-structure-unit
-               (constituents (?verb-unit ?agent-unit ?location-unit))
+               (subunits (?verb-unit ?agent-unit ?location-unit))
                 --
-                (constituents (?verb-unit ?agent-unit ?location-unit))
+                (subunits (?verb-unit ?agent-unit ?location-unit))
               )
               
               (?verb-unit
@@ -1033,14 +1085,14 @@
 
 #|(def-fcg-cxn intransitive-come-information-structure-cxn
              ((?intransitive-information-structure-unit
-               (constituents (?verb-unit ?agent-unit ?location-unit)))
+               (subunits (?verb-unit ?agent-unit ?location-unit)))
               (?arg-and-info-struct-unit
-               (constituents (?intransitive-information-structure-unit ?argument-structure-unit)))
+               (subunits (?intransitive-information-structure-unit ?argument-structure-unit)))
               <-
               (?argument-structure-unit
-               (constituents (?verb-unit ?agent-unit ?location-unit))
+               (subunits (?verb-unit ?agent-unit ?location-unit))
                 --
-                (constituents (?verb-unit ?agent-unit ?location-unit))
+                (subunits (?verb-unit ?agent-unit ?location-unit))
               )
               
               (?verb-unit
@@ -1088,18 +1140,18 @@
 
 (def-fcg-cxn intransitive-information-structure-past-cxn
              ((?intransitive-information-structure-past-unit
-               (constituents (?verb-unit ?agent-unit ?location-unit)))
+               (subunits (?verb-unit ?agent-unit ?location-unit)))
               (?arg-and-info-struct-unit
-               (constituents (?intransitive-information-structure-past-unit ?argument-structure-unit)))
+               (subunits (?intransitive-information-structure-past-unit ?argument-structure-unit)))
               <-
               (?argument-structure-unit
-               (constituents (?verb-unit ?agent-unit ?location-unit))
+               (subunits (?verb-unit ?agent-unit ?location-unit))
                 --
-                (constituents (?verb-unit ?agent-unit ?location-unit))
+                (subunits (?verb-unit ?agent-unit ?location-unit))
               )
               
               (?verb-unit
-               (constituents (?aux-unit ?participle-unit))
+               (subunits (?aux-unit ?participle-unit))
                (syn-cat (lex-class verb)
                        (type intransitive)
                        (aspect perfect))
@@ -1107,7 +1159,7 @@
                           (rightmost-unit ?participle-unit))
               
                 --
-              (constituents (?aux-unit ?participle-unit))
+              (subunits (?aux-unit ?participle-unit))
               (syn-cat (lex-class verb)
                        (type intransitive)
                        (aspect perfect))
@@ -1153,7 +1205,7 @@
 
 (def-fcg-cxn double-intransitive-argument-structure-cxn
              ((?double-intransitive-argument-structure-unit
-              (constituents (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
+              (subunits (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
               (?agent-unit
                (syn-cat (syn-role subject)))
               (?ad-info-unit
@@ -1224,15 +1276,15 @@
 
 (def-fcg-cxn double-intransitive-information-structure-cxn
               ((?double-intransitive-information-structure-unit
-               (constituents (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
+               (subunits (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
               (?arg-and-info-struct-unit
-               (constituents (?double-intransitive-information-structure-unit ?argument-structure-unit)))
+               (subunits (?double-intransitive-information-structure-unit ?argument-structure-unit)))
               <-
               
               (?argument-structure-unit
-               (constituents (?verb-unit ?agent-unit ?ad-info-unit ?location-unit))
+               (subunits (?verb-unit ?agent-unit ?ad-info-unit ?location-unit))
                 --
-                (constituents (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
+                (subunits (?verb-unit ?agent-unit ?ad-info-unit ?location-unit)))
               
               (?verb-unit
                (syn-cat (lex-class verb)
@@ -1347,23 +1399,23 @@
 
 
 ;;; NPs with Determiners and PPs with NP+P or Contracted P
-;(formulate-all '((clown x)))
+(formulate-all '((clown x)))
 
 ;;;; der Mann sucht den Clown
-;(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c)))
+(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +)))
 
 ;;; den Clown sucht der Mann
-;(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
+(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
 ;;; der Mann schenkt dem Clown die Blumen
-;(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c)))
+(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized m +)))
 
-;;; dem Clown schenkt der Mann die Blumen
-;(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +)))
+;;; dem Clown schenkt der Mann die Blumen - stuck 
+(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +)))
 
 
-;;;der Mann geht zur Arbeit
-;(formulate '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s)))
+;;;der Mann geht zum Shop
+(formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s)))
 
 
 ;;; der Mann kommt aus dem Shop
