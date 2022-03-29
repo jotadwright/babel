@@ -38,7 +38,7 @@
         for objects-hash
         = (loop with hash = (make-hash-table)
                 for object in (objects (get-data agent 'context))
-                for s = (similarity object prototype)
+                for s = (similarity object prototype (pointed-object agent))
                 for ws = (* (certainty prototype) s)
                 do (setf (gethash (id object) hash) (cons s ws))
                 finally (return hash))
