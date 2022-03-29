@@ -11,12 +11,15 @@
     :accessor meaning :initarg :meaning :type list))
   (:documentation "a concept, or lexical item"))
 
-(defun make-concept (form attribute-proto-cons initial-certainty)
+(defun make-concept (form attribute-proto-cons initial-certainty pointed-object)
   (make-instance 'concept
                  :form form
                  :meaning (loop for (attribute . proto-value) in attribute-proto-cons
-                                collect (make-prototype attribute proto-value
+                                collect (make-prototype attribute (relate-to-pointed-object proto-value attribute pointed-object)
                                                         initial-certainty))))
+
+(defun relate-to-pointed-object (proto-value attribute pointed-object)
+  (- proto-value (get-attr-val pointed-object attribute)))
 
 
 (defmethod copy-object-content ((source entity) (destination entity))
@@ -75,15 +78,19 @@
                  :M2 0.05))
 
 
-(defgeneric update-prototype (prototype object)
+(defgeneric update-prototype (prototype object pointed-object)
   (:documentation "Update the category based on the object"))
 
 (defmethod update-prototype ((prototype prototype)
-                            (object spatial-object))
+                            (object spatial-object)
+                            (pointed-object spatial-object))
   ;; take the object pointed to by the tutor
   ;; and estimate the mean and variance of the category
   (incf (nr-samples prototype))
-  (let* ((exemplar (get-attr-val object (attribute prototype)))
+  (let* ((attribute (attribute protoype))
+         (attribute-value (get-attr-val object attribute))
+         (pointed-attribute-value (get-attr-val pointed-object attribute))
+         (exemplar (relate-to-pointed-object attribute-value attribute pointed-object))
          (delta-1 (- exemplar (value prototype)))
          (new-prototypical-value (+ (value prototype) (/ delta-1 (nr-samples prototype))))
          (delta-2 (- exemplar new-prototypical-value))
