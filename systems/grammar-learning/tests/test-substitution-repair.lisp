@@ -1,6 +1,6 @@
 (in-package :grammar-learning)
 
-(defun test-substitution-repair-comprehension ()
+(deftest test-substitution-repair-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The large gray object is what shape?"

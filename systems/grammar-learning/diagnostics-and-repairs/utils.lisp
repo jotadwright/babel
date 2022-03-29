@@ -95,10 +95,10 @@
          (right-var (make-var (make-const (format nil "?RIGHT-~a-BOUNDARY" placeholder-var))))
          (left-boundary (first boundaries))
          (right-boundary (second boundaries))
-         (matching-left-predicate (find left-boundary new-form-constraints :key #'third))
-         (matching-right-predicate (find right-boundary new-form-constraints :key #'second)))
-    (when matching-left-predicate
-      (setf (nth 2 matching-left-predicate) left-var))
+         ;(matching-left-predicate (find left-boundary new-form-constraints :key #'third))
+         (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
+    ;(when matching-left-predicate
+     ; (setf (nth 2 matching-left-predicate) left-var))
     (when matching-right-predicate
       (setf (nth 1 matching-right-predicate) right-var))
     (values new-form-constraints (list left-var right-var))))

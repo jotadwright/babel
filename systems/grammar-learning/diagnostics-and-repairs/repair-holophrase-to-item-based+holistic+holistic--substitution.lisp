@@ -84,9 +84,9 @@ based on existing construction with sufficient overlap."
                                          :cxn-type 'item-based))
                ;; unit names
                (unit-name-holistic-cxn-1
-                (unit-ify (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-cxn-suffix nil)))
+                leftmost-unit-holistic-cxn-1)
                (unit-name-holistic-cxn-2
-                (unit-ify (make-cxn-name non-overlapping-form-observation cxn-inventory :add-cxn-suffix nil)))
+                leftmost-unit-holistic-cxn-2)
                
                ;; args and syn-cat
                (lex-class-holistic-cxn-1
@@ -166,7 +166,11 @@ based on existing construction with sufficient overlap."
                                                                   (syn-cat (phrase-type item-based))
                                                                   (subunits (,unit-name-holistic-cxn-2)))
                                                                  (,unit-name-holistic-cxn-2
-                                                                  (syn-cat (lex-class ,lex-class-item-based-cxn)))
+                                                                  (syn-cat (lex-class ,lex-class-item-based-cxn))
+                                                                  (boundaries
+                                                                   (left ,(first rewritten-boundaries))
+                                                                   (right ,(second rewritten-boundaries)))
+                                                                  )
                                                                  <-
                                                                  (?item-based-unit
                                                                   (HASH meaning ,overlapping-meaning-observation)
@@ -175,9 +179,7 @@ based on existing construction with sufficient overlap."
                                                                  (,unit-name-holistic-cxn-2
                                                                   (args ,args-holistic-cxn-2)
                                                                   --
-                                                                  (boundaries
-                                                                   (left ,(first rewritten-boundaries))
-                                                                   (right ,(second rewritten-boundaries)))))
+                                                                  ))
                                                                 :attributes (:cxn-type item-based
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
                                                                              :meaning ,(loop for predicate in overlapping-meaning-observation
@@ -189,7 +191,7 @@ based on existing construction with sufficient overlap."
                                                                            
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (existing-cxns (list holistic-cxn-2 holistic-cxn-1 existing-item-based-cxn))
-               (cxns-to-apply (list new-holistic-cxn-2 new-item-based-cxn))
+               (cxns-to-apply (list new-item-based-cxn new-holistic-cxn-2))
                (cat-links-to-add (list categorial-link-1 categorial-link-2)) 
                (cxns-to-consolidate (loop for cxn in (list new-holistic-cxn-1 new-holistic-cxn-2 new-item-based-cxn)
                                           when (not (member cxn existing-cxns))
