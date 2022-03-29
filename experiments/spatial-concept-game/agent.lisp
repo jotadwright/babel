@@ -11,8 +11,8 @@
     :documentation "Maintaining versions of concepts"
     :type list :accessor concept-history :initform nil)
    (pointed-object
-    :documentation "Id of the object the tutor points to in production"
-    :type (or symbol fixnum) :accessor pointed-object :initform nil))
+    :documentation "The object the tutor points to in production"
+    :type spatial-object :accessor pointed-object :initform nil))
   (:documentation "The agent class"))
 
 ;; ---------------------------
@@ -112,10 +112,11 @@
                 if (and (member (id topic) (cdr relationship))
                         (= (length (cdr relationship)) 1))
                 return (car relationship))
-        if discriminative-relationship
+        when discriminative-relationship
         do (progn
              (set-data agent 'tutor-conceptualisation discriminative-relationship)
-             (setf (pointed-object agent) (id object)))))
+             (setf (pointed-object agent) (clevr->simulated object))
+             (return))))
   
   
 ;; --------------
