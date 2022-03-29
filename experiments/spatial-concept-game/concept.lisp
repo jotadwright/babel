@@ -79,7 +79,7 @@
   (:documentation "Update the category based on the object"))
 
 (defmethod update-prototype ((prototype prototype)
-                            (object mwm-object))
+                            (object spatial-object))
   ;; take the object pointed to by the tutor
   ;; and estimate the mean and variance of the category
   (incf (nr-samples prototype))
@@ -96,7 +96,7 @@
 (defgeneric weighted-similarity (object concept)
   (:documentation "Compute the weighted similarity between an object and a concept"))
 
-(defmethod weighted-similarity ((object mwm-object) (concept concept))
+(defmethod weighted-similarity ((object spatial-object) (concept concept))
   (loop for prototype in (meaning concept)
         for similarity = (similarity object prototype)
         collect (* (certainty prototype) similarity) into weighted-similarities
@@ -106,7 +106,7 @@
 (defgeneric similarity (object prototype)
   (:documentation "Similarity on the level of a single prototype"))
 
-(defmethod similarity ((object mwm-object) (prototype prototype))
+(defmethod similarity ((object spatial-object) (prototype prototype))
   (let* ((max-z-score 2)
          (exemplar (get-attr-val object (attribute prototype)))
          (stdev (sqrt (/ (M2 prototype) (nr-samples prototype))))

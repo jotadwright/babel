@@ -15,56 +15,21 @@
 ;; --------------------
 
 ;;;; CONFIGURATIONS
-(defparameter *baseline-simulated*
+(defparameter *simulated*
   (make-configuration
-   :entries '((:experiment-type . :baseline)
-              (:world-type . :simulated)
-              (:determine-interacting-agents-mode . :default)
+   :entries '((:world-type . :simulated)
               (:alignment-filter . :all))))
 
-(defparameter *baseline-extracted*
+(defparameter *extracted*
   (make-configuration
-   :entries '((:experiment-type . :baseline)
-              (:world-type . :extracted)
-              (:determine-interacting-agents-mode . :default)
+   :entries '((:world-type . :extracted)
               (:alignment-filter . :all))))
 
-(defparameter *cogent-simulated*
-  (make-configuration
-   :entries '((:experiment-type . :cogent)
-              (:world-type . :simulated)
-              (:determine-interacting-agents-mode . :default)
-              (:alignment-filter . :all)
-              (:switch-conditions-after-n-interactions . 100))))
-
-(defparameter *cogent-extracted*
-  (make-configuration
-   :entries '((:experiment-type . :cogent)
-              (:world-type . :extracted)
-              (:determine-interacting-agents-mode . :default)
-              (:alignment-filter . :all)
-              (:switch-conditions-after-n-interactions . 100))))
-
-(defparameter *incremental-simulated*
-  (make-configuration
-   :entries '((:experiment-type . :incremental)
-              (:world-type . :simulated)
-              (:determine-interacting-agents-mode . :default)
-              (:alignment-filter . :all)
-              (:switch-conditions-after-n-interactions . 100))))
-
-(defparameter *incremental-extracted*
-  (make-configuration
-   :entries '((:experiment-type . :incremental)
-              (:world-type . :extracted)
-              (:determine-interacting-agents-mode . :default)
-              (:alignment-filter . :all)
-              (:switch-conditions-after-n-interactions . 100))))
 
 ;;;; EXPERIMENT
 (defparameter *experiment*
-  (make-instance 'mwm-experiment
-                 :configuration *cogent-extracted*))
+  (make-instance 'spatial-experiment
+                 :configuration *simulated*))
 
 (run-interaction *experiment*)
 
@@ -78,9 +43,8 @@
 
 (run-experiments `(
                    (test
-                    ((:experiment-type . :baseline)
-                     (:world-type . :simulated)
-                     (:determine-interacting-agents-mode . :default)
+                    ((:world-type . :simulated)
+                     (:determine-interacting-agents-mode . :default
                      (:alignment-filter . :all)))
                    )
                  :number-of-interactions 2000
@@ -112,16 +76,12 @@
 
 (create-tutor-word-use-graph
  :configurations
- '((:experiment-type . :baseline)
-   (:world-type . :extracted)
-   (:determine-interacting-agents-mode . :tutor-speaks))
+ '((:world-type . :extracted))
  :nr-of-interactions 2500)
 
 (create-learner-failed-conceptualisation-graph
  :configurations
- '((:experiment-type . :baseline)
-   (:world-type . :extracted)
-   (:determine-interacting-agents-mode . :default))
+ '((:world-type . :extracted))
  :nr-of-interactions 5000)
 
 
@@ -188,7 +148,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-main-results"
                           "baseline-simulated")
              :name "communicative-success" :type "lisp"))
@@ -196,7 +156,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-main-results"
                           "baseline-simulated-bidirectional")
              :name "communicative-success" :type "lisp"))
@@ -204,7 +164,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-main-results"
                           "baseline-simulated-bidirectional")
              :name "communicative-success-given-conceptualisation"
@@ -213,7 +173,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-main-results"
                           "baseline-extracted")
              :name "communicative-success" :type "lisp"))
@@ -221,7 +181,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-main-results"
                           "baseline-extracted-bidirectional")
              :name "communicative-success" :type "lisp"))
@@ -229,7 +189,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-main-results"
                           "baseline-extracted-bidirectional")
              :name "communicative-success-given-conceptualisation"
@@ -238,7 +198,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-cogent"
                           "cogent-simulated-switch-500")
              :name "communicative-success"
@@ -247,7 +207,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-cogent"
                           "cogent-simulated-switch-1000")
              :name "communicative-success"
@@ -256,7 +216,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-cogent"
                           "cogent-simulated-bidirectional-switch-500")
              :name "communicative-success"
@@ -265,7 +225,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-cogent"
                           "cogent-simulated-bidirectional-switch-1000")
              :name "communicative-success"
@@ -274,7 +234,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-cogent"
                           "cogent-extracted-switch-500")
              :name "communicative-success"
@@ -283,7 +243,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-cogent"
                           "cogent-extracted-switch-1000")
              :name "communicative-success"
@@ -292,7 +252,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-cogent"
                           "cogent-extracted-bidirectional-switch-500")
              :name "communicative-success"
@@ -301,7 +261,7 @@
 
 (with-open-file
     (stream (babel-pathname
-             :directory '("experiments" "multidimensional-word-meanings"
+             :directory '("experiments" "spatial-concept-game"
                           "raw-data" "thesis-cogent"
                           "cogent-extracted-bidirectional-switch-1000")
              :name "communicative-success"

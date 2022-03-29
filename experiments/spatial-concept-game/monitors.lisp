@@ -26,7 +26,7 @@
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
-                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                                           :directory '("experiments" "spatial-concept-game" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -45,7 +45,7 @@
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success-given-conceptualisation))
                 :file-name (babel-pathname :name "communicative-success-given-conceptualisation" :type "lisp"
-                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                                           :directory '("experiments" "spatial-concept-game" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -72,7 +72,7 @@
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
                 :file-name (babel-pathname :name "lexicon-size" :type "lisp"
-                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                                           :directory '("experiments" "spatial-concept-game" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -106,7 +106,7 @@
     :draw-y-1-grid t
     :y-label "Tutor word use"
     :x-label "# Games"
-    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+    :file-name (babel-pathname :directory '("experiments" "spatial-concept-game" "graphs")
 			       :name "tutor-word-use" :type "pdf")
     :graphic-type "pdf")
 
@@ -115,7 +115,7 @@
   (format t "~%Running ~a interactions in order to create a tutor word use graph." nr-of-interactions)
   (setf *used-features* nil)
   (activate-monitor plot-tutor-conceptualisation-in-failed-interactions)
-  (run-batch 'mwm-experiment nr-of-interactions 1
+  (run-batch 'spatial-experiment nr-of-interactions 1
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-tutor-conceptualisation-in-failed-interactions)
   (format t "~%Graphs have been created"))
@@ -142,7 +142,7 @@
     :draw-y-1-grid t
     :y-label "Learner failed conceptualisation"
     :x-label "# Games"
-    :file-name (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "graphs")
+    :file-name (babel-pathname :directory '("experiments" "spatial-concept-game" "graphs")
 			       :name "learner-failed-conceptualisation" :type "pdf")
     :graphic-type "pdf")
 
@@ -151,7 +151,7 @@
   (format t "~%Running ~a interactions in order to create a graph." nr-of-interactions)
   (setf *failed-conceptualisations* nil)
   (activate-monitor plot-learner-failed-conceptualisations)
-  (run-batch 'mwm-experiment nr-of-interactions 1
+  (run-batch 'spatial-experiment nr-of-interactions 1
              :configuration (make-configuration :entries configurations))
   (deactivate-monitor plot-learner-failed-conceptualisations)
   (format t "~%Graphs have been created"))
@@ -177,7 +177,7 @@
   (when (= (series-number experiment) 1)
     (let* ((experiment-name (experiment-name-from-configurations experiment))
            (path (babel-pathname
-                  :directory `("experiments" "multidimensional-word-meanings"
+                  :directory `("experiments" "spatial-concepts-game"
                                "raw-data" ,(downcase experiment-name))
                   :name "experiment-configurations" :type "lisp")))
       (ensure-directories-exist path)

@@ -4,8 +4,7 @@
 (defun experiment-name-from-configurations (experiment)
   (let ((parts
          (list (mkstr (get-configuration experiment :experiment-type))
-               (mkstr (get-configuration experiment :world-type))
-               (mkstr (get-configuration experiment :determine-interacting-agents-mode)))))
+               (mkstr (get-configuration experiment :world-type)))))
     (when (eql (get-configuration experiment :experiment-type) :cogent)
       (pushend
        (format nil "train-~a"  (get-configuration experiment :switch-conditions-after-n-interactions))
@@ -26,11 +25,11 @@
          (base-path
           (if serie
             (babel-pathname
-             :directory `("experiments" "multidimensional-word-meanings"
+             :directory `("experiments" "spatial-concept-game"
                           "graphs" ,(downcase experiment-name)
                           ,(format nil "serie-~a" serie)))
             (babel-pathname
-             :directory `("experiments" "multidimensional-word-meanings"
+             :directory `("experiments" "spatial-concept-game"
                           "graphs" ,(downcase experiment-name))))))
     (ensure-directories-exist base-path)
     (loop for concept in (average-over-concept-history agent)
@@ -48,11 +47,11 @@
          (base-path
           (if serie
             (babel-pathname
-             :directory `("experiments" "multidimensional-word-meanings"
+             :directory `("experiments" "spatial-concept-game"
                           "store" ,(downcase experiment-name)
                           ,(format nil "serie-~a" serie)))
             (babel-pathname
-             :directory `("experiments" "multidimensional-word-meanings"
+             :directory `("experiments" "spatial-concept-game"
                           "store" ,(downcase experiment-name))))))
     (ensure-directories-exist base-path)
     (loop for concept in (average-over-concept-history agent)
