@@ -119,7 +119,7 @@
                                           (map 'list #'get-processing-cxn matching-holistic-cxns))
                                         (map 'list #'get-processing-cxn applied-holistic-cxns)) categorial-links)))))))))
 
-(defmethod handle-fix ((fix fcg::cxn-fix) (repair item-based->holistic) (problem problem) (node cip-node) &key &allow-other-keys)
+#|(defmethod handle-fix ((fix fcg::cxn-fix) (repair item-based->holistic) (problem problem) (node cip-node) &key &allow-other-keys)
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications
@@ -156,4 +156,4 @@
       (push (type-of repair) (statuses last-node))
       (push 'added-by-repair (statuses last-node))
       ;; enqueue only last new node; never backtrack over the first applied construction, we applied them as a block
-      (cip-enqueue last-node (cip node) (get-configuration node :queue-mode)))))
+      (cip-enqueue last-node (cip node) (get-configuration node :queue-mode))))) |#
