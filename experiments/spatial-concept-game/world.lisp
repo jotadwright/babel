@@ -1,11 +1,11 @@
 (in-package :spatial-concepts)
 
-(export '(mwm-object))
+(export '(spatial-object))
 
 ;; --------------
-;; + MWM object +
+;; + SPATIAL object +
 ;; --------------
-(defclass mwm-object (entity)
+(defclass spatial-object (entity)
   ((attributes
     :documentation "the attributes of the object (a-list)"
     :type list :accessor attributes :initarg :attributes)
@@ -14,28 +14,34 @@
     :type list :accessor description :initarg :description))
   (:documentation "A continuous-valued CLEVR object"))
 
-(defmethod get-attr-val ((object mwm-object) attr)
+(defmethod get-attr-val ((object spatial-object) attr)
   (rest (assoc attr (attributes object))))
 
-(defmethod set-attr-val ((object mwm-object) attr val)
+(defmethod set-attr-val ((object spatial-object) attr val)
   (if (assoc attr (attributes object))
     (setf (rest (assoc attr (attributes object))) val)
     (push (cons attr val) (attributes object)))
   nil)
 
-(defmethod object->alist ((object clevr-object))
+#|(defmethod object->alist ((object clevr-object))
   `((:color . ,(color object))
     (:size . ,(clevr-world::size object))
     (:shape . ,(shape object))
     (:material . ,(material object))
     (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
     (:ypos . ,(if (> (y-pos object) 160) 'front 'behind))
-    ))
+    ))|#
+
+(defmethod object->alist ((object clevr-object))
+  `((:left . ,(rest (assoc 'left (relationships object))))
+    (:right . ,(rest (assoc 'right (relationships object))))
+    (:front . ,(rest (assoc 'front (relationships object))))
+    (:behind. ,(rest (assoc 'behind (relationships object))))))
 
 ;; ------------------
-;; + MWM object set +
+;; + SPATIAL object set +
 ;; ------------------
-(defclass mwm-object-set (entity)
+(defclass spatial-object-set (entity)
   ((objects
     :documentation "the objects in the set"
     :type list :accessor objects :initarg :objects
@@ -46,7 +52,7 @@
   (:documentation "A set of mww-objects"))
 
 ;; ----------------
-;; + CLEVR -> MWM +
+;; + CLEVR -> SPATIAL +
 ;; ----------------
 
 (defun add-random-value-from-range (value min-var max-var
@@ -125,32 +131,33 @@
           (add-random-value-from-range ratio 0.0 0.25)))
     `((wh-ratio . ,ratio-with-variance))))
 
-;;;; clevr -> mwm
+;;;; clevr -> spatial
 (defmethod clevr->simulated ((scene clevr-scene))
-  (make-instance 'mwm-object-set :id (id scene)
+  (make-instance 'spatial-object-set :id (id scene)
                  :image (image scene)
                  :objects (loop for obj in (objects scene)
                                 collect (clevr->simulated obj))))
 
 (defmethod clevr->simulated ((object clevr-object))
-  (make-instance 'mwm-object :id (id object) ;; !!!
+  (make-instance 'spatial-object :id (id object) ;; !!!
                  :attributes (append (to-value object 'xpos)
                                      (to-value object 'ypos)
-                                     (to-value object 'area)
-                                     (to-value object 'wh-ratio)
-                                     (to-value object 'color)
-                                     (to-value object 'roughness)
-                                     (to-value object 'sides-and-corners))
+                                     ;(to-value object 'area)
+                                     ;(to-value object 'wh-ratio)
+                                     ;(to-value object 'color)
+                                     ;(to-value object 'roughness)
+                                     ;(to-value object 'sides-and-corners)
+                                     )
                  :description (object->alist object)))
 
 ;; ---------
 ;; + NOISE +
 ;; ---------
-(defmethod add-noise ((set mwm-object-set) probability amount)
+(defmethod add-noise ((set spatial-object-set) probability amount)
   (loop for object in (objects set)
         do (add-noise object probability amount)))
 
-(defmethod add-noise ((object mwm-object) probability amount)
+(defmethod add-noise ((object spatial-object) probability amount)
   (loop for (attr . val) in (attributes object)
         unless (member attr '(nr-of-sides nr-of-corners))
         do (when (< (random 1.0) probability)
@@ -161,7 +168,7 @@
 ;; + Continous CLEVR data +
 ;; ------------------------
 
-(defun extracted->mwm-object (alist)
+(defun extracted->spatial-object (alist)
   "Load a single object"
   (let* ((mean-color (rest (assoc :color-mean alist)))
          (lab (hsv->lab mean-color)))
@@ -184,7 +191,7 @@
     (setf (cdr (assoc 'angle alist))
           (- (cdr (assoc 'angle alist))))
     ;; create an object
-    (make-instance 'mwm-object
+    (make-instance 'spatial-object
                    :id (make-id 'object)
                    :attributes alist)))
 
@@ -198,9 +205,9 @@
            directory))
          (objects
           (with-open-file (stream path :direction :input)
-            (mapcar #'extracted->mwm-object
+            (mapcar #'extracted->spatial-object
                     (mapcar #'decode-json-from-string
                             (stream->list stream))))))
-    (make-instance 'mwm-object-set
+    (make-instance 'spatial-object-set
                    :id (make-id 'scene)
                    :objects objects)))

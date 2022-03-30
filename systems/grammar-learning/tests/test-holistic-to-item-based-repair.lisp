@@ -273,9 +273,9 @@
 
 (defun run-holistic-to-item-based-tests ()
   (test-holistic-to-item-based-from-substitution-comprehension)
-  (test-holistic-to-item-based-from-double-substitution-comprehension) 
+  (test-holistic-to-item-based-from-double-substitution-comprehension)
   (test-multiple-holistic-to-item-based-repair-comprehension)
-  (test-holistic-to-item-based-duplicates-comprehension)
+  (test-holistic-to-item-based-duplicates-comprehension) ; should be holophrase
   (test-double-holistic-to-item-based-from-substitution-repair-comprehension)
   (test-holistic-to-item-based-double-comprehension)
   
