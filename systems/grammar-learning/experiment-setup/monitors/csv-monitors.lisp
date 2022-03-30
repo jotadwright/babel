@@ -14,8 +14,8 @@
                 :file-name (babel-pathname :name "communicative-success" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#"
-                :column-separator ",")
+                :comment-string #\#
+                :column-separator #\,)
 
 (define-event-handler (record-csv-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
@@ -32,8 +32,8 @@
                 :file-name (babel-pathname :name "grammar-size" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#"
-                :column-separator ",")
+                :comment-string #\#
+                :column-separator #\,)
 
 (define-event-handler (record-csv-lexicon-size interaction-finished)
   (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
@@ -50,8 +50,8 @@
                 :file-name (babel-pathname :name "th-size" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#"
-                :column-separator ",")
+                :comment-string #\#
+                :column-separator #\,)
 
 (define-event-handler (record-csv-th-size interaction-finished)
   (record-value monitor (nr-of-links (grammar (learner experiment)))))
@@ -68,8 +68,8 @@
                 :file-name (babel-pathname :name "avg-cxn-score" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#"
-                :column-separator ",")
+                :comment-string #\#
+                :column-separator #\,)
 
 (define-event-handler (record-csv-avg-cxn-score interaction-finished)
   (record-value monitor (average (mapcar #'cxn-score (get-cxns-of-type (learner experiment) 'all)))))
@@ -86,7 +86,8 @@
                 :file-name (babel-pathname :name "grammar-size-per-type" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#" :column-separator ",")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-csv-lexicon-size-per-type interaction-finished)
   (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
@@ -106,7 +107,8 @@
                 :file-name (babel-pathname :name "cxn-score-per-type" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#" :column-separator ",")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-csv-cxn-score-per-type interaction-finished)
   (loop for cxn-type in '(gl::holophrase gl::lexical gl::item-based)
@@ -127,7 +129,8 @@
                 :file-name (babel-pathname :name "cxn-usage-per-type" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#" :column-separator ",")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-csv-cxn-usage-per-type constructions-chosen)
   (if (find 'gl::holophrase constructions :key #'get-cxn-type)
@@ -214,7 +217,8 @@
                 :file-name (babel-pathname :name "repair-per-type" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#" :column-separator ",")
+                :comment-string "#"
+                :column-separator ",")
 
 ;; nr of item-based cxns with slots (alist monitor)
 (define-monitor record-csv-nr-of-slots
@@ -228,7 +232,8 @@
                 :file-name (babel-pathname :name "item-based-nr-of-slots" :type "csv"
                                            :directory '("experiments" "clevr-grammar-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil
-                :comment-string "#" :column-separator ",")
+                :comment-string "#"
+                :column-separator ",")
 
 (define-event-handler (record-csv-nr-of-slots interaction-finished)
   (let* ((item-based-cxns
