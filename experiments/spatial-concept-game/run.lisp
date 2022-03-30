@@ -33,7 +33,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 300)
+(run-series *experiment* 10)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 

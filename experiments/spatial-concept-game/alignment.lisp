@@ -12,7 +12,8 @@
 (defmethod adopt-concept ((agent spatial-agent) (topic spatial-object) word)                
   (let ((new-concept
          (make-concept word (attributes topic)
-                       (get-configuration agent :initial-certainty))))
+                       (get-configuration agent :initial-certainty)
+                       (pointed-object agent))))
     (push new-concept (lexicon agent))
     (notify new-concept-added new-concept)
     new-concept))
@@ -37,7 +38,7 @@
         for objects-hash
         = (loop with hash = (make-hash-table)
                 for object in (objects (get-data agent 'context))
-                for s = (similarity object prototype)
+                for s = (similarity object prototype (pointed-object agent))
                 for ws = (* (certainty prototype) s)
                 do (setf (gethash (id object) hash) (cons s ws))
                 finally (return hash))
@@ -138,10 +139,10 @@
    game."))
 
 
-(defmethod align-concept ((agent spatial-agent) (topic spatial-object) concept)
+(defmethod align-concept ((agent spatial-agent) (topic spatial-object) (concept concept))
   ;; 1. update the prototypical values
   (loop for prototype in (meaning concept)
-        do (update-prototype prototype topic))
+        do (update-prototype prototype topic (pointed-object agent)))
   ;; 2. determine which attributes should get an increase
   ;;    in certainty, and which should get a decrease.
   (let* ((similarity-table
