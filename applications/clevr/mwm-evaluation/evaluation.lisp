@@ -227,16 +227,18 @@
           (make-configuration
            :entries (cons (cons :experiment-name experiment-name)
                           config-entries)))
+         (world-type
+          (get-configuration config :world-type))
          (concepts-directory
           (merge-pathnames
            (make-pathname :directory (list :relative experiment-name))
-           (case (get-configuration config :world-type)
+           (case world-type
              (:simulated *simulated-concepts-path*)
              (:extracted *extracted-concepts-path*))))
          (ontology
-          (make-mwm-ontology concepts-directory)))
+          (make-mwm-ontology concepts-directory world-type)))
     ;; adapt file-writing monitors so they output in the correct output-dir
-    (monitors::deactivate-all-monitors)
+    ;(monitors::deactivate-all-monitors)
     (loop for monitor-string in monitors
           for monitor = (monitors::get-monitor (read-from-string monitor-string))
           do (monitors::activate-monitor-method (read-from-string monitor-string))

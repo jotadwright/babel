@@ -12,6 +12,11 @@
   (babel-pathname :directory '("experiments""multidimensional-word-meanings" "store"
                                "thesis-main-results" "baseline-extracted-default-lexicon")))
 
+(defparameter *extracted-scenes-path*
+  (merge-pathnames
+   (make-pathname :directory `(:relative "Frontiers-data" "CLEVR" "val"))
+   cl-user:*babel-corpora*))
+
 ;;----------------------------------;;
 ;; similarity and category matching ;;
 ;;----------------------------------;;
@@ -93,3 +98,24 @@
         if (eql (first predicate) 'bind)
         collect (substitute-category-in-bind predicate)
         else collect predicate))
+
+;;-----------------------------------------------------------------;;
+;; return all monitor names
+;;-----------------------------------------------------------------;;
+
+(defun get-all-monitors ()
+  '("print-a-dot-for-each-interaction"
+   "log-mwm-evaluation"
+   "export-count!-primitive"
+   "export-equal?-primitive"
+   "export-equal-integer-primitive"
+   "export-less-than-primitive"
+   "export-greater-than-primitive"
+   "export-exist-primitive"
+   "export-filter-primitive"
+   "export-intersect-primitive"
+   "export-query-primitive"
+   "export-relate-primitive"
+   "export-same-primitive"
+   "export-union!-primitive"
+   "export-unique-primitive"))

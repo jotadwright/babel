@@ -10,8 +10,15 @@
 ;; Evaluation ;;
 ;;------------;;
 
+(defparameter *config-entries*
+  '((:dot-interval . 100)
+    (:nr-of-scenes . 1)
+    (:nr-of-questions . nil)
+    (:data-split . "val")
+    (:world-type . :extracted)))
+
 ;; Evaluate one particular serie
-(evaluate-mwm-serie 1)
+(evaluate-mwm-serie 1 *config-entries*)
 (evaluate-mwm-serie 2)
 (evaluate-mwm-serie 3)
 (evaluate-mwm-serie 4)
