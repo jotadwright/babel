@@ -11,12 +11,15 @@
     :accessor meaning :initarg :meaning :type list))
   (:documentation "a concept, or lexical item"))
 
-(defun make-concept (form attribute-proto-cons initial-certainty)
+(defun make-concept (form attribute-proto-cons initial-certainty pointed-object)
   (make-instance 'concept
                  :form form
                  :meaning (loop for (attribute . proto-value) in attribute-proto-cons
-                                collect (make-prototype attribute proto-value
+                                collect (make-prototype attribute (relate-to-pointed-object proto-value attribute pointed-object)
                                                         initial-certainty))))
+
+(defun relate-to-pointed-object (proto-value attribute pointed-object)
+  (- proto-value (get-attr-val pointed-object attribute)))
 
 
 (defmethod copy-object-content ((source entity) (destination entity))
@@ -75,15 +78,16 @@
                  :M2 0.05))
 
 
-(defgeneric update-prototype (prototype object)
+(defgeneric update-prototype (prototype object pointed-object)
   (:documentation "Update the category based on the object"))
 
 (defmethod update-prototype ((prototype prototype)
-                            (object mwm-object))
+                            (object spatial-object)
+                            (pointed-object spatial-object))
   ;; take the object pointed to by the tutor
   ;; and estimate the mean and variance of the category
   (incf (nr-samples prototype))
-  (let* ((exemplar (get-attr-val object (attribute prototype)))
+  (let* ((exemplar (relate-to-pointed-object (get-attr-val object (attribute prototype)) (attribute prototype) pointed-object))
          (delta-1 (- exemplar (value prototype)))
          (new-prototypical-value (+ (value prototype) (/ delta-1 (nr-samples prototype))))
          (delta-2 (- exemplar new-prototypical-value))
@@ -93,22 +97,22 @@
     prototype))
 
 
-(defgeneric weighted-similarity (object concept)
+(defgeneric weighted-similarity (object concept pointed-object)
   (:documentation "Compute the weighted similarity between an object and a concept"))
 
-(defmethod weighted-similarity ((object mwm-object) (concept concept))
+(defmethod weighted-similarity ((object spatial-object) (concept concept) (pointed-object spatial-object))
   (loop for prototype in (meaning concept)
-        for similarity = (similarity object prototype)
+        for similarity = (similarity object prototype pointed-object)
         collect (* (certainty prototype) similarity) into weighted-similarities
         finally (return (average weighted-similarities))))
 
 
-(defgeneric similarity (object prototype)
+(defgeneric similarity (object prototype pointed-object)
   (:documentation "Similarity on the level of a single prototype"))
 
-(defmethod similarity ((object mwm-object) (prototype prototype))
+(defmethod similarity ((object spatial-object) (prototype prototype) (pointed-object spatial-object))
   (let* ((max-z-score 2)
-         (exemplar (get-attr-val object (attribute prototype)))
+         (exemplar (relate-to-pointed-object (get-attr-val object (attribute prototype)) (attribute prototype) pointed-object))
          (stdev (sqrt (/ (M2 prototype) (nr-samples prototype))))
          (z-score (abs (/ (- exemplar (value prototype)) stdev))))
     (max (/ (+ (- z-score) max-z-score) max-z-score) -1)))

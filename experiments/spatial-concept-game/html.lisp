@@ -1,13 +1,13 @@
 (in-package :spatial-concepts)
 
-;; make html of mwm-object
-(defmethod make-html-for-entity-details ((object mwm-object) &key)
+;; make html of spatial-object
+(defmethod make-html-for-entity-details ((object spatial-object) &key)
   (loop for (attr . val) in (attributes object)
         append `(((div :class "entity-detail")
                   ,(format nil "~a = ~,2f" attr val)))))
 
 ;; make html of object set
-(defmethod make-html-for-entity-details ((set mwm-object-set) &key)
+(defmethod make-html-for-entity-details ((set spatial-object-set) &key)
   `(((div :class "entity-detail")
      ,@(loop for object in (objects set)
              collect (make-html object :expand-initially t)))))
@@ -18,7 +18,7 @@
     ,(s-dot->svg
       (concept->s-dot concept))))
 
-;; make html of mwm-category
+;; make html of spatial-category
 (defmethod make-html-for-entity-details ((prototype prototype) &key)
   `(((div :class "entity-detail")
      ,(format nil "attribute: ~a" (attribute prototype)))

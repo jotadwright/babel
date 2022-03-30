@@ -13,13 +13,13 @@
                          shared-configurations)
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
-    :experiment-class 'mwm-experiment
+    :experiment-class 'spatial-experiment
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :monitors monitors
     :shared-configuration shared-configurations
     :named-configurations strategies
-    :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))
+    :output-dir (babel-pathname :directory '("experiments" "spatial-concept-game" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
 (defun create-graph-for-single-strategy (experiment-name measure-names
@@ -28,7 +28,7 @@
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
   (let* ((raw-file-paths
           (loop for measure-name in measure-names
-                collect `("experiments" "multidimensional-word-meanings"
+                collect `("experiments" "spatial-concept-game"
                           "raw-data" ,experiment-name ,measure-name)))
          (default-plot-file-name
           (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
@@ -38,7 +38,7 @@
             (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
     (apply #'raw-files->evo-plot
            (append `(:raw-file-paths ,raw-file-paths
-                     :plot-directory ("experiments" "multidimensional-word-meanings" "graphs")
+                     :plot-directory ("experiments" "spatial-concept-game" "graphs")
                      :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created"))
@@ -48,7 +48,7 @@
   ;; take some arguments, but pass along the rest to raw-files->evo-plot
   (let* ((raw-file-paths
           (loop for (experiment . measure) in experiment-measure-pairs
-                collect `("experiments" "multidimensional-word-meanings"
+                collect `("experiments" "spatial-concept-game"
                           "raw-data" ,experiment ,measure)))
          (default-plot-file-name
           (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
@@ -63,7 +63,7 @@
             (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
     (apply #'raw-files->evo-plot
            (append `(:raw-file-paths ,raw-file-paths
-                     :plot-directory ("experiments" "multidimensional-word-meanings" "graphs")
+                     :plot-directory ("experiments" "spatial-concept-game" "graphs")
                      :captions ,captions
                      :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
                    evo-plot-keyword-args))))

@@ -76,10 +76,10 @@
    ;; tutor
    ((and (tutorp agent) (find-data agent 'tutor-conceptualisation))
     (add-element
-     '((h2) "Tutor found discriminating attributes:"))
+     '((h2) "Tutor points to object:"))
     (add-element
      `((h3) ((i) ,(format nil "~a"
-                          (find-data agent 'tutor-conceptualisation))))))
+                          (id (pointed-object agent)))))))
    ;; learner
    ((and (learnerp agent) (find-data agent 'applied-concept))
     (add-element
@@ -91,7 +91,7 @@
    ;; failed
    (t
     (add-element
-     `((h2) ,(format nil "~@(~a~) did not find discriminating attributes"
+     `((h2) ,(format nil "~@(~a~) did not find discriminating spatial relation"
                      (id agent)))))))
 
 
