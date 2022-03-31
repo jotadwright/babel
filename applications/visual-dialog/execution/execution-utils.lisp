@@ -136,8 +136,8 @@
 
 (defun get-target-primitive (irl-program)
   "returns primitive of the open variable in irl-program"
-  (let* ((variable (get-target-var irl-program))
-        (target-primitive (first (find variable irl-program :test #'equal :key #'second))))
+  (let* ((var (get-target-var irl-program))
+        (target-primitive (first (find var irl-program :test #'equal :key #'second))))
     target-primitive))
 
 (defun get-third-value-target-primitive (irl-program list-of-bindings)
