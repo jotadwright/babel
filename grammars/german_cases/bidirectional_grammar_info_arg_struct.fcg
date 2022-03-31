@@ -162,6 +162,23 @@
                (HASH form ((string ?against-word "gegen")))))
              :disable-automatic-footprints t)
 
+(def-fcg-cxn durch-cxn
+             ((?through-word
+               (footprints (preposition)))
+              <-
+              (?through-word
+               (footprints (not preposition))
+               (syn-cat (lex-class preposition)
+                        (case ((- - - - -)      
+                               (?acc ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap))))
+               --
+               (HASH form ((string ?through-word "durch")))))
+             :disable-automatic-footprints t)
+
+
 (def-fcg-cxn für-cxn
              ((?for-word
                (footprints (preposition)))
@@ -622,6 +639,10 @@
 (def-fcg-cxn transitive-argument-structure-cxn                 
              ((?transitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
@@ -640,7 +661,7 @@
                                (- - - - -)         
                                (- - - - -)        
                                (- - - - -)
-                               (?s ?nm ?nf ?nn ?np))))
+                               (?as ?nm ?nf ?nn ?np))))
                (referent ?arg0)
                 --
               (syn-cat (lex-class noun-phrase)
@@ -648,7 +669,7 @@
                                (- - - - -)         
                                (- - - - -)        
                                (- - - - -)
-                               (?s ?nm ?nf ?nn ?np))))
+                               (?as ?nm ?nf ?nn ?np))))
               (referent ?arg0)
               )
               
@@ -658,7 +679,7 @@
                                (+ ?am ?af ?an ?ap)         
                                (- - - - -)         
                                (- - - - -)
-                               (?s ?am ?af ?an ?ap))))
+                               (?ps ?am ?af ?an ?ap))))
                (referent ?arg1)
                 --
               (syn-cat (lex-class noun-phrase)
@@ -666,7 +687,7 @@
                                (+ ?am ?af ?an ?ap)         
                                (- - - - -)         
                                (- - - - -)
-                               (?s ?am ?af ?an ?ap))))
+                               (?ps ?am ?af ?an ?ap))))
               (referent ?arg1)
               )
               
@@ -1360,11 +1381,12 @@
               (referent ?arg0))
               
               (?benefactive-unit
-               (syn-cat (lex-class prep-phrase))
+               (syn-cat (lex-class prep-phrase)
+                        (case ?case))
                (referent ?arg2)
                 --
               (syn-cat (lex-class prep-phrase)
-                        )
+                        (case ?case))
               (referent ?arg2))
               
               (?patient-unit
@@ -1799,23 +1821,20 @@
 ;;;der Mann geht zum Shop
 (formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized m +)))
 
+; zum Shop geht der Mann
+(formulate '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized s +)))
+
 ;;;der Mann ist beim Bäcker
 (formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +)))
 
 ;;;beim Bäcker ist der Mann
 (formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
 
-; zum Shop geht der Mann
-(formulate '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized s +)))
-
-;;; der Mann geht ohne den Clown zur Arbeit
-(formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg1 g c) (arg4 g w)))
-
 ;;; der Mann ist gegen den Shop gefahren 
 (formulate-all '((drove-01 ig) (man m) (arg0 ig m) (shop s) (arg4 ig s) (topicalized m +)))
 
 ;; der Mann hat für den Clown die Blumen mitgebracht  ------>some issues
-(formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
+(formulate-all '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit  ------>some issues (too general ?)
 (formulate-all '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg4 g w) (extra-info g c) (topicalized m +)))
