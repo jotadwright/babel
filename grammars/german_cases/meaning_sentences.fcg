@@ -1,0 +1,36 @@
+
+der Mann sucht den Clown
+((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +))
+
+den Clown sucht der Mann
+((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +))
+
+der Mann schenkt dem Clown die Blumen
+((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized m +))
+
+dem Clown schenkt der Mann die Blumen 
+((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +))
+
+der Mann geht zum Shop
+((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized m +))
+
+zum Shop geht der Mann
+((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized s +))
+
+der Mann ist beim Bäcker
+((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +))
+
+beim Bäcker ist der Mann
+((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +))
+
+der Mann ist gegen den Shop gefahren 
+((drove-01 ig) (man m) (arg0 ig m) (shop s) (arg4 ig s) (topicalized m +))
+
+der Mann hat für den Clown die Blumen mitgebracht 
+((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +))
+
+der Mann geht ohne den Clown zur Arbeit 
+((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg4 g w) (polarity g -) (accompany m -) (topicalized m +))
+
+der Mann fährt mit dem Fahrrad zur Arbeit
+((fahren-01 f) (man m) (bike b) (work w) (arg0 f m) (arg1 f w) (manner f b) (topicalized m +))

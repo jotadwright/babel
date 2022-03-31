@@ -108,7 +108,7 @@
   (loop for object in context-objects
         for object-relations = (object->alist object)
         for discriminative-relationship
-        = (loop for relationship in object-relations
+        = (loop for relationship in (shuffle object-relations)
                 if (and (member (id topic) (cdr relationship))
                         (= (length (cdr relationship)) 1))
                 return (car relationship))
@@ -177,6 +177,8 @@
                                   objects-with-similarity
                                   :key #'cdr :test #'=)
                            1)))
+      (when duplicatesp
+        (format t "stop here"))
       (set-data agent 'interpreted-topic
                 (unless duplicatesp maybe-topic))))
   (notify interpretation-finished agent)

@@ -1,21 +1,4 @@
 (in-package :mwm-evaluation)
-
-(defun get-all-monitors ()
-  '("print-a-dot-for-each-interaction"
-   "log-mwm-evaluation"
-   "export-count!-primitive"
-   "export-equal?-primitive"
-   "export-equal-integer-primitive"
-   "export-less-than-primitive"
-   "export-greater-than-primitive"
-   "export-exist-primitive"
-   "export-filter-primitive"
-   "export-intersect-primitive"
-   "export-query-primitive"
-   "export-relate-primitive"
-   "export-same-primitive"
-   "export-union!-primitive"
-   "export-unique-primitive"))
        
 
 ;;;; print a dot for each interaction
@@ -64,7 +47,7 @@
 (define-monitor export-count!-primitive
                 :class 'lisp-data-file-writer
                 :file-name (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                                           :name "count!" :type "log")
+                                           :name "count" :type "log")
                 :data-sources '(record-count!-primitive))
 
 ;; equal?
@@ -80,7 +63,7 @@
 (define-monitor export-equal?-primitive
                 :class 'lisp-data-file-writer
                 :file-name (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                                           :name "equal?" :type "log")
+                                           :name "equal" :type "log")
                 :data-sources '(record-equal?-primitive))
 
 ;; equal-integer
@@ -240,7 +223,7 @@
 (define-monitor export-union!-primitive
                 :class 'lisp-data-file-writer
                 :file-name (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                                           :name "union!" :type "log")
+                                           :name "union" :type "log")
                 :data-sources '(record-union!-primitive))
 
 ;; unique
