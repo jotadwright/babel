@@ -45,8 +45,8 @@
       ;in case of mnist, attribute needs to found as input of set-diff instead of output
       (if mnist
         (progn
-          (setf variable (third (find 'set-diff irl-program :test #'equal :key #'first)))
-          (setf attributes (find-input-attributes-of-set-diff irl-program variable))))
+          (setf var (third (find 'set-diff irl-program :test #'equal :key #'first)))
+          (setf attributes (find-input-attributes-of-set-diff irl-program var))))
       ;otherwise, find attributes
       (setf attributes (find-attributes-of-unique irl-program target-variable)))
     "add attributes to objects"

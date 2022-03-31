@@ -118,8 +118,8 @@
     (loop for line = (read-line stream nil nil)
           while line
           when (and (not (string= (first-word line) "evaluation"))
-                    (not (string= (first-word line) "dialog-level-accuracy:"))
-                    (not (string= (first-word line) "question-level-accuracy:")))
+                    (not (string= (first-word line) "dialog-level-accuracy"))
+                    (not (string= (first-word line) "question-level-accuracy")))
             append (read-from-string (last-elt (split-string line ":")))))
 
 (defun collect-failed-dialogs (dir)
