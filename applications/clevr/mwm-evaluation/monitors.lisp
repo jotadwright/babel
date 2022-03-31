@@ -47,7 +47,7 @@
 (define-monitor export-count!-primitive
                 :class 'lisp-data-file-writer
                 :file-name (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                                           :name "count!" :type "log")
+                                           :name "count" :type "log")
                 :data-sources '(record-count!-primitive))
 
 ;; equal?
@@ -63,7 +63,7 @@
 (define-monitor export-equal?-primitive
                 :class 'lisp-data-file-writer
                 :file-name (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                                           :name "equal?" :type "log")
+                                           :name "equal" :type "log")
                 :data-sources '(record-equal?-primitive))
 
 ;; equal-integer
@@ -223,7 +223,7 @@
 (define-monitor export-union!-primitive
                 :class 'lisp-data-file-writer
                 :file-name (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                                           :name "union!" :type "log")
+                                           :name "union" :type "log")
                 :data-sources '(record-union!-primitive))
 
 ;; unique
