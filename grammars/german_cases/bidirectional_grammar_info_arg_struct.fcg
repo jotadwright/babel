@@ -226,6 +226,7 @@
 
 (def-fcg-cxn mit-cxn
              ((?with-word
+               (referent ?x)
                (footprints (preposition)))
               <-
               (?with-word
@@ -237,6 +238,9 @@
                                (- - - - -)      
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?dm ?df ?dn ?dp))))
+               (HASH meaning ((manner ?x)
+                              (accompany-01 ?x)
+                              (polarity ?x +)))
                --
                (HASH form ((string ?with-word "mit")))))
              :disable-automatic-footprints t)
@@ -511,6 +515,7 @@
               ))
               :disable-automatic-footprints t)
 
+
 (def-fcg-cxn accompanying-phrase-cxn
              ((?accompanying-phrase
                (referent ?x)
@@ -564,7 +569,7 @@
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?m ?f ?n ?p)))))
               (?noun
-               (referent ?n)
+               (referent ?no)
                (footprints (not determined))
                (syn-cat (lex-class noun)
                         (case ((- - - - -)     
@@ -573,7 +578,7 @@
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?m ?f ?n ?p))))
                --
-               (referent ?n)
+               (referent ?no)
                (footprints (not determined))
                (syn-cat (lex-class noun)
                         (case ((- - - - -)     
@@ -583,7 +588,7 @@
                                (?s ?m ?f ?n ?p)))))
               
               (?accompanying-phrase
-               (HASH meaning ((arg0 ?x ?n)))
+               (HASH meaning ((arg0 ?x ?no)))
                --
                (HASH form ((meets ?preposition ?article)
                            (meets ?article ?noun)))
@@ -1019,6 +1024,7 @@
               
               ))
 
+
 (def-fcg-cxn arg0-arg1-topic-arg2-information-structure-cxn
              (
               <-
@@ -1079,6 +1085,8 @@
 ;MOTION VERBS 
 
 ;der Mann geht zur Arbeit
+
+;;;;THIS SHOULD NOT APPLY ON SENTENCES WITH ONE EXTRA ARGUMENT (ACCOMPANIER)
 
 #|(def-fcg-cxn intransitive-argument-structure-cxn
              ((?intransitive-argument-structure-unit
@@ -1752,11 +1760,13 @@
 
               (?extra-info-unit
                (syn-cat (lex-class prep-phrase)
-                   (case ?case))
+                   (case ?case)
+                   (type accompanying))
                (referent ?manner)
                 --
               (syn-cat (lex-class prep-phrase)
-                        (case ?case))
+                        (case ?case)
+                        (type accompanying))
               (referent ?manner))
          
               (?location-unit
@@ -1935,7 +1945,9 @@
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit  ------>some issues (too general ?)
-(formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg4 g w) (accompany g c) (polarity c -) (topicalized m +)))
+;(formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg4 g w) (accompany g c) (polarity c -) (topicalized m +)))
+
+(formulate '((man m) (clown ?c) (accompany-01 a) (polarity a -) (work w) (arg0 a c) (gehen-01 g) (arg4 g w) (accompany g a) (arg0 g m) (topicalized m +)))
 
 ;;der Mann fährt mit dem Fahrrad zur Arbeit
 (formulate-all '((fahren-01 f) (man m) (bike b) (work w) (arg0 f m) (arg1 f w) (extra-info f b) (topicalized m +)))
