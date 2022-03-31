@@ -40,7 +40,7 @@
         (make-instance 'clevr-world :data-sets (list "val")))
   ;; store the data-sets and data-path in the blackboard
   (set-data experiment :ns-vqa-data-path (merge-pathnames (make-pathname
-                                                           :directory `(:relative "Frontiers-data" "CLEVR" "val")) cl-user:*babel-corpora*)))
+                                                           :directory `(:relative  "CLEVR-v1.0" "scenes" "val")) cl-user:*babel-corpora*)))
 
 
 (defmethod learner ((experiment spatial-experiment))
