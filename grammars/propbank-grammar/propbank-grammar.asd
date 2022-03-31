@@ -24,4 +24,5 @@
                              (:file "comprehend")))
                (:module learning
                 :serial t
-                :components ((:file "learn-propbank-constructions")))))
+                :components ((:file "cxn-name")
+                             (:file "learn-propbank-constructions")))))

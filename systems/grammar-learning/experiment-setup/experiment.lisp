@@ -34,6 +34,7 @@
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
 (define-configuration-default-value :category-linking-mode :neighbours)
+(define-configuration-default-value :learning-strategy :optimal-form-coverage) ;or: by-score
 
 
 ;; Misc
