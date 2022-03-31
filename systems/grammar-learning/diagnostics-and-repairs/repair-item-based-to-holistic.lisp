@@ -13,7 +13,7 @@
                    &key &allow-other-keys)
   "Repair by making a new holistic construction."
   (when (initial-node-p node)
-    (let ((holistic-cxn-and-categorial-link (create-holistic-cxn problem node)))
+    (let ((holistic-cxn-and-categorial-link (create-holistic-cxn-from-partial-analysis problem node)))
       (when holistic-cxn-and-categorial-link
         (make-instance 'fcg::cxn-fix
                        :repair repair
@@ -26,20 +26,50 @@
                    &key &allow-other-keys)
   "Repair by making a new holistic construction."
   (when (initial-node-p node)
-    (let ((holistic-cxn-and-categorial-link (create-holistic-cxn problem node)))
+    (let ((holistic-cxn-and-categorial-link (create-holistic-cxn-from-partial-analysis problem node)))
       (when holistic-cxn-and-categorial-link 
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
                        :restart-data holistic-cxn-and-categorial-link)))))
 
+(defmethod get-best-partial-analysis-cipn ((utterance string) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
+  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory original-cxn-inventory)))
+             (cip-nodes (second comprehension-result)))
+        (enable-meta-layer-configuration original-cxn-inventory)
+        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+        
+                
+(defun create-holistic-cxn-from-partial-analysis (problem node)
+  (let* ((processing-cxn-inventory (construction-inventory node))
+         (original-cxn-inventory (original-cxn-set processing-cxn-inventory))
+         (utterance (random-elt (get-data problem :utterances)))
+         (meaning-representation-formalism (get-configuration processing-cxn-inventory :meaning-representation-formalism))
+         (best-partial-analysis-node (get-best-partial-analysis-cipn
+                                      utterance
+                                      original-cxn-inventory
+                                      (get-configuration processing-cxn-inventory :learning-strategy)))
+         (applied-cxns (applied-constructions best-partial-analysis-node))
+         (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns))))
+    (when item-based-cxn
+      (let* ((root-form-constraints (form-predicates-with-variables (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node)))) 'form))))
+        (when (check-meets-continuity root-form-constraints) ;there is one continuous string in root
+          (let* ((all-cars (append (cipn-car best-partial-analysis-node) (all-parents best-partial-analysis-node)))
+                 (remaining-meaning (loop for car in all-cars
+                                          collect car)
+    ))))))))
+
+#|
 (defun create-holistic-cxn (problem node)
   "Creates a holistic cxn if a surrounding item-based cxn with one empty slot exists."
   (with-disabled-monitor-notifications
     (let* ((processing-cxn-inventory (construction-inventory node))
            (original-cxn-inventory (original-cxn-set processing-cxn-inventory))
            (meaning-representation-formalism (get-configuration processing-cxn-inventory :meaning-representation-formalism))
-           (resulting-cars (loop for cxn in (constructions processing-cxn-inventory)
+           (resulting-cars (loop for cxn in (constructions processing-cxn-inventory) ; sort by score! there could be multiple combinations of holistic+item-based with different coverages, do we make multiple hypotheses and take the highest scored one?
                                  when (and
                                        (equal (attr-val cxn :cxn-type) 'item-based)
                                        (fcg-apply cxn (car-source-cfs (cipn-car (initial-node node)))
@@ -58,19 +88,19 @@
              (matching-holistic-cxns (find-matching-holistic-cxns-in-root original-cxn-inventory string-predicates-in-root)))
         ;; there are one or more lex cxns, and one remaining string in root
         (when (or (and matching-holistic-cxns
-                       (= 1 (- (length string-predicates-in-root) (length matching-holistic-cxns))))
+                       (= 1 (- (length string-predicates-in-root) (length matching-holistic-cxns)))) ; don't do this, just check for meets continuity of the remainder
                   (= (length string-predicates-in-root) 1))
           ;; construct the remaining cxn first
           (let* ((utterance (random-elt (get-data problem :utterances)))
-                 (type-hierarchy (categorial-network original-cxn-inventory))
+                 (categorial-network (categorial-network original-cxn-inventory))
                  (meaning-predicates-gold (meaning-predicates-with-variables (first (get-data problem :meanings))
                                                                              meaning-representation-formalism))
-                 (meaning-predicates-gold-minus-lex (subtract-holistic-cxn-meanings matching-holistic-cxns meaning-predicates-gold))
+                 (meaning-predicates-gold-minus-lex (subtract-holistic-cxn-meanings matching-holistic-cxns meaning-predicates-gold)) ;; todo: use test equal instead of unify-irl
                  (meaning-predicates-observed (extract-meanings observation))
                  (meaning-predicates-holistic-cxn (if (= 1 (length string-predicates-in-root))
                                                (set-difference meaning-predicates-gold meaning-predicates-observed :test #'unify)
                                                (set-difference meaning-predicates-gold-minus-lex meaning-predicates-observed :test #'unify)))
-                 (form-predicates-holistic-cxn (if (= 1 (length string-predicates-in-root))
+                 (form-predicates-holistic-cxn (if (= 1 (length string-predicates-in-root)) ;; why this check? just subtract always, even if it's ()
                                             string-predicates-in-root
                                             (subtract-holistic-cxn-forms matching-holistic-cxns string-predicates-in-root)))
                  (existing-holistic-cxn (find-cxn-by-form-and-meaning form-predicates-holistic-cxn meaning-predicates-holistic-cxn original-cxn-inventory :cxn-type 'holistic))
@@ -79,7 +109,7 @@
                  (lex-class (if existing-holistic-cxn
                               (lex-class-cxn existing-holistic-cxn)
                               (intern (get-base-name unit-name) :grammar-learning)))
-                 (args (mapcar #'(lambda (predicate)
+                 (args (mapcar #'(lambda (predicate) ;; rewrite args!
                                    (extract-args-from-predicate predicate meaning-representation-formalism))
                                meaning-predicates-holistic-cxn))
                  (new-holistic-cxn (or existing-holistic-cxn (second (multiple-value-list (eval
@@ -110,7 +140,7 @@
                  (categorial-links (when (and lex-classes-holistic-cxns
                                       lex-classes-item-based-units
                                       (= (length lex-classes-holistic-cxns) (length lex-classes-item-based-units)))
-                             (create-new-categorial-links lex-classes-holistic-cxns lex-classes-item-based-units type-hierarchy))))
+                             (create-new-categorial-links lex-classes-holistic-cxns lex-classes-item-based-units categorial-network))))
             ;; return
             (when categorial-links
               (list new-holistic-cxn (append (list item-based-cxn)
@@ -118,42 +148,4 @@
                                         (unless (= 1 (length string-predicates-in-root))
                                           (map 'list #'get-processing-cxn matching-holistic-cxns))
                                         (map 'list #'get-processing-cxn applied-holistic-cxns)) categorial-links)))))))))
-
-#|(defmethod handle-fix ((fix fcg::cxn-fix) (repair item-based->holistic) (problem problem) (node cip-node) &key &allow-other-keys)
-  "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
-  (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
-  (with-disabled-monitor-notifications
-    (let* ((new-holistic-cxn (first (restart-data fix)))
-           (cxns (second (restart-data fix)))
-           (categorial-links (third (restart-data fix)))
-           ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
-           (orig-type-hierarchy (categorial-network (construction-inventory node)))
-           (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
-           (categorial-flat-list nil)
-           (th (loop for categorial-link in categorial-links
-                     do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-type-hierarchy :recompute-transitive-closure nil)
-                     (add-link (car categorial-link) (cdr categorial-link) temp-type-hierarchy :weight 0.5 :recompute-transitive-closure nil)
-                     (setf categorial-flat-list (append categorial-flat-list (list categorial-link)))
-                     finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
-           (last-node  (initial-node node))
-           (applied-nodes (loop for cxn in cxns
-                                do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply cxn (if (initial-node-p last-node)
-                                                                                                         (car-source-cfs (cipn-car last-node))
-                                                                                                         (car-resulting-cfs (cipn-car last-node)))
-                                                                                                   (direction (cip node))
-                                                                                                   :configuration (configuration (construction-inventory node))
-                                                                                                   :cxn-inventory (construction-inventory node)))))
-                                collect last-node)))
-      ;; ignore
-      ;; Reset type hierarchy
-      (set-categorial-network (construction-inventory node) orig-type-hierarchy)
-      ;; Add cxns to blackboard of last new node
-      (set-data (car-resulting-cfs (cipn-car last-node)) :fix-cxns (list new-holistic-cxn))
-      (set-data (car-resulting-cfs (cipn-car last-node)) :fix-categorial-links categorial-flat-list)
-      ;; set cxn-supplier to last new node
-      (setf (cxn-supplier last-node) (cxn-supplier node))
-      ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses last-node))
-      (push 'added-by-repair (statuses last-node))
-      ;; enqueue only last new node; never backtrack over the first applied construction, we applied them as a block
-      (cip-enqueue last-node (cip node) (get-configuration node :queue-mode))))) |#
+|#
