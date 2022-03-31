@@ -33,7 +33,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 100)
+(run-series *experiment* 300)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 
@@ -44,10 +44,10 @@
 (run-experiments `(
                    (test
                     ((:world-type . :simulated)
-                     (:determine-interacting-agents-mode . :default
+                     (:determine-interacting-agents-mode . :default)
                      (:alignment-filter . :all)))
                    )
-                 :number-of-interactions 2000
+                 :number-of-interactions 2500
                  :number-of-series 1
                  :monitors (list "export-communicative-success"
                                  "export-lexicon-size"
@@ -76,12 +76,12 @@
 
 (create-tutor-word-use-graph
  :configurations
- '((:world-type . :extracted))
+ '((:world-type . :simulated))
  :nr-of-interactions 2500)
 
 (create-learner-failed-conceptualisation-graph
  :configurations
- '((:world-type . :extracted))
+ '((:world-type . :simulated))
  :nr-of-interactions 5000)
 
 
