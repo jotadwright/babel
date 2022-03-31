@@ -63,7 +63,7 @@
 (define-monitor export-equal?-primitive
                 :class 'lisp-data-file-writer
                 :file-name (babel-pathname :directory '("applications" "clevr" "mwm-evaluation")
-                                           :name "equal?" :type "log")
+                                           :name "equal" :type "log")
                 :data-sources '(record-equal?-primitive))
 
 ;; equal-integer
