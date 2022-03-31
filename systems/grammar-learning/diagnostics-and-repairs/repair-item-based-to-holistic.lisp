@@ -33,15 +33,7 @@
                        :problem problem
                        :restart-data holistic-cxn-and-categorial-link)))))
 
-(defmethod get-best-partial-analysis-cipn ((utterance string) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
-  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
-  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-    (with-disabled-monitor-notifications
-      (let* ((comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (second comprehension-result)))
-        (enable-meta-layer-configuration original-cxn-inventory)
-        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
-        
+      
                 
 (defun create-holistic-cxn-from-partial-analysis (problem node)
   (let* ((processing-cxn-inventory (construction-inventory node))

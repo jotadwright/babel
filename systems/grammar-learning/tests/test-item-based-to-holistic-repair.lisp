@@ -127,5 +127,4 @@
 
 ; (activate-monitor trace-fcg)
 ; (test-item-based-to-holistic-comprehension)
-; (test-item-based-to-holistic-single-addition-comprehension)
 ; (test-item-based-to-holistic-multiple-item-based-cxns-comprehension)

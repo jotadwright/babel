@@ -917,7 +917,6 @@
         when (equal var in-var)
         return predicate))
 
-
 (defun disable-meta-layer-configuration (cxn-inventory)
   (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
   (set-configuration cxn-inventory :update-categorial-links nil)
@@ -930,3 +929,12 @@
   (set-configuration cxn-inventory :use-meta-layer t)
   (set-configuration cxn-inventory :consolidate-repairs t)
   (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
+
+(defmethod get-best-partial-analysis-cipn ((utterance string) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
+  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory original-cxn-inventory)))
+             (cip-nodes (second comprehension-result)))
+        (enable-meta-layer-configuration original-cxn-inventory)
+        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
