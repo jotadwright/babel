@@ -280,7 +280,7 @@
                         when 
                         #+sbcl(not (equal (sb-ext:process-status p) :running))
                         #+ccl(not (equal (ccl:external-process-status p) :running))
-                        #+lispworks7 (loop for stream in output-streams
+                        #+lispworks7+ (loop for stream in output-streams
                                            when (eql (system::pipe-stream-pid stream) p)
                                            return (sys:pipe-exit-status stream :wait nil))
                         collect p into processes-finished

@@ -9,7 +9,6 @@
                :monitors
                :irl
                :fcg
-               :category-hierarchies
                :nlp-tools
                :web-interface
                :cl-propbank
@@ -27,9 +26,17 @@
                              (:file "utils")
                              (:file "de-render")
                              (:file "cxn-supplier")))
+               
+               ;;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+               ;; TO DO; the following files need to be updated
+               ;; to the categorial network that is integrated in FCG
+               ;; instead of using the separate type-hierarchies package
                (:module learning
                 :serial t
                 :components ((:file "evaluation")
                              (:file "learn-propbank-constructions")))
-               (:file "categorial-network-metrics")
-               (:file "grammar-analysis")))
+               ;(:file "categorial-network-metrics")
+               ;(:file "grammar-analysis")
+               ;;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+               
+               ))

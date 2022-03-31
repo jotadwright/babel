@@ -163,7 +163,7 @@ This script makes the following assumptions:
   For example, if you have 20 threads available and a corpus of
   100000 lines, you could specify 20 threads and 5000 lines per thread.
   However, you could also specify 20 threads and 1000 lines per thread,
-  or even 100 lines per thread.
+  or even 20 threads and 100 lines per thread.
   By reducing the number of lines per thread, you create more batches,
   but the memory requirement per thread will be reduced, as all results
   of these X lines per thread must be stored until the thread is done.
