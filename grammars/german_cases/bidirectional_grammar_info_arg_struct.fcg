@@ -108,8 +108,11 @@
 
 
 (def-fcg-cxn zur-cxn
-             (<-
+             ((?to-word
+              (footprints (article)))
+              <-
               (?to-word
+               (footprints (not article))
                (syn-cat (lex-class contracted-preposition) 
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
@@ -121,8 +124,11 @@
 
 
 (def-fcg-cxn zum-cxn
-             (<-
+             ((?to-word
+              (footprints (article)))
+              <-
               (?to-word
+               (footprints (not article))
                (syn-cat (lex-class contracted-preposition) 
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
@@ -134,8 +140,11 @@
 
 
 (def-fcg-cxn beim-cxn
-             (<-
+             ((?at-word
+              (footprints (article)))
+              <-
               (?at-word
+               (footprints (not article))
                (syn-cat (lex-class contracted-preposition) 
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
@@ -1834,11 +1843,11 @@
 (formulate-all '((drove-01 ig) (man m) (arg0 ig m) (shop s) (arg4 ig s) (topicalized m +)))
 
 ;; der Mann hat für den Clown die Blumen mitgebracht  ------>some issues
-(formulate-all '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
+(formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit  ------>some issues (too general ?)
-(formulate-all '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg4 g w) (extra-info g c) (topicalized m +)))
+(formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg4 g w) (extra-info g c) (topicalized m +)))
 
 ;;der Mann fährt mit dem Fahrrad zur Arbeit
-(formulate-all '((fahren-01 f) (man m) (bike b) (work w) (arg0 f m) (arg1 f w) (extra-info f b) (topicalized m +)))
+(formulate '((fahren-01 f) (man m) (bike b) (work w) (arg0 f m) (arg1 f w) (extra-info f b) (topicalized m +)))
 
