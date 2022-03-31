@@ -34,15 +34,14 @@
                        :restart-data holistic-cxn-and-categorial-link)))))
                 
 (defun create-holistic-cxn-from-partial-analysis (problem node)
-  (let* ((processing-cxn-inventory (construction-inventory node))
-         (original-cxn-inventory (original-cxn-set processing-cxn-inventory))
+  (let* ((original-cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
-         (meaning-representation-formalism (get-configuration processing-cxn-inventory :meaning-representation-formalism))
+         (meaning-representation-formalism (get-configuration original-cxn-inventory :meaning-representation-formalism))
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (best-partial-analysis-node (get-best-partial-analysis-cipn
                                       utterance
                                       original-cxn-inventory
-                                      (get-configuration processing-cxn-inventory :learning-strategy)))
+                                      (get-configuration original-cxn-inventory :learning-strategy)))
          (applied-cxns (applied-constructions best-partial-analysis-node))
          (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
          (applied-holistic-cxns (filter-by-phrase-type 'holistic applied-cxns)))
@@ -53,6 +52,7 @@
                  (holistic-cxn-name (make-cxn-name root-form-constraints original-cxn-inventory :add-numeric-tail t :add-cxn-suffix t))
                  (lex-class-holistic-cxn (make-lex-class holistic-cxn-name :trim-cxn-suffix t))
                  (lex-classes-item-based-cxn (get-all-unit-lex-classes item-based-cxn))
+                 (categorial-network (categorial-network original-cxn-inventory))
                  ;; todo: check which slot is not connected in the network, create the new link
                  ;; for indirectly connected nodes, also add the direct link
                  (boundaries-holistic-cxn (get-boundary-units root-form-constraints))
