@@ -177,6 +177,8 @@
                                   objects-with-similarity
                                   :key #'cdr :test #'=)
                            1)))
+      (when duplicatesp
+        (format t "stop here"))
       (set-data agent 'interpreted-topic
                 (unless duplicatesp maybe-topic))))
   (notify interpretation-finished agent)
