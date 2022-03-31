@@ -36,7 +36,7 @@
   `((:left . ,(rest (assoc 'left (relationships object))))
     (:right . ,(rest (assoc 'right (relationships object))))
     (:front . ,(rest (assoc 'front (relationships object))))
-    (:behind. ,(rest (assoc 'behind (relationships object))))))
+    (:behind . ,(rest (assoc 'behind (relationships object))))))
 
 ;; ------------------
 ;; + SPATIAL object set +
@@ -142,11 +142,11 @@
   (make-instance 'spatial-object :id (id object) ;; !!!
                  :attributes (append (to-value object 'xpos)
                                      (to-value object 'ypos)
-                                     ;(to-value object 'area)
-                                     ;(to-value object 'wh-ratio)
-                                     ;(to-value object 'color)
-                                     ;(to-value object 'roughness)
-                                     ;(to-value object 'sides-and-corners)
+                                     (to-value object 'area)
+                                     (to-value object 'wh-ratio)
+                                     (to-value object 'color)
+                                     (to-value object 'roughness)
+                                     (to-value object 'sides-and-corners)
                                      )
                  :description (object->alist object)))
 

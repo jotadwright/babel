@@ -109,11 +109,11 @@ frame-element filler occurs in more than one slot). "
                           thereis (subconstituent-p (fourth fe) (mapcar #'fourth other-fes) (left-pole-structure (car-resulting-cfs (cipn-car node))))))
           do (push frame-var double-role-assignments)
           finally
-          return
-          (if double-role-assignments
-            ;;some frames contain frame-elements that have identical slot fillers
-            (and (push 'double-role-assignment (statuses node)) nil)
-            t))))
+          (return
+           (if double-role-assignments
+             ;;some frames contain frame-elements that have identical slot fillers
+             (and (push 'double-role-assignment (statuses node)) nil)
+             t)))))
 
 (defun subconstituent-p (frame-element other-frame-elements unit-structure)
   (loop for ofe in other-frame-elements
@@ -319,7 +319,7 @@ grammar on the list-of-sentences"
          (loop with freq-table = (make-hash-table)
                for cxn in (constructions-list hashed-cxn-inventory)
                do (setf (gethash (name cxn) freq-table) 0)
-               finally return freq-table))
+               finally (return freq-table)))
         (nr-of-time-outs 0))
 
     (loop for sentence in list-of-sentences
@@ -382,7 +382,7 @@ grammar on the list-of-sentences"
     (loop for cxn in (constructions-list cxn-inventory)
           when (< (attr-val cxn :frequency) cutoff-frequency)
             do (with-disabled-monitor-notifications (delete-cxn cxn cxn-inventory))
-            finally return cxn-inventory)))
+            finally (return cxn-inventory))))
 
 #|
 (defun clean-grammar (grammar &key
@@ -417,17 +417,16 @@ grammar on the list-of-sentences"
                                             (remove-edges-with-freq-smaller-than 2.0))
   "Cleans the type hierarchy of a learned grammar by removing edges
 that have a weight smaller than a given frequency."
-  (let* ((graph (type-hierarchies::graph type-hierarchy))
-         (edges (graph-utils:list-edges graph :edge-type nil)))
+  (let ((edges (fcg::links type-hierarchy)))
 
-    (format t "Edge count before cleaning: ~a ~%" (type-hierarchies::edge-count graph))
+    (format t "Edge count before cleaning: ~a ~%" (fcg::nr-of-links type-hierarchy))
 
     (loop for (n1 n2) in edges
-          when (< (graph-utils:edge-weight graph n1 n2 nil)
+          when (< (fcg::link-weight n1 n2 type-hierarchy)
                   remove-edges-with-freq-smaller-than)
-          do (graph-utils:delete-edge graph n1 n2 nil))
+          do (fcg::remove-link n1 n2 type-hierarchy))
     
-    (format t "Edge count after cleaning: ~a ~%" (type-hierarchies::edge-count graph))
+    (format t "Edge count after cleaning: ~a ~%" (fcg::nr-of-links type-hierarchy))
     type-hierarchy))
    
 
