@@ -159,7 +159,7 @@ based on existing construction with sufficient overlap."
                                                                              :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-item-based-cxn
-                (or existing-item-based-cxn
+                (or existing-item-based-cxn ; todo, check if it can apply! the order of args could be different...
                     (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,cxn-name-item-based-cxn
                                                                 ((?item-based-unit
@@ -191,7 +191,7 @@ based on existing construction with sufficient overlap."
                                                                            
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (existing-cxns (list holistic-cxn-2 holistic-cxn-1 existing-item-based-cxn))
-               (cxns-to-apply (list new-item-based-cxn new-holistic-cxn-2))
+               (cxns-to-apply (list new-holistic-cxn-2 new-item-based-cxn))
                (cat-links-to-add (list categorial-link-1 categorial-link-2)) 
                (cxns-to-consolidate (loop for cxn in (list new-holistic-cxn-1 new-holistic-cxn-2 new-item-based-cxn)
                                           when (not (member cxn existing-cxns))

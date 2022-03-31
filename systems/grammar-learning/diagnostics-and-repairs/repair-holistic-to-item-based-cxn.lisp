@@ -124,7 +124,7 @@
                                                                                                       return (first predicate))
                                                                                       :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))              
                                                                          :cxn-inventory ,(copy-object original-cxn-set)))))))
-             (cxns-to-apply (append (list item-based-cxn) (mapcar #'original-cxn (mapcar #'car-applied-cxn optimal-coverage-cars))))
+             (cxns-to-apply (append (mapcar #'original-cxn (mapcar #'car-applied-cxn optimal-coverage-cars)) (list item-based-cxn)))
              (cxns-to-consolidate (unless existing-item-based-cxn
                                     (list item-based-cxn))))
         (when existing-item-based-cxn ; we ordered the units, so they'll always be in the order in which they appear in the utterance

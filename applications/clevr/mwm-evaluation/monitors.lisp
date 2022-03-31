@@ -1,21 +1,4 @@
 (in-package :mwm-evaluation)
-
-(defun get-all-monitors ()
-  '("print-a-dot-for-each-interaction"
-   "log-mwm-evaluation"
-   "export-count!-primitive"
-   "export-equal?-primitive"
-   "export-equal-integer-primitive"
-   "export-less-than-primitive"
-   "export-greater-than-primitive"
-   "export-exist-primitive"
-   "export-filter-primitive"
-   "export-intersect-primitive"
-   "export-query-primitive"
-   "export-relate-primitive"
-   "export-same-primitive"
-   "export-union!-primitive"
-   "export-unique-primitive"))
        
 
 ;;;; print a dot for each interaction

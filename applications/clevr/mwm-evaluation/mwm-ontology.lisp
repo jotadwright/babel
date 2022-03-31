@@ -31,7 +31,7 @@
 
 
 ;; Make an ontology (instance of #'blackboard)
-(defun make-mwm-ontology (concepts-pathname)
+(defun make-mwm-ontology (concepts-pathname world-type)
   (let ((ontology (make-blackboard)))
     (loop for pathname in (directory concepts-pathname)
           do (cond ((member (pathname->conceptname pathname)
@@ -65,12 +65,11 @@
                                                 :form "front"
                                                 :meaning (copy-object (meaning concept))))))))
     (set-data ontology 'thing
-              (list (make-instance 'shape-concept
-                                   :id 'thing
-                                   :form "thing"
-                                   :meaning nil)))
+              (list (make-instance 'shape-concept :id 'thing  :form "thing" :meaning nil)))
     (push-data ontology 'booleans (make-instance 'boolean-category :id 'yes :bool t))
     (push-data ontology 'booleans (make-instance 'boolean-category :id 'no :bool nil))
     (loop for attribute in '(shape size material color)
           do (clevr-world::add-category-to-ontology ontology attribute 'attribute))
+    (set-data ontology 'world-type world-type)
+    (set-data ontology 'extracted-scenes-path *extracted-scenes-path*)
     ontology))

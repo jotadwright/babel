@@ -168,7 +168,7 @@
     ;; create an alist
     (setf alist
           (mapcar #'(lambda (pair)
-                      (cons (internal-symb (car pair))
+                      (cons (intern (upcase (mkstr (car pair))) :mwm)
                             (cdr pair)))
                   alist))
     ;; split the color channels

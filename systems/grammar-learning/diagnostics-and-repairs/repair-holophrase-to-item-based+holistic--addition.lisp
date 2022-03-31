@@ -151,7 +151,7 @@
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                
                (existing-cxns (list existing-holistic-cxn existing-item-based-cxn))
-               (cxns-to-apply (list item-based-cxn holistic-cxn))
+               (cxns-to-apply (list holistic-cxn item-based-cxn))
                (cat-links-to-add (list categorial-link)) 
                (cxns-to-consolidate (loop for cxn in (list holistic-cxn item-based-cxn)
                                           when (not (member cxn existing-cxns))
