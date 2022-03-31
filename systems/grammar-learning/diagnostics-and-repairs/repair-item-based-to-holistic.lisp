@@ -1,7 +1,7 @@
 (in-package :grammar-learning)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Repair Add holistic construction ;;
+;; Repair item-based->holistic     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass item-based->holistic (repair) 
@@ -32,13 +32,6 @@
                        :repair repair
                        :problem problem
                        :restart-data holistic-cxn-and-categorial-link)))))
-
-(defun subtract-cxn-meanings-from-gold-standard-meaning (cxns gold-standard-meaning)
-  (loop with resulting-meaning = gold-standard-meaning
-                       for cxn in cxns
-                       for meaning = (get-subtracted-meaning-from-cxn cxn gold-standard-meaning)
-                       do (setf resulting-meaning (set-difference resulting-meaning meaning :test #'equal))
-                       finally (return resulting-meaning)))
                 
 (defun create-holistic-cxn-from-partial-analysis (problem node)
   (let* ((processing-cxn-inventory (construction-inventory node))
@@ -51,7 +44,8 @@
                                       original-cxn-inventory
                                       (get-configuration processing-cxn-inventory :learning-strategy)))
          (applied-cxns (applied-constructions best-partial-analysis-node))
-         (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns))))
+         (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
+         (applied-holistic-cxns (filter-by-phrase-type 'holistic applied-cxns)))
     (when item-based-cxn
       (let* ((root-form-constraints (form-predicates-with-variables (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node)))) 'form))))
         (when (check-meets-continuity root-form-constraints) ;there is one continuous string in root

@@ -382,6 +382,13 @@
         when (equal res-unit unit)
         return car))
 
+(defun subtract-cxn-meanings-from-gold-standard-meaning (cxns gold-standard-meaning)
+  (loop with resulting-meaning = gold-standard-meaning
+                       for cxn in cxns
+                       for meaning = (get-subtracted-meaning-from-cxn cxn gold-standard-meaning)
+                       do (setf resulting-meaning (set-difference resulting-meaning meaning :test #'equal))
+                       finally (return resulting-meaning)))
+
 (defun get-subtracted-meaning-from-cxn (cxn gold-standard-meaning)
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn cxn)))
          (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
