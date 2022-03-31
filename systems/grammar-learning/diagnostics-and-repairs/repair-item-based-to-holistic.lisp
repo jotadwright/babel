@@ -33,13 +33,19 @@
                        :problem problem
                        :restart-data holistic-cxn-and-categorial-link)))))
 
-      
+(defun subtract-cxn-meanings-from-gold-standard-meaning (cxns gold-standard-meaning)
+  (loop with resulting-meaning = gold-standard-meaning
+                       for cxn in cxns
+                       for meaning = (get-subtracted-meaning-from-cxn cxn gold-standard-meaning)
+                       do (setf resulting-meaning (set-difference resulting-meaning meaning :test #'equal))
+                       finally (return resulting-meaning)))
                 
 (defun create-holistic-cxn-from-partial-analysis (problem node)
   (let* ((processing-cxn-inventory (construction-inventory node))
          (original-cxn-inventory (original-cxn-set processing-cxn-inventory))
          (utterance (random-elt (get-data problem :utterances)))
          (meaning-representation-formalism (get-configuration processing-cxn-inventory :meaning-representation-formalism))
+         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (best-partial-analysis-node (get-best-partial-analysis-cipn
                                       utterance
                                       original-cxn-inventory
@@ -49,10 +55,36 @@
     (when item-based-cxn
       (let* ((root-form-constraints (form-predicates-with-variables (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node)))) 'form))))
         (when (check-meets-continuity root-form-constraints) ;there is one continuous string in root
-          (let* ((all-cars (append (cipn-car best-partial-analysis-node) (all-parents best-partial-analysis-node)))
-                 (remaining-meaning (loop for car in all-cars
-                                          collect car)
-    ))))))))
+          (let* ((remaining-meaning (subtract-cxn-meanings-from-gold-standard-meaning applied-cxns gold-standard-meaning))
+                 (holistic-cxn-name (make-cxn-name root-form-constraints original-cxn-inventory :add-numeric-tail t :add-cxn-suffix t))
+                 (lex-class-holistic-cxn (make-lex-class holistic-cxn-name :trim-cxn-suffix t))
+                 (lex-classes-item-based-cxn (get-all-unit-lex-classes item-based-cxn))
+                 ;; todo: check which slot is not connected in the network, create the new link
+                 (boundaries-holistic-cxn (get-boundary-units root-form-constraints))
+                 (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
+                 (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
+                 (args-holistic-cxn (extract-args-from-irl-network remaining-meaning))
+                 (holistic-cxn (second (multiple-value-list (eval
+                                                             `(def-fcg-cxn ,holistic-cxn-name
+                                                                           ((,leftmost-unit-holistic-cxn
+                                                                             (args ,args-holistic-cxn)
+                                                                             (syn-cat (phrase-type holistic)
+                                                                                      (lex-class ,lex-class-holistic-cxn))
+                                                                             (boundaries
+                                                                              (left ,leftmost-unit-holistic-cxn)
+                                                                              (right ,rightmost-unit-holistic-cxn)))
+                                                                            <-
+                                                                            (,leftmost-unit-holistic-cxn
+                                                                             (HASH meaning ,remaining-meaning)
+                                                                             --
+                                                                             (HASH form ,root-form-constraints)))
+                                                                           :attributes (:cxn-type holistic
+                                                                                        :repair item-based->holistic
+                                                                                        :meaning ,(fourth (find 'bind remaining-meaning :key #'first))
+                                                                                        :string ,(third (find 'string root-form-constraints :key #'first)))
+                                                                           :cxn-inventory ,(copy-object original-cxn-inventory)))))))))))))
+          
+                 
 
 #|
 (defun create-holistic-cxn (problem node)

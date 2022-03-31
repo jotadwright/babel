@@ -382,6 +382,11 @@
         when (equal res-unit unit)
         return car))
 
+(defun get-subtracted-meaning-from-cxn (cxn gold-standard-meaning)
+  (let* ((cxn-meaning (extract-meaning-predicates (original-cxn cxn)))
+         (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
+    subtracted-meaning))
+
 (defun get-subtracted-meaning-from-car (car gold-standard-meaning)
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
          (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
