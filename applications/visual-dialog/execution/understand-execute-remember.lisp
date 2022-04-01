@@ -107,7 +107,7 @@
                       ((eq target-primitive 'EXIST-OR-COUNT)
                        (if (equal (question-type last-set) 'exist)
                          (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions last-set))
-                       (if (equal (question-type last-set) 'count)
+                       (if (equal (question-type last-set) 'count-objects)
                          (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions last-set))))
                 (setf new-item (make-instance 'turn
                                               :timestamp (+ last-timestamp 1)
