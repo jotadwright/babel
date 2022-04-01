@@ -44,7 +44,7 @@
         collect orig-cxn))
 
 (defun create-new-categorial-links (lex-classes-holistic-cxns lex-classes-item-based-units categorial-network)
-  "Creates all TH links for matching lexical cxns using their original lex-class."
+  "Creates all categorial links for matching holistic cxns using their original lex-class."
   (loop for holistic-cxn-lex-class in lex-classes-holistic-cxns
         for item-slot-lex-class in lex-classes-item-based-units
         unless (neighbouring-categories-p holistic-cxn-lex-class item-slot-lex-class categorial-network)

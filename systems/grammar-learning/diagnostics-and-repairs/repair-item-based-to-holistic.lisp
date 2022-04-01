@@ -4,7 +4,7 @@
 ;; Repair item-based->holistic     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass item-based->holistic (repair) 
+(defclass item-based->holistic (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node)))
   
 (defmethod repair ((repair item-based->holistic)
@@ -51,7 +51,6 @@
           (let* ((remaining-meaning (subtract-cxn-meanings-from-gold-standard-meaning applied-cxns gold-standard-meaning))
                  (holistic-cxn-name (make-cxn-name root-form-constraints original-cxn-inventory :add-numeric-tail t :add-cxn-suffix t))
                  (lex-class-holistic-cxn (make-lex-class holistic-cxn-name :trim-cxn-suffix t))
-                 (lex-classes-item-based-cxn (get-all-unit-lex-classes item-based-cxn))
                  (categorial-network (categorial-network original-cxn-inventory))
                  ;; todo: check which slot is not connected in the network, create the new link
                  ;; for indirectly connected nodes, also add the direct link
@@ -77,7 +76,27 @@
                                                                                         :repair item-based->holistic
                                                                                         :meaning ,(fourth (find 'bind remaining-meaning :key #'first))
                                                                                         :string ,(third (find 'string root-form-constraints :key #'first)))
-                                                                           :cxn-inventory ,(copy-object original-cxn-inventory)))))))))))))
+                                                                           :cxn-inventory ,(copy-object original-cxn-inventory))))))
+                 (all-holistic-cxns (sort-cxns-by-form-string (append
+                                                               (list holistic-cxn)
+                                                               applied-holistic-cxns) utterance))
+                 (lex-classes-holistic-cxns (when all-holistic-cxns (mapcar #'lex-class-cxn all-holistic-cxns)))
+                 (lex-classes-item-based-units (when item-based-cxn (get-all-unit-lex-classes item-based-cxn)))
+                 ;; assign all categorial links
+                 (categorial-links (when (and lex-classes-holistic-cxns
+                                              lex-classes-item-based-units
+                                              (= (length lex-classes-holistic-cxns)
+                                                 (length lex-classes-item-based-units)))
+                                     (create-new-categorial-links lex-classes-holistic-cxns lex-classes-item-based-units categorial-network)))
+
+                 (cxns-to-apply (append all-holistic-cxns (list item-based-cxn)))
+                 (cxns-to-consolidate (list holistic-cxn)))
+            (when categorial-links
+              (list
+               cxns-to-apply
+               categorial-links
+               cxns-to-consolidate
+               ))))))))
           
                  
 
