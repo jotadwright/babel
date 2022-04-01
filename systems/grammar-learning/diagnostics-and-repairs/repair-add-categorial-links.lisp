@@ -35,18 +35,6 @@
                      :problem problem
                      :restart-data cxns-and-categorial-links))))
 
-(defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
-  (set-configuration cxn-inventory :update-categorial-links nil)
-  (set-configuration cxn-inventory :use-meta-layer nil)
-  (set-configuration cxn-inventory :consolidate-repairs nil))
-
-(defun enable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :category-linking-mode :neighbours)
-  (set-configuration cxn-inventory :update-categorial-links t)
-  (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t))
-
 (defun filter-by-phrase-type (type cxns)
   "returns all cxns in the list for the given type"
   (loop for cxn in cxns

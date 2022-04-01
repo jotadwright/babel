@@ -382,6 +382,18 @@
         when (equal res-unit unit)
         return car))
 
+(defun subtract-cxn-meanings-from-gold-standard-meaning (cxns gold-standard-meaning)
+  (loop with resulting-meaning = gold-standard-meaning
+                       for cxn in cxns
+                       for meaning = (get-subtracted-meaning-from-cxn cxn gold-standard-meaning)
+                       do (setf resulting-meaning (set-difference resulting-meaning meaning :test #'equal))
+                       finally (return resulting-meaning)))
+
+(defun get-subtracted-meaning-from-cxn (cxn gold-standard-meaning)
+  (let* ((cxn-meaning (extract-meaning-predicates (original-cxn cxn)))
+         (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
+    subtracted-meaning))
+
 (defun get-subtracted-meaning-from-car (car gold-standard-meaning)
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
          (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
@@ -626,6 +638,8 @@
                                  cxn)))))))
 
 
+
+
 (defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
   ;; handles duplicates by skipping them.  return all first cars (not applied to eachother)
   (with-disabled-monitor-notifications
@@ -645,7 +659,7 @@
                       (= 1 (length cars))) ; if not 1, the cxn matches multiple times
             collect (first cars)))))
 
-(defun find-optimal-coverage-cars (matching-holistic-cars node)
+(defun find-optimal-coverage-cars (matching-holistic-cars node) ;; this should be comprehend with goal test no more strings in root, then iterate through leaf nodes and get the one with shortest root
   "make hypotetical cars, return the one with highest coverage"
   ; todo make overlapping testcases, retry until no overlap or tried combinations of cxns, return car with best score
   (let* ((cars (multiple-value-list (make-hypothetical-car matching-holistic-cars node)))
@@ -766,7 +780,7 @@
   (remove nil (loop for remaining-form in root-strings
         for root-string = (third remaining-form)
         collect (loop for cxn in (constructions cxn-inventory)
-                      when (and (eql (attr-val cxn :cxn-type) 'lexical)
+                      when (and (eql (attr-val cxn :cxn-type) 'holistic)
                                 (string= (third (first (extract-form-predicates cxn))) root-string))
                       return cxn))))
 
@@ -914,3 +928,25 @@
         for in-var = (first (multiple-value-list (extract-vars-from-irl-network (list predicate))))
         when (equal var in-var)
         return predicate))
+
+(defun disable-meta-layer-configuration (cxn-inventory)
+  (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
+  (set-configuration cxn-inventory :update-categorial-links nil)
+  (set-configuration cxn-inventory :use-meta-layer nil)
+  (set-configuration cxn-inventory :consolidate-repairs nil))
+
+(defun enable-meta-layer-configuration (cxn-inventory)
+  (set-configuration cxn-inventory :category-linking-mode :neighbours)
+  (set-configuration cxn-inventory :update-categorial-links t)
+  (set-configuration cxn-inventory :use-meta-layer t)
+  (set-configuration cxn-inventory :consolidate-repairs t)
+  (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
+
+(defmethod get-best-partial-analysis-cipn ((utterance string) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
+  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory original-cxn-inventory)))
+             (cip-nodes (second comprehension-result)))
+        (enable-meta-layer-configuration original-cxn-inventory)
+        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
