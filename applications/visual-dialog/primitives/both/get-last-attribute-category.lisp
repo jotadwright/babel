@@ -34,7 +34,7 @@
   ;; second case: given attribute, compute source-set
   ((attribute source-set => )
    (equal-entity-last-attr attribute source-set))
-  :primitive-inventory *symbolic-primitives*)
+  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
 
 
 (defun equal-entity-last-attr (attribute source-set)

@@ -10,11 +10,11 @@
   ((source-set => target-num)
    (let ((count (length (objects (object-set (first (reverse (set-items source-set))))))))
      (bind (target-num 1.0 ;(make-instance 'digit-category :id count :digit count)
-                       (find-entity-by-id (get-data ontology 'digits) (internal-symb (upcase (format nil "~r" count))))
-                       ))))  
+                       (find-entity-by-id (get-data ontology 'digits) (internal-symb (upcase (format nil "~r" count))))))))
+  
   ;; second case; given source and target, check consistency
   ((source-set target-num =>)
    (let ((count (length (objects (object-set (first (reverse (set-items source-set))))))))
      (equal-entity target-num (find-entity-by-id (get-data ontology 'digits)
                                                  (internal-symb (upcase  (format nil "~r" count)))))))
-  :primitive-inventory *symbolic-primitives*)
+  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
