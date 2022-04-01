@@ -30,23 +30,37 @@
                              (:file "update-memory")))
                (:module "primitives"
                 :serial t
-                :components ((:file "count-objects")
-                             (:file "exist-or-count")
-                             (:file "exists")
-                             (:file "extreme-relate")
-                             (:file "filter")
-                             (:file "find-in-context")
-                             (:file "get-last-attribute-category")
-                             (:file "get-last-topic")
-                             (:file "get-penultimate-topic")
-                             (:file "immediate-relate")
-                             (:file "more-than-one")
-                             (:file "query")
-                             (:file "relate")
-                             (:file "segment-scene")
-                             (:file "select-one")
-                             (:file "set-diff")
-                             (:file "unique")))
+                :components ((:module "both"
+                              :serial t
+                              :components ((:file "count-objects")
+                                           (:file "exist-or-count")
+                                           (:file "exists")
+                                           (:file "get-last-attribute-category")
+                                           (:file "get-last-topic")
+                                           (:file "get-penultimate-topic")
+                                           (:file "more-than-one")
+                                           (:file "select-one")
+                                           (:file "unique")))
+                             (:module "hybrid"
+                              :serial t
+                              :components ((:file "extreme-relate")
+                                           (:file "filter")
+                                           (:file "find-in-context")
+                                           (:file "immediate-relate")
+                                           (:file "query")
+                                           (:file "relate")
+                                           (:file "segment-scene")
+                                           (:file "set-diff")))
+                             (:module "symbolic"
+                              :serial t
+                              :components ((:file "extreme-relate")
+                                           (:file "filter")
+                                           (:file "find-in-context")
+                                           (:file "immediate-relate")
+                                           (:file "query")
+                                           (:file "relate")
+                                           (:file "segment-scene")
+                                           (:file "set-diff")))))
               (:module "evaluation"
                 :serial t
                 :components ((:file "evaluation")))

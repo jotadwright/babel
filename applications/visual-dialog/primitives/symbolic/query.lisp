@@ -18,18 +18,12 @@
   (let* ((attr (attribute attribute-category))
          (spec-attr (cdr (assoc (intern (string attr) "KEYWORD") (attributes object)))))
     "yellow and cyan are bgcolors AND colors, so make sure that the right attribute-category is made"
-    ;(type-of spec-attr)
     (if (not (and (or (eq spec-attr 'yellow)
                       (eq spec-attr 'cyan))
                   (eq attr 'bgcolor)))
       (find-entity-by-id ontology spec-attr)
       (make-instance 'bgcolor-category :id spec-attr :bgcolor spec-attr))))
-  #|(case (attribute attribute-category)
-    
-    (shape (find-entity-by-id ontology (cdr (assoc :shape (attributes object)))))
-    (size (find-entity-by-id ontology (cdr (assoc :size (attributes object)))))
-    (color (find-entity-by-id ontology (cdr (assoc :color (attributes object)))))
-    (material (find-entity-by-id ontology (cdr (assoc :material (attributes object))))))|#
+  
 
  
 (defmethod attribute-none ((attribute-category attribute-category)
