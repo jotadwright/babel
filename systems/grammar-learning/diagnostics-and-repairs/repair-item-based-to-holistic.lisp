@@ -52,13 +52,13 @@
                  (holistic-cxn-name (make-cxn-name root-form-constraints original-cxn-inventory :add-numeric-tail t :add-cxn-suffix t))
                  (lex-class-holistic-cxn (make-lex-class holistic-cxn-name :trim-cxn-suffix t))
                  (categorial-network (categorial-network original-cxn-inventory))
-                 ;; todo: check which slot is not connected in the network, create the new link
-                 ;; for indirectly connected nodes, also add the direct link
                  (boundaries-holistic-cxn (get-boundary-units root-form-constraints))
                  (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
                  (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
                  (args-holistic-cxn (extract-args-from-irl-network remaining-meaning))
-                 (holistic-cxn (second (multiple-value-list (eval
+                 (existing-holistic-cxn (find-cxn-by-form-and-meaning root-form-constraints remaining-meaning original-cxn-inventory :cxn-type 'holistic))
+                 (holistic-cxn (or existing-holistic-cxn
+                                (second (multiple-value-list (eval
                                                              `(def-fcg-cxn ,holistic-cxn-name
                                                                            ((,leftmost-unit-holistic-cxn
                                                                              (args ,args-holistic-cxn)
@@ -76,7 +76,7 @@
                                                                                         :repair item-based->holistic
                                                                                         :meaning ,(fourth (find 'bind remaining-meaning :key #'first))
                                                                                         :string ,(third (find 'string root-form-constraints :key #'first)))
-                                                                           :cxn-inventory ,(copy-object original-cxn-inventory))))))
+                                                                           :cxn-inventory ,(copy-object original-cxn-inventory)))))))
                  (all-holistic-cxns (sort-cxns-by-form-string (append
                                                                (list holistic-cxn)
                                                                applied-holistic-cxns) utterance))
@@ -90,7 +90,7 @@
                                      (create-new-categorial-links lex-classes-holistic-cxns lex-classes-item-based-units categorial-network)))
 
                  (cxns-to-apply (append all-holistic-cxns (list item-based-cxn)))
-                 (cxns-to-consolidate (list holistic-cxn)))
+                 (cxns-to-consolidate (unless existing-holistic-cxn (list holistic-cxn))))
             (when categorial-links
               (list
                cxns-to-apply
