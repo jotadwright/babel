@@ -83,5 +83,3 @@
              categorial-links
              nil)))))))
 
-;; todo: make flag in categorial-network class to indicate whether the network was modified after calculating the transitive closure the last time
-;; when calling the connected-path-p function, set calculate the transitive closure, which resets the flag.

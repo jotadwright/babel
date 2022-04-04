@@ -76,6 +76,13 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 170)
+;(run-series *experiment* 1000)
 
- 
+
+
+#|
+TODO:
+- optimisation: save the comprehend-all result, retrieve it if the sentence matches, see categorial-links repair
+
+
+|#
