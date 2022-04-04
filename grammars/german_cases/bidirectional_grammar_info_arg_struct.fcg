@@ -238,8 +238,7 @@
                                (- - - - -)      
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?dm ?df ?dn ?dp))))
-               (HASH meaning ((manner ?x)
-                              (accompany-01 ?x)
+               (HASH meaning ((accompany-01 ?x)
                               (polarity ?x +)))
                --
                (HASH form ((string ?with-word "mit")))))
@@ -684,7 +683,7 @@
                (subunits (?aux-unit ?participle-unit))
                (syn-cat (lex-class verb)
                         (aspect perfect)
-                        (type intransitive))
+                        (type single-intransitive))
                (boundaries (leftmost-unit ?aux-unit)
                            (rightmost-unit ?participle-unit))
                (referent ?ig))
@@ -1388,7 +1387,68 @@
 
 ;;;VERBS PERFECT
 
-(def-fcg-cxn topic-arg0-arg4-perfect-information-structure-cxn
+;der Mann ist gegen den Clown gefahren
+
+(def-fcg-cxn intransitive-argument-structure-perfect-cxn
+             ((?intransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?location-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?location-unit
+               (syn-cat (syn-role locative-complement)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type single-intransitive))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type single-intransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+              (referent ?arg0))
+              
+         
+              (?location-unit
+               (syn-cat (lex-class prep-phrase)
+                   (case ((- - - - -) 
+                      (?acc ?am ?af ?an ?ap)         
+                      (- - - - -)         
+                      (?dat ?dm ?df ?dn ?dp)
+                      (?ls ?m ?f ?n ?lp))))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -) 
+                              (?acc ?am ?af ?an ?ap)         
+                              (- - - - -)         
+                              (?dat ?dm ?df ?dn ?dp)
+                              (?ls ?m ?f ?n ?lp))))
+              (referent ?arg1))
+              
+              (?intransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)))                  
+               --
+               )))
+
+
+(def-fcg-cxn topic-arg0-arg1-perfect-information-structure-cxn
              (
               <-
               (?argument-structure-unit
@@ -1404,7 +1464,7 @@
               (?verb-unit
                (subunits (?aux-unit ?participle-unit))
                (syn-cat (lex-class verb)
-                       (type intransitive)
+                       (type single-intransitive)
                        (aspect perfect))
                (boundaries (leftmost-unit ?aux-unit)
                           (rightmost-unit ?participle-unit))
@@ -1412,7 +1472,7 @@
                 --
               (subunits (?aux-unit ?participle-unit))
               (syn-cat (lex-class verb)
-                       (type intransitive)
+                       (type single-intransitive)
                        (aspect perfect))
               (boundaries (leftmost-unit ?aux-unit)
                           (rightmost-unit ?participle-unit)))
@@ -1656,7 +1716,8 @@
               
               (?intransitive-extra-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
-                              (:accompany ?v ?accompany)
+                              (:manner ?v ?accompany)
+                              (:arg1 ?accompany ?arg0)
                               (:arg4 ?v ?arg4)))                  
                --
                )))
@@ -1724,7 +1785,7 @@
              ((?intransitive-extra-argument-arg1-structure-unit
               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
               (?agent-unit
-               (syn-cat (syn-role subject)))
+              (syn-cat (syn-role subject)))
               (?extra-info-unit
                (syn-cat (syn-role extra-information)))
               (?location-unit
@@ -1789,7 +1850,8 @@
               (?intransitive-extra-argument-arg1-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:manner ?v ?manner)
-                              (:arg1 ?v ?arg1)))                  
+                              (:arg1 ?v ?arg1)
+                              (:arg1 ?manner ?arg0)))                  
                --
                )))
 
@@ -1938,18 +2000,22 @@
 ;;;beim Bäcker ist der Mann
 (formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
 
-;;; der Mann ist gegen den Shop gefahren 
-(formulate-all '((drove-01 ig) (man m) (arg0 ig m) (shop s) (arg4 ig s) (topicalized m +)))
+;;; der Mann ist gegen den Clown gefahren 
+(formulate-all '((clown c) (man m) (drove-01 ig) (arg1 ig c) (arg0 ig m) (topicalized m +)))
 
 ;; der Mann hat für den Clown die Blumen mitgebracht  ------>some issues
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit  ------>some issues (too general ?)
-;(formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg4 g w) (accompany g c) (polarity c -) (topicalized m +)))
+;(formulate '((gehen-01 g) (man m) (clown c) (work w) (arg0 g m) (arg4 g w) (accompany-01 a c) (polarity c -) (topicalized m +)))
 
-(formulate '((man m) (clown ?c) (accompany-01 a) (polarity a -) (work w) (arg0 a c) (gehen-01 g) (arg4 g w) (accompany g a) (arg0 g m) (topicalized m +)))
+(formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a -) (arg0 a c) (arg1 a m) (gehen-01 g) (arg4 g w) (manner g a) (arg0 g m) (topicalized m +)))
+
 
 ;;der Mann fährt mit dem Fahrrad zur Arbeit
-(formulate-all '((fahren-01 f) (man m) (bike b) (work w) (arg0 f m) (arg1 f w) (extra-info f b) (topicalized m +)))
+
+(formulate '((bike f) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
+
+
 
 
