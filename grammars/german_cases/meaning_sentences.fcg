@@ -109,7 +109,7 @@ der Polizist sucht den Bäcker
 ((suchen-01 s) (baker b) (policeman p) (arg0 s p) (arg1 s b) (topicalized p +))
 
 der Hund verfolgt den Mann
-((verfolgen-01 v) (man m) (dog d) (arg0 v m) (arg1 v d) (topicalized m +))
+((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +))
 
 der Tiger tötet den Jäger
 ((töten-01 t) (tiger ti) (hunter h) (arg0 t ti) (arg1 t h) (topicalized ti +))
@@ -125,7 +125,7 @@ den Bäcker sucht der Polizist
 ((suchen-01 s) (baker b) (policeman p) (arg0 s p) (arg1 s b) (topicalized b +))
 
 den Mann verfolgt der Hund
-((verfolgen-01 v) (man m) (dog d) (arg0 v m) (arg1 v d) (topicalized md+))
+((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized m +))
 
 den Jäger tötet der Tiger 
 ((töten-01 t) (tiger ti) (hunter h) (arg0 t ti) (arg1 t h) (topicalized h +))
@@ -138,7 +138,7 @@ den Kellner ruft der König
 ;;;ditransitives non-topicalized sentences 
 
 die Frau gibt dem Mann den Apfel
-((geben-01 g) (woman w) (man m) (apple a) (arg0 g w) (arg1 g a) (arg2 m) (topicalized w +))
+((geben-01 g) (woman w) (man m) (apple a) (arg0 g w) (arg1 g a) (arg2 g m) (topicalized w +))
 
 der Clown verkauft dem Doktor das Buch
 ((verkaufen-01 v) (clown c) (doctor d) (book b) (arg0 v c) (arg1 v b) (arg2 v d) (topicalized c +))
@@ -154,12 +154,12 @@ der Vater zeigt dem Sohn die Brille
 ;;;;ditransitive topicalized sentences 
 
 dem Mann gibt die Frau den Apfel 
-((geben-01 g) (woman w) (man m) (apple a) (arg0 g w) (arg1 g a) (arg2 m) (topicalized m +))
+((geben-01 g) (woman w) (man m) (apple a) (arg0 g w) (arg1 g a) (arg2 g m) (topicalized m +))
 
 dem Doktor verkauft der Clown das Buch 
 ((verkaufen-01 v) (clown c) (doctor d) (book b) (arg0 v c) (arg1 v b) (arg2 v d) (topicalized d +))
 
-dem Direktor schenkt die Lehrerin das Buch 
+dem Direktor schenkt die Lehrerin die Blumen
 ((schenken-01 s) (teacher t) (director d) (flowers f) (arg0 s t) (arg1 s f) (arg2 s d) (topicalized d +))
 
 dem Sohn zeigt der Vater die Brille 
