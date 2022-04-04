@@ -65,7 +65,7 @@
         ;;there is a solution with connected links in the categorial-network
         (when (member 'succeeded (statuses cip-node) :test #'string=)
           (let* ((applied-cxns (applied-constructions cip-node))
-                 (holistic-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'holistic applied-cxns) utterance)) ; why sort? reuse the same lookup function from the holistic->item-based repair
+                 (holistic-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'holistic applied-cxns) utterance cxn-inventory)) ; why sort? reuse the same lookup function from the holistic->item-based repair
                  (lex-classes-holistic-cxns (when holistic-cxns
                                          (map 'list #'lex-class-cxn holistic-cxns)))
                  (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
