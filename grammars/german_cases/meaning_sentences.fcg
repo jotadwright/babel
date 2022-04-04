@@ -179,7 +179,7 @@ die Frau ist beim Bäcker
 
 
 der Mann spaziert durch den Tunnel 
-((spazieren-01 s) (man m) (tunnel t) (arg0 s m) (arg1 s t))  ;;;exception like fahren only arg0 and arg1
+((spazieren-01 s) (man m) (tunnel t) (arg0 s m) (arg2 s t))  ;;;exception like fahren only arg0 and arg1
 
 der Mann ist gegen den Baum gefahren 
 ((drove-01 ig) (man m) (arg0 ig m) (tree t) (arg1 ig t) (topicalized m +))
@@ -202,10 +202,10 @@ beim Bäcker ist die Frau
 ;;;intransitive with double complement 
 
 die Mutter geht ohne den Sohn zum Laden 
-((gehen-01 g) (mother m) (son s) (shop s) (arg0 g m) (arg4 g s) (accompany-01 a) (polarity a -) (manner g a) (arg0 a s) (arg1 a m) (topicalized m +))
+((gehen-01 g) (mother m) (son s) (shop sh) (arg0 g m) (arg4 g sh) (accompany-01 a) (polarity a -) (manner g a) (arg0 a s) (arg1 a m) (topicalized m +))
 
 der Mann fährt mit dem Fahrrad zur Arbeit 
-(formulate '((bike f) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
+(formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
 
 
 

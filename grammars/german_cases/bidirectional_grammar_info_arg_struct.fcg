@@ -10,7 +10,7 @@
                   (footprints set)
                   (case sequence))
   :fcg-configurations ((:max-nr-of-nodes . 40000)
-                       (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
+                       (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
@@ -112,7 +112,9 @@
               <-
               (?to-word
                (footprints (not article))
-               (syn-cat (lex-class contracted-preposition) 
+               (syn-cat (lex-class contracted-preposition)
+                        (type motion-locative)
+                        (polarity +)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
@@ -128,7 +130,9 @@
               <-
               (?to-word
                (footprints (not article))
-               (syn-cat (lex-class contracted-preposition) 
+               (syn-cat (lex-class contracted-preposition)
+                        (type motion-locative)
+                        (polarity +)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
@@ -144,7 +148,9 @@
               <-
               (?at-word
                (footprints (not article))
-               (syn-cat (lex-class contracted-preposition) 
+               (syn-cat (lex-class contracted-preposition)
+                        (type stative-locative)
+                        (polarity +)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
@@ -161,6 +167,7 @@
               (?against-word
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
+                        
                         (case ((- - - - -)      
                                (?acc ?am ?af ?an ?ap)        
                                (- - - - -)      
@@ -177,6 +184,8 @@
               (?through-word
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
+                        (polarity +)
+                        (type motion-locative)
                         (case ((- - - - -)      
                                (?acc ?am ?af ?an ?ap)        
                                (- - - - -)      
@@ -194,6 +203,8 @@
               (?for-word
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
+                        (polarity +)
+                        (type addressing)
                         (case ((- - - - -)      
                                (?acc ?am ?af ?an ?ap)        
                                (- - - - -)      
@@ -205,10 +216,11 @@
 
 (def-fcg-cxn ohne-cxn
              ((?without-word
-               (referent ?x)
+               
                (footprints (preposition)))
               <-
               (?without-word
+               (referent ?x)
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
                         (type accompanying)
@@ -226,13 +238,15 @@
 
 (def-fcg-cxn mit-cxn
              ((?with-word
-               (referent ?x)
+               
                (footprints (preposition)))
               <-
               (?with-word
+               (referent ?x)
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
                         (type accompanying)
+                        (polarity +)
                         (case ((- - - - -)      
                                (- - - - -)        
                                (- - - - -)      
@@ -252,6 +266,8 @@
               (?from-word
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
+                        (polarity +)
+                        (type from-motion-locative)
                         (case ((- - - - -)      
                                (- - - - -)        
                                (- - - - -)      
@@ -428,6 +444,8 @@
               (?contracted-prep
                --
                (syn-cat (lex-class contracted-preposition)
+                        (type ?type)
+                        (polarity +)
                         (case ?case)))
               (?noun
                (footprints (not determined))
@@ -460,7 +478,7 @@
                (boundaries (leftmost-unit ?preposition)
                            (rightmost-unit ?noun)))
               (?preposition
-               (referent ?x)
+               ;(referent ?x)
                (part-of-prep-phrase +))
               
               (?article
@@ -474,8 +492,11 @@
               <-
 
               (?preposition
+               
                --
                (syn-cat (lex-class preposition)
+                        (type ?type)
+                        (polarity ?polarity)
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
                                (?gen ?gm ?gf ?gn ?gp)       
@@ -529,30 +550,21 @@
                (boundaries (leftmost-unit ?preposition)
                            (rightmost-unit ?noun)))
               (?preposition
-               (referent ?x)
-               (syn-cat(type accompanying))
                (part-of-prep-phrase +))
               
-              (?article)
+              (?article
+              (part-of-prep-phrase +))
 
               (?noun
                (footprints (determined)))
               <-
 
-              (?preposition
-               (referent ?x)
-               (syn-cat (lex-class preposition)
-                        (type accompanying)
-                        (case ((- - - - -)     
-                               (?acc ?am ?af ?an ?ap)      
-                               (- - - - -)       
-                               (?dat ?dm ?df ?dn ?dp)
-                               (?s ?m ?f ?n ?p)))
-                        )
+              (?preposition    
                --
                (referent ?x)
                (syn-cat (lex-class preposition)
                         (type accompanying)
+                        (polarity ?polarity)
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
                                (- - - - -)       
@@ -1250,7 +1262,7 @@
               ))
 
 
-(def-fcg-cxn topic-arg0-arg4-information-structure-cxn
+(def-fcg-cxn topic-arg0-arg4-information-structure-cxn   ;;;;check why this one applies also to the extra-info structure
              (
               <-
               (?argument-structure-unit
@@ -1908,12 +1920,14 @@
               
               (?extra-info-unit
                (syn-cat (syn-role extra-information)
-                        (lex-class prep-phrase))
+                        (lex-class prep-phrase)
+                        )
                (boundaries (leftmost-unit ?leftmost-extra-info-unit)
                           (rightmost-unit ?rightmost-extra-info-unit))
                 --
               (syn-cat (syn-role extra-information)
-                       (lex-class prep-phrase))
+                       (lex-class prep-phrase)
+                       )
               (boundaries (leftmost-unit ?leftmost-extra-info-unit)
                           (rightmost-unit ?rightmost-extra-info-unit)))
               
@@ -2126,7 +2140,13 @@
 
 
 ;;; NPs with Determiners and PPs with NP+P or Contracted P
-(formulate-all '((baker x)))
+(formulate-all '((man x)))
+
+;((man x) (accompany-01 a) (polarity a ) (arg0 a x))
+
+(comprehend-all "ohne den Mann")
+
+
 
 ;;;; der Mann sucht den Clown
 (formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +)))
@@ -2163,7 +2183,7 @@
 
 ;;der Mann fährt mit dem Fahrrad zur Arbeit
 
-(formulate '((bike f) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
+(formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
 
 
 
