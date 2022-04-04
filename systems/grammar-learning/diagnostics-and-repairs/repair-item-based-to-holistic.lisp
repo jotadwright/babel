@@ -57,8 +57,6 @@
                  (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
                  (args-holistic-cxn (extract-args-from-irl-network remaining-meaning))
                  (existing-holistic-cxn (find-cxn-by-form-and-meaning root-form-constraints remaining-meaning original-cxn-inventory :cxn-type 'holistic))
-                 (bla (unless leftmost-unit-holistic-cxn
-                        (format t "error!")))
                  (holistic-cxn (or existing-holistic-cxn
                                 (second (multiple-value-list (eval
                                                              `(def-fcg-cxn ,holistic-cxn-name
