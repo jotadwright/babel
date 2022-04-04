@@ -3,7 +3,7 @@
 
 (defconstant +placeholder-vars+ '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W"))
 
-(defun sort-cxns-by-form-string (cxns-to-sort utterance)
+(defun sort-cxns-by-form-string (cxns-to-sort utterance cxn-inventory)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
   ;; warning, this function depends on space separation without further punctuation!
   ;; todo: replace by looking up meets constraints!
@@ -11,7 +11,9 @@
     cxns-to-sort
     (let ((resulting-list (make-list (length utterance))))
       (loop for cxn-obj in cxns-to-sort
-            for cxn-string = (third (first (extract-form-predicates cxn-obj)))
+            for cxn-string = (format nil "~{~a~^ ~}"
+                                     (render (extract-form-predicates cxn-obj)
+                                             (get-configuration cxn-inventory :render-mode))) 
             do (loop
                 with sub-length = (length cxn-string)
                 for i from 0 to (- (length utterance) sub-length)
@@ -82,8 +84,9 @@
       (and (= 1 (length left-most-diff))
            (= 1 (length right-most-diff))
            (not string-meets-diff)
-           (not meets-string-diff))
-      t)))
+           (not meets-string-diff)
+           (get-boundary-units form-constraints))
+      (get-boundary-units form-constraints))))
 
 (defun add-boundaries-to-form-constraints (form-constraints boundaries &key placeholder-var)
   "given a list of boundaries that correspond to a certain slot and a list of form constraints,
@@ -381,6 +384,18 @@
         for res-unit = (last-elt (remove root resulting-left-pole-structure)) ;;match with last
         when (equal res-unit unit)
         return car))
+
+(defun subtract-cxn-meanings-from-gold-standard-meaning (cxns gold-standard-meaning)
+  (loop with resulting-meaning = gold-standard-meaning
+                       for cxn in cxns
+                       for meaning = (get-subtracted-meaning-from-cxn cxn gold-standard-meaning)
+                       do (setf resulting-meaning (set-difference resulting-meaning meaning :test #'equal))
+                       finally (return resulting-meaning)))
+
+(defun get-subtracted-meaning-from-cxn (cxn gold-standard-meaning)
+  (let* ((cxn-meaning (extract-meaning-predicates (original-cxn cxn)))
+         (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
+    subtracted-meaning))
 
 (defun get-subtracted-meaning-from-car (car gold-standard-meaning)
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))

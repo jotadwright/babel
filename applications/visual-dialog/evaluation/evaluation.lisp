@@ -129,21 +129,26 @@
                  for file-content = (open file)
                  for question-result = (last-elt (split-string (last-elt (stream->list file-content)) " "))
                  when (not (equal question-result "1.0"))
-                   collect file)))
+                   collect file
+                 do (close file-content))))
      failed-dialogs))
 
 (defun check-failed-dialogs (failed-dialogs multiple-middles-file)
   (with-open-file (str multiple-middles-file)
-    (loop for dialog in failed-dialogs
-          for file-content = (open dialog)
-          for lines = (stream->list file-content)
-          do (loop for line in lines
-                   for split-line = (split-string line ":")
-                   for (scene dialog) = (multiple-value-list (split-string (first split-line) ","))
-                   for results = (read-from-string (last-elt split-line))
-                   if (and (not (equal (average results) 1))
-                           (not (find scene (read-from-string str))))
-                     collect scene))))
+    (let ((middles-list (read-from-string (read-line  str))))
+      (loop for dialog in failed-dialogs
+            do (with-open-file (dialog-file dialog)
+                 (let ((lines (stream->list dialog-file)))
+                   (loop for line in lines
+                           when (and (not (string= (first-word line) "dialog-level-accuracy"))
+                                     (not (string= (first-word line) "question-level-accuracy")))
+                           do (let* ((split-line (split-string line ":"))
+                                     (scene (parse-integer (first (split-string (first split-line) ","))))
+                                     (results (read-from-string (last-elt split-line))))
+                                (if (and (not (equal (average results) 1.0))
+                                         (not (find scene middles-list)))
+                                  (format t "~a~%" line))))))))))
+
                 
 
 (defun collect-problematic-middle-scenes ()

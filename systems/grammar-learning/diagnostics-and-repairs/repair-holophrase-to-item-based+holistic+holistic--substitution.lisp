@@ -87,8 +87,7 @@ based on existing construction with sufficient overlap."
                 leftmost-unit-holistic-cxn-1)
                (unit-name-holistic-cxn-2
                 leftmost-unit-holistic-cxn-2)
-               
-               ;; args and syn-cat
+               ;; lex classes
                (lex-class-holistic-cxn-1
                 (if holistic-cxn-1
                   (lex-class-cxn holistic-cxn-1)
@@ -106,15 +105,13 @@ based on existing construction with sufficient overlap."
                 (cons lex-class-holistic-cxn-1 lex-class-item-based-cxn))
                (categorial-link-2
                 (cons lex-class-holistic-cxn-2 lex-class-item-based-cxn))
-               ;; Args
+               ;; args
                (args-holistic-cxn-1
                 (extract-args-from-irl-network non-overlapping-meaning-cxn))
-               
-               
                (args-holistic-cxn-2
                 (extract-args-from-irl-network non-overlapping-meaning-observation))
                (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
-               ;; CXNs
+               ;; cxns
                
                (new-holistic-cxn-1
                 (or holistic-cxn-1

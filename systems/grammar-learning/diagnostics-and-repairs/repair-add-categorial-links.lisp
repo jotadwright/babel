@@ -44,7 +44,7 @@
         collect orig-cxn))
 
 (defun create-new-categorial-links (lex-classes-holistic-cxns lex-classes-item-based-units categorial-network)
-  "Creates all TH links for matching lexical cxns using their original lex-class."
+  "Creates all categorial links for matching holistic cxns using their original lex-class."
   (loop for holistic-cxn-lex-class in lex-classes-holistic-cxns
         for item-slot-lex-class in lex-classes-item-based-units
         unless (neighbouring-categories-p holistic-cxn-lex-class item-slot-lex-class categorial-network)
@@ -65,7 +65,7 @@
         ;;there is a solution with connected links in the categorial-network
         (when (member 'succeeded (statuses cip-node) :test #'string=)
           (let* ((applied-cxns (applied-constructions cip-node))
-                 (holistic-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'holistic applied-cxns) utterance)) ; why sort? reuse the same lookup function from the holistic->item-based repair
+                 (holistic-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'holistic applied-cxns) utterance cxn-inventory)) ; why sort? reuse the same lookup function from the holistic->item-based repair
                  (lex-classes-holistic-cxns (when holistic-cxns
                                          (map 'list #'lex-class-cxn holistic-cxns)))
                  (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
