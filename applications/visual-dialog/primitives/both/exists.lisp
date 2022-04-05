@@ -25,7 +25,7 @@
            (if (> (get-length source-set) 0)
              'yes 'no))))
      (equal-entity target-bool boolean-category)))
-  :primitive-inventory *symbolic-primitives*)
+  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
 
 
 (defgeneric get-length (object)

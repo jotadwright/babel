@@ -12,7 +12,10 @@
 
 (in-package :visual-dialog)
 
-(export '(*visual-dialog-primitives*))
+(export '(*symbolic-primitives* *hybrid-primitives*))
 
 (def-irl-primitives symbolic-primitives
   :primitive-inventory *symbolic-primitives*)
+
+(def-irl-primitives hybrid-primitives
+  :primitive-inventory *hybrid-primitives*)

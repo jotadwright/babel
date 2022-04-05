@@ -16,6 +16,6 @@
   ((source-set target-object-set =>)
    (and (length= (objects (object-set (first (set-items source-set)))) 1)
         (equal-entity target-object-set (first (objects (object-set (first (set-items source-set))))))))
-  :primitive-inventory *symbolic-primitives*)
+  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
 
 
