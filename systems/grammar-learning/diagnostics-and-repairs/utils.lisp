@@ -385,12 +385,21 @@
         when (equal res-unit unit)
         return car))
 
-(defun subtract-cxn-meanings-from-gold-standard-meaning (cxns gold-standard-meaning)
+
+(defun get-inverted-cxn-meanings (cxns gold-standard-meaning)
+  "does the inverse set difference between the gold std meaning and the cxn meanings, as to return the matching part from the gold standard meanings that can be subtracted with equals"
+  (loop for cxn in cxns
+        for meaning = (get-subtracted-meaning-from-cxn cxn gold-standard-meaning)
+        collect meaning))
+
+(defun cxn-meaning-is-valid-gold-standard-subset-p (cxn-meanings)
+  (never nil cxn-meanings))
+
+(defun subtract-cxn-meanings-from-gold-standard-meaning (cxn-meanings gold-standard-meaning)
   (loop with resulting-meaning = gold-standard-meaning
-                       for cxn in cxns
-                       for meaning = (get-subtracted-meaning-from-cxn cxn gold-standard-meaning)
-                       do (setf resulting-meaning (set-difference resulting-meaning meaning :test #'equal))
-                       finally (return resulting-meaning)))
+        for meaning in cxn-meanings
+        do (setf resulting-meaning (set-difference resulting-meaning meaning :test #'equal))
+        finally (return resulting-meaning)))
 
 (defun get-subtracted-meaning-from-cxn (cxn gold-standard-meaning)
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn cxn)))

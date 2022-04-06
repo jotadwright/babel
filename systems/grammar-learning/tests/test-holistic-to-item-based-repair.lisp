@@ -134,7 +134,7 @@
                                        (bind size-category ?size-4 large)
                                        (query ?target-4 ?target-object-1 ?attribute-2))))))))
 
-(deftest test-holistic-to-item-based-duplicates-comprehension ()
+(defun test-holistic-to-item-based-duplicates-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "Are any green cubes visible?"
@@ -155,23 +155,21 @@
                                        (filter ?target-2 ?target-1 ?color-8)))
     (test-repair-status 'nothing->holophrase
                         (second (multiple-value-list
-                                 (comprehend "Are there fewer matte cubes than large green shiny cubes?"
+                                 (comprehend "Are there fewer small cubes than blue matte cubes?"
               :cxn-inventory cxn-inventory
-              :gold-standard-meaning '((bind material-category ?material-2 rubber)
-                                       (filter ?target-9839 ?source-1 ?shape-5228)
-                                       (bind color-category ?color-8 green)
-                                       (filter ?target-2 ?target-1 ?material-4)
-                                       (bind material-category ?material-4 metal)
-                                       (filter ?target-1 ?source-1 ?shape-2)
+              :gold-standard-meaning '((bind color-category ?color-6 blue)
+                                       (filter ?target-2 ?target-7233 ?material-2)
+                                       (bind material-category ?material-2 rubber)
+                                       (filter ?target-7233 ?source-7047 ?shape-4)
                                        (bind shape-category ?shape-2 cube)
-                                       (bind shape-category ?shape-5228 cube)
-                                       (filter ?target-9842 ?target-2 ?color-8)
-                                       (bind size-category ?size-4 large)
-                                       (get-context ?source-1)
-                                       (filter ?target-9843 ?target-9842 ?size-4)
-                                       (filter ?target-9845 ?target-9839 ?material-2)
-                                       (count! ?count-5 ?target-9845)
-                                       (count! ?count-6 ?target-9843)
+                                       (bind shape-category ?shape-4 cube)
+                                       (filter ?target-1 ?source-7047 ?shape-2)
+                                       (bind size-category ?size-2 small)
+                                       (get-context ?source-7047)
+                                       (filter ?target-7238 ?target-2 ?color-6)
+                                       (filter ?target-7235 ?target-1 ?size-2)
+                                       (count! ?count-5 ?target-7235)
+                                       (count! ?count-6 ?target-7238)
                                        (less-than ?target-74 ?count-5 ?count-6))))))))
 
 (deftest test-double-holistic-to-item-based-from-substitution-repair-comprehension ()
