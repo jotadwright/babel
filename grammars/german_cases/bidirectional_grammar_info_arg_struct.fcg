@@ -113,7 +113,7 @@
               (?to-word
                (footprints (not article))
                (syn-cat (lex-class contracted-preposition)
-                        (type motion-locative)
+                        (type motion-locative-contracted)
                         (polarity +)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
@@ -131,7 +131,7 @@
               (?to-word
                (footprints (not article))
                (syn-cat (lex-class contracted-preposition)
-                        (type motion-locative)
+                        (type motion-locative-contracted)
                         (polarity +)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
@@ -167,7 +167,8 @@
               (?against-word
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
-                        
+                        (polarity +)
+                        (type motion-locative)
                         (case ((- - - - -)      
                                (?acc ?am ?af ?an ?ap)        
                                (- - - - -)      
@@ -1439,6 +1440,7 @@
          
               (?location-unit
                (syn-cat (lex-class prep-phrase)
+                        (type stative-locative)
                    (case ((- - - - -) 
                       (?acc ?am ?af ?an ?ap)         
                       (- - - - -)         
@@ -1447,7 +1449,7 @@
                (referent ?arg2)
                 --
               (syn-cat (lex-class prep-phrase)
-                        (case ((- - - - -) 
+                       (case ((- - - - -) 
                               (?acc ?am ?af ?an ?ap)         
                               (- - - - -)         
                               (?dat ?dm ?df ?dn ?dp)
@@ -1537,12 +1539,14 @@
               (?location-unit
                (referent ?arg2)
                (syn-cat (syn-role locative-complement)
+                        (type stative-locative)
                         (lex-class prep-phrase))
                (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit))
                 --
               (referent ?arg2)
               (syn-cat (syn-role locative-complement)
+                       (type stative-locative)
                        (lex-class prep-phrase))
               (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit)))
@@ -2142,7 +2146,7 @@
 ;;; NPs with Determiners and PPs with NP+P or Contracted P
 (formulate-all '((man x)))
 
-;((man x) (accompany-01 a) (polarity a ) (arg0 a x))
+(formulate '((man x) (accompany-01 a) (polarity a -) (arg0 a x)))
 
 (comprehend-all "ohne den Mann")
 
@@ -2152,7 +2156,7 @@
 (formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +)))
 
 ;;; den Clown sucht der Mann
-(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
+(formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
 ;;; der Mann schenkt dem Clown die Blumen
 (formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized m +)))
@@ -2167,10 +2171,10 @@
 (formulate '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized s +)))
 
 ;;;der Mann ist beim Bäcker
-(formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +)))
+(formulate '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +) (loc-stative-complement b)))
 
 ;;;beim Bäcker ist der Mann
-(formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
+(formulate '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
 
 ;;; der Mann ist gegen den Clown gefahren 
 (formulate-all '((clown c) (man m) (drove-01 ig) (arg1 ig c) (arg0 ig m) (topicalized m +)))
