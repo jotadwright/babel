@@ -52,15 +52,14 @@
 ;; Interfacing with using http request and json ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun send-request (route json &key (host *penelope-host*) (read-timeout 20) (write-timeout 20))
+(defun send-request (route json &key (host *penelope-host*) (connection-timeout 20))
   "Send curl request and returns the answer."
   (let* ((url (string-append host route))
          (response (drakma:http-request url
                                         :method :post
                                         :content-type "application/json"
                                         :content json
-                                        :read-timeout read-timeout
-                                        :write-timeout write-timeout)))
+                                        :connection-timeout connection-timeout)))
     (when response (handler-case (cl-json:decode-json-from-string response)
                      (error (e)
                        (format t "Error in response from spacy API service [nlp-tools penelope-interface]: ~S.~&" e))))))
