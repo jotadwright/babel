@@ -169,7 +169,7 @@
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
                         (polarity +)
-                        (type motion-locative)
+                        (type motion-locative-end)
                         (case ((- - - - -)      
                                (?acc ?am ?af ?an ?ap)        
                                (- - - - -)      
@@ -206,7 +206,7 @@
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
                         (polarity +)
-                        (type addressing)
+                        (type benefactive)
                         (case ((- - - - -)      
                                (?acc ?am ?af ?an ?ap)        
                                (- - - - -)      
@@ -346,6 +346,22 @@
                (HASH meaning ((tunnel ?t)))                     
                --
                (HASH form ((string ?tunnel-word  "Tunnel"))))))
+
+(def-fcg-cxn Baum-cxn
+             ((?tree-word
+               (referent ?b)                  
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -)))
+                        (animacy inanimate)))
+              <-
+              (?tree-word
+               (HASH meaning ((tree ?b)))                     
+               --
+               (HASH form ((string ?tree-word  "Baum"))))))
 
 
 (def-fcg-cxn Fahrrad-cxn
@@ -969,7 +985,8 @@
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type ditransitive))
+                       (type ditransitive)
+                       (aspect non-perfect))
                (referent ?v)
                 --
               (syn-cat (lex-class verb)
@@ -1779,19 +1796,21 @@
          
               (?location-unit
                (syn-cat (lex-class prep-phrase)
+                        (type motion-locative-end)
+                        (genre extended-prep-phrase)
                    (case ((- - - - -) 
                       (?acc ?am ?af ?an ?ap)         
                       (- - - - -)         
-                      (?dat ?dm ?df ?dn ?dp)
-                      (?ls ?m ?f ?n ?lp))))
+                      (- - - - -)
+                      (?ls ?am ?af ?an ?lp))))
                (referent ?arg1)
                 --
               (syn-cat (lex-class prep-phrase)
                         (case ((- - - - -) 
-                              (?acc ?am ?af ?an ?ap)         
-                              (- - - - -)         
-                              (?dat ?dm ?df ?dn ?dp)
-                              (?ls ?m ?f ?n ?lp))))
+                      (?acc ?am ?af ?an ?ap)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (?ls ?am ?af ?an ?lp))))
               (referent ?arg1))
               
               (?intransitive-argument-structure-unit
@@ -1857,7 +1876,7 @@
 
 ;der Mann hat für den Clown die Blumen mitgebracht
 
-(def-fcg-cxn direct-and-indirect-obj-argument-structure-cxn
+(def-fcg-cxn direct-and-indirect-obj-perfect-argument-structure-cxn
              ((?direct-and-indirect-obj-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?benefactive-unit ?patient-unit)))
               (?agent-unit
@@ -1897,11 +1916,16 @@
               
               (?benefactive-unit
                (syn-cat (lex-class prep-phrase)
-                        (case ?case))
+                        (type benefactive)
+                        (genre extended-prep-phrase)
+                        (case ((- - - - -) 
+                               (+ ?bm ?bf ?bn ?bp)        
+                               (- - - - -)         
+                               (- - - - -)
+                               (?bs ?bm ?bf ?bn ?bp))))
                (referent ?arg2)
                 --
-              (syn-cat (lex-class prep-phrase)
-                        (case ?case))
+              (syn-cat (lex-class prep-phrase))
               (referent ?arg2))
               
               (?patient-unit
@@ -1910,7 +1934,7 @@
                                (+ ?am ?af ?an ?ap)        
                                (- - - - -)         
                                (- - - - -)
-                               (?ps ?am ?af ?an ?ap))))
+                               (?ps ?am ?af ?an ?pp))))
                (referent ?arg1)
                 --
               (syn-cat (lex-class noun-phrase)
@@ -1918,7 +1942,7 @@
                                (+ ?am ?af ?an ?ap)        
                                (- - - - -)         
                                (- - - - -)
-                               (?ps ?am ?af ?an ?ap))))
+                               (?ps ?am ?af ?an ?pp))))
               (referent ?arg1))
               
               (?direct-and-indirect-obj-argument-structure-unit
@@ -2373,11 +2397,16 @@
 ;;; der Mann spaziert durch den Tunnel
 (formulate-all '((MAN ?M) (TUNNEL ?T) (SPAZIEREN-01 ?S) (ARG2 ?S ?T) (ARG0 ?S ?M) (TOPICALIZED ?M +)))
 
-;;; der Mann ist gegen den Clown gefahren 
-(formulate-all '((clown c) (man m) (drove-01 ig) (arg1 ig c) (arg0 ig m) (topicalized m +)))
+;;; der Mann ist gegen den Baum gefahren 
+(formulate-all '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
 
 ;; der Mann hat für den Clown die Blumen mitgebracht  ------>some issues
+
+
+(comprehend-all "der Mann hat für den Clown die Blumen mitgebracht")
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
+
+(formulate '((FLOWERS ?FL) (MAN ?M) (CLOWN ?C) (BROUGHT-01 ?HM) (ARG2 ?HM ?C) (ARG1 ?HM ?FL) (ARG0 ?HM ?M) (TOPICALIZED ?M +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit  ------>some issues (too general ?)
 (formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a -) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
