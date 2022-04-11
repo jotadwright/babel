@@ -144,11 +144,11 @@
 
 (def-fcg-cxn beim-cxn
              ((?at-word
-              (footprints (article)))
+              (footprints (preposition)))
               <-
               (?at-word
                (referent ?x)
-               (footprints (not article))
+               (footprints (not preposition))
                (syn-cat (lex-class contracted-preposition)
                         (type stative-locative)
                         (polarity +)
@@ -435,7 +435,8 @@
                (syn-cat (lex-class prep-phrase)
                         (case ?case)
                         (type ?type)
-                        (polarity ?polarity))
+                        (polarity ?polarity)
+                        (genre contracted))
                (subunits (?contracted-prep ?noun))
                (boundaries (leftmost-unit ?contracted-prep)
                            (rightmost-unit ?noun)))
@@ -480,6 +481,7 @@
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?m ?f ?n ?p)))
                         (type ?type)
+                        (genre extended-prep-phrase)
                         (polarity ?polarity))
                (subunits (?preposition ?article ?noun))
                (boundaries (leftmost-unit ?preposition)
@@ -930,7 +932,8 @@
               (referent ?v))
               
               (?agent-unit
-               (syn-cat (lex-class noun-phrase)
+               (syn-cat 
+                (lex-class noun-phrase)
                         (case ((+ ?nm ?nf ?nn ?np) 
                                (- - - - -)         
                                (- - - - -)        
@@ -947,7 +950,8 @@
               (referent ?arg0))
               
               (?patient-unit
-               (syn-cat (lex-class noun-phrase)
+               (syn-cat 
+                        (lex-class noun-phrase)
                         (case ((- - - - -) 
                                (+ ?am ?af ?an ?ap)         
                                (- - - - -)         
@@ -961,10 +965,10 @@
                                (- - - - -)         
                                (- - - - -)
                                (?ps ?am ?af ?an ?ap))))
-              (referent ?arg1)
-              )
+              (referent ?arg1))
               (?receiver-unit
-               (syn-cat (lex-class noun-phrase)
+               (syn-cat 
+                (lex-class noun-phrase)
                 (case ((- - - - -) 
                       (- - - - -)         
                       (- - - - -)         
@@ -1140,22 +1144,25 @@
               (referent ?arg0))
 
               (?location-unit
-               (syn-cat (lex-class prep-phrase)
+               (syn-cat (type motion-locative-contracted)
+                   (lex-class prep-phrase)
+                   (genre contracted)
                    (case ((- - - - -) 
-                      (?acc ?am ?af ?an ?ap)         
                       (- - - - -)         
-                      (?dat ?dm ?df ?dn ?dp)
-                      (?ls ?m ?f ?n ?lp)))
-                   (type motion-locative-contracted))
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?ls ?dm ?df ?dn ?dp)))
+                   )
                (referent ?arg4)
                 --
-              (syn-cat (lex-class prep-phrase)
-                       (type motion-locative-contracted)
+              (syn-cat
+               (type motion-locative-contracted)
+               (lex-class prep-phrase)
                         (case ((- - - - -) 
-                              (?acc ?am ?af ?an ?ap)         
                               (- - - - -)         
-                              (?dat ?dm ?df ?dn ?dp)
-                              (?ls ?m ?f ?n ?lp))))
+                              (- - - - -)         
+                              (+ ?dm ?df ?dn ?dp)
+                              (?ls ?dm ?df ?dn ?dp))))
               (referent ?arg4))
               
               (?intransitive-argument-structure-unit
@@ -1276,7 +1283,7 @@
               ))
 
 
-(def-fcg-cxn topic-arg0-arg4-information-structure-cxn   ;;;;check why this one applies also to the extra-info structure
+(def-fcg-cxn topic-arg0-arg4-information-structure-cxn
              (
               <-
               (?argument-structure-unit
@@ -1311,7 +1318,8 @@
               
               (?location-unit
                (syn-cat (syn-role locative-complement)
-                        (lex-class prep-phrase))
+                        (lex-class prep-phrase)
+                        )
                (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit))
                 --
@@ -1452,6 +1460,7 @@
          
               (?location-unit
                (syn-cat (lex-class prep-phrase)
+                        (genre contracted)
                         (type stative-locative)
                    (case ((- - - - -) 
                       (- - - - -)         
@@ -2167,7 +2176,7 @@
 
 
 
-(comprehend-all "ohne den Mann")
+(comprehend-all "der Mann geht zum Shop")
 
 
 
@@ -2178,10 +2187,13 @@
 (formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
 ;;; der Mann schenkt dem Clown die Blumen
-(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized m +)))
+(formulate '((schenken-01 g) (man m) (clown c) (flowers f) (arg0 g m) (arg1 g f) (arg2 g c) (topicalized m +)))
+
+(formulate '((FLOWERS ?FL) (CLOWN ?C) (MAN ?M) (SCHENKEN-01 ?G) (ARG2 ?G ?C) (ARG1 ?G ?FL) (ARG0 ?G ?M) (TOPICALIZED ?M +)))
 
 ;;; dem Clown schenkt der Mann die Blumen (stuck)
 (formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +)))
+
 
 ;;;der Mann geht zum Shop
 (formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized m +)))
