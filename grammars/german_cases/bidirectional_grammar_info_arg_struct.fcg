@@ -366,16 +366,17 @@
 
 (def-fcg-cxn Fahrrad-cxn
              ((?bike-word                        
-               (referent ?f)
+               (referent ?b)
                (syn-cat (lex-class noun)
                         (case ((?nn - - ?nn -)     
                                (?an - - ?an -)      
                                (- - - - -)       
                                (?dn - - ?dn -)
-                               (+ - - + -)))))
+                               (+ - - + -)))
+                        (animacy inanimate)))
               <-
               (?bike-word                            
-               (HASH meaning ((bike ?f)))                
+               (HASH meaning ((bike ?b)))                    
                --
                (HASH form ((string ?bike-word  "Fahrrad"))))))
 
@@ -599,7 +600,8 @@
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?m ?f ?n ?p)))
                         (type accompanying)
-                        (animacy ?animacy))
+                        (animacy ?animacy)
+                        (polarity ?polarity))
                (subunits (?preposition ?article ?noun))
                (boundaries (leftmost-unit ?preposition)
                            (rightmost-unit ?noun)))
@@ -613,7 +615,7 @@
                (footprints (determined)))
               <-
 
-              (?preposition    
+              (?preposition
                --
                (referent ?x)
                (syn-cat (lex-class preposition)
@@ -1770,7 +1772,8 @@
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type single-intransitive))
+                       (type single-intransitive)
+                       (aspect perfect))
                (referent ?v)
                 --
               (syn-cat (lex-class verb)
@@ -2175,11 +2178,12 @@
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type intransitive))
+                       (type single-intransitive)
+                       (aspect non-perfect))
                (referent ?v)
                 --
               (syn-cat (lex-class verb)
-                       (type intransitive))     
+                       (type single-intransitive))     
               (referent ?v))
               
               (?agent-unit
@@ -2201,26 +2205,18 @@
 
               (?extra-info-unit
                (syn-cat (lex-class prep-phrase)
-                   (case ((- - - - -) 
-                          (- - - - -)         
-                          (- - - - -)         
-                          (+ ?adm ?adf ?adn ?adp)
-                          (?ads ?adm ?adf ?adn ?adp)))
+                   (case ?case)
                    (type accompanying))
                (referent ?manner)
                 --
               (syn-cat (lex-class prep-phrase)
-                        (case ((- - - - -) 
-                          (- - - - -)         
-                          (- - - - -)         
-                          (+ ?adm ?adf ?adn ?adp)
-                          (?ads ?adm ?adf ?adn ?adp)))
-                        (type accompanying))
+                        (case ?case))
               (referent ?manner))
          
               (?location-unit
                (syn-cat (lex-class prep-phrase)
                         (type motion-locative-contracted)
+                        (form-type contracted)
                    (case ((- - - - -) 
                           (- - - - -)         
                           (- - - - -)         
@@ -2233,16 +2229,18 @@
                               (- - - - -)         
                               (- - - - -)         
                               (+ ?dm ?df ?dn ?dp)
-                              (?ls ?m ?f ?n ?lp))))
+                              (?ls ?dm ?df ?dn ?lp))))
               (referent ?arg1))
               
               (?intransitive-extra-arg1-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:manner ?v ?manner)
                               (:arg1 ?v ?arg1)
-                              (:arg1 ?manner ?arg0)))                  
+                              (:arg1 ?manner ?arg0)
+                              ))                  
                --
                )))
+
 
 
 (def-fcg-cxn topic-arg0-extra-info-arg1-information-structure-cxn
@@ -2298,6 +2296,11 @@
               (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit)))
               ))
+
+
+
+
+
 
 
 
@@ -2365,6 +2368,7 @@
 (formulate-all '((man x)))
 
 (formulate '((man x) (accompany-01 a) (polarity a -) (arg0 a x)))
+(formulate '((bike x) (accompany-01 a) (polarity a +) (arg0 a x)))
 
 
 
@@ -2405,14 +2409,18 @@
 ;;; der Mann ist gegen den Baum gefahren 
 (formulate-all '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
 
-;; der Mann hat für den Clown die Blumen mitgebracht  ------>some issues
-
+;; der Mann hat für den Clown die Blumen mitgebracht 
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit 
 (formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a -) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
 
-
-;;der Mann fährt mit dem Fahrrad zur Arbeit---stuck in formulation
-
+;;der Mann fährt mit dem Fahrrad zur Arbeit---stuck in formulation because of + of accompany and something else...
 (formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
+
+
+;;der Mann fährt ohne das Fahrrad zur Arbeit
+(formulate '((ACCOMPANY-01 A) (POLARITY A -) (WORK W) (MAN M) (BIKE B) (ARG0 A B) (FAHREN-01 F) (ARG1 A M) (ARG1 F W) (MANNER F A) (ARG0 F M) (TOPICALIZED M +)))
+
+
+(formulate-all '((ARG0 F M) (ARG1 F W) (MAN M) (WORK W) (FAHREN-01 F)))
