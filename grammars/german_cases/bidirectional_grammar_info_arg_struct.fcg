@@ -2078,6 +2078,7 @@
               (?location-unit
                (syn-cat (lex-class prep-phrase)
                         (type motion-locative-contracted)
+                        (form-type contracted)
                    (case ((- - - - -) 
                           (- - - - -)         
                           (- - - - -)         
@@ -2380,9 +2381,7 @@
 ;;; der Mann schenkt dem Clown die Blumen
 (formulate '((schenken-01 g) (man m) (clown c) (flowers f) (arg0 g m) (arg1 g f) (arg2 g c) (topicalized m +)))
 
-(formulate '((FLOWERS ?FL) (CLOWN ?C) (MAN ?M) (SCHENKEN-01 ?G) (ARG2 ?G ?C) (ARG1 ?G ?FL) (ARG0 ?G ?M) (TOPICALIZED ?M +)))
-
-;;; dem Clown schenkt der Mann die Blumen (stuck)
+;;; dem Clown schenkt der Mann die Blumen
 (formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +)))
 
 ;;;der Mann geht zum Shop
