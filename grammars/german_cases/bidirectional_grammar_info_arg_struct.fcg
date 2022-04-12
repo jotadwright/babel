@@ -248,14 +248,14 @@
                (footprints (not preposition))
                (syn-cat (lex-class preposition)
                         (type accompanying)
-                        (polarity +)
+                        (polarity positive)   ;(polarity +)
                         (case ((- - - - -)      
                                (- - - - -)        
                                (- - - - -)      
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?dm ?df ?dn ?dp))))
                (HASH meaning ((accompany-01 ?x)
-                              (polarity ?x +)))
+                              (polarity ?x positive)))   ;(polarity ?x +)
                --
                (HASH form ((string ?with-word "mit")))))
              :disable-automatic-footprints t)
@@ -600,7 +600,7 @@
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?m ?f ?n ?p)))
                         (type accompanying)
-                        (animacy ?animacy)
+                        (form-type extended-accompanying-prep-phrase)
                         (polarity ?polarity))
                (subunits (?preposition ?article ?noun))
                (boundaries (leftmost-unit ?preposition)
@@ -625,8 +625,7 @@
                                (?acc ?am ?af ?an ?ap)      
                                (- - - - -)       
                                (?dat ?dm ?df ?dn ?dp)
-                               (?s ?m ?f ?n ?p)))
-                        ))
+                               (?s ?m ?f ?n ?p)))))
               (?article
                --
                (syn-cat (lex-class article)
@@ -639,7 +638,6 @@
                (referent ?no)
                (footprints (not determined))
                (syn-cat (lex-class noun)
-                        (animacy ?animacy)
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
                                (- - - - -)       
@@ -2206,8 +2204,12 @@
               (?extra-info-unit
                (syn-cat (lex-class prep-phrase)
                    (case ?case)
-                   (type accompanying))
+                   (type accompanying)
+                   ;(form-type extended-accompanying-prep-phrase)
+                   ;(polarity +)
+                   )
                (referent ?manner)
+                   
                 --
               (syn-cat (lex-class prep-phrase)
                         (case ?case))
@@ -2368,7 +2370,8 @@
 (formulate-all '((man x)))
 
 (formulate '((man x) (accompany-01 a) (polarity a -) (arg0 a x)))
-(formulate '((bike x) (accompany-01 a) (polarity a +) (arg0 a x)))
+;(formulate-all '((bike x) (accompany-01 a) (polarity a +) (arg0 a x)))
+(formulate-all '((bike x) (accompany-01 a) (polarity a positive) (arg0 a x)))
 
 
 
@@ -2416,11 +2419,13 @@
 (formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a -) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
 
 ;;der Mann fährt mit dem Fahrrad zur Arbeit---stuck in formulation because of + of accompany and something else...
-(formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
+;(formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
+
+(formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a positive)))
 
 
 ;;der Mann fährt ohne das Fahrrad zur Arbeit
-(formulate '((ACCOMPANY-01 A) (POLARITY A -) (WORK W) (MAN M) (BIKE B) (ARG0 A B) (FAHREN-01 F) (ARG1 A M) (ARG1 F W) (MANNER F A) (ARG0 F M) (TOPICALIZED M +)))
+(formulate '((ACCOMPANY-01 A) (POLARITY A -) (WORK W) (MAN M) (BIKE B) (ARG0 A B) (FAHREN-01 F) (ARG1 A M)(ARG1 F W) (MANNER F A) (ARG0 F M) (TOPICALIZED M +)))
 
 
-(formulate-all '((ARG0 F M) (ARG1 F W) (MAN M) (WORK W) (FAHREN-01 F)))
+
