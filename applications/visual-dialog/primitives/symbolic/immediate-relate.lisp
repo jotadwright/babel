@@ -5,16 +5,16 @@
 ;; ------------------
 
 (defprimitive immediate-relate ((target-set world-model)
-                                (source-object-set object-set)
+                                (source-world-model world-model)
                                 (segmented-scene world-model)
                                 (scene pathname-entity)
                                 (spatial-relation category))
   ;; first case; given source-object and spatial relation, compute the target set
-  ((source-object-set spatial-relation segmented-scene scene => target-set)
+  ((source-world-model spatial-relation segmented-scene scene => target-set)
    (let* (;(context (get-data ontology 'context))
           ;(context (cdr (find (pathname scene) (get-data ontology 'segmented-scene) :test #'equal :key #'first)))
           (context segmented-scene)
-          (source-object (first (objects source-object-set)))
+          (source-object (first (objects (object-set (first (set-items source-world-model))))))
           relation-list id-right object-right)
      (if (eq (type-of spatial-relation) 'spatial-relation-category)
        (cond ((eql (spatial-relation spatial-relation) 'right)

@@ -7,25 +7,27 @@
 ;; -----------------
 
 (defprimitive exist ((target-bool boolean-category)
-                     (source-set object-or-set))
+                     (source-world-model world-model))
   ;; first case; give source-set, compute target-bool
-  ((source-set => target-bool)
+  ((source-world-model => target-bool)
    (let ((boolean-category
           (find-entity-by-id
            ontology
-           (if (> (get-length source-set) 0)
+           (if (> (get-length source-world-model) 0)
              'yes 'no))))
      (bind (target-bool 1.0 boolean-category))))
 
   ;; second case; given source-set and target-bool, check consistency
-  ((source-set target-bool =>)
-   (let ((boolean-category
-          (find-entity-by-id
-           ontology
-           (if (> (get-length source-set) 0)
-             'yes 'no))))
-     (equal-entity target-bool boolean-category)))
-  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
+  ((source-world-model target-bool =>)
+   (if (set-items source-world-model)
+     (let ((boolean-category
+            (find-entity-by-id
+             ontology
+             (if (> (get-length source-world-model) 0)
+               'yes 'no))))
+       (equal-entity target-bool boolean-category))
+     ))
+  :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))
 
 
 (defgeneric get-length (object)

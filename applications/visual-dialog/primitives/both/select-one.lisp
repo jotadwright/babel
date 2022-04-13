@@ -1,24 +1,36 @@
 (in-package :visual-dialog)
 
 ;; ------------------
-;; SELECT-ONE primtive ;;
+;; SELECT-ONE primitive ;;
 ;; ------------------
 
-(defprimitive select-one ((target-object-set object-set)
-                      (source-set world-model))
+(defprimitive select-one ((target-world-model world-model)
+                          (source-set world-model))
   ;; first case; given source set, compute target object
-  ((source-set => target-object-set)
-   (if (length= (objects (object-set (first (set-items source-set)))) 0)
-     (bind (target-object-set 1.0 (make-instance 'object-set :objects '() :id 'empty-set))))
+  ((source-set => target-world-model)
+   (let ((object-list (collect-objects-from-world-model source-set)))
+     (cond ((length= object-list 0)
+            (bind (target-world-model 1.0 (make-instance 'world-model :id (id source-set)))))
      
-   (if (length= (objects (object-set (first (set-items source-set)))) 1)
-     (bind (target-object-set 1.0 (make-instance 'object-set :objects (list (first (objects (object-set (first (set-items source-set)))))))))
-     (loop for object in (objects (object-set (first (set-items source-set))))
-           do (bind (target-object-set 1.0 (make-instance 'object-set :objects (list object)))))))
-
+           ((length= object-list 1)
+            (bind (target-world-model 1.0 (make-instance 'world-model
+                                                         :id (id source-set)
+                                                         :set-items (list (make-instance 'turn
+                                                                                         :object-set (make-instance 'object-set
+                                                                                                                    :objects (list (first (collect-objects-from-world-model source-set))))))))))
+           (t
+            (loop for object in object-list
+                  do (bind (target-world-model 1.0 (make-instance 'world-model
+                                                                  :id (id source-set)
+                                                                  :set-items
+                                                                  (list (make-instance 'turn
+                                                                                       :object-set (make-instance 'object-set
+                                                                                                                  :objects (list object))))))))))))
+     
   ;; second case; given source set and target object
   ;; check for consistency
-  ((source-set target-object-set =>)
+  ((source-set target-world-model =>)
    (and (length= (objects (object-set (first (set-items source-set)))) 1)
-        (equal-entity target-object-set (first (objects (object-set (first (set-items source-set))))))))
-  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
+        (equal-entity target-world-model (first (objects (object-set (first (set-items source-set))))))))
+  :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))
+
