@@ -3,6 +3,10 @@
 (defun evaluate-dialog (&key scene-index dialog-index world ontology (silent t))
   "run dialog with specific scene and a specific dialog (1-5), check result with gold-answers"
   "returns T if whole dialog succeeded otherwise nil and the success list per question"
+  (if (equal (get-configuration world :mode) :hybrid)
+    (progn
+      (clear-scenes (get-configuration world :server-address) (get-configuration world :cookie-jar))
+      (clear-attentions (get-configuration world :server-address) (get-configuration world :cookie-jar))))
   (let* ((scene-pathname (get-scene-pathname-by-index scene-index world))
          (dataset (get-configuration world :dataset))
          (dialog (get-dialog-by-index scene-index dialog-index world dataset))
@@ -14,8 +18,8 @@
       (progn 
         (add-element `((h1) ,(format nil "Dialog ~a" dialog-index)))
         (if (eq dataset :clevr)
-          (add-element `((h3) ,(format nil "Caption: ~a" (caption (nth dialog-index (dialogs (current-dialog-set world))))))))
-        (loop for question in (questions (nth dialog-index (dialogs (current-dialog-set world))))
+          (add-element `((h3) ,(format nil "Caption: ~a" (first dialog)))))
+        (loop for question in (rest dialog)
               for answer in computed-answers
               for gold-answer in gold-answers
               for a in correct-answers
@@ -31,7 +35,7 @@
     ;; return success of whole dialog and detailed success of questions 
     (values (loop for a in correct-answers always a) correct-answers)))
 
-(defun evaluate-dialogs (start-scene end-scene world )
+(defun evaluate-dialogs (start-scene end-scene world)
   "evaluate all dialogs from start-scene to end-scene"
   "returns question-level-accuracy"
   (ensure-directories-exist
@@ -76,6 +80,11 @@
           (format str "question-level-accuracy : ~a~%" question-level-accuracy) (force-output str)
           question-level-accuracy))))
 
+(define-configuration-default-value :dataset :clevr)
+(define-configuration-default-value :datasplit :train)
+(define-configuration-default-value :mode :symbolic)
+(define-configuration-default-value :server-address "http://127.0.0.1:2560/")
+(define-configuration-default-value :cookie-jar (make-instance 'drakma:cookie-jar))
 
 (defun evaluate-clevr-dialogs-symbolic (start-scene end-scene)
   (let ((world (make-instance 'world 
@@ -95,7 +104,8 @@
   (let ((world (make-instance 'world 
                               :entries '((:dataset . :clevr)
                                          (:datasplit . :train)
-                                         (:mode . :hybrid)))))
+                                         (:mode . :hybrid)
+                                         ))))
     (evaluate-dialogs start-scene end-scene world)))
 
 (defun evaluate-mnist-dialogs-hybrid (start-scene end-scene)

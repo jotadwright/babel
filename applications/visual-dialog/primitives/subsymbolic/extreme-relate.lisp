@@ -4,29 +4,44 @@
 ;; RELATE primitive ;;
 ;; ------------------
 
-(defprimitive extreme-relate ((target-attn attention)
-                              (source-attn attention)
+(defprimitive extreme-relate ((target world-model)
+                              (source world-model)
+                              (scene pathname-entity)
                               (spatial-relation spatial-relation-category))
   ;; first case; given source-object and spatial relation, compute the target set
-  ((source-attn spatial-relation => target-attn)
-   (multiple-value-bind (bind-scores bind-values)
-       (evaluate-neural-primitive
-        (get-data ontology 'server-address)
-        (get-data ontology 'cookie-jar)
-        `(:primitive extreme-relate
-          :slots (:source-attn ,(id source-attn)
-                  :spatial-relation ,(spatial-relation spatial-relation)
-                  :target-attn . nil)))
-     (loop for scores in bind-scores
+  ((source spatial-relation scene => target)
+   (let ((source-object-id-list (collect-objects-id-from-world-model source))
+         (source-object-list (collect-objects-from-world-model source)))
+     (multiple-value-bind (bind-scores bind-values)
+         (evaluate-neural-primitive
+          "extreme-relate"
+          (get-data ontology 'server-address)
+          (get-data ontology 'cookie-jar)
+        `(:target nil
+          :source ,source-object-id-list
+          :scene ,(namestring (path scene))
+          :spatial-relation ,(spatial-relation spatial-relation)))
+       (loop for scores in bind-scores
            for values in bind-values
-           do (bind (target-attn
-                     (getf scores 'target-attn)
-                     (make-instance 'attention
-                                    :id (intern (getf values 'target-attn)
-                                                :hybrid-dialog)))))))
+             do (let ((objects-with-attn
+                       (loop for attn in (getf values 'target)
+                             for attn-id = (intern attn :visual-dialog)
+                             for object = (copy-object (find attn-id source-object-list :key #'id))
+                                      collect object)))
+                  (bind (target (getf scores 'target)
+                                (make-instance 'world-model
+                                               :id 'context
+                                               :path scene
+                                               :set-items
+                                               (list
+                                                (make-instance 'turn
+                                                               :timestamp 'permanent
+                                                               :object-set
+                                                               (make-instance 'object-set
+                                                                              :objects objects-with-attn)))))))))))
   
   ;; second case; given source-object and target set, compute the spatial relation
-  ((source-attn target-attn => spatial-relation)
+  ((source target scene => spatial-relation)
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
@@ -45,7 +60,7 @@
                            :key #'spatial-relation))))))
 
   ;; third case; given source-object, compute pairs of target-set and spatial-relation
-  ((source-attn => target-attn spatial-relation)
+  ((source scene => target spatial-relation)
    (multiple-value-bind (bind-scores bind-values)
        (evaluate-neural-primitive
         (get-data ontology 'server-address)
@@ -56,7 +71,7 @@
                   :target-attn nil)))
      (loop for scores in bind-scores
            for values in bind-values
-           do (bind (target-attn
+           do (bind (target
                      (getf scores 'target-attn)
                      (make-instance 'attention
                                     :id (intern (getf values 'target-attn)
@@ -70,7 +85,7 @@
 
   ;; fourth case; given source-object, target-set and spatial-relation
   ;; check for consistency
-  ((source-attn target-attn spatial-relation =>)
+  ((source target spatial-relation scene =>)
    (let ((consistentp
           (evaluate-neural-primitive
            (get-data ontology 'server-address)
@@ -80,4 +95,4 @@
                      :spatial-relation ,(spatial-relation spatial-relation)
                      :target-attn ,(id target-attn))))))
      consistentp))
-  :primitive-inventory *hybrid-primitives*)
+  :primitive-inventory *subsymbolic-primitives*)

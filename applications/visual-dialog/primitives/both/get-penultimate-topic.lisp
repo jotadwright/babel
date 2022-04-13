@@ -20,7 +20,7 @@
                                         :set-items (list (make-instance 'turn
                                                                         :object-set (make-instance 'object-set
                                                                                                    :objects last-topic-object-set)))))))))
-  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
+  :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))
 
 
 (defun find-penultimate-topic (source-set)
