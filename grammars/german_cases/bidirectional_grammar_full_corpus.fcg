@@ -450,17 +450,17 @@
 
 (def-fcg-cxn Shop-cxn
              ((?shop-word                        
-               (referent ?sh)
+               (referent ?s)
                (syn-cat (lex-class noun)
-                        (case ((?nom ?nm - - ?np)     
+                        (case ((?nm ?nm - - -)     
                                (?am ?am - - -)      
                                (- - - - -)       
                                (?dm ?dm - - -)
-                               (?s + - - ?np))))
-               (animacy inanimate))
+                               (+ + - - -)))
+                        (animacy inanimate)))
               <-
               (?shop-word                            
-               (HASH meaning ((shop ?sh)))                
+               (HASH meaning ((shop ?s)))                    
                --
                (HASH form ((string ?shop-word  "Shop"))))))
 
@@ -789,7 +789,7 @@
              ((?walk-word                         
                (syn-cat (lex-class verb)
                         (aspect non-perfect)
-                        (type intransitive)
+                        (type intransitive-path)
                         (arg path))
                (referent ?s))  
                         
@@ -1264,7 +1264,7 @@
 
 ;;;;THIS SHOULD NOT APPLY ON SENTENCES WITH ONE EXTRA ARGUMENT (ACCOMPANIER)
 
-#|(def-fcg-cxn intransitive-argument-structure-cxn
+(def-fcg-cxn intransitive-argument-structure-cxn
              ((?intransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?location-unit)))
               (?agent-unit
@@ -1297,35 +1297,37 @@
                                (- - - - -)
                                (?as ?nm ?nf ?nn ?np))))
               (referent ?arg0))
-
+              
+         
               (?location-unit
-               (syn-cat (type motion-locative-contracted)
-                   (lex-class prep-phrase)
-                   (form-type contracted)
+               (syn-cat (lex-class prep-phrase)
                    (case ((- - - - -) 
                       (- - - - -)         
                       (- - - - -)         
-                      (+ ?dm ?df ?dn ?dp)
-                      (?ls ?dm ?df ?dn ?dp)))
-                   )
+                      (?dat ?dm ?df ?dn ?dp)
+                      (?ls ?dm ?df ?dn ?lp)
+                      ))
+                   (type motion-locative-contracted)
+                   (form-type contracted)
+                   (polarity ?polarity))
                (referent ?arg4)
                 --
-              (syn-cat
-               (type motion-locative-contracted)
-               (lex-class prep-phrase)
-               (form-type contracted)
+              (syn-cat (lex-class prep-phrase)
+                       (polarity ?polarity)
+                       (form-type contracted)
                         (case ((- - - - -) 
                               (- - - - -)         
                               (- - - - -)         
-                              (+ ?dm ?df ?dn ?dp)
-                              (?ls ?dm ?df ?dn ?dp))))
+                              (?dat ?dm ?df ?dn ?dp)
+                              (?ls ?dm ?df ?dn ?lp)
+                              )))
               (referent ?arg4))
               
               (?intransitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg4 ?v ?arg4)))                  
                --
-               )))|#
+               )))
 
 (def-fcg-cxn intransitive-origin-argument-structure-cxn
              ((?intransitive-argument-structure-unit
@@ -1402,12 +1404,12 @@
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type intransitive)
+                       (type intransitive-path)
                        (arg path))
                (referent ?v)
                 --
               (syn-cat (lex-class verb)
-                       (type intransitive))     
+                       (type intransitive-path))     
               (referent ?v))
               
               (?agent-unit
@@ -1520,13 +1522,13 @@
               
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type intransitive)
+                       (type intransitive-path)
                        (arg path)
                        (aspect ?aspect))     
               
                 --
               (syn-cat (lex-class verb)
-                       (type intransitive)
+                       (type intransitive-path)
                        (aspect ?aspect)))
               
               (?agent-unit
@@ -1589,7 +1591,6 @@
               
               (?location-unit
                (syn-cat (syn-role locative-complement)
-                        (type motion-locative-contracted)
                         (lex-class prep-phrase)
                         )
                (boundaries (leftmost-unit ?leftmost-location-unit)
@@ -2336,8 +2337,6 @@
                --
                )))
 
-
-
 (def-fcg-cxn topic-arg0-extra-info-arg1-information-structure-cxn
              (
               <-
@@ -2462,6 +2461,8 @@
 ;;; NPs with Determiners and PPs with NP+P or Contracted P
 (formulate-all '((man x)))
 
+(comprehend-all "dem Shop")
+
 (formulate '((man x) (accompany-01 a) (polarity a -) (arg0 a x)))
 
 ;(formulate-all '((bike x) (accompany-01 a) (polarity a +) (arg0 a x)))
@@ -2494,11 +2495,12 @@
 ;;;dem Clown verkauft der Doktor das Buch
 (formulate '((verkaufen-01 s) (doctor d) (clown c) (book b) (arg0 s d) (arg1 s b) (arg2 s c) (topicalized c +)))
 
-;;;der Mann geht zum Shop
-(formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized m +)))
+;;;der Mann geht zur Arbeit
+(formulate '((gehen-01 g) (man m) (arg0 g m) (work w) (arg4 g w) (topicalized m +)))
+(formulate '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized m +)))
 
 ; zum Shop geht der Mann
-(formulate '((gehen-01 g) (man m) (arg0 g m) (shop s) (arg4 g s) (topicalized s +)))
+(formulate '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized w +)))
 
 ;;;der Mann ist beim Bäcker
 (formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +)))
@@ -2531,4 +2533,16 @@
 (formulate '((ACCOMPANY-01 A) (POLARITY A -) (WORK W) (MAN M) (BIKE B) (ARG0 A B) (FAHREN-01 F) (ARG1 A M)(ARG1 F W) (MANNER F A) (ARG0 F M) (TOPICALIZED M +)))
 
 
+
+
+;;;;;;errors formulation
+
+;Prepositional Dative
+
+
+
+;Indirect accusative
+
+
+;Double Object
 
