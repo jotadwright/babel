@@ -12,8 +12,9 @@
                :cl-json
                :trivial-timeout
                :clevr-dialog-grammar
-               :nao-interface
-               :robot-interface)
+               :jonathan
+               :drakma
+               )
   :serial t
   :components ((:file "package")
                (:module "ontology"
@@ -27,7 +28,8 @@
                              (:file "initialize-memory")
                              (:file "run-dialogs")
                              (:file "understand-execute-remember")
-                             (:file "update-memory")))
+                             (:file "update-memory")
+                             (:file "server-utils")))
                (:module "primitives"
                 :serial t
                 :components ((:module "both"
@@ -35,33 +37,31 @@
                               :components ((:file "count-objects")
                                            (:file "exist-or-count")
                                            (:file "exists")
+                                           (:file "find-in-context")
                                            (:file "get-last-attribute-category")
                                            (:file "get-last-topic")
                                            (:file "get-penultimate-topic")
                                            (:file "more-than-one")
                                            (:file "select-one")
+                                           (:file "set-diff")
                                            (:file "unique")))
-                             (:module "hybrid"
+                             (:module "subsymbolic"
                               :serial t
                               :components ((:file "extreme-relate")
                                            (:file "filter")
-                                           (:file "find-in-context")
                                            (:file "immediate-relate")
                                            (:file "query")
                                            (:file "relate")
-                                           (:file "segment-scene")
-                                           (:file "set-diff")))
+                                           (:file "segment-scene")))
                              (:module "symbolic"
                               :serial t
                               :components ((:file "extreme-relate")
                                            (:file "filter")
-                                           (:file "find-in-context")
                                            (:file "immediate-relate")
                                            (:file "query")
                                            (:file "relate")
-                                           (:file "segment-scene")
-                                           (:file "set-diff")))))
-              (:module "evaluation"
+                                           (:file "segment-scene")))))
+             (:module "evaluation"
                 :serial t
                 :components ((:file "evaluation")))
                (:file "html")))
