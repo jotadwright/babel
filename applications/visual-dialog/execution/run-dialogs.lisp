@@ -8,7 +8,7 @@
                        &key (silent t))
   "Running a whole dialog, this means understanding, executing and remembering caption, then understanding and executing each question"
   "Returns list of answers"
-  (let* ((ontology (initialize-agent-ontology-and-world ontology world))
+  (let* ((ontology (initialize-agent-ontology-and-world ontology world silent))
          (caption (first list-of-sentences))
          (questions (rest list-of-sentences))
          (memory (understand-execute-remember-caption scene-pathname caption ontology :silent silent))
@@ -27,7 +27,7 @@
                        &key (silent t))
   "Running a whole dialog, this means understanding, executing and remembering first question in case of mnist, then understanding and executing each question"
   "Returns list of answers"
-  (let* ((ontology (initialize-agent-ontology-and-world ontology world))
+  (let* ((ontology (initialize-agent-ontology-and-world ontology world silent))
          (caption (first list-of-sentences))
          (questions (rest list-of-sentences))
          (memory (understand-execute-remember-first-question scene-pathname caption ontology :silent silent))
