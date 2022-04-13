@@ -17,4 +17,4 @@
    (let ((count (length (objects (object-set (first (reverse (set-items source-set))))))))
      (equal-entity target-num (find-entity-by-id (get-data ontology 'digits)
                                                  (internal-symb (upcase  (format nil "~r" count)))))))
-  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
+  :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))

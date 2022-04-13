@@ -10,15 +10,17 @@
                                    (category attribute))
   ;; first case: if given source-set and category, compute target-set
   ((source-set category scene => target-set)
-   (let ((computed-set (filter-by-category source-set category)))
-     (if computed-set
-       (bind (target-set 1.0 computed-set))
-       (bind (target-set 1.0
-                         (make-instance 'world-model
-                                        :set-items (list
-                                                    (make-instance 'turn
-                                                                   :object-set (make-instance 'object-set :id 'empty-set)))))))))
-  :primitive-inventory *symbolic-primitives*)
+   ;symbolic case
+     (let ((computed-set (filter-by-category source-set category)))
+       (if computed-set
+         (bind (target-set 1.0 computed-set))
+         (bind (target-set 1.0
+                           (make-instance 'world-model
+                                          :id (id source-set)
+                                          :set-items (list
+                                                      (make-instance 'turn
+                                                                     :object-set (make-instance 'object-set :id 'empty-set)))))))))
+  :primitive-inventory *symbolic-primitives* )
 
 (defgeneric filter-by-category (set category)
   (:documentation "Filter the set by the given category."))

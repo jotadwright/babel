@@ -16,15 +16,16 @@
                                         :set-items (list (make-instance 'turn
                                                                         :object-set (make-instance 'object-set
                                                                                                    :objects last-topic-object-set)))))))))
-  :primitive-inventory (*symbolic-primitives* *hybrid-primitives*))
+  :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))
 
 (defun find-last-topic (lst)
   (multiple-value-bind
       (last-set last-timestamp)
       (the-biggest #'timestamp lst)
-    (let ((last-topic (topic-list last-set)))
-      (if last-topic
-        last-topic
-        (find-last-topic (rest lst))))))
+    (if last-set
+      (let ((last-topic (topic-list last-set)))
+        (if last-topic
+          last-topic
+          (find-last-topic (rest lst)))))))
 
    
