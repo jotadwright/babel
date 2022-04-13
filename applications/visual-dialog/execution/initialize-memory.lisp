@@ -5,11 +5,15 @@
   "information that is stored: attributes of two unique inputs + relation between them"
   (let* ((relate-primitive (find 'immediate-relate irl-program :test #'equal :key #'first))     
          (first-unique-variable (third relate-primitive))
-         (first-unique-binding (first (objects (value (find first-unique-variable list-of-bindings :key #'var)))))
-
+         (first-unique-binding (first (objects (object-set (first (set-items (value (find first-unique-variable list-of-bindings :key #'var))))))))
+         (first-unique-attention (if (attention first-unique-binding)
+                                   (attention first-unique-binding)))
+          
          (exist-primitive (find 'exist irl-program :test #'equal :key #'first))
          (second-unique-variable (third exist-primitive))
-         (second-unique-binding (first (objects (value (find second-unique-variable list-of-bindings :key #'var)))))
+         (second-unique-binding (first (objects (object-set (first (set-items (value (find second-unique-variable list-of-bindings :key #'var))))))))
+         (second-unique-attention (if (attention second-unique-binding)
+                                   (attention second-unique-binding)))
          
          (attribute-first-unique-variable-list (find-attributes-of-unique irl-program first-unique-variable))
          (attribute-second-unique-variable-list (find-attributes-of-unique irl-program second-unique-variable))
@@ -17,8 +21,8 @@
          (relation-binding (spatial-relation (value (find relation-variable list-of-bindings :key #'var))))
          new-object-list new-world-model left-right-relations front-behind-relations)
     
-    (push (make-new-object-with-attributes (id second-unique-binding) attribute-second-unique-variable-list) new-object-list)
-    (push (make-new-object-with-attributes (id first-unique-binding) attribute-first-unique-variable-list) new-object-list)
+    (push (make-new-object-with-attributes (id second-unique-binding) attribute-second-unique-variable-list second-unique-attention) new-object-list)
+    (push (make-new-object-with-attributes (id first-unique-binding) attribute-first-unique-variable-list first-unique-attention) new-object-list)
 
     (setf new-world-model
           (make-instance 'world-model
@@ -43,10 +47,13 @@
   (let* ((unique-primitive (find 'unique irl-program :test #'equal :key #'first))
          (exist-primitive (find 'exist irl-program :test #'equal :key #'first))
          (unique-object (third exist-primitive))
-         (unique-object-binding (first (objects (value (find unique-object list-of-bindings :key #'var)))))
+         (unique-object-binding (first (objects (object-set (first (set-items (value (find unique-object list-of-bindings :key #'var))))))))
+         (unique-attention (if (attention unique-object-binding)
+                                   (attention unique-object-binding)))
+         
          (attribute-unique-variable-list (find-attributes-of-unique irl-program unique-object))
          new-object-list new-world-model)
-    (setf new-object-list (list (make-new-object-with-attributes (id unique-object-binding) attribute-unique-variable-list)))
+    (setf new-object-list (list (make-new-object-with-attributes (id unique-object-binding) attribute-unique-variable-list unique-attention)))
     (setf new-world-model (make-instance 'world-model
                                          :id 'conversation-memory
                                          :set-items (list (make-instance 'turn
@@ -74,7 +81,7 @@
          new-object-list new-world-model)
     (setf new-object-list
           (loop for object in (objects (object-set (first (set-items source-value))))
-                collect (make-new-object-without-attributes (id object) attribute-variable-list)))
+                collect (make-new-object-without-attributes (id object) attribute-variable-list (attention object))))
     ;(setf new-object-list (find-attributes-of-several-object attribute-variable-list context-binding new-object-list list-of-bindings))
     (setf new-world-model (make-instance 'world-model :id 'conversation-memory
                                          :set-items (list (make-instance 'turn
@@ -96,14 +103,17 @@
          (exist-primitive (find 'exist irl-program :test #'equal :key #'first))
 
          (extreme-object-variable (third exist-primitive))
-         (extreme-object-binding (first (objects (value (find extreme-object-variable list-of-bindings :key #'var)))))
+         (extreme-object-binding (first (objects (object-set (first (set-items (value (find extreme-object-variable list-of-bindings :key #'var))))))))
+         (extreme-attention (if (attention extreme-object-binding)
+                                   (attention extreme-object-binding)))
+         
 
-         (relation-variable (fourth extreme-relate-primitive))
+         (relation-variable (last-elt extreme-relate-primitive))
          (relation-binding (spatial-relation (value (find relation-variable list-of-bindings :key #'var))))
 
          (attributes (find-attributes-of-unique irl-program extreme-object-variable))
          new-object-list)
-    (setf new-object-list (list (make-new-object-with-attributes (id extreme-object-binding) attributes)))
+    (setf new-object-list (list (make-new-object-with-attributes (id extreme-object-binding) attributes extreme-attention)))
     (setf new-world-model (make-instance 'world-model
                                          :id 'conversation-memory
                                          :set-items (list (make-instance 'turn
