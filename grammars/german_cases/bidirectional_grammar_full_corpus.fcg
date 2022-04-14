@@ -397,6 +397,23 @@
                --
                (HASH form ((string ?tunnel-word  "Tunnel"))))))
 
+(def-fcg-cxn Hund-cxn
+             ((?dog-word
+               (referent ?d)                  
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -)))
+                        (animacy animate)))
+              <-
+              (?dog-word
+               (HASH meaning ((dog ?g)))                     
+               --
+               (HASH form ((string ?dog-word  "Hund"))))))
+
+
 (def-fcg-cxn Baum-cxn
              ((?tree-word
                (referent ?b)                  
@@ -811,6 +828,22 @@
                (HASH meaning ((suchen-01 ?s)))                   
                --
                (HASH form ((string ?search-word  "sucht"))))))
+
+
+
+(def-fcg-cxn verfolgt-cxn
+             ((?follow-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type transitive))
+               (referent ?v))  
+                        
+              <-
+              (?follow-word                           
+               (HASH meaning ((verfolgen-01 ?v)))                   
+               --
+               (HASH form ((string ?follow-word  "verfolgt"))))))
+
 
 (def-fcg-cxn schenkt-cxn
              ((?gift-word
@@ -1264,7 +1297,7 @@
 
 ;;;;THIS SHOULD NOT APPLY ON SENTENCES WITH ONE EXTRA ARGUMENT (ACCOMPANIER)
 
-(def-fcg-cxn intransitive-argument-structure-cxn
+#|(def-fcg-cxn intransitive-argument-structure-cxn
              ((?intransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?location-unit)))
               (?agent-unit
@@ -1327,7 +1360,7 @@
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg4 ?v ?arg4)))                  
                --
-               )))
+               )))|#
 
 (def-fcg-cxn intransitive-origin-argument-structure-cxn
              ((?intransitive-argument-structure-unit
@@ -2135,11 +2168,13 @@
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type intransitive))
+                       (type intransitive)
+                       (aspect non-perfect))
                (referent ?v)
                 --
               (syn-cat (lex-class verb)
-                       (type intransitive))     
+                       (type intransitive)
+                       (aspect non-perfect))     
               (referent ?v))
               
               (?agent-unit
@@ -2477,6 +2512,13 @@
 ;;; den Clown sucht der Mann
 (formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
+
+;;;; der Hund verfolgt den Mann
+(formulate-all '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +)))
+
+;;; den Mann verfolgt der Hund
+(formulate-all '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized m +)))
+
 ;;; der Mann schenkt dem Clown die Blumen
 (formulate '((schenken-01 g) (man m) (clown c) (flowers f) (arg0 g m) (arg1 g f) (arg2 g c) (topicalized m +)))
 
@@ -2495,8 +2537,8 @@
 ;;;dem Clown verkauft der Doktor das Buch
 (formulate '((verkaufen-01 s) (doctor d) (clown c) (book b) (arg0 s d) (arg1 s b) (arg2 s c) (topicalized c +)))
 
-;;;der Mann geht zur Arbeit
-(formulate '((gehen-01 g) (man m) (arg0 g m) (work w) (arg4 g w) (topicalized m +)))
+;;;der Mann geht zum Shop
+;(formulate '((gehen-01 g) (man m) (arg0 g m) (work w) (arg4 g w) (topicalized m +)))
 (formulate '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized m +)))
 
 ; zum Shop geht der Mann
@@ -2521,9 +2563,13 @@
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit 
-(formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a -) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
+(formulate-all '((man m) (work w) (clown c) (accompany-01 a) (polarity a -) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
+
+
+
 
 ;;der Mann fährt mit dem Fahrrad zur Arbeit---stuck in formulation because of + of accompany and something else...
+
 ;(formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
 
 (formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a positive)))
