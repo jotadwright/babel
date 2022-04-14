@@ -574,6 +574,18 @@
   "Succeeds if categories are connected (= linked directly or indirectly)."
   (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
 
+(defmethod categories-linked-p (category-1 category-2 (categorial-network categorial-network) (mode (eql :path-exists-ignore-transitive-closure)))
+  "Succeeds if categories are connected (= linked directly or indirectly). Does not consult transitive closure."
+  (graph-utils:connected? (graph categorial-network) category-1 category-2))
+
+(defmethod categories-linked-p (category-1 category-2 (cxn-inventory fcg-construction-set) (mode (eql :path-exists-ignore-transitive-closure)))
+  "Succeeds if categories are connected (= linked directly or indirectly). Does not consult transitive closure."
+  (graph-utils:connected? (graph (categorial-network cxn-inventory)) category-1 category-2))
+
+(defmethod categories-linked-p (category-1 category-2 (cxn-inventory hashed-fcg-construction-set) (mode (eql :path-exists-ignore-transitive-closure)))
+  "Succeeds if categories are connected (= linked directly or indirectly). Does not consult transitive closure."
+  (graph-utils:connected? (graph (categorial-network cxn-inventory)) category-1 category-2))
+
 (defmethod categories-linked-p (category-1 category-2 (categorial-network categorial-network) (mode (eql :path-exists-w-weight-above-0)))
   "Succeeds if categories are connected (= linked directly or indirectly) with all links above 0."
   (connected-categories-p category-1 category-2 categorial-network :threshold 0.0))

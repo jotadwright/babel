@@ -25,11 +25,11 @@ frame-element filler occurs in more than one slot). "
                           thereis (subconstituent-p (fourth fe) (mapcar #'fourth other-fes) (left-pole-structure (car-resulting-cfs (cipn-car node))))))
           do (push frame-var double-role-assignments)
           finally
-          return
-          (if double-role-assignments
-            ;;some frames contain frame-elements that have identical slot fillers
-            (and (push 'double-role-assignment (statuses node)) nil)
-            t))))
+          (return
+           (if double-role-assignments
+             ;;some frames contain frame-elements that have identical slot fillers
+             (and (push 'double-role-assignment (statuses node)) nil)
+             t)))))
 
 (defun subconstituent-p (frame-element other-frame-elements unit-structure)
   (loop for ofe in other-frame-elements

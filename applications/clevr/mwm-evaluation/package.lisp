@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (defpackage :mwm-evaluation
-  (:documentation "Integrating the multi-dimensional concepts in vqa"s)
+  (:documentation "Integrating the multi-dimensional concepts in vqa")
   (:use :common-lisp
         :utils
         :monitors
@@ -17,7 +17,6 @@
    :decode-json-from-string
    :encode-json-to-string
    :encode-json-alist-to-string)
-  (:import-from :cl-store
-   :restore)
+  (:import-from :cl-store :restore)
   (:shadowing-import-from :fcg :size :attributes))
   

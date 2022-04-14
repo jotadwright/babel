@@ -63,7 +63,7 @@
 
 
 
-
+; (activate-monitor trace-fcg)
 (defun run-addition-tests ()
   (test-addition-repair-comprehension)
   (test-double-addition-repair-comprehension)

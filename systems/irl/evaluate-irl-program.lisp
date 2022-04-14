@@ -14,6 +14,8 @@
   (processor irl-program-processor)
   (primitive-inventory primitive-inventory))
 
+(define-event irl-node-finished
+  (node irl-program-processor-node))
 
 (defun make-child-node (parent processor next-primitive &optional result)
   "Create a child node for the parent node with the specified next-primitive"
@@ -218,6 +220,7 @@
                      (when (and solution-found-p (numberp n)
                                 (>= (length (solutions processor)) n))
                        (return-from queue-loop)))))
+         do (notify irl-node-finished current-node)
          while (queue processor)))
                          
       ;; clean the solutions

@@ -14,7 +14,8 @@
    get the corresponding category from the ontology"))
 
 (defmethod query-object-attribute ((object mwm::mwm-object)
-                                   (attribute-category attribute-category) ontology)
+                                   (attribute-category attribute-category)
+                                   (ontology blackboard))
   "Given an object and an attribute; get the attribute
    from the object and create a category from it."
   (case (attribute attribute-category)
@@ -31,23 +32,24 @@
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
   ((scene source-object attribute => target-category)
-   (bind (target-category 1.0 (query-object-attribute source-object attribute *my-ontology*))))
+   (bind (target-category 1.0 (query-object-attribute source-object attribute ontology))))
 
+  #|
   ;; second case; given source-object and target-category, compute the attribute
   ((scene source-object target-category => attribute)
    (let ((computed-attribute
           (find-if #'(lambda (attr)
                        (equal-entity
                         target-category
-                        (query-object-attribute source-object attr *my-ontology*)))
-                   (get-data *my-ontology* 'attributes))))
+                        (query-object-attribute source-object attr ontology)))
+                   (get-data ontology 'attributes))))
      (when computed-attribute
        (bind (attribute 1.0 computed-attribute)))))
 
   ;; third case; given source-object, compute pairs of attribute and target-category
   ((scene source-object => target-category attribute)
-   (loop for attr in (get-data *my-ontology* 'attributes)
-         for target-cat = (query-object-attribute source-object attr *my-ontology*)
+   (loop for attr in (get-data ontology 'attributes)
+         for target-cat = (query-object-attribute source-object attr ontology)
          when target-cat
          do (bind (attribute 1.0 attr)
                   (target-category 1.0 target-cat))))
@@ -55,7 +57,8 @@
   ;; fourth case; if given source-object, attribute and target-category, check
   ;; for consistency
   ((scene source-object attribute target-category =>)
-   (equal-entity target-category (query-object-attribute source-object attribute *my-ontology*)))
+   (equal-entity target-category (query-object-attribute source-object attribute ontology)))
+  |#
   :primitive-inventory *mwm-primitives*)
 
 

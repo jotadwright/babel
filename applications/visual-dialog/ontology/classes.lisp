@@ -6,6 +6,7 @@
 
 (defclass object (object-or-set)
   ((attributes :type (or symbol list) :initarg :attributes :initform '() :accessor attributes)
+   (attention :type attention :initarg :attention :initform nil :accessor attention)
    (relationships :type (or symbol list) :initarg :relationships :initform (make-var 'relationships) :accessor relationships)
    (topic :type symbol :initarg :topic :initform 'no :accessor topic)
    (coordinates :type list :initarg :coordinates :initform nil :accessor coordinates)
@@ -102,8 +103,11 @@
     (error "Keyword argument :data-sets should be a list of strings"))
   ;; load the scenes
   (let ((scenes-path
-         (merge-pathnames (make-pathname :directory '(:relative "scenes"))
-                          data-path)))
+         (if (eql (get-configuration world :mode) :symbolic)
+           (merge-pathnames (make-pathname :directory '(:relative "scenes"))
+                            data-path)
+           (merge-pathnames (make-pathname :directory '(:relative "images"))
+                            data-path))))
     (unless (probe-file scenes-path)
       (error "Could not find a 'scenes' subdirectory in ~a~%" data-path))
     (setf (slot-value world 'scenes)
@@ -114,7 +118,7 @@
                 do (error "~a is not a subdirectory of ~%~a" data-set scenes-path)
                 append (sort (directory
                               (make-pathname :directory (pathname-directory set-directory)
-                                             :name :wild :type "json"))
+                                             :name :wild :type (if (eql (get-configuration world :mode) :symbolic) "json" "png")))
                              #'string< :key #'namestring))))
   ;; load the dialogs, if requested
     (let ((dialogs-path
@@ -158,13 +162,14 @@
 (defclass world-model (object-or-set)
   ((set-items :type list :initarg :set-items :accessor set-items :initform nil)
    (dataset :type symbol :initarg :dataset :accessor dataset :initform nil)
-   (pathname :type pathname :initarg :pathname :accessor pathname :initform nil)))
+   (path :type path :initarg :path :accessor path :initform nil)
+   ))
 
 (defmethod make-context ((world world))
   (make-instance 'world-model
                  :id 'context
                  ;:dataset (dataset world)
-                 :pathname (image (current-scene world))
+                 :path (image (current-scene world))
                  :set-items
                  (list
                   (make-instance 'turn
@@ -209,4 +214,13 @@
 ;; ################################
 
 (defclass pathname-entity (entity)
-  ((pathname :type pathname :initarg :pathname :accessor pathname)))
+  ((path :type pathname :initarg :path :accessor path)))
+
+;; ################################
+;; attention
+;; ################################
+
+(defclass attention (object-or-set)
+  ((img-path :type (or null pathname) :initarg :img-path
+             :accessor img-path :initform nil))
+  (:documentation "A symbolic representation of an intermediate attention"))

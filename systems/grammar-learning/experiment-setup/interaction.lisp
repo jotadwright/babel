@@ -46,12 +46,12 @@
     (if (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
       (if (determine-communicative-success cipn) "." "x") ; return a dot or x in evaluation mode
       (cond ((find 'nothing->holophrase node-statuses :test #'string=) "h")
-            ((find 'repair-holistic->item-based-cxn node-statuses :test #'string=) "i")
+            ((find 'holistic->item-based node-statuses :test #'string=) "i")
             ((find 'item-based->holistic node-statuses :test #'string=) "l")
             ((find 'holophrase->item-based+holistic+holistic--substitution node-statuses :test #'string=) "s")
             ((find 'holophrase->item-based+holistic--addition node-statuses :test #'string=) "a")
             ((find 'holophrase->item-based+holistic+holophrase--deletion node-statuses :test #'string=) "d")
-            ((find 'add-categorial-links node-statuses :test #'string=) "t")
+            ((find 'add-categorial-links node-statuses :test #'string=) "c")
             (t (error "Did not find any repair node statuses and no solution was found!"))))))
          
 (defmethod interact :before ((experiment grammar-learning-experiment)

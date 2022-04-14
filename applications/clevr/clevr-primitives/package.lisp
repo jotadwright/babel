@@ -8,5 +8,7 @@
 
 (export '(*clevr-primitives*))
 
+(defparameter *clevr-primitives* nil)
+
 (def-irl-primitives clevr-primitives
   :primitive-inventory *clevr-primitives*)

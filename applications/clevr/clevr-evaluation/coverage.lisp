@@ -40,9 +40,9 @@
                                   collect 1 into question-set-coverage
                                   else collect 0 into question-set-coverage
                                   and do (write-line q log)
-                                  finally return question-set-coverage)
+                                  finally (return question-set-coverage))
                      into coverage
-                     finally return coverage))))))
+                     finally (return coverage)))))))
     
 
 (defmethod evaluate-clevr-coverage (data-split (direction (eql '->))
@@ -79,6 +79,6 @@
                                 collect 1 into question-set-coverage
                                 else collect 0 into question-set-coverage
                                 and do (write-line q log)
-                                finally return question-set-coverage)
+                                finally (return question-set-coverage))
                    into coverage
-                   finally return coverage))))))
+                   finally (return coverage)))))))

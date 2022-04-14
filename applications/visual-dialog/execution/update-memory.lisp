@@ -4,7 +4,7 @@
   "updates history when question type is query"
   "adds attributes of the queried object and also searches for relate primitive if that exists"
   (let* ((attribute-value (attribute (get-fourth-value-target-primitive irl-program (first solutions))))
-         (source-value (first (objects source-value-set)))
+         (source-value (first (collect-objects-from-world-model source-value-set)))
          (object-in-memory (if source-value
                              (find (id source-value) (objects new-object-set) :test #'equal :key #'id)))
          (category-and-attribute (cons (intern (symbol-name attribute-value) "KEYWORD")
@@ -19,11 +19,12 @@
             (push category-and-attribute (attributes object-in-memory))))
         (progn
           (let ((new-object (make-instance 'object :id (id source-value)
-                                           :attributes (list category-and-attribute))))
+                                           :attributes (list category-and-attribute)
+                                           :attention (attention source-value))))
             (push new-object (objects new-object-set))))))
     new-object-set))
 
-(defun update-memory-count-or-exist (irl-program target-primitive source-value new-object-set solutions last-set)
+(defun update-memory-count-or-exist (irl-program target-primitive source-value new-object-set solutions )
   "updates history when question type is count or exist"
   "sets mentioned object of the queried object to T"
   (let* ((id-list (loop for obj in (objects new-object-set)
@@ -38,15 +39,15 @@
     "add objects from target set in new-object-set, if they are not yet in there"
     (loop for object in (objects (object-set (first (set-items source-value))))
               do (if (not (member (id object) id-list))
-                   (push (make-instance 'object :id (id object))
+                   (push (make-instance 'object :id (id object) :attention (attention object))
                          (objects new-object-set))))
     "find attributes but when set-diff is in irl-program; don't add attributes"
     (if other-objects
       ;in case of mnist, attribute needs to found as input of set-diff instead of output
       (if mnist
         (progn
-          (setf variable (third (find 'set-diff irl-program :test #'equal :key #'first)))
-          (setf attributes (find-input-attributes-of-set-diff irl-program variable))))
+          (setf var (third (find 'set-diff irl-program :test #'equal :key #'first)))
+          (setf attributes (find-input-attributes-of-set-diff irl-program var))))
       ;otherwise, find attributes
       (setf attributes (find-attributes-of-unique irl-program target-variable)))
     "add attributes to objects"

@@ -7,14 +7,13 @@
 (activate-monitor trace-fcg)
 ;; IRL MONITORS
 (activate-monitor trace-irl)
+(activate-monitor trace-irl-verbose)
 ;; CLEVR MONITOR
 (activate-monitor clevr-web-monitor)
 
 (comprehend (preprocess-sentence "what material is the red cube?"))
 
-(evaluate-clevr
- (make-instance 'clevr-world :data-sets '("val") :load-questions t)
- :nr-of-contexts 1 :nr-of-questions 1)
+(evaluate-clevr-accuracy "val" :nr-of-scenes 1 :nr-of-questions 1)
 
 ;;;; Manually create a scene for in the paper
 (defparameter *scene-from-paper*

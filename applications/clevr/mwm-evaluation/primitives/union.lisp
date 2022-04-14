@@ -21,6 +21,7 @@
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :objects unioned)))
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
 
+  #|
   ;; second case; given a source and target set, compute the other source set
   ;; the other source set contains at least the set-difference of the
   ;; target set and the given source set + all possible subsets of
@@ -64,4 +65,5 @@
      (equal-entity target-set
                    (make-instance 'mwm::mwm-object-set
                                   :objects unioned))))
+  |#
   :primitive-inventory *mwm-primitives*)

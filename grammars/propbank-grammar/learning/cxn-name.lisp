@@ -9,10 +9,11 @@
                           (cxn-units-with-role list)
                           (cxn-units-without-role list)
                           &key (mode :core-roles)
-                          (pp-units)
+                          pp-units lemma s-bar-units
+                          )
   ""
+  (declare (ignore mode))
 
-  
   (loop with pp-unit-number = 0
         with s-bar-unit-number = 0
         for (role . unit) in ts-units-with-role
@@ -23,16 +24,16 @@
                          ;; unit is a pp
                          ((find 'pp (unit-feature-value (unit-body unit) 'syn-class))
                           (incf pp-unit-number)
-                          (if (= 1 (length (nth1 pp-unit-number preposition-units)))
+                          (if (= 1 (length (nth1 pp-unit-number pp-units)))
                             (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class )
                                     (or lemma
                                         (second (find 'lemma
-                                                      (nthcdr 2 (first (nth1 pp-unit-number preposition-units)))
+                                                      (nthcdr 2 (first (nth1 pp-unit-number pp-units)))
                                                       :key #'feature-name))))
                             (format nil "~{~a~}(cc-~a)" (unit-feature-value unit 'syn-class )
                                     (or lemma
                                         (second (find 'lemma
-                                                      (nthcdr 2 (third (nth1 pp-unit-number preposition-units)))
+                                                      (nthcdr 2 (third (nth1 pp-unit-number pp-units)))
                                                       :key #'feature-name))))))
                          ;; unit is an s-bar
                          ((find 'sbar (unit-feature-value (unit-body unit) 'syn-class))

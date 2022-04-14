@@ -40,6 +40,7 @@
        (bind (target-set 1.0 related-set))
        (bind (target-set 1.0 (make-instance 'mwm::mwm-object-set :id (make-id 'empty-set)))))))
 
+  #|
   ;; second case; given source-object and target set, compute the spatial relation
   ((scene segmented-scene source-object target-set => spatial-relation)
    (let ((computed-relation
@@ -47,13 +48,13 @@
                        (equal-entity
                         target-set
                         (apply-spatial-relation source-object relation segmented-scene)))
-                   (get-data *my-ontology* 'spatial-relations))))
+                   (get-data ontology 'spatial-relations))))
      (when computed-relation
        (bind (spatial-relation 1.0 computed-relation)))))
 
   ;; third case; given source-object, compute pairs of target-set and spatial-relation
   ((scene segmented-scene source-object => target-set spatial-relation)
-   (loop for relation in (get-data *my-ontology* 'spatial-relations)
+   (loop for relation in (get-data ontology 'spatial-relations)
          for set = (apply-spatial-relation source-object relation segmented-scene)
          when set
          do (bind (target-set 1.0 set)
@@ -63,4 +64,5 @@
   ;; check for consistency
   ((scene segmented-scene source-object target-set spatial-relation =>)
    (equal-entity target-set (apply-spatial-relation source-object spatial-relation segmented-scene)))
+  |#
   :primitive-inventory *mwm-primitives*)

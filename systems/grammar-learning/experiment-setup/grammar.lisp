@@ -66,7 +66,7 @@
                              gl::holophrase->item-based+holistic+holistic--substitution
                              gl::holophrase->item-based+holistic--addition
                              gl::holophrase->item-based+holistic+holophrase--deletion
-                             gl::repair-holistic->item-based-cxn
+                             gl::holistic->item-based
                              gl::nothing->holophrase)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . t))))))

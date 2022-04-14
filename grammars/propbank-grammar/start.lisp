@@ -11,6 +11,8 @@
 (in-package :propbank-grammar)
 
 
+
+
 ;; Activating spacy-api locally
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -28,9 +30,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *restored-grammar*
-  (restore (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                           :name "propbank-grammar-ontonotes-ewt"
-                           :type "fcg")))
+  (cl-store:restore
+   (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
+                   :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
+                   :type "fcg")))
 
 (cl-store:store *propbank-ontonotes-ewt-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
@@ -67,7 +70,8 @@
     (:cxn-supplier-mode . :propbank-english)))
 
 (learn-propbank-grammar
- (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
+ (train-split *ewt-annotations*)
+ ;(append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
  :selected-rolesets nil
  :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
  :fcg-configuration *training-configuration*)
@@ -82,3 +86,5 @@
 (comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
 
 (comprehend-and-extract-frames "She sent her mother a dozen roses" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
+
+(comprehend-and-extract-frames (sentence-string (nth 0 (train-split *ewt-annotations*))) :cxn-inventory *propbank-ewt-learned-cxn-inventory*)

@@ -365,11 +365,15 @@ string will consist solely of decimal digits and ASCII letters."
       (let* ((string-without-newlines (format nil "~{~a~^ ~}"
                                               (split-sequence:split-sequence #\Newline string :remove-empty-subseqs t)))
              (string-without-no-break-spaces (format nil "~{~a~^ ~}"
-                                                     (split-sequence:split-sequence #+LISPWORKS #\No-Break-Space #+CCL #\No-Break_Space
+                                                     (split-sequence:split-sequence #+LISPWORKS #\No-Break-Space
+                                                                                    #+ccl #\No-Break_Space
+                                                                                    #+sbcl #\No-Break_Space
                                                                                     string-without-newlines :remove-empty-subseqs t))))
         (format nil "~{~a~^ ~}" (split-sequence:split-sequence #\Space string-without-no-break-spaces :remove-empty-subseqs t)))
       (let ((string-without-no-break-spaces (format nil "~{~a~^ ~}"
-                                                    (split-sequence:split-sequence #+LISPWORKS #\No-Break-Space #+CCL #\No-Break_Space
+                                                    (split-sequence:split-sequence #+LISPWORKS #\No-Break-Space
+                                                                                   #+ccl #\No-Break_Space
+                                                                                   #+sbcl #\No-Break_Space
                                                                                    string :remove-empty-subseqs t))))
         (format nil "~{~a~^ ~}" (split-sequence:split-sequence #\Space string-without-no-break-spaces :remove-empty-subseqs t)))))
 

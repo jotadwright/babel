@@ -66,9 +66,11 @@
         ((or (equal label 'argument-structure-cxn)
              (equal label 'argm-phrase-cxn))
          (let* ((lex-categories-node (lex-categories node))
-                (neighbours (remove-duplicates (loop for lex-category in lex-categories-node
-                                                     append (graph-utils::neighbors (type-hierarchies::graph (get-type-hierarchy (construction-inventory node))) lex-category
-                                                                                    :return-ids? nil))))
+                (categorial-network (categorial-network (construction-inventory node)))
+                (neighbours
+                 (remove-duplicates
+                  (loop for lex-category in lex-categories-node
+                        append (neighbouring-categories lex-category categorial-network)))) 
                 (constructions (loop for cxn in (if (equal label 'argument-structure-cxn)
                                                   (gethash nil (constructions-hash-table (construction-inventory node)))
                                                   (append
@@ -92,10 +94,11 @@
         ;; Word sense constructions
         ((equal label 'word-sense-cxn)
          (let* ((gram-categories-node (gram-categories node))
-                (neighbours (remove-duplicates (loop for gram-category in gram-categories-node
-                                                     append (graph-utils::neighbors (type-hierarchies::graph (get-type-hierarchy (construction-inventory node)))
-                                                                                    gram-category
-                                                                                    :return-ids? nil))))
+                (categorial-network (categorial-network (construction-inventory node)))
+                (neighbours
+                 (remove-duplicates
+                  (loop for gram-category in gram-categories-node
+                        append (neighbouring-categories gram-category categorial-network))))
                 (constructions (loop for cxn in (loop for hash in (hash node (get-configuration node :hash-mode))
                                                       append (gethash hash (constructions-hash-table (construction-inventory node))))
                                      for cxn-category = (attr-val cxn :sense-category)
@@ -114,12 +117,12 @@
 
 
 (defun find-highest-edge-weight (category-list cxn node)
-  (loop with graph = (graph-utils::graph (get-type-hierarchy (construction-inventory node)))
+  (loop with th = (categorial-network (construction-inventory node))
         with gram-category = (or (attr-val cxn :gram-category)
                                  (attr-val cxn :sense-category))
         for cat in category-list
-        if (graph-utils:edge-exists? graph cat gram-category)
-        maximize (graph-utils:edge-weight graph cat gram-category)))
+        if (link-exists-p cat gram-category th)
+        maximize (link-weight cat gram-category th)))
 
 
 
