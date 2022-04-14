@@ -10,36 +10,10 @@
 (ql:quickload :propbank-grammar)
 (in-package :propbank-grammar)
 
-
-
-
-;; Activating spacy-api locally
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
-
-
 ;; Loading the Propbank annotations (takes a couple of minutes)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (load-propbank-annotations 'ewt :ignore-stored-data nil) ; *ewt-annotations*
-(load-propbank-annotations 'ontonotes :ignore-stored-data nil) ; *ontonotes-annotations*
-
-
-;; Storing and restoring grammars
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defparameter *restored-grammar*
-  (cl-store:restore
-   (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                   :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
-                   :type "fcg")))
-
-(cl-store:store *propbank-ontonotes-ewt-learned-cxn-inventory*
-                (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt"
-                                :type "fcg"))
-
 
 ;; Learning grammars from the annotated data
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -69,6 +43,8 @@
      )
     (:cxn-supplier-mode . :propbank-english)))
 
+(defparameter *propbank-ewt-learned-cxn-inventory* nil)
+
 (learn-propbank-grammar
  (train-split *ewt-annotations*)
  ;(append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
@@ -76,15 +52,10 @@
  :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
  :fcg-configuration *training-configuration*)
 
-;; Testing learned grammars
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Storing and restoring grammars
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(monitors:activate-monitor trace-fcg)
-
-(comprehend "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
-
-(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
-
-(comprehend-and-extract-frames "She sent her mother a dozen roses" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
-
-(comprehend-and-extract-frames (sentence-string (nth 0 (train-split *ewt-annotations*))) :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
+(cl-store:store *propbank-ewt-learned-cxn-inventory*
+                (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
+                                :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
+                                :type "fcg"))
