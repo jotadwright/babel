@@ -1261,10 +1261,8 @@
                                (- - - - -)         
                                (- - - - -)        
                                (- - - - -)
-                               (?as ?nm ?nf ?nn ?np)))
-                        )
+                               (?as ?nm ?nf ?nn ?np))))
                (sem-cat (animacy animate))
-               
                (referent ?arg0)
                 --
               (syn-cat (lex-class noun-phrase)
@@ -1284,6 +1282,7 @@
                                (- - - - -)         
                                (- - - - -)
                                (?ps ?am ?af ?an ?ap))))
+               (sem-cat (animacy inanimate))
                (referent ?arg1)
                 --
               (syn-cat (lex-class noun-phrase)
@@ -1292,6 +1291,7 @@
                                (- - - - -)         
                                (- - - - -)
                                (?ps ?am ?af ?an ?ap))))
+              (sem-cat (animacy inanimate))
               (referent ?arg1))
               
               (?receiver-unit
@@ -2702,7 +2702,7 @@
 (comprehend-all "der Mann geht zum Shop")
 
 ;;;; der Mann sucht den Clown
-(formulate-all '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +)))
+(formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +)))
 
 ;;; den Clown sucht der Mann
 (formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
