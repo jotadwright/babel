@@ -1,11 +1,14 @@
 (in-package :visual-dialog)
 
-(defun initialize-agent-ontology-and-world (ontology world)
+(defun initialize-agent-ontology-and-world (ontology world silent)
   "sets the world and ontology of an agent in ontology"
   (let ((agent-ontology (make-instance 'blackboard)))
     (loop for field in (data-fields ontology)
           do (set-data agent-ontology (first field) (rest field)))
     (set-data agent-ontology 'world world)
+    (set-data agent-ontology 'silent silent)
+    (set-data agent-ontology 'server-address (get-configuration world :server-address))
+    (set-data agent-ontology 'cookie-jar (get-configuration world :cookie-jar))
   agent-ontology))
 
 (defun get-scene-pathname-by-index (index world)
@@ -114,18 +117,20 @@
          (attr-cat (intern (string-replace attribute-category "-category" "") "KEYWORD")))
     (cons attr-cat attribute)))
 
-(defun make-new-object-with-attributes (object-id attributes)
+(defun make-new-object-with-attributes (object-id attributes attention)
   (make-instance 'object
                  :id object-id
                  :attributes (loop for (category . attribute) in attributes
                                    for cat = category
                                    for attr = (intern (symbol-name attribute))
                                    when (not (equal attribute (or 'thing 'digit)))
-                                   collect (cons cat attribute))))
+                                   collect (cons cat attribute))
+                 :attention attention))
 
-(defun make-new-object-without-attributes (object-id attributes)
+(defun make-new-object-without-attributes (object-id attributes attention)
   (make-instance 'object
-                 :id object-id))
+                 :id object-id
+                 :attention attention))
 
 (defun get-target-value (irl-program list-of-bindings)
   "returns the value/binding of the open variable in irl-program"
@@ -156,7 +161,7 @@
   (if (equal (type-of source-value) 'object-set)
     (loop for object in (objects source-value)
           collect (id object))
-    (loop for object in (objects (object-set (first (set-items source-value))))
+    (loop for object in (collect-objects-from-world-model source-value)
           collect (id object))))
 
 (defun add-conversation-memory (memory)
@@ -165,10 +170,10 @@
 
 (defun get-primitive-inventory (world)
   (let ((mode (get-configuration world :mode)))
-    (if (eql mode :hybrid)
-      *hybrid-primitives*)
-    (if (eql mode :symbolic)
-      *symbolic-primitives*)))
+    (cond ((eql mode :hybrid)
+           *subsymbolic-primitives*)
+          ((eql mode :symbolic)
+           *symbolic-primitives*))))
 
 ;;;;;;;; EVALUATION UTILS
 
@@ -234,4 +239,22 @@
                   1)
                  (t
                   0))))
+
+(defun collect-objects-from-world-model (world-model)
+  (let* ((set-items (set-items world-model))
+         (object-set (if set-items
+                       (object-set (first set-items))))
+         (objects (if object-set (objects object-set))))
+    (if (and set-items object-set objects)
+      (loop for object in objects
+            collect object))))
+
+(defun collect-objects-id-from-world-model (world-model)
+  (let* ((set-items (set-items world-model))
+         (object-set (if set-items
+                       (object-set (first set-items))))
+         (objects (if object-set (objects object-set))))
+    (if (and set-items object-set objects)
+      (loop for object in objects
+            collect (id object)))))
 

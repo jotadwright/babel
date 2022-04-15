@@ -26,7 +26,7 @@
                    for set-of-questions = (load-clevr-question-set question-path)
                    for path-entity = (make-instance 'pathname-entity :pathname scene-path)
                    for scene-name = (pathname-name scene-path)
-                   if (and nr-of-scenes (>= processed-scenes nr-of-scenes))
+                   if (and nr-of-scenes (> processed-scenes nr-of-scenes))
                    return accuracy
                    else
                    append (loop for clevr-question in (questions set-of-questions)
@@ -38,7 +38,7 @@
                                 for scene-var = (extract-scene-unit-variable cipn)
                                 do (incf processed-questions)
                                 (format t ".")
-                                if (and nr-of-questions (>= processed-questions nr-of-questions))
+                                if (and nr-of-questions (> processed-questions nr-of-questions))
                                 return scene-accuracy
                                 else if (and (find 'fcg::succeeded (fcg::statuses cipn))
                                              (string= (upcase answer)
@@ -47,10 +47,10 @@
                                 else collect 0 into scene-accuracy
                                 and do (progn (write-line (format nil "~a - ~a" scene-name q) log)
                                          (force-output log))
-                                finally return scene-accuracy)
+                                finally (return scene-accuracy))
                    into accuracy
                    do (incf processed-scenes)
-                   finally return accuracy))))))
+                   finally (return accuracy)))))))
 
 
 (defun understand-utterance-in-scene (utterance scene-name data-split)

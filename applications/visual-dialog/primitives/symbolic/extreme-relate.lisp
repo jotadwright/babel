@@ -5,10 +5,11 @@
 ;; -----------------
 
 (defprimitive extreme-relate ((target-set world-model)
-                      (source-set world-model)
-                      (spatial-relation spatial-relation-category))
+                              (source-set world-model)
+                              (scene pathname-entity)
+                              (spatial-relation spatial-relation-category))
   ;; first case; given source-object and spatial relation, compute the target set
-  ((source-set spatial-relation => target-set)
+  ((source-set spatial-relation scene => target-set)
    (let* (
           (relation-list nil)
           (id-right nil)

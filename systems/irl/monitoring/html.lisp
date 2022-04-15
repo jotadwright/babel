@@ -427,7 +427,7 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
     (duplicate . "#520")
     (max-depth-reached . "#888")
     (max-nr-of-nodes . "#888")
-    (not-evaluated . "#444")))
+    (not-evaluated . "#990")))
 
 (defun ippn->title-text (node)
   (if (eq (status node) 'initial)
@@ -544,46 +544,56 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
           return t)))
 
 (defmethod make-html ((node irl-program-processor-node)
-                      &key targets (expand-initially nil)
-                      (expand/collapse-all-id (make-id 'ippn)))
+                      &key (expand-initially nil)
+                      (expand/collapse-all-id (make-id 'ippn))
+                      targets (draw-children t))
   (let* ((element-id (make-id 'ippn))
          (node-color
           (or (assqv (status node) *irl-program-processor-node-status-colors*)
               (error "no status color defined for status ~a" (status node)))))
-    (draw-node-with-children
-     `((div :class "ippn")
-       ,(make-expandable/collapsable-element
-         element-id (make-id)
-         ;; collapsed element
-         (collapsed-ippn-html node element-id node-color)
-         ;; expanded element
-         (expanded-ippn-html node element-id node-color
-                             :expand/collapse-all-id expand/collapse-all-id)))
-     (let ((subtree-id (make-id 'subtree))
-           nodes-to-show nodes-to-hide)
-       (if targets
-         (loop for child in (children node)
-               if (on-path-to-target-p child targets)
-               do (push child nodes-to-show)
-               else do (push child nodes-to-hide))
-         (setf nodes-to-show (children node)))
-       (shuffle (append
-        (loop for child in nodes-to-show
-              collect (make-html child :targets targets
-                                 :expand-initially expand-initially
-                                 :expand/collapse-all-id expand/collapse-all-id))
-        (if nodes-to-hide
-          (list 
-           (make-expandable/collapsable-element
-            subtree-id expand/collapse-all-id
-            ;; collapsed element
-            (collapsed-hidden-subtree-html subtree-id)
-            ;; expanded element
-            (expanded-hidden-subtree-html nodes-to-hide subtree-id
-                                          :expand/collapse-all-id expand/collapse-all-id)
-            :expand-initially expand-initially))
-          nil))))
-     :color "#aaa")))
+    (if draw-children
+      (draw-node-with-children
+       `((div :class "ippn")
+         ,(make-expandable/collapsable-element
+           element-id (make-id)
+           ;; collapsed element
+           (collapsed-ippn-html node element-id node-color)
+           ;; expanded element
+           (expanded-ippn-html node element-id node-color
+                               :expand/collapse-all-id expand/collapse-all-id)))
+       (let ((subtree-id (make-id 'subtree))
+             nodes-to-show nodes-to-hide)
+         (if targets
+           (loop for child in (children node)
+                 if (on-path-to-target-p child targets)
+                   do (push child nodes-to-show)
+                 else do (push child nodes-to-hide))
+           (setf nodes-to-show (children node)))
+         (shuffle (append
+                   (loop for child in nodes-to-show
+                         collect (make-html child :targets targets
+                                            :expand-initially expand-initially
+                                            :expand/collapse-all-id expand/collapse-all-id))
+                   (if nodes-to-hide
+                     (list 
+                      (make-expandable/collapsable-element
+                       subtree-id expand/collapse-all-id
+                       ;; collapsed element
+                       (collapsed-hidden-subtree-html subtree-id)
+                       ;; expanded element
+                       (expanded-hidden-subtree-html nodes-to-hide subtree-id
+                                                     :expand/collapse-all-id expand/collapse-all-id)
+                       :expand-initially expand-initially))
+                     nil))))
+       :color "#aaa")
+      `((div :class "ippn")
+        ,(make-expandable/collapsable-element
+          element-id (make-id)
+          ;; collapsed element
+          (collapsed-ippn-html node element-id node-color)
+          ;; expanded element
+          (expanded-ippn-html node element-id node-color
+                              :expand/collapse-all-id expand/collapse-all-id))))))
 
 (defmethod make-html ((processor irl-program-processor)
                       &key (expand/collapse-all-id (make-id 'ipp))
@@ -594,9 +604,10 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
          (the-biggest #'node-depth (find-all 'inconsistent (nodes processor) :key #'status))))
     ;; when drawing the search tree, only show the path to the solution
     ;; or the deepest inconsistent node when there is no solution
-    (make-html (top processor) :targets (or solution-nodes
-                                            (when deepest-inconsistent-node
-                                              (list deepest-inconsistent-node)))
+    (make-html (top processor)
+               :targets (or solution-nodes
+                            (when deepest-inconsistent-node
+                              (list deepest-inconsistent-node)))
                :expand/collapse-all-id expand/collapse-all-id
                :expand-initially expand-initially)))
 
