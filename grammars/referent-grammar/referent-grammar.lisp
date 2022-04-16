@@ -72,22 +72,24 @@
       (sem-cat (sem-role patient)
                (sem-class referring-expression)))
      <-
+     (root
+      (meaning ((?event-predicate ?event-var)
+                (?agent-predicate ?agent-var)
+                (?patient-predicate ?patient-var)))
+      --)
      (?agent-unit
-      (HASH meaning ((?agent-predicate ?agent-var)))
       --
       (syn-cat (number ?nb)
                (person ?p))
       (boundaries (leftmost-unit ?leftmost-agent-unit)
                   (rightmost-unit ?rightmost-agent-unit)))
      (?event-unit
-      (HASH meaning ((?event-predicate ?event-var)))
       --
       (syn-cat (number ?nb)
                (person ?p))
       (boundaries (leftmost-unit ?leftmost-event-unit)
                   (rightmost-unit ?rightmost-event-unit)))
      (?patient-unit
-      (HASH meaning ((?patient-predicate ?patient-var)))
       --
       (boundaries (leftmost-unit ?leftmost-patient-unit)
                   (rightmost-unit ?rightmost-patient-unit)))
@@ -103,7 +105,7 @@
 (def-fcg-cxn bakt-cxn
     (<-
      (?bakt-unit
-      (meaning ((bakken-01 ?b)))
+      (HASH meaning ((bakken-01 ?b)))
       (referent ?b)
       (syn-cat (lex-class verb)
                (number sg)
@@ -119,7 +121,7 @@
                (person 3)))
      <-
      (?brood-unit
-      (meaning ((brood ?b)))
+      (HASH meaning ((brood ?b)))
       (referent ?b)
       (boundaries (leftmost-unit ?brood-unit)
                   (rightmost-unit ?brood-unit))
@@ -132,14 +134,16 @@
                (person 3)))
      <-
      (?bart-unit
-      (meaning ((bart ?b)))
+      (HASH meaning ((bart ?b)))
       (referent ?b)
       (boundaries (leftmost-unit ?bart-unit)
                   (rightmost-unit ?bart-unit))
       --
       (HASH form ((string ?bart-unit "bart"))))))
 
-     
+
+;; Bart bakt brood (referent f)
+;;------------------------------
 
 #|'((frame f b1)
   (bakken-01 b1)
@@ -159,6 +163,35 @@
              (referent f)))
 
 (comprehend "bart bakt brood")
+
+
+;; Bart bakt volkoren brood (referent f)
+;;------------------------------
+
+
+(def-fcg-cxn volkoren-cxn
+     ((?volkoren-unit
+      (syn-cat (number sg)
+               (person 3)))
+     <-
+     (?volkoren-unit
+      (meaning ((volkoren ?v)))
+      (referent ?v)
+      (boundaries (leftmost-unit ?volkoren-unit)
+                  (rightmost-unit ?volkoren-unit))
+      --
+      (HASH form ((string ?volkoren-unit "volkoren"))))))
+
+
+(def-fcg-cxn adjective-noun-cxn
+    (<-
+     (?adjective-unit
+      --
+      )
+     (?noun-unit
+      --
+      )))
+    
 
 ;; (referent f)    => Bart bakt brood, het brood is door Bart gebakken, de gebeurtenis waarbij Bart een brood bakt
 ;; (referent b1)   => het bakken van brood door Bart
