@@ -2707,7 +2707,6 @@
 ;;; den Clown sucht der Mann
 (formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
-
 ;;;; der Hund verfolgt den Mann
 (formulate-all '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +)))
 
@@ -2793,7 +2792,7 @@
 (formulate '((verkaufen-01 s) (doctor d) (clown c) (book b) (arg0 s d) (arg1 s b) (arg2 s c) (topicalized c +)))
 
 ;;dem Direktor schenkt die Lehrerin die Blumen
-(formulate '((FLOWERS f) (DIRECTOR f) (TEACHER t) (SCHENKEN-01 g) (ARG2 g d) (ARG1 g f) (ARG0 g t) (TOPICALIZED d +)))
+(formulate '((FLOWERS f) (DIRECTOR d) (TEACHER t) (SCHENKEN-01 g) (ARG2 g d) (ARG1 g f) (ARG0 g t) (TOPICALIZED d +)))
 
 ;;PP Accusatiefobject
 
