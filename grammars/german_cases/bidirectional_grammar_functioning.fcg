@@ -20,10 +20,7 @@
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-sets) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
-                       ;; cxn sets
-                       (:parse-order morph cxn)
-                       (:production-order cxn morph)
-                       ;; goal tests
+                       
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
@@ -48,8 +45,7 @@
                
                --
                (HASH form ((string ?the-word "der")))))
-             :disable-automatic-footprints t
-             :cxn-set morph)
+             :disable-automatic-footprints t)
 
 (def-fcg-cxn dem-cxn
              ((?the-word
@@ -66,8 +62,7 @@
                
                --
                (HASH form ((string ?the-word "dem")))))
-             :disable-automatic-footprints t
-             :cxn-set morph)
+             :disable-automatic-footprints t)
 
 
 (def-fcg-cxn die-cxn
@@ -85,9 +80,7 @@
                
                --
                (HASH form ((string ?the-word "die")))))
-             :disable-automatic-footprints t
-             :cxn-set morph)
-
+             :disable-automatic-footprints t)
 
 (def-fcg-cxn den-cxn
              ((?the-word
@@ -104,8 +97,7 @@
                
                --
                (HASH form ((string ?the-word "den")))))
-             :disable-automatic-footprints t
-             :cxn-set morph)
+             :disable-automatic-footprints t)
 
 
 (def-fcg-cxn das-cxn
@@ -123,8 +115,7 @@
                
                --
                (HASH form ((string ?the-word "das")))))
-             :disable-automatic-footprints t
-             :cxn-set morph)
+             :disable-automatic-footprints t)
 
 
 (def-fcg-cxn zur-cxn
@@ -160,8 +151,7 @@
                                (+ ?dm - ?dn -)
                                (+ ?dm - ?dn -))))
                --
-               (HASH form ((string ?to-word "zum")))))
-             :cxn-set morph)
+               (HASH form ((string ?to-word "zum"))))))
 
 
 (def-fcg-cxn beim-cxn
@@ -180,8 +170,7 @@
                                (+ ?dm - ?dn -)
                                (+ ?dm - ?dn -))))
                --
-               (HASH form ((string ?at-word "beim")))))
-             :cxn-set morph)
+               (HASH form ((string ?at-word "beim"))))))
 
 
 (def-fcg-cxn gegen-cxn
@@ -368,8 +357,6 @@
                (HASH meaning ((mother ?m)))                     
                --
                (HASH form ((string ?mother-word  "Mutter"))))))
-
-
 
 (def-fcg-cxn Mann-cxn
              ((?man-word
@@ -2625,7 +2612,6 @@
 ;;; den Clown sucht der Mann
 (formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
-
 ;;;; der Hund verfolgt den Mann
 (formulate '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +)))
 
@@ -2663,7 +2649,7 @@
 ;;;beim Bäcker ist der Mann
 (formulate '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
 
-;;; der Mann kommt aus dem Backer
+;;; der Mann kommt aus dem Backer  
 (formulate '((kommen-01 k) (man m) (baker b) (arg0 k m) (arg3 k b) (topicalized m +)))
 
 ;;; der Mann spaziert durch den Tunnel
@@ -2675,9 +2661,8 @@
 ;; der Mann hat für den Clown die Blumen mitgebracht 
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
-;;; der Mann geht ohne den Clown zur Arbeit 
-(formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a neg) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
-
+;;; der Mann geht ohne den Clown zur Arbeit - not working in comprehension
+;(formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a neg) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
 
 ;;der Mann fährt mit dem Fahrrad zur Arbeit
 (formulate '((bike b) (work w) (man m) (fahren-01 f) (arg0 f m) (arg1 f w) (topicalized m +) (manner f a) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a pos)))
