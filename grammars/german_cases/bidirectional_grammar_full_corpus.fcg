@@ -686,7 +686,6 @@
               <-
 
               (?preposition
-               
                --
                (syn-cat (lex-class preposition)
                         (type ?type)
@@ -729,6 +728,9 @@
               ))
               :disable-automatic-footprints t)
 
+
+
+(comprehend-all "gegen den Baum")
 
 (def-fcg-cxn accompanying-phrase-cxn
              ((?accompanying-phrase
@@ -1493,8 +1495,7 @@
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
-                       (type intransitive-path)
-                       (arg path))
+                       (type intransitive-path))
                (referent ?v)
                 --
               (syn-cat (lex-class verb)
@@ -1529,7 +1530,6 @@
                       (?ls ?am ?af ?an ?lp)
                       ))
                    (form-type extended-prep-phrase)
-                   (polarity ?polarity)
                    (animacy inanimate))
                (referent ?arg2)
                 --
@@ -2627,10 +2627,10 @@
 
 
 ;;;; der Hund verfolgt den Mann
-(formulate-all '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +)))
+(formulate '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +)))
 
 ;;; den Mann verfolgt der Hund
-(formulate-all '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized m +)))
+(formulate '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized m +)))
 
 ;;; der Mann schenkt dem Clown die Blumen
 (formulate '((schenken-01 g) (man m) (clown c) (flowers f) (arg0 g m) (arg1 g f) (arg2 g c) (topicalized m +)))
@@ -2652,25 +2652,25 @@
 
 ;;;der Mann geht zum Shop
 ;(formulate '((gehen-01 g) (man m) (arg0 g m) (work w) (arg4 g w) (topicalized m +)))
-(formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized m +)))
+(formulate '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized m +)))
 
 ; zum Shop geht der Mann
 (formulate '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized w +)))
 
 ;;;der Mann ist beim Bäcker
-(formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +)))
+(formulate '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +)))
 
 ;;;beim Bäcker ist der Mann
-(formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
+(formulate '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
 
 ;;; der Mann kommt aus dem Backer
-(formulate-all '((kommen-01 k) (man m) (baker b) (arg0 k m) (arg3 k b) (topicalized m +)))
+(formulate '((kommen-01 k) (man m) (baker b) (arg0 k m) (arg3 k b) (topicalized m +)))
 
 ;;; der Mann spaziert durch den Tunnel
-(formulate-all '((MAN ?M) (TUNNEL ?T) (SPAZIEREN-01 ?S) (ARG2 ?S ?T) (ARG0 ?S ?M) (TOPICALIZED ?M +)))
+(formulate '((MAN ?M) (TUNNEL ?T) (SPAZIEREN-01 ?S) (ARG2 ?S ?T) (ARG0 ?S ?M) (TOPICALIZED ?M +)))
 
 ;;; der Mann ist gegen den Baum gefahren 
-(formulate-all '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
+(formulate '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
 
 ;; der Mann hat für den Clown die Blumen mitgebracht 
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
@@ -2678,28 +2678,12 @@
 ;;; der Mann geht ohne den Clown zur Arbeit 
 (formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a neg) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
 
-;der Mann geht zur Arbeit ohne den Clown"  -  "der Mann geht ohne den Clown zur Arbeit"
 
-
-;;der Mann fährt mit dem Fahrrad zur Arbeit---stuck in formulation because of + of accompany and something else...
-
-;(formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
-
+;;der Mann fährt mit dem Fahrrad zur Arbeit
 (formulate '((bike b) (work w) (man m) (fahren-01 f) (arg0 f m) (arg1 f w) (topicalized m +) (manner f a) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a pos)))
 
 
 ;;der Mann fährt ohne das Fahrrad zur Arbeit
 (formulate '((ACCOMPANY-01 A) (POLARITY A NEG) (WORK W) (MAN M) (BIKE B) (ARG0 A B) (FAHREN-01 F) (ARG1 A M)(ARG1 F W) (MANNER F A) (ARG0 F M) (TOPICALIZED M +)))
 
-
-;;;;;;errors formulation
-
-;Prepositional Dative
-
-
-
-;Indirect accusative
-
-
-;Double Object
 
