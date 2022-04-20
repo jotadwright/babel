@@ -99,6 +99,23 @@
                (HASH form ((string ?the-word "den")))))
              :disable-automatic-footprints t)
 
+(def-fcg-cxn ihren-cxn
+             ((?her-word
+               (footprints (possessive-adj))) 
+             <-
+              (?her-word
+               (footprints (not possessive-adj))
+               (syn-cat (lex-class possessive-adj)
+                        (case ((- - - - -)        
+                               (?am ?am - - -)        
+                               (- - - - -)          
+                               (?dp - - - ?dp)
+                               (?am ?am - - ?dp))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?her-word "ihren")))))
+             :disable-automatic-footprints t)
+
 
 (def-fcg-cxn das-cxn
              ((?the-word
@@ -222,6 +239,30 @@
                (HASH form ((string ?without-word "ohne")))))
              :disable-automatic-footprints t)
 
+(def-fcg-cxn ohne-incorrect-case-cxn
+             ((?without-word
+               
+               (footprints (preposition)))
+              <-
+              (?without-word
+               (referent ?x)
+               (footprints (not preposition))
+               (syn-cat (lex-class preposition)
+                        (type accompanying)
+                        (polarity neg)
+                        (case ((- - - - -)      
+                               (- - - - -)        
+                               (?dat ?dm ?df ?dn ?dp)      
+                               (?gen ?gm ?gf ?gn ?gp)
+                               (?s ?m ?f ?n ?p))))
+               (error-cat (ERROR incorrect-case-selection)
+                        (REASON accusative-case-needed))
+               (HASH meaning ((accompany-01 ?x)
+                              (polarity ?x neg)))
+               --
+               (HASH form ((string ?without-word "ohne")))))
+             :disable-automatic-footprints t)
+
 (def-fcg-cxn gegen-cxn
              ((?against-word
                (footprints (preposition)))
@@ -256,8 +297,25 @@
                                (+ ?dm - ?dn -)
                                (+ ?dm - ?dn -))))
                --
-               (HASH form ((string ?to-word "zum")))))
-             :cxn-set morph)
+               (HASH form ((string ?to-word "zum"))))))
+
+
+(def-fcg-cxn zu-cxn
+             ((?to-word
+              (footprints (article)))
+              <-
+              (?to-word
+               (footprints (not article))
+               (syn-cat (lex-class non-contracted-preposition)
+                        (type motion-locative)
+                        (polarity pos)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (+ ?dm - ?dn -)
+                               (+ ?dm - ?dn -))))
+               --
+               (HASH form ((string ?to-word "zu"))))))
 
 
 (def-fcg-cxn Sohn-cxn
@@ -428,6 +486,53 @@
               ))
               :disable-automatic-footprints t)
 
+
+(def-fcg-cxn incorrect-contracted-prep-phrase-cxn
+             ((?incorrect-contracted-prep-phrase
+               (referent ?x)
+               (syn-cat (lex-class prep-phrase)
+                        (case ?case)
+                        (type ?type)
+                        (polarity ?polarity)
+                        (form-type contracted))
+               (sem-cat (animacy ?animacy))
+               (error-cat (ERROR missing-determiner)
+                        (REASON determiner-in-dative-case-needed))
+               (subunits (?contracted-prep ?noun))
+               (boundaries (leftmost-unit ?contracted-prep)
+                           (rightmost-unit ?noun)))
+              (?contracted-prep
+               (part-of-prep-phrase +)
+               (referent ?x))
+              (?noun
+               (footprints (determined)))
+              <-
+              (?contracted-prep
+               --
+               (syn-cat (lex-class non-contracted-preposition)
+                        (type ?type)
+                        (polarity ?polarity)
+                        (case ?case))
+               )
+              (?noun
+               (footprints (not determined))
+               (referent ?x)
+               (syn-cat (lex-class noun)
+                        (case ?case))
+               (sem-cat (animacy ?animacy))
+                 
+               --
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              
+              (?incorrect-contracted-prep-phrase
+               --
+               (HASH form ((meets ?contracted-prep ?noun)))
+              ))
+             :disable-automatic-footprints t)
+
+
 (def-fcg-cxn contracted-prep-phrase-cxn
              ((?contracted-prep-phrase
                (referent ?x)
@@ -470,6 +575,80 @@
               ))
              :disable-automatic-footprints t)
 
+(def-fcg-cxn incorrect-accompanying-phrase-cxn
+             ((?incorrect-accompanying-phrase
+               (referent ?x)
+               (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))
+                        (type accompanying)
+                        (form-type extended-accompanying-prep-phrase)
+                        (polarity ?polarity))
+               (error-cat (ERROR ?error)
+                          (REASON ?reason))
+               (subunits (?preposition ?article ?noun))
+               (boundaries (leftmost-unit ?preposition)
+                           (rightmost-unit ?noun)))
+              (?preposition
+               (part-of-prep-phrase +))
+              
+              (?article
+              (part-of-prep-phrase +))
+
+              (?noun
+               (footprints (determined)))
+              <-
+
+              (?preposition
+               --
+               (referent ?x)
+               (syn-cat (lex-class preposition)
+                        (type accompanying)
+                        (polarity ?polarity)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+               (error-cat (error ?error)
+                        (reason ?reason)))
+              (?article
+               --
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))))
+              (?noun
+               (referent ?no)
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p))))
+               --
+               (referent ?no)
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))))
+              
+              (?incorrect-accompanying-phrase
+               (HASH meaning ((arg0 ?x ?no)))
+               --
+               (HASH form ((meets ?preposition ?article)
+                           (meets ?article ?noun)))
+              ))
+              :disable-automatic-footprints t)
 
 (def-fcg-cxn accompanying-phrase-cxn
              ((?accompanying-phrase
@@ -478,7 +657,7 @@
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
                                (- - - - -)       
-                               (?dat ?dm ?df ?dn ?dp)
+                               (- - - - -)
                                (?s ?m ?f ?n ?p)))
                         (type accompanying)
                         (form-type extended-accompanying-prep-phrase)
@@ -505,7 +684,7 @@
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
                                (- - - - -)       
-                               (?dat ?dm ?df ?dn ?dp)
+                               (- - - - -)
                                (?s ?m ?f ?n ?p)))))
               (?article
                --
@@ -513,7 +692,7 @@
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
                                (- - - - -)       
-                               (?dat ?dm ?df ?dn ?dp)
+                               (- - - - -)
                                (?s ?m ?f ?n ?p)))))
               (?noun
                (referent ?no)
@@ -522,7 +701,7 @@
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
                                (- - - - -)       
-                               (?dat ?dm ?df ?dn ?dp)
+                               (- - - - -)
                                (?s ?m ?f ?n ?p))))
                --
                (referent ?no)
@@ -531,7 +710,7 @@
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
                                (- - - - -)       
-                               (?dat ?dm ?df ?dn ?dp)
+                               (- - - - -)
                                (?s ?m ?f ?n ?p)))))
               
               (?accompanying-phrase
@@ -539,6 +718,78 @@
                --
                (HASH form ((meets ?preposition ?article)
                            (meets ?article ?noun)))
+              ))
+              :disable-automatic-footprints t)
+
+(def-fcg-cxn accompanying-phrase-poss-cxn
+             ((?accompanying-phrase-poss
+               (referent ?x)
+               (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (- - - - -)       
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p)))
+                        (type accompanying)
+                        (form-type extended-accompanying-prep-phrase)
+                        (polarity ?polarity))
+               (error-cat (deviation-from-input possessive-adj-no-art))
+               (subunits (?preposition ?adj ?noun))
+               (boundaries (leftmost-unit ?preposition)
+                           (rightmost-unit ?noun)))
+              (?preposition
+               (part-of-prep-phrase +))
+              
+              (?adj
+              (part-of-prep-phrase +))
+
+              (?noun
+               (footprints (determined)))
+              <-
+
+              (?preposition
+               --
+               (referent ?x)
+               (syn-cat (lex-class preposition)
+                        (type accompanying)
+                        (polarity ?polarity)
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (- - - - -)       
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p)))))
+              (?adj
+               --
+               (syn-cat (lex-class possessive-adj)
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (- - - - -)       
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p)))))
+              (?noun
+               (referent ?no)
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (- - - - -)       
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+               --
+               (referent ?no)
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (- - - - -)       
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p)))))
+              
+              (?accompanying-phrase-poss
+               (HASH meaning ((arg0 ?x ?no)))
+               --
+               (HASH form ((meets ?preposition ?adj)
+                           (meets ?adj ?noun)))
               ))
               :disable-automatic-footprints t)
 
@@ -657,6 +908,156 @@
                           (rightmost-unit ?rightmost-location-unit)))
               ))
 
+(def-fcg-cxn incorrect-case-intransitive-extra-argument-structure-cxn
+             ((?incorrect-intransitive-extra-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?extra-info-unit
+               (syn-cat (syn-role extra-information)))
+              (?location-unit
+               (syn-cat (syn-role locative-complement)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect non-perfect))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+              (referent ?arg0))
+
+              (?extra-info-unit
+               (referent ?accompany)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?dat ?dm ?df ?dn ?dp)))
+                        (type accompanying))
+              (error-cat (error ?error)
+                         (reason ?reason))
+              (referent ?accompany))
+         
+              (?location-unit
+               (syn-cat (lex-class prep-phrase)
+                        (type motion-locative-contracted)
+                        (form-type contracted)
+                   (case ((- - - - -) 
+                          (- - - - -)         
+                          (- - - - -)         
+                          (?dat ?dm ?df ?dn ?dp)
+                          (?ls ?dm ?df ?dn ?lp))))
+               (referent ?arg4)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -) 
+                              (- - - - -)         
+                              (- - - - -)         
+                              (?dat ?dm ?df ?dn ?dp)
+                              (?ls ?m ?f ?n ?lp))))
+              (referent ?arg4))
+              
+              (?incorrect-intransitive-extra-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:manner ?v ?accompany)
+                              (:arg1 ?accompany ?arg0)
+                              (:arg4 ?v ?arg4)
+                              (:incorrect-part ?accompany)))                  
+               --
+               )))
+
+
+(def-fcg-cxn incorrect-loc-intransitive-extra-argument-structure-cxn
+             ((?incorrect-loc-intransitive-extra-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?extra-info-unit
+               (syn-cat (syn-role extra-information)))
+              (?location-unit
+               (syn-cat (syn-role locative-complement)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect non-perfect))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+              (referent ?arg0))
+
+              (?extra-info-unit
+               (referent ?accompany)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        (case ?case)
+                        (type accompanying))
+              
+              (referent ?accompany))
+         
+              (?location-unit
+               (referent ?arg4)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -) 
+                              (- - - - -)         
+                              (- - - - -)         
+                              (?dat ?dm ?df ?dn ?dp)
+                              (?ls ?m ?f ?n ?lp))))
+              (error-cat (error ?error)
+                         (reason ?reason))
+              (referent ?arg4))
+              
+              (?incorrect-loc-intransitive-extra-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:manner ?v ?accompany)
+                              (:arg1 ?accompany ?arg0)
+                              (:arg4 ?v ?arg4)
+                              (:incorrect-part ?arg4)))                  
+               --
+               )))
+
 (def-fcg-cxn intransitive-extra-argument-structure-cxn
              ((?intransitive-extra-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
@@ -697,7 +1098,11 @@
 
               (?extra-info-unit
                (syn-cat (lex-class prep-phrase)
-                   (case ?case)
+                   (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (- - - - -)       
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap)))
                    (type accompanying))
                (referent ?accompany)
                 --
@@ -732,6 +1137,7 @@
                               (:arg4 ?v ?arg4)))                  
                --
                )))
+
 
 
 (def-fcg-cxn topic-arg0-extra-info-arg4-information-structure-cxn

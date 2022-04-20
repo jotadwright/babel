@@ -188,21 +188,18 @@
                --
                (HASH form ((string ?king-word  "König"))))))
 
-
-
-
-(def-fcg-cxn sucht-cxn
-             ((?search-word                         
+(def-fcg-cxn ruft-cxn
+             ((?call-word                         
                (syn-cat (lex-class verb)
                         (aspect non-perfect)
                         (type transitive))
-               (referent ?s))  
+               (referent ?c))  
                         
               <-
-              (?search-word                           
-               (HASH meaning ((suchen-01 ?s)))                   
+              (?call-word                           
+               (HASH meaning ((rufen-01 ?c)))                   
                --
-               (HASH form ((string ?search-word  "sucht"))))))
+               (HASH form ((string ?call-word  "ruft"))))))
 
 
 (def-fcg-cxn tötet-cxn
