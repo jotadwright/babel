@@ -582,7 +582,7 @@ nodes."
                (footprints (question-marker)))
               <-
               (?how-about-unit
-               (HASH meaning ((exist-or-count ?bool ?objects)))
+               (HASH meaning ((exist-or-count ?bool ?objects ?memory)))
                --
                (HASH form ((meets ?how-unit ?about-unit))))
               (?how-unit
@@ -590,7 +590,10 @@ nodes."
                (HASH form ((string ?how-unit "how"))))
               (?about-unit
                --
-               (HASH form ((string ?about-unit "about")))))
+               (HASH form ((string ?about-unit "about"))))
+              (memory-unit
+               --
+               (memory ?memory)))
              :cxn-inventory *clevr-dialog*)
 
 (def-fcg-cxn what-about-exist-cxn
@@ -604,7 +607,7 @@ nodes."
                (footprints (question-marker)))
               <-
               (?what-about-unit
-               (HASH meaning ((exist-or-count ?bool ?objects)))
+               (HASH meaning ((exist-or-count ?bool ?objects ?memory)))
                --
                (HASH form ((meets ?what-unit ?about-unit))))
               (?what-unit
@@ -612,7 +615,10 @@ nodes."
                (HASH form ((string ?what-unit "what"))))
               (?about-unit
                --
-               (HASH form ((string ?about-unit "about")))))
+               (HASH form ((string ?about-unit "about"))))
+              (memory-unit
+               --
+               (memory ?memory)))
              :cxn-inventory *clevr-dialog*)
 
 (def-fcg-cxn and-exist-cxn
@@ -625,9 +631,12 @@ nodes."
                (footprints (question-marker)))
               <-
               (?and-unit
-               (HASH meaning ((exist-or-count ?bool ?objects)))
+               (HASH meaning ((exist-or-count ?bool ?objects ?memory)))
                --
-               (HASH form ((string ?and-unit "and")))))
+               (HASH form ((string ?and-unit "and"))))
+              (memory-unit
+               --
+               (memory ?memory)))
              :cxn-inventory *clevr-dialog*)
 
 (def-fcg-cxn what-number-of-cxn

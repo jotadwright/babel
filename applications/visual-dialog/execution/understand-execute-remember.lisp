@@ -52,7 +52,7 @@
         (if (eq target-primitive 'count-objects)
           (progn
             (setf question 'count)
-            (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions last-set)))
+            (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions)))
         (setf memory (make-instance 'world-model
                                     :id 'conversation-memory
                                     :set-items (list (make-instance 'turn
@@ -124,6 +124,7 @@
                   (add-conversation-memory memory))
                 (id target-value))
               nil)))))
+
 
 
 

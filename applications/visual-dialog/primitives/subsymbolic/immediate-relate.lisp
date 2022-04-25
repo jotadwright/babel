@@ -29,7 +29,7 @@
           :source ,source-object-list
           :segmented-scene ,scene-objects-id-list
           :scene ,(namestring (path scene))
-          :spatial-relation ,(spatial-relation spatial-relation)))
+          :spatial-relation ,rel))
      (loop for scores in bind-scores
            for values in bind-values
            do (if (getf values 'target)
@@ -57,3 +57,4 @@
                   ((eq relation '2D-right) 'right)
                   ((eq relation '2D-left) 'left))))
     rel))
+

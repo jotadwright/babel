@@ -8,7 +8,9 @@
                              (source-set world-model))
   ;; first case; given source-set, compute target
   ((source-set => target-num)
-   (let ((count (length (objects (object-set (first (reverse (set-items source-set))))))))
+  ; (let ((count (length (objects (object-set (first (reverse (set-items source-set))))))))
+   (let ((count (length (collect-objects-from-world-model source-set))))
+          
      (bind (target-num 1.0 ;(make-instance 'digit-category :id count :digit count)
                        (find-entity-by-id (get-data ontology 'digits) (internal-symb (upcase (format nil "~r" count))))))))
   

@@ -1,10 +1,6 @@
 (ql:quickload :mwm)
 (in-package :mwm)
 
-;; TO DO
-;; main experiment needs to be reran, because 'front'
-;; and 'behind' are reversed...
-
 (progn
 (run-parallel-batch-for-different-configurations 
  :asdf-system "mwm"

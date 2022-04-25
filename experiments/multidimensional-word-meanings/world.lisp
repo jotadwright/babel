@@ -29,7 +29,7 @@
     (:shape . ,(shape object))
     (:material . ,(material object))
     (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
-    (:ypos . ,(if (> (y-pos object) 160) 'front 'behind))
+    (:zpos . ,(if (> (z-pos object) 11) 'behind 'front))
     ))
 
 ;; ------------------
@@ -69,6 +69,9 @@
 
 (defmethod to-value ((object clevr-object) (attr (eql 'ypos)))
   `((ypos . ,(y-pos object))))
+
+(defmethod to-value ((object clevr-object) (attr (eql 'zpos)))
+  `((zpos . ,(z-pos object))))
 
 (defmethod to-value ((object clevr-object) (attr (eql 'area)))
   (let* ((area
@@ -136,6 +139,7 @@
   (make-instance 'mwm-object :id (id object) ;; !!!
                  :attributes (append (to-value object 'xpos)
                                      (to-value object 'ypos)
+                                     (to-value object 'zpos)
                                      (to-value object 'area)
                                      (to-value object 'wh-ratio)
                                      (to-value object 'color)
