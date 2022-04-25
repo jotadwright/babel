@@ -29,7 +29,7 @@
     (:shape . ,(shape object))
     (:material . ,(material object))
     (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
-    (:ypos . ,(if (> (y-pos object) 160) 'front 'behind))
+    (:zpos . ,(if (> (z-pos object) 11) 'behind 'front))
     ))
 
 ;; ------------------
@@ -71,7 +71,7 @@
   `((ypos . ,(y-pos object))))
 
 (defmethod to-value ((object clevr-object) (attr (eql 'zpos)))
-  `((zpos . ,(zpos object))))
+  `((zpos . ,(z-pos object))))
 
 (defmethod to-value ((object clevr-object) (attr (eql 'area)))
   (let* ((area
