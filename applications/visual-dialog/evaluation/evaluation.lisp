@@ -5,8 +5,10 @@
   "returns T if whole dialog succeeded otherwise nil and the success list per question"
   (if (equal (get-configuration world :mode) :hybrid)
     (progn
+      
       (clear-scenes (get-configuration world :server-address) (get-configuration world :cookie-jar))
       (clear-attentions (get-configuration world :server-address) (get-configuration world :cookie-jar))))
+  ;(notify dialog-started scene-index dialog-index)
   (let* ((scene-pathname (get-scene-pathname-by-index scene-index world))
          (dataset (get-configuration world :dataset))
          (dialog (get-dialog-by-index scene-index dialog-index world dataset))
@@ -19,7 +21,7 @@
         (add-element `((h1) ,(format nil "Dialog ~a" dialog-index)))
         (if (eq dataset :clevr)
           (add-element `((h3) ,(format nil "Caption: ~a" (first dialog)))))
-        (loop for question in (rest dialog)
+        (loop for question in (if (equal (get-configuration world :world) :clevr) (rest dialog) dialog)
               for answer in computed-answers
               for gold-answer in gold-answers
               for a in correct-answers
@@ -38,13 +40,14 @@
 (defun evaluate-dialogs (start-scene end-scene world)
   "evaluate all dialogs from start-scene to end-scene"
   "returns question-level-accuracy"
+  
   (ensure-directories-exist
    (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "results"
-                                ,(format nil "~a-~a" (get-configuration world :dataset) (get-configuration world :mode)))))
+                                ,(format nil "~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit)))))
                  (with-open-file (str (make-file-name-with-time 
                                        (babel-pathname
                                         :directory `("applications" "visual-dialog" "evaluation" "results" ,(format nil "~a-~a" (get-configuration world :dataset) (get-configuration world :mode)))
-                                        :name (format nil "evaluation-~a-~a-~a" (get-configuration world :dataset) start-scene end-scene)
+                                        :name (format nil "evaluation-~a-~a-~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit) start-scene end-scene)
                                         :type "txt"))
                       
                        :direction :output
@@ -80,40 +83,7 @@
           (format str "question-level-accuracy : ~a~%" question-level-accuracy) (force-output str)
           question-level-accuracy))))
 
-(define-configuration-default-value :dataset :clevr)
-(define-configuration-default-value :datasplit :train)
-(define-configuration-default-value :mode :symbolic)
-(define-configuration-default-value :server-address "http://127.0.0.1:2560/")
-(define-configuration-default-value :cookie-jar (make-instance 'drakma:cookie-jar))
 
-(defun evaluate-clevr-dialogs-symbolic (start-scene end-scene)
-  (let ((world (make-instance 'world 
-                              :entries '((:dataset . :clevr)
-                                         (:datasplit . :train)
-                                         (:mode . :symbolic)))))
-    (evaluate-dialogs start-scene end-scene world)))
-
-(defun evaluate-mnist-dialogs-symbolic (start-scene end-scene)
-  (let ((world (make-instance 'world 
-                              :entries '((:dataset . :mnist)
-                                         (:datasplit . :train)
-                                         (:mode . :symbolic)))))
-    (evaluate-dialogs start-scene end-scene world)))
-
-(defun evaluate-clevr-dialogs-hybrid (start-scene end-scene)
-  (let ((world (make-instance 'world 
-                              :entries '((:dataset . :clevr)
-                                         (:datasplit . :train)
-                                         (:mode . :hybrid)
-                                         ))))
-    (evaluate-dialogs start-scene end-scene world)))
-
-(defun evaluate-mnist-dialogs-hybrid (start-scene end-scene)
-  (let ((world (make-instance 'world 
-                              :entries '((:dataset . :mnist)
-                                         (:datasplit . :train)
-                                         (:mode . :hybrid)))))
-    (evaluate-dialogs start-scene end-scene world)))
 
 (defun calculate-accuracy-from-dir (dir)
   (let* ((files (directory dir))
