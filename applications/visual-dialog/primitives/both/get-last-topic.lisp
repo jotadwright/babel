@@ -1,16 +1,12 @@
 (in-package :visual-dialog)
 
-;; -----------------
-;; get-penultimate-topic primitive 
-;; -----------------
-
-(defprimitive get-penultimate-topic ((target-set world-model)
-                                     (source-set world-model))
+(defprimitive get-last-topic ((target-set world-model)
+                              (source-set world-model))
   ((source-set => target-set)
    (multiple-value-bind
       (last-set last-timestamp)
       (the-biggest #'timestamp (set-items source-set))
-     (let* ((last-topic (find-penultimate-topic source-set))
+     (let* ((last-topic (find-last-topic (set-items source-set)))
             (last-topic-object-set
              (loop for obj in (objects (object-set last-set))
                    when (member (id obj) last-topic)
@@ -20,15 +16,16 @@
                                         :set-items (list (make-instance 'turn
                                                                         :object-set (make-instance 'object-set
                                                                                                    :objects last-topic-object-set)))))))))
-  :primitive-inventory *symbolic-primitives*)
+  :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))
 
-
-(defun find-penultimate-topic (source-set)
+(defun find-last-topic (lst)
   (multiple-value-bind
       (last-set last-timestamp)
-      (the-biggest #'timestamp (set-items source-set))
-    (let* ((penultimate-set (find (- last-timestamp 1) (set-items source-set) :key #'timestamp))
-          (last-topic (topic-list penultimate-set)))
-      (if last-topic
-        last-topic
-        (find-last-topic (rest (set-items source-set)))))))
+      (the-biggest #'timestamp lst)
+    (if last-set
+      (let ((last-topic (topic-list last-set)))
+        (if last-topic
+          last-topic
+          (find-last-topic (rest lst)))))))
+
+   

@@ -70,6 +70,9 @@
 (defmethod to-value ((object clevr-object) (attr (eql 'ypos)))
   `((ypos . ,(y-pos object))))
 
+(defmethod to-value ((object clevr-object) (attr (eql 'zpos)))
+  `((zpos . ,(zpos object))))
+
 (defmethod to-value ((object clevr-object) (attr (eql 'area)))
   (let* ((area
           (case (clevr-world::size object)
@@ -136,6 +139,7 @@
   (make-instance 'mwm-object :id (id object) ;; !!!
                  :attributes (append (to-value object 'xpos)
                                      (to-value object 'ypos)
+                                     (to-value object 'zpos)
                                      (to-value object 'area)
                                      (to-value object 'wh-ratio)
                                      (to-value object 'color)

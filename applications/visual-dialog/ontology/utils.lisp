@@ -271,6 +271,7 @@
 (defmethod copy-object ((object object))
   (make-instance 'object :id (id object)
                  :attributes (attributes object)
+                 :attention (attention object)
                  :relationships (copy-object (relationships object))
                  :coordinates (copy-object (coordinates object))
                  :rotation (copy-object (rotation object))))
@@ -424,3 +425,33 @@
     entity))
 
 ;(find-entity-by-id *ontology* '0)
+
+
+
+
+
+(defgeneric category-value (category)
+  (:documentation "Obtain the value of the category"))
+
+(defmethod category-value ((shape-category shape-category))
+  (shape shape-category))
+(defmethod category-value ((size-category size-category))
+  (size size-category))
+(defmethod category-value ((color-category color-category))
+  (color color-category))
+(defmethod category-value ((material-category material-category))
+  (material material-category))
+(defmethod category-value ((spatial-relation-category spatial-relation-category))
+  (spatial-relation spatial-relation-category))
+(defmethod category-value ((boolean-category boolean-category))
+  (bool boolean-category))
+(defmethod category-value ((attribute-category attribute-category))
+  (attribute attribute-category))
+(defmethod category-value ((attention attention))
+  (id attention))
+(defmethod category-value ((digit-category digit-category))
+  (digit digit-category))
+(defmethod category-value ((style-category style-category))
+  (style style-category))
+(defmethod category-value ((bgcolor-category bgcolor-category))
+  (check-if-bgcolor (bgcolor bgcolor-category)))

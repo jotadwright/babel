@@ -1,0 +1,213 @@
+
+(in-package :fcg-editor)
+
+(defun equivalent-amr-predicate-networks (fcg-amr-network amr-predicates)
+  (print "we are here")
+  (equivalent-predicate-networks
+   fcg-amr-network
+   (mapcar #'(lambda (predicate)
+               (cons (first predicate)
+                     (mapcar #'(lambda (symbol)
+                                 (cond ((stringp symbol)
+                                        symbol)
+                                       ((numberp symbol)
+                                        symbol)
+                                       ((or (equal symbol '-)
+                                            (equal symbol '+))
+                                        symbol)
+                                       ((keywordp symbol)
+                                        symbol)
+                                       (t
+                                        (utils::variablify symbol))))
+                             (rest predicate))))
+           amr-predicates)))
+
+
+(defun equivalent-predicate-networks (network-1 network-2)
+  "If network-1 and network-2 are equal upto variable renamings, the renamings are returned,
+   otherwise nil is returned."
+  (cond
+   ;; If networks are equal, return t
+   ((equal network-1 network-2) t)
+   ;; If networks do not have the same length, return nil
+   ((/= (length network-1) (length network-2)) nil)
+   ;; The networks do not consist of the same predicates (in terms of constants), return nil
+   ((not (networks-with-equal-constants-p network-1 network-2)) nil)
+   ;; Check the networks in terms of variable bindings
+   ((loop with queue = (list (list network-1 network-2 +no-bindings+))
+          until (not queue)
+          for state = (pop queue)
+          for n1-left = (first  state)
+          for n2-left = (second state)
+          for bindings = (third state)
+          ;; a solution is found
+          when (null n1-left)
+          do (return bindings)
+          ;; no solution is found
+          else do
+          (let ((predicates-with-equal-constants (find-all (first n1-left) n2-left :test #'predicates-with-equal-constants-p)))
+            (loop for p in predicates-with-equal-constants
+                  for new-bindings = (make-renamings (first n1-left) p bindings)
+                  if new-bindings
+                  do
+                  (push (list (rest n1-left) (remove p n2-left :count 1) new-bindings) queue)))))))
+
+(defun networks-with-equal-constants-p (network-1 network-2)
+  "Returns t if network-1 and network-2 are equal in terms of constants."
+  (when (= (length network-1) (length network-2))
+    (loop with predicates-left = (copy-object network-2)
+          for predicate in (copy-object network-1)
+          when (find predicate predicates-left :test #'predicates-with-equal-constants-p)
+          do (setf predicates-left
+                   (remove predicate predicates-left
+                           :test #'predicates-with-equal-constants-p
+                           :count 1))
+          else do (return nil)
+          finally (return t))))
+
+(defun predicates-with-equal-constants-p (predicate-1 predicate-2)
+  "Returns t if predicate-1 and predicate-2 are equal in terms of constants."
+  (when (= (length predicate-1) (length predicate-2))
+    (loop for el-1 in predicate-1
+          for el-2 in predicate-2
+          unless (or (equal el-1 el-2)
+                     (and (variable-p el-1)
+                          (variable-p el-2)))
+          do (return nil)
+          finally (return t))))
+
+(defun make-renamings (el-1 el-2 bindings)
+  "Finds renamings to ensure equality between el-1 and el-2 (no unification)"
+  (cond ((eq bindings +fail+)
+          +fail+)
+        ((equal el-1 el-2)
+         bindings)
+        ((and (variable-p el-1)
+              (variable-p el-2)
+              (assoc el-1 bindings)
+              (equal el-2 (cdr (assoc el-1 bindings))))
+         bindings)
+        ((and (variable-p el-1)
+              (variable-p el-2)
+              (not (assoc el-1 bindings))
+              (not (find el-2 bindings :key #'cdr)))
+         (extend-bindings el-1 el-2 bindings))
+        ((and (listp el-1) (listp el-2))
+         (let ((new-bindings (make-renamings (first el-1) (first el-2) bindings)))
+           (make-renamings (rest el-1) (rest el-2) new-bindings)))
+        (t
+         +fail+)))
+
+(equivalent-amr-predicate-networks (comprehend "der Mann sucht den Clown") '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +)))
+
+(equivalent-amr-predicate-networks (comprehend "der Mann") '( (man m)))
+
+
+;;;;transitive non-topicalized sentences
+
+der Polizist sucht den Bäcker
+((suchen-01 s) (baker b) (policeman p) (arg0 s p) (arg1 s b) (topicalized p +))
+
+der Hund verfolgt den Mann
+((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +))
+
+der Tiger tötet den Jäger
+((töten-01 t) (tiger ti) (hunter h) (arg0 t ti) (arg1 t h) (topicalized ti +))
+
+der König ruft den Kellner 
+((rufen-01 r) (king k) (waiter w) (arg0 r k) (arg1 r w) (topicalized k +)))
+
+
+
+;;;;;transitive topicalized sentences 
+
+den Bäcker sucht der Polizist
+((suchen-01 s) (baker b) (policeman p) (arg0 s p) (arg1 s b) (topicalized b +))
+
+den Mann verfolgt der Hund
+((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized m +))
+
+den Jäger tötet der Tiger 
+((töten-01 t) (tiger ti) (hunter h) (arg0 t ti) (arg1 t h) (topicalized h +))
+
+den Kellner ruft der König 
+((rufen-01 r) (king k) (waiter w) (arg0 r k) (arg1 r w) (topicalized w +)))
+
+
+
+;;;ditransitives non-topicalized sentences 
+
+die Frau gibt dem Mann den Apfel
+((geben-01 g) (woman w) (man m) (apple a) (arg0 g w) (arg1 g a) (arg2 g m) (topicalized w +))
+
+der Clown verkauft dem Doktor das Buch
+((verkaufen-01 v) (clown c) (doctor d) (book b) (arg0 v c) (arg1 v b) (arg2 v d) (topicalized c +))
+
+die Lehrerin schenkt dem Direktor die Blumen 
+((schenken-01 s) (teacher t) (director d) (flowers f) (arg0 s t) (arg1 s f) (arg2 s d) (topicalized t +))
+
+der Vater zeigt dem Sohn die Brille
+((zeigen-01 z) (father f) (son s) (glasses g) (arg0 z f) (arg1 z g) (arg2 z s) (topicalized f +))
+
+
+
+;;;;ditransitive topicalized sentences 
+
+dem Mann gibt die Frau den Apfel 
+((geben-01 g) (woman w) (man m) (apple a) (arg0 g w) (arg1 g a) (arg2 g m) (topicalized m +))
+
+dem Doktor verkauft der Clown das Buch 
+((verkaufen-01 v) (clown c) (doctor d) (book b) (arg0 v c) (arg1 v b) (arg2 v d) (topicalized d +))
+
+dem Direktor schenkt die Lehrerin die Blumen
+((schenken-01 s) (teacher t) (director d) (flowers f) (arg0 s t) (arg1 s f) (arg2 s d) (topicalized d +))
+
+dem Sohn zeigt der Vater die Brille 
+((zeigen-01 z) (father f) (son s) (glasses g) (arg0 z f) (arg1 z g) (arg2 z s) (topicalized s +))
+
+
+
+
+;;;;intransitive movement verbs 
+
+der Junge geht zum Bäcker
+((gehen-01 g) (boy b) (baker ba) (arg0 g b) (arg4 g ba) (topicalized b +))
+
+
+die Frau ist beim Bäcker 
+((sein-01 s) (woman m) (baker b) (arg1 s w) (arg2 s b) (topicalized w +))   ;exception
+
+
+der Mann spaziert durch den Tunnel 
+((spazieren-01 s) (man m) (tunnel t) (arg0 s m) (arg2 s t))  ;;;exception like fahren only arg0 and arg1
+
+der Mann ist gegen den Baum gefahren 
+((drove-01 ig) (man m) (arg0 ig m) (tree t) (arg1 ig t) (topicalized m +))
+
+das Mädchen kommt aus dem Bäcker
+((kommen-01 k) (girl g) (baker b) (arg0 k g) (arg3 k b) (topicalized g +))
+
+
+
+;;;;intransitive movement verbs topicalized
+
+zum Bäcker geht der Junge
+((gehen-01 g) (boy b) (baker ba) (arg0 g b) (arg4 g ba) (topicalized ba +))
+
+beim Bäcker ist die Frau
+((sein-01 s) (woman m) (baker b) (arg1 s w) (arg2 s b) (topicalized b +))
+
+
+
+;;;intransitive with double complement 
+
+die Mutter geht ohne den Sohn zum Laden 
+((gehen-01 g) (mother m) (son s) (shop sh) (arg0 g m) (arg4 g sh) (accompany-01 a) (polarity a -) (manner g a) (arg0 a s) (arg1 a m) (topicalized m +))
+
+der Mann fährt mit dem Fahrrad zur Arbeit 
+(formulate '((bike b) (work w) (man m) (fahren-01 f) (manner f a) (arg0 f m) (arg1 f w) (topicalized m +) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a +)))
+
+
+
+
+

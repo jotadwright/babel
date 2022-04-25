@@ -8,8 +8,8 @@
   (:documentation "Gets the length of the thing"))
 
 (defmethod get-length ((object object)) 1)
-(defmethod get-length ((set world-model))
-  (length (objects (object-set (first (set-items set))))))
+;(defmethod get-length ((set world-model))
+ ; (length (objects (object-set (first (set-items set))))))
 
 (defprimitive more-than-1 ((target-bool boolean-category)
                            (source-set world-model))
@@ -31,4 +31,4 @@
            (if (> (get-length source-set) 1)
              'yes 'no))))
      (equal-entity target-bool boolean-category)))
-  :primitive-inventory *symbolic-primitives*)
+  :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))

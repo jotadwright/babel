@@ -43,6 +43,26 @@
   (let ((sorted-solutions (collect-solutions solution-nodes)))
     (solutions->html sorted-solutions)))
 
+;; ============================================================================
+;; irl-node-finished
+;; ----------------------------------------------------------------------------
+
+(define-event-handler (trace-irl-verbose irl-node-finished)
+  (add-element '((hr)))
+  (add-element
+   `((table :class "two-col")
+     ((tbody)
+      ((tr)
+       ((td) "new tree: ")
+       ((td) ,(make-html (top (processor node)))))
+      ((tr)
+       ((td) "new queue: ")
+       ((td) ,@(html-hide-rest-of-long-list
+                (queue (processor node)) 5
+                #'(lambda (node)
+                    (make-html node :draw-children nil)))))))))
+  
+
 #|
 ;; ============================================================================
 ;; match-chunk

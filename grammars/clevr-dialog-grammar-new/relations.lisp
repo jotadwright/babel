@@ -389,7 +389,7 @@
               <-
               (?in-the-center-unit
                (HASH meaning ((bind spatial-relation-category ?relation center)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((string ?in-unit "in")
                            (string ?the-unit "the")
@@ -398,7 +398,10 @@
               (?center-unit
                --
                (number singular)
-               (lex-id center)))
+               (lex-id center))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning center
                           :string "in")
              :cxn-inventory *clevr-dialog*)
@@ -483,7 +486,7 @@
                (subunits (?relation-unit ?all-unit ?things-unit)))
               <-
               (?r-of-all-things-unit
-               (HASH meaning ((extreme-relate ?target ?source ?relation)))
+               (HASH meaning ((extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?rightmost-relation-unit ?all-unit)
                            (meets ?all-unit ?things-unit))))
@@ -504,7 +507,10 @@
                (HASH form ((string ?all-unit "all"))))
               (?things-unit
                --
-               (HASH form ((string ?things-unit "things")))))
+               (HASH form ((string ?things-unit "things"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :cxn-inventory *clevr-dialog*)
 
 (def-fcg-cxn R-of-all-objects
@@ -517,7 +523,7 @@
                (subunits (?relation-unit ?all-unit ?things-unit)))
               <-
               (?r-of-all-things-unit
-               (HASH meaning ((extreme-relate ?target ?source ?relation)))
+               (HASH meaning ((extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?rightmost-relation-unit ?all-unit)
                            (meets ?all-unit ?things-unit))))
@@ -538,7 +544,10 @@
                (HASH form ((string ?all-unit "all"))))
               (?things-unit
                --
-               (HASH form ((string ?things-unit "objects")))))
+               (HASH form ((string ?things-unit "objects"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :cxn-inventory *clevr-dialog*)
 
 (def-fcg-cxn at-the-extreme-right-cxn
@@ -552,7 +561,7 @@
               <-
               (?at-the-extreme-right-unit
                (HASH meaning ((bind spatial-relation-category ?relation right)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?at-unit ?the-unit)
                            (meets ?the-unit ?extreme-unit)
@@ -568,7 +577,10 @@
                (HASH form ((string ?extreme-unit "extreme"))))
               (?right-unit
                --
-               (HASH form ((string ?right-unit "right")))))
+               (HASH form ((string ?right-unit "right"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning right
                           :string "right")
              :cxn-inventory *clevr-dialog*)
@@ -585,7 +597,7 @@
               <-
               (?at-the-extreme-back-unit
                (HASH meaning ((bind spatial-relation-category ?relation behind)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?at-unit ?the-unit)
                            (meets ?the-unit ?extreme-unit)
@@ -601,7 +613,10 @@
                (HASH form ((string ?extreme-unit "extreme"))))
               (?back-unit
                --
-               (HASH form ((string ?back-unit "back")))))
+               (HASH form ((string ?back-unit "back"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning behind
                           :string "back")
              :cxn-inventory *clevr-dialog*)
@@ -617,7 +632,7 @@
               <-
               (?at-the-extreme-front-unit
                (HASH meaning ((bind spatial-relation-category ?relation front)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?at-unit ?the-unit)
                            (meets ?the-unit ?extreme-unit)
@@ -633,7 +648,10 @@
                (HASH form ((string ?extreme-unit "extreme"))))
               (?front-unit
                --
-               (HASH form ((string ?front-unit "front")))))
+               (HASH form ((string ?front-unit "front"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning front
                           :string "front")
              :cxn-inventory *clevr-dialog*)
@@ -651,7 +669,7 @@
               <-
               (?at-the-extreme-left-unit
                (HASH meaning ((bind spatial-relation-category ?relation left)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?at-unit ?the-unit)
                            (meets ?the-unit ?extreme-unit)
@@ -667,7 +685,10 @@
                (HASH form ((string ?extreme-unit "extreme"))))
               (?left-unit
                --
-               (HASH form ((string ?left-unit "left")))))
+               (HASH form ((string ?left-unit "left"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning left
                           :string "left")
              :cxn-inventory *clevr-dialog*)
@@ -684,7 +705,7 @@
               <-
               (?the-rightmost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation right)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?rightmost-unit)
                            (meets ?rightmost-unit ?thing-unit))))
@@ -696,7 +717,10 @@
                (HASH form ((string ?rightmost-unit "rightmost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "thing")))))
+               (HASH form ((string ?thing-unit "thing"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning right
                           :string "rightmost")
              :cxn-inventory *clevr-dialog*)
@@ -713,7 +737,7 @@
               <-
               (?the-rearmost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation behind)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?rearmost-unit)
                            (meets ?rearmost-unit ?thing-unit))))
@@ -725,7 +749,10 @@
                (HASH form ((string ?rearmost-unit "rearmost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "thing")))))
+               (HASH form ((string ?thing-unit "thing"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning behind
                           :string "rearmost")
              :cxn-inventory *clevr-dialog*)
@@ -742,7 +769,7 @@
               <-
               (?the-foremost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation front)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?foremost-unit)
                            (meets ?foremost-unit ?thing-unit))))
@@ -754,7 +781,10 @@
                (HASH form ((string ?foremost-unit "foremost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "thing")))))
+               (HASH form ((string ?thing-unit "thing"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning front
                           :string "foremost")
              :cxn-inventory *clevr-dialog*)
@@ -771,7 +801,7 @@
               <-
               (?the-leftmost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation left)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?leftmost-unit)
                            (meets ?leftmost-unit ?thing-unit))))
@@ -783,7 +813,10 @@
                (HASH form ((string ?leftmost-unit "leftmost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "thing")))))
+               (HASH form ((string ?thing-unit "thing"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning left
                           :string "leftmost")
              :cxn-inventory *clevr-dialog*)
@@ -800,7 +833,7 @@
               <-
               (?the-rightmost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation right)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?rightmost-unit)
                            (meets ?rightmost-unit ?thing-unit))))
@@ -812,7 +845,10 @@
                (HASH form ((string ?rightmost-unit "rightmost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "object")))))
+               (HASH form ((string ?thing-unit "object"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning right
                           :string "rightmost")
              :cxn-inventory *clevr-dialog*)
@@ -829,7 +865,7 @@
               <-
               (?the-rearmost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation behind)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?rearmost-unit)
                            (meets ?rearmost-unit ?thing-unit))))
@@ -841,7 +877,10 @@
                (HASH form ((string ?rearmost-unit "rearmost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "object")))))
+               (HASH form ((string ?thing-unit "object"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning behind
                           :string "rearmost")
              :cxn-inventory *clevr-dialog*)
@@ -858,7 +897,7 @@
               <-
               (?the-foremost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation front)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?foremost-unit)
                            (meets ?foremost-unit ?thing-unit))))
@@ -870,7 +909,10 @@
                (HASH form ((string ?foremost-unit "foremost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "object")))))
+               (HASH form ((string ?thing-unit "object"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning front
                           :string "foremost")
              :cxn-inventory *clevr-dialog*)
@@ -887,7 +929,7 @@
               <-
               (?the-leftmost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation left)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?leftmost-unit)
                            (meets ?leftmost-unit ?thing-unit))))
@@ -899,7 +941,10 @@
                (HASH form ((string ?leftmost-unit "leftmost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "object")))))
+               (HASH form ((string ?thing-unit "object"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning left
                           :string "leftmost")
              :cxn-inventory *clevr-dialog*)
@@ -917,7 +962,7 @@
               <-
               (?the-midmost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation center)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?midmost-unit) (meets ?midmost-unit ?thing-unit))))
               (?the-unit
@@ -928,7 +973,10 @@
                (HASH form ((string ?midmost-unit "midmost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "object")))))
+               (HASH form ((string ?thing-unit "object"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning center
                           :string "midmost")
              :cxn-inventory *clevr-dialog*)
@@ -946,7 +994,7 @@
               <-
               (?the-midmost-thing-unit
                (HASH meaning ((bind spatial-relation-category ?relation center)
-                              (extreme-relate ?target ?source ?relation)))
+                              (extreme-relate ?target ?source ?scene ?relation)))
                --
                (HASH form ((meets ?the-unit ?midmost-unit) (meets ?midmost-unit ?thing-unit))))
               (?the-unit
@@ -957,7 +1005,10 @@
                (HASH form ((string ?midmost-unit "midmost"))))
               (?thing-unit
                --
-               (HASH form ((string ?thing-unit "thing")))))
+               (HASH form ((string ?thing-unit "thing"))))
+              (scene-unit
+               --
+               (scene ?scene)))
              :attributes (:meaning center
                           :string "midmost")
              :cxn-inventory *clevr-dialog*)

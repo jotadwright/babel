@@ -326,7 +326,7 @@
                                                 (query ?target-4 ?target-object-1 ?attribute-6)))
            
            
-           (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
+           (test-repair-status 'item-based->holistic
                                (second (multiple-value-list
                                         (comprehend "What is the size of the yellow metallic cube?"
                        :cxn-inventory cxn-inventory
@@ -339,43 +339,10 @@
                                                 (bind shape-category ?shape-2 cube)
                                                 (filter ?target-2 ?target-1 ?material-4)
                                                 (bind color-category ?color-16 yellow)
-                                                (query ?target-4 ?target-object-1 ?attribute-6))))))))
+                                                (query ?target-4 ?target-object-1 ?attribute-6))))))
+           (test-equal 5 (length (constructions cxn-inventory)))))
 
-(defun test-deletion-variable-rightmost-boundary-comprehension ()
-         (let* ((experiment (set-up-cxn-inventory-and-repairs))
-                (cxn-inventory (grammar (first (agents experiment)))))
-           (comprehend "What is the size of the red cube?"
-                       :cxn-inventory cxn-inventory
-                       :gold-standard-meaning '((get-context ?source-1)
-                                                (filter ?target-2 ?target-1 ?color-4)
-                                                (unique ?target-object-1 ?target-2)
-                                                (bind shape-category ?shape-2 cube)
-                                                (bind attribute-category ?attribute-6 size)
-                                                (filter ?target-1 ?source-1 ?shape-2)
-                                                (bind color-category ?color-4 red)
-                                                (query ?target-4 ?target-object-1 ?attribute-6)))
-           (comprehend "What is the size of the cube?"
-                       :cxn-inventory cxn-inventory
-                       :gold-standard-meaning '((get-context ?source-1)
-                                                (filter ?target-1 ?source-1 ?shape-2)
-                                                (unique ?target-object-1 ?target-1)
-                                                (bind attribute-category ?attribute-6 size)
-                                                (bind shape-category ?shape-2 cube)
-                                                (query ?target-4 ?target-object-1 ?attribute-6)))
-           
-           
-           (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
-                               (second (multiple-value-list
-                                        (comprehend "What is the size of the red cube?"
-                       :cxn-inventory cxn-inventory
-                       :gold-standard-meaning '((get-context ?source-1)
-                                                (filter ?target-2 ?target-1 ?color-4)
-                                                (unique ?target-object-1 ?target-2)
-                                                (bind shape-category ?shape-2 cube)
-                                                (bind attribute-category ?attribute-6 size)
-                                                (filter ?target-1 ?source-1 ?shape-2)
-                                                (bind color-category ?color-4 red)
-                                                (query ?target-4 ?target-object-1 ?attribute-6))))))))
+
 ;; (activate-monitor trace-fcg)
 ;; (test-substitution-repair-comprehension) ;ok
 ;; (test-substitution-repair-comprehension-right) ;ok

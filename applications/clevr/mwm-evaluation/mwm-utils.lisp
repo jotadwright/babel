@@ -5,11 +5,11 @@
 ;;--------------------------;;
 
 (defparameter *simulated-concepts-path*
-  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "learned-concepts"
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "store"
                                "thesis-main-results" "baseline-simulated-default-lexicon")))
 
 (defparameter *extracted-concepts-path*
-  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "learned-concepts"
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "store"
                                "thesis-main-results" "baseline-extracted-default-lexicon")))
 
 (defparameter *extracted-scenes-path*

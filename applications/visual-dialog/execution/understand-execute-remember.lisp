@@ -87,11 +87,14 @@
                  (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
             (if solutions
               (let* ((target-value (get-target-value irl-program (first solutions)))
-                    (source-value (get-third-value-target-primitive irl-program (first solutions)))
-                    (target-primitive (get-target-primitive irl-program))
-                    (new-object-set (make-instance 'object-set
-                                                   :objects (loop for object in (objects (object-set last-set))
-                                                                  collect (copy-object object))
+                     (source-value (get-third-value-target-primitive irl-program (first solutions)))
+                     (target-primitive (get-target-primitive irl-program))
+                     (new-object-set
+                      (if (object-set last-set)
+                        (make-instance 'object-set
+                                       :objects (loop for object in (objects (object-set last-set))
+                                                      collect (copy-object object)))
+                        (make-instance 'object-set)
 ; :scene-configuration (copy-scene-configuration (object-set last-set))
                                                    ))
                     items-list question)
@@ -101,14 +104,14 @@
                 (cond ((eq target-primitive 'QUERY)
                        (update-memory-query irl-program solutions source-value target-value new-object-set))
                       ((eq target-primitive 'count-objects)
-                       (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions last-set))
+                       (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions ))
                       ((eq target-primitive 'EXIST)
-                       (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions last-set))
+                       (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions ))
                       ((eq target-primitive 'EXIST-OR-COUNT)
                        (if (equal (question-type last-set) 'exist)
-                         (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions last-set))
-                       (if (equal (question-type last-set) 'count)
-                         (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions last-set))))
+                         (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions ))
+                       (if (equal (question-type last-set) 'count-objects)
+                         (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions ))))
                 (setf new-item (make-instance 'turn
                                               :timestamp (+ last-timestamp 1)
                                               :object-set new-object-set
