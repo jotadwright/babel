@@ -64,7 +64,7 @@
 ;;;; EXPERIMENT
 (defparameter *experiment*
   (make-instance 'mwm-experiment
-                 :configuration *cogent-extracted*))
+                 :configuration *baseline-simulated*))
 
 (run-interaction *experiment*)
 

@@ -111,7 +111,7 @@
          (exemplar (get-attr-val object (attribute prototype)))
          (stdev (sqrt (/ (M2 prototype) (nr-samples prototype))))
          (z-score (abs (/ (- exemplar (value prototype)) stdev))))
-    (max (/ (+ (- z-score) max-z-score) max-z-score) -1)))
+    (/ (- max-z-score z-score) max-z-score)))
 
 
 (define-event attribute-removed (concept concept) (attribute symbol))
