@@ -37,7 +37,8 @@
                   t nil))
          attributes)
     "add objects from target set in new-object-set, if they are not yet in there"
-    (loop for object in (objects (object-set (first (set-items source-value))))
+    (loop for object in ;(objects (object-set (first (set-items source-value))))
+            (collect-objects-from-world-model source-value)
               do (if (not (member (id object) id-list))
                    (push (make-instance 'object :id (id object) :attention (attention object))
                          (objects new-object-set))))
@@ -51,9 +52,9 @@
       ;otherwise, find attributes
       (setf attributes (find-attributes-of-unique irl-program target-variable)))
     "add attributes to objects"
-    (if (equal (length (objects (object-set (first (set-items source-value))))) 1)
+    (if (equal (length (collect-objects-from-world-model source-value)) 1)
       (if attributes
-        (loop for object in (objects (object-set (first (set-items source-value))))
+        (loop for object in (collect-objects-from-world-model source-value)
               for object-in-memory = (find (id object) (objects new-object-set) :key #'id)
               do (if (attributes object-in-memory)
                    (loop for attr in attributes
