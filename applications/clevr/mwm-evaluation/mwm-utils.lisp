@@ -25,6 +25,23 @@
 ;; compare the prototypical values of an object
 ;; and a concept
 ;; (see: "Babel/experiments/multidimensional-word-meanings/concept.lisp" for the original method)
+
+#|(defun shift-object-value (object-value attribute reference-object)
+  (- object-value (get-attr-val reference-object attribute)))|#
+
+#|(defmethod shifted-similarity ((object mwm-object) (prototype prototype) (reference-object mwm-object))
+  (let* ((max-z-score 2)
+         (exemplar (relate-object-value (get-attr-val object (attribute prototype)) (attribute prototype) reference-object))
+         (stdev (sqrt (/ (M2 prototype) (nr-samples prototype))))
+         (z-score (abs (/ (- exemplar (value prototype)) stdev))))
+    (max (/ (+ (- z-score) max-z-score) max-z-score) -1))) |#
+
+#|(defmethod shifted-weighted-similarity ((object mwm-object) (concept concept-entity) (reference-object mwm-object))
+  (loop for prototype in (meaning concept)
+        for similarity = (related-similarity object prototype reference-object)
+        collect (* (mwm::certainty prototype) similarity) into weighted-similarities
+        finally (return (average weighted-similarities))))|#       
+
 (defmethod weighted-similarity ((object mwm-object) (concept concept-entity))
   (loop for prototype in (meaning concept)
         for similarity = (mwm::similarity object prototype)
