@@ -46,7 +46,7 @@
                                 ,(format nil "~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit)))))
                  (with-open-file (str (make-file-name-with-time 
                                        (babel-pathname
-                                        :directory `("applications" "visual-dialog" "evaluation" "results" ,(format nil "~a-~a" (get-configuration world :dataset) (get-configuration world :mode)))
+                                        :directory `("applications" "visual-dialog" "evaluation" "results" ,(format nil "~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit)))
                                         :name (format nil "evaluation-~a-~a-~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit) start-scene end-scene)
                                         :type "txt"))
                       
