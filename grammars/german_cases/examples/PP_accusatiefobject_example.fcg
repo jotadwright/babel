@@ -145,8 +145,7 @@
                                (- - - - -)       
                                (?dm ?dm - - -)
                                (+ + - - -))))
-               (sem-cat (animacy animate)))
-                       
+               (sem-cat (animacy animate)))       
               <-
               (?man-word
                (HASH meaning ((man ?m)))                     
@@ -241,7 +240,6 @@
 
 (def-fcg-cxn ohne-incorrect-case-cxn
              ((?without-word
-               
                (footprints (preposition)))
               <-
               (?without-word
@@ -443,7 +441,6 @@
               <-
 
               (?preposition
-               
                --
                (syn-cat (lex-class preposition)
                         (type ?type)
@@ -462,7 +459,6 @@
                                (?dat ?dm ?df ?dn ?dp)
                                (?s ?m ?f ?n ?p)))))
               (?noun
-               
                (referent ?x)
                (footprints (not determined))
                (syn-cat (lex-class noun)
@@ -512,8 +508,7 @@
                (syn-cat (lex-class non-contracted-preposition)
                         (type ?type)
                         (polarity ?polarity)
-                        (case ?case))
-               )
+                        (case ?case)))
               (?noun
                (footprints (not determined))
                (referent ?x)
@@ -601,7 +596,6 @@
               (?noun
                (footprints (determined)))
               <-
-
               (?preposition
                --
                (referent ?x)
@@ -746,7 +740,6 @@
               (?noun
                (footprints (determined)))
               <-
-
               (?preposition
                --
                (referent ?x)
@@ -828,8 +821,7 @@
                                (- - - - -)
                                (?as ?nm ?nf ?nn ?np))))
               (referent ?arg0))
-              
-         
+
               (?location-unit
                (syn-cat (lex-class prep-phrase)
                         (type motion-locative-end)

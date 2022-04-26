@@ -227,8 +227,7 @@
              ((?noun-phrase
                (referent ?x)
                (syn-cat (lex-class noun-phrase)
-                        (case ?case)
-                        )
+                        (case ?case))
                (sem-cat (animacy ?animacy))
                (subunits (?article ?noun))
                (boundaries (leftmost-unit ?article)
@@ -427,8 +426,6 @@
                           (rightmost-unit ?rightmost-receiver-unit)))
               
               ))
-
-
 
 
 

@@ -63,5 +63,7 @@
                                            (:file "segment-scene")))))
              (:module "evaluation"
                 :serial t
-                :components ((:file "evaluation")))
+                :components ((:file "experiments")
+                             (:file "evaluation")
+                             ))
                (:file "html")))
