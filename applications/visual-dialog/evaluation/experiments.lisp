@@ -28,9 +28,11 @@
                                          ))))
     (evaluate-dialogs start-scene end-scene world)))
 
-(defun evaluate-mnist-dialogs-hybrid (start-scene end-scene)
+(defun evaluate-mnist-dialogs-hybrid (start-scene end-scene &optional server-address)
   (let ((world (make-instance 'world 
                               :entries '((:dataset . :mnist)
                                          (:datasplit . :test)
                                          (:mode . :hybrid)))))
+    (if server-address
+      (set-configuration world :server-address server-address))
     (evaluate-dialogs start-scene end-scene world)))
