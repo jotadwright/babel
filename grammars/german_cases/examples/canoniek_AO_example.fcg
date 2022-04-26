@@ -193,8 +193,7 @@
                (syn-cat (lex-class verb)
                         (aspect non-perfect)
                         (type transitive))
-               (referent ?c))  
-                        
+               (referent ?c))          
               <-
               (?call-word                           
                (HASH meaning ((rufen-01 ?c)))                   
@@ -207,8 +206,7 @@
                (syn-cat (lex-class verb)
                         (aspect non-perfect)
                         (type transitive))
-               (referent ?t))  
-                        
+               (referent ?t))          
               <-
               (?kill-word                           
                (HASH meaning ((töten-01 ?t)))                   
@@ -289,8 +287,7 @@
                                (- - - - -)        
                                (- - - - -)
                                (?as ?nm ?nf ?nn ?np))))
-              (referent ?arg0)
-              )
+              (referent ?arg0))
               
               (?patient-unit
                (syn-cat (lex-class noun-phrase)
@@ -307,8 +304,7 @@
                                (- - - - -)         
                                (- - - - -)
                                (?ps ?am ?af ?an ?ap))))
-              (referent ?arg1)
-              )
+              (referent ?arg1))
               
               (?transitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
@@ -402,9 +398,7 @@
               (referent ?arg1)
               (syn-cat (syn-role direct-object))
               (boundaries (leftmost-unit ?leftmost-patient-unit)
-                          (rightmost-unit ?rightmost-patient-unit)))
-              
-              ))
+                          (rightmost-unit ?rightmost-patient-unit)))))
 
 
 
