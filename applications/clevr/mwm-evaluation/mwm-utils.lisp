@@ -5,8 +5,8 @@
 ;;--------------------------;;
 
 (defparameter *simulated-concepts-path*
-  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "store"
-                               "thesis-main-results" "baseline-simulated-default-lexicon")))
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "learned-concepts"
+                               "simulated-concepts-with-zpos")))
 
 (defparameter *extracted-concepts-path*
   (babel-pathname :directory '("experiments""multidimensional-word-meanings" "store"
@@ -73,20 +73,26 @@
          (scene-var (second (find 'fcg::scene (rest scene-unit) :key #'first))))
     scene-var))
 
-(defparameter *clevr-scene*
+(defparameter *clevr-scene-0*
   (merge-pathnames
    (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val")
                   :name "CLEVR_val_000000" :type "json")
    cl-user:*babel-corpora*))
 
-(defun test-utterance-in-first-scene (utterance ontology)
+(defparameter *clevr-scene-4*
+  (merge-pathnames
+   (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val")
+                  :name "CLEVR_val_000004" :type "json")
+   cl-user:*babel-corpora*))
+
+(defun test-utterance-in-scene (utterance ontology scene-pathname)
   (multiple-value-bind (irl-program cipn cip) 
       (understand utterance)
     (declare (ignorable cip))
     (when (find 'fcg::succeeded (fcg::statuses cipn))
       (let ((scene-var (extract-scene-unit-variable cipn))
             (scene-path (make-instance 'pathname-entity
-                                       :pathname *clevr-scene*)))
+                                       :pathname scene-pathname)))
         (evaluate-irl-program
          (cons `(bind pathname-entity ,scene-var ,scene-path)
                (substitute-categories irl-program))
