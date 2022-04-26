@@ -15,7 +15,7 @@
     (:nr-of-scenes . 5)
     (:nr-of-questions . nil)
     (:data-split . "val")
-    (:world-type . :extracted)))
+    (:world-type . :simulated)))
 
 ;; Evaluate one particular serie
 ;(evaluate-mwm-serie 1 *config-entries*)
