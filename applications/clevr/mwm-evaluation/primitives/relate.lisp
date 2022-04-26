@@ -10,29 +10,27 @@
 ;(export '(relate))
 
 ;; Return xpos when concept is left or right and ypos when concept is front or behind
-(defun get-axis (concept)
+(defun get-relation-type (concept)
   (case (id concept)
-                ('left 'xpos)
-                ('right 'xpos)
-                ('front 'ypos)
-                ('behind 'ypos)))
+                ('left 'x-spatial-relations)
+                ('right 'x-spatial-relations)
+                ('front 'yz-spatial-relations)
+                ('behind 'yz-spatial-relations)))
 
 ;; Shifts the middle of the relevant axis to the point of the reference object
 ;; shift = ref - middle axis
-(defun get-shift (reference-object axis)
-  (cond ((eql axis 'xpos)
-         (- (mwm::get-attr-val reference-object 'mwm::xpos) 240))
-         ((eql axis 'ypos)
-         (- (mwm::get-attr-val reference-object 'mwm::ypos) 160))))
+(defun get-shifts (reference-object)
+  `((:x-shift . ,(- (mwm::get-attr-val reference-object 'mwm::xpos) 240))
+    (:y-shift . ,(- (mwm::get-attr-val reference-object 'mwm::ypos) 160))
+    (:z-shift . ,(- (mwm::get-attr-val reference-object 'mwm::zpos) 11))))
 
 ;; Shifts the concept's prototypical value for the relevant axis and makes a new concept out of it (with the same id)
-(defun shift-concept (concept shift axis)
+(defun shift-concept (concept shifts)
   (let* ((shifted-prototypes (loop for prototype in (meaning concept) 
-                                   for shifted-prototype = (case axis
-                                                             ('xpos (if (eql (attribute prototype) 'mwm::xpos) (shift-prototype prototype shift)
-                                                                      prototype))
-                                                             ('ypos (if (eql (attribute prototype) 'mwm::ypos) (shift-prototype prototype shift)
-                                                                      prototype)))
+                                   for shifted-prototype = (cond ((eql (attribute prototype) 'mwm::xpos) (shift-prototype prototype (rest (assoc :x-shift shifts))))
+                                                                 ((eql (attribute prototype) 'mwm::ypos) (shift-prototype prototype (rest (assoc :y-shift shifts))))
+                                                                 ((eql (attribute prototype) 'mwm::zpos) (shift-prototype prototype (rest (assoc :z-shift shifts))))
+                                                                 (t  prototype))
                                    collect shifted-prototype))
          (new-concept (make-instance 'spatial-concept :id (id concept) :form (form concept) 
                             :meaning shifted-prototypes)))
@@ -51,16 +49,17 @@
 
 (defmethod apply-spatial-relation ((object mwm::mwm-object)
                                    (concept spatial-concept) 
-                                   (context-objects mwm::mwm-object-set) 
+                                   (scene mwm::mwm-object-set) 
                                    (ontology blackboard)) 
-  (let* ((axis (get-axis concept))  ;groups left and right and front and behind together
-         (shift (get-shift object axis)) ;determines with which amount the concept needs to be shifted
-         (relevant-concepts (cond ((eql axis 'xpos) (get-data ontology 'x-spatial-relations)) ;extracts concepts for the same axis from the ontology
-                                  ((eql axis 'ypos) (get-data ontology 'y-spatial-relations)))) 
+
+  (let* ((relation-type (get-relation-type concept))  ;groups left and right and front and behind together
+         (shifts (get-shifts object)) ;determines with which amount the concept needs to be shifted
+         (relevant-concepts (get-data ontology relation-type))  
          (shifted-concepts (loop for concept in relevant-concepts 
-                                 for shifted-concept = (shift-concept concept shift axis) ;shifts all concepts on the same axis
-                                 collect shifted-concept)) 
-         (related-objects (loop for context-item in (objects context-objects) 
+                                 for shifted-concept = (shift-concept concept shifts)
+                                 collect shifted-concept))
+         (context-objects (remove (find-entity-by-id (objects scene) (id object))(objects scene)))
+         (related-objects (loop for context-item in context-objects
                            for best-category = (find-best-category context-item shifted-concepts) ;finds the best suited concept for all context-objects
                            if (eql (id best-category) (id concept)) ;context objects are added to related-objects when their best suited concept is the queried one
                            collect context-item))) 
