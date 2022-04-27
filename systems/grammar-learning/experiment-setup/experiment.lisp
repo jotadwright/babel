@@ -28,7 +28,7 @@
 (define-configuration-default-value :evaluation-grammar nil)
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
-(define-configuration-default-value :categorial-network-export-interval 100)
+(define-configuration-default-value :categorial-network-export-interval 1)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)

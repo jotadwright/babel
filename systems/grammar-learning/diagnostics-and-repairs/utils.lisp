@@ -393,7 +393,7 @@
         collect meaning))
 
 (defun cxn-meaning-is-valid-gold-standard-subset-p (cxn-meanings)
-  (never nil cxn-meanings))
+  (not (member nil cxn-meanings)))
 
 (defun subtract-cxn-meanings-from-gold-standard-meaning (cxn-meanings gold-standard-meaning)
   (loop with resulting-meaning = gold-standard-meaning
@@ -405,6 +405,7 @@
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn cxn)))
          (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
     subtracted-meaning))
+    
 
 (defun get-subtracted-meaning-from-car (car gold-standard-meaning)
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
@@ -811,14 +812,6 @@
 
 ; todo: replace the below with a fn that returns the open variables:
 
-(defgeneric extract-args-from-predicate (predicate mode))
-
-(defmethod extract-args-from-predicate (predicate (mode (eql :irl)))
-  (third predicate))
-
-(defmethod extract-args-from-predicate (predicate (mode (eql :amr)))
-  (second predicate))
-
 (defgeneric equivalent-meaning-networks (m1 m2 mode))
 
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :irl)))
@@ -909,6 +902,10 @@
 
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
+  (sort irl-network #'string-lessp :key (lambda (predicate) ;; TODO: get rid of this, do search until connnected meaning goal test succeeds instead
+                                          (if (equal (first predicate) 'bind)
+                                          (symbol-name (third predicate))
+                                          (symbol-name (second predicate)))))
   (let* ((in-vars (loop for predicate in irl-network
                            when (not (equal (first predicate) 'bind))
                            collect (third predicate)))
@@ -962,3 +959,26 @@
              (cip-nodes (second comprehension-result)))
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+
+(defmethod get-best-partial-analysis-cipn ((utterance string) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-exclude-item-based)))
+  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+    (with-disabled-monitor-notifications
+      (let* ((temp-inventory (remove-cxns-with-phrase-type 'item-based (copy-object original-cxn-inventory)))
+             (comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory temp-inventory)))
+             (cip-nodes (second comprehension-result)))
+        (enable-meta-layer-configuration original-cxn-inventory)
+        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+
+(defun remove-nodes-containing-applied-cxns-with-type (type nodes)
+  (loop for node in nodes
+        for applied-cxns = (applied-constructions node)
+        unless (member type applied-cxns :key (lambda (cxn) (attr-val cxn :cxn-type)))
+        collect node))
+
+(defun remove-cxns-with-phrase-type (type cxn-inventory)
+  (loop for cxn in (constructions cxn-inventory)
+        for cxn-type = (attr-val cxn :cxn-type)
+        when (equal cxn-type type)
+        do (delete-cxn cxn cxn-inventory)
+        finally return cxn-inventory))

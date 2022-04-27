@@ -194,15 +194,19 @@
         (network-4 '((filter ?target-140354 ?target-2 ?color-6)
                      (filter ?target-1 ?source-1 ?shape-6)
                      (bind color-category ?color-6 blue)
-                     (bind shape-category ?shape-6 cylinder))))
+                     (bind shape-category ?shape-6 cylinder)))
+        (network-5 '((filter ?target-1 ?source-1 ?shape-6)
+                     (filter ?target-140354 ?target-2 ?color-6)
+                     (bind shape-category ?shape-6 cylinder)
+                     (bind color-category ?color-6 blue))))
                                 
     (test-equal (extract-args-from-irl-network network-1) '(?target-4))
                        
     (test-equal (extract-args-from-irl-network network-2) '(?target-1 ?target-33323))
                        
     (test-equal (extract-args-from-irl-network network-3) '(?target-2 ?target-33323))
-
-    (test-equal (extract-args-from-irl-network network-4) '(?source-1 ?target-2 ?target-1 ?target-140354))))
+    (test-equal (extract-args-from-irl-network network-4) '(?target-2 ?source-1 ?target-140354 ?target-1))
+    (test-equal (extract-args-from-irl-network network-5) '(?target-2 ?source-1 ?target-140354 ?target-1))))
                        
 (deftest test-extract-vars-from-irl-network ()
   (let ((network-1 '((query ?target-4 ?target-object-1 ?attribute-2)

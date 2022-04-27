@@ -32,7 +32,9 @@
                        :repair repair
                        :problem problem
                        :restart-data holistic-cxn-and-categorial-link)))))
-                
+
+  
+
 (defun create-holistic-cxn-from-partial-analysis (problem node)
   (let* ((original-cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
@@ -57,7 +59,7 @@
                           (boundaries-holistic-cxn (get-boundary-units root-form-constraints))
                           (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
                           (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
-                          (args-holistic-cxn (extract-args-from-irl-network remaining-meaning))
+                          (args-holistic-cxn (extract-args-from-irl-network remaining-meaning)) ;take args from item-based; filling in the bindings
                           (existing-holistic-cxn (find-cxn-by-form-and-meaning root-form-constraints remaining-meaning original-cxn-inventory :cxn-type 'holistic))
                           (holistic-cxn (or existing-holistic-cxn
                                             (second (multiple-value-list (eval
