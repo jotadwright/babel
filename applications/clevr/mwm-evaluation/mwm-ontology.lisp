@@ -48,22 +48,11 @@
                     (push-data ontology 'sizes
                                (restore-concept pathname 'size-concept)))
                    ((member (pathname->conceptname pathname) '(left right)) 
-                    (push-data ontology 'spatial-relations
+                    (push-data ontology 'x-spatial-relations
                                (restore-concept pathname 'spatial-concept)))
-                   ((eql (pathname->conceptname pathname) 'front)
-                    (push-data ontology 'spatial-relations
-                               (let ((concept (cl-store:restore pathname)))
-                                 (make-instance 'spatial-concept
-                                                :id 'behind
-                                                :form "behind"
-                                                :meaning (copy-object (meaning concept))))))
-                   ((eql (pathname->conceptname pathname) 'behind)
-                    (push-data ontology 'spatial-relations
-                               (let ((concept (cl-store:restore pathname)))
-                                 (make-instance 'spatial-concept
-                                                :id 'front
-                                                :form "front"
-                                                :meaning (copy-object (meaning concept))))))))
+                   ((member (pathname->conceptname pathname) '(front behind))
+                    (push-data ontology 'yz-spatial-relations
+                               (restore-concept pathname 'spatial-concept)))))
     (set-data ontology 'thing
               (list (make-instance 'shape-concept :id 'thing  :form "thing" :meaning nil)))
     (push-data ontology 'booleans (make-instance 'boolean-category :id 'yes :bool t))

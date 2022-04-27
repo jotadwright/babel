@@ -1,7 +1,3 @@
-;;;;final file extention to the full grammar
-
-;;;;TO DO : check polarity changing + with positive and - negative
-;;;; TO DO: check animacy every time and put in sem-cat
 
 (def-fcg-constructions german-case-grammar
   :feature-types ((args sequence)
@@ -1437,7 +1433,7 @@
 
 ;;;;THIS SHOULD NOT APPLY ON SENTENCES WITH ONE EXTRA ARGUMENT (ACCOMPANIER)
 
-#|(def-fcg-cxn intransitive-argument-structure-cxn
+(def-fcg-cxn intransitive-argument-structure-cxn
              ((?intransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?location-unit)))
               (?agent-unit
@@ -1500,7 +1496,7 @@
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg4 ?v ?arg4)))                  
                --
-               )))|#
+               )))
 
 (def-fcg-cxn intransitive-origin-argument-structure-cxn
              ((?intransitive-argument-structure-unit
@@ -2143,7 +2139,7 @@
 
 
 
-;der Mann hat für den Clown die Blumen mitgebracht
+;der Mann hat fr den Clown die Blumen mitgebracht
 
 (def-fcg-cxn direct-and-indirect-obj-perfect-argument-structure-cxn
              ((?direct-and-indirect-obj-argument-structure-unit
@@ -2488,7 +2484,7 @@
 
 
 
-;der Mann fährt mit dem Fahrrad zur Arbeit
+;der Mann fhrt mit dem Fahrrad zur Arbeit
 
 (def-fcg-cxn intransitive-extra-arg1-structure-cxn
              ((?intransitive-extra-arg1-structure-unit
@@ -2655,15 +2651,15 @@
 ;;;;verfolgen (arg0 follower- arg1 thing followed)
 ;Der Hund verfolgt den Mann.
 
-;;;;töten (arg0 killer - arg1 corpse - arg2 instrument)
-;Der Tiger tötet den Jäger.
+;;;;tten (arg0 killer - arg1 corpse - arg2 instrument)
+;Der Tiger ttet den Jger.
 
 ;;;;suchen (arg0 looker - arg1 thing looked for - arg2 attribute/complement of arg1)
-;Der Polizist sucht den Bäcker. 
+;Der Polizist sucht den Bcker. 
 
 
 ;;;;rufen (arg0 caller - arg1 entity summoned/person called - arg2 benefactive/complement)
-;Der König ruft der Kellner.
+;Der Knig ruft der Kellner.
 
 
 
@@ -2679,19 +2675,19 @@
 
 
 ;;;;fahren (arg0 driver- arg1 vehicle or path)
-;Der Mann fährt mit dem Fahrrad zur Arbeit.
+;Der Mann fhrt mit dem Fahrrad zur Arbeit.
 
 
 ;;;PERFECT 
 ;Der Mann ist gegen den Shop gefahren.
 ;;;;mitbringen (arg0 bringen - arg1 thing brought - arg2 benefactive or destination - arg3 attribute - arg4 brought from)
-;Die Königin hat für den König Blume mitgebracht.
+;Die Knigin hat fr den Knig Blume mitgebracht.
 
 
 
 
 ;;; NPs with Determiners and PPs with NP+P or Contracted P
-(formulate-all '((man x)))
+#|(formulate-all '((man x)))
 
 (comprehend-all "dem Shop")
 
@@ -2699,7 +2695,7 @@
 
 (formulate-all '((bike x) (accompany-01 a) (polarity a pos) (arg0 a x)))
 
-(comprehend-all "der Mann geht zum Shop")
+(comprehend "der Mann geht zum Shop")|#
 
 ;;;; der Mann sucht den Clown
 (formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized m +)))
@@ -2707,18 +2703,17 @@
 ;;; den Clown sucht der Mann
 (formulate '((suchen-01 s) (man m) (clown c) (arg0 s m) (arg1 s c) (topicalized c +)))
 
-
 ;;;; der Hund verfolgt den Mann
-(formulate-all '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +)))
+;(formulate '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized d +)))
 
 ;;; den Mann verfolgt der Hund
-(formulate-all '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized m +)))
+;(formulate '((verfolgen-01 v) (man m) (dog d) (arg0 v d) (arg1 v m) (topicalized m +)))
 
 ;;; der Mann schenkt dem Clown die Blumen
-(formulate '((schenken-01 g) (man m) (clown c) (flowers f) (arg0 g m) (arg1 g f) (arg2 g c) (topicalized m +)))
+;(formulate '((schenken-01 g) (man m) (clown c) (flowers f) (arg0 g m) (arg1 g f) (arg2 g c) (topicalized m +)))
 
 ;;; dem Clown schenkt der Mann die Blumen
-(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +)))
+;(formulate '((schenken-01 s) (man m) (clown c) (flowers f) (arg0 s m) (arg1 s f) (arg2 s c) (topicalized c +)))
 
 ;;; die Frau gibt dem Mann den Apfel
 (formulate '((geben-01 g) (woman w) (man m) (apple a) (arg0 g w) (arg1 g a) (arg2 g m) (topicalized w +)))
@@ -2727,34 +2722,34 @@
 (formulate '((geben-01 g) (woman w) (man m) (apple a) (arg0 g w) (arg1 g a) (arg2 g m) (topicalized m +)))
 
 ;;;der Doktor verkauft dem Clown das Buch
-(formulate '((verkaufen-01 s) (doctor d) (clown c) (book b) (arg0 s d) (arg1 s b) (arg2 s c) (topicalized d +)))
+;(formulate '((verkaufen-01 s) (doctor d) (clown c) (book b) (arg0 s d) (arg1 s b) (arg2 s c) (topicalized d +)))
 
 ;;;dem Clown verkauft der Doktor das Buch
 (formulate '((verkaufen-01 s) (doctor d) (clown c) (book b) (arg0 s d) (arg1 s b) (arg2 s c) (topicalized c +)))
 
 ;;;der Mann geht zum Shop
 ;(formulate '((gehen-01 g) (man m) (arg0 g m) (work w) (arg4 g w) (topicalized m +)))
-(formulate-all '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized m +)))
+(formulate '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized m +)))
 
 ; zum Shop geht der Mann
 (formulate '((gehen-01 g) (man m) (arg0 g m) (shop w) (arg4 g w) (topicalized w +)))
 
-;;;der Mann ist beim Bäcker
-(formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +)))
+;;;der Mann ist beim Bcker
+(formulate '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized m +)))
 
-;;;beim Bäcker ist der Mann
-(formulate-all '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
+;;;beim Bcker ist der Mann
+(formulate '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
 
 ;;; der Mann kommt aus dem Backer
-(formulate-all '((kommen-01 k) (man m) (baker b) (arg0 k m) (arg3 k b) (topicalized m +)))
+(formulate '((kommen-01 k) (man m) (baker b) (arg0 k m) (arg3 k b) (topicalized m +)))
 
 ;;; der Mann spaziert durch den Tunnel
-(formulate-all '((MAN ?M) (TUNNEL ?T) (SPAZIEREN-01 ?S) (ARG2 ?S ?T) (ARG0 ?S ?M) (TOPICALIZED ?M +)))
+(formulate '((MAN ?M) (TUNNEL ?T) (SPAZIEREN-01 ?S) (ARG2 ?S ?T) (ARG0 ?S ?M) (TOPICALIZED ?M +)))
 
 ;;; der Mann ist gegen den Baum gefahren 
-(formulate-all '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
+(formulate '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
 
-;; der Mann hat für den Clown die Blumen mitgebracht 
+;; der Mann hat f¨r den Clown die Blumen mitgebracht 
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit 
@@ -2763,7 +2758,7 @@
 ;der Mann geht zur Arbeit ohne den Clown"  -  "der Mann geht ohne den Clown zur Arbeit"
 
 
-;;der Mann fährt mit dem Fahrrad zur Arbeit---stuck in formulation because of + of accompany and something else...
+;;der Mann fhrt mit dem Fahrrad zur Arbeit---stuck in formulation because of + of accompany and something else...
 
 
 (formulate '((bike b) (work w) (man m) (fahren-01 f) (arg0 f m) (arg1 f w) (topicalized m +) (manner f a) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a pos)))
@@ -2771,7 +2766,6 @@
 
 ;;der Mann fährt ohne das Fahrrad zur Arbeit
 (formulate '((ACCOMPANY-01 A) (POLARITY A POS) (WORK W) (MAN M) (BIKE B) (ARG0 A B) (FAHREN-01 F) (ARG1 A M)(ARG1 F W) (MANNER F A) (ARG0 F M) (TOPICALIZED M +)))
-
 
 
 
@@ -2793,7 +2787,7 @@
 (formulate '((verkaufen-01 s) (doctor d) (clown c) (book b) (arg0 s d) (arg1 s b) (arg2 s c) (topicalized c +)))
 
 ;;dem Direktor schenkt die Lehrerin die Blumen
-(formulate '((FLOWERS f) (DIRECTOR f) (TEACHER t) (SCHENKEN-01 g) (ARG2 g d) (ARG1 g f) (ARG0 g t) (TOPICALIZED d +)))
+(formulate '((FLOWERS f) (DIRECTOR d) (TEACHER t) (SCHENKEN-01 g) (ARG2 g d) (ARG1 g f) (ARG0 g t) (TOPICALIZED d +)))
 
 ;;PP Accusatiefobject
 
@@ -2801,11 +2795,10 @@
 (formulate '((MOTHER m) (ACCOMPANY-01 x) (POLARITY x neg) (STORE l) (SON s) (ARG0 x s) (GEHEN-01 g) (ARG4 g l) (ARG1 x m) (MANNER g x) (ARG0 g m) (TOPICALIZED m +)))
 
 ;;; der Mann ist gegen den Baum gefahren 
-(formulate-all '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
+(formulate '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
 
 
 ;;;PP Datiefobject
 
 ;das Mädchen kommt aus dem Laden
 (formulate '((GIRL g) (STORE s) (KOMMEN-01 k) (ARG3 k s) (ARG0 k g) (TOPICALIZED g +)))
-

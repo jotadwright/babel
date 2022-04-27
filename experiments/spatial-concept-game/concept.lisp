@@ -18,8 +18,8 @@
                                 collect (make-prototype attribute (relate-to-pointed-object proto-value attribute pointed-object)
                                                         initial-certainty))))
 
-(defun relate-to-pointed-object (proto-value attribute pointed-object)
-  (- proto-value (get-attr-val pointed-object attribute)))
+(defun relate-to-pointed-object (object-value attribute pointed-object)
+  (- object-value (get-attr-val pointed-object attribute)))
 
 
 (defmethod copy-object-content ((source entity) (destination entity))

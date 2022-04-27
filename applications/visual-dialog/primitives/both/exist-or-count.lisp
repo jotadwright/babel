@@ -5,10 +5,11 @@
 ;; -----------------
 
 (defprimitive exist-or-count ((target entity)
-                              (source-world-model world-model))
+                              (source-world-model world-model)
+                              (memory world-model))
   ;; first case; give source-set, compute target-bool
-  ((source-world-model => target)  
-   (let ((history (get-data ontology 'conversation-memory)))
+  ((source-world-model memory => target)  
+   (let ((history memory))
      (multiple-value-bind (last-set last-timestamp)
          (the-biggest #'timestamp (set-items history))
        (if (equal (question-type last-set) 'exist)

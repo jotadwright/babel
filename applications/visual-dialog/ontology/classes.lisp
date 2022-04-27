@@ -106,8 +106,12 @@
          (if (eql (get-configuration world :mode) :symbolic)
            (merge-pathnames (make-pathname :directory '(:relative "scenes"))
                             data-path)
-           (merge-pathnames (make-pathname :directory '(:relative "images"))
-                            data-path))))
+           (if (eql (get-configuration world :dataset) :mnist)
+             (merge-pathnames (make-pathname :directory '(:relative "imgs"))
+                              data-path)
+             (merge-pathnames (make-pathname :directory '(:relative "images"))
+                              data-path)))))
+    (print scenes-path)
     (unless (probe-file scenes-path)
       (error "Could not find a 'scenes' subdirectory in ~a~%" data-path))
     (setf (slot-value world 'scenes)
@@ -118,7 +122,7 @@
                 do (error "~a is not a subdirectory of ~%~a" data-set scenes-path)
                 append (sort (directory
                               (make-pathname :directory (pathname-directory set-directory)
-                                             :name :wild :type (if (eql (get-configuration world :mode) :symbolic) "json" "png")))
+                                             :name :wild :type (if (eql (get-configuration world :mode) :symbolic) "json" (if (eql (get-configuration world :dataset) :mnist) "jpg" "png"))))
                              #'string< :key #'namestring))))
   ;; load the dialogs, if requested
     (let ((dialogs-path
