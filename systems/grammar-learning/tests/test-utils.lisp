@@ -1,6 +1,6 @@
 (in-package :grammar-learning)
 
-(deftest test-diff-clevr-networks ()
+(deftest test-diff-meaning-networks-irl ()
   (let ((network-1 '((query ?target-4 ?target-object-1 ?attribute-2)
                      (unique ?target-object-1 ?target-33324)
                      (filter ?target-33324 ?target-33323 ?size-4)
@@ -88,19 +88,34 @@
                          ((bind color-category ?color-2 blue)
                           (filter ?target-33323 ?target-2 ?color-2)))))
 
-    (test-equal (first (multiple-value-list (diff-clevr-networks network-1 network-2)))
+    (test-equal (first (multiple-value-list (diff-meaning-networks network-1 network-2 :irl)))
                 result-1-vs-2)
-    (test-equal (second (multiple-value-list (diff-clevr-networks network-2 network-1)))
+    (test-equal (second (multiple-value-list (diff-meaning-networks network-2 network-1 :irl)))
                 result-1-vs-2)
-    (test-equal (multiple-value-list (diff-clevr-networks network-1 network-3))
+    (test-equal (multiple-value-list (diff-meaning-networks network-1 network-3 :irl))
                 result-1-vs-3)
-    (test-equal (multiple-value-list (diff-clevr-networks network-3 network-1))
+    (test-equal (multiple-value-list (diff-meaning-networks network-3 network-1 :irl))
                 result-3-vs-1)
-    (test-equal (multiple-value-list (diff-clevr-networks network-5 network-6))
+    (test-equal (multiple-value-list (diff-meaning-networks network-5 network-6 :irl))
                 result-5-vs-6)
-    (test-equal (multiple-value-list (diff-clevr-networks network-7 network-8))
+    (test-equal (multiple-value-list (diff-meaning-networks network-7 network-8 :irl))
                 result-7-vs-8)
     ))
+
+(deftest test-diff-meaning-networks-amr ()    
+    (test-equal (multiple-value-list (diff-meaning-networks
+                                      '((:MODE GRAMMAR-LEARNING::?A GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
+                                      '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H)) :amr))
+                '(((GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
+                  ((GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H))))
+    (test-equal (multiple-value-list (diff-meaning-networks
+                                      '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O))
+                                      '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H)) :amr))
+                '(((GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O))
+                  ((GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
+                  )))
+    
+    
 
 (deftest test-commutative-irl-subset-diff()
   (let* ((network-1 '((bind material-category ?material-2 rubber)
@@ -236,11 +251,11 @@
     (test-equal (multiple-value-list (extract-vars-from-irl-network network-3)) '(?target-2 ?target-33323 nil))))
 
 ;(test-commutative-irl-subset-diff)
-;(test-diff-clevr-networks)
+;(test-diff-meaning-networks-irl)
+;(test-diff-meaning-networks-amr)
 ;(test-extract-args-from-irl-network)
 ;(test-extract-vars-from-irl-network)
-
-
+ 
 
 
 
