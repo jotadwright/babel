@@ -103,18 +103,25 @@
     ))
 
 (deftest test-diff-meaning-networks-amr ()    
-    (test-equal (multiple-value-list (diff-meaning-networks
-                                      '((:MODE GRAMMAR-LEARNING::?A GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
-                                      '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H)) :amr))
-                '(((GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
-                  ((GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H))))
-    (test-equal (multiple-value-list (diff-meaning-networks
-                                      '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O))
-                                      '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H)) :amr))
-                '(((GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O))
-                  ((GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
-                  )))
-    
+  (test-equal (multiple-value-list (diff-meaning-networks
+                                    '((:MODE GRAMMAR-LEARNING::?A GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
+                                    '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H)) :amr))
+              '(((GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
+                ((GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H))))
+  (test-equal (multiple-value-list (diff-meaning-networks
+                                    '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O))
+                                    '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H)) :amr))
+              '(((GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O)) nil))
+  (test-equal (multiple-value-list (diff-meaning-networks
+                                    '((table ?t) (paper ?p) (:under ?t ?p))
+                                    '((table ?t) (paper ?p) (:under ?p ?t))
+                                    :amr))
+              '(((table ?t) (paper ?p) (:under ?t ?p))
+                ((table ?t) (paper ?p) (:under ?p ?t))))
+  )
+
+                
+
     
 
 (deftest test-commutative-irl-subset-diff()
