@@ -55,7 +55,7 @@
                           superset-form
                           non-overlapping-form
                           non-overlapping-meaning)
-        (find-subset-holophrase-cxn cxn-inventory gold-standard-meaning utterance)
+        (find-subset-holophrase-cxn cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
 
       (when subset-holophrase-cxn
       

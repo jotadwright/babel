@@ -9,6 +9,71 @@
    fcg-amr-network
    (variablify-amr-network amr-predicates)))
 
+#|
+(diff-amr-networks '((:MODE GRAMMAR-LEARNING::?A GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
+                   '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H)))
+(diff-amr-networks '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O))
+                   '((:MODE GRAMMAR-LEARNING::?A GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A)))
+(diff-amr-networks '((:MODE GRAMMAR-LEARNING::?A GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::AH GRAMMAR-LEARNING::?A))
+                   '((:MODE GRAMMAR-LEARNING::?H GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O)))
+
+(diff-amr-networks '((:MODE GRAMMAR-LEARNING::?B GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?B) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O))
+                   '((:MODE GRAMMAR-LEARNING::?O GRAMMAR-LEARNING::EXPRESSIVE) (GRAMMAR-LEARNING::HUM GRAMMAR-LEARNING::?H) (GRAMMAR-LEARNING::OH GRAMMAR-LEARNING::?O)))
+
+|#
+
+
+;;; TODO rename the variables back according to the bindings, reuse the same fn
+(defun reverse-bindings (bindings)
+  (loop for binding in bindings
+        for car = (car binding)
+        for cdr = (cdr binding)
+        collect (cons cdr car)))
+
+(defun diff-amr-networks (network-1-orig network-2-orig)
+  "return the diff from network-1, diff from network-2, and the variable bindings for the equal predicates"
+  (multiple-value-bind (network-1 n1-renamings) (fcg::rename-variables network-1-orig)
+    (multiple-value-bind (network-2 n2-renamings) (fcg::rename-variables network-2-orig)
+      (cond
+       ;; If networks are equal, return nil
+       ((equal network-1 network-2) (values nil nil nil))
+       ;; Check the networks in terms of variable bindings
+       ((loop with queue = (list (list network-1 network-2 '((T . T))))
+              with n1-diff = nil
+              until (not queue)
+              for state = (pop queue)
+              for n1-left = (first  state)
+              for n2-left = (second state)
+              for bindings = (third state)
+              ;; a solution is found
+              when (null n1-left)
+              do (return (values (fcg::rename-variables n1-diff (reverse-bindings n1-renamings))
+                                 (fcg::rename-variables n2-left (reverse-bindings n2-renamings))
+                                 bindings))
+              ;; no solution is found
+              else do
+              (let ((predicates-with-equal-constants (find-all (first n1-left) n2-left :test #'predicates-with-equal-constants-p)))
+                (if predicates-with-equal-constants
+                  (loop for p in predicates-with-equal-constants
+                        for new-bindings = (make-renamings (first n1-left) p bindings)
+                        if new-bindings
+                        do
+                        (push (list (rest n1-left) (remove p n2-left :count 1) new-bindings) queue)
+                        else
+                        do (return-from diff-amr-networks (values (fcg::rename-variables network-1 (reverse-bindings n1-renamings))
+                                                                  (fcg::rename-variables network-2 (reverse-bindings n2-renamings))
+                                                                  bindings))) ;; there is a collision in the renamings - return it all as being different
+                  ;; there is a collision in the renamings - return both sides as being different           
+                  ;(pushend (first n1-left) n1-diff)
+                  ;(push (list (rest n1-left) n2-left bindings) queue))
+                  
+                  
+                  (progn
+                    (pushend (first n1-left) n1-diff)
+                    (push (list (rest n1-left) n2-left bindings) queue)))) ;; continue with rest of n1
+              finally return (values (fcg::rename-variables n1-diff (reverse-bindings n1-renamings))
+                                     (fcg::rename-variables n2-left (reverse-bindings n2-renamings))
+                                     bindings)))))))
 
 (defun equivalent-predicate-networks (network-1 network-2)
   "If network-1 and network-2 are equal upto variable renamings, the renamings are returned,

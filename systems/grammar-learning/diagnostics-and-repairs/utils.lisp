@@ -393,7 +393,7 @@
         collect meaning))
 
 (defun cxn-meaning-is-valid-gold-standard-subset-p (cxn-meanings)
-  (never nil cxn-meanings))
+  (not (member nil cxn-meanings)))
 
 (defun subtract-cxn-meanings-from-gold-standard-meaning (cxn-meanings gold-standard-meaning)
   (loop with resulting-meaning = gold-standard-meaning
@@ -405,6 +405,7 @@
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn cxn)))
          (subtracted-meaning (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning cxn-meaning)))))
     subtracted-meaning))
+    
 
 (defun get-subtracted-meaning-from-car (car gold-standard-meaning)
   (let* ((cxn-meaning (extract-meaning-predicates (original-cxn (car-applied-cxn car))))
@@ -568,14 +569,14 @@
                   (form-constraints-with-variables utterance (get-configuration (cxn-inventory superset-cxn) :de-render-mode))
                   :test #'irl:unify-irl-programs))
 
-(defun find-subset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance)
+(defun find-subset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-form-constraints = (extract-form-predicates cxn)
         for cxn-meaning-constraints = (extract-meaning-predicates cxn)
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-observation t)
         for non-overlapping-form-inverted = (set-difference cxn-form-constraints superset-form  :test #'irl:unify-irl-programs)
-        for non-overlapping-meanings = (multiple-value-list (diff-clevr-networks gold-standard-meaning cxn-meaning-constraints))
+        for non-overlapping-meanings = (multiple-value-list (diff-meaning-networks gold-standard-meaning cxn-meaning-constraints meaning-representation-formalism))
         for non-overlapping-meaning = (first non-overlapping-meanings)
         for non-overlapping-meaning-inverted = (second non-overlapping-meanings)
         for cxn-type = (attr-val cxn :cxn-type)
@@ -589,7 +590,7 @@
         ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too, and the meets of the new holistic cxn should all be connected
         return (values cxn superset-form non-overlapping-form non-overlapping-meaning)))
 
-(defun find-superset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance)
+(defun find-superset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
   ;; todo: there could also be more than one superset cxn!
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-form-constraints = (extract-form-predicates cxn)
@@ -597,7 +598,7 @@
         for cxn-type =  (attr-val cxn :cxn-type)
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-cxn t)
-        for non-overlapping-meanings = (multiple-value-list (diff-clevr-networks cxn-meaning-constraints gold-standard-meaning))
+        for non-overlapping-meanings = (multiple-value-list (diff-meaning-networks cxn-meaning-constraints gold-standard-meaning meaning-representation-formalism))
         for non-overlapping-meaning = (first non-overlapping-meanings)
         for non-overlapping-form-inverted = (set-difference superset-form cxn-form-constraints :test #'irl:unify-irl-programs)
         for non-overlapping-meaning-inverted = (second non-overlapping-meanings)
@@ -619,10 +620,10 @@
                        (find var superset-meets-constraints :key #'third))
         collect meet))
 
-(defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning)
+(defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         do (when (eql (attr-val cxn :cxn-type) 'holophrase)
-             (let* ((non-overlapping-meanings (multiple-value-list (diff-clevr-networks meaning (extract-meaning-predicates cxn))))
+             (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks meaning (extract-meaning-predicates cxn) meaning-representation-formalism)))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
@@ -811,14 +812,6 @@
 
 ; todo: replace the below with a fn that returns the open variables:
 
-(defgeneric extract-args-from-predicate (predicate mode))
-
-(defmethod extract-args-from-predicate (predicate (mode (eql :irl)))
-  (third predicate))
-
-(defmethod extract-args-from-predicate (predicate (mode (eql :amr)))
-  (second predicate))
-
 (defgeneric equivalent-meaning-networks (m1 m2 mode))
 
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :irl)))
@@ -849,7 +842,12 @@
            (values t sub-predicate-1 sub-predicate-2))
           )))
 
-(defun diff-clevr-networks (network-1 network-2)
+(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :amr)))
+  (multiple-value-bind (n1-diff n2-diff bindings) (amr::diff-amr-networks network-1 network-2)
+    (values n1-diff n2-diff)))
+
+
+(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
   "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
   ;todo: identify all subnetworks, resolve them, then loop through parent network and combine resolved result with subnetwork
   (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
@@ -909,6 +907,10 @@
 
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
+  (sort irl-network #'string-lessp :key (lambda (predicate) ;; TODO: get rid of sort, do search until connnected meaning goal test succeeds instead
+                                          (if (equal (first predicate) 'bind)
+                                          (symbol-name (third predicate))
+                                          (symbol-name (second predicate)))))
   (let* ((in-vars (loop for predicate in irl-network
                            when (not (equal (first predicate) 'bind))
                            collect (third predicate)))
@@ -962,3 +964,26 @@
              (cip-nodes (second comprehension-result)))
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+
+(defmethod get-best-partial-analysis-cipn ((utterance string) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-exclude-item-based)))
+  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+    (with-disabled-monitor-notifications
+      (let* ((temp-inventory (remove-cxns-with-phrase-type 'item-based (copy-object original-cxn-inventory)))
+             (comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory temp-inventory)))
+             (cip-nodes (second comprehension-result)))
+        (enable-meta-layer-configuration original-cxn-inventory)
+        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+
+(defun remove-nodes-containing-applied-cxns-with-type (type nodes)
+  (loop for node in nodes
+        for applied-cxns = (applied-constructions node)
+        unless (member type applied-cxns :key (lambda (cxn) (attr-val cxn :cxn-type)))
+        collect node))
+
+(defun remove-cxns-with-phrase-type (type cxn-inventory)
+  (loop for cxn in (constructions cxn-inventory)
+        for cxn-type = (attr-val cxn :cxn-type)
+        when (equal cxn-type type)
+        do (delete-cxn cxn cxn-inventory)
+        finally return cxn-inventory))
