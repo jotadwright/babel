@@ -20,9 +20,13 @@
 ;; Shifts the middle of the relevant axis to the point of the reference object
 ;; shift = ref - middle axis
 (defun get-shifts (reference-object)
-  `((:x-shift . ,(- (mwm::get-attr-val reference-object 'mwm::xpos) 240))
-    (:y-shift . ,(- (mwm::get-attr-val reference-object 'mwm::ypos) 160))
-    (:z-shift . ,(- (mwm::get-attr-val reference-object 'mwm::zpos) 11))))
+  (let* ((x-pos (mwm::get-attr-val reference-object 'mwm::xpos))
+        (y-pos (mwm::get-attr-val reference-object 'mwm::ypos))
+        (z-pos (mwm::get-attr-val reference-object 'mwm::zpos))
+        (shifts `((:x-shift . , (if x-pos (- x-pos 240) nil))
+                  (:y-shift . , (if y-pos (- y-pos 160) nil))
+                  (:z-shift . , (if z-pos (- z-pos 11) nil)))))
+    shifts))
 
 ;; Shifts the concept's prototypical value for the relevant axis and makes a new concept out of it (with the same id)
 (defun shift-concept (concept shifts)
@@ -107,81 +111,3 @@
    (equal-entity target-set (apply-spatial-relation source-object spatial-relation segmented-scene ontology)))
   :primitive-inventory *mwm-primitives*)
 
-
-;;--------------------------------------------------;;
-;; Testing different apply-spatial-relation methods ;;
-;;--------------------------------------------------;;
-
-;; 1: Without shifting (accuracy: 86%)
-;; Related objects have a higher similarity to the spatial-concept than the queried object
-#|(defmethod apply-spatial-relation ((object mwm::mwm-object)
-                                   (spatial-relation-category spatial-concept)
-                                   (context mwm::mwm-object-set))
-  (let ((related-objects (loop for context-item in (objects context)
-                               if (> (weighted-similarity context-item spatial-relation-category)
-                     (weighted-similarity object spatial-relation-category))
-                         collect context-item)))
-
-    (when related-objects
-    (make-instance 'mwm::mwm-object-set :objects related-objects))))|#
-
-
-;; 2: Shift the objects and see if context object is more left than the reference object (accuracy: 88%)
-#|(defmethod apply-spatial-relation ((reference-object mwm::mwm-object) (concept spatial-concept) (context-objects mwm::mwm-object-set) (ontology blackboard))
-  (let* ((axis (get-axis concept))
-         (shift (get-shift reference-object axis))
-         (shifted-context-objects (loop for context-object in (objects context-objects)
-                                        for shifted-context-object = (shift-object context-object shift axis)
-                                        collect shifted-context-object))
-         (related-objects (loop for shifted-item in shifted-context-objects
-                                for context-item = (find-entity-by-id (objects context-objects) (id shifted-item))
-                                for shifted-reference = (shift-object reference-object shift axis)
-                                if (> (weighted-similarity shifted-item concept) (weighted-similarity shifted-reference concept))
-                                collect context-item)))
-    (when related-objects 
-      (make-instance 'mwm::mwm-object-set :objects related-objects))))|#
-
-#|(defun shift-object (object shift axis)
-  (let* ((new-attributes (loop for attribute-proto-cons in (attributes object)
-                               for attribute = (car attribute-proto-cons)
-                               for proto-value = (cdr attribute-proto-cons)
-                               for shifted-proto-value = (case axis
-                                                           ('xpos (- (mwm::get-attr-val object 'mwm::xpos) shift))
-                                                           ('ypos (- (mwm::get-attr-val object 'mwm::ypos) shift)))
-                               for shifted-attribute-cons = (case axis
-                                                         ('xpos (if (eql attribute 'mwm::xpos) (cons attribute shifted-proto-value) attribute-proto-cons))
-                                                         ('ypos (if (eql attribute 'mwm::ypos) (cons attribute shifted-proto-value) attribute-proto-cons)))
-                               collect shifted-attribute-cons))
-        (shifted-object (make-instance 'mwm::mwm-object :id (id object) :attributes new-attributes)))
-    shifted-object))|#
-
-;; 3: Shift the objects and find the best category for each context-object (accuracy: 86%)
-#|(defmethod apply-spatial-relation ((reference-object mwm::mwm-object) (concept spatial-concept) (context-objects mwm::mwm-object-set) (ontology blackboard))
-  (let* ((axis (get-axis concept))
-         (shift (get-shift reference-object axis))
-         (shifted-context-objects (loop for context-object in (objects context-objects)
-                                        for shifted-context-object = (shift-object context-object shift axis)
-                                        collect shifted-context-object))
-         (related-objects (loop for shifted-item in shifted-context-objects
-                                for context-item = (find-entity-by-id (objects context-objects) (id shifted-item))
-                                for best-category = (if (eql axis 'xpos)
-                                             (find-best-category shifted-item (get-data ontology 'x-spatial-relations))
-                                             (find-best-category shifted-item (get-data ontology 'y-spatial-relations)))
-                                if (equal-entity concept best-category)
-                                collect context-item)))
-    (when related-objects 
-      (make-instance 'mwm::mwm-object-set :objects related-objects))))|#
-
-;; 4: Shift the concept and see if context-object is more left than the reference object (accuracy: 88%)
-#|(defmethod apply-spatial-relation ((object mwm::mwm-object)
-                                   (concept spatial-concept) 
-                                   (context-objects mwm::mwm-object-set) 
-                                   (ontology blackboard)) 
-  (let* ((axis (get-axis concept)) 
-         (shift (get-shift object axis)) 
-         (shifted-concept (shift-concept concept shift axis)) 
-         (related-objects (loop for context-item in (objects context-objects) 
-                           if (> (weighted-similarity context-item shifted-concept) (weighted-similarity object shifted-concept))  
-                           collect context-item))) 
-    (when related-objects 
-      (make-instance 'mwm::mwm-object-set :objects related-objects))))|#
