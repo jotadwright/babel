@@ -15,7 +15,7 @@
     (:nr-of-scenes . 5)
     (:nr-of-questions . nil)
     (:data-split . "val")
-    (:world-type . :simulated)))
+    (:world-type . :extracted)))
 
 ;; Evaluate one particular serie
 ;(evaluate-mwm-serie 1 *config-entries*)
@@ -34,15 +34,6 @@
 
 (compute-accuracy-per-primitive 1)
 
-;;--------------;;
-;; The ontology ;;
-;;--------------;;
-
-(defparameter *my-ontology* (make-mwm-ontology
- (merge-pathnames (make-pathname :directory '(:relative "serie-1"))
-                  *simulated-concepts-path*) :simulated))
-
-
 ;;---------;;
 ;; Testing ;;
 ;;---------;;
@@ -51,15 +42,9 @@
 (let ((ontology
        (make-mwm-ontology
         (merge-pathnames (make-pathname :directory '(:relative "serie-1"))
-                         *simulated-concepts-path*) :simulated)))
-  (test-utterance-in-first-scene "there is a big gray object that is the same shape as the purple rubber object; what is the object left of it made of?"
-                                 ontology)
-  (test-utterance-in-first-scene "What color is the large sphere?" ontology)
-  (test-utterance-in-first-scene "How many things have the same shape as the large red thing?" ontology)
-  (test-utterance-in-first-scene "How many things are left of the small gray sphere that is in front of the large sphere that is right of the large blue cube?"
-                                 ontology)
-  (test-utterance-in-first-scene "How many things are left of the purple sphere that is behind the yellow thing?"
-                                 ontology))
+                         *extracted-concepts-path*) :extracted)))
+  (test-utterance-in-scene "the other small shiny thing that is the same shape as the tiny yellow shiny object is what color?"
+                                 ontology *clevr-scene-1*))
 
 
 
