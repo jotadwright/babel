@@ -905,6 +905,35 @@
          (non-overlapping-predicates (set-difference longest-network overlapping-predicates :test #'equal)))
     (values non-overlapping-predicates overlapping-predicates)))
 
+(defgeneric extract-args-from-meaning-network (meaning mode))
+
+(defmethod extract-args-from-meaning-network (meaning (mode (eql :irl)))
+  (extract-args-from-irl-network meaning))
+
+;(extract-args-from-meaning-network '((i ?i) (:mod ?j ?k)) :amr)
+
+(defmethod extract-args-from-meaning-network (meaning (mode (eql :amr)))
+  "return all variables that were only used once; maintains order in which they occured"
+  (loop with var-lookup-hash = (make-hash-table)
+        with single-vars = nil
+        with var-idx = nil
+        for predicate in meaning
+        do (loop for el in predicate
+                 when (variable-p el)
+                 do (push el var-idx)
+                 (if (gethash el var-lookup-hash)
+                   (incf (gethash el var-lookup-hash))
+                   (setf (gethash el var-lookup-hash) 1)))
+        finally do (mapcar #'(lambda (key)
+                               (when (< (gethash key var-lookup-hash) 2)
+                                 (push key single-vars)
+                                 ))
+                           var-idx)
+        (return single-vars)))
+  
+  
+
+
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
   (sort irl-network #'string-lessp :key (lambda (predicate) ;; TODO: get rid of sort, do search until connnected meaning goal test succeeds instead

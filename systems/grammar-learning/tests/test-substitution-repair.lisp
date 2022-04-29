@@ -1,4 +1,20 @@
+
+
 (in-package :grammar-learning)
+
+(deftest test-substitution-repair-comprehension-amr ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-amr))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Hum !"
+                :cxn-inventory cxn-inventory
+                :gold-standard-meaning '((:MODE ?H EXPRESSIVE)
+                                         (HUM ?H)))
+    (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
+                        (second (multiple-value-list
+                                 (comprehend "Ah !"
+                                             :cxn-inventory cxn-inventory
+                                             :gold-standard-meaning '((:MODE ?A EXPRESSIVE)
+                                                                      (AH ?A))))))))
 
 (deftest test-substitution-repair-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -355,3 +371,7 @@
 ;; (test-varying-length-substitution-repair-comprehension) ;ok
 ;; (test-varying-length-substitution-repair-comprehension-reversed) ;ok
 ;; (test-no-duplicate-item-based-cxns-substitution-comprehension) ;ok
+
+
+;; AMR testcases
+;; (test-substitution-repair-comprehension-amr)
