@@ -93,7 +93,7 @@
                                (?am ?am - - -)        
                                (- - - - -)          
                                (?dp - - - ?dp)
-                               (?am ?am - - ?dp))))   ;sing, masc, fem, neut, plural
+                               (?am ?am - - ?dp))))   
                
                --
                (HASH form ((string ?the-word "den")))))
