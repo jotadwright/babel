@@ -1,3 +1,9 @@
+(ql:quickload :fcg)
+
+(in-package :fcg)
+
+(activate-monitor trace-fcg)
+
 (def-fcg-constructions german-case-grammar
   :feature-types ((args sequence)
                   (form set-of-predicates)
@@ -12,6 +18,7 @@
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
                        (:cxn-supplier-mode . :cxn-sets) ;; returns all cxns at once
+                       (:node-tests :malrule-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-sets) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
@@ -23,6 +30,17 @@
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
+
+
+(defmethod cip-node-test ((node cip-node) (mode (eql :malrule-applied)))
+  (if (equal (attr-val (first (applied-constructions node)) :label) 'malrule)
+    (and (push 'malrule-applied (statuses node))
+         t)
+      t
+      ))
+
+
+(pushnew '((malrule-applied) .  "#eb4034;") *status-colors*)
 
 ;;;;DETERMINERS
 
@@ -304,7 +322,7 @@
               <-
               (?to-word
                (footprints (not article))
-               (syn-cat (lex-class non-contracted-preposition)
+               (syn-cat (lex-class preposition)
                         (type motion-locative)
                         (polarity pos)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
@@ -313,8 +331,7 @@
                                (+ ?dm - ?dn -)
                                (+ ?dm - ?dn -))))
                --
-               (HASH form ((string ?to-word "zu")))))
-             :cxn-set malrule)
+               (HASH form ((string ?to-word "zu"))))))
 
 
 (def-fcg-cxn Sohn-cxn
@@ -506,7 +523,7 @@
               <-
               (?contracted-prep
                --
-               (syn-cat (lex-class non-contracted-preposition)
+               (syn-cat (lex-class preposition)
                         (type ?type)
                         (polarity ?polarity)
                         (case ?case)))
@@ -526,7 +543,10 @@
                --
                (HASH form ((meets ?contracted-prep ?noun)))
               ))
-             :disable-automatic-footprints t)
+             :disable-automatic-footprints t
+             :cxn-set malrule)
+
+
 
 
 (def-fcg-cxn contracted-prep-phrase-cxn
@@ -1049,7 +1069,8 @@
                               (:arg4 ?v ?arg4)
                               (:incorrect-part ?arg4)))                  
                --
-               )))
+               ))
+             :cxn-set malrule)
 
 (def-fcg-cxn intransitive-extra-argument-structure-cxn
              ((?intransitive-extra-argument-structure-unit
@@ -1188,10 +1209,25 @@
               ))
 
 
+;;;;additional errors
+
+
+
+;der Vater zeigt der Sohn die Brille.
+
+;der Mann wurde bei mir gesehen - ich sehe den Mann 
+;
+;
+
+
+
+(comprehend "zu Laden")
+
+(comprehend "die Mutter geht ohne den Sohn zu Laden")
 
 
 ;der Mann ist gegen den Baum gefahren
-(formulate '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
+;(formulate '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))
 
 ; die Mutter geht ohne den Sohn zum Laden
-(formulate '((MOTHER m) (ACCOMPANY-01 x) (POLARITY x neg) (STORE l) (SON s) (ARG0 x s) (GEHEN-01 g) (ARG4 g l) (ARG1 x m) (MANNER g x) (ARG0 g m) (TOPICALIZED m +)))
+;(formulate '((MOTHER m) (ACCOMPANY-01 x) (POLARITY x neg) (STORE l) (SON s) (ARG0 x s) (GEHEN-01 g) (ARG4 g l) (ARG1 x m) (MANNER g x) (ARG0 g m) (TOPICALIZED m +)))
