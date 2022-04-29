@@ -43,16 +43,17 @@
          (best-partial-analysis-node (get-best-partial-analysis-cipn
                                       utterance
                                       original-cxn-set
-                                      (get-configuration original-cxn-set :learning-strategy)))
+                                      :optimal-form-coverage-exclude-item-based))
          (applied-cxns (applied-constructions best-partial-analysis-node))
          (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
          (applied-holistic-cxns (filter-by-phrase-type 'holistic applied-cxns)))
     (when (and applied-holistic-cxns
-               (not item-based-cxn))
+               (not item-based-cxn)
+               (equal (remove-duplicates applied-cxns :key #'name) applied-cxns)) ;; don't allow duplicates: todo fix args lookup and remove this
       (let* ((car-res-cfs (car-resulting-cfs (cipn-car best-partial-analysis-node)))
              (resulting-left-pole-structure (left-pole-structure car-res-cfs))
              (resulting-root (get-root resulting-left-pole-structure))
-             (resulting-units (remove resulting-root resulting-left-pole-structure))
+             (resulting-units (sort-units-by-form-string (remove resulting-root resulting-left-pole-structure) utterance original-cxn-set))
              (item-based-cxn-form-constraints (variablify-form-constraints-with-constants (unit-feature-value resulting-root 'form)))
              (chunk-item-based-cxn-form-constraints (make-item-based-name-form-constraints-from-units item-based-cxn-form-constraints resulting-units))
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
@@ -61,15 +62,14 @@
                                        original-cxn-set :add-numeric-tail t :add-cxn-suffix nil))
              
              (holistic-cxn-subunit-blocks (multiple-value-list
-                                           (loop with remaining-gold-std-meaning = gold-standard-meaning
-                                            for unit in resulting-units
+                                           (loop for unit in resulting-units
                                                  for form-constraints = (variablify-form-constraints-with-constants (unit-feature-value unit 'form))
                                                  for boundaries = (unit-feature-value unit 'boundaries)
                                                  
                                                  for string-var = (first (get-boundary-units form-constraints))
-                                                 for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff remaining-gold-std-meaning (unit-feature-value unit 'meaning)))
+                                                 for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning (unit-feature-value unit 'meaning)))
                                                  for subtracted-meaning = (second subtracted-meaning-list)
-                                                 for args = (extract-args-from-irl-network subtracted-meaning)
+                                                 for args = (extract-args-from-meaning-network subtracted-meaning meaning-representation-formalism) ; get them from the holistic cxns!
                                                  for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
@@ -80,7 +80,6 @@
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
                                                  do (setf item-based-cxn-form-constraints updated-form-constraints)
-                                                 (setf remaining-gold-std-meaning (first subtracted-meaning-list))
                                                  collect subtracted-meaning into subtracted-meanings
                                                  collect categorial-link into categorial-links
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
@@ -93,7 +92,7 @@
                                                            (args ,args)
                                                            --
                                                            ) into conditional-units
-                                                 finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links remaining-gold-std-meaning)))))
+                                                 finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links subtracted-meanings)))))
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -101,8 +100,8 @@
              (holistic-subunit-names
               (third holistic-cxn-subunit-blocks))
              (cat-links-to-add (fourth holistic-cxn-subunit-blocks))
-             (remaining-gold-std-meaning (fifth holistic-cxn-subunit-blocks))
-             (item-based-cxn-meaning remaining-gold-std-meaning)
+             (subtracted-meanings (fifth holistic-cxn-subunit-blocks))
+             (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning gold-standard-meaning subtracted-meanings))
              (existing-item-based-cxn (find-cxn-by-form-and-meaning
                                          item-based-cxn-form-constraints
                                          item-based-cxn-meaning

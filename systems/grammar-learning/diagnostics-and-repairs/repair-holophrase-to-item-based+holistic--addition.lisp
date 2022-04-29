@@ -55,7 +55,7 @@
                           superset-form
                           non-overlapping-form
                           non-overlapping-meaning)
-        (find-subset-holophrase-cxn cxn-inventory gold-standard-meaning utterance)
+        (find-subset-holophrase-cxn cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
 
       (when subset-holophrase-cxn
       
@@ -96,7 +96,7 @@
                ;; args: 
                
                (args-holistic-cxn
-                (extract-args-from-irl-network non-overlapping-meaning))
+                (extract-args-from-meaning-network non-overlapping-meaning meaning-representation-formalism))
                
                (holistic-cxn
                 (or existing-holistic-cxn

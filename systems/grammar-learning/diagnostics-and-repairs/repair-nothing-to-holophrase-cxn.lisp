@@ -41,7 +41,7 @@
          (boundaries-holophrase-cxn (get-boundary-units form-constraints))
          (leftmost-unit-holophrase-cxn (first boundaries-holophrase-cxn))
          (rightmost-unit-holophrase-cxn (second boundaries-holophrase-cxn))
-         (args-holophrase-cxn (extract-args-from-irl-network meaning))
+         (args-holophrase-cxn (extract-args-from-meaning-network meaning meaning-representation-formalism))
          ;; take the last element of the form constraints (the last word) and use it for hashing
          (hash-string (loop for fc in form-constraints
                         when (equalp (first fc) 'string)

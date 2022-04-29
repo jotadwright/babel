@@ -51,7 +51,7 @@ based on existing construction with sufficient overlap."
                           overlapping-form-observation
                           overlapping-form-cxn
                           cxn)
-        (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning)
+        (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
       
       (when (and cxn overlapping-form-cxn)
         
@@ -107,9 +107,9 @@ based on existing construction with sufficient overlap."
                 (cons lex-class-holistic-cxn-2 lex-class-item-based-cxn))
                ;; args
                (args-holistic-cxn-1
-                (extract-args-from-irl-network non-overlapping-meaning-cxn))
+                (extract-args-from-meaning-network non-overlapping-meaning-cxn meaning-representation-formalism))
                (args-holistic-cxn-2
-                (extract-args-from-irl-network non-overlapping-meaning-observation))
+                (extract-args-from-meaning-network non-overlapping-meaning-observation meaning-representation-formalism))
                (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
                ;; cxns
                
@@ -172,9 +172,10 @@ based on existing construction with sufficient overlap."
                                                                  (?item-based-unit
                                                                   (HASH meaning ,overlapping-meaning-observation)
                                                                   --
-                                                                  (HASH form ,overlapping-form-with-rewritten-boundaries))
+                                                                  (HASH form ,overlapping-form-with-rewritten-boundaries)) ;; (HASH form ,overlapping-form-observation) ; this works
                                                                  (,unit-name-holistic-cxn-2
                                                                   (args ,args-holistic-cxn-2)
+                                                                  (syn-cat (phrase-type holistic))
                                                                   --
                                                                   ))
                                                                 :attributes (:cxn-type item-based
