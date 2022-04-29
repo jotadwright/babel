@@ -1,8 +1,7 @@
 (in-package :visual-dialog)
 
 (defun update-memory-query (irl-program solutions source-value-set target-value new-object-set)
-  "updates history when question type is query"
-  "adds attributes of the queried object and also searches for relate primitive if that exists"
+  "updates history when question type is query,adds attributes of the queried object and also searches for relate primitive if that exists"
   (let* ((attribute-value (attribute (get-fourth-value-target-primitive irl-program (first solutions))))
          (source-value (first (collect-objects-from-world-model source-value-set)))
          (object-in-memory (if source-value
@@ -25,8 +24,7 @@
     new-object-set))
 
 (defun update-memory-count-or-exist (irl-program target-primitive source-value new-object-set solutions )
-  "updates history when question type is count or exist"
-  "sets mentioned object of the queried object to T"
+  "updates history when question type is count or exist, sets mentioned object of the queried object to T"
   (let* ((id-list (loop for obj in (objects new-object-set)
                         collect (id obj)))
          (source-variable (third (find target-primitive irl-program :test #'equal :key #'first)))
@@ -36,13 +34,13 @@
          (other-objects (if (find 'set-diff irl-program :test #'equal :key #'first)
                   t nil))
          attributes)
-    "add objects from target set in new-object-set, if they are not yet in there"
+    ;add objects from target set in new-object-set, if they are not yet in there
     (loop for object in ;(objects (object-set (first (set-items source-value))))
             (collect-objects-from-world-model source-value)
               do (if (not (member (id object) id-list))
                    (push (make-instance 'object :id (id object) :attention (attention object))
                          (objects new-object-set))))
-    "find attributes but when set-diff is in irl-program; don't add attributes"
+    ;find attributes but when set-diff is in irl-program; don't add attributes
     (if other-objects
       ;in case of mnist, attribute needs to found as input of set-diff instead of output
       (if mnist
@@ -51,7 +49,7 @@
           (setf attributes (find-input-attributes-of-set-diff irl-program var))))
       ;otherwise, find attributes
       (setf attributes (find-attributes-of-unique irl-program target-variable)))
-    "add attributes to objects"
+    ;add attributes to objects
     (if (equal (length (collect-objects-from-world-model source-value)) 1)
       (if attributes
         (loop for object in (collect-objects-from-world-model source-value)
