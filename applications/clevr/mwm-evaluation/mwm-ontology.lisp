@@ -32,6 +32,44 @@
 
 ;; Make an ontology (instance of #'blackboard)
 (defun make-mwm-ontology (concepts-pathname world-type)
+  (case world-type
+    (:simulated (make-simulated-ontology concepts-pathname world-type))
+    (:extracted (make-extracted-ontology concepts-pathname world-type))))
+
+
+(defun make-simulated-ontology (concepts-pathname world-type)
+  (let ((ontology (make-blackboard)))
+    (loop for pathname in (directory concepts-pathname)
+          do (cond ((member (pathname->conceptname pathname)
+                            '(blue brown cyan gray green purple red yellow))
+                    (push-data ontology 'colors
+                               (restore-concept pathname 'color-concept)))
+                   ((member (pathname->conceptname pathname) '(metal rubber))
+                    (push-data ontology 'materials
+                               (restore-concept pathname 'material-concept)))
+                   ((member (pathname->conceptname pathname) '(cube cylinder sphere))
+                    (push-data ontology 'shapes
+                               (restore-concept pathname 'shape-concept)))
+                   ((member (pathname->conceptname pathname) '(large small)) 
+                    (push-data ontology 'sizes
+                               (restore-concept pathname 'size-concept)))
+                   ((member (pathname->conceptname pathname) '(left right)) 
+                    (push-data ontology 'x-spatial-relations
+                               (restore-concept pathname 'spatial-concept)))
+                   ((member (pathname->conceptname pathname) '(front behind))
+                    (push-data ontology 'yz-spatial-relations
+                               (restore-concept pathname 'spatial-concept)))))
+    (set-data ontology 'thing
+              (list (make-instance 'shape-concept :id 'thing  :form "thing" :meaning nil)))
+    (push-data ontology 'booleans (make-instance 'boolean-category :id 'yes :bool t))
+    (push-data ontology 'booleans (make-instance 'boolean-category :id 'no :bool nil))
+    (loop for attribute in '(shape size material color)
+          do (clevr-world::add-category-to-ontology ontology attribute 'attribute))
+    (set-data ontology 'world-type world-type)
+    (set-data ontology 'extracted-scenes-path *extracted-scenes-path*)
+    ontology))
+
+(defun make-extracted-ontology (concepts-pathname world-type)
   (let ((ontology (make-blackboard)))
     (loop for pathname in (directory concepts-pathname)
           do (cond ((member (pathname->conceptname pathname)
@@ -51,14 +89,14 @@
                     (push-data ontology 'x-spatial-relations
                                (restore-concept pathname 'spatial-concept)))
                    ((eql (pathname->conceptname pathname) 'front)
-                    (push-data ontology 'y-spatial-relations
+                    (push-data ontology 'yz-spatial-relations
                                (let ((concept (cl-store:restore pathname)))
                                  (make-instance 'spatial-concept
                                                 :id 'behind
                                                 :form "behind"
                                                 :meaning (copy-object (meaning concept))))))
                    ((eql (pathname->conceptname pathname) 'behind)
-                    (push-data ontology 'y-spatial-relations
+                    (push-data ontology 'yz-spatial-relations
                                (let ((concept (cl-store:restore pathname)))
                                  (make-instance 'spatial-concept
                                                 :id 'front

@@ -37,20 +37,6 @@
 (defun repair-holophrase->item-based+holistic+holophrase--deletion (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
   "Creates item-based construction, a holophrase and a holistic construction
    based on an existing holophrase construction of which the form/meaning are a superset of the observed phrase.
-
-   Example:
-   - cxn-inventory: contains a holophrase for 'the red cube'
-   - new observation: 'the cube'
-
-   Result:
-   - holophrase-cxn: the-cube-cxn
-   - item based-cxn: the-X-cube-cxn
-   - holistic-cxn: red-cxn
-
-   Edge cases to test:
-   - center-deletion: 'the red cube' => 'the cube'
-   - right-deletion: 'the cube red' => 'the cube' (e.g. French) or 'the cat jumps' => 'the cat'
-   - left deletion: 'two red cubes' => 'red cubes'
    "
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
@@ -61,7 +47,7 @@
     (multiple-value-bind (superset-holophrase-cxn
                           non-overlapping-form
                           non-overlapping-meaning)
-        (find-superset-holophrase-cxn cxn-inventory gold-standard-meaning utterance)
+        (find-superset-holophrase-cxn cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
 
       (when superset-holophrase-cxn
         (let* ((overlapping-form

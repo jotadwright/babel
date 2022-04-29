@@ -51,7 +51,7 @@ based on existing construction with sufficient overlap."
                           overlapping-form-observation
                           overlapping-form-cxn
                           cxn)
-        (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning)
+        (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
       
       (when (and cxn overlapping-form-cxn)
         
