@@ -6,6 +6,8 @@
 ;;                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+
 (defun clean-grammar (grammar dev-corpus &key (destructive t) (nr-of-test-sentences 100) (timeout 10) (cut-off 3000))
   "Clean the grammar for erroneous constructions that are a result of annotation errors."
   (format t "~%>>Grammar size before cleaning: ~a ~%" (size grammar)) 
@@ -70,4 +72,8 @@ grammar on the list-of-sentences"
     (values frequency-table nr-of-time-outs)))
 
 
-
+(defun apply-cutoff (grammar &key (cutoff 200) (sorted-cxn-list *sorted-cxns*))
+  (loop for (cxn . dev/train-ratio) in (reverse sorted-cxn-list)
+        if (>= (eval dev/train-ratio) cutoff)
+        do (with-disabled-monitor-notifications
+             (delete-cxn (name cxn) grammar :key #'name))))
