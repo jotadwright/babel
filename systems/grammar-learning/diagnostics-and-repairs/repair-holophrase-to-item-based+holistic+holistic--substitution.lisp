@@ -172,10 +172,9 @@ based on existing construction with sufficient overlap."
                                                                  (?item-based-unit
                                                                   (HASH meaning ,overlapping-meaning-observation)
                                                                   --
-                                                                  (HASH form ,overlapping-form-with-rewritten-boundaries)) ;; (HASH form ,overlapping-form-observation) ; this works
+                                                                  (HASH form ,overlapping-form-with-rewritten-boundaries))
                                                                  (,unit-name-holistic-cxn-2
                                                                   (args ,args-holistic-cxn-2)
-                                                                  (syn-cat (phrase-type holistic))
                                                                   --
                                                                   ))
                                                                 :attributes (:cxn-type item-based

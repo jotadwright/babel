@@ -16,6 +16,33 @@
                                              :gold-standard-meaning '((:MODE ?A EXPRESSIVE)
                                                                       (AH ?A))))))))
 
+(defun test-substitution-repair-comprehension-reverse-amr ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-amr))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "EXC Hum"
+                :cxn-inventory cxn-inventory
+                :gold-standard-meaning '((:MODE ?H EXPRESSIVE)
+                                         (HUM ?H)))
+    (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
+                        (second (multiple-value-list
+                                 (comprehend "EXC Ah"
+                                             :cxn-inventory cxn-inventory
+                                             :gold-standard-meaning '((:MODE ?A EXPRESSIVE)
+                                                                      (AH ?A))))))))
+
+(deftest test-substitution-repair-comprehension-full-stop-amr ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-amr))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Hum ."
+                :cxn-inventory cxn-inventory
+                :gold-standard-meaning '((HUM ?H)))
+    (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
+                        (second (multiple-value-list
+                                 (comprehend "Ah ."
+                                             :cxn-inventory cxn-inventory
+                                             :gold-standard-meaning '((AH ?A))))))))
+
+
 (deftest test-substitution-repair-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
@@ -375,3 +402,5 @@
 
 ;; AMR testcases
 ;; (test-substitution-repair-comprehension-amr)
+;; (test-substitution-repair-comprehension-reverse-amr)
+;; (test-substitution-repair-comprehension-full-stop-amr)
