@@ -19,7 +19,7 @@
   (make-instance 'grammar-learning-experiment
                  :entries '((:observation-sample-mode . :debug) ;; random or sequential
                             (:determine-interacting-agents-mode . :corpus-learner)
-                            (:de-render-mode . :de-render-string-meets)
+                            (:de-render-mode . :de-render-string-meets-ignore-quotes)
                             (:meaning-representation . :amr)
                             (:remove-cxn-on-lower-bound . nil)
                             (:learner-th-connected-mode . :neighbours)

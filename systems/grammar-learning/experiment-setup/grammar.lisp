@@ -31,6 +31,19 @@
   (de-render utterance :de-render-string-meets))
 
 
+(defun remove-quotes (utterance)
+  (let ((words (split (remove-spurious-spaces utterance) #\space)))
+    (loop for word in words
+          unless (string= word "\"")
+          collect (downcase word))))
+
+(defmethod de-render ((utterance string) (mode (eql :de-render-string-meets-ignore-quotes))
+                      &key &allow-other-keys)
+  (de-render (remove-quotes utterance) :de-render-string-meets-ignore-quotes))
+
+(defmethod de-render ((utterance list) (mode (eql :de-render-string-meets-ignore-quotes))
+                      &key &allow-other-keys)
+  (de-render utterance :de-render-string-meets))
 
 (in-package :grammar-learning)
 
