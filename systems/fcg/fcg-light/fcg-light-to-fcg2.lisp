@@ -54,6 +54,13 @@
         (push `((J ,(first tag))
                 ,@(rest tag)) j-units))))) ;; Create new unit.
 
+(defun fcg-ensure-j-units-exist (j-units-that-should-exist j-units)
+  "If j-unit does not yet exist, create it."
+  (dolist (j-unit-name j-units-that-should-exist j-units)
+    (let ((unit (find j-unit-name j-units :key #'j-unit-name)))
+      (unless unit
+        (push `((J ,j-unit-name)) j-units)))))
+        
 (defun fcg-process-footprints (units j-units sem-or-syn cxn-name)
   "Adds footprints to J-units."
   (dolist (unit units j-units) ;; Return the j-units at the end.
@@ -70,16 +77,19 @@
            ;; If no corresponding j-unit in the cxn, create one with the footprints feature
            (push (cons `(j ,(first unit)) `((footprints (==1 ,(make-symbol (string-append sem-or-syn '- cxn-name))))))  j-units))))))
 
-(defmacro fcg-convert-lock->fcg-2-unit (cxn feature-types fcg-unit units tags-for-j-units tags-for-root sem-or-syn &key lock-fn)
+(defmacro fcg-convert-lock->fcg-2-unit (cxn feature-types fcg-unit units tags-for-j-units tags-for-root j-units-to-create sem-or-syn &key lock-fn)
   ;; This macro is mainly used for its side effects: it setfs the value of the macro-expansion of units, tags-for-j-units and
   ;; tags-for-root. Do not use this macro outside of the translation function.
   `(let ((unit-name (name ,fcg-unit))
          (lock (funcall ,lock-fn ,fcg-unit)))
      (multiple-value-bind (unit add-to-j-units add-to-root)
-       (convert-unit-to-fcg-2 (cons unit-name lock) (name ,cxn) ,cxn ,sem-or-syn :feature-types ,feature-types :j-unit nil)
+           (convert-unit-to-fcg-2 (cons unit-name lock) (name ,cxn) ,cxn ,sem-or-syn :feature-types ,feature-types :j-unit nil)
        ;; units with only hashed features do not occur in the processing-cxn
        (when unit
          (push unit ,units))
+       ;; Units with an empty lock still appear as j-unit on that pole
+       (unless lock
+         (push unit-name ,j-units-to-create))
        ;; Store variables that are tagged for j-unit
        (when add-to-j-units
          (push add-to-j-units ,tags-for-j-units))
@@ -93,7 +103,7 @@
 
 (export '(>>))
 
-(defun fcg-light-cxn->fcg-2-cxn (cxn &key (feature-types (or (feature-types cxn)
+(defun fcg-light-cxn->fcg-2-cxn (cxn &key (feature-types (or (feature-types cxn) 
                                                              (feature-types *fcg-constructions*)
                                                              '((args sequence)
                                                                (form set-of-predicates)
@@ -112,6 +122,8 @@
         (tags-for-j-units-syn-pole nil)
         (tags-for-root-sem-pole nil)
         (tags-for-root-syn-pole nil)
+        (j-units-to-create-sem-pole nil)
+        (j-units-to-create-syn-pole nil)
         (attributes (attributes cxn)))
     
     ;; Process conditional units ;;
@@ -121,12 +133,12 @@
         ;; --> Convert formulation-lock
         ;;     Get: unit for sem-pole, tagged variables for j-unit and tagged features for root
         (fcg-convert-lock->fcg-2-unit cxn feature-types conditional-unit
-                                      sem-pole-units tags-for-j-units-sem-pole tags-for-root-sem-pole 'sem
+                                      sem-pole-units tags-for-j-units-sem-pole tags-for-root-sem-pole j-units-to-create-sem-pole 'sem
                                       :lock-fn #'formulation-lock)
         ;; --> Convert comprehension-lock
         ;;     Get: unit for sem-pole, tagged variables for j-unit and tagged features for root
         (fcg-convert-lock->fcg-2-unit cxn feature-types conditional-unit
-                                      syn-pole-units tags-for-j-units-syn-pole tags-for-root-syn-pole 'syn
+                                      syn-pole-units tags-for-j-units-syn-pole tags-for-root-syn-pole j-units-to-create-syn-pole 'syn
                                       :lock-fn #'comprehension-lock))
     
     ;; Process contributing-units ;;
@@ -149,6 +161,12 @@
     ;; --> Add variables of tags for 'pasting' in j-units of sem-pole and syn-pole
     (setf j-units (fcg-place-repeat-tag-in-j-units tags-for-j-units-sem-pole j-units)
           j-units-syn-pole (fcg-place-repeat-tag-in-j-units tags-for-j-units-syn-pole j-units-syn-pole))
+
+    ;; Process conditional units with empty locks (j-units-to-create) ;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   
+    ;; --> add j-units if they do not yet exist
+    (setf j-units (fcg-ensure-j-units-exist j-units-to-create-sem-pole j-units)
+          j-units-syn-pole (fcg-ensure-j-units-exist j-units-to-create-syn-pole j-units-syn-pole))
 
     ;; Process Footprints ;;
     ;;;;;;;;;;;;;;;;;;;;;;;;
