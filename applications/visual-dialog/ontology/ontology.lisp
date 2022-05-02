@@ -96,6 +96,7 @@
     (add-category-to-ontology ontology 'none 'material)
     (add-category-to-ontology ontology 'none 'size)
     (add-category-to-ontology ontology 'none 'digit)
+    (add-category-to-ontology ontology 'none 'style)
     (add-category-to-ontology ontology 'none 'bgcolor)
     ;;manually add colors, styles and 2D relations from mnist-dialog
     (add-category-to-ontology ontology 'salmon-bg 'bgcolor)
