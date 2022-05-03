@@ -35,9 +35,9 @@
                    :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
                    :type "fcg")))
 
-(cl-store:store *propbank-ontonotes-ewt-learned-cxn-inventory*
+(cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt"
+                                :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
                                 :type "fcg"))
 
 
@@ -70,21 +70,47 @@
     (:cxn-supplier-mode . :propbank-english)))
 
 (learn-propbank-grammar
- (train-split *ewt-annotations*)
- ;(append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
+ ;(train-split *ewt-annotations*)
+ (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
  :selected-rolesets nil
- :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
+ :cxn-inventory '*propbank-ewt-ontonotes-learned-cxn-inventory*
  :fcg-configuration *training-configuration*)
 
+
+;; Cleaning learned grammars
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *dev-sentences* (append (dev-split *ewt-annotations*)
+                                      (dev-split *ontonotes-annotations*)))
+
+(defparameter *sorted-cxns*
+  (sort-cxns-for-outliers *propbank-ewt-ontonotes-learned-cxn-inventory*
+                          (shuffle *dev-sentences*)
+                          :timeout 30
+                          :nr-of-training-sentences (get-data (blackboard *propbank-ewt-ontonotes-learned-cxn-inventory*) :training-corpus-size)
+                          :nr-of-test-sentences 100))
+
+
+(apply-cutoff *propbank-ewt-ontonotes-learned-cxn-inventory*)
 ;; Testing learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (monitors:activate-monitor trace-fcg)
 
-(comprehend "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
+(comprehend "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
 
-(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
 
 (comprehend-and-extract-frames "She sent her mother a dozen roses" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
 
 (comprehend-and-extract-frames (sentence-string (nth 0 (train-split *ewt-annotations*))) :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
+
+
+
+(comprehend-and-extract-frames "It is feared if far-right candidate becomes French president she will try to destroy the bloc from inside" :cxn-inventory *restored-grammar*)
+
+(comprehend-and-extract-frames "Much of what the far-right Rassemblement National leader does want to do, however implies breaking the EU’s rules, and her possible arrival in the Élysée Palace next weekend could prove calamitous for the 27-member bloc." :cxn-inventory *restored-grammar*)
+
+
+
+(comprehend-and-extract-frames "He told him a story" :cxn-inventory *restored-grammar*)

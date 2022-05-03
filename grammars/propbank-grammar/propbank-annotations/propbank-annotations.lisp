@@ -220,7 +220,7 @@
   ;; sentence string
   (setf (sentence-string sentence) (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
   ;; syntactic anlysis
-  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis (mapcar #'token-string (tokens sentence))))
+  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence)))))
   ;; initial transient structure
   (setf (initial-transient-structure sentence) (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis sentence)))
   ;; propbank frames
@@ -298,6 +298,7 @@
   (case corpus-name
     (ewt *ewt-annotations-storage-file*)
     (ontonotes *ontonotes-annotations-storage-file*)))
+
 
 (defun load-propbank-annotations (corpus-name &key (store-data t) ignore-stored-data)
   "Loads ProbBank annotations and stores the result. It is loaded from a pb-annotations.store file if it
