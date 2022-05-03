@@ -266,44 +266,46 @@
 (define-js 'request-handling "
 // handles the response from lisp and then polls the next requests after 200 ms
 function requestsCallBack (result) {
-  for (i=0;i<result.firstChild.firstChild.childNodes.length;i++) 
+  if (result) 
   {
-    var request = document.importNode(result.firstChild.firstChild.childNodes[i],true);
-    switch (request.nodeName) 
+    for (i=0;i<result.firstChild.firstChild.childNodes.length;i++) 
     {
-    case 'reset': case 'RESET':
-      var content = document.getElementById('content');
-      while (content.firstChild) {
-        content.removeChild(content.firstChild);
+      var request = document.importNode(result.firstChild.firstChild.childNodes[i],true);
+      switch (request.nodeName) 
+      {
+      case 'reset': case 'RESET':
+        var content = document.getElementById('content');
+        while (content.firstChild) {
+          content.removeChild(content.firstChild);
+        }
+        break;
+      case 'add-element': case 'ADD-ELEMENT':
+        while (request.firstChild) {
+          var firstChild = request.firstChild;
+          document.getElementById('content').appendChild(firstChild);
+        //content_changed(firstChild);
+        }
+        window.scrollTo(0,100000000);
+        break;
+      case 'replace-element-content': case 'REPLACE-ELEMENT-CONTENT':
+        var id = request.getElementsByTagName('id')[0].firstChild.nodeValue;
+        var content = request.getElementsByTagName('content')[0];
+        var node = document.getElementById(id);
+        while (node.firstChild) { node.removeChild(node.firstChild); }
+        while (content.firstChild) { node.appendChild (content.firstChild) };
+        break;
+      case 'append-to-element': case 'APPEND-TO-ELEMENT':
+        var id = request.getElementsByTagName('id')[0].firstChild.nodeValue;
+        var content = request.getElementsByTagName('content')[0];
+        var node = document.getElementById(id);
+        while (content.firstChild) { node.appendChild (content.firstChild) };
+        break;
+      default:
+        alert('unhandled request: ' + request.nodeName);
+        break;
       }
-      break;
-    case 'add-element': case 'ADD-ELEMENT':
-      while (request.firstChild) {
-        var firstChild = request.firstChild;
-        document.getElementById('content').appendChild(firstChild);
-      //content_changed(firstChild);
-      }
-      window.scrollTo(0,100000000);
-      break;
-    case 'replace-element-content': case 'REPLACE-ELEMENT-CONTENT':
-      var id = request.getElementsByTagName('id')[0].firstChild.nodeValue;
-      var content = request.getElementsByTagName('content')[0];
-      var node = document.getElementById(id);
-      while (node.firstChild) { node.removeChild(node.firstChild); }
-      while (content.firstChild) { node.appendChild (content.firstChild) };
-      break;
-    case 'append-to-element': case 'APPEND-TO-ELEMENT':
-      var id = request.getElementsByTagName('id')[0].firstChild.nodeValue;
-      var content = request.getElementsByTagName('content')[0];
-      var node = document.getElementById(id);
-      while (content.firstChild) { node.appendChild (content.firstChild) };
-      break;
-    default:
-      alert('unhandled request: ' + request.nodeName);
-      break;
     }
   }
-
   window.setTimeout(getRequests,200);
 }
     
