@@ -69,6 +69,7 @@
     (set-data ontology 'extracted-scenes-path *extracted-scenes-path*)
     ontology))
 
+
 (defun make-extracted-ontology (concepts-pathname world-type)
   (let ((ontology (make-blackboard)))
     (loop for pathname in (directory concepts-pathname)
