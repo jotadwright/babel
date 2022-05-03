@@ -236,10 +236,10 @@ of strings, each list corresponding to a named entity."
               (listp sentence))
     (error "The function <run-penelope-dependency-parser> expects a string or a list as input"))
   (send-request "/syntactic-parser"
-             (encode-json-to-string `((:sentence . ,(if (stringp sentence)
+                (encode-json-to-string `((:sentence . ,(if (stringp sentence)
                                                       (remove-multiple-spaces sentence)
                                                       sentence))
-                                      (:model . ,model)))))
+                                         (:model . ,model)))))
 
 ;; (run-penelope-syntactic-parser "April is the fourth month of the year")
 

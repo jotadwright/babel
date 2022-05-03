@@ -93,8 +93,8 @@
                                                    meaning-representation-formalism))
                ;; args: 
                (args-holistic-cxn
-                (extract-args-from-irl-network non-overlapping-meaning))
-               (args-holophrase-cxn (extract-args-from-irl-network meaning))
+                (extract-args-from-meaning-network non-overlapping-meaning meaning-representation-formalism))
+               (args-holophrase-cxn (extract-args-from-meaning-network meaning meaning-representation-formalism))
                (cxn-name
                 (make-cxn-name utterance cxn-inventory :add-numeric-tail t))
                (form-constraints

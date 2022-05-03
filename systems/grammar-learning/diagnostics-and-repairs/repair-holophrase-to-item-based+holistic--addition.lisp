@@ -96,7 +96,7 @@
                ;; args: 
                
                (args-holistic-cxn
-                (extract-args-from-irl-network non-overlapping-meaning))
+                (extract-args-from-meaning-network non-overlapping-meaning meaning-representation-formalism))
                
                (holistic-cxn
                 (or existing-holistic-cxn

@@ -25,4 +25,7 @@
                (:module learning
                 :serial t
                 :components ((:file "cxn-name")
-                             (:file "learn-propbank-constructions")))))
+                             (:file "learn-propbank-constructions")))
+               (:module cleaning-and-evaluation
+                :serial t
+                :components ((:file "clean")))))
