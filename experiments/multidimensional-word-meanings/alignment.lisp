@@ -163,7 +163,7 @@
       ;; reward all attributes...
       (format t "!")
       (setf best-subset (meaning concept)))
-    (add-to-concept-history agent concept)
+    (add-to-concept-history agent concept (get-configuration agent :concept-history-length))
     ;; 3. actually update the certainty scores
     (loop with rewarded-attributes = nil
           with punished-attributes = nil
