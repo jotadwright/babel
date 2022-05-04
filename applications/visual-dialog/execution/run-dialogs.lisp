@@ -6,8 +6,7 @@
                        (ontology blackboard)
                        (type (eql :clevr))
                        &key (silent t))
-  "Running a whole dialog, this means understanding, executing and remembering caption, then understanding and executing each question"
-  "Returns list of answers"
+  "Running a whole dialog, this means understanding, executing and remembering caption, then understanding and executing each question, Returns list of answers"
   (let* ((ontology (initialize-agent-ontology-and-world ontology world silent))
          (caption (first list-of-sentences))
          (questions (rest list-of-sentences))
@@ -25,8 +24,7 @@
                        (ontology blackboard)
                        (type (eql :mnist))
                        &key (silent t))
-  "Running a whole dialog, this means understanding, executing and remembering first question in case of mnist, then understanding and executing each question"
-  "Returns list of answers"
+  "Running a whole dialog, this means understanding, executing and remembering first question in case of mnist, then understanding and executing each question, Returns list of answers"
   (let* ((ontology (initialize-agent-ontology-and-world ontology world silent))
          (caption (first list-of-sentences))
          (questions (rest list-of-sentences))

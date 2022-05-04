@@ -39,13 +39,13 @@
 ;;;;
 ;;;; concept history
 ;;;;
-(defun add-to-concept-history (agent concept)
+(defun add-to-concept-history (agent concept concept-history-length)
   "Keep the 5 latest versions of each concept"
   (let ((entry (assoc (form concept) (concept-history agent) :test #'string=))
         (copy (copy-object concept)))
     (if entry
       (progn
-        (when (> (length (rest entry)) 5)
+        (when (> (length (rest entry)) concept-history-length)
           (setf (rest entry) (butlast (rest entry))))
         (push copy (rest entry)))
       (push (cons (form concept) (list copy))

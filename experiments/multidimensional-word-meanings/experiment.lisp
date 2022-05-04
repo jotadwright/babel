@@ -7,6 +7,7 @@
 ;; :baseline - :cogent - :incremental - :compositional
 (define-configuration-default-value :experiment-type :baseline)
 
+
 ;; :simulated - :extracted
 (define-configuration-default-value :world-type :simulated)
 
@@ -26,6 +27,7 @@
 (define-configuration-default-value :export-lexicon-interval 500)
 (define-configuration-default-value :switch-conditions-after-n-interactions nil)
 (define-configuration-default-value :alignment-filter :all) ; :none - :at-least-one - :all
+(define-configuration-default-value :concept-history-length 5)
 
 ;; --------------
 ;; + Experiment +

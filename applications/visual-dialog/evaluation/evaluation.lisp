@@ -1,8 +1,7 @@
 (in-package :visual-dialog)
 
 (defun evaluate-dialog (&key scene-index dialog-index world ontology (silent t))
-  "run dialog with specific scene and a specific dialog (1-5), check result with gold-answers"
-  "returns T if whole dialog succeeded otherwise nil and the success list per question"
+  "run dialog with specific scene and a specific dialog (1-5), check result with gold-answers, returns T if whole dialog succeeded otherwise nil and the success list per question"
   (if (equal (get-configuration world :mode) :hybrid)
     (progn
       
@@ -38,8 +37,7 @@
     (values (loop for a in correct-answers always a) correct-answers)))
 
 (defun evaluate-dialogs (start-scene end-scene world)
-  "evaluate all dialogs from start-scene to end-scene"
-  "returns question-level-accuracy"
+  "evaluate all dialogs from start-scene to end-scene, returns question-level-accuracy"
   
   (ensure-directories-exist
    (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "results"

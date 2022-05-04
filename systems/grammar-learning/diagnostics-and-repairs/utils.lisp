@@ -95,15 +95,17 @@
   (let* ((new-form-constraints (copy-object form-constraints))
          (placeholder-var (string-upcase (if placeholder-var placeholder-var "?X")))
          (right-var (make-var (make-const (format nil "?RIGHT-~a-BOUNDARY" placeholder-var))))
+         (left-var (make-var (make-const (format nil "?LEFT-~a-BOUNDARY" placeholder-var))))
          (left-boundary (first boundaries))
          (right-boundary (second boundaries))
-         ;(matching-left-predicate (find left-boundary new-form-constraints :key #'third))
+         (matching-left-predicate (find left-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'third))
          (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
-    ;(when matching-left-predicate
-     ; (setf (nth 2 matching-left-predicate) left-var))
-    (when matching-right-predicate
-      (setf (nth 1 matching-right-predicate) right-var))
-    (values new-form-constraints (list left-boundary right-var))))
+    (if (equal right-boundary (first (get-boundary-units form-constraints))) ; the variable is a the beginning of an utterance when the right-boundary is the leftmost-boundary
+      (values new-form-constraints (list left-var right-boundary))
+      (when matching-right-predicate
+        (setf (nth 1 matching-right-predicate) right-var)))
+    (values new-form-constraints (list left-boundary right-var))
+    ))
 
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"
@@ -229,13 +231,13 @@
     (make-id (upcase (string-append string "-CXN")))
     (intern (upcase (string-append string "-CXN")))))
 
-(defun replace-initial-question-mark (string)
-  (if (string= (subseq string 0 1) "?")
+(defun replace-special-initial-chars (string)
+  (if (member (subseq string 0 1) '("?" "!" "\"") :test #'string=)
     (string-append "-" string)
     string))
-
+ 
 (defun make-lex-class (cat-name &key add-numeric-tail trim-cxn-suffix)
-  (let* ((name-string (replace-initial-question-mark (if (equal (type-of cat-name) 'SYMBOL)
+  (let* ((name-string (replace-special-initial-chars (if (equal (type-of cat-name) 'SYMBOL)
                        (string-downcase (symbol-name cat-name))
                        (string-downcase cat-name))))
         (cat-name (if trim-cxn-suffix (fcg::replace-all name-string "-cxn" "")
@@ -632,6 +634,7 @@
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
                     (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)))
                (when (and
+                      (> (length overlapping-meaning-observation) 0)
                       (> (length non-overlapping-meaning-observation) 0)
                       (> (length non-overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-form-observation) 0)
@@ -650,64 +653,6 @@
                                  overlapping-form-cxn
                                  cxn)))))))
 
-
-
-
-(defun find-all-matching-cxn-cars-for-node (cxn-inventory node)
-  ;; handles duplicates by skipping them.  return all first cars (not applied to eachother)
-  (with-disabled-monitor-notifications
-    (let* ((start-node (copy-object (car-source-cfs (cipn-car (initial-node node)))))
-           (start-node-root (get-root (left-pole-structure start-node)))
-           (root-meaning (unit-feature-value start-node-root 'meaning)))
-      (loop for cxn in (constructions cxn-inventory)
-            for cars = (if (equal (attr-val cxn :cxn-type) 'holistic)
-                         (fcg-apply cxn start-node
-                                    (direction (cip node))
-                                    :configuration (configuration cxn-inventory)
-                                    :cxn-inventory cxn-inventory)
-                         nil)
-            when (and cars
-                      (commutative-irl-subset-diff root-meaning
-                                                   (extract-meaning-predicates (original-cxn (car-applied-cxn (first cars)))))
-                      (= 1 (length cars))) ; if not 1, the cxn matches multiple times
-            collect (first cars)))))
-
-(defun find-optimal-coverage-cars (matching-holistic-cars node) ;; this should be comprehend with goal test no more strings in root, then iterate through leaf nodes and get the one with shortest root
-  "make hypotetical cars, return the one with highest coverage"
-  ; todo make overlapping testcases, retry until no overlap or tried combinations of cxns, return car with best score
-  (let* ((cars (multiple-value-list (make-hypothetical-car matching-holistic-cars node)))
-         (applied-cars (reverse (first cars)))
-         (unapplied-cars (second cars)))
-    applied-cars))
-
-(defun make-hypothetical-car (matching-holistic-cars node)
-  "try to apply all cxns return the construction application result, its coverage and the non matching cxns, everything after the no-match needs to be retried in a next iteration"
-  (with-disabled-monitor-notifications
-    (if (= (length matching-holistic-cars) 1)
-      matching-holistic-cars
-      (loop with rest-cars = (rest matching-holistic-cars)
-            with applied-cars = (list (first matching-holistic-cars))
-            with unapplied-cars = nil
-            with cxn-inventory = (construction-inventory node)
-            with start-node = (car-resulting-cfs (first matching-holistic-cars))
-            for car in rest-cars
-            for cxn = (car-applied-cxn car)
-            for new-car = (fcg-apply cxn start-node
-                                     (direction (cip node))
-                                     :configuration (configuration cxn-inventory)
-                                     :cxn-inventory cxn-inventory)
-            do (if new-car
-                 (progn
-                   (push (first new-car) applied-cars)
-                   (setf start-node (car-resulting-cfs (first new-car)))
-                   )
-                 (push car unapplied-cars))
-               ; there was some conflict between cxns, handle it!
-          
-            finally return (values applied-cars unapplied-cars)
-                 
-            ))))
- 
 (defun diff-non-overlapping-form (observed-form matching-lex-cxns)
   "subtract all lexical forms from the gold standard,
    taking into account possible duplicates in the matching lex cxns
@@ -730,26 +675,6 @@
                       (unit-name (second (find 'string unit-name-predicate :key #'first))))
                  (push unit-name lex-unit-names))))
     (values (reverse lex-unit-names) resulting-form)))
-
-(defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
-  "subtract all lexical meanings from the gold standard
-   taking into account possible duplicates in the matching lex cxns
-   by always taking the first unification result and removing it
-   manually instead of using set-difference."
-  ;; !! it is assumed the matching lex cxns are provided
-  ;; in the same order as which they occur in the form
-  ;; the ordering of the gold standard meaning cannot be guaranteed?
-  (loop with resulting-meaning = gold-standard-meaning
-        for lex-cxn in matching-lex-cxns
-        for lex-cxn-meaning = (extract-meaning-predicates lex-cxn)
-        do (let* ((prev-res-meaning (copy-object resulting-meaning))
-                  (elm-to-remove
-                   (loop for elm in resulting-meaning
-                         when (irl::unify-irl-programs lex-cxn-meaning (list elm))
-                         return elm)))
-             (setf resulting-meaning (remove elm-to-remove resulting-meaning :test #'equal))
-             ))
-  resulting-meaning)
  
 (defun subunit-names-for-lex-cxns (lex-cxns)
   (loop for lex-cxn in lex-cxns

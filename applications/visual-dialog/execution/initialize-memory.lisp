@@ -1,8 +1,7 @@
 (in-package :visual-dialog)
 
 (defun initialize-memory-object-relation-caption (input-sentence irl-program list-of-bindings)
-  "memory is initialized based on caption type object relation"
-  "information that is stored: attributes of two unique inputs + relation between them"
+  "memory is initialized based on caption type object relation, information that is stored: attributes of two unique inputs + relation between them"
   (let* ((relate-primitive (find 'immediate-relate irl-program :test #'equal :key #'first))     
          (first-unique-variable (third relate-primitive))
          (first-unique-binding (first (objects (object-set (first (set-items (value (find first-unique-variable list-of-bindings :key #'var))))))))
@@ -42,8 +41,7 @@
     new-world-model))
 
 (defun initialize-memory-unique-object-caption (input-sentence irl-program list-of-bindings)
-  "memory is initialized based on caption type unique object"
-  "information that is stored: attributes of unique object"
+  "memory is initialized based on caption type unique object, information that is stored: attributes of unique object"
   (let* ((unique-primitive (find 'unique irl-program :test #'equal :key #'first))
          (exist-primitive (find 'exist irl-program :test #'equal :key #'first))
          (unique-object (third exist-primitive))
@@ -69,8 +67,7 @@
 
 
 (defun initialize-memory-multiple-objects-caption (input-sentence irl-program list-of-bindings)
-  "history is made based on caption type multiple objects"
-  "information that is stored: attributes of objects"
+  "history is made based on caption type multiple objects, information that is stored: attributes of objects"
   (let* ((multiple-primitive (or (find 'clevr-dialog-grammar::count-objects irl-program :test #'equal :key #'first)
                                  (find 'clevr-dialog-grammar::more-than-1 irl-program :test #'equal :key #'first)))
          (target-variable (second multiple-primitive))
@@ -96,8 +93,7 @@
     new-world-model))
 
 (defun initialize-memory-extreme-relation-caption (input-sentence irl-program list-of-bindings)
-  "history is made based on caption type extreme relation"
-  "information that is stored: attributes of unique object + extreme relation"
+  "history is made based on caption type extreme relation, information that is stored: attributes of unique object + extreme relation"
   (let* ((extreme-relate-primitive (find 'extreme-relate irl-program :test #'equal :key #'first))
          
          (exist-primitive (find 'exist irl-program :test #'equal :key #'first))

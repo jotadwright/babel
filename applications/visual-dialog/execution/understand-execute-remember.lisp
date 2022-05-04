@@ -1,8 +1,7 @@
 (in-package :visual-dialog)
 
 (defun understand-execute-remember-caption (scene-pathname input-sentence ontology &key (silent t))
-  "first comprehend input, then execute, then update memory"
-  "handles the processing of the caption and starts specific functions based on the type of the captions that make history"
+  "first comprehend input, then execute, then update memory, handles the processing of the caption and starts specific functions based on the type of the captions that make history"
   (multiple-value-bind (irl-program cipn)
       (clevr-dialog-grammar::understand-until-solution input-sentence :silent (if silent silent))
     (let* ((scene-var (extract-scene-unit-variable cipn))
