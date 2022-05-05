@@ -59,7 +59,7 @@
                           (boundaries-holistic-cxn (get-boundary-units root-form-constraints))
                           (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
                           (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
-                          (args-holistic-cxn (extract-args-from-meaning-network remaining-meaning meaning-representation-formalism)) ;take args from item-based; filling in the bindings
+                          (args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism)) ;take args from item-based; filling in the bindings
                           (existing-holistic-cxn (find-cxn-by-form-and-meaning root-form-constraints remaining-meaning original-cxn-inventory :cxn-type 'holistic))
                           (holistic-cxn (or existing-holistic-cxn
                                             (second (multiple-value-list (eval

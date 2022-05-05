@@ -629,12 +629,14 @@
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
+                    (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
                     (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
                     (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
                     (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)))
                (when (and
                       (> (length overlapping-meaning-observation) 0)
+                      (> (length overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-meaning-observation) 0)
                       (> (length non-overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-form-observation) 0)
@@ -649,6 +651,7 @@
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
                                  overlapping-meaning-observation
+                                 overlapping-meaning-cxn
                                  overlapping-form-observation
                                  overlapping-form-cxn
                                  cxn)))))))
@@ -830,38 +833,30 @@
          (non-overlapping-predicates (set-difference longest-network overlapping-predicates :test #'equal)))
     (values non-overlapping-predicates overlapping-predicates)))
 
-(defgeneric extract-args-from-meaning-network (meaning mode))
 
-(defmethod extract-args-from-meaning-network (meaning (mode (eql :irl)))
-  (extract-args-from-irl-network meaning))
+
+;(extract-args-from-meaning-networks '((eh ?e)  (:mode ?e expressive)) '((:polarity ?e ?a) (amr-unknown ?a)) :amr)
+
+
+
+
+(defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
+
+(defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :irl)))
+  (extract-args-from-irl-network child-meaning))
 
 ;(extract-args-from-meaning-network '((i ?i) (:mod ?j ?k)) :amr)
 
-(defmethod extract-args-from-meaning-network (meaning (mode (eql :amr)))
-  "return all variables that were only used once; maintains order in which they occured"
-  (loop with var-lookup-hash = (make-hash-table)
-        with single-vars = nil
-        with var-idx = nil
-        for predicate in meaning
-        do (loop for el in predicate
-                 when (variable-p el)
-                 do (push el var-idx)
-                 (if (gethash el var-lookup-hash)
-                   (incf (gethash el var-lookup-hash))
-                   (setf (gethash el var-lookup-hash) 1)))
-        finally do (mapcar #'(lambda (key)
-                               (when (< (gethash key var-lookup-hash) 2)
-                                 (push key single-vars)
-                                 ))
-                           var-idx)
-        (return single-vars)))
-  
-  
-
+(defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :amr)))
+  "look up the vars from the child network in the parent network, if found, it's an arg that connects"
+  (loop for el in (remove-duplicates (apply 'concatenate 'list child-meaning))
+        when (and (variable-p el)
+                  (find el (apply 'concatenate 'list parent-meaning)))
+                 collect el))
 
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
-  (sort irl-network #'string-lessp :key (lambda (predicate) ;; TODO: get rid of sort, do search until connnected meaning goal test succeeds instead
+  (sort irl-network #'string-lessp :key (lambda (predicate) ;; TODO: get rid of sort, do search until connected meaning goal test succeeds instead
                                           (if (equal (first predicate) 'bind)
                                           (symbol-name (third predicate))
                                           (symbol-name (second predicate)))))

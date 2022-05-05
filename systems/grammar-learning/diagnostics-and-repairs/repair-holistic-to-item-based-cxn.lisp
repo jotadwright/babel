@@ -68,9 +68,9 @@
                                                  
                                                  for string-var = (first (get-boundary-units form-constraints))
                                                  for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning (unit-feature-value unit 'meaning)))
+                                                 for parent-meaning = (first subtracted-meaning-list)
                                                  for subtracted-meaning = (second subtracted-meaning-list)
-                                                 for args = (extract-args-from-meaning-network subtracted-meaning meaning-representation-formalism) ; get them from the holistic cxns!
-                                                 for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
+                                                 for args = (extract-args-from-meaning-networks subtracted-meaning parent-meaning meaning-representation-formalism)                                                 for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
                                                  for updated-form-constraints-and-boundaries = (multiple-value-list (add-boundaries-to-form-constraints item-based-cxn-form-constraints boundary-list :placeholder-var placeholder-var))

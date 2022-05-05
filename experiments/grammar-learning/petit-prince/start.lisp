@@ -9,7 +9,7 @@
   (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions)
+  ;(activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
 (progn
@@ -18,11 +18,12 @@
   (defparameter *experiment*
     (make-instance 'grammar-learning-experiment
                    :entries '((:observation-sample-mode . :sort-length-ascending)
+                              (:de-render-mode . :de-render-string-meets-ignore-quotes)
                               (:meaning-representation . :amr)))))
 
 ;(run-interaction *experiment*)
-;(comprehend "Ah !" :cxn-inventory (grammar (first (agents *experiment*))))
-;(run-series *experiment* 118)
+;(run-series *experiment* 35)
+
 
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
 
@@ -53,3 +54,12 @@
     (add-element '((hr)))))
 
 ;(summarise-metrics *experiment* (first (interactions *experiment*)))
+
+
+#|
+
+ ISSUES
+WI does not display interaction #10
+args are nil for the -?x-?-cxn, see observation #36
+ 
+|#

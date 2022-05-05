@@ -48,6 +48,7 @@ based on existing construction with sufficient overlap."
                           non-overlapping-form-observation
                           non-overlapping-form-cxn
                           overlapping-meaning-observation
+                          overlapping-meaning-cxn
                           overlapping-form-observation
                           overlapping-form-cxn
                           cxn)
@@ -99,20 +100,23 @@ based on existing construction with sufficient overlap."
                (lex-class-item-based-cxn
                 (if existing-item-based-cxn
                   (lex-class-cxn existing-item-based-cxn)
-                  (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t))) 
+                  (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t)))
+               
                ;; categorial links
                (categorial-link-1
                 (cons lex-class-holistic-cxn-1 lex-class-item-based-cxn))
                (categorial-link-2
                 (cons lex-class-holistic-cxn-2 lex-class-item-based-cxn))
+               
                ;; args
                (args-holistic-cxn-1
-                (extract-args-from-meaning-network non-overlapping-meaning-cxn meaning-representation-formalism))
+                (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
                (args-holistic-cxn-2
-                (extract-args-from-meaning-network non-overlapping-meaning-observation meaning-representation-formalism))
+                (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
+                
                (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
-               ;; cxns
                
+               ;; cxns
                (new-holistic-cxn-1
                 (or holistic-cxn-1
                     (second (multiple-value-list (eval
