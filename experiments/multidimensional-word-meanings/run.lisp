@@ -9,6 +9,7 @@
 
 (activate-monitor display-communicative-success)
 ;(deactivate-monitor display-communicative-success)
+;(deactivate-all-monitors)
 
 ;; --------------------
 ;; + Run interactions +
@@ -20,7 +21,8 @@
    :entries '((:experiment-type . :baseline)
               (:world-type . :simulated)
               (:determine-interacting-agents-mode . :default)
-              (:alignment-filter . :all))))
+              (:alignment-filter . :all)
+              (:concept-history-length . 500))))
 
 (defparameter *baseline-extracted*
   (make-configuration
@@ -68,7 +70,7 @@
 
 (run-interaction *experiment*)
 
-(run-series *experiment* 300)
+(run-series *experiment* 2000)
 
 (display-lexicon (find 'learner (population *experiment*) :key #'id))
 
