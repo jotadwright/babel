@@ -22,7 +22,7 @@
                               (:meaning-representation . :amr)))))
 
 ;(run-interaction *experiment*)
-;(run-series *experiment* 35)
+;(run-series *experiment* 100)
 
 
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
@@ -59,7 +59,6 @@
 #|
 
  ISSUES
-WI does not display interaction #10
-args are nil for the -?x-?-cxn, see observation #36
+
  
 |#

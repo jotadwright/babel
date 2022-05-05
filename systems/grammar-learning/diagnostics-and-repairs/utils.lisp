@@ -100,12 +100,18 @@
          (right-boundary (second boundaries))
          (matching-left-predicate (find left-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'third))
          (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
-    (if (equal right-boundary (first (get-boundary-units form-constraints))) ; the variable is a the beginning of an utterance when the right-boundary is the leftmost-boundary
-      (values new-form-constraints (list left-var right-boundary))
-      (when matching-right-predicate
-        (setf (nth 1 matching-right-predicate) right-var)))
-    (values new-form-constraints (list left-boundary right-var))
-    ))
+    (if (= (length (remove-duplicates boundaries)) 1)
+      (if (equal right-boundary (first (get-boundary-units form-constraints)))  
+        ; the variable is a the beginning of an utterance when the right-boundary is the leftmost-boundary
+        (values new-form-constraints (list left-var right-boundary))
+        (progn (when matching-right-predicate
+                 (setf (nth 1 matching-right-predicate) right-var))
+          (values new-form-constraints (list left-boundary right-var))))
+      ;; the boundaries are different anyway, don't touch them!
+      (values form-constraints boundaries)
+      )))
+    
+    
 
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"

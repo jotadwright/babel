@@ -87,7 +87,10 @@ based on existing construction with sufficient overlap."
                (unit-name-holistic-cxn-1
                 leftmost-unit-holistic-cxn-1)
                (unit-name-holistic-cxn-2
-                leftmost-unit-holistic-cxn-2)
+                ;; fix for j-unit bug, the unit name of a unit with an empty comprehension lock needs to be part of the meets constraints
+                (if (member leftmost-unit-holistic-cxn-2 (apply 'concatenate 'list overlapping-form-with-rewritten-boundaries))
+                  leftmost-unit-holistic-cxn-2
+                  rightmost-unit-holistic-cxn-2))
                ;; lex classes
                (lex-class-holistic-cxn-1
                 (if holistic-cxn-1
@@ -166,7 +169,7 @@ based on existing construction with sufficient overlap."
                                                                 ((?item-based-unit
                                                                   (syn-cat (phrase-type item-based))
                                                                   (subunits (,unit-name-holistic-cxn-2)))
-                                                                 (,unit-name-holistic-cxn-2
+                                                                 (,unit-name-holistic-cxn-2 
                                                                   (syn-cat (lex-class ,lex-class-item-based-cxn))
                                                                   (boundaries
                                                                    (left ,(first rewritten-boundaries))
