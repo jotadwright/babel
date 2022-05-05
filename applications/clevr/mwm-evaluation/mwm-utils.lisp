@@ -5,8 +5,8 @@
 ;;--------------------------;;
 
 (defparameter *simulated-concepts-path*
-  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "learned-concepts"
-                               "simulated-concepts-with-zpos")))
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "store"
+                               "simulated-concepts-history100")))
 
 (defparameter *extracted-concepts-path*
   (babel-pathname :directory '("experiments""multidimensional-word-meanings" "learned-concepts"
