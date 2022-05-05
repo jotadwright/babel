@@ -18,7 +18,7 @@
   (defparameter *experiment*
     (make-instance 'grammar-learning-experiment
                    :entries '((:observation-sample-mode . :sort-length-ascending)
-                              (:de-render-mode . :de-render-string-meets-ignore-quotes)
+                              (:de-render-mode . :de-render-string-meets-ignore-quotes+full-stops)
                               (:meaning-representation . :amr)))))
 
 ;(run-interaction *experiment*)

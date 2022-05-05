@@ -42,9 +42,11 @@
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (best-partial-analysis-node (get-best-partial-analysis-cipn
                                       utterance
+                                      gold-standard-meaning
                                       original-cxn-set
                                       :optimal-form-coverage-exclude-item-based))
-         (applied-cxns (applied-constructions best-partial-analysis-node))
+         (applied-cxns (when best-partial-analysis-node
+                         (applied-constructions best-partial-analysis-node)))
          (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
          (applied-holistic-cxns (filter-by-phrase-type 'holistic applied-cxns)))
     (when (and applied-holistic-cxns
