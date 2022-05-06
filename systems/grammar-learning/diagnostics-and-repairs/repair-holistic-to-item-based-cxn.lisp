@@ -42,9 +42,11 @@
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (best-partial-analysis-node (get-best-partial-analysis-cipn
                                       utterance
+                                      gold-standard-meaning
                                       original-cxn-set
                                       :optimal-form-coverage-exclude-item-based))
-         (applied-cxns (applied-constructions best-partial-analysis-node))
+         (applied-cxns (when best-partial-analysis-node
+                         (applied-constructions best-partial-analysis-node)))
          (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
          (applied-holistic-cxns (filter-by-phrase-type 'holistic applied-cxns)))
     (when (and applied-holistic-cxns
@@ -68,15 +70,17 @@
                                                  
                                                  for string-var = (first (get-boundary-units form-constraints))
                                                  for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning (unit-feature-value unit 'meaning)))
+                                                 for parent-meaning = (first subtracted-meaning-list)
                                                  for subtracted-meaning = (second subtracted-meaning-list)
-                                                 for args = (extract-args-from-meaning-network subtracted-meaning meaning-representation-formalism) ; get them from the holistic cxns!
-                                                 for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
+                                                 for args = (extract-args-from-meaning-networks subtracted-meaning parent-meaning meaning-representation-formalism)                                                 for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
                                                  for updated-form-constraints-and-boundaries = (multiple-value-list (add-boundaries-to-form-constraints item-based-cxn-form-constraints boundary-list :placeholder-var placeholder-var))
                                                  for updated-form-constraints = (first updated-form-constraints-and-boundaries)
                                                  for updated-boundaries = (second updated-form-constraints-and-boundaries)
-                                                 for holistic-cxn-unit-name = (first updated-boundaries)
+                                                 for holistic-cxn-unit-name = (if (member (first updated-boundaries) (apply 'concatenate 'list updated-form-constraints))
+                                                                                (first updated-boundaries)
+                                                                                (second updated-boundaries))
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
                                                  do (setf item-based-cxn-form-constraints updated-form-constraints)

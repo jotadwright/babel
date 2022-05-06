@@ -2,7 +2,7 @@
 (in-package :grammar-learning)
 
 
-
+(setf *raise-errors* t)
 ;; full logging except trace-fcg
 (progn
   (deactivate-all-monitors)
@@ -43,6 +43,7 @@
   (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
+  ;(activate-monitor export-categorial-network-evolution-to-jsonl)
   ;(activate-monitor show-type-hierarchy-after-n-interactions)
   ;(activate-monitor trace-interactions-in-wi)
   )
@@ -77,12 +78,23 @@
 ;(run-series *experiment* (length (question-data *experiment*)))
 
 ;(run-series *experiment* 1000)
+; 83 has issue
 
 
 
 #|
-TODO:
-- optimisation: save the comprehend-all result, retrieve it if the sentence matches, see categorial-links repair
+ISSUES:
 
+I1: order of variables in args may be different, but cxn can still apply, the resulting meaning network is not connected! See observation #... => make it a set!
+I2: there aren't that many holophrases to learn from, add the repairs that learn from a combination of cxns
+I3: in general: the substitution repair learns something different than the others, namely the filters are not included, what is the least general generalisation of two differing observations?
+
+ 
+TODO:
+- fix AMR functions
+
+- debug issue in failing processing!
+- create testcases for new repairs
+- add new repairs that don't only start from holophrases, but also from minimally differing combinations of cxns
 
 |#

@@ -42,9 +42,11 @@
          (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
          (best-partial-analysis-node (get-best-partial-analysis-cipn
                                       utterance
+                                      gold-standard-meaning
                                       original-cxn-inventory
                                       (get-configuration original-cxn-inventory :learning-strategy)))
-         (applied-cxns (applied-constructions best-partial-analysis-node))
+         (applied-cxns (when best-partial-analysis-node
+                         (applied-constructions best-partial-analysis-node)))
          (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
          (applied-holistic-cxns (filter-by-phrase-type 'holistic applied-cxns)))
     (when item-based-cxn
@@ -59,7 +61,7 @@
                           (boundaries-holistic-cxn (get-boundary-units root-form-constraints))
                           (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
                           (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
-                          (args-holistic-cxn (extract-args-from-meaning-network remaining-meaning meaning-representation-formalism)) ;take args from item-based; filling in the bindings
+                          (args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism)) ;take args from item-based; filling in the bindings
                           (existing-holistic-cxn (find-cxn-by-form-and-meaning root-form-constraints remaining-meaning original-cxn-inventory :cxn-type 'holistic))
                           (holistic-cxn (or existing-holistic-cxn
                                             (second (multiple-value-list (eval

@@ -48,6 +48,7 @@ based on existing construction with sufficient overlap."
                           non-overlapping-form-observation
                           non-overlapping-form-cxn
                           overlapping-meaning-observation
+                          overlapping-meaning-cxn
                           overlapping-form-observation
                           overlapping-form-cxn
                           cxn)
@@ -86,7 +87,10 @@ based on existing construction with sufficient overlap."
                (unit-name-holistic-cxn-1
                 leftmost-unit-holistic-cxn-1)
                (unit-name-holistic-cxn-2
-                leftmost-unit-holistic-cxn-2)
+                ;; fix for j-unit bug, the unit name of a unit with an empty comprehension lock needs to be part of the meets constraints
+                (if (member leftmost-unit-holistic-cxn-2 (apply 'concatenate 'list overlapping-form-with-rewritten-boundaries))
+                  leftmost-unit-holistic-cxn-2
+                  rightmost-unit-holistic-cxn-2))
                ;; lex classes
                (lex-class-holistic-cxn-1
                 (if holistic-cxn-1
@@ -99,20 +103,23 @@ based on existing construction with sufficient overlap."
                (lex-class-item-based-cxn
                 (if existing-item-based-cxn
                   (lex-class-cxn existing-item-based-cxn)
-                  (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t))) 
+                  (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t)))
+               
                ;; categorial links
                (categorial-link-1
                 (cons lex-class-holistic-cxn-1 lex-class-item-based-cxn))
                (categorial-link-2
                 (cons lex-class-holistic-cxn-2 lex-class-item-based-cxn))
+               
                ;; args
                (args-holistic-cxn-1
-                (extract-args-from-meaning-network non-overlapping-meaning-cxn meaning-representation-formalism))
+                (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
                (args-holistic-cxn-2
-                (extract-args-from-meaning-network non-overlapping-meaning-observation meaning-representation-formalism))
+                (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
+                
                (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
-               ;; cxns
                
+               ;; cxns
                (new-holistic-cxn-1
                 (or holistic-cxn-1
                     (second (multiple-value-list (eval
@@ -162,7 +169,7 @@ based on existing construction with sufficient overlap."
                                                                 ((?item-based-unit
                                                                   (syn-cat (phrase-type item-based))
                                                                   (subunits (,unit-name-holistic-cxn-2)))
-                                                                 (,unit-name-holistic-cxn-2
+                                                                 (,unit-name-holistic-cxn-2 
                                                                   (syn-cat (lex-class ,lex-class-item-based-cxn))
                                                                   (boundaries
                                                                    (left ,(first rewritten-boundaries))

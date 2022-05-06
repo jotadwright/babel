@@ -2,7 +2,7 @@
 
 (in-package :grammar-learning)
 
-(defun test-substitution-repair-comprehension-amr ()
+(deftest test-substitution-repair-comprehension-amr ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs-amr))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "Hum !"

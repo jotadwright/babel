@@ -4,7 +4,7 @@
   :license ""
   :homepage "https://gitlab.ai.vub.ac.be/ehai/amr"
   :serial t
-  :depends-on (:utils)
+  :depends-on (:utils :fcg)
   :components ((:file "package")
                (:file "amr")
                (:file "equivalent-amr-networks"))

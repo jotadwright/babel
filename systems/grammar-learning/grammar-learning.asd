@@ -43,6 +43,7 @@
                              (:file "test-substitution-repair")
                              (:file "test-addition-repair")
                              (:file "test-deletion-repair")
+                             (:file "test-item-based-to-holistic-repair")
                              (:file "test-holistic-to-item-based-repair")
                              (:file "test-add-categorial-links-repair"))))
                              

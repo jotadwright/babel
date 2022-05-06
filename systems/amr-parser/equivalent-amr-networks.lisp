@@ -71,9 +71,9 @@
                   (progn
                     (pushend (first n1-left) n1-diff)
                     (push (list (rest n1-left) n2-left bindings) queue)))) ;; continue with rest of n1
-              finally return (values (fcg::rename-variables n1-diff (reverse-bindings n1-renamings))
+              finally (return (values (fcg::rename-variables n1-diff (reverse-bindings n1-renamings))
                                      (fcg::rename-variables n2-left (reverse-bindings n2-renamings))
-                                     bindings)))))))
+                                     bindings))))))))
 
 (defun equivalent-predicate-networks (network-1 network-2)
   "If network-1 and network-2 are equal upto variable renamings, the renamings are returned,
