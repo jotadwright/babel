@@ -1,4 +1,3 @@
-
 (ql:quickload :fcg)
 
 (in-package :fcg)
@@ -507,58 +506,6 @@
 (comprehend "der Doktor verkauft den Clown das Buch")
 
 
-(def-fcg-cxn topic-arg0-arg1-arg2-information-structure-cxn
-             (
-              <-
-              (?argument-structure-unit
-               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
-               (HASH meaning ((topicalized ?arg0 +)))  
-                          
-               --
-               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
-                           (meets ?verb-unit ?leftmost-receiver-unit)
-                           (meets ?rightmost-receiver-unit ?leftmost-patient-unit)))
-               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
-              
-              (?verb-unit
-               (syn-cat (lex-class verb)
-                       (type ditransitive))     
-              
-                --
-              (syn-cat (lex-class verb)
-                       (type ditransitive)))
-              
-              (?agent-unit
-               (referent ?arg0)
-               (syn-cat (syn-role subject))
-               (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit))
-                --
-              (syn-cat (syn-role subject))
-              (referent ?arg0)
-              (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit)))
-              
-              (?patient-unit
-               (syn-cat (syn-role direct-object))
-               (boundaries (leftmost-unit ?leftmost-patient-unit)
-                          (rightmost-unit ?rightmost-patient-unit))
-                --
-              
-              (syn-cat (syn-role direct-object))
-              (boundaries (leftmost-unit ?leftmost-patient-unit)
-                          (rightmost-unit ?rightmost-patient-unit)))
-
-              (?receiver-unit
-               (syn-cat (syn-role indirect-object))
-               (boundaries (leftmost-unit ?leftmost-receiver-unit)
-                          (rightmost-unit ?rightmost-receiver-unit))
-                --
-              (syn-cat (syn-role indirect-object))
-              (boundaries (leftmost-unit ?leftmost-receiver-unit)
-                          (rightmost-unit ?rightmost-receiver-unit)))
-              
-              ))
 
 
 ;;;error dative plural
@@ -570,12 +517,12 @@
               (?agent-unit
                (syn-cat (syn-role subject)))
               (?patient-unit
-               (syn-cat (syn-role direct-object))
+               (syn-cat (syn-role indirect-object))
                (error-cat (error incorrect-case-selection-for-this-argument-role)
                           (extra-error-info incorrect-accusative-determiner-for-plural-noun-or-incorrect-dative-case-selection)
                           (reason this-argument-should-be-a-patient-or-object-in-accusative-not-another-receiver-in-dative-plural)))
               (?receiver-unit
-               (syn-cat (syn-role subject))
+               (syn-cat (syn-role indirect-object))
                )
               <-
               (?verb-unit
@@ -750,12 +697,12 @@
               (?agent-unit
                (syn-cat (syn-role subject)))
               (?patient-unit
-               (syn-cat (syn-role direct-object))
+               (syn-cat (syn-role indirect-object))
                (error-cat (error incorrect-case-selection-for-this-argument-role)
                           (extra-error-info incorrect-accusative-determiner-for-plural-noun-or-incorrect-dative-case-selection)
                           (reason this-argument-should-be-a-patient-or-object-in-accusative-not-dative-plural)))
               (?receiver-unit
-               (syn-cat (syn-role subject)
+               (syn-cat (syn-role direct-object)
                         (error-cat (error incorrect-case-selection-for-this-argument-role)
                           (reason this-argument-should-be-a-receiver-in-dative-not-another-patient-or-object-in-accusative))))
               <-
@@ -838,12 +785,14 @@
 
 (comprehend "die Lehrerin schenkt den Direktor den Blumen")
 
-(def-fcg-cxn topic-arg0-arg1-arg2-incorrect-information-structure-cxn
+
+
+(def-fcg-cxn topic-arg0-arg1-arg2-information-structure-cxn
              (
               <-
-              (?incorrect-argument-structure-unit
+              (?argument-structure-unit
                (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
-               ;(HASH meaning ((topicalized ?arg0 +)))  
+               (HASH meaning ((topicalized ?arg0 +)))  
                           
                --
                (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
@@ -881,11 +830,174 @@
                           (rightmost-unit ?rightmost-patient-unit)))
 
               (?receiver-unit
-               (syn-cat (syn-role subject))
+               (syn-cat (syn-role indirect-object))
                (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit))
                 --
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))
+              
+              ))
+
+
+(def-fcg-cxn topic-arg0-arg1-arg2-incorrect-acc-information-structure-cxn
+             (
+              <-
+              (?incorrect-argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-receiver-unit)
+                           (meets ?rightmost-receiver-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
               (syn-cat (syn-role subject))
+              (referent ?arg0)
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))
+                --
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))
+              
+              )
+             :cxn-set malrule)
+
+(def-fcg-cxn topic-arg0-arg1-arg2-incorrect-dat-information-structure-cxn
+             (
+              <-
+              (?incorrect-argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-receiver-unit)
+                           (meets ?rightmost-receiver-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (referent ?arg0)
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role indirect-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object))
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))
+                --
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))
+              
+              )
+             :cxn-set malrule)
+
+
+(def-fcg-cxn topic-arg0-arg1-arg2-incorrect-mix-information-structure-cxn
+             (
+              <-
+              (?incorrect-argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-receiver-unit)
+                           (meets ?rightmost-receiver-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (referent ?arg0)
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role indirect-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))
+                --
+              (syn-cat (syn-role direct-object))
               (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit)))
               
@@ -903,7 +1015,10 @@
 (formulate '((teacher t) (flowers f) (director d) (schenken-01 g) (arg2 g d) (arg1 g f) (arg0 g t) (topicalized t +)))
 
 
+;;;COMPREHENSION
 
+(comprehend "die Lehrerin schenkt dem Direktor die Blumen")
+(comprehend "der Doktor verkauft dem Clown das Buch")
 
 ;;;;;;ERRORS
 
@@ -913,8 +1028,6 @@
 
 (comprehend "die Lehrerin schenkt dem Direktor den Blumen")   ;double dative 
 
-(comprehend "die Lehrerin schenkt den Direktor den Blumen")   ;incorrect determiner
+(comprehend "die Lehrerin schenkt den Direktor den Blumen")   ;mix-incorrect determiner
 
 (comprehend "die Lehrerin schenkt dem Direktor die Blume") 
-
-
