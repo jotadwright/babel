@@ -251,6 +251,22 @@
                --
                (HASH form ((string ?flowers-word  "Blumen"))))))
 
+(def-fcg-cxn Blume-cxn
+             ((?flower-word
+               (referent ?f)                             ;set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -)
+                               (+ - + - -))))
+              (sem-cat (animacy inanimate)))
+              <-
+              (?flower-word
+               (HASH meaning ((flower ?f)))                     
+               --
+               (HASH form ((string ?flower-word  "Blume"))))))
+
 
 (def-fcg-cxn noun-phrase-cxn
              ((?noun-phrase
@@ -599,7 +615,8 @@
                (sem-cat (animacy inanimate))
                (referent ?arg2)
                 --
-              (syn-cat (lex-class noun-phrase))
+              (syn-cat (lex-class noun-phrase)
+                       )
               (sem-cat (animacy inanimate))
               (referent ?arg2))
               
@@ -619,9 +636,9 @@
                         (case ((- - - - -) 
                       (- - - - -)         
                       (- - - - -)         
-                      (+ ?dm ?df ?dn ?dp)
-                      (?rs ?dm ?df ?dn ?dp))))
-              ;(sem-cat (animacy animate))
+                      (+ ?dm - - -)
+                      (?rs ?dm - - -))))
+              (sem-cat (animacy animate))
               (referent ?arg2))
               
               (?double-dative-incorrect-ditransitive-argument-structure-unit
@@ -632,6 +649,96 @@
                --
                ))
              :cxn-set malrule)
+
+(comprehend "die Lehrerin schenkt dem Direktor den Blumen")
+
+(def-fcg-cxn incorrect-patient-number-ditransitive-argument-structure-cxn
+             ((?number-sing-incorrect-ditransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (error-cat (error incorrect-number-selection-for-this-argument-role)
+                          (reason this-argument-should-be-plural-not-singular-as-in-the-input-sentence-refers-to-a-plural-not-singular)))
+              (?receiver-unit
+               (syn-cat (syn-role subject))
+               )
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ - ?af - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?ps - ?af - -)))
+                        )
+               (sem-cat (animacy inanimate))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class noun-phrase)
+                       (case ((- - - - -) 
+                               (+ - ?af - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?ps - ?af - -))))
+              (sem-cat (animacy inanimate))
+              (referent ?arg2))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                
+                        )
+               (referent ?arg2)
+                --
+              (syn-cat 
+                (lex-class noun-phrase)
+                        )
+              ;(sem-cat (animacy animate))
+              (referent ?arg2))
+              
+              (?number-sing-incorrect-ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v missing-because-of-error)
+                              (:arg2 ?v ?arg2)
+                              ))                  
+               --
+               ))
+             :cxn-set malrule)
+
+(comprehend "die Lehrerin schenkt dem Direktor die Blume")
 
 
 ;;; two errors
@@ -684,7 +791,7 @@
               
               (?patient-unit
                (syn-cat 
-                        (lex-class noun-phrase)
+                      (lex-class noun-phrase)
                (case ((- - - - -) 
                       (- - - - -)         
                       (- - - - -)         
@@ -800,10 +907,14 @@
 
 ;;;;;;ERRORS
 
-(comprehend "der Doktor verkauft den Clown das Buch")
+(comprehend "die Blume")
 
-(comprehend "die Lehrerin schenkt dem Direktor den Blumen")
+(comprehend "der Doktor verkauft den Clown das Buch")    ; double accusative 
 
-(comprehend "die Lehrerin schenkt den Direktor den Blumen")
+(comprehend "die Lehrerin schenkt dem Direktor den Blumen")   ;double dative 
+
+(comprehend "die Lehrerin schenkt den Direktor den Blumen")   ;incorrect determiner
+
+(comprehend "die Lehrerin schenkt dem Direktor die Blume") 
 
 
