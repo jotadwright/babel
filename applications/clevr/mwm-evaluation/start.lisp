@@ -12,7 +12,7 @@
 
 (defparameter *config-entries*
   '((:dot-interval . 100)
-    (:nr-of-scenes . 5)
+    (:nr-of-scenes . 1)
     (:nr-of-questions . nil)
     (:data-split . "val")
     (:world-type . :extracted)))
@@ -43,8 +43,8 @@
        (make-mwm-ontology
         (merge-pathnames (make-pathname :directory '(:relative "serie-1"))
                          *extracted-concepts-path*) :extracted)))
-  (test-utterance-in-scene "the other small shiny thing that is the same shape as the tiny yellow shiny object is what color?"
-                                 ontology *clevr-scene-1*))
+  (test-utterance-in-scene "there is a small gray block; are there any spheres to the left of it?"
+                                 ontology *clevr-scene-0*))
 
 
 

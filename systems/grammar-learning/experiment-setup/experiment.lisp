@@ -3,6 +3,7 @@
 ;; + Experiment Configurations +
 ;; -----------------------------
 
+
 ;; Finding the data
 (define-configuration-default-value :meaning-representation :irl)
 
@@ -88,9 +89,12 @@
   (remove-duplicates (read-from-string meaning) :test #'equal))
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :amr)))
-  (amr:penman->predicates (read-from-string meaning)))
+  (let ((*package* (find-package "GL-DATA")))
+    (amr:penman->predicates (read-from-string meaning))))
 
 (defun load-question-data (experiment challenge-file num-epochs &key sort-p shuffle-data-p)
+  (unless (find-package "GL-DATA")
+      (make-package "GL-DATA"))
   (with-open-file (stream challenge-file)
     (let* ((stage-data (loop for line = (read-line stream nil)
                              for data = (when line (cl-json:decode-json-from-string line))

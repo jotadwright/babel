@@ -265,8 +265,6 @@
                                        (query ?target-7 ?source-9 ?attribute-2))))))
     (test-equal 7 (length (constructions cxn-inventory)))))
 
-
-
 ;; (activate-monitor trace-fcg)
 
 (defun run-holistic-to-item-based-tests ()
@@ -278,4 +276,7 @@
   (test-holistic-to-item-based-double-comprehension)
   
   )
+
+
+; (run-holistic-to-item-based-tests)
 

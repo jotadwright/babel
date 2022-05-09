@@ -24,8 +24,8 @@
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-sets) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                        ;; cxn sets
-                       (:parse-order cxn malrule)
-                       (:production-order cxn malrule)
+                       (:parse-order cxn dev-rule malrule)
+                       (:production-order cxn malrule dev-rule)
                        ;; goal tests
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
@@ -40,7 +40,18 @@
       ))
 
 
+(defmethod cip-node-test ((node cip-node) (mode (eql :dev-rule-applied)))
+  (if (equal (attr-val (first (applied-constructions node)) :label) 'dev-rule)
+    (and (push 'deviation-from-input (statuses node))
+         t)
+      t
+      ))
+
+
+
 (pushnew '((malrule-applied) .  "#eb4034;") *status-colors*)
+
+(pushnew '((dev-rule-applied) .  "#4c34eb;") *status-colors*)
 
 ;;;;DETERMINERS
 
@@ -132,7 +143,8 @@
                
                --
                (HASH form ((string ?her-word "ihren")))))
-             :disable-automatic-footprints t)
+             :disable-automatic-footprints t
+             :cxn-set dev-rule)
 
 
 (def-fcg-cxn das-cxn
@@ -277,7 +289,8 @@
                               (polarity ?x neg)))
                --
                (HASH form ((string ?without-word "ohne")))))
-             :disable-automatic-footprints t)
+             :disable-automatic-footprints t
+             :cxn-set malrule)
 
 (def-fcg-cxn gegen-cxn
              ((?against-word
@@ -663,7 +676,8 @@
                (HASH form ((meets ?preposition ?article)
                            (meets ?article ?noun)))
               ))
-              :disable-automatic-footprints t)
+              :disable-automatic-footprints t
+              :cxn-set malrule)
 
 (def-fcg-cxn accompanying-phrase-cxn
              ((?accompanying-phrase
@@ -805,7 +819,8 @@
                (HASH form ((meets ?preposition ?adj)
                            (meets ?adj ?noun)))
               ))
-              :disable-automatic-footprints t)
+              :disable-automatic-footprints t
+              :cxn-set dev-rule)
 
 
 (def-fcg-cxn intransitive-argument-structure-perfect-cxn
@@ -999,7 +1014,9 @@
                               (:arg4 ?v ?arg4)
                               (:incorrect-part ?accompany)))                  
                --
-               )))
+               ))
+             :cxn-set malrule)
+             
 
 
 (def-fcg-cxn incorrect-loc-intransitive-extra-argument-structure-cxn
@@ -1153,6 +1170,88 @@
                )))
 
 
+(def-fcg-cxn dev-intransitive-extra-argument-structure-cxn
+             ((?intransitive-extra-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?extra-info-unit
+               (syn-cat (syn-role extra-information)))
+              (?location-unit
+               (syn-cat (syn-role locative-complement)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect non-perfect))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+              (referent ?arg0))
+
+              (?extra-info-unit
+               (syn-cat (lex-class prep-phrase)
+                   (case ((- - - - -)     
+                               (?acc ?am ?af ?an ?ap)      
+                               (- - - - -)       
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap)))
+                   (type accompanying))
+               (referent ?accompany)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        (case ?case)
+                        (type accompanying))
+              (referent ?accompany))
+         
+              (?location-unit
+               (syn-cat (lex-class prep-phrase)
+                        (type motion-locative-contracted)
+                        (form-type contracted)
+                   (case ((- - - - -) 
+                          (- - - - -)         
+                          (- - - - -)         
+                          (?dat ?dm ?df ?dn ?dp)
+                          (?ls ?dm ?df ?dn ?lp))))
+               (referent ?arg4)
+                --
+              (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -) 
+                              (- - - - -)         
+                              (- - - - -)         
+                              (?dat ?dm ?df ?dn ?dp)
+                              (?ls ?m ?f ?n ?lp))))
+              (referent ?arg4))
+              
+              (?intransitive-extra-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:manner ?v ?accompany)
+                              (:arg1 ?accompany ?arg0)
+                              (:arg4 ?v ?arg4)))                  
+               --
+               ))
+             :cxn-set dev-rule)
+             
+
 
 (def-fcg-cxn topic-arg0-extra-info-arg4-information-structure-cxn
              (
@@ -1222,8 +1321,13 @@
 
 
 (comprehend "zu Laden")
-
+(comprehend "ohne dem Sohn")
+(comprehend "ohne ihren Sohn")
 (comprehend "die Mutter geht ohne den Sohn zu Laden")
+(comprehend "die Mutter geht ohne dem Sohn zum Laden")
+(comprehend "die Mutter geht ohne dem Sohn zu Laden")
+(comprehend "die Mutter geht ohne ihren Sohn zu Laden")
+(comprehend "die Mutter geht ohne ihren Sohn zum Laden")
 
 
 ;der Mann ist gegen den Baum gefahren

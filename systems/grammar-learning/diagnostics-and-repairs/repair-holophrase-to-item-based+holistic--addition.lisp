@@ -80,7 +80,12 @@
                                               overlapping-meaning
                                               cxn-inventory
                                               :cxn-type 'item-based))
-               (unit-name-holistic-cxn leftmost-unit-holistic-cxn)
+               (unit-name-holistic-cxn
+                ;; fix for j-unit bug, the unit name of a unit with an empty comprehension lock needs to be part of the meets constraints
+                (if (member leftmost-unit-holistic-cxn (apply 'concatenate 'list overlapping-form-with-rewritten-boundaries))
+                  leftmost-unit-holistic-cxn
+                  rightmost-unit-holistic-cxn))
+               
                ;; lex-class
                (lex-class-holistic-cxn
                 (if existing-holistic-cxn
@@ -89,14 +94,14 @@
                (lex-class-item-based-cxn (if existing-item-based-cxn
                                           (lex-class-cxn existing-item-based-cxn)
                                           (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t)))
-                
+              
                ;; categorial links
                (categorial-link
                 (cons lex-class-item-based-cxn lex-class-holistic-cxn))
                ;; args: 
                
                (args-holistic-cxn
-                (extract-args-from-meaning-network non-overlapping-meaning meaning-representation-formalism))
+                (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism))
                
                (holistic-cxn
                 (or existing-holistic-cxn
