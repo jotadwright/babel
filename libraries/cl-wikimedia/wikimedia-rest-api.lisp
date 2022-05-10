@@ -25,7 +25,8 @@
           wikimedia-summary-dir wikimedia-summary-displaytitle wikimedia-summary-extract wikimedia-summary-extract-html
           wikimedia-summary-lang wikimedia-summary-namespace wikimedia-summary-pageid wikimedia-summary-revision
           wikimedia-summary-tid wikimedia-summary-timestamp wikimedia-summary-title wikimedia-summary-titles
-          wikimedia-summary-type wikimedia-summary-wikibase-item wikimedia-summary-description))
+          wikimedia-summary-type wikimedia-summary-wikibase-item wikimedia-summary-description
+          wikipedia-image wikimedia-summary-originalimage wikimedia-summary-thumbnail))
 
 ;;=========================================================================
 ;; BASIC FUNCTION FOR ACCESSING API ENDPOINTS
@@ -220,4 +221,22 @@
   (gethash "extract_html" wikimedia-summary))
 ;; (wikimedia-summary-extract-html (wikimedia-summary "Fluid construction grammar"))
 
+(defstruct wikimedia-image height width source)
 
+(defun wikimedia-summary-originalimage (wikimedia-summary) 
+  (assert (hash-table-p wikimedia-summary))
+  (let ((image-spec (gethash "originalimage" wikimedia-summary)))
+    (when image-spec
+      (make-wikimedia-image
+       :height (format nil "~a" (gethash "height" image-spec))
+       :width (format nil "~a" (gethash "width" image-spec))
+       :source (gethash "source" image-spec)))))
+
+(defun wikimedia-summary-thumbnail (wikimedia-summary) 
+  (assert (hash-table-p wikimedia-summary))
+  (let ((image-spec (gethash "thumbnail" wikimedia-summary)))
+    (when image-spec
+      (make-wikimedia-image
+       :height (format nil "~a" (gethash "height" image-spec))
+       :width (format nil "~a" (gethash "width" image-spec))
+       :source (gethash "source" image-spec)))))
