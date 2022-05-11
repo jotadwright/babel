@@ -30,4 +30,4 @@
    (:file "presentation" :depends-on ("static-flash-network"))
    (:file "3d-svg" :depends-on ("presentation"))
    (:file "class-diagram" :depends-on ("3d-svg"))
-   (:file "node-js" :depends-on ("web-interface"))))
+   (:file "vis-js" :depends-on ("web-interface"))))
