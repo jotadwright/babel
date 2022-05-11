@@ -39,6 +39,35 @@
   (define-js-library 'node-js "https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"))
 
 ;;;;; -----------------------------------------------------------------------------------
+;;;;; Making and dynamically controlling a network
+;;;;; -----------------------------------------------------------------------------------
+
+(defun make-vis-network (&key (element-id "visNetwork")
+                              (nodes "{id: 'node1'}")
+                              edges (options ""))
+  "Returns a network, to be added with add-element."
+  `((script :type "text/javascript")
+    ,(format nil
+             "var nodes = new vis.DataSet([~a]);~%
+              ~a~%~%
+              var container = document.getElementById('~a');~%~%
+
+              var data = {
+                    nodes: nodes,
+                    edges: edges
+              };
+
+              var options = { ~%~a
+              };
+             
+             var network = new vis.Network(container, data, options);"
+             (vis-format-many nodes)
+             (if edges (format nil "var edges = new vis.DataSet([~a]);" (vis-format-many edges)) 
+               "")
+             element-id
+             options)))
+
+;;;;; -----------------------------------------------------------------------------------
 ;;;;; For dynamically controlling the network
 ;;;;; -----------------------------------------------------------------------------------
 
@@ -162,39 +191,19 @@
 ;;;;; -----------------------------------------------------------------------------------
 
 ;; Add an initial network:
+
 (add-element `((div :id "demoNetwork")
-               ((script :type "text/javascript")
-                "// create an array with nodes
-                 var nodes = new vis.DataSet([
-                     {id: 'node1', label: 'Node 1'},
-                     {id: 'node2', label: 'Node 2'},
-                     {id: 'node3', label: 'Node 3'},
-                     {id: 'node4', label: 'Node 4'},
-                     {id: 'node5', label: 'Node 5'}
-                 ]);
-
-                // create an array with edges
-                var edges = new vis.DataSet([
-                {from: 'node1', to: 'node3'},
-                {from: 'node1', to: 'node2'},
-                {from: 'node2', to: 'node4'},
-                {from: 'node2', to: 'node5'}
-                ]);
-
-               // create a network
-               var container = document.getElementById('demoNetwork');
-
-               // provide the data in the vis format
-              var data = {
-                     nodes: nodes,
-                     edges: edges
-              };
-              var options = {
-              };
-
-              // initialize your network!
-             var network = new vis.Network(container, data, options);")))
-
+               ,(make-vis-network :element-id "demoNetwork"
+                                  :nodes '("{id: 'node1', label: 'Node 1'}"
+                                           "{id: 'node2', label: 'Node 2'}"
+                                           "{id: 'node3', label: 'Node 3'}"
+                                           "{id: 'node4', label: 'Node 4'}"
+                                           "{id: 'node5', label: 'Node 5'}")
+                                  :edges '("{from: 'node1', to: 'node3'}"
+                                           "{from: 'node1', to: 'node2'}"
+                                           "{from: 'node2', to: 'node4'}"
+                                           "{from: 'node2', to: 'node5'}"))))
+                                           
 ;; Nodes and edges with the general function:
 ;; ------------------------------------------
 ;; With the following function, you can already do all kinds of interface
@@ -210,7 +219,7 @@
 (vis-network-interface "nodes" "add" '("{id: 'node9'}" "{id: 'node10'}"))
 
 ;; The graph is getting cluttered, let us remove some:
-(vis-network-interface "nodes" "remove" "{id: 'node7'}")
+(vis-network-interface "nodes" "remove" "{id: 'node6'}")
 (vis-network-interface "nodes" "remove" "{id: 'node7'}, {id: 'node8'}, {id: 'node9'}")
 
 ;; Let us now connect the remaining new node with an edge:
@@ -225,7 +234,25 @@
 ;; Finally, we destroy our network:
 (vis-destroy-network)
 
-
+;;;;; "Lost in Translation" Partial Character Relationship Chart
+;;;;; -----------------------------------------------------------------------------------
+(let ((murray (list "Bob" "https://fr.web.img2.acsta.net/newsv7/20/12/07/18/08/0772723.png"))
+      (johansson (list "Charlotte" 
+                       "https://focus.telerama.fr/967x550/100/2021/03/29/7b620e16-079e-4f47-a085-e09b0a897ff9.jpg"))
+      (ribisi (list "John" 
+                    "https://i0.wp.com/nobadmovie.com/wp-content/uploads/2021/07/giovanniribisi_lostintranslation_box.png"))
+      (faris (list "Kelly"
+                   "https://m.media-amazon.com/images/M/MV5BZWUzZTM3MzEtMmQwZi00ZWExLThhNzYtMGQwODFlMTk2NzNhXkEyXkFqcGdeQXVyNDA4MDkxNzE@._V1_.jpg")))
+  (add-element 
+   `((div :id "LostInTranslation")
+     ,(make-vis-network :element-id "LostInTranslation"
+                        :nodes (loop for character in (list murray johansson ribisi faris)
+                                     collect (format nil "{id: '~a', label: '~a', shape: 'circularImage', image: '~a'}"
+                                                     (first character) (first character) (second character)))
+                        :edges '("{from: 'Charlotte', to: 'Bob', label: 'friends'}"
+                                 "{from: 'Charlotte', to: 'John', label: 'married'}"
+                                 "{from: 'John', to: 'Kelly', label: 'co-workers'}")))))
+ 
 ;;;;; Predicate Networks
 ;;;;; -----------------------------------------------------------------------------------
 
