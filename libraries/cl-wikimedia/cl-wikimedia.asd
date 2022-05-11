@@ -13,4 +13,5 @@
                :cl-json :yason :cl-ppcre)
   :components ((:file "package")
                (:file "config")
-               (:file "wikimedia-rest-api"))) 
+               (:file "wikimedia-rest-api")
+               (:file "wikimedia-action-api")))
