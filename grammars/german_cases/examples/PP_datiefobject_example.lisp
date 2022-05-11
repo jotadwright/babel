@@ -335,8 +335,11 @@
                                (- - - - -)    ;genitive feminine
                                (+ ?dm ?df - -)
                                (+ ?dm ?df - -))))
+               (error-cat (error incorrect-gender-match)
+                          (reason zum-accepts-only-masc-or-neut-case))
                --
-               (HASH form ((string ?to-word "zum"))))))
+               (HASH form ((string ?to-word "zum")))))
+             :cxn-set malrule)
 
 
 (def-fcg-cxn beim-cxn
@@ -346,7 +349,7 @@
               (?to-word
                (footprints (not article))
                (syn-cat (lex-class preposition)
-                        (type motion-locative)
+                        (type motion-locative-and-temporal)
                         (polarity pos)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
@@ -632,13 +635,15 @@
                         (type accompanying)
                         (form-type extended-accompanying-prep-phrase)
                         (polarity ?polarity))
+               (error-cat (error variation-from-stimulus)
+                          (reason variation-from-received-stimulus-in-task-but-grammatically-correct))
                (subunits (?preposition ?adj ?noun))
                (boundaries (leftmost-unit ?preposition)
                            (rightmost-unit ?noun)))
               (?preposition
                (part-of-prep-phrase +))
               
-              (?article
+              (?adj
               (part-of-prep-phrase +))
 
               (?noun
@@ -689,7 +694,8 @@
                (HASH form ((meets ?preposition ?adj)
                            (meets ?adj ?noun)))
               ))
-              :disable-automatic-footprints t)
+              :disable-automatic-footprints t
+              :cxn-set malrule)
 
 
 (def-fcg-cxn accompanying-phrase-cxn
@@ -792,6 +798,65 @@
                --
                (syn-cat (lex-class preposition)
                         (type ?type)
+                        (polarity ?polarity)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (+ ?dm - - -)
+                               (+ ?dm - - -)))))
+              (?noun
+               (footprints (not determined))
+               (referent ?x)
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (+ ?dm ?df - -)
+                               (+ ?dm ?df - -))))
+               (sem-cat (animacy ?animacy))
+                 
+               --
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              
+              (?incorrect-contracted-prep-phrase
+               --
+               (HASH form ((meets ?contracted-prep ?noun)))
+              ))
+             :disable-automatic-footprints t
+             :cxn-set malrule)
+
+
+(def-fcg-cxn incorrect-bei-contracted-prep-phrase-cxn
+             ((?incorrect-contracted-prep-phrase
+               (referent ?x)
+               (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (+ ?dm - - -)
+                               (+ ?dm - - -)))
+                        (type motion-locative-and-temporal)
+                        (polarity ?polarity)
+                        (form-type contracted))
+               (sem-cat (animacy ?animacy))
+               (error-cat (ERROR incorrect-preposition-choice)
+                        (REASON bei-is-a-locative-and-temporal-preposition-not-a-means-one))
+               (subunits (?contracted-prep ?noun))
+               (boundaries (leftmost-unit ?contracted-prep)
+                           (rightmost-unit ?noun)))
+              (?contracted-prep
+               (part-of-prep-phrase +)
+               (referent ?x))
+              
+              (?noun
+               (footprints (determined)))
+              <-
+              (?contracted-prep
+               --
+               (syn-cat (lex-class preposition)
+                        (type motion-locative-and-temporal)
                         (polarity ?polarity)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
@@ -1141,10 +1206,6 @@
                --
                )))
 
-
-
-;;;need to fix this (mit seinem Fahrrad)
-
 (def-fcg-cxn var-intransitive-extra-arg1-structure-cxn
              ((?var-intransitive-extra-arg1-structure-unit
               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
@@ -1184,20 +1245,15 @@
 
               (?extra-info-unit
                (syn-cat (lex-class prep-phrase)
-                   (case ?case)
-                   (type accompanying)
-                   ;(form-type extended-accompanying-prep-phrase)
-                   ;(polarity +)
-                   )
+                        (form-type extended-accompanying-prep-phrase)
+                   (case ?case))
                (referent ?manner)
                    
                 --
               (syn-cat (lex-class prep-phrase)
-                        (case ((- - - - -) 
-                               (- - - - -)         
-                               (- - - - -)        
-                               (+ - - ?dn -)
-                               (?s - - ?dn -))))
+                       (form-type extended-accompanying-prep-phrase))
+              (error-cat (error ?e)
+                         (reason ?r))
               (referent ?manner))
          
               (?location-unit
@@ -1207,16 +1263,16 @@
                    (case ((- - - - -) 
                           (- - - - -)         
                           (- - - - -)         
-                          (+ ?dm ?df - ?dp)
-                          (?ls ?dm ?df - ?lp))))
+                          (+ - ?df - -)
+                          (?ls - ?df - -))))
                (referent ?arg1)
                 --
               (syn-cat (lex-class prep-phrase)
                         (case ((- - - - -) 
-                              (- - - - -)         
-                              (- - - - -)         
-                              (+ ?dm ?df - ?dp)
-                              (?ls ?dm ?df - ?lp))))
+                          (- - - - -)         
+                          (- - - - -)         
+                          (+ - ?df - -)
+                          (?ls - ?df - -))))
               (referent ?arg1))
               
               (?var-intransitive-extra-arg1-structure-unit
@@ -1226,14 +1282,13 @@
                               (:arg1 ?manner ?arg0)
                               ))                  
                --
-               )))
+               ))
+             :cxn-set malrule)
 
+(comprehend "der Mann fährt mit seinem Fahrrad zur Arbeit")
 
-
-;;;;;;;;;;;NEED TO FIX THIS
-
-(def-fcg-cxn incorrect-intransitive-extra-arg1-structure-cxn
-             ((?incorrect-intransitive-extra-arg1-structure-unit
+(def-fcg-cxn intransitive-incorrect-extra-arg1-structure-cxn
+             ((?intransitive-incorrect-extra-arg1-structure-unit
               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
               (?agent-unit
                (syn-cat (syn-role subject)))
@@ -1271,43 +1326,139 @@
 
               (?extra-info-unit
                (syn-cat (lex-class prep-phrase)
-                   (case ?case)
-                   (type accompanying)
-                   ;(form-type extended-accompanying-prep-phrase)
-                   ;(polarity +)
-                   )
+                        (type motion-locative-and-temporal)
+                   (case ?case))
                (referent ?manner)
                    
                 --
               (syn-cat (lex-class prep-phrase)
-                        (case ((- - - - -) 
-                               (- - - - -)         
-                               (- - - - -)        
-                               (+ - - ?dn -)
-                               (?s - - ?dn -))))
+                       (type motion-locative-and-temporal))
+              (error-cat (error ?e)
+                         (reason ?r))
               (referent ?manner))
          
               (?location-unit
                (syn-cat (lex-class prep-phrase)
                         (type motion-locative-contracted)
                         (form-type contracted)
-                   (case ?case))
+                   (case ((- - - - -) 
+                          (- - - - -)         
+                          (- - - - -)         
+                          (+ - ?df - -)
+                          (?ls - ?df - -))))
                (referent ?arg1)
                 --
               (syn-cat (lex-class prep-phrase)
-                        (case ?case))
-              (error-cat (error ?e)
-                         (reason ?r))
+                        (case ((- - - - -) 
+                          (- - - - -)         
+                          (- - - - -)         
+                          (+ - ?df - -)
+                          (?ls - ?df - -))))
               (referent ?arg1))
               
-              (?incorrect-intransitive-extra-arg1-structure-unit
+              (?intransitive-incorrect-extra-arg1-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:manner ?v ?manner)
                               (:arg1 ?v ?arg1)
                               (:arg1 ?manner ?arg0)
                               ))                  
                --
-               )))
+               ))
+             :cxn-set malrule)
+
+(comprehend "der Mann fährt beim Fahrrad zur Arbeit")
+
+;;;;;;;;;;;NEED TO FIX THIS
+
+(def-fcg-cxn incorrect-intransitive-extra-arg1-structure-cxn
+             ((?intransitive-extra-arg1-structure-incorrect-location-unit
+              (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?extra-info-unit
+               (syn-cat (syn-role extra-information)))
+              (?location-unit
+               (syn-cat (syn-role locative-complement))
+               (error-cat (error ?e)
+                          (reason ?r)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type single-intransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type single-intransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+              (referent ?arg0))
+
+              (?extra-info-unit
+               (syn-cat (lex-class prep-phrase)
+                   (case ((- - - - -) 
+                          (- - - - -)         
+                          (- - - - -)         
+                          (+ ?dm - ?dn ?dp)
+                          (?es ?dm - ?dn ?lp))))
+               (referent ?manner)
+                   
+                --
+              (syn-cat (lex-class prep-phrase)
+                       (case ((- - - - -) 
+                          (- - - - -)         
+                          (- - - - -)         
+                          (+ ?dm - ?dn ?dp)
+                          (?es ?dm - ?dn ?lp))))
+              (referent ?manner))
+         
+              (?location-unit
+               (syn-cat (lex-class prep-phrase)
+                        (type motion-locative-contracted)
+                        (form-type contracted)
+                   (case ((- - - - -) 
+                          (- - - - -)         
+                          (- - - - -)         
+                          (+ - ?df - -)
+                          (?ls - ?df - -))))
+               (error-cat (error ?e)
+                         (reason ?r))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class prep-phrase)
+                       (form-type contracted)
+                        (case ((- - - - -) 
+                          (- - - - -)         
+                          (- - - - -)         
+                          (+ - ?df - -)
+                          (?ls - ?df - -))))
+              (error-cat (error ?e)
+                         (reason ?r))
+              (referent ?arg1))
+              
+              (?intransitive-extra-arg1-structure-incorrect-location-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:manner ?v ?manner)
+                              (:arg1 ?v ?arg1)
+                              (:arg1 ?manner ?arg0)))                  
+               --
+               ))
+             :cxn-set malrule)
 
 (comprehend "der Mann fährt mit dem Fahrrad zum Arbeit")
 
@@ -1377,12 +1528,17 @@
 
 ;;;;ERRORS
 
-(comprehend "das Mädchen kommt aus dem Laden")
-(comprehend "aus den Laden")
-(comprehend "zum Arbeit")
+;(comprehend "das Mädchen kommt aus dem Laden")
+;(comprehend "aus den Laden")
+;(comprehend "das Mädchen kommt aus den Laden")
+
+
+;(comprehend "zum Arbeit")
+;(comprehend "der Mann fährt mit dem Fahrrad zur Arbeit")
 (comprehend "der Mann fährt mit dem Fahrrad zum Arbeit")
-(comprehend "der Mann fährt mit seinem Fahrrad zur Arbeit")
+(comprehend "der Mann fährt mit seinem Fahrrad zur Arbeit")  ;done
 (comprehend "mit seinem Fahrrad")
 (comprehend "beim Fahrrad")
+(comprehend "zum Arbeit")
 
-(comprehend "das Mädchen kommt aus den Laden")
+(comprehend "der Mann fährt beim Fahrrad zur Arbeit")  ;done
