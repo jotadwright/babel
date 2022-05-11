@@ -34,17 +34,17 @@
                      (add-element  `((h3) ,(format nil "SUCCESS")))
                      (add-element  `((h3) ,(format nil "FAILURE"))))))))
     ;; return success of whole dialog and detailed success of questions 
-    (values (loop for a in correct-answers always a) correct-answers)))
+    (values (loop for a in correct-answers always (= a 1)) correct-answers)))
 
 (defun evaluate-dialogs (start-scene end-scene world)
   "evaluate all dialogs from start-scene to end-scene, returns question-level-accuracy"
   
   (ensure-directories-exist
    (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "results"
-                                ,(format nil "~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit)))))
+                                ,(format nil "~a-~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit) (get-configuration world :evaluation-mode)))))
                  (with-open-file (str (make-file-name-with-time 
                                        (babel-pathname
-                                        :directory `("applications" "visual-dialog" "evaluation" "results" ,(format nil "~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit)))
+                                        :directory `("applications" "visual-dialog" "evaluation" "results" ,(format nil "~a-~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit) (get-configuration world :evaluation-mode)))
                                         :name (format nil "evaluation-~a-~a-~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit) start-scene end-scene)
                                         :type "txt"))
                       
@@ -82,79 +82,3 @@
           question-level-accuracy))))
 
 
-
-(defun calculate-accuracy-from-dir (dir)
-  (let* ((files (directory dir))
-         (results
-          (loop for file in files
-                for file-content = (open file)
-                append (result-file->result-list file-content))))
-    (average results)))
-
-(defun result-file->result-list (stream &key number-of-lines)
-  "collect all the lines that are results"
-    (loop for line = (read-line stream nil nil)
-          while line
-          when (and (not (string= (first-word line) "evaluation"))
-                    (not (string= (first-word line) "dialog-level-accuracy"))
-                    (not (string= (first-word line) "question-level-accuracy")))
-            append (read-from-string (last-elt (split-string line ":")))))
-
-(defun collect-failed-dialogs (dir)
-   (let* ((files (directory dir))
-          (failed-dialogs
-           (loop for file in files
-                 for file-content = (open file)
-                 for question-result = (last-elt (split-string (last-elt (stream->list file-content)) " "))
-                 when (not (equal question-result "1.0"))
-                   collect file
-                 do (close file-content))))
-     failed-dialogs))
-
-(defun check-failed-dialogs (failed-dialogs multiple-middles-file)
-  (with-open-file (str multiple-middles-file)
-    (let ((middles-list (read-from-string (read-line  str))))
-      (loop for dialog in failed-dialogs
-            do (with-open-file (dialog-file dialog)
-                 (let ((lines (stream->list dialog-file)))
-                   (loop for line in lines
-                           when (and (not (string= (first-word line) "dialog-level-accuracy"))
-                                     (not (string= (first-word line) "question-level-accuracy")))
-                           do (let* ((split-line (split-string line ":"))
-                                     (scene (parse-integer (first (split-string (first split-line) ","))))
-                                     (results (read-from-string (last-elt split-line))))
-                                (if (and (not (equal (average results) 1.0))
-                                         (not (find scene middles-list)))
-                                  (format t "~a~%" line))))))))))
-
-                
-
-(defun collect-problematic-middle-scenes ()
-  (let* ((ontology (build-ontology))
-         (world (make-instance 'world :configuration '((:dataset . :clevr)
-                                                       (:datasplit . :train)
-                                                       (:mode . :symbolic))))
-         (multiple-middles
-          (loop with i = 0
-                for scene in (scenes world)
-                  
-                for s = (get-scene-by-index world i)
-                for context = (make-context world)
-                for number-of-middles = (length (middle (scene-configuration (object-set (first (set-items context))))))
-                if (< number-of-middles 2)
-                  do (progn (print i)
-                       (incf i))
-                else
-                  collect i
-                  and do (progn (print i)
-                           (incf i))))
-         (outfile (babel-pathname :directory '("applications" "visual-dialog" "evaluation")
-                               :name "scenes-with-multiple-middles"
-                               :type "lisp")))
-    (with-open-file (str outfile
-                         :direction :output
-                         :if-exists :supersede
-                         :if-does-not-exist :create)
-      (format str "~a" multiple-middles) (force-output str))
-    multiple-middles))
-                 
