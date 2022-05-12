@@ -122,7 +122,8 @@
                 (when (not silent)
                   (add-conversation-memory memory))
                 (id target-value))
-              nil)))))
+              (if (eq (get-configuration (get-data ontology 'world) :evaluation-mode) :guess)
+                (guess-answer irl-program (get-configuration (get-data ontology 'world) :dataset))))))))
 
 
 

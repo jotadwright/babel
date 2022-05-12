@@ -65,5 +65,6 @@
                 :serial t
                 :components ((:file "experiments")
                              (:file "evaluation")
+                             (:file "evaluation-utils")
                              ))
                (:file "html")))
