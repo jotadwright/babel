@@ -493,9 +493,7 @@
               (referent ?arg2)
               (syn-cat (syn-role indirect-object))
               (boundaries (leftmost-unit ?leftmost-receiver-unit)
-                          (rightmost-unit ?rightmost-receiver-unit)))
-              
-              ))
+                          (rightmost-unit ?rightmost-receiver-unit)))))
 
 (def-fcg-cxn incorrect-ditransitive-argument-structure-cxn
              ((?incorrect-ditransitive-argument-structure-unit
@@ -514,7 +512,8 @@
                (referent ?v)
                 --
               (syn-cat (lex-class verb)
-                       (type ditransitive))     
+                       (type ditransitive)
+                       (aspect non-perfect))     
               (referent ?v))
               
               (?agent-unit
@@ -550,10 +549,10 @@
                 --
               (syn-cat (lex-class noun-phrase)
                         (case ((- - - - -) 
-                               (+ ?am ?af ?an ?ap)         
+                               (+ - - ?an -)         
                                (- - - - -)         
                                (- - - - -)
-                               (?ps ?am ?af ?an ?ap))))
+                               (?ps - - ?an -))))
               (sem-cat (animacy inanimate))
               (referent ?arg1))
               
@@ -571,11 +570,11 @@
                 --
               (syn-cat (lex-class noun-phrase)
                        (case ((- - - - -) 
-                               (+ ?am ?af ?an ?ap)         
+                               (+ ?am - - -)         
                                (- - - - -)         
                                (- - - - -)
-                               (?ps ?am ?af ?an ?ap)))
-               )
+                               (?ps ?am - - -)))
+                       (sem-cat (animacy animate)))
               (referent ?arg2))
               
               (?incorrect-ditransitive-argument-structure-unit
@@ -640,7 +639,7 @@
                           (rightmost-unit ?rightmost-receiver-unit)))
               
               )
-             :cxn-set malrule)
+             :cxn-set malrule) 
 
 
 (comprehend "dem Clown verkauft den Doktor das Buch")
