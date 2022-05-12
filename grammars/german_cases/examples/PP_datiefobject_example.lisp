@@ -1567,6 +1567,63 @@
               )
              :cxn-set malrule)
 
+
+
+(def-fcg-cxn topic-arg0-arg1-extra-inf-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-location-unit)
+                           (meets ?rightmost-location-unit ?leftmost-extra-info-unit)))
+               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type single-intransitive))
+                --
+              (syn-cat (lex-class verb)
+                       (type single-intransitive)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (referent ?arg0)
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?extra-info-unit
+               (syn-cat (syn-role extra-information)
+                        (lex-class prep-phrase))
+               (boundaries (leftmost-unit ?leftmost-extra-info-unit)
+                          (rightmost-unit ?rightmost-extra-info-unit))
+                --
+              (syn-cat (syn-role extra-information)
+                       (lex-class prep-phrase))
+              (boundaries (leftmost-unit ?leftmost-extra-info-unit)
+                          (rightmost-unit ?rightmost-extra-info-unit)))
+              
+              (?location-unit
+               (syn-cat (syn-role locative-complement)
+                        (lex-class prep-phrase))
+               (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit))
+                --
+              (syn-cat (syn-role locative-complement)
+                       (lex-class prep-phrase))
+              (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit)))
+              )
+             :cxn-set malrule)
+
 ;das Mädchen kommt aus dem Laden
 ;(formulate '((GIRL g) (STORE s) (KOMMEN-01 k) (ARG3 k s) (ARG0 k g) (TOPICALIZED g +)))
 
@@ -1583,10 +1640,12 @@
 
 ;(comprehend "zum Arbeit")
 ;(comprehend "der Mann fährt mit dem Fahrrad zur Arbeit")
-(comprehend "der Mann fährt mit dem Fahrrad zum Arbeit")
+(comprehend "der Mann fährt mit dem Fahrrad zum Arbeit") ;done
 (comprehend "der Mann fährt mit seinem Fahrrad zur Arbeit")  ;done
 (comprehend "mit seinem Fahrrad")
 (comprehend "beim Fahrrad")
 (comprehend "zum Arbeit")
 
 (comprehend "der Mann fährt beim Fahrrad zur Arbeit")  ;done
+(comprehend "der Mann fährt zur Arbeit beim Fahrrad")
+

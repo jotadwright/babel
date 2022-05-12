@@ -26,7 +26,11 @@
           wikimedia-summary-lang wikimedia-summary-namespace wikimedia-summary-pageid wikimedia-summary-revision
           wikimedia-summary-tid wikimedia-summary-timestamp wikimedia-summary-title wikimedia-summary-titles
           wikimedia-summary-type wikimedia-summary-wikibase-item wikimedia-summary-description
-          wikipedia-image wikimedia-summary-originalimage wikimedia-summary-thumbnail))
+          wikipedia-image wikimedia-summary-originalimage wikimedia-summary-thumbnail
+          ;; For getting the page in html format: (string)
+          wikimedia-page-html
+          ;; For getting a list of related pages (wikimedia-summaries):
+          wikimedia-related-pages))
 
 ;;=========================================================================
 ;; BASIC FUNCTION FOR ACCESSING API ENDPOINTS
@@ -39,17 +43,16 @@
                            (language "en")
                            (user-agent *user-agent*)
                            (method :get)
-                           (lisp-format :alist) ;; Turn to hashtable for faster performance
-                           (content-type "application/json"))
+                           (lisp-format :alist)) ;; Turn to hashtable for faster performance
+  "General function to interact with Wikimedia-rest-api for requesting JSON objects."
   (let* ((uri (format nil "https://~a.wikipedia.org/api/rest_v1/~a" language api-endpoint))
          (response-stream (drakma:http-request uri
                                                :user-agent user-agent
                                                :method method
-                                               :content-type content-type
+                                               :content-type "application/json"
                                                :want-stream t)))
     (setf (flexi-streams:flexi-stream-external-format response-stream) :utf-8)
     (yason:parse response-stream :object-as lisp-format)))
-
 ;; Examples:
 ;; (wikimedia-rest-api "page/") ;; A list of page-related API endpoints
 ;; (wikimedia-rest-api "page/title/Fluid_construction_grammar") ;; Get revision metadata for a title
@@ -240,3 +243,32 @@
        :height (format nil "~a" (gethash "height" image-spec))
        :width (format nil "~a" (gethash "width" image-spec))
        :source (gethash "source" image-spec)))))
+
+;;=========================================================================
+;; GETTING HTML OF A PAGE
+;;=========================================================================
+
+(defun wikimedia-page-html (title
+                            &key (language "en"))
+  (let ((uri (format nil "https://~a.wikipedia.org/api/rest_v1/page/html/~a" language (normalize-title title))))
+    (drakma:http-request uri)))
+;; (wikimedia-page-html "Luc Steels")
+
+;;=========================================================================
+;; GETTING RELATED PAGES
+;;=========================================================================
+
+(defun wikimedia-related-pages (title 
+                                &key (language "en")
+                                (lisp-format :hash-table))
+  "Returns a list of summaries as hash-tables, plists or as alists."
+  (let ((result (wikimedia-rest-api (format nil "page/related/~a" (normalize-title title))
+                                    :language language
+                                    :lisp-format lisp-format)))
+    (case lisp-format
+      (:hash-table (gethash "pages" result))
+      (:alist (rest (assoc "pages"  result :test #'string=)))
+      (:plist result)
+      (t
+       (error (format nil "The lisp-format ~a is not supported by wikimedia-related-pages" lisp-format))))))  
+;; (wikimedia-related-pages "Luc Steels" :lisp-format :alist)
