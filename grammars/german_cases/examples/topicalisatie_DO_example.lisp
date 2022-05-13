@@ -495,11 +495,14 @@
               (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit)))))
 
+
 (def-fcg-cxn incorrect-ditransitive-argument-structure-cxn
-             ((?incorrect-ditransitive-argument-structure-unit
+             ((?ditransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
               (?agent-unit
-               (syn-cat (syn-role subject)))
+               (syn-cat (syn-role subject))
+               (error-cat (error incorrect-case-choice)
+                         (reason the-agent-should-be-in-nominative-another-accusative-already-exists-in-the-sentence-for-the-patient)))
               (?patient-unit
                (syn-cat (syn-role direct-object)))
               (?receiver-unit
@@ -512,28 +515,27 @@
                (referent ?v)
                 --
               (syn-cat (lex-class verb)
-                       (type ditransitive)
-                       (aspect non-perfect))     
+                       (type ditransitive))     
               (referent ?v))
               
               (?agent-unit
                (syn-cat 
                 (lex-class noun-phrase)
-                        (case ((+ ?nm ?nf ?nn ?np) 
-                               (- - - - -)         
+                        (case ((- - - - -) 
+                               (+ ?am - - -)         
                                (- - - - -)        
                                (- - - - -)
-                               (?as ?nm ?nf ?nn ?np))))
+                               (?as ?am - - -))))
                (sem-cat (animacy animate))
                (referent ?arg0)
                 --
               (syn-cat (lex-class noun-phrase)
-                        (case ((+ ?nm ?nf ?nn ?np) 
-                               (- - - - -)         
+                        (case ((- - - - -) 
+                               (+ ?am - - -)         
                                (- - - - -)        
                                (- - - - -)
-                               (?as ?nm ?nf ?nn ?np))))
-                        (sem-cat (animacy animate))   
+                               (?as ?am - - -))))
+                        (sem-cat (animacy animate))
               (referent ?arg0))
               
               (?patient-unit
@@ -541,18 +543,20 @@
                         (lex-class noun-phrase)
                         (case ((- - - - -) 
                                (+ - - ?an -)         
-                               (- - - - -)         
+                               (- - - - -)        
                                (- - - - -)
-                               (?ps - - ?an -))))
+                               (?ps - - ?an -)))
+                        )
                (sem-cat (animacy inanimate))
                (referent ?arg1)
                 --
               (syn-cat (lex-class noun-phrase)
-                        (case ((- - - - -) 
+                       (case ((- - - - -) 
                                (+ - - ?an -)         
-                               (- - - - -)         
+                               (- - - - -)        
                                (- - - - -)
-                               (?ps - - ?an -))))
+                               (?ps - - ?an -)))
+                        )
               (sem-cat (animacy inanimate))
               (referent ?arg1))
               
@@ -560,31 +564,31 @@
                (syn-cat 
                 (lex-class noun-phrase)
                 (case ((- - - - -) 
-                               (+ ?am - - -)         
-                               (- - - - -)         
-                               (- - - - -)
-                               (?rs ?am - - -)))
-                
-                )
+                      (- - - - -)         
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?rs ?dm ?df ?dn ?dp))))
                (referent ?arg2)
                 --
               (syn-cat (lex-class noun-phrase)
-                       (case ((- - - - -) 
-                               (+ ?am - - -)         
-                               (- - - - -)         
-                               (- - - - -)
-                               (?ps ?am - - -)))
-                       (sem-cat (animacy animate)))
+               (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?rs ?dm ?df ?dn ?dp))))
               (referent ?arg2))
               
-              (?incorrect-ditransitive-argument-structure-unit
-               (HASH meaning ((:arg0 ?v ?arg0)
+              (?ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v missing-because-of-incorrect-case-choice)
                               (:arg1 ?v ?arg1)
+                              (:arg1-error ?v ?arg0)
                               (:arg2 ?v ?arg2)))                  
                --
                ))
              :cxn-set malrule)
 
+
+(comprehend "dem Clown verkauft den Doktor das Buch")
 
 
 (def-fcg-cxn arg0-arg1-topic-arg2-information-structure-cxn
