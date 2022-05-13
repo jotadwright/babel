@@ -5,8 +5,9 @@
   (if (equal (get-configuration world :mode) :hybrid)
     (progn
       
-      (clear-scenes (get-configuration world :server-address) (get-configuration world :cookie-jar))
-      (clear-attentions (get-configuration world :server-address) (get-configuration world :cookie-jar))))
+    ;  (clear-scenes (get-configuration world :server-address) (get-configuration world :cookie-jar))
+    ;  (clear-attentions (get-configuration world :server-address) (get-configuration world :cookie-jar))
+      ))
   ;(notify dialog-started scene-index dialog-index)
   (let* ((scene-pathname (get-scene-pathname-by-index scene-index world))
          (dataset (get-configuration world :dataset))

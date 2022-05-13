@@ -38,12 +38,13 @@
                                                      :object-set (copy-object (object-set last-set)))))
       ;else filter objects on attribute-category and return new world model with filtered-objects
       (let ((filtered-objects
-             (loop for object in (objects (object-set last-set))
-                   for attr-cat = (intern (string-replace (type-of attribute-category) "-category" "") "KEYWORD")
-                   if (and (listp (attributes object))
-                           (equal (id attribute-category)
-                                  (cdr (assoc attr-cat (attributes object)))))
-                   collect object)))
+             (if (object-set last-set)
+               (loop for object in (objects (object-set last-set))
+                     for attr-cat = (intern (string-replace (type-of attribute-category) "-category" "") "KEYWORD")
+                     if (and (listp (attributes object))
+                             (equal (id attribute-category)
+                                    (cdr (assoc attr-cat (attributes object)))))
+                       collect object))))
       (when filtered-objects
         (make-instance 'world-model
                        :set-items (list (make-instance 'turn
