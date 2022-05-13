@@ -4,6 +4,7 @@
 
 (activate-monitor trace-fcg)
 
+(configure-grammar *fcg-constructions*)
 
 (def-fcg-constructions german-case-grammar
   :feature-types ((args sequence)
@@ -12,6 +13,21 @@
                   (subunits set)
                   (footprints set)
                   (case sequence))
+   :visualization-configurations ((:with-search-debug-data . t)
+                                 (:remove-empty-units . nil)
+                                 (:show-constructional-dependencies . t)
+                                 (:labeled-paths . nil)
+                                 (:colored-paths . nil)
+                                 (:hierarchy-features subunits)
+                                 (:selected-hierarchy . subunits)
+                                 (:hide-features footprints sem-cat form boundaries)  ;;choose elements to hide
+                                 (:select-subfeatures . nil)
+                                 (:latex-visualization . t)
+                                 (:add-form-and-meaning-to-car . t)
+                                 (:show-upper-menu . nil)
+                                 (:subfeatures . nil)
+                                 (:expand-nodes-in-search-tree . t)
+                                 (:coupled-mode . nil))
   :fcg-configurations ((:max-nr-of-nodes . 40000)
           
                        (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)
@@ -19,23 +35,23 @@
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
                        (:cxn-supplier-mode . :cxn-sets) ;; returns all cxns at once
-                       (:node-tests :malrule-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
+                       (:node-tests :mal-cxn-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-sets) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                        ;; cxn sets
-                       (:parse-order cxn  malrule)
-                       (:production-order cxn malrule)
+                       (:parse-order cxn  mal-cxn)
+                       (:production-order cxn mal-cxn)
                        ;; goal tests
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
 
 
-(defmethod cip-node-test ((node cip-node) (mode (eql :malrule-applied)))
-  (if (equal (attr-val (first (applied-constructions node)) :label) 'malrule)
-    (and (push 'malrule-applied (statuses node))
+(defmethod cip-node-test ((node cip-node) (mode (eql :mal-cxn-applied)))
+  (if (equal (attr-val (first (applied-constructions node)) :label) 'mal-cxn)
+    (and (push 'mal-cxn-applied (statuses node))
          t)
       t
       ))
@@ -497,7 +513,7 @@
 
 
 (def-fcg-cxn incorrect-ditransitive-argument-structure-cxn
-             ((?ditransitive-argument-structure-unit
+             ((?incorrect-ditransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
               (?agent-unit
                (syn-cat (syn-role subject))
@@ -578,14 +594,14 @@
                       (?rs ?dm ?df ?dn ?dp))))
               (referent ?arg2))
               
-              (?ditransitive-argument-structure-unit
+              (?incorrect-ditransitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v missing-because-of-incorrect-case-choice)
                               (:arg1 ?v ?arg1)
                               (:arg1-error ?v ?arg0)
                               (:arg2 ?v ?arg2)))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 (comprehend "dem Clown verkauft den Doktor das Buch")
@@ -643,7 +659,7 @@
                           (rightmost-unit ?rightmost-receiver-unit)))
               
               )
-             :cxn-set malrule) 
+             :cxn-set mal-cxn) 
 
 
 (comprehend "dem Clown verkauft den Doktor das Buch")

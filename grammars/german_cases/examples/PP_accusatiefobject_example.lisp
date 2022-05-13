@@ -1500,6 +1500,67 @@
               ))
 
 
+(def-fcg-cxn topic-err-arg0-extra-info-arg4-information-structure-cxn
+             (
+              <-
+              (?err-argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-extra-info-unit)
+                           (meets ?rightmost-extra-info-unit ?leftmost-location-unit)))
+               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive))
+                --
+              (syn-cat (lex-class verb)
+                       (type intransitive)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (referent ?arg0)
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?extra-info-unit
+               (syn-cat (syn-role extra-information)
+                        (lex-class prep-phrase))
+               (boundaries (leftmost-unit ?leftmost-extra-info-unit)
+                          (rightmost-unit ?rightmost-extra-info-unit))
+                --
+              (syn-cat (syn-role extra-information)
+                       (lex-class prep-phrase))
+              (boundaries (leftmost-unit ?leftmost-extra-info-unit)
+                          (rightmost-unit ?rightmost-extra-info-unit)))
+              
+              (?location-unit
+               (syn-cat (syn-role locative-complement)
+                        (lex-class prep-phrase))
+               (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit))
+                --
+              (syn-cat (syn-role locative-complement)
+                       (lex-class prep-phrase))
+              (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit)))
+              )
+             :cxn-set malrule)
+
+
+
+
+(comprehend "die Mutter geht ohne den Sohn zum Laden")
+
+
 ;;;;additional errors
 
 
