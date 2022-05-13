@@ -28,6 +28,7 @@
              ((or (eql (category-value category) 'thing)
                   (eql (category-value category) 'number))
               (bind (target-set 1.0 (copy-object source-set))))
+             ((not (eql (id category) 'none)))
              (t 
               (multiple-value-bind (bind-scores bind-values)
                   (evaluate-neural-primitive
