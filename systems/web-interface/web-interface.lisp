@@ -394,7 +394,6 @@ hr { border:0px;color:#777;background-color:#777;height:1px;width:100%;}
   (clear-page)
   (render-xml nil))
 
-
 ;; #########################################################
 ;; creating static web demos
 ;; ---------------------------------------------------------
@@ -402,7 +401,6 @@ hr { border:0px;color:#777;background-color:#777;height:1px;width:100%;}
 (defvar *static-html-output-dir* nil)
 
 (defvar *static-js-definitions* (make-hash-table))
-
 
 ;; static js code
 (defun define-static-js (id js)
@@ -426,7 +424,6 @@ hr { border:0px;color:#777;background-color:#777;height:1px;width:100%;}
   (loop for url being the hash-values of *static-js-libraries*
         collect 
         `((script :type "text/javascript" :src ,url))))
-
 
 (defparameter *AsyncXMLHttpRequest.js*
   (babel-pathname :directory '("systems" "web-interface")
