@@ -66,12 +66,52 @@
   "Replace spaces with underscores."
   (cl-ppcre:regex-replace-all " " title "_"))
 
+(defun summary-found-p (summary lisp-format)
+  "Checks whether a summary was found."
+  (not (string= "Not found."
+                (case lisp-format
+                  (:hash-table (gethash "title" summary))
+                  (:alist (rest (assoc "title" summary :test #'string=)))
+                  (:plist (second (member "title" summary :test #'string=)))
+                  (t
+                   "")))))
+
+(defun print-summary-not-found (title)
+  (print (format nil "No summary found for ~a" title))
+  nil)
+
+(defun obtain-summary-through-search (title &key (lisp-format :hash-table)
+                                            (language "en")
+                                            called-by-self)
+  (let* ((requested-data (gethash "query"
+                                  (wikipedia-search title :srlimit "1" :srnamespace "0" :lisp-format :hash-table)))
+         (search-results (gethash "search" requested-data)))
+    (if search-results
+      (wikimedia-summary (gethash "title" (first search-results))
+                         :language language :lisp-format lisp-format
+                         :called-by-search t)
+      (let* ((search-info (gethash "searchinfo" requested-data))
+             (suggestion (if search-info (gethash "suggestion" search-info))))
+        (cond ((or called-by-self (null suggestion))
+               (print (format nil "Tried suggestion ~a, no summary found." title)) nil)
+              (suggestion
+               (obtain-summary-through-search suggestion :lisp-format lisp-format
+                                              :language language :called-by-self t))
+              (t
+               (print-summary-not-found title)))))))
+
 ;; TODO: Handle error codes
-(defun wikimedia-summary (title &key (language "en") (lisp-format :hash-table))
+(defun wikimedia-summary (title &key (language "en") (lisp-format :hash-table)
+                                (called-by-search nil))
   "The summary of a given page. Usage of hash-table is advised."
-  (wikimedia-rest-api (format nil "page/summary/~a" (normalize-title title))
-                      :lisp-format lisp-format
-                      :language language))
+  (let ((summary (wikimedia-rest-api (format nil "page/summary/~a" (normalize-title title))
+                                      :lisp-format lisp-format
+                                      :language language)))
+    (cond ((summary-found-p summary lisp-format) summary)
+          (called-by-search (print-summary-not-found title))
+          (t
+           (obtain-summary-through-search title :lisp-format lisp-format :language language
+                                          :called-by-self called-by-search)))))
 ;; (wikimedia-summary "Fluid construction grammar")
 ;; (wikimedia-summary "Fluid construction grammar" :lisp-format :alist) ;; Not recommended
 
