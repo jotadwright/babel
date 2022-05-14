@@ -4,6 +4,8 @@
 
 (activate-monitor trace-fcg)
 
+(configure-grammar *fcg-constructions*)
+
 (def-fcg-constructions german-case-grammar
   :feature-types ((args sequence)
                   (form set-of-predicates)
@@ -12,29 +14,29 @@
                   (footprints set)
                   (case sequence))
   :fcg-configurations ((:max-nr-of-nodes . 40000)
-          
+                       (:hide-features footprints sem-cat form boundaries)
                        (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)
                        ;; to activate heuristic search
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
                        (:cxn-supplier-mode . :cxn-sets) ;; returns all cxns at once
-                       (:node-tests :malrule-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
+                       (:node-tests :mal-cxn-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-sets) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                        ;; cxn sets
-                       (:parse-order cxn dev-rule malrule)
-                       (:production-order cxn malrule dev-rule)
+                       (:parse-order cxn  mal-cxn)
+                       (:production-order cxn mal-cxn )
                        ;; goal tests
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
 
 
-(defmethod cip-node-test ((node cip-node) (mode (eql :malrule-applied)))
-  (if (equal (attr-val (first (applied-constructions node)) :label) 'malrule)
-    (and (push 'malrule-applied (statuses node))
+(defmethod cip-node-test ((node cip-node) (mode (eql :mal-cxn-applied)))
+  (if (equal (attr-val (first (applied-constructions node)) :label) 'mal-cxn)
+    (and (push 'mal-cxn-applied (statuses node))
          t)
       t
       ))
@@ -500,7 +502,7 @@
                               ))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
              
 
 (comprehend "der Doktor verkauft den Clown das Buch")
@@ -595,7 +597,7 @@
                               ))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (comprehend "die Lehrerin schenkt dem Direktor den Blumen")
 
@@ -683,7 +685,7 @@
                               ))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (comprehend "die Lehrerin schenkt dem Direktor die Blume")
 
@@ -781,7 +783,7 @@
                               ))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (comprehend "die Lehrerin schenkt den Direktor den Blumen")
 
@@ -893,7 +895,7 @@
                           (rightmost-unit ?rightmost-receiver-unit)))
               
               )
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (def-fcg-cxn topic-arg0-arg1-arg2-incorrect-dat-information-structure-cxn
              (
@@ -947,7 +949,7 @@
                           (rightmost-unit ?rightmost-receiver-unit)))
               
               )
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 (def-fcg-cxn topic-arg0-arg1-arg2-incorrect-mix-information-structure-cxn
@@ -1002,7 +1004,7 @@
                           (rightmost-unit ?rightmost-receiver-unit)))
               
               )
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 
