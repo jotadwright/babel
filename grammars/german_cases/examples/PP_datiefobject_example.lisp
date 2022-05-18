@@ -23,23 +23,23 @@
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
                        (:cxn-supplier-mode . :cxn-sets) ;; returns all cxns at once
-                       (:node-tests :malrule-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
+                       (:node-tests :mal-cxn-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-sets) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                        ;; cxn sets
-                       (:parse-order cxn  malrule)
-                       (:production-order cxn malrule)
+                       (:parse-order cxn  mal-cxn)
+                       (:production-order cxn mal-cxn)
                        ;; goal tests
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
 
 
-(defmethod cip-node-test ((node cip-node) (mode (eql :malrule-applied)))
-  (if (equal (attr-val (first (applied-constructions node)) :label) 'malrule)
-    (and (push 'malrule-applied (statuses node))
+(defmethod cip-node-test ((node cip-node) (mode (eql :mal-cxn-applied)))
+  (if (equal (attr-val (first (applied-constructions node)) :label) 'mal-cxn)
+    (and (push 'mal-cxn-applied (statuses node))
          t)
       t
       ))
@@ -278,7 +278,7 @@
                --
                (HASH form ((string ?from-word "aus")))))
              :disable-automatic-footprints t
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 (def-fcg-cxn mit-cxn
@@ -339,7 +339,7 @@
                           (reason zum-accepts-only-masc-or-neut-case))
                --
                (HASH form ((string ?to-word "zum")))))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 (def-fcg-cxn beim-cxn
@@ -577,7 +577,7 @@
                            (meets ?article ?noun)))
               ))
               :disable-automatic-footprints t
-              :cxn-set malrule)
+              :cxn-set mal-cxn)
               
 
 (def-fcg-cxn contracted-prep-phrase-cxn
@@ -695,7 +695,7 @@
                            (meets ?adj ?noun)))
               ))
               :disable-automatic-footprints t
-              :cxn-set malrule)
+              :cxn-set mal-cxn)
 
 
 (def-fcg-cxn accompanying-phrase-cxn
@@ -825,7 +825,7 @@
                (HASH form ((meets ?contracted-prep ?noun)))
               ))
              :disable-automatic-footprints t
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 (def-fcg-cxn incorrect-bei-contracted-prep-phrase-cxn
@@ -884,7 +884,7 @@
                (HASH form ((meets ?contracted-prep ?noun)))
               ))
              :disable-automatic-footprints t
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 (def-fcg-cxn intransitive-origin-argument-structure-cxn
@@ -1074,7 +1074,7 @@
                               (:arg3 ?v ?arg3)))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (def-fcg-cxn topic-arg0-incorrect-arg3-information-structure-cxn
              (
@@ -1123,7 +1123,7 @@
               (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit)))
               )
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (comprehend "das Mädchen kommt aus den Laden")
 
@@ -1283,7 +1283,7 @@
                               ))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (comprehend "der Mann fährt mit seinem Fahrrad zur Arbeit")
 
@@ -1364,7 +1364,7 @@
                               ))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (comprehend "der Mann fährt beim Fahrrad zur Arbeit")
 
@@ -1451,7 +1451,7 @@
                               (:arg1 ?manner ?arg0)))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (comprehend "der Mann fährt mit dem Fahrrad zum Arbeit")
 
@@ -1565,7 +1565,7 @@
               (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit)))
               )
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 
@@ -1622,7 +1622,7 @@
               (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit)))
               )
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 ;das Mädchen kommt aus dem Laden
 ;(formulate '((GIRL g) (STORE s) (KOMMEN-01 k) (ARG3 k s) (ARG0 k g) (TOPICALIZED g +)))
