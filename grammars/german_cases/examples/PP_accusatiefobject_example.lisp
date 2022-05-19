@@ -18,23 +18,23 @@
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
                        (:cxn-supplier-mode . :cxn-sets) ;; returns all cxns at once
-                       (:node-tests :malrule-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
+                       (:node-tests :mal-cxn-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-sets) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                        ;; cxn sets
-                       (:parse-order cxn dev-rule malrule)
-                       (:production-order cxn malrule dev-rule)
+                       (:parse-order cxn dev-rule mal-cxn)
+                       (:production-order cxn mal-cxn dev-rule)
                        ;; goal tests
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
 
 
-(defmethod cip-node-test ((node cip-node) (mode (eql :malrule-applied)))
-  (if (equal (attr-val (first (applied-constructions node)) :label) 'malrule)
-    (and (push 'malrule-applied (statuses node))
+(defmethod cip-node-test ((node cip-node) (mode (eql :mal-cxn-applied)))
+  (if (equal (attr-val (first (applied-constructions node)) :label) 'mal-cxn)
+    (and (push 'mal-cxn-applied (statuses node))
          t)
       t
       ))
@@ -49,9 +49,7 @@
 
 
 
-(pushnew '((malrule-applied) .  "#eb4034;") *status-colors*)
-
-(pushnew '((dev-rule-applied) .  "#4c34eb;") *status-colors*)
+(pushnew '((mal-cxn-applied) .  "#eb4034;") *status-colors*)
 
 ;;;;DETERMINERS
 
@@ -290,7 +288,7 @@
                --
                (HASH form ((string ?without-word "ohne")))))
              :disable-automatic-footprints t
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (def-fcg-cxn gegen-cxn
              ((?against-word
@@ -328,7 +326,7 @@
                --
                (HASH form ((string ?against-word "gegen")))))
              :disable-automatic-footprints t
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
              
 
 
@@ -607,7 +605,7 @@
                (HASH form ((meets ?contracted-prep ?noun)))
               ))
              :disable-automatic-footprints t
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 
@@ -728,7 +726,7 @@
                            (meets ?article ?noun)))
               ))
               :disable-automatic-footprints t
-              :cxn-set malrule)
+              :cxn-set mal-cxn)
 
 (def-fcg-cxn accompanying-phrase-cxn
              ((?accompanying-phrase
@@ -947,7 +945,7 @@
                            (meets ?article ?noun)))
               ))
               :disable-automatic-footprints t
-              :cxn-set malrule)
+              :cxn-set mal-cxn)
 
 (def-fcg-cxn intransitive-argument-structure-perfect-cxn
              ((?intransitive-argument-structure-unit
@@ -1073,7 +1071,7 @@
                               (:arg1 ?v ?arg1)))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 (def-fcg-cxn topic-arg0-arg1-perfect-information-structure-cxn
@@ -1207,7 +1205,7 @@
                               (:incorrect-part ?accompany)))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
              
 
 
@@ -1279,7 +1277,7 @@
                               (:incorrect-part ?arg4)))                  
                --
                ))
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 (def-fcg-cxn intransitive-extra-argument-structure-cxn
              ((?intransitive-extra-argument-structure-unit
@@ -1553,7 +1551,7 @@
               (boundaries (leftmost-unit ?leftmost-location-unit)
                           (rightmost-unit ?rightmost-location-unit)))
               )
-             :cxn-set malrule)
+             :cxn-set mal-cxn)
 
 
 
