@@ -51,8 +51,6 @@
 
 (pushnew '((mal-cxn-applied) .  "#eb4034;") *status-colors*)
 
-(pushnew '((dev-rule-applied) .  "#4c34eb;") *status-colors*)
-
 ;;;;DETERMINERS
 
 

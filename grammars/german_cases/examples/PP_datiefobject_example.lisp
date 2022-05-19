@@ -44,6 +44,8 @@
       t
       ))
 
+(pushnew '((mal-cxn-applied) .  "#eb4034;") *status-colors*)
+
 ;;;;DETERMINERS
 
 
