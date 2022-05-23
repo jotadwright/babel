@@ -261,6 +261,25 @@
              :disable-automatic-footprints t)
 
 
+(def-fcg-cxn auf-cxn
+             ((?on-word
+               (footprints (preposition)))
+              <-
+              (?on-word
+               (footprints (not preposition))
+               (syn-cat (lex-class preposition)
+                        (polarity pos)
+                        (type on-motion-locative)
+                        (case ((- - - - -)      
+                               (?acc ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p))))
+               --
+               (HASH form ((string ?on-word "auf")))))
+             :disable-automatic-footprints t)
+
+
 (def-fcg-cxn aus-acc-cxn
              ((?from-word
                (footprints (preposition)))
@@ -503,8 +522,6 @@
               :disable-automatic-footprints t)
 
 
-
-
 (def-fcg-cxn incorrect-acc-prepositional-phrase-cxn
              ((?incorrect-prep-phrase
                (referent ?x)
@@ -514,7 +531,7 @@
                                (- - - - -)      
                                (- - - - -)
                                (?s ?am ?af ?an ?ap)))
-                        (type ?type)
+                        (type from-motion-locative)
                         (form-type extended-prep-phrase)
                         (polarity ?polarity))
                (error-cat (ERROR incorrect-case-selection-for-this-preposition)
@@ -540,7 +557,7 @@
                
                --
                (syn-cat (lex-class preposition)
-                        (type ?type)
+                        (type from-motion-locative)
                         (polarity ?polarity)
                         (case ((- - - - -)      
                                (+ ?am ?af ?an ?ap)        
@@ -580,7 +597,85 @@
               ))
               :disable-automatic-footprints t
               :cxn-set mal-cxn)
+
+
+(def-fcg-cxn auf-prepositional-phrase-cxn
+             ((?auf-prepositional-phrase
+               (referent ?x)
+               (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -)      
+                               (+ ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?s ?am ?af ?an ?ap)))
+                        (type on-motion-locative)
+                        (form-type extended-prep-phrase)
+                        (polarity ?polarity))
+               (error-cat (ERROR incorrect-preposition-choice)
+                        (REASON auf-is-a-locative-or-directional-prep-not-origin))
+               (sem-cat (animacy ?animacy))
+               (subunits (?preposition ?article ?noun))
+               (boundaries (leftmost-unit ?preposition)
+                           (rightmost-unit ?noun)))
+              (?preposition
+               (part-of-prep-phrase +))
               
+              (?article
+               (referent ?x)
+               ;(part-of-noun-phrase +))
+               )
+
+              (?noun
+               (footprints (determined))
+               )
+              <-
+
+              (?preposition
+               
+               --
+               (syn-cat (lex-class preposition)
+                        (type on-motion-locative)
+                        (polarity ?polarity)
+                        (case ((- - - - -)      
+                               (+ ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?s ?am ?af ?an ?ap)))))
+              (?article
+               --
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)      
+                               (+ ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?s ?am ?af ?an ?ap)))))
+              (?noun
+               
+               (referent ?x)
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)      
+                               (+ ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?s ?am ?af ?an ?ap))))
+               --
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)      
+                               (+ ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?s ?am ?af ?an ?ap)))))
+              (?auf-prepositional-phrase
+               --
+               (HASH form ((meets ?preposition ?article)
+                           (meets ?article ?noun)))
+              ))
+              :disable-automatic-footprints t
+              :cxn-set mal-cxn)
+
+(comprehend "auf den Laden")
 
 (def-fcg-cxn contracted-prep-phrase-cxn
              ((?contracted-prep-phrase
@@ -1077,6 +1172,81 @@
                --
                ))
              :cxn-set mal-cxn)
+
+
+(def-fcg-cxn incorrect-auf-intransitive-origin-argument-structure-cxn
+             ((?incorrect-intransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?location-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?location-unit
+               (syn-cat (syn-role locative-complement)))
+              
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type intransitive-origin))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type intransitive-origin))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?ags ?nm ?nf ?nn ?np))))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?ags ?nm ?nf ?nn ?np))))
+              (referent ?arg0))
+              
+         
+              (?location-unit
+               (syn-cat (lex-class prep-phrase)
+                   (case ((- - - - -) 
+                      (+ ?am ?af ?an ?ap)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (?ls ?am ?af ?an ?ap)
+                      ))
+                   (type on-motion-locative)
+                   (form-type extended-prep-phrase)
+                   (polarity ?polarity))
+               (referent ?arg3)
+                --
+              (syn-cat (lex-class prep-phrase)
+                       (type on-motion-locative)
+                       (polarity ?polarity)
+                       (form-type extended-prep-phrase)
+                     (case ((- - - - -) 
+                      (+ ?am ?af ?an ?ap)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (?ls ?am ?af ?an ?ap)
+                      )))
+              (error-cat (error ?e)
+                        (reason ?r))
+              (referent ?arg3))
+              
+              (?incorrect-intransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg3 ?v ?arg3)))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(comprehend "auf den Laden")
 
 (def-fcg-cxn topic-arg0-incorrect-arg3-information-structure-cxn
              (
@@ -1628,7 +1798,6 @@
 
 ;das Mädchen kommt aus dem Laden
 ;(formulate '((GIRL g) (STORE s) (KOMMEN-01 k) (ARG3 k s) (ARG0 k g) (TOPICALIZED g +)))
-
 ;der Mann fährt mit dem Fahrrad zur Arbeit
 ;(formulate '((bike b) (work w) (man m) (fahren-01 f) (arg0 f m) (arg1 f w) (topicalized m +) (manner f a) (accompany-01 a) (arg0 a b) (arg1 a m) (polarity a pos)))
 
@@ -1638,6 +1807,9 @@
 ;(comprehend "das Mädchen kommt aus dem Laden")
 ;(comprehend "aus den Laden")
 ;(comprehend "das Mädchen kommt aus den Laden")
+(comprehend "das Mädchen kommt auf den Laden")
+
+
 
 
 ;(comprehend "zum Arbeit")
@@ -1650,4 +1822,5 @@
 
 (comprehend "der Mann fährt beim Fahrrad zur Arbeit")  ;done
 (comprehend "der Mann fährt zur Arbeit beim Fahrrad")
+
 
