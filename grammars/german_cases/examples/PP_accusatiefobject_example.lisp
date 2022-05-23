@@ -1760,8 +1760,6 @@
              :cxn-set mal-cxn)
 
 
-
-
 (comprehend "die Mutter geht ohne den Sohn zum Laden")
 
 

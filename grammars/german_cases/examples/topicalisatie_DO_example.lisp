@@ -407,6 +407,93 @@
                --
                )))
 
+(def-fcg-cxn ditransitive-incorrect-double-dative-argument-structure-cxn
+             ((?ditransitive-incorrect-double-dative-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (?dm ?dm - - -)
+                               (?agm ?m - - -))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (?dm ?dm - - -)
+                               (?agm ?m - - -))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+               (sem-cat (animacy inanimate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+              (sem-cat (animacy inanimate))
+              (referent ?arg1))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?rs ?dm ?df ?dn ?dp))))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class noun-phrase)
+               (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?rs ?dm ?df ?dn ?dp))))
+              (referent ?arg2))
+              
+              (?ditransitive-incorrect-double-dative-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg2 ?v ?arg2)))                  
+               --
+               ))
+             :cxn-set mal-rule)
+
+(comprehend "dem Clown verkauft dem Doktor das Buch")
 
 (def-fcg-cxn topic-arg0-arg1-arg2-information-structure-cxn
              (
