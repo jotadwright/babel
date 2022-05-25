@@ -972,17 +972,17 @@
                (syn-cat 
                 (lex-class noun-phrase)
                 (case ((- - - - -) 
-                      (+ + - - -)         
                       (- - - - -)         
-                      (- - - - -)
+                      (- - - - -)         
+                      (?dat ?dm - - -)
                       (+ + - - -))))
                (referent ?arg2)
                 --
               (syn-cat (lex-class noun-phrase)
                (case ((- - - - -) 
-                      (+ + - - -)         
                       (- - - - -)         
-                      (- - - - -)
+                      (- - - - -)         
+                      (?dat ?dm - - -)
                       (+ + - - -))))
               (referent ?arg2))
               
@@ -995,7 +995,7 @@
                ))
              :cxn-set mal-cxn)
 
-(comprehend "den Direktor schenkt die Lehrerin Blumen")
+(comprehend "dem Direktor schenkt die Lehrerin Blumen")
 
 (def-fcg-cxn arg0-arg1-topic-arg2-information-structure-cxn
              (
