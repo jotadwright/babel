@@ -1796,6 +1796,11 @@
               )
              :cxn-set mal-cxn)
 
+
+
+
+;;;;FORMULATION
+
 ;das Mädchen kommt aus dem Laden
 ;(formulate '((GIRL g) (STORE s) (KOMMEN-01 k) (ARG3 k s) (ARG0 k g) (TOPICALIZED g +)))
 ;der Mann fährt mit dem Fahrrad zur Arbeit
@@ -1806,21 +1811,20 @@
 
 ;(comprehend "das Mädchen kommt aus dem Laden")
 ;(comprehend "aus den Laden")
-;(comprehend "das Mädchen kommt aus den Laden")
-(comprehend "das Mädchen kommt auf den Laden")
-
-
-
-
-;(comprehend "zum Arbeit")
-;(comprehend "der Mann fährt mit dem Fahrrad zur Arbeit")
-(comprehend "der Mann fährt mit dem Fahrrad zum Arbeit") ;done
-(comprehend "der Mann fährt mit seinem Fahrrad zur Arbeit")  ;done
 (comprehend "mit seinem Fahrrad")
 (comprehend "beim Fahrrad")
 (comprehend "zum Arbeit")
-
-(comprehend "der Mann fährt beim Fahrrad zur Arbeit")  ;done
+(comprehend "das Mädchen kommt aus den Laden")
+(comprehend "das Mädchen kommt auf den Laden")
+(comprehend "der Mann fährt mit dem Fahrrad zum Arbeit") 
+(comprehend "der Mann fährt mit seinem Fahrrad zur Arbeit")  
+(comprehend "der Mann fährt beim Fahrrad zur Arbeit")  
 (comprehend "der Mann fährt zur Arbeit beim Fahrrad")
+
+
+
+
+
+
 
 

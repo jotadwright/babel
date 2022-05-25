@@ -1773,6 +1773,7 @@
 ;
 ;
 
+;;;;ERRORS
 
 (comprehend "der Mann ist gegen den Wurm gefahren")
 
@@ -1788,6 +1789,8 @@
 (comprehend "die Mutter geht ohne ihren Sohn zu Laden")
 (comprehend "die Mutter geht ohne ihren Sohn zum Laden")
 
+
+;;;FORMULATION
 
 ;der Mann ist gegen den Baum gefahren
 ;(formulate '((tree b) (man m) (drove-01 ig) (arg1 ig b) (arg0 ig m) (topicalized m +)))

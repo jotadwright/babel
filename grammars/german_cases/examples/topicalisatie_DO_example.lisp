@@ -287,12 +287,15 @@
                --
                (footprints (not determined))
                (syn-cat (lex-class noun)
-                        (case ?case)))
+                        (case ?case))
+               (sem-cat (animacy ?animacy)))
               (?noun-phrase
                --
                (HASH form ((meets ?article ?noun)))
               ))
              :disable-automatic-footprints t)
+
+(comprehend "dem Direktor")
 
 (def-fcg-cxn verkauft-cxn
              ((?sell-word
@@ -696,6 +699,192 @@
 (comprehend "dem Clown verkauft den Doktor das Buch")
 
 
+(def-fcg-cxn incorrect-receiver-in-ditransitive-argument-structure-cxn
+             ((?incorrect-receiver-in-ditransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (error-cat (error incorrect-case-choice)
+                         (reason the-receiver-should-be-in-dative-another-accusative-already-exists-in-the-sentence-for-the-patient)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ - + - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ - + - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -))))
+                        (sem-cat (animacy animate))
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ - - - +)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (- - - - +)))
+                        )
+               (sem-cat (animacy inanimate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                       (case ((- - - - -) 
+                               (+ - - - +)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (- - - - +)))
+                        )
+              (sem-cat (animacy inanimate))
+              (referent ?arg1))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                (case ((- - - - -) 
+                      (+ + - - -)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (+ + - - -))))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class noun-phrase)
+               (case ((- - - - -) 
+                      (+ + - - -)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (+ + - - -))))
+              (referent ?arg2))
+              
+              (?incorrect-receiver-in-ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg1-error ?v ?arg2)
+                              (:arg2 ?v missing-because-of-incorrect-case-choice)))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(comprehend "den Direktor schenkt die Lehrerin die Blumen")
+
+(def-fcg-cxn undetermined-patient-in-ditransitive-argument-structure-cxn
+             ((?undetermined-patient-in-ditransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (error-cat (error undetermined-noun)
+                         (reason variation-from-received-stimulus-no-determiner-in-patient)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ - + - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ - + - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -))))
+                        (sem-cat (animacy animate))
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun)
+                        (case ((- - - - -) 
+                               (+ - - - +)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (- - - - +)))
+                        )
+               (sem-cat (animacy inanimate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun)
+                       (case ((- - - - -) 
+                               (+ - - - +)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (- - - - +)))
+                        )
+              (sem-cat (animacy inanimate))
+              (referent ?arg1))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                (case ((- - - - -) 
+                      (+ + - - -)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (+ + - - -))))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class noun-phrase)
+               (case ((- - - - -) 
+                      (+ + - - -)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (+ + - - -))))
+              (referent ?arg2))
+              
+              (?undetermined-patient-in-ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg2 ?v ?arg2)
+                              ))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(comprehend "den Direktor schenkt die Lehrerin Blumen")
+
 (def-fcg-cxn arg0-arg1-topic-arg2-information-structure-cxn
              (
               <-
@@ -761,3 +950,14 @@
 
 ;;;dem Direktor schenkt die Lehrerin die Blumen
 ;(formulate '((teacher t) (flowers f) (director d) (schenken-01 g) (arg2 g d) (arg1 g f) (arg0 g t) (topicalized d +)))
+
+
+
+
+;;;;ERRORS
+
+(comprehend "dem Clown verkauft den Doktor das Buch")  ;DOUBLE ACC NO SUBJ
+(comprehend "dem Clown verkauft dem Doktor das Buch")  ;DOUBLE DATIVE
+(comprehend "den Direktor schenkt die Lehrerin die Blumen")
+
+
