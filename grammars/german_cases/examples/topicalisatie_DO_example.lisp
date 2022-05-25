@@ -255,6 +255,22 @@
                --
                (HASH form ((string ?flowers-word  "Blumen"))))))
 
+(def-fcg-cxn Blume-cxn
+             ((?flower-word
+               (referent ?fl)                             ;set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -)
+                               (+ - + - -))))
+              (sem-cat (animacy inanimate)))
+              <-
+              (?flower-word
+               (HASH meaning ((flower ?fl)))                     
+               --
+               (HASH form ((string ?flower-word  "Blume"))))))
+
 
 (def-fcg-cxn noun-phrase-cxn
              ((?noun-phrase
@@ -792,6 +808,102 @@
 
 (comprehend "den Direktor schenkt die Lehrerin die Blumen")
 
+
+(def-fcg-cxn incorrect-receiver-and-patient-in-ditransitive-argument-structure-cxn
+             ((?incorrect-receiver-and-patient-in-ditransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (error-cat (error incorrect-case-choice)
+                         (reason the-receiver-should-be-in-dative-another-accusative-already-exists-in-the-sentence-for-the-patient)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (error-cat (error incorrect-number-choice)
+                         (reason the-patient-should-be-plural-according-to-stimulus)))
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ - + - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ - + - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -))))
+                        (sem-cat (animacy animate))
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ - + - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -)))
+                        )
+               (sem-cat (animacy inanimate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                       (case ((- - - - -) 
+                               (+ - + - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -)))
+                        )
+              (sem-cat (animacy inanimate))
+              (referent ?arg1))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                (case ((- - - - -) 
+                      (+ + - - -)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (+ + - - -))))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class noun-phrase)
+               (case ((- - - - -) 
+                      (+ + - - -)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (+ + - - -))))
+              (referent ?arg2))
+              
+              (?incorrect-receiver-and-patient-in-ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg1-error ?v ?arg2)
+                              (:arg2 ?v missing-because-of-incorrect-case-choice)))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(comprehend "den Direktor schenkt die Lehrerin die Blume")
+
 (def-fcg-cxn undetermined-patient-in-ditransitive-argument-structure-cxn
              ((?undetermined-patient-in-ditransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
@@ -959,5 +1071,7 @@
 (comprehend "dem Clown verkauft den Doktor das Buch")  ;DOUBLE ACC NO SUBJ
 (comprehend "dem Clown verkauft dem Doktor das Buch")  ;DOUBLE DATIVE
 (comprehend "den Direktor schenkt die Lehrerin die Blumen")
+(comprehend "den Direktor schenkt die Lehrerin die Blume")
+(comprehend "dem Direktor schenkt die Lehrerin Blumen")
 
 
