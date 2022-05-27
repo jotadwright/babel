@@ -1,6 +1,6 @@
 (in-package :grammar-learning)
 
-(defun test-item-based-to-holistic-multiple-item-based-cxns-comprehension ()
+(deftest test-item-based-to-holistic-multiple-item-based-cxns-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The gray object is what material?"
@@ -60,7 +60,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind size-category ?size-2 small)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 8 (length (constructions cxn-inventory)))))
+    (test-equal 9 (length (constructions cxn-inventory)))))
 
 (deftest test-item-based-to-holistic-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -123,7 +123,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind material-category ?size-2 metal)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 8 (length (constructions cxn-inventory)))))
+    (test-equal 9 (length (constructions cxn-inventory)))))
 
 (deftest test-item-based-to-holistic-double-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -188,7 +188,7 @@
                                        (bind size-category ?material-9 metal)
                                        (bind material-category ?size-2 large)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 8 (length (constructions cxn-inventory)))))
+    (test-equal 9 (length (constructions cxn-inventory)))))
 
 
 (deftest test-item-based-to-holistic-repair-comprehension-leading-quote-amr ()

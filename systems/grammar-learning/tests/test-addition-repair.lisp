@@ -56,7 +56,8 @@
                                              (bind attribute-category ?attribute-2 shape)
                                              (filter ?target-33323 ?target-2 ?color-2)
                                              (bind size-category ?size-4 large)
-                                             (query ?target-4 ?target-object-1 ?attribute-2))))))))
+                                             (query ?target-4 ?target-object-1 ?attribute-2))))))
+    (add-element (make-html cxn-inventory))))
 
 
 

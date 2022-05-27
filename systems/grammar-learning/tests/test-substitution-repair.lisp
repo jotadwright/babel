@@ -1,5 +1,3 @@
-
-
 (in-package :grammar-learning)
 
 (deftest test-substitution-repair-comprehension-amr ()
@@ -44,7 +42,7 @@
                                              :gold-standard-meaning '((say-01 ?s) (i ?i) (:arg0 ?s ?i))))))))
 
 
-(defun test-substitution-repair-comprehension ()
+(deftest test-substitution-repair-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The large gray object is what shape?"
