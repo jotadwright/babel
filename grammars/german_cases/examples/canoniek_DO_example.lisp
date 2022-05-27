@@ -496,9 +496,9 @@
               (?double-accusative-incorrect-ditransitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg1 ?v ?arg1)
-                              (:arg1 ?v ?arg1e)
-                              ;(:arg1-error ?v ?arg1e)
-                              (:arg2 ?v missing-because-of-error)
+                              ;(:arg1 ?v ?arg1e)
+                              (:arg1-error ?v ?arg1e)
+                              (:arg2 ?v missing-for-error-should-be ?arg1e)
                               ))                  
                --
                ))
@@ -1028,7 +1028,7 @@
 
 (comprehend "der Doktor verkauft den Clown das Buch")    ; double accusative 
 
-(comprehend "die Lehrerin schenkt dem Direktor den Blumen")   ;double dative 
+(comprehend "die Lehrerin schenkt dem Direktor den Blumen")   ;dative 
 
 (comprehend "die Lehrerin schenkt den Direktor den Blumen")   ;mix-incorrect determiner
 
