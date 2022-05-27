@@ -33,7 +33,7 @@
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
-(define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
+(define-configuration-default-value :learner-cxn-supplier :hashed-and-scored-routine-cxn-set-only)
 (define-configuration-default-value :category-linking-mode :neighbours)
 (define-configuration-default-value :learning-strategy :optimal-form-coverage) ;or: by-score
 
