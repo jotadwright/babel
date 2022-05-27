@@ -25,7 +25,12 @@
           wikimedia-summary-dir wikimedia-summary-displaytitle wikimedia-summary-extract wikimedia-summary-extract-html
           wikimedia-summary-lang wikimedia-summary-namespace wikimedia-summary-pageid wikimedia-summary-revision
           wikimedia-summary-tid wikimedia-summary-timestamp wikimedia-summary-title wikimedia-summary-titles
-          wikimedia-summary-type wikimedia-summary-wikibase-item wikimedia-summary-description))
+          wikimedia-summary-type wikimedia-summary-wikibase-item wikimedia-summary-description
+          wikipedia-image wikimedia-summary-originalimage wikimedia-summary-thumbnail
+          ;; For getting the page in html format: (string)
+          wikimedia-page-html
+          ;; For getting a list of related pages (wikimedia-summaries):
+          wikimedia-related-pages))
 
 ;;=========================================================================
 ;; BASIC FUNCTION FOR ACCESSING API ENDPOINTS
@@ -38,17 +43,16 @@
                            (language "en")
                            (user-agent *user-agent*)
                            (method :get)
-                           (lisp-format :alist) ;; Turn to hashtable for faster performance
-                           (content-type "application/json"))
+                           (lisp-format :alist)) ;; Turn to hashtable for faster performance
+  "General function to interact with Wikimedia-rest-api for requesting JSON objects."
   (let* ((uri (format nil "https://~a.wikipedia.org/api/rest_v1/~a" language api-endpoint))
          (response-stream (drakma:http-request uri
                                                :user-agent user-agent
                                                :method method
-                                               :content-type content-type
+                                               :content-type "application/json"
                                                :want-stream t)))
     (setf (flexi-streams:flexi-stream-external-format response-stream) :utf-8)
     (yason:parse response-stream :object-as lisp-format)))
-
 ;; Examples:
 ;; (wikimedia-rest-api "page/") ;; A list of page-related API endpoints
 ;; (wikimedia-rest-api "page/title/Fluid_construction_grammar") ;; Get revision metadata for a title
@@ -62,12 +66,52 @@
   "Replace spaces with underscores."
   (cl-ppcre:regex-replace-all " " title "_"))
 
+(defun summary-found-p (summary lisp-format)
+  "Checks whether a summary was found."
+  (not (string= "Not found."
+                (case lisp-format
+                  (:hash-table (gethash "title" summary))
+                  (:alist (rest (assoc "title" summary :test #'string=)))
+                  (:plist (second (member "title" summary :test #'string=)))
+                  (t
+                   "")))))
+
+(defun print-summary-not-found (title)
+  (print (format nil "No summary found for ~a" title))
+  nil)
+
+(defun obtain-summary-through-search (title &key (lisp-format :hash-table)
+                                            (language "en")
+                                            called-by-self)
+  (let* ((requested-data (gethash "query"
+                                  (wikipedia-search title :srlimit "1" :srnamespace "0" :lisp-format :hash-table)))
+         (search-results (gethash "search" requested-data)))
+    (if search-results
+      (wikimedia-summary (gethash "title" (first search-results))
+                         :language language :lisp-format lisp-format
+                         :called-by-search t)
+      (let* ((search-info (gethash "searchinfo" requested-data))
+             (suggestion (if search-info (gethash "suggestion" search-info))))
+        (cond ((or called-by-self (null suggestion))
+               (print (format nil "Tried suggestion ~a, no summary found." title)) nil)
+              (suggestion
+               (obtain-summary-through-search suggestion :lisp-format lisp-format
+                                              :language language :called-by-self t))
+              (t
+               (print-summary-not-found title)))))))
+
 ;; TODO: Handle error codes
-(defun wikimedia-summary (title &key (language "en") (lisp-format :hash-table))
+(defun wikimedia-summary (title &key (language "en") (lisp-format :hash-table)
+                                (called-by-search nil))
   "The summary of a given page. Usage of hash-table is advised."
-  (wikimedia-rest-api (format nil "page/summary/~a" (normalize-title title))
-                      :lisp-format lisp-format
-                      :language language))
+  (let ((summary (wikimedia-rest-api (format nil "page/summary/~a" (normalize-title title))
+                                      :lisp-format lisp-format
+                                      :language language)))
+    (cond ((summary-found-p summary lisp-format) summary)
+          (called-by-search (print-summary-not-found title))
+          (t
+           (obtain-summary-through-search title :lisp-format lisp-format :language language
+                                          :called-by-self called-by-search)))))
 ;; (wikimedia-summary "Fluid construction grammar")
 ;; (wikimedia-summary "Fluid construction grammar" :lisp-format :alist) ;; Not recommended
 
@@ -220,4 +264,51 @@
   (gethash "extract_html" wikimedia-summary))
 ;; (wikimedia-summary-extract-html (wikimedia-summary "Fluid construction grammar"))
 
+(defstruct wikimedia-image height width source)
 
+(defun wikimedia-summary-originalimage (wikimedia-summary) 
+  (assert (hash-table-p wikimedia-summary))
+  (let ((image-spec (gethash "originalimage" wikimedia-summary)))
+    (when image-spec
+      (make-wikimedia-image
+       :height (format nil "~a" (gethash "height" image-spec))
+       :width (format nil "~a" (gethash "width" image-spec))
+       :source (gethash "source" image-spec)))))
+
+(defun wikimedia-summary-thumbnail (wikimedia-summary) 
+  (assert (hash-table-p wikimedia-summary))
+  (let ((image-spec (gethash "thumbnail" wikimedia-summary)))
+    (when image-spec
+      (make-wikimedia-image
+       :height (format nil "~a" (gethash "height" image-spec))
+       :width (format nil "~a" (gethash "width" image-spec))
+       :source (gethash "source" image-spec)))))
+
+;;=========================================================================
+;; GETTING HTML OF A PAGE
+;;=========================================================================
+
+(defun wikimedia-page-html (title
+                            &key (language "en"))
+  (let ((uri (format nil "https://~a.wikipedia.org/api/rest_v1/page/html/~a" language (normalize-title title))))
+    (drakma:http-request uri)))
+;; (wikimedia-page-html "Luc Steels")
+
+;;=========================================================================
+;; GETTING RELATED PAGES
+;;=========================================================================
+
+(defun wikimedia-related-pages (title 
+                                &key (language "en")
+                                (lisp-format :hash-table))
+  "Returns a list of summaries as hash-tables, plists or as alists."
+  (let ((result (wikimedia-rest-api (format nil "page/related/~a" (normalize-title title))
+                                    :language language
+                                    :lisp-format lisp-format)))
+    (case lisp-format
+      (:hash-table (gethash "pages" result))
+      (:alist (rest (assoc "pages"  result :test #'string=)))
+      (:plist result)
+      (t
+       (error (format nil "The lisp-format ~a is not supported by wikimedia-related-pages" lisp-format))))))  
+;; (wikimedia-related-pages "Luc Steels" :lisp-format :alist)

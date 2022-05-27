@@ -210,11 +210,11 @@ list."
 ;; draw-predicate-network
 ;; ----------------------------------------------------------------------------
 
-(defun draw-predicate-network (predicate-network &key path (open nil) (format "png") draw-arrows)
+(defun draw-predicate-network (predicate-network &key path (open nil) (format "png") draw-arrows (only-variables t))
   "Uses s-dot to draw a predicate network (i.e., an irl-program).
    Returns the pathname of the generated graphic. When :open t,
    then it tries to open the predicate-network."
-  (s-dot->image (predicate-network->s-dot predicate-network :draw-arrows draw-arrows)
+  (s-dot->image (predicate-network->s-dot predicate-network :draw-arrows draw-arrows :only-variables only-variables)
                 :path path :open open :format format))
 
 ;; ############################################################################

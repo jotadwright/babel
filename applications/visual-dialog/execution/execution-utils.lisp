@@ -8,7 +8,7 @@
     (set-data agent-ontology 'world world)
     (set-data agent-ontology 'silent silent)
     (set-data agent-ontology 'server-address (get-configuration world :server-address))
-    (set-data agent-ontology 'cookie-jar (get-configuration world :cookie-jar))
+    (set-data agent-ontology 'cookie-jar (get-configuration world :cookie-jar)) ;; default configuration is make-instance so that each time we initialize, a new session is started
   agent-ontology))
 
 (defun get-scene-pathname-by-index (index world)

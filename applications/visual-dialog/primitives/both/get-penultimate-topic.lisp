@@ -12,9 +12,10 @@
       (the-biggest #'timestamp (set-items source-set))
      (let* ((last-topic (find-penultimate-topic source-set))
             (last-topic-object-set
-             (loop for obj in (objects (object-set last-set))
-                   when (member (id obj) last-topic)
-                   collect obj)))
+             (if (object-set last-set)
+               (loop for obj in (objects (object-set last-set))
+                     when (member (id obj) last-topic)
+                       collect obj))))
        (bind (target-set 1.0
                          (make-instance 'world-model
                                         :set-items (list (make-instance 'turn
@@ -28,7 +29,7 @@
       (last-set last-timestamp)
       (the-biggest #'timestamp (set-items source-set))
     (let* ((penultimate-set (find (- last-timestamp 1) (set-items source-set) :key #'timestamp))
-          (last-topic (topic-list penultimate-set)))
+           (last-topic (if penultimate-set (topic-list penultimate-set))))
       (if last-topic
         last-topic
         (find-last-topic (rest (set-items source-set)))))))
