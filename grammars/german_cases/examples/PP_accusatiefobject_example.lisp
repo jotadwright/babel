@@ -171,7 +171,7 @@
                                (?am ?am - - -)      
                                (- - - - -)       
                                (?dn - - ?dn -)
-                               (+ ?m - - -))))
+                               (+ ?m ?n - -))))
                (error-cat (error incorrect-case-selection)
                           (reason wurm-is-a-neutral-noun-not-masculine)
                           (extra-info in-this-case-wurm-does-not-match-the-intended-stimulus-meaning))
@@ -180,7 +180,9 @@
               (?worm-word                            
                (HASH meaning ((worm ?w)))                    
                --
-               (HASH form ((string ?worm-word  "Wurm"))))))
+               (HASH form ((string ?worm-word  "Wurm")))))
+             :cxn-set mal-cxn)
+
 
 
 (def-fcg-cxn Mann-cxn
@@ -309,6 +311,48 @@
              :disable-automatic-footprints t
              :cxn-set mal-cxn)
 
+(def-fcg-cxn durch-cxn
+             ((?through-word
+               (footprints (preposition)))
+              <-
+              (?through-word
+               (footprints (not preposition))
+               (syn-cat (lex-class preposition)
+                        (polarity pos)
+                        (type motion-locative-medium)
+                        (case ((- - - - -)      
+                               (?acc ?am ?af ?an ?ap)        
+                               (- - - - -)      
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap))))
+               --
+               (HASH form ((string ?through-word "durch")))))
+             :disable-automatic-footprints t)
+
+
+(def-fcg-cxn durch-err-cxn
+             ((?through-word
+               (footprints (preposition)))
+              <-
+              (?through-word
+               (footprints (not preposition))
+               (syn-cat (lex-class preposition)
+                        (polarity pos)
+                        (type motion-locative-medium)
+                        (case ((- - - - -)      
+                               (- - - - -)        
+                               (- - - - -)      
+                               (+ + - - -)
+                               (+ + - - -))))
+               (error-cat (error incorrect-case-choice)
+                          (reason durch-needs-the-accusative-not-dative-case))
+               --
+               (HASH form ((string ?through-word "durch")))))
+             :disable-automatic-footprints t
+             :cxn-set mal-cxn)
+
+(comprehend "durch dem Tunnel")
+
 (def-fcg-cxn gegen-cxn
              ((?against-word
                (footprints (preposition)))
@@ -347,8 +391,6 @@
              :disable-automatic-footprints t
              :cxn-set mal-cxn)
              
-
-
 (def-fcg-cxn zum-cxn
              ((?to-word
               (footprints (article)))
@@ -384,6 +426,21 @@
                --
                (HASH form ((string ?to-word "zu"))))))
 
+(def-fcg-cxn Tunnel-cxn
+             ((?tunnel-word                        
+               (referent ?t)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy inanimate)))
+              <-
+              (?tunnel-word                            
+               (HASH meaning ((tunnel ?t)))                    
+               --
+               (HASH form ((string ?tunnel-word  "Tunnel"))))))
 
 (def-fcg-cxn Sohn-cxn
              ((?son-word                        
@@ -414,6 +471,20 @@
                --
                (HASH form ((string ?go-word  "geht"))))))
 
+(def-fcg-cxn spaziert-cxn
+             ((?walk-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type intransitive-loc))
+               (referent ?s))  
+                        
+              <-
+              (?walk-word                           
+               (HASH meaning ((spazieren-01 ?s)))                   
+               --
+               (HASH form ((string ?walk-word  "spaziert"))))))
+(comprehend "spaziert")
+
 
 (def-fcg-cxn ist-gefahren-cxn
              ((?drove-word
@@ -439,8 +510,6 @@
                (HASH meaning ((drove-01 ?ig)))                    
                --
                )))
-
-
 
 (def-fcg-cxn ist-gefallen-cxn
              ((?fell-word
@@ -470,7 +539,7 @@
                )))
 
 (def-fcg-cxn incorrect-noun-phrase-cxn
-             ((?noun-phrase
+             ((?incorrect-noun-phrase
                (referent ?x)
                (syn-cat (lex-class noun-phrase)
                         (case ?case)
@@ -495,16 +564,19 @@
                         (case ?case)))
               (?noun
                (footprints (not determined))
-               (referent ?x)
+               (referent ?w)
                (syn-cat (lex-class noun)
                         (case ?case)
                         )
                (sem-cat (animacy ?animacy))
                --
                (footprints (not determined))
+               (referent ?w)
                (syn-cat (lex-class noun)
-                        (case ?case)))
-              (?noun-phrase
+                        (case ?case))
+               (error-cat (error ?e)
+                         (reason ?r)))
+              (?incorrect-noun-phrase
                --
                (HASH form ((meets ?article ?noun)))
               ))
@@ -622,6 +694,86 @@
               ))
               :disable-automatic-footprints t)
 
+
+(def-fcg-cxn incorrect-prepositional-phrase-cxn
+             ((?incorrect-prep-phrase
+               (referent ?x)
+               (syn-cat (lex-class prep-phrase)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))
+                        (type ?type)
+                        (form-type extended-prep-phrase)
+                        (polarity ?polarity))
+               (sem-cat (animacy ?animacy))
+               (error-cat (error ?e)
+                          (reason ?r))
+               (subunits (?preposition ?article ?noun))
+               (boundaries (leftmost-unit ?preposition)
+                           (rightmost-unit ?noun)))
+              (?preposition
+               (part-of-prep-phrase +))
+              
+              (?article
+               (referent ?x)
+               ;(part-of-noun-phrase +))
+               )
+
+              (?noun
+               (footprints (determined))
+               )
+              <-
+
+              (?preposition
+               --
+               (syn-cat (lex-class preposition)
+                        (type motion-locative-medium)
+                        (polarity ?polarity)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p))))
+               (error-cat (error ?e)
+                          (reason ?r)))
+              (?article
+               --
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))))
+              (?noun
+               (referent ?x)
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p))))
+               --
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ((- - - - -)     
+                               (- - - - -)      
+                               (- - - - -)       
+                               (?dat ?dm ?df ?dn ?dp)
+                               (?s ?m ?f ?n ?p)))))
+              (?incorrect-prep-phrase
+               --
+               (HASH form ((meets ?preposition ?article)
+                           (meets ?article ?noun)))
+              ))
+              :disable-automatic-footprints t
+              :cxn-set mal-cxn)
+
+(comprehend "durch dem Tunnel")
+
+
 (def-fcg-cxn prepositional-phrase-with-error-cxn
              ((?prep-phrase-with-error
                (referent ?x)
@@ -678,17 +830,20 @@
                (syn-cat (lex-class noun)
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
-                               (?gen ?gm ?gf ?gn ?gp)       
-                               (?dat ?dm ?df ?dn ?dp)
+                               (- - - - -)       
+                               (- - - - -)
                                (?s ?m ?f ?n ?p))))
                --
                (footprints (not determined))
                (syn-cat (lex-class noun)
                         (case ((- - - - -)     
                                (?acc ?am ?af ?an ?ap)      
-                               (?gen ?gm ?gf ?gn ?gp)       
-                               (?dat ?dm ?df ?dn ?dp)
-                               (?s ?m ?f ?n ?p)))))
+                               (- - - - -)       
+                               (- - - - -)
+                               (?s ?m ?f ?n ?p))))
+               (error-cat (error ?e)
+                         (reason ?r)))  
+              
               (?prep-phrase-with-error
                --
                (HASH form ((meets ?preposition ?article)
@@ -698,7 +853,7 @@
               :cxn-set mal-cxn)
 
 
-(comprehend "gegen den Wurm")
+(comprehend "den Wurm")
 
 
 (def-fcg-cxn incorrect-contracted-prep-phrase-cxn
@@ -938,7 +1093,7 @@
               ))
               :disable-automatic-footprints t)
 
-
+(comprehend "durch den Tunnel")
 
 (def-fcg-cxn accompanying-phrase-poss-cxn
              ((?accompanying-phrase-poss
@@ -1565,6 +1720,69 @@
                --
                )))
 
+(def-fcg-cxn intransitive-arg0-arg2-argument-structure-cxn
+             ((?intransitive-arg0-arg2-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?location-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?location-unit
+               (syn-cat (syn-role locative-complement)))  
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive-loc)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type intransitive-loc)
+                       (aspect non-perfect))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+              (referent ?arg0))
+
+              (?location-unit
+               (syn-cat (lex-class prep-phrase)
+                        (type motion-locative-medium)
+                        (form-type extended-prep-phrase)
+                   (case ((- - - - -) 
+                      (?acc ?am ?af ?an ?ap)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (?ls ?am ?af ?an ?lp))))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class prep-phrase)
+                       (type motion-locative-medium)
+                        (case ((- - - - -) 
+                      (?acc ?am ?af ?an ?ap)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (?ls ?am ?af ?an ?lp))))
+              (referent ?arg2))
+              
+              (?intransitive-arg0-arg2-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg2 ?v ?arg2)))                  
+               --
+               )))
+
+(comprehend "der Mann spaziert durch den Tunnel")
 
 (def-fcg-cxn dev-intransitive-extra-argument-structure-cxn
              ((?intransitive-extra-argument-structure-unit
@@ -1648,6 +1866,47 @@
              :cxn-set dev-rule)
              
 
+(def-fcg-cxn topic-arg0-arg2-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?location-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-location-unit)))
+               (subunits (?verb-unit ?agent-unit ?location-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive-loc))
+                --
+              (syn-cat (lex-class verb)
+                       (type intransitive-loc)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (referent ?arg0)
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?location-unit
+               (syn-cat (syn-role locative-complement)
+                        (lex-class prep-phrase))
+               (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit))
+                --
+              (syn-cat (syn-role locative-complement)
+                       (lex-class prep-phrase))
+              (boundaries (leftmost-unit ?leftmost-location-unit)
+                          (rightmost-unit ?rightmost-location-unit)))
+              ))
 
 (def-fcg-cxn topic-arg0-extra-info-arg4-information-structure-cxn
              (
@@ -1771,7 +2030,7 @@
 
 ;der Mann wurde bei mir gesehen - ich sehe den Mann 
 ;
-;
+(comprehend "der Mann spaziert durch den Tunnel")
 
 ;;;;ERRORS
 
