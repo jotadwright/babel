@@ -220,6 +220,71 @@
                (HASH form ((string ?clown-word  "Clown"))))))
 
 
+(def-fcg-cxn Vater-cxn
+             ((?father-word                        
+               (referent ?f)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?father-word                            
+               (HASH meaning ((father ?f)))                    
+               --
+               (HASH form ((string ?father-word  "Vater"))))))
+
+(def-fcg-cxn Sohn-cxn
+             ((?son-word                        
+               (referent ?s)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?son-word                            
+               (HASH meaning ((son ?s)))                    
+               --
+               (HASH form ((string ?son-word  "Sohn"))))))
+
+(def-fcg-cxn Mann-cxn
+             ((?man-word                        
+               (referent ?m)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?man-word                            
+               (HASH meaning ((man ?m)))                    
+               --
+               (HASH form ((string ?man-word  "Mann"))))))
+
+
+(def-fcg-cxn Brille-cxn
+             ((?glasses-word
+               (referent ?gl)                             ;set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?np - - - ?np)     
+                               (?ap - - - ?ap)      
+                               (?gp - - - ?gp)       
+                               (?dp - - - ?dp)
+                               (- - - - +))))
+              (sem-cat (animacy inanimate)))
+              <-
+              (?glasses-word
+               (HASH meaning ((glasses ?gl)))                     
+               --
+               (HASH form ((string ?glasses-word  "Brille"))))))
+
 (def-fcg-cxn Lehrerin-cxn
              ((?teacher-word                        
                (referent ?t)
@@ -235,6 +300,41 @@
                (HASH meaning ((teacher ?t)))                     
                --
                (HASH form ((string ?teacher-word  "Lehrerin"))))))
+
+(def-fcg-cxn Frau-cxn
+             ((?woman-word                        
+               (referent ?w)
+               (syn-cat (lex-class noun)
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -)
+                               (+ - + - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?woman-word
+               (HASH meaning ((woman ?w)))                     
+               --
+               (HASH form ((string ?woman-word  "Frau"))))))
+
+
+(def-fcg-cxn Apfel-cxn
+             ((?apple-word                        
+               (referent ?a)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy inanimate)))
+              <-
+              (?apple-word                            
+               (HASH meaning ((apple ?a)))                    
+               --
+               (HASH form ((string ?apple-word  "Apfel"))))))
+
+
 
 (def-fcg-cxn Blumen-cxn
              ((?flowers-word
@@ -319,6 +419,19 @@
                --
                (HASH form ((string ?sell-word  "verkauft"))))))
 
+(def-fcg-cxn zeigt-cxn
+             ((?show-word
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type ditransitive))
+               (referent ?v))  
+                        
+              <-
+              (?show-word                           
+               (HASH meaning ((zeigen-01 ?v)))
+               --
+               (HASH form ((string ?show-word  "zeigt"))))))
+
 
 (def-fcg-cxn schenkt-cxn
              ((?gift-word
@@ -332,6 +445,20 @@
                (HASH meaning ((schenken-01 ?g)))
                --
                (HASH form ((string ?gift-word  "schenkt"))))))
+
+
+(def-fcg-cxn gibt-cxn
+             ((?gibt-word
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type ditransitive))
+               (referent ?g))  
+                        
+              <-
+              (?gibt-word                           
+               (HASH meaning ((geben-01 ?g)))
+               --
+               (HASH form ((string ?gibt-word  "gibt"))))))
 
 
 (def-fcg-cxn ditransitive-argument-structure-cxn
@@ -506,8 +633,6 @@
              
 
 (comprehend "der Doktor verkauft den Clown das Buch")
-
-
 
 
 ;;;error dative plural
@@ -1007,7 +1132,6 @@
              :cxn-set mal-cxn)
 
 
-
 ;;;;FORMULATION
 
 ;;;der Doktor verkauft dem Clown das Buch
@@ -1021,15 +1145,22 @@
 
 (comprehend "die Lehrerin schenkt dem Direktor die Blumen")
 (comprehend "der Doktor verkauft dem Clown das Buch")
+(comprehend "der Vater zeigt dem Sohn die Brille")
+(comprehend "die Frau gibt dem Mann den Apfel")
+
 
 ;;;;;;ERRORS
 
 (comprehend "die Blume")
 
-(comprehend "der Doktor verkauft den Clown das Buch")    ; double accusative 
+(comprehend "der Doktor verkauft den Clown das Buch")    ; double accusative
+
+(comprehend "der Vater zeigt den Sohn die Brille")       ;double accusative
 
 (comprehend "die Lehrerin schenkt dem Direktor den Blumen")   ;dative 
 
 (comprehend "die Lehrerin schenkt den Direktor den Blumen")   ;mix-incorrect determiner
 
-(comprehend "die Lehrerin schenkt dem Direktor die Blume") 
+(comprehend "die Lehrerin schenkt dem Direktor die Blume")
+
+(comprehend "die Frau gibt den Mann den Apfel")
