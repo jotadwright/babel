@@ -88,7 +88,7 @@
            (get-boundary-units form-constraints))
       (get-boundary-units form-constraints))))
 
-(defun add-boundaries-to-form-constraints (form-constraints boundaries &key placeholder-var)
+#|(defun add-boundaries-to-form-constraints (form-constraints boundaries &key placeholder-var)
   "given a list of boundaries that correspond to a certain slot and a list of form constraints,
    create a new variable for left and right boundary, also if the original left and right boundary vars were identical
    return both the form constraints and the new boundary list"
@@ -102,7 +102,7 @@
          (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
     (if (= (length (remove-duplicates boundaries)) 1)
       (if (equal right-boundary (first (get-boundary-units form-constraints)))  
-        ; the variable is a the beginning of an utterance when the right-boundary is the leftmost-boundary
+        ; the variable is at the beginning of an utterance when the right-boundary is the leftmost-boundary
         (values new-form-constraints (list left-var right-boundary))
         (progn (when matching-right-predicate
                  (setf (nth 1 matching-right-predicate) right-var))
@@ -110,8 +110,24 @@
       ;; the boundaries are different anyway, don't touch them!
       (values form-constraints boundaries)
       )))
-    
-    
+   |# 
+(defun add-boundaries-to-form-constraints (form-constraints boundaries &key placeholder-var)
+  "given a list of boundaries that correspond to a certain slot and a list of form constraints,
+   create a new variable for left and right boundary, also if the original left and right boundary vars were identical
+   return both the form constraints and the new boundary list"
+  (let* ((new-form-constraints (copy-object form-constraints))
+         (placeholder-var (string-upcase (if placeholder-var placeholder-var "?X")))
+         (right-var (make-var (make-const (format nil "?RIGHT-~a-BOUNDARY" placeholder-var))))
+         (left-var (make-var (make-const (format nil "?LEFT-~a-BOUNDARY" placeholder-var))))
+         (left-boundary (first boundaries))
+         (right-boundary (second boundaries))
+         (matching-left-predicate (find left-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'third))
+         (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
+    (when matching-right-predicate
+      (setf (nth 1 matching-right-predicate) right-var))
+    (when matching-left-predicate
+      (setf (nth 2 matching-left-predicate) left-var))
+    (values new-form-constraints (list left-var right-var))))  
 
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"
@@ -214,12 +230,13 @@
                                              (set-difference network-2 unique-part-network-2)))
       (values unique-part-network-1 unique-part-network-2))))
 
-(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory &key cxn-type)
+(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory &key cxn-type cxn-set)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-type-cxn = (attr-val cxn :cxn-type)
         when (and
               (if cxn-type (equal cxn-type cxn-type-cxn) t)
+              (if cxn-set (equal cxn-set (attr-val cxn :label)) t)
               (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
               (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
                   ; note: boundaries and args are ignored, as they are designed to always match, and fully depend on form and meaning anyway.

@@ -44,7 +44,7 @@
                                              :gold-standard-meaning '((say-01 ?s) (i ?i) (:arg0 ?s ?i))))))))
 
 
-(deftest test-substitution-repair-comprehension ()
+(defun test-substitution-repair-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The large gray object is what shape?"
@@ -384,7 +384,7 @@
                                                 (filter ?target-2 ?target-1 ?material-4)
                                                 (bind color-category ?color-16 yellow)
                                                 (query ?target-4 ?target-object-1 ?attribute-6))))))
-           (test-equal 5 (length (constructions cxn-inventory)))))
+           (test-equal 6 (length (constructions cxn-inventory)))))
 
 
 ;; (activate-monitor trace-fcg)

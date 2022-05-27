@@ -138,8 +138,6 @@ based on existing construction with sufficient overlap."
                (args-holistic-cxn-2
                 (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
                 
-               (hash-string (third (find 'string non-overlapping-form-cxn :key #'first)))
-               
                ;; cxns
                (new-holistic-cxn-1
                 (or holistic-cxn-1-apply-first
@@ -161,7 +159,7 @@ based on existing construction with sufficient overlap."
                                                                              :cxn-type holistic
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning-cxn :key #'first))
-                                                                             :string ,hash-string)
+                                                                             :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                
                (new-holistic-cxn-1-apply-last
@@ -189,8 +187,8 @@ based on existing construction with sufficient overlap."
                                                                 :attributes (:label meta-only
                                                                              :cxn-type holistic
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
-                                                                             :meaning ,(fourth (find 'bind non-overlapping-meaning-observation :key #'first))
-                                                                             :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
+                                                                             :meaning ,(fourth (find 'bind non-overlapping-meaning-cxn :key #'first))
+                                                                             :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-holistic-cxn-2
                 (or holistic-cxn-2-apply-first
@@ -272,8 +270,7 @@ based on existing construction with sufficient overlap."
                                                                                              return (first predicate))
                                                                              :string ,(third (find 'string overlapping-form-observation :key #'first)))
                                                                            
-                                                                :cxn-inventory ,(copy-object cxn-inventory)
-                                                                :cxn-set cxn))))))
+                                                                :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-item-based-cxn-apply-first
                 (or existing-item-based-cxn-apply-first
                   (second (multiple-value-list (eval
@@ -305,8 +302,7 @@ based on existing construction with sufficient overlap."
                                                                                              return (first predicate))
                                                                              :string ,(third (find 'string overlapping-form-observation :key #'first)))
                                                                            
-                                                                :cxn-inventory ,(copy-object cxn-inventory)
-                                                                :cxn-set item-based-first))))))
+                                                                :cxn-inventory ,(copy-object cxn-inventory)))))))
                (existing-cxns (list holistic-cxn-2-apply-first
                                     holistic-cxn-2-apply-last
                                     holistic-cxn-1-apply-first
