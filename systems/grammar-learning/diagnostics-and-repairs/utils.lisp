@@ -1,4 +1,3 @@
-
 (in-package :grammar-learning)
 
 (defconstant +placeholder-vars+ '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W"))
@@ -441,14 +440,14 @@
   (loop with item-based-meaning = (copy-object gold-standard-meaning)
         for network in subtracted-meanings
         do (setf item-based-meaning (set-difference item-based-meaning network :test #'equal))
-        finally return item-based-meaning))
+        finally (return item-based-meaning)))
 
 (defun make-item-based-name-form-constraints-from-units (item-based-cxn-form-constraints resulting-units)
   (loop with item-based-fc = item-based-cxn-form-constraints
         for unit in resulting-units
         for fc = (variablify-form-constraints-with-constants (unit-feature-value unit 'form))
         do (setf item-based-fc (substitute-slot-meets-constraints fc item-based-fc))
-        finally return item-based-fc))
+        finally (return item-based-fc)))
 
 
 (defgeneric meaning-predicates-with-variables (meaning mode))
@@ -965,4 +964,4 @@
         for cxn-type = (attr-val cxn :cxn-type)
         when (equal cxn-type type)
         do (delete-cxn cxn cxn-inventory)
-        finally return cxn-inventory))
+        finally (return cxn-inventory)))
