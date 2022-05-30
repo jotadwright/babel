@@ -78,25 +78,29 @@
                                                  for updated-form-constraints-and-boundaries = (multiple-value-list (add-boundaries-to-form-constraints item-based-cxn-form-constraints boundary-list :placeholder-var placeholder-var))
                                                  for updated-form-constraints = (first updated-form-constraints-and-boundaries)
                                                  for updated-boundaries = (second updated-form-constraints-and-boundaries)
-                                                 for holistic-cxn-unit-name = (if (member (first updated-boundaries) (apply 'concatenate 'list updated-form-constraints))
-                                                                                (first updated-boundaries)
-                                                                                (second updated-boundaries))
+                                                 for holistic-cxn-unit-name = (first boundary-list)
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
                                                  do (setf item-based-cxn-form-constraints updated-form-constraints)
                                                  collect subtracted-meaning into subtracted-meanings
                                                  collect categorial-link into categorial-links
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
+                                                 
                                                  collect `(,holistic-cxn-unit-name
-                                                           (syn-cat (gl::lex-class ,holistic-slot-lex-class))
+                                                           (syn-cat (phrase-type holistic)
+                                                                    (lex-class ,holistic-slot-lex-class))
+                                                           (args ,args)
                                                            (boundaries
                                                             (left ,(first updated-boundaries))
-                                                            (right ,(second updated-boundaries)))) into contributing-units
+                                                            (right ,(second updated-boundaries)))) into contributing-units-apply-first
                                                  collect `(,holistic-cxn-unit-name
                                                            (args ,args)
                                                            --
-                                                           ) into conditional-units
-                                                 finally (return (values conditional-units contributing-units holistic-subunit-names categorial-links subtracted-meanings)))))
+                                                           (syn-cat (gl::lex-class ,holistic-slot-lex-class))
+                                                           (boundaries
+                                                            (left ,(first updated-boundaries))
+                                                            (right ,(second updated-boundaries)))) into conditional-units-apply-last
+                                                 finally (return (values conditional-units-apply-last contributing-units-apply-first holistic-subunit-names categorial-links subtracted-meanings)))))
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -106,45 +110,86 @@
              (cat-links-to-add (fourth holistic-cxn-subunit-blocks))
              (subtracted-meanings (fifth holistic-cxn-subunit-blocks))
              (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning gold-standard-meaning subtracted-meanings))
-             (existing-item-based-cxn (find-cxn-by-form-and-meaning
+             (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
                                          item-based-cxn-form-constraints
                                          item-based-cxn-meaning
                                          original-cxn-set
-                                         :cxn-type 'item-based))
-             (item-based-cxn (or existing-item-based-cxn
-                                 (second (multiple-value-list (eval
-                                                           `(def-fcg-cxn ,(add-cxn-suffix cxn-name-item-based-cxn)
-                                                                         ((?item-based-unit
-                                                                           (syn-cat (phrase-type item-based))
-                                                                           (subunits ,holistic-subunit-names))
-                                                                          ,@holistic-cxn-contributing-units
-                                                                          <-
-                                                                          (?item-based-unit
-                                                                           (HASH meaning ,item-based-cxn-meaning)
-                                                                           --
-                                                                           (HASH form ,item-based-cxn-form-constraints))
-                                                                          ,@holistic-cxn-conditional-units)
-                                                                         :attributes (:cxn-type item-based
-                                                                                      :repair holistic->item-based
-                                                                                      :meaning ,(loop for predicate in item-based-cxn-meaning
+                                         :cxn-type 'item-based
+                                         :cxn-set 'meta-only))
+             (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
+                                         item-based-cxn-form-constraints
+                                         item-based-cxn-meaning
+                                         original-cxn-set
+                                         :cxn-type 'item-based
+                                         :cxn-set 'routine))
+             
+             (cxn-name-item-based-cxn-apply-last
+                (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-LAST"))
+             (cxn-name-item-based-cxn-apply-first
+                (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-FIRST"))
+
+             (item-based-cxn-apply-last
+                (or existing-item-based-cxn-apply-last 
+                    (second (multiple-value-list (eval
+                                                  `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-last
+                                                                ((?item-based-unit
+                                                                  (syn-cat (phrase-type item-based))
+                                                                  (subunits ,holistic-subunit-names))
+                                                                 <-
+                                                                 (?item-based-unit
+                                                                  (HASH meaning ,item-based-cxn-meaning)
+                                                                  --
+                                                                  (HASH form ,item-based-cxn-form-constraints))
+                                                                 ,@holistic-cxn-conditional-units)
+                                                                :attributes (:label routine
+                                                                             :cxn-type item-based
+                                                                             :repair holistic->item-based
+                                                                             :meaning ,(loop for predicate in item-based-cxn-meaning
                                                                                                       unless (or
                                                                                                               (equal (first predicate) 'get-context)
                                                                                                               (equal (first predicate) 'bind))
                                                                                                       return (first predicate))
-                                                                                      :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))              
-                                                                         :cxn-inventory ,(copy-object original-cxn-set)))))))
-             (cxns-to-apply (append applied-holistic-cxns (list item-based-cxn)))
-             (cxns-to-consolidate (unless existing-item-based-cxn
-                                    (list item-based-cxn))))
-        (when existing-item-based-cxn ; we ordered the units, so they'll always be in the order in which they appear in the utterance
-          (loop for item-lc in (get-all-unit-lex-classes existing-item-based-cxn)
+                                                                             :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))
+                                                                           
+                                                                :cxn-inventory ,(copy-object original-cxn-set)))))))
+             (item-based-cxn-apply-first
+                (or existing-item-based-cxn-apply-first
+                  (second (multiple-value-list (eval
+                                                  `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-first
+                                                                ((?item-based-unit
+                                                                  (syn-cat (phrase-type item-based))
+                                                                  (subunits ,holistic-subunit-names))
+                                                                 ,@holistic-cxn-contributing-units
+                                                                 <-
+                                                                 (?item-based-unit
+                                                                  (HASH meaning ,item-based-cxn-meaning)
+                                                                  --
+                                                                  (HASH form ,item-based-cxn-form-constraints))
+                                                                 )
+                                                                :attributes (:label meta-only
+                                                                             :cxn-type item-based
+                                                                             :repair holistic->item-based
+                                                                             :meaning ,(loop for predicate in item-based-cxn-meaning
+                                                                                                      unless (or
+                                                                                                              (equal (first predicate) 'get-context)
+                                                                                                              (equal (first predicate) 'bind))
+                                                                                                      return (first predicate))
+                                                                             :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))
+                                                                           
+                                                                :cxn-inventory ,(copy-object original-cxn-set)))))))
+             
+             (cxns-to-apply (append applied-holistic-cxns (list item-based-cxn-apply-last)))
+             (cxns-to-consolidate (unless existing-item-based-cxn-apply-first
+                                    (list item-based-cxn-apply-first))))
+        (when existing-item-based-cxn-apply-first ; we ordered the units, so they'll always be in the order in which they appear in the utterance
+          (loop for item-lc in (get-all-unit-lex-classes existing-item-based-cxn-apply-first)
                 for cat-link in cat-links-to-add
                 for holistic-lc = (first cat-link)
                 collect (cons holistic-lc item-lc) into new-cat-links
                 finally (setf cat-links-to-add new-cat-links))
           ;(add-element (make-html (categorial-network original-cxn-set)))
           )
-        ;(add-element (make-html item-based-cxn))
+        (add-element (make-html item-based-cxn-apply-last))
         
         (list
          cxns-to-apply

@@ -263,7 +263,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind size-category ?size-2 large)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 7 (length (constructions cxn-inventory)))))
+    (test-equal 13 (length (constructions cxn-inventory)))))
 
 ;; (activate-monitor trace-fcg)
 
