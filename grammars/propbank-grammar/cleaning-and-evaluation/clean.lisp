@@ -22,7 +22,9 @@
         else do (return cxn-inventory)))
 
 
-(defun sort-cxns-for-outliers (learned-propbank-grammar dev-corpus &key (nr-of-test-sentences 100) (timeout 10) (nr-of-training-sentences nil))
+(defun sort-cxns-for-outliers (learned-propbank-grammar dev-corpus &key (nr-of-test-sentences 100)
+                                                                     (timeout 10)
+                                                                     (nr-of-training-sentences nil))
   "Run the learned grammar on a number of sentences of the dev-corpus in order to detect faulty cxns."
   (assert nr-of-training-sentences)
   (let* ((selected-test-sentences (subseq (shuffle dev-corpus) 0 nr-of-test-sentences))
@@ -64,16 +66,16 @@ grammar on the list-of-sentences"
           for comprehension-result = (multiple-value-list
                                       (comprehend sentence :cxn-inventory hashed-cxn-inventory :silent t :timeout timeout))
           if (eq 'time-out (first comprehension-result))
-          do (incf nr-of-time-outs)
-          (format t "x")
-          else do (format t ".")
-          (loop for cxn in (applied-constructions (second comprehension-result))
-                do (incf (gethash (name cxn) frequency-table))))
-    
+          do (progn (incf nr-of-time-outs)
+                    (format t "x"))
+          else do (progn (format t ".")
+                         (loop for cxn in (applied-constructions (second comprehension-result))
+                               do (incf (gethash (name cxn) frequency-table)))))
+          
     (values frequency-table nr-of-time-outs)))
 
 
-(defun apply-cutoff (grammar &key (cutoff 200) (sorted-cxn-list *sorted-cxns*))
+(defun apply-cutoff (grammar &key (cutoff 200) sorted-cxn-list)
   "Delete all constructions that occur N times more frequently in the
 development corpus than in the training corpus."
   (loop for (cxn . dev/train-ratio) in (reverse sorted-cxn-list)

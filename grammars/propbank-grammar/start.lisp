@@ -77,8 +77,9 @@
      )
     (:cxn-supplier-mode . :propbank-english)))
 
+(defvar *propbank-ewt-ontonotes-learned-cxn-inventory*)
+
 (learn-propbank-grammar
- ;(train-split *ewt-annotations*)
  (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
  :selected-rolesets nil
  :cxn-inventory '*propbank-ewt-ontonotes-learned-cxn-inventory*
@@ -93,18 +94,27 @@
 
 ;; Use learned grammar on the development corpus to gather statistics on spurious construction applications
 (defparameter *sorted-cxns*
-  (sort-cxns-for-outliers *restored-grammar*
+  (sort-cxns-for-outliers *propbank-ewt-ontonotes-learned-cxn-inventory*
                           (shuffle *dev-sentences*)
-                          :timeout 60
-                          :nr-of-training-sentences (get-data (blackboard *restored-grammar*) :training-corpus-size)
-                          :nr-of-test-sentences 100))
+                          :timeout 20
+                          :nr-of-training-sentences (get-data (blackboard *restored-grammar-sbcl*) :training-corpus-size)
+                          :nr-of-test-sentences 500))
 
+;; (Optionally store the ranked cxns for future cleaning)
+(cl-store:store *sorted-cxns*
+                (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
+                                :name "sorted-cxns-sbcl"
+                                :type "store"))
 
 ;; Delete constructions from the learned grammar that apply too often
-(apply-cutoff *restored-grammar-sbcl* :cutoff 20)
+(apply-cutoff *propbank-ewt-ontonotes-learned-cxn-inventory* :cutoff 30 :sorted-cxn-list *sorted-cxns*)
 
 ;; Delete all constructions for be and have from the grammar
-(delete-have-and-be-cxns *restored-grammar-sbcl*)
+(delete-have-and-be-cxns *propbank-ewt-ontonotes-learned-cxn-inventory*)
+(size (processing-cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*))
+;; Test whether cleaning worked:
+;(deactivate-all-monitors)
+(comprehend "Hello world" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
 
 
 ;; Testing learned grammars
