@@ -141,7 +141,7 @@
                 for cat-link in cat-links-to-add
                 for holistic-lc = (first cat-link)
                 collect (cons holistic-lc item-lc) into new-cat-links
-                finally do (setf cat-links-to-add new-cat-links))
+                finally (setf cat-links-to-add new-cat-links))
           ;(add-element (make-html (categorial-network original-cxn-set)))
           )
         ;(add-element (make-html item-based-cxn))

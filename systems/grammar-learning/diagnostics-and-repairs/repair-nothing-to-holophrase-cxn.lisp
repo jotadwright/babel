@@ -60,7 +60,8 @@
                                                                         (HASH meaning ,meaning)
                                                                         --
                                                                         (HASH form ,form-constraints)))
-                                                                      :attributes (:cxn-type holophrase
+                                                                      :attributes (:label routine
+                                                                                   :cxn-type holophrase
                                                                                    :repair nothing->holophrase
                                                                                    :string ,hash-string)
                                                                       :cxn-inventory ,(copy-object cxn-inventory)))))))
