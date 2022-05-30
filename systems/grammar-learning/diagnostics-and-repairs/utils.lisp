@@ -937,14 +937,14 @@
   (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
 
 (defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
-  (set-configuration cxn-inventory :learner-cxn-supplier :hashed-and-scored-meta-layer-cxn-set-only)
+  (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-meta-layer-cxn-set-only)
   (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
-  (set-configuration cxn-inventory :learner-cxn-supplier :hashed-and-scored-routine-cxn-set-only)
+  (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-routine-cxn-set-only)
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
