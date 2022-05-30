@@ -44,7 +44,7 @@
                                       utterance
                                       gold-standard-meaning
                                       original-cxn-inventory
-                                      (get-configuration original-cxn-inventory :learning-strategy)))
+                                      :optimal-form-coverage-item-based-first))
          (applied-cxns (when best-partial-analysis-node
                          (applied-constructions best-partial-analysis-node)))
          (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))

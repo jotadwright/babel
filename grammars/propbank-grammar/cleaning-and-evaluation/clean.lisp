@@ -17,7 +17,8 @@
                                                                :nr-of-test-sentences nr-of-test-sentences)
         if (>= (eval dev/train-ratio) cut-off)
         do (with-disabled-monitor-notifications
-             (delete-cxn cxn cxn-inventory :hash-key (attr-val cxn :lemma)))
+             (delete-cxn cxn cxn-inventory :hash-key (attr-val cxn :lemma))
+             (delete-cxn cxn (processing-cxn-inventory cxn-inventory) :hash-key (attr-val cxn :lemma)))
         else do (return cxn-inventory)))
 
 
@@ -73,7 +74,45 @@ grammar on the list-of-sentences"
 
 
 (defun apply-cutoff (grammar &key (cutoff 200) (sorted-cxn-list *sorted-cxns*))
+  "Delete all constructions that occur N times more frequently in the
+development corpus than in the training corpus."
   (loop for (cxn . dev/train-ratio) in (reverse sorted-cxn-list)
         if (>= (eval dev/train-ratio) cutoff)
-        do (with-disabled-monitor-notifications
-             (delete-cxn (name cxn) grammar :key #'name))))
+        do (progn (delete-cxn (name cxn) grammar :key #'name)
+                  (delete-cxn (name cxn) (processing-cxn-inventory grammar) :key #'name)
+                  (format t "."))))
+
+
+(defun delete-have-and-be-cxns (grammar)
+  "Delete all constructions under the hash keys 'be' and 'have',
+together with all constructions for 'be' and 'have' that are stored
+under different keys"
+  (format t "Nr of cxns before cleaning (FCG-2): ~a ~%" (size grammar))
+  (format t "Nr of cxns before cleaning (FCG-1): ~a ~%" (size (processing-cxn-inventory grammar)))
+  
+  (remhash 'be (constructions-hash-table grammar))
+  (remhash 'be (constructions-hash-table (processing-cxn-inventory grammar)))
+  (remhash 'have (constructions-hash-table grammar))
+  (remhash 'have (constructions-hash-table (processing-cxn-inventory grammar)))
+  
+  (loop for v being each hash-values of (constructions-hash-table grammar) using (hash-key k)
+        for remaining-cxns = (loop for cxn in v
+                                   unless (or (search "BE." (subseq (mkstr (name cxn)) 0 3))
+                                              (search "HAVE." (mkstr (name cxn))))
+                                   collect cxn)
+        do (setf (gethash k (constructions-hash-table grammar)) remaining-cxns))
+
+  (loop for v being each hash-values of (constructions-hash-table (processing-cxn-inventory grammar)) using (hash-key k)
+        for remaining-cxns = (loop for cxn in v
+                                   unless (or (search "BE." (subseq (mkstr (name cxn)) 0 3))
+                                              (search "HAVE." (mkstr (name cxn))))
+                                   collect cxn)
+        do (setf (gethash k (constructions-hash-table grammar)) remaining-cxns))
+
+  (format t "Nr of cxns after cleaning (FCG-2): ~a ~%" (size grammar))
+  (format t "Nr of cxns after cleaning (FCG-1): ~a ~%" (size (processing-cxn-inventory grammar)))
+
+  )
+
+
+;(delete-have-and-be-cxns *restored-grammar-sbcl*)

@@ -14,6 +14,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (load-propbank-annotations 'ewt :ignore-stored-data nil) ; *ewt-annotations*
+(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 
 ;; Learning grammars from the annotated data
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -49,13 +50,19 @@
  (train-split *ewt-annotations*)
  ;(append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
  :selected-rolesets nil
- :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
+ :cxn-inventory '*propbank-learned-cxn-inventory*
  :fcg-configuration *training-configuration*)
 
 ;; Storing and restoring grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cl-store:store *propbank-ewt-learned-cxn-inventory*
+(cl-store:store *propbank-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
                                 :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
                                 :type "fcg"))
+
+
+(defparameter *restored-propbank-grammar* (cl-store:restore  
+                                           (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
+                                                           :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
+                                                           :type "fcg")))

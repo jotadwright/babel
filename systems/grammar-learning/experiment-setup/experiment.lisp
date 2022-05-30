@@ -9,7 +9,7 @@
 
 (define-configuration-default-value :corpus-files-root
                                     (merge-pathnames
-                                     (make-pathname :directory '(:relative "little-prince-amr"))
+                                     (make-pathname :directory '(:relative "amr-corpora" "little-prince-amr"))
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :corpus-data-file
                                     (make-pathname :directory '(:relative "pre-processed")

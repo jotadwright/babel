@@ -29,15 +29,23 @@
 ;; Storing and restoring grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *restored-grammar*
+
+
+(defparameter *restored-grammar-sbcl*
   (cl-store:restore
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                   :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
+                   :name "propbank-grammar-ontonotes-ewt-core-roles-cleaned-sbcl"
                    :type "fcg")))
 
-(cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory*
+(defparameter *restored-grammar-lw*
+  (cl-store:restore
+   (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
+                   :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
+                   :type "fcg")))
+
+(cl-store:store *restored-grammar-sbcl* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
+                                :name "propbank-grammar-ontonotes-ewt-core-roles-cleaned-sbcl"
                                 :type "fcg"))
 
 
@@ -79,29 +87,36 @@
 
 ;; Cleaning learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+(monitors::deactivate-all-monitors)
 (defparameter *dev-sentences* (append (dev-split *ewt-annotations*)
                                       (dev-split *ontonotes-annotations*)))
 
+;; Use learned grammar on the development corpus to gather statistics on spurious construction applications
 (defparameter *sorted-cxns*
-  (sort-cxns-for-outliers *propbank-ewt-ontonotes-learned-cxn-inventory*
+  (sort-cxns-for-outliers *restored-grammar*
                           (shuffle *dev-sentences*)
-                          :timeout 30
-                          :nr-of-training-sentences (get-data (blackboard *propbank-ewt-ontonotes-learned-cxn-inventory*) :training-corpus-size)
+                          :timeout 60
+                          :nr-of-training-sentences (get-data (blackboard *restored-grammar*) :training-corpus-size)
                           :nr-of-test-sentences 100))
 
 
-(apply-cutoff *propbank-ewt-ontonotes-learned-cxn-inventory*)
+;; Delete constructions from the learned grammar that apply too often
+(apply-cutoff *restored-grammar-sbcl* :cutoff 20)
+
+;; Delete all constructions for be and have from the grammar
+(delete-have-and-be-cxns *restored-grammar-sbcl*)
+
+
 ;; Testing learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (monitors:activate-monitor trace-fcg)
 
-(comprehend "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
+(comprehend "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-propbank-grammar*)
 
 (comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
 
-(comprehend-and-extract-frames "She sent her mother a dozen roses" :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
+(comprehend-and-extract-frames "She sent her mother a dozen roses" :cxn-inventory *restored-propbank-grammar*)
 
 (comprehend-and-extract-frames (sentence-string (nth 0 (train-split *ewt-annotations*))) :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
 

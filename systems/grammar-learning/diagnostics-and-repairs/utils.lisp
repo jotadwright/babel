@@ -164,6 +164,11 @@
         for lex-class = (lex-class-item-based unit)
         collect lex-class))
 
+(defun get-conditional-unit-lex-classes (cxn)
+  (loop for unit in (subseq (conditional-part cxn) 1)
+        for lex-class = (lex-class-item-based-apply-last unit)
+        collect lex-class))
+
 (defun boundary-list (cxn)
   (loop for unit in (conditional-part cxn)
         for comprehension-lock = (comprehension-lock unit)
@@ -186,6 +191,10 @@
 
 (defun lex-class-item-based (unit)
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure unit) :key #'first)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+(defun lex-class-item-based-apply-last (unit)
+  (let ((syn-cat (find 'syn-cat (comprehension-lock unit) :key #'first)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
 (defun lex-class-cxn (cxn)
@@ -927,6 +936,30 @@
   (set-configuration cxn-inventory :consolidate-repairs t)
   (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
 
+(defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
+  (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-meta-layer-cxn-set-only)
+  (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
+  (set-configuration cxn-inventory :update-categorial-links nil)
+  (set-configuration cxn-inventory :use-meta-layer nil)
+  (set-configuration cxn-inventory :consolidate-repairs nil))
+
+(defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
+  (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-routine-cxn-set-only)
+  (set-configuration cxn-inventory :category-linking-mode :neighbours)
+  (set-configuration cxn-inventory :update-categorial-links t)
+  (set-configuration cxn-inventory :use-meta-layer t)
+  (set-configuration cxn-inventory :consolidate-repairs t)
+  (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
+
+(defmethod get-best-partial-analysis-cipn ((utterance string) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
+  (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory original-cxn-inventory)))
+             (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+        (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
+        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+
 (defmethod get-best-partial-analysis-cipn ((utterance string) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
@@ -945,6 +978,9 @@
              (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+
+
+
 
 (defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes
