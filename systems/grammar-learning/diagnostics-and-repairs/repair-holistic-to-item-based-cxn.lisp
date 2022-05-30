@@ -189,7 +189,7 @@
                 finally (setf cat-links-to-add new-cat-links))
           ;(add-element (make-html (categorial-network original-cxn-set)))
           )
-        (add-element (make-html item-based-cxn-apply-last))
+        ;(add-element (make-html item-based-cxn-apply-last))
         
         (list
          cxns-to-apply
