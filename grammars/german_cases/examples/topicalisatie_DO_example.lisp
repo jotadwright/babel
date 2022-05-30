@@ -20,7 +20,7 @@
                                  (:colored-paths . nil)
                                  (:hierarchy-features subunits)
                                  (:selected-hierarchy . subunits)
-                                 (:hide-features footprints sem-cat form boundaries)  ;;choose elements to hide
+                                 ;(:hide-features footprints sem-cat form boundaries)  ;;choose elements to hide
                                  (:select-subfeatures . nil)
                                  (:latex-visualization . t)
                                  (:add-form-and-meaning-to-car . t)
@@ -177,15 +177,12 @@
                                (- - - - -)       
                                (?dm ?dm - - -)
                                (+ + - - -))))
-               (sem-cat (animacy animate)))
-                        
+               (sem-cat (animacy animate)))      
               <-
               (?doctor-word
                (HASH meaning ((doctor ?d)))                     
                --
                (HASH form ((string ?doctor-word  "Doktor"))))))
-
-
 
 
 (def-fcg-cxn Buch-cxn
@@ -204,7 +201,21 @@
                --
                (HASH form ((string ?book-word  "Buch"))))))
 
-
+(def-fcg-cxn Apfel-cxn
+             ((?apple-word                        
+               (referent ?a)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy inanimate)))
+              <-
+              (?apple-word                            
+               (HASH meaning ((apple ?a)))                    
+               --
+               (HASH form ((string ?apple-word  "Apfel"))))))
 
 (def-fcg-cxn Clown-cxn
              ((?clown-word                        
@@ -220,7 +231,24 @@
               (?clown-word                            
                (HASH meaning ((clown ?c)))                    
                --
-               (HASH form ((string ?clown-word  "Clown"))))))
+               (HASH form ((string ?clown-word  "Clown")))))) 
+
+(def-fcg-cxn Mann-cxn
+             ((?man-word
+               (referent ?m)                  
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+                       
+              <-
+              (?man-word
+               (HASH meaning ((man ?m)))                     
+               --
+               (HASH form ((string ?man-word  "Mann"))))))
 
 
 (def-fcg-cxn Lehrerin-cxn
@@ -238,6 +266,24 @@
                (HASH meaning ((teacher ?t)))                     
                --
                (HASH form ((string ?teacher-word  "Lehrerin"))))))
+
+
+(def-fcg-cxn Frau-cxn
+             ((?woman-word                        
+               (referent ?w)
+               (syn-cat (lex-class noun)
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -)
+                               (+ - + - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?woman-word
+               (HASH meaning ((woman ?w)))                     
+               --
+               (HASH form ((string ?woman-word  "Frau"))))))
+
 
 (def-fcg-cxn Blumen-cxn
              ((?flowers-word
@@ -303,15 +349,14 @@
                --
                (footprints (not determined))
                (syn-cat (lex-class noun)
-                        (case ?case))
-               (sem-cat (animacy ?animacy)))
+                        (case ?case)))
               (?noun-phrase
                --
                (HASH form ((meets ?article ?noun)))
               ))
              :disable-automatic-footprints t)
 
-(comprehend "dem Direktor")
+(comprehend "der Mann")
 
 (def-fcg-cxn verkauft-cxn
              ((?sell-word
@@ -339,6 +384,20 @@
                (HASH meaning ((schenken-01 ?g)))
                --
                (HASH form ((string ?gift-word  "schenkt"))))))
+
+
+(def-fcg-cxn gibt-cxn
+             ((?give-word
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type ditransitive))
+               (referent ?g))  
+                        
+              <-
+              (?give-word                           
+               (HASH meaning ((geben-01 ?g)))
+               --
+               (HASH form ((string ?give-word  "gibt"))))))
 
 
 (def-fcg-cxn ditransitive-argument-structure-cxn
@@ -409,6 +468,7 @@
                       (- - - - -)         
                       (+ ?dm ?df ?dn ?dp)
                       (?rs ?dm ?df ?dn ?dp))))
+               (sem-cat (animacy animate))
                (referent ?arg2)
                 --
               (syn-cat (lex-class noun-phrase)
@@ -417,6 +477,7 @@
                       (- - - - -)         
                       (+ ?dm ?df ?dn ?dp)
                       (?rs ?dm ?df ?dn ?dp))))
+              (sem-cat (animacy animate))
               (referent ?arg2))
               
               (?ditransitive-argument-structure-unit
@@ -1055,6 +1116,155 @@
 (comprehend "dem Clown verkauft den Doktor das Buch")
 
 
+(def-fcg-cxn double-acc-masc-in-ditransitive-argument-structure-cxn
+             ((?double-acc-masc-in-ditransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               )
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object))
+               (error-cat (error incorrect-case-choice)
+                         (reason the-receiver-should-be-in-dative-another-accusative-already-exists-in-the-sentence-for-the-patient)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ - + - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ - + - -) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ - + - -))))
+                        (sem-cat (animacy animate))
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ + - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ + - - ))))
+               (sem-cat (animacy inanimate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                       (case ((- - - - -) 
+                               (+ + - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (+ + - - ))))
+              (sem-cat (animacy inanimate))
+              (referent ?arg1))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                (case ((- - - - -) 
+                      (+ + - - -)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (+ + - - -))))
+               (sem-cat (animacy animate))
+               (referent ?arg2)
+               
+                --
+              (syn-cat (lex-class noun-phrase)
+               (case ((- - - - -) 
+                      (+ + - - -)         
+                      (- - - - -)         
+                      (- - - - -)
+                      (+ + - - -))))
+              (sem-cat (animacy animate))
+              (referent ?arg2))
+              
+              
+              (?double-acc-masc-in-ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg1-error ?v ?arg2)
+                              (:arg2 ?v missing-because-of-incorrect-case-choice)))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(def-fcg-cxn arg0-arg1-topic-arg2-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg1-error +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-receiver-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)
+                           (meets ?rightmost-agent-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)))
+              
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (referent ?arg1-error)
+               (syn-cat (syn-role indirect-object))
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))
+                --
+              (referent ?arg1-error)
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))))
+             :cxn-set mal-cxn)
+
+(comprehend "den Mann gibt die Frau den Apfel")
+
+
 ;;;;FORMULATION
 
 ;;;dem Clown verkauft der Doktor das Buch
@@ -1064,6 +1274,10 @@
 ;(formulate '((teacher t) (flowers f) (director d) (schenken-01 g) (arg2 g d) (arg1 g f) (arg0 g t) (topicalized d +)))
 
 
+;;;;;COMPREHENSION
+(comprehend "dem Mann gibt die Frau den Apfel")
+(comprehend "dem Clown verkauft der Doktor das Buch")
+(comprehend "dem Direktor schenkt die Lehrerin die Blumen")
 
 
 ;;;;ERRORS
@@ -1071,6 +1285,7 @@
 (comprehend "dem Clown verkauft den Doktor das Buch")  ;DOUBLE ACC NO SUBJ
 (comprehend "dem Clown verkauft dem Doktor das Buch")  ;DOUBLE DATIVE
 (comprehend "den Direktor schenkt die Lehrerin die Blumen")
+(comprehend "den Mann gibt die Frau den Apfel")
 (comprehend "den Direktor schenkt die Lehrerin die Blume")
 (comprehend "dem Direktor schenkt die Lehrerin Blumen")
 

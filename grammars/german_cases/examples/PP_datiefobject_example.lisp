@@ -174,6 +174,7 @@
                --
                (HASH form ((string ?store-word  "Laden"))))))
 
+
 (def-fcg-cxn Mädchen-cxn
              ((?girl-word                        
                (referent ?g)
@@ -482,7 +483,6 @@
                --
                (HASH form ((string ?drive-word  "fährt"))))))
 
-
 (def-fcg-cxn ist-cxn
              ((?be-word                         
                (syn-cat (lex-class verb)
@@ -523,8 +523,6 @@
                (HASH meaning ((kommen-01 ?k)))                   
                --
                (HASH form ((string ?come-word  "kommt"))))))
-
-
 
 (def-fcg-cxn noun-phrase-cxn
              ((?noun-phrase
@@ -2184,6 +2182,8 @@
               ))
 
 
+
+
 ;;;;FORMULATION
 
 ;das Mädchen kommt aus dem Laden
@@ -2201,7 +2201,7 @@
 ;(comprehend "aus den Laden")
 (comprehend "mit seinem Fahrrad")
 (comprehend "beim Fahrrad")
-(comprehend "zum Arbeit")
+(comprehend "der Mann")
 (comprehend "das Mädchen kommt aus den Laden")
 (comprehend "das Mädchen kommt auf den Laden")
 (comprehend "der Mann fährt mit dem Fahrrad zum Arbeit") 
