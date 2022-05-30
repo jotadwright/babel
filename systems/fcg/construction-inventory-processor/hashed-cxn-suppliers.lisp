@@ -315,7 +315,7 @@
     ;; filter the cxns for a specific cxn set here using (attr-val cxn :label)
     (setq constructions
           (loop for cxn in constructions
-                when (equal (attr-val cxn :label) 'routine)
+                when (equal (attr-val cxn :label) 'gl::routine)
                 collect cxn))
     
     ;; sort 
