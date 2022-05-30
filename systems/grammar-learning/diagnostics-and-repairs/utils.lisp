@@ -197,6 +197,11 @@
   (let ((syn-cat (find 'syn-cat (comprehension-lock unit) :key #'first)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
+(defun lex-class-apply-last-cxn (cxn)
+  "return the lex-class of a cxn"
+  (let ((syn-cat (find 'syn-cat (comprehension-lock (last-elt (conditional-part cxn))) :key #'feature-name)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
 (defun lex-class-cxn (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name)))

@@ -60,7 +60,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind size-category ?size-2 small)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 9 (length (constructions cxn-inventory)))))
+    (test-equal 14 (length (constructions cxn-inventory)))))
 
 (deftest test-item-based-to-holistic-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -188,7 +188,7 @@
                                        (bind size-category ?material-9 metal)
                                        (bind material-category ?size-2 large)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 9 (length (constructions cxn-inventory)))))
+    (test-equal 14 (length (constructions cxn-inventory)))))
 
 (deftest test-item-based-to-holistic-no-duplicate-item-based-cxns-comprehension ()
          (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -215,7 +215,7 @@
                                                 (query ?target-4 ?target-object-1 ?attribute-6)))
            
            
-           (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
+           (test-repair-status 'item-based->holistic
                                (second (multiple-value-list
                                         (comprehend "What is the size of the yellow metallic cube?"
                        :cxn-inventory cxn-inventory
@@ -250,9 +250,9 @@
                                                                       (OH ?O))))))))
 
 ; (activate-monitor trace-fcg)
-; (test-item-based-to-holistic-double-comprehension)
-; (test-item-based-to-holistic-comprehension)
-; (test-item-based-to-holistic-multiple-item-based-cxns-comprehension)
-; (test-item-based-to-holistic-no-duplicate-item-based-cxns-comprehension)
+; (test-item-based-to-holistic-double-comprehension) ; fail doesn't find candidate cxn
+; (test-item-based-to-holistic-comprehension) ; fail doesn't find candidate cxn
+; (test-item-based-to-holistic-multiple-item-based-cxns-comprehension) ; ok
+; (test-item-based-to-holistic-no-duplicate-item-based-cxns-comprehension) ; ok
 ;
-; (test-item-based-to-holistic-repair-comprehension-leading-quote-amr)
+; (test-item-based-to-holistic-repair-comprehension-leading-quote-amr) ; fail
