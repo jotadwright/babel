@@ -55,9 +55,9 @@
                (overlapping-meaning
                 (set-difference (extract-meaning-predicates superset-holophrase-cxn) non-overlapping-meaning :test #'equal))
                (existing-holistic-cxn-apply-first
-                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'routine))
+                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'fcg::routine))
                (existing-holistic-cxn-apply-last
-                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'meta-only))
+                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'fcg::meta-only))
                (boundaries-holistic-cxn (get-boundary-units non-overlapping-form))
                (overlapping-form-and-rewritten-boundaries (multiple-value-list (add-boundaries-to-form-constraints overlapping-form boundaries-holistic-cxn)))
                (overlapping-form-with-rewritten-boundaries (first overlapping-form-and-rewritten-boundaries))
@@ -75,17 +75,17 @@
                (cxn-name-item-based-cxn-apply-first
                 (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-APPLY-FIRST"))
                (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
-                                         overlapping-form-with-rewritten-boundaries
-                                         overlapping-meaning
-                                         cxn-inventory
-                                         :cxn-type 'item-based
-                                         :cxn-set 'meta-only))
+                                                     overlapping-form-with-rewritten-boundaries
+                                                     overlapping-meaning
+                                                     cxn-inventory
+                                                     :cxn-type 'item-based
+                                                     :cxn-set 'fcg::meta-only))
                (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
-                                         overlapping-form-with-rewritten-boundaries
-                                         overlapping-meaning
-                                         cxn-inventory
-                                         :cxn-type 'item-based
-                                         :cxn-set 'routine))
+                                                    overlapping-form-with-rewritten-boundaries
+                                                    overlapping-meaning
+                                                    cxn-inventory
+                                                    :cxn-type 'item-based
+                                                    :cxn-set 'fcg::routine))
                (unit-name-holistic-cxn
                 ;; fix for j-unit bug, the unit name of a unit with an empty comprehension lock needs to be part of the meets constraints
                 (if (member leftmost-unit-holistic-cxn (apply 'concatenate 'list overlapping-form-with-rewritten-boundaries))
@@ -127,8 +127,8 @@
                                                                (syn-cat (phrase-type holophrase))
                                                                (args ,args-holophrase-cxn)
                                                                (boundaries
-                                                                   (left ,leftmost-unit-holophrase-cxn)
-                                                                   (right ,rightmost-unit-holophrase-cxn)))
+                                                                (left ,leftmost-unit-holophrase-cxn)
+                                                                (right ,rightmost-unit-holophrase-cxn)))
                                                                
                                                               <-
                                                               (?holophrase-unit
@@ -154,7 +154,7 @@
                                                                   (HASH meaning ,non-overlapping-meaning)
                                                                   --
                                                                   (HASH form ,non-overlapping-form)))
-                                                                :attributes (:label routine
+                                                                :attributes (:label fcg::routine
                                                                              :cxn-type holistic
                                                                              :repair holophrase->item-based+holistic+holophrase--deletion
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning :key #'first))
@@ -183,7 +183,7 @@
                                                                   (boundaries
                                                                    (left ,leftmost-unit-holistic-cxn)
                                                                    (right ,rightmost-unit-holistic-cxn))))
-                                                                :attributes (:label meta-only
+                                                                :attributes (:label fcg::meta-only
                                                                              :cxn-type holistic
                                                                              :repair holophrase->item-based+holistic+holophrase--deletion
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning :key #'first))
@@ -210,7 +210,7 @@
                                                                    (left ,(first rewritten-boundaries)) ;todo make new var that isn't equal to unit name
                                                                    (right ,(second rewritten-boundaries)))
                                                                   ))
-                                                                :attributes (:label routine
+                                                                :attributes (:label fcg::routine
                                                                              :cxn-type item-based
                                                                              :repair holophrase->item-based+holistic+holophrase--deletion
                                                                              :meaning ,(loop for predicate in overlapping-meaning
@@ -223,7 +223,7 @@
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                (new-item-based-cxn-apply-first
                 (or existing-item-based-cxn-apply-first
-                  (second (multiple-value-list (eval
+                    (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-first
                                                                 ((?item-based-unit
                                                                   (syn-cat (phrase-type item-based))
@@ -242,7 +242,7 @@
                                                                   --
                                                                   (HASH form ,overlapping-form-with-rewritten-boundaries))
                                                                  )
-                                                                :attributes (:label meta-only
+                                                                :attributes (:label fcg::meta-only
                                                                              :cxn-type item-based
                                                                              :repair holophrase->item-based+holistic+holophrase--deletion
                                                                              :meaning ,(loop for predicate in overlapping-meaning

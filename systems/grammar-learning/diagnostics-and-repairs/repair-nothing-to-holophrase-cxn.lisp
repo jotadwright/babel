@@ -60,7 +60,7 @@
                                                                         (HASH meaning ,meaning)
                                                                         --
                                                                         (HASH form ,form-constraints)))
-                                                                      :attributes (:label routine
+                                                                      :attributes (:label fcg::routine
                                                                                    :cxn-type holophrase
                                                                                    :repair nothing->holophrase
                                                                                    :string ,hash-string)

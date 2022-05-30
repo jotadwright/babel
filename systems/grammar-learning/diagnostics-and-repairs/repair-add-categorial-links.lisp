@@ -67,7 +67,7 @@
           (let* ((applied-cxns (applied-constructions cip-node))
                  (holistic-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'holistic applied-cxns) utterance cxn-inventory)) ; why sort? reuse the same lookup function from the holistic->item-based repair
                  (lex-classes-holistic-cxns (when holistic-cxns
-                                         (map 'list #'lex-class-cxn holistic-cxns)))
+                                              (map 'list #'lex-class-cxn holistic-cxns)))
                  (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
                  (lex-classes-item-based-units (when item-based-cxn
                                                  (get-conditional-unit-lex-classes item-based-cxn)))

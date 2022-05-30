@@ -115,13 +115,13 @@
                                          item-based-cxn-meaning
                                          original-cxn-set
                                          :cxn-type 'item-based
-                                         :cxn-set 'meta-only))
+                                         :cxn-set 'fcg::meta-only))
              (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
                                          item-based-cxn-form-constraints
                                          item-based-cxn-meaning
                                          original-cxn-set
                                          :cxn-type 'item-based
-                                         :cxn-set 'routine))
+                                         :cxn-set 'fcg::routine))
              
              (cxn-name-item-based-cxn-apply-last
                 (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-LAST"))
@@ -141,7 +141,7 @@
                                                                   --
                                                                   (HASH form ,item-based-cxn-form-constraints))
                                                                  ,@holistic-cxn-conditional-units)
-                                                                :attributes (:label routine
+                                                                :attributes (:label fcg::routine
                                                                              :cxn-type item-based
                                                                              :repair holistic->item-based
                                                                              :meaning ,(loop for predicate in item-based-cxn-meaning
@@ -166,7 +166,7 @@
                                                                   --
                                                                   (HASH form ,item-based-cxn-form-constraints))
                                                                  )
-                                                                :attributes (:label meta-only
+                                                                :attributes (:label fcg::meta-only
                                                                              :cxn-type item-based
                                                                              :repair holistic->item-based
                                                                              :meaning ,(loop for predicate in item-based-cxn-meaning
