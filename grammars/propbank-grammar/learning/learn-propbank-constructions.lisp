@@ -8,7 +8,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun learn-propbank-grammar (list-of-propbank-sentences &key
-                                                          (selected-rolesets nil) 
+                                                          (selected-rolesets nil)
+                                                          (excluded-rolesets nil)
                                                           (cxn-inventory '*propbank-learned-cxn-inventory*)
                                                           (fcg-configuration nil))
   "Learns a Propbank Grammar."
@@ -31,9 +32,14 @@
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
           for training-corpus-size = (get-data (blackboard cxn-inventory) :training-corpus-size)
-          for rolesets = (if selected-rolesets
-                           (intersection selected-rolesets (all-rolesets sentence) :test #'equalp)
-                           (all-rolesets sentence))
+          for rolesets = (cond (selected-rolesets
+                                (intersection selected-rolesets (all-rolesets sentence) :test #'equalp))
+                               (excluded-rolesets
+                                 (loop for roleset in (all-rolesets sentence)
+                                       unless (find roleset excluded-rolesets :test #'equalp)
+                                       collect roleset))
+                               (t
+                                (all-rolesets sentence)))
           do
           (when (= 0 (mod sentence-number 100))
             (format t "~%---> Sentence ~a." sentence-number))

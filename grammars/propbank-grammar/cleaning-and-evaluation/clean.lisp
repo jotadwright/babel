@@ -78,6 +78,7 @@ grammar on the list-of-sentences"
 (defun apply-cutoff (grammar &key (cutoff 200) sorted-cxn-list)
   "Delete all constructions that occur N times more frequently in the
 development corpus than in the training corpus."
+  (assert sorted-cxn-list)
   (loop for (cxn . dev/train-ratio) in (reverse sorted-cxn-list)
         if (>= (eval dev/train-ratio) cutoff)
         do (progn (delete-cxn (name cxn) grammar :key #'name)
@@ -109,7 +110,7 @@ under different keys"
                                    unless (or (search "BE." (subseq (mkstr (name cxn)) 0 3))
                                               (search "HAVE." (mkstr (name cxn))))
                                    collect cxn)
-        do (setf (gethash k (constructions-hash-table grammar)) remaining-cxns))
+        do (setf (gethash k (constructions-hash-table (processing-cxn-inventory grammar))) remaining-cxns))
 
   (format t "Nr of cxns after cleaning (FCG-2): ~a ~%" (size grammar))
   (format t "Nr of cxns after cleaning (FCG-1): ~a ~%" (size (processing-cxn-inventory grammar)))

@@ -43,7 +43,7 @@
                    :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
                    :type "fcg")))
 
-(cl-store:store *restored-grammar-sbcl* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
+(cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
                                 :name "propbank-grammar-ontonotes-ewt-core-roles-cleaned-sbcl"
                                 :type "fcg"))
@@ -82,6 +82,9 @@
 (learn-propbank-grammar
  (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
  :selected-rolesets nil
+ :excluded-rolesets '("be.01" "be.02" "be.03"
+                      "do.01" "do.02" "do.04" "do.11" "do.12"
+                      "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11")
  :cxn-inventory '*propbank-ewt-ontonotes-learned-cxn-inventory*
  :fcg-configuration *training-configuration*)
 
@@ -97,7 +100,7 @@
   (sort-cxns-for-outliers *propbank-ewt-ontonotes-learned-cxn-inventory*
                           (shuffle *dev-sentences*)
                           :timeout 20
-                          :nr-of-training-sentences (get-data (blackboard *restored-grammar-sbcl*) :training-corpus-size)
+                          :nr-of-training-sentences (get-data (blackboard *propbank-ewt-ontonotes-learned-cxn-inventory*) :training-corpus-size)
                           :nr-of-test-sentences 500))
 
 ;; (Optionally store the ranked cxns for future cleaning)
@@ -114,8 +117,8 @@
 (size (processing-cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*))
 ;; Test whether cleaning worked:
 ;(deactivate-all-monitors)
-(comprehend "Hello world" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
-
+(comprehend "Hello world" :cxn-inventory *restored-grammar-lw*)
+(comprehend "I love him" :cxn-inventory *restored-grammar-lw*)
 
 ;; Testing learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
