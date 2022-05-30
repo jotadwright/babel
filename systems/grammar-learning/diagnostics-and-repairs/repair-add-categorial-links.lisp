@@ -70,7 +70,7 @@
                                          (map 'list #'lex-class-cxn holistic-cxns)))
                  (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
                  (lex-classes-item-based-units (when item-based-cxn
-                                                 (get-all-unit-lex-classes item-based-cxn)))
+                                                 (get-conditional-unit-lex-classes item-based-cxn)))
                  (categorial-links (when (and
                                           lex-classes-holistic-cxns
                                           lex-classes-item-based-units

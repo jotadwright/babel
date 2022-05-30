@@ -368,7 +368,7 @@
                                                 (query ?target-4 ?target-object-1 ?attribute-6)))
            
            
-           (test-repair-status 'item-based->holistic
+           (test-repair-status 'holophrase->item-based+holistic+holistic--substitution
                                (second (multiple-value-list
                                         (comprehend "What is the size of the yellow metallic cube?"
                        :cxn-inventory cxn-inventory
@@ -382,7 +382,7 @@
                                                 (filter ?target-2 ?target-1 ?material-4)
                                                 (bind color-category ?color-16 yellow)
                                                 (query ?target-4 ?target-object-1 ?attribute-6))))))
-           (test-equal 6 (length (constructions cxn-inventory)))))
+           (test-equal 9 (length (constructions cxn-inventory)))))
 
 
 ;; (activate-monitor trace-fcg)

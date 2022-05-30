@@ -5,7 +5,7 @@
   :author "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :maintainer "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :license "To be determined."
-  :depends-on (:utils :nlp-tools :cl-store :fcg :irl)
+  :depends-on (:utils :nlp-tools :cl-store :fcg :irl :fcg-server)
   :serial t
   :components ((:file "package")
                
@@ -28,4 +28,7 @@
                              (:file "learn-propbank-constructions")))
                (:module cleaning-and-evaluation
                 :serial t
-                :components ((:file "clean")))))
+                :components ((:file "clean")))
+               (:module web-service
+                :serial t
+                :components ((:file "fcg-server-route")))))
