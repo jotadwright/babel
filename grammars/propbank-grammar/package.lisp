@@ -2,4 +2,4 @@
 
 (defpackage :propbank-grammar
   (:documentation "A Babel package for learning large-scale PropBank-based construction grammars.")
-  (:use :common-lisp :cl-user :fcg :utils))
+  (:use :common-lisp :monitors :wi :cl-user :fcg :utils))
