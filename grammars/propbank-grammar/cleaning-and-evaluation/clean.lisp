@@ -75,5 +75,4 @@ grammar on the list-of-sentences"
 (defun apply-cutoff (grammar &key (cutoff 200) (sorted-cxn-list *sorted-cxns*))
   (loop for (cxn . dev/train-ratio) in (reverse sorted-cxn-list)
         if (>= (eval dev/train-ratio) cutoff)
-        do (with-disabled-monitor-notifications
-             (delete-cxn (name cxn) grammar :key #'name))))
+        do (delete-cxn (name cxn) grammar :key #'name)))
