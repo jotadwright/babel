@@ -164,6 +164,11 @@
         for lex-class = (lex-class-item-based unit)
         collect lex-class))
 
+(defun get-conditional-unit-lex-classes (cxn)
+  (loop for unit in (subseq (conditional-part cxn) 1)
+        for lex-class = (lex-class-item-based-apply-last unit)
+        collect lex-class))
+
 (defun boundary-list (cxn)
   (loop for unit in (conditional-part cxn)
         for comprehension-lock = (comprehension-lock unit)
@@ -186,6 +191,10 @@
 
 (defun lex-class-item-based (unit)
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure unit) :key #'first)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+(defun lex-class-item-based-apply-last (unit)
+  (let ((syn-cat (find 'syn-cat (comprehension-lock unit) :key #'first)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
 (defun lex-class-cxn (cxn)
