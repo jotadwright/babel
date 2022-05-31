@@ -900,8 +900,7 @@
                            when (not (equal (first predicate) 'bind))
                            collect (third predicate)))
             (out-vars (loop for predicate in irl-network
-                           when (and (not (equal (first predicate) 'bind))
-                                     (not (equal (first predicate) 'query)))
+                           when (not (equal (first predicate) 'bind))
                            collect (second predicate)))
             (unresolved-vars (remove nil (append (set-difference in-vars out-vars) (set-difference out-vars in-vars)))))
         unresolved-vars
@@ -960,11 +959,11 @@
 (defmethod get-best-partial-analysis-cipn ((utterance string) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-    ;(with-disabled-monitor-notifications
+    (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory original-cxn-inventory)))
              (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
-        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form)))))));)
+        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
 
 (defmethod get-best-partial-analysis-cipn ((utterance string) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
