@@ -1,4 +1,7 @@
 (in-package :fcg-server)
+(use-package :propbank-grammar)
+
+(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
 
 (defroute comprehend-and-extract-frames (:post :application/json)
   (fcg-server-comprehend-and-extract-frames
@@ -47,18 +50,20 @@
         (trivial-timeout:with-timeout (timeout)
           (multiple-value-bind (solution cipn frame-set)
               (handler-case (monitors:with-disabled-monitor-notifications
-                              (propbank-grammar::comprehend-and-extract-frames
-                               utterance :cxn-inventory grammar))
+                              (propbank-grammar::comprehend-and-extract-frames utterance :cxn-inventory grammar :silent t))
                 (error (e)
                   (http-condition 400 (format nil "Error during the comprehension process: ~a" e))))
             (declare (ignore solution cipn))
             ;;  4. Return the result as a json object
             (cl-json:encode-json-alist-to-string
-             `((:frame-set . ,(loop for frame in (propbank-grammar::frames frame-set)
+             `((:status-code . 200)
+               (:frame-set . ,(loop for frame in (propbank-grammar::frames frame-set)
                                     collect `((:frame-name . ,(propbank-grammar::frame-name frame))
                                               (:roles . ,(append `(((:role . "V")
-                                                                    (:string . ,(propbank-grammar::fel-string (propbank-grammar::frame-evoking-element frame)))
-                                                                    (:indices . ,(propbank-grammar::indices (propbank-grammar::frame-evoking-element frame)))))
+                                                                    (:string . ,(propbank-grammar::fel-string
+                                                                                 (propbank-grammar::frame-evoking-element frame)))
+                                                                    (:indices . ,(propbank-grammar::indices
+                                                                                  (propbank-grammar::frame-evoking-element frame)))))
                                                                  (loop for fe in (propbank-grammar::frame-elements frame)
                                                                        collect `((:role . ,(propbank-grammar::fe-role fe))
                                                                                  (:string . ,(propbank-grammar::fe-string fe))

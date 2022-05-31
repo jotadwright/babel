@@ -2,10 +2,12 @@
 (ql:quickload :propbank-grammar)
 (in-package :propbank-grammar)
 
+(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
+
 (defparameter *restored-grammar*
   (cl-store:restore
    #+sbcl (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                          :name "propbank-grammar-ontonotes-ewt-core-roles-sbcl"
+                          :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-cleaned-sbcl"
                           :type "fcg")
    #+lispworks (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
                         :name "propbank-grammar-ontonotes-ewt-core-roles-lw"

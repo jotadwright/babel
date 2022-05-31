@@ -34,7 +34,7 @@
 (defparameter *restored-grammar-sbcl*
   (cl-store:restore
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                   :name "propbank-grammar-ontonotes-ewt-core-roles-cleaned-sbcl"
+                   :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-cleaned-sbcl"
                    :type "fcg")))
 
 (defparameter *restored-grammar-lw*
@@ -43,9 +43,9 @@
                    :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
                    :type "fcg")))
 
-(cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
+(cl-store:store *restored-grammar-sbcl* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
+                                :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-cleaned-sbcl"
                                 :type "fcg"))
 
 
@@ -77,7 +77,7 @@
      )
     (:cxn-supplier-mode . :propbank-english)))
 
-(defvar *propbank-ewt-ontonotes-learned-cxn-inventory*)
+(defvar *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
 
 (learn-propbank-grammar
  (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
@@ -88,7 +88,6 @@
  :cxn-inventory '*propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*
  :fcg-configuration *training-configuration*)
 
-(add-element (make-html *propbank-ewt-ontonotes-learned-cxn-inventory-2*))
 
 ;; Cleaning learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -98,29 +97,34 @@
 
 ;; Use learned grammar on the development corpus to gather statistics on spurious construction applications
 (defparameter *sorted-cxns*
-  (sort-cxns-for-outliers *propbank-ewt-ontonotes-learned-cxn-inventory*
+  (sort-cxns-for-outliers *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*
                           (shuffle *dev-sentences*)
                           :timeout 20
-                          :nr-of-training-sentences (get-data (blackboard *propbank-ewt-ontonotes-learned-cxn-inventory*) :training-corpus-size)
+                          :nr-of-training-sentences (get-data (blackboard *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*) :training-corpus-size)
                           :nr-of-test-sentences 500))
 
 ;; (Optionally store the ranked cxns for future cleaning)
 (cl-store:store *sorted-cxns*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "sorted-cxns-lw"
+                                :name "sorted-cxns-sbcl"
                                 :type "store"))
 
+(setf *sorted-cxns* (cl-store:restore
+                     (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
+                                     :name "sorted-cxns-sbcl"
+                                     :type "store")))
+
 ;; Delete constructions from the learned grammar that apply too often
-(apply-cutoff *propbank-ewt-ontonotes-learned-cxn-inventory* :cutoff 2000 :sorted-cxn-list *sorted-cxns*)
+(apply-cutoff *restored-grammar-sbcl* :cutoff 4 :sorted-cxn-list *sorted-cxns*)
 
 ;; Delete all constructions for be and have from the grammar
-(delete-have-and-be-cxns *propbank-ewt-ontonotes-learned-cxn-inventory*)
-
+(delete-have-and-be-cxns *restored-grammar-sbcl*)
+(size (processing-cxn-inventory *restored-grammar-sbcl*))
+(size *restored-grammar-sbcl*)
 ;; Test whether cleaning worked:
 ;(deactivate-all-monitors)
-(comprehend "Hello world" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
-(comprehend "I love you" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
-(comprehend "She told them a story" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
+(comprehend "Hello world" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "I love you" :cxn-inventory *restored-grammar*)
 
 ;; Testing learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;

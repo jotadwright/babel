@@ -48,11 +48,13 @@
   (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     (set-data initial-cfs :selected-rolesets selected-rolesets)
     (set-data initial-cfs :utterance utterance)
+    
     ;; Construction application
     (multiple-value-bind (solution cip)
         (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent))
       (let ((meaning (when solution
-                          (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
+                       (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
+        
         ;; Notification
         (unless silent (monitors:notify parse-finished meaning processing-cxn-inventory))
         ;; Return value
