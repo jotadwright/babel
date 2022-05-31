@@ -123,7 +123,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind material-category ?size-2 metal)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 9 (length (constructions cxn-inventory)))))
+    (test-equal 15 (length (constructions cxn-inventory)))))
 
 (deftest test-item-based-to-holistic-double-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -188,7 +188,7 @@
                                        (bind size-category ?material-9 metal)
                                        (bind material-category ?size-2 large)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 14 (length (constructions cxn-inventory)))))
+    (test-equal 15 (length (constructions cxn-inventory)))))
 
 (deftest test-item-based-to-holistic-no-duplicate-item-based-cxns-comprehension ()
          (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -268,9 +268,8 @@
                                                                       (OH ?O))))))))
 
 ; (activate-monitor trace-fcg)
-; (activate-monitor trace-fcg-search-process)
-; (test-item-based-to-holistic-double-comprehension) ;FAIL! doesn't apply candidate holistic cxn, supplier does supply it
-; (test-item-based-to-holistic-comprehension) ; fail doesn't find candidate cxn, same problem as above
+; (test-item-based-to-holistic-double-comprehension) ; ok
+; (test-item-based-to-holistic-comprehension) ; ok
 ; (test-item-based-to-holistic-multiple-item-based-cxns-comprehension) ; ok
 ; (test-item-based-to-holistic-no-duplicate-item-based-cxns-comprehension) ; ok
 ;

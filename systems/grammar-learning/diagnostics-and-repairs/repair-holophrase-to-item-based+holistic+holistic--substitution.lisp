@@ -169,7 +169,7 @@ based on existing construction with sufficient overlap."
                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-1-apply-last
                                                                 (
                                                                  <-
-                                                                 (,unit-name-holistic-cxn-1
+                                                                 (?holistic-unit
                                                                   (HASH meaning ,non-overlapping-meaning-cxn)
                                                                   (args ,args-holistic-cxn-1)
                                                                   (syn-cat (phrase-type holistic)
@@ -221,7 +221,7 @@ based on existing construction with sufficient overlap."
                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-2-apply-last
                                                                 (
                                                                  <-
-                                                                 (,unit-name-holistic-cxn-2
+                                                                 (?holistic-unit
                                                                   (HASH meaning ,non-overlapping-meaning-observation)
                                                                   (args ,args-holistic-cxn-2)
                                                                   (syn-cat (phrase-type holistic)

@@ -140,7 +140,7 @@
                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-last
                                                                 (
                                                                  <-
-                                                                 (,unit-name-holistic-cxn
+                                                                 (?holistic-unit
                                                                   (HASH meaning ,non-overlapping-meaning)
                                                                   (args ,args-holistic-cxn)
                                                                   (syn-cat (phrase-type holistic)
