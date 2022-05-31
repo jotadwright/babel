@@ -29,7 +29,7 @@
           finally (notify cxns-rewarded applied-cxns))
     (loop with cxn-delta = (get-configuration agent :cxn-decf-score)
           for competitor in (get-meaning-competitors agent applied-cxns utterance)
-          for alter-ego-competitor = (alter-ego-cxn cxn (grammar agent))
+          for alter-ego-competitor = (alter-ego-cxn competitor (grammar agent))
           do (dec-cxn-score agent competitor :delta cxn-delta)
             (when alter-ego-competitor
               (dec-cxn-score agent alter-ego-competitor :delta cxn-delta))

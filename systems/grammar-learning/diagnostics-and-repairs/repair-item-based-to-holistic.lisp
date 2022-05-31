@@ -135,7 +135,7 @@
 
                  (cxns-to-apply (append (list item-based-cxn) all-holistic-cxns))
                  (cxns-to-consolidate (unless existing-holistic-cxn-apply-first (list new-holistic-cxn-apply-first))))
-            (add-element (make-html new-holistic-cxn-apply-last))
+            ;(add-element (make-html new-holistic-cxn-apply-last))
             (when categorial-links
               (list
                cxns-to-apply
