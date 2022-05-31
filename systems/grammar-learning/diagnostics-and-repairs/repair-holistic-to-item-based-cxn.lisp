@@ -143,6 +143,7 @@
                                                                  ,@holistic-cxn-conditional-units)
                                                                 :attributes (:label fcg::routine
                                                                              :cxn-type item-based
+                                                                             :bare-cxn-name ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                              :repair holistic->item-based
                                                                              :meaning ,(loop for predicate in item-based-cxn-meaning
                                                                                                       unless (or
@@ -168,6 +169,7 @@
                                                                  )
                                                                 :attributes (:label fcg::meta-only
                                                                              :cxn-type item-based
+                                                                             :bare-cxn-name ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                              :repair holistic->item-based
                                                                              :meaning ,(loop for predicate in item-based-cxn-meaning
                                                                                                       unless (or

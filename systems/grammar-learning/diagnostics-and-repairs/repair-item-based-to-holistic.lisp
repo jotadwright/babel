@@ -86,6 +86,7 @@
                                                                     (HASH form ,root-form-constraints)))
                                                                   :attributes (:label fcg::routine
                                                                                :cxn-type holistic
+                                                                               :bare-cxn-name ,holistic-cxn-name
                                                                                :repair item-based->holistic
                                                                                :meaning ,(fourth (find 'bind remaining-meaning :key #'first))
                                                                                :string ,(third (find 'string root-form-constraints :key #'first)))
@@ -114,6 +115,7 @@
                                                                      (right ,rightmost-unit-holistic-cxn))))
                                                                   :attributes (:label fcg::meta-only
                                                                                :cxn-type holistic
+                                                                               :bare-cxn-name ,holistic-cxn-name
                                                                                :repair item-based->holistic
                                                                                :meaning ,(fourth (find 'bind remaining-meaning :key #'first))
                                                                                :string ,(third (find 'string root-form-constraints :key #'first)))

@@ -128,6 +128,7 @@
                                                                   (HASH form ,non-overlapping-form)))
                                                                 :attributes (:label fcg::routine
                                                                              :cxn-type holistic
+                                                                             :bare-cxn-name ,holistic-cxn-name
                                                                              :repair holophrase->item-based+holistic--addition
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form :key #'first)))
@@ -157,6 +158,7 @@
                                                                    (right ,rightmost-unit-holistic-cxn))))
                                                                 :attributes (:label fcg::meta-only
                                                                              :cxn-type holistic
+                                                                             :bare-cxn-name ,holistic-cxn-name
                                                                              :repair holophrase->item-based+holistic--addition
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form :key #'first)))
@@ -183,6 +185,7 @@
                                                                   ))
                                                                 :attributes (:label fcg::routine
                                                                              :cxn-type item-based
+                                                                             :bare-cxn-name ,cxn-name-item-based-cxn
                                                                              :repair holophrase->item-based+holistic--addition
                                                                              :meaning ,(loop for predicate in overlapping-meaning
                                                                                              unless (or
@@ -215,6 +218,7 @@
                                                                  )
                                                                 :attributes (:label fcg::meta-only
                                                                              :cxn-type item-based
+                                                                             :bare-cxn-name ,cxn-name-item-based-cxn
                                                                              :repair holophrase->item-based+holistic--addition
                                                                              :meaning ,(loop for predicate in overlapping-meaning
                                                                                              unless (or
