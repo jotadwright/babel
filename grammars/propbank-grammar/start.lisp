@@ -45,7 +45,7 @@
 
 (cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-core-roles-cleaned-sbcl"
+                                :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
                                 :type "fcg"))
 
 
@@ -85,9 +85,10 @@
  :excluded-rolesets '("be.01" "be.02" "be.03"
                       "do.01" "do.02" "do.04" "do.11" "do.12"
                       "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11")
- :cxn-inventory '*propbank-ewt-ontonotes-learned-cxn-inventory*
+ :cxn-inventory '*propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*
  :fcg-configuration *training-configuration*)
 
+(add-element (make-html *propbank-ewt-ontonotes-learned-cxn-inventory-2*))
 
 ;; Cleaning learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -106,19 +107,20 @@
 ;; (Optionally store the ranked cxns for future cleaning)
 (cl-store:store *sorted-cxns*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "sorted-cxns-sbcl"
+                                :name "sorted-cxns-lw"
                                 :type "store"))
 
 ;; Delete constructions from the learned grammar that apply too often
-(apply-cutoff *propbank-ewt-ontonotes-learned-cxn-inventory* :cutoff 30 :sorted-cxn-list *sorted-cxns*)
+(apply-cutoff *propbank-ewt-ontonotes-learned-cxn-inventory* :cutoff 2000 :sorted-cxn-list *sorted-cxns*)
 
 ;; Delete all constructions for be and have from the grammar
 (delete-have-and-be-cxns *propbank-ewt-ontonotes-learned-cxn-inventory*)
-(size (processing-cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*))
+
 ;; Test whether cleaning worked:
 ;(deactivate-all-monitors)
-(comprehend "Hello world" :cxn-inventory *restored-grammar-lw*)
-(comprehend "I love him" :cxn-inventory *restored-grammar-lw*)
+(comprehend "Hello world" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
+(comprehend "I love you" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
+(comprehend "She told them a story" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
 
 ;; Testing learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
