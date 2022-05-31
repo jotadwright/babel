@@ -10,7 +10,8 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   ;(activate-monitor show-type-hierarchy-after-n-interactions)
-  (activate-monitor trace-interactions-in-wi))
+  ;(activate-monitor trace-interactions-in-wi)
+  )
 
 
 (progn
@@ -29,7 +30,7 @@
                                                                     :name "amr3" :type "json") cl-user:*babel-corpora*))))))
 
 ;(run-interaction *experiment*)
-;(run-series *experiment* 500)
+;(run-series *experiment* 5000)
 
 (define-configuration-default-value :corpus-files-root
                                     (merge-pathnames
