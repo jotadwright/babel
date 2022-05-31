@@ -6,23 +6,38 @@
 (progn
   (deactivate-all-monitors)
   ;(activate-monitor display-metrics)
-  (activate-monitor trace-fcg)
+;  (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   ;(activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
+
 
 (progn
   (wi::reset)
   (notify reset-monitors)
   (defparameter *experiment*
     (make-instance 'grammar-learning-experiment
-                   :entries '((:observation-sample-mode . :sort-length-ascending)
+                   :entries `((:observation-sample-mode . :sort-length-ascending)
                               (:de-render-mode . :de-render-string-meets-ignore-quotes+full-stops)
-                              (:meaning-representation . :amr)))))
+                              (:meaning-representation . :amr)
+                              (:corpus-files-root . ,(merge-pathnames
+                                                      (make-pathname :directory '(:relative "amr-corpora" "amr_annotation_3.0" "data" "amrs" "unsplit"))
+                                                      cl-user:*babel-corpora*))
+                              (:corpus-data-file . ,(merge-pathnames
+                                                     (make-pathname :directory '(:relative "amr-corpora" "amr_annotation_3.0" "pre-processed")
+                                                                    :name "amr3" :type "json") cl-user:*babel-corpora*))))))
 
 ;(run-interaction *experiment*)
-;(run-series *experiment* 100)
+;(run-series *experiment* 500)
+
+(define-configuration-default-value :corpus-files-root
+                                    (merge-pathnames
+                                     (make-pathname :directory '(:relative "amr-corpora" "little-prince-amr"))
+                                     cl-user:*babel-corpora*))
+(define-configuration-default-value :corpus-data-file
+                                    (make-pathname :directory '(:relative "pre-processed")
+                                                   :name "little-prince-amr" :type "json"))
 
 
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
