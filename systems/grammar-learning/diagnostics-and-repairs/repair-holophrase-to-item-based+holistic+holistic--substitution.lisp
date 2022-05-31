@@ -157,6 +157,7 @@ based on existing construction with sufficient overlap."
                                                                   (HASH form ,non-overlapping-form-cxn)))
                                                                 :attributes (:label fcg::routine
                                                                              :cxn-type holistic
+                                                                             :bare-cxn-name ,cxn-name-holistic-cxn-1
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning-cxn :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
@@ -186,6 +187,7 @@ based on existing construction with sufficient overlap."
                                                                    (right ,rightmost-unit-holistic-cxn-1))))
                                                                 :attributes (:label fcg::meta-only
                                                                              :cxn-type holistic
+                                                                             :bare-cxn-name ,cxn-name-holistic-cxn-1
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning-cxn :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form-cxn :key #'first)))
@@ -208,6 +210,7 @@ based on existing construction with sufficient overlap."
                                                                   (HASH form ,non-overlapping-form-observation)))
                                                                 :attributes (:label fcg::routine
                                                                              :cxn-type holistic
+                                                                             :bare-cxn-name ,cxn-name-holistic-cxn-2
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning-observation :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
@@ -236,6 +239,7 @@ based on existing construction with sufficient overlap."
                                                                    (right ,rightmost-unit-holistic-cxn-2))))
                                                                 :attributes (:label fcg::meta-only
                                                                              :cxn-type holistic
+                                                                             :bare-cxn-name ,cxn-name-holistic-cxn-2
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
                                                                              :meaning ,(fourth (find 'bind non-overlapping-meaning-observation :key #'first))
                                                                              :string ,(third (find 'string non-overlapping-form-observation :key #'first)))
@@ -262,6 +266,7 @@ based on existing construction with sufficient overlap."
                                                                   ))
                                                                 :attributes (:label fcg::routine
                                                                              :cxn-type item-based
+                                                                             :bare-cxn-name ,cxn-name-item-based-cxn
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
                                                                              :meaning ,(loop for predicate in overlapping-meaning-observation
                                                                                              unless (or
@@ -294,6 +299,7 @@ based on existing construction with sufficient overlap."
                                                                  )
                                                                 :attributes (:label fcg::meta-only
                                                                              :cxn-type item-based
+                                                                             :bare-cxn-name ,cxn-name-item-based-cxn
                                                                              :repair holophrase->item-based+holistic+holistic--substitution
                                                                              :meaning ,(loop for predicate in overlapping-meaning-observation
                                                                                              unless (or
