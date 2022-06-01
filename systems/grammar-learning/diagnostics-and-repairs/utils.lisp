@@ -677,6 +677,9 @@
                       (> (length non-overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-form-observation) 0)
                       (> (length non-overlapping-form-cxn) 0)
+                      (> (length overlapping-form-observation) 0)
+                      overlapping-form-cxn
+                      cxn
                       (check-meets-continuity non-overlapping-form-cxn)
                       (check-meets-continuity non-overlapping-form-observation)
                       (equivalent-irl-programs?
@@ -689,8 +692,8 @@
                                  overlapping-meaning-observation
                                  overlapping-meaning-cxn
                                  overlapping-form-observation
-                                 overlapping-form-cxn
-                                 cxn)))))))
+                                 cxn
+                                 )))))))
 
 (defun diff-non-overlapping-form (observed-form matching-lex-cxns)
   "subtract all lexical forms from the gold standard,

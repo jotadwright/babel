@@ -50,11 +50,10 @@ based on existing construction with sufficient overlap."
                           overlapping-meaning-observation
                           overlapping-meaning-cxn
                           overlapping-form-observation
-                          overlapping-form-cxn
                           cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
       
-      (when (and cxn overlapping-form-cxn)
+      (when cxn
         
         (let* ((cxn-name-item-based-cxn
                 (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation) cxn-inventory :add-numeric-tail t))
