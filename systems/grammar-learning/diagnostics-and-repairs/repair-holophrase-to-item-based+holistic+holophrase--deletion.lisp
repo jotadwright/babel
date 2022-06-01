@@ -55,9 +55,9 @@
                (overlapping-meaning
                 (set-difference (extract-meaning-predicates superset-holophrase-cxn) non-overlapping-meaning :test #'equal))
                (existing-holistic-cxn-apply-first
-                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'fcg::routine))
+                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'fcg::routine :cxn-type 'holistic))
                (existing-holistic-cxn-apply-last
-                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'fcg::meta-only))
+                (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'fcg::meta-only :cxn-type 'holistic))
                (boundaries-holistic-cxn (get-boundary-units non-overlapping-form))
                (overlapping-form-and-rewritten-boundaries (multiple-value-list (add-boundaries-to-form-constraints overlapping-form boundaries-holistic-cxn)))
                (overlapping-form-with-rewritten-boundaries (first overlapping-form-and-rewritten-boundaries))
@@ -270,7 +270,8 @@
                (cxns-to-apply (list holophrase-cxn))
                (cat-links-to-add (list categorial-link)) 
                (cxns-to-consolidate (loop for cxn in new-cxns
-                                          unless (member cxn existing-cxns)
+                                          unless (or (member cxn existing-cxns)
+                                                     (member cxn cxns-to-apply))
                                           collect cxn)))
 
           ;; return

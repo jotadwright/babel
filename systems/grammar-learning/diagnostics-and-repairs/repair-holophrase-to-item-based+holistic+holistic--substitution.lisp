@@ -70,13 +70,13 @@ based on existing construction with sufficient overlap."
                
                ;; check for existing cxns
                (holistic-cxn-1-apply-first
-                (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory :cxn-set 'fcg::routine))
+                (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory :cxn-set 'fcg::routine :cxn-type 'holistic))
                (holistic-cxn-1-apply-last
-                (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory :cxn-set 'fcg::meta-only))
+                (find-cxn-by-form-and-meaning non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory :cxn-set 'fcg::meta-only :cxn-type 'holistic))
                (holistic-cxn-2-apply-first
-                (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory :cxn-set 'fcg::routine))
+                (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory :cxn-set 'fcg::routine :cxn-type 'holistic))
                (holistic-cxn-2-apply-last
-                (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory :cxn-set 'fcg::meta-only))
+                (find-cxn-by-form-and-meaning non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory :cxn-set 'fcg::meta-only :cxn-type 'holistic))
                
                ;; holistic cxn boundaries (leftmost/rightmost)
                (boundaries-cxn-1 (get-boundary-units non-overlapping-form-cxn))
@@ -323,7 +323,8 @@ based on existing construction with sufficient overlap."
                (cxns-to-apply (list new-holistic-cxn-2 new-item-based-cxn-apply-last))
                (cat-links-to-add (list categorial-link-1 categorial-link-2)) 
                (cxns-to-consolidate (loop for cxn in new-cxns
-                                          unless (member cxn existing-cxns)
+                                          unless (or (member cxn existing-cxns)
+                                                     (member cxn cxns-to-apply))
                                           collect cxn)))
           
                                   
