@@ -12,7 +12,9 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by making a new holophrase construction."
-  (when (initial-node-p node)
+  (when (and (initial-node-p node)
+             (form-constraints-with-variables (random-elt (get-data problem :utterances))
+                                              (get-configuration (construction-inventory node) :de-render-mode)))
     (make-instance 'fcg::cxn-fix
                    :repair repair
                    :problem problem
@@ -23,7 +25,9 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by making a new holophrase construction."
-  (when (initial-node-p node)
+  (when (and (initial-node-p node)
+             (form-constraints-with-variables (random-elt (get-data problem :utterances))
+                                              (get-configuration (construction-inventory node) :de-render-mode)))
     (make-instance 'fcg::cxn-fix
                    :repair repair
                    :problem problem
@@ -44,28 +48,28 @@
          (args-holophrase-cxn (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
          ;; take the last element of the form constraints (the last word) and use it for hashing
          (hash-string (loop for fc in form-constraints
-                        when (equalp (first fc) 'string)
-                        collect (third fc) into hash-strings
-                        finally (return (last-elt hash-strings))))
-         (holophrase-cxn (second (multiple-value-list  (eval
-                                                        `(def-fcg-cxn ,cxn-name
-                                                                      ((?holophrase-unit
-                                                                        (syn-cat (phrase-type holophrase))
-                                                                        (args ,args-holophrase-cxn)
-                                                                        (boundaries
-                                                                         (left ,leftmost-unit-holophrase-cxn)
-                                                                         (right ,rightmost-unit-holophrase-cxn)))
-                                                                       <-
-                                                                       (?holophrase-unit
-                                                                        (HASH meaning ,meaning)
-                                                                        --
-                                                                        (HASH form ,form-constraints)))
-                                                                      :attributes (:label fcg::routine
-                                                                                   :cxn-type holophrase
-                                                                                   :repair nothing->holophrase
-                                                                                   :string ,hash-string)
-                                                                      :cxn-inventory ,(copy-object cxn-inventory)))))))
-    holophrase-cxn))
+                            when (equalp (first fc) 'string)
+                              collect (third fc) into hash-strings
+                            finally (return (last-elt hash-strings)))))
+    (assert hash-string)
+    (second (multiple-value-list  (eval
+                                   `(def-fcg-cxn ,cxn-name
+                                                 ((?holophrase-unit
+                                                   (syn-cat (phrase-type holophrase))
+                                                   (args ,args-holophrase-cxn)
+                                                   (boundaries
+                                                    (left ,leftmost-unit-holophrase-cxn)
+                                                    (right ,rightmost-unit-holophrase-cxn)))
+                                                  <-
+                                                  (?holophrase-unit
+                                                   (HASH meaning ,meaning)
+                                                   --
+                                                   (HASH form ,form-constraints)))
+                                                 :attributes (:label fcg::routine
+                                                              :cxn-type holophrase
+                                                              :repair nothing->holophrase
+                                                              :string ,hash-string)
+                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
 
 
 ;; uses standard handle-fix
