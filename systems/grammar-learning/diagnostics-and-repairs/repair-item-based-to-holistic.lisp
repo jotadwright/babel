@@ -53,7 +53,8 @@
       (let* ((root-form-constraints (form-predicates-with-variables (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node)))) 'form)))
              (inverted-cxn-meanings (get-inverted-cxn-meanings applied-cxns gold-standard-meaning))
              (remaining-meaning (subtract-cxn-meanings-from-gold-standard-meaning inverted-cxn-meanings gold-standard-meaning)))
-        (when (and (check-meets-continuity root-form-constraints) ;there is one continuous string in root
+        (when (and remaining-meaning
+                   (check-meets-continuity root-form-constraints) ;there is one continuous string in root
                    (cxn-meaning-is-valid-gold-standard-subset-p inverted-cxn-meanings)) ;; the subtracted meaning must not be nil
           (let* ((holistic-cxn-name (make-cxn-name root-form-constraints original-cxn-inventory :add-numeric-tail t :add-cxn-suffix t))
                  (cxn-name-holistic-cxn-apply-last (concatenate 'string (symbol-name holistic-cxn-name) "-APPLY-LAST"))
