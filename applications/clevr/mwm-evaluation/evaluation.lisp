@@ -266,7 +266,8 @@
   (let ((logfiles
          (directory
           (merge-pathnames
-           (make-pathname :directory `(:relative ,(format nil "serie-~a" serie-number))
+           (make-pathname :directory `(:relative "simulated"
+                                       ,(format nil "serie-~a" serie-number))
                           :name :wild :type "log")
            *default-output-dir*)))
         results)
@@ -277,6 +278,44 @@
                       (accuracy (average (remove nil data))))
                  (push (cons primitive accuracy) results))))
     results))
+
+(defun compute-overall-accuries-per-primitive ()
+  (let ((result (compute-accuracy-per-primitive 1)))
+    (loop for s from 2 to 10
+          for r = (compute-accuracy-per-primitive s)
+          do (loop for (primitive . accuracy) in r
+                   do (cond ((and (assoc primitive result)
+                                  (listp (rest (assoc primitive result))))
+                             (setf (rest (assoc primitive result))
+                                   (cons accuracy (rest (assoc primitive result)))))
+                            ((assoc primitive result)
+                             (setf (rest (assoc primitive result))
+                                   (list accuracy (rest (assoc primitive result)))))
+                            (t
+                             (setf result
+                                   (cons (cons primitive (list accuracy)) result))))))
+    (loop for (primitive . accuracies) in result
+          do (format t "~a - ~a" primitive (length accuracies))
+          collect (cons primitive (average accuracies)))))
+
+(compute-overall-accuries-per-primitive)
+
+#|
+((CLEVR-WORLD:QUERY . 0.9458618)
+ (CLEVR-WORLD:INTERSECT . 0.89401263)
+ (UNION . 0.97510577)
+ (CLEVR-WORLD:GREATER-THAN . 0.98816336)
+ (COUNT . 0.97708285)
+ (CLEVR-WORLD:FILTER . 0.96099365)
+ (CLEVR-WORLD:UNIQUE . 0.9566474)
+ (EQUAL . 0.9421175)
+ (CLEVR-WORLD:EXIST . 0.982551)
+ (CLEVR-WORLD:RELATE . 0.92130584)
+ (CLEVR-WORLD:SAME . 1.0)
+ (CLEVR-WORLD:EQUAL-INTEGER . 0.978329)
+ (CLEVR-WORLD:LESS-THAN . 0.98831606))
+|#
+        
     
 
 

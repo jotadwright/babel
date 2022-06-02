@@ -12,32 +12,37 @@
 ;; Return xpos when concept is left or right and ypos when concept is front or behind
 (defun get-relation-type (concept)
   (case (id concept)
-                ('left 'x-spatial-relations)
-                ('right 'x-spatial-relations)
-                ('front 'yz-spatial-relations)
-                ('behind 'yz-spatial-relations)))
+    ('left 'x-spatial-relations)
+    ('right 'x-spatial-relations)
+    ('front 'yz-spatial-relations)
+    ('behind 'yz-spatial-relations)))
 
 ;; Shifts the middle of the relevant axis to the point of the reference object
 ;; shift = ref - middle axis
 (defun get-shifts (reference-object)
   (let* ((x-pos (mwm::get-attr-val reference-object 'mwm::xpos))
-        (y-pos (mwm::get-attr-val reference-object 'mwm::ypos))
-        (z-pos (mwm::get-attr-val reference-object 'mwm::zpos))
-        (shifts `((:x-shift . , (if x-pos (- x-pos 240) nil))
-                  (:y-shift . , (if y-pos (- y-pos 160) nil))
-                  (:z-shift . , (if z-pos (- z-pos 11) nil)))))
+         (y-pos (mwm::get-attr-val reference-object 'mwm::ypos))
+         (z-pos (mwm::get-attr-val reference-object 'mwm::zpos))
+         (shifts `((:x-shift . , (if x-pos (- x-pos 240) nil))
+                   (:y-shift . , (if y-pos (- y-pos 160) nil))
+                   (:z-shift . , (if z-pos (- z-pos 11) nil)))))
     shifts))
 
 ;; Shifts the concept's prototypical value for the relevant axis and makes a new concept out of it (with the same id)
 (defun shift-concept (concept shifts)
-  (let* ((shifted-prototypes (loop for prototype in (meaning concept) 
-                                   for shifted-prototype = (cond ((eql (attribute prototype) 'mwm::xpos) (shift-prototype prototype (rest (assoc :x-shift shifts))))
-                                                                 ((eql (attribute prototype) 'mwm::ypos) (shift-prototype prototype (rest (assoc :y-shift shifts))))
-                                                                 ((eql (attribute prototype) 'mwm::zpos) (shift-prototype prototype (rest (assoc :z-shift shifts))))
-                                                                 (t  prototype))
-                                   collect shifted-prototype))
+  (let* ((shifted-prototypes
+          (loop for prototype in (meaning concept) 
+                for shifted-prototype
+                  = (cond ((eql (attribute prototype) 'mwm::xpos)
+                           (shift-prototype prototype (rest (assoc :x-shift shifts))))
+                          ((eql (attribute prototype) 'mwm::ypos)
+                           (shift-prototype prototype (rest (assoc :y-shift shifts))))
+                          ((eql (attribute prototype) 'mwm::zpos)
+                           (shift-prototype prototype (rest (assoc :z-shift shifts))))
+                          (t  prototype))
+                collect shifted-prototype))
          (new-concept (make-instance 'spatial-concept :id (id concept) :form (form concept) 
-                            :meaning shifted-prototypes)))
+                                     :meaning shifted-prototypes)))
     new-concept))
 
 ;; shifts the prototypical value by adding the difference between the reference object and the middle of the axis to it
@@ -63,10 +68,13 @@
                                  for shifted-concept = (shift-concept concept shifts)
                                  collect shifted-concept))
          (context-objects (remove (find-entity-by-id (objects scene) (id object))(objects scene)))
-         (related-objects (loop for context-item in context-objects
-                           for best-category = (find-best-category context-item shifted-concepts) ;finds the best suited concept for all context-objects
-                           if (eql (id best-category) (id concept)) ;context objects are added to related-objects when their best suited concept is the queried one
-                           collect context-item))) 
+         (related-objects
+          (loop for context-item in context-objects
+                  ;finds the best suited concept for all context-objects
+                for best-category = (find-best-category context-item shifted-concepts)
+                  ;context objects are added to related-objects when their best suited concept is the queried one
+                if (eql (id best-category) (id concept)) 
+                  collect context-item))) 
     (when related-objects 
       (make-instance 'mwm::mwm-object-set :objects related-objects))))
 
