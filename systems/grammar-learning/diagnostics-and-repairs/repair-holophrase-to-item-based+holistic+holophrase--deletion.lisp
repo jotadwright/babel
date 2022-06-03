@@ -46,14 +46,18 @@
          (utterance (random-elt (get-data problem :utterances))))
     (multiple-value-bind (superset-holophrase-cxn
                           non-overlapping-form
-                          non-overlapping-meaning)
+                          non-overlapping-meaning
+                          overlapping-form
+                          overlapping-meaning
+                          args-holistic-cxn)
         (find-superset-holophrase-cxn cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
 
       (when superset-holophrase-cxn
-        (let* ((overlapping-form
-                (set-difference (extract-form-predicates superset-holophrase-cxn) non-overlapping-form :test #'equal))
-               (overlapping-meaning
-                (set-difference (extract-meaning-predicates superset-holophrase-cxn) non-overlapping-meaning :test #'equal))
+        (let* (
+               (meaning
+                (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
+                                                   meaning-representation-formalism))
+               (args-holophrase-cxn (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
                (existing-holistic-cxn-apply-first
                 (find-cxn-by-form-and-meaning non-overlapping-form non-overlapping-meaning cxn-inventory :cxn-set 'fcg::routine :cxn-type 'holistic))
                (existing-holistic-cxn-apply-last
@@ -105,14 +109,6 @@
                 (cons lex-class-holistic-cxn lex-class-item-based-cxn))
                
                
-
-               (meaning
-                (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
-                                                   meaning-representation-formalism))
-               ;; args: 
-               (args-holistic-cxn
-                (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism))
-               (args-holophrase-cxn (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
                (cxn-name
                 (make-cxn-name utterance cxn-inventory :add-numeric-tail t))
                (form-constraints

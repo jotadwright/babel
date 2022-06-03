@@ -48,8 +48,10 @@ based on existing construction with sufficient overlap."
                           non-overlapping-form-observation
                           non-overlapping-form-cxn
                           overlapping-meaning-observation
-                          overlapping-meaning-cxn
+                          ;overlapping-meaning-cxn
                           overlapping-form-observation
+                          args-holistic-cxn-1
+                          args-holistic-cxn-2
                           cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
       
@@ -130,12 +132,6 @@ based on existing construction with sufficient overlap."
                 (cons lex-class-holistic-cxn-1 lex-class-item-based-cxn))
                (categorial-link-2
                 (cons lex-class-holistic-cxn-2 lex-class-item-based-cxn))
-               
-               ;; args
-               (args-holistic-cxn-1
-                (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
-               (args-holistic-cxn-2
-                (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
                 
                ;; cxns
                (new-holistic-cxn-1
@@ -278,7 +274,7 @@ based on existing construction with sufficient overlap."
                (new-item-based-cxn-apply-first
                 (or existing-item-based-cxn-apply-first
                     (second (multiple-value-list (eval
-                                                  `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-first
+                                                `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-first
                                                                 ((?item-based-unit
                                                                   (syn-cat (phrase-type item-based))
                                                                   (subunits (,unit-name-holistic-cxn-2)))
@@ -326,7 +322,6 @@ based on existing construction with sufficient overlap."
                                           unless (or (member cxn existing-cxns)
                                                      (member cxn cxns-to-apply))
                                           collect cxn)))
-          
                                   
           (list
            cxns-to-apply
