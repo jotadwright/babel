@@ -33,6 +33,13 @@
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
 
+(defun sort-units-by-meets-constraints (units-to-sort meets-constraints)
+  (sort units-to-sort #'< :key #'(lambda (unit) (let ((pos (position (second (unit-feature-value unit 'boundaries))
+                                                                     (apply 'concatenate 'list meets-constraints))))
+                                                  (if pos
+                                                    pos
+                                                    0)))))
+
 (defun sort-units-by-form-string (units-to-sort utterance cxn-inventory)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
   ;; warning, this function depends on space separation without further punctuation!

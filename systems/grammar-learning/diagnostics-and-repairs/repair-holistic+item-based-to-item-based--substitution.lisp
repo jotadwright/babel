@@ -58,6 +58,7 @@
                               args-holistic-cxn-2
                               cxn)
             (select-item-based-cxn-for-making-item-based-cxn cxn-inventory intermediary-item-based-cxn meaning-representation-formalism)
+          (when cxn
           ;; create newly learned holistic cxns, there should be two + two ordering variations (see substitution repair)
           (let* ((cxn-name-holistic-cxn-1 (make-cxn-name non-overlapping-form-cxn cxn-inventory :add-numeric-tail t))
                  (cxn-name-holistic-cxn-1-apply-last (concatenate 'string (symbol-name cxn-name-holistic-cxn-1) "-APPLY-LAST"))
@@ -291,7 +292,9 @@
                                                           (boundaries
                                                            (left ,(first rewritten-boundaries))
                                                            (right ,(second rewritten-boundaries)))))
-                 (holistic-cxn-conditional-units (push new-holistic-subunit-block-apply-last (first known-holistic-cxn-subunit-blocks))) ; todo sort by form string! other repairs depend on this
+                 (holistic-cxn-conditional-units (sort-units-by-meets-constraints (push new-holistic-subunit-block-apply-last (first known-holistic-cxn-subunit-blocks))
+                                                                                  overlapping-form-with-rewritten-boundaries
+                                                                                  )) 
                  (holistic-cxn-contributing-units (push new-holistic-subunit-block-apply-first (second known-holistic-cxn-subunit-blocks)))
                  (holistic-subunit-names (push leftmost-unit-holistic-cxn-2 (third known-holistic-cxn-subunit-blocks)))
                  (cat-links-to-add (push categorial-link (fourth known-holistic-cxn-subunit-blocks)))
@@ -373,7 +376,7 @@
            cxns-to-apply
            cat-links-to-add
            cxns-to-consolidate
-           )))))))
+           ))))))))
                
 
 

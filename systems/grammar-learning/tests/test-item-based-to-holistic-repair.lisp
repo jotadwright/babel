@@ -268,7 +268,7 @@
                                                                       (OH ?O))))))))
 
 ; (activate-monitor trace-fcg)
-; (test-item-based-to-holistic-double-comprehension) ; ok
+; (test-item-based-to-holistic-double-comprehension) ; ok - can be used to test item-based to item-based addition
 ; (test-item-based-to-holistic-comprehension) ; ok
 ; (test-item-based-to-holistic-multiple-item-based-cxns-comprehension) ; ok
 ; (test-item-based-to-holistic-no-duplicate-item-based-cxns-comprehension) ; ok
