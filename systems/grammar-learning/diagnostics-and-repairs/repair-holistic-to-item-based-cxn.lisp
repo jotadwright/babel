@@ -82,6 +82,7 @@
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
                                                  do (setf item-based-cxn-form-constraints updated-form-constraints)
+                                                 collect (list updated-boundaries holistic-cxn-unit-name args holistic-cxn-lex-class) into updated-boundary-name-and-args-list
                                                  collect subtracted-meaning into subtracted-meanings
                                                  collect categorial-link into categorial-links
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
@@ -100,7 +101,7 @@
                                                            (boundaries
                                                             (left ,(first updated-boundaries))
                                                             (right ,(second updated-boundaries)))) into conditional-units-apply-last
-                                                 finally (return (values conditional-units-apply-last contributing-units-apply-first holistic-subunit-names categorial-links subtracted-meanings)))))
+                                                 finally (return (values conditional-units-apply-last contributing-units-apply-first holistic-subunit-names categorial-links subtracted-meanings updated-boundary-name-and-args-list)))))
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -109,6 +110,7 @@
               (third holistic-cxn-subunit-blocks))
              (cat-links-to-add (fourth holistic-cxn-subunit-blocks))
              (subtracted-meanings (fifth holistic-cxn-subunit-blocks))
+             (updated-boundary-name-and-args-list (sixth holistic-cxn-subunit-blocks))
              (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning gold-standard-meaning subtracted-meanings))
              (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
                                          item-based-cxn-form-constraints
@@ -196,6 +198,7 @@
         (list
          cxns-to-apply
          cat-links-to-add
-         cxns-to-consolidate)
+         cxns-to-consolidate
+         updated-boundary-name-and-args-list)
         ))))
 

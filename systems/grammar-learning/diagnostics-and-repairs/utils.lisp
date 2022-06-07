@@ -217,6 +217,8 @@
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
          
+(defun get-cxn-boundaries-apply-first (cxn)
+  (find 'boundaries (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name))
 
 (defun non-overlapping-meaning (meaning cxn &key (nom-cxn nil) (nom-observation nil))
   (when (and nom-cxn nom-observation) (error "only nom-cxn or nom-observeration can be true"))
@@ -473,6 +475,14 @@
         do (setf item-based-fc (substitute-slot-meets-constraints fc item-based-fc))
         finally (return item-based-fc)))
 
+(defun make-item-based-name-form-constraints-from-cxns (item-based-cxn-form-constraints boundary-list)
+  (loop with item-based-fc = item-based-cxn-form-constraints
+        for (left-boundary right-boundary) in boundary-list
+        do (setf item-based-fc (loop for fc in (copy-object item-based-fc)
+                                     collect (replace-chunk-variables fc left-boundary right-boundary left-boundary)))
+        finally (return item-based-fc)))
+
+
 
 (defgeneric meaning-predicates-with-variables (meaning mode))
 
@@ -702,6 +712,66 @@
                     (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
                     (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal))
+                    ;; args
+                    (args-holistic-cxn-1
+                     (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
+                    (args-holistic-cxn-2
+                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+               (when (and
+                      (> (length overlapping-meaning-observation) 0)
+                      (> (length overlapping-meaning-cxn) 0)
+                      (> (length non-overlapping-meaning-observation) 0)
+                      (> (length non-overlapping-meaning-cxn) 0)
+                      (> (length non-overlapping-form-observation) 0)
+                      (> (length non-overlapping-form-cxn) 0)
+                      (> (length overlapping-form-observation) 0)
+                      (<= (length args-holistic-cxn-1) 2) ; check if the meaning network is continuous
+                      (<= (length args-holistic-cxn-2) 2) ; check if the meaning network is continuous
+                      overlapping-form-cxn
+                      cxn
+                      (check-meets-continuity non-overlapping-form-cxn)
+                      (check-meets-continuity non-overlapping-form-observation)
+                      (equivalent-irl-programs?
+                       (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation)
+                       (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)))
+                 (return (values non-overlapping-meaning-observation
+                                 non-overlapping-meaning-cxn
+                                 non-overlapping-form-observation
+                                 non-overlapping-form-cxn
+                                 overlapping-meaning-observation
+                                 ;overlapping-meaning-cxn
+                                 overlapping-form-observation
+                                 args-holistic-cxn-1
+                                 args-holistic-cxn-2
+                                 cxn
+                                 )))))))
+
+(defun create-dummy-predicates-for-args (args-list)
+  (loop for args in args-list
+        collect (list 'dummy (second args) (first args))))
+  
+
+(defun select-item-based-cxn-for-making-item-based-cxn (cxn-inventory intermediary-item-based-cxn meaning-representation-formalism)
+  (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
+        do (when (and
+                  (eql (attr-val cxn :cxn-type) 'item-based)
+                  (eql (attr-val cxn :label) 'fcg::routine))
+             (let* ((cxn-args (extract-args-apply-last cxn)) ;; fill up the gaps created by args with a dummy predicate, remove it in the end
+                    (cxn-dummy-predicates (create-dummy-predicates-for-args cxn-args))
+                    (cxn-meaning (append cxn-dummy-predicates (extract-meaning-predicates cxn)))
+                    (intermediary-item-based-form-constraints (extract-form-predicates intermediary-item-based-cxn))
+                    (intermediary-args (extract-args-apply-last intermediary-item-based-cxn))
+                    (intermediary-dummy-predicates (create-dummy-predicates-for-args intermediary-args))
+                    (intermediary-item-based-meaning (append intermediary-dummy-predicates (extract-meaning-predicates intermediary-item-based-cxn)))
+                    (non-overlapping-meanings (multiple-value-list (diff-meaning-networks intermediary-item-based-meaning cxn-meaning meaning-representation-formalism)))
+                    (non-overlapping-meaning-observation (first non-overlapping-meanings))
+                    (non-overlapping-meaning-cxn (second non-overlapping-meanings))
+                    (overlapping-meaning-observation (set-difference (extract-meaning-predicates intermediary-item-based-cxn) non-overlapping-meaning-observation :test #'equal))
+                    (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
+                    (non-overlapping-form-observation (non-overlapping-form intermediary-item-based-form-constraints cxn :nof-observation t))
+                    (non-overlapping-form-cxn (non-overlapping-form intermediary-item-based-form-constraints cxn :nof-cxn t))
+                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
+                    (overlapping-form-observation (set-difference intermediary-item-based-form-constraints non-overlapping-form-observation :test #'equal))
                     ;; args
                     (args-holistic-cxn-1
                      (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
