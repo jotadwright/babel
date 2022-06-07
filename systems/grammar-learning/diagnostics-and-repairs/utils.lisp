@@ -197,6 +197,16 @@
   (let ((syn-cat (find 'syn-cat (comprehension-lock unit) :key #'first)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
+(defun extract-args-apply-last (cxn)
+  (let* ((units (conditional-part cxn))
+         (args (loop for unit in (rest units)
+                     for formulation-lock = (formulation-lock unit)
+                     for arg-list = (second (find 'args formulation-lock :key #'feature-name))
+                     collect arg-list)))
+    args))
+
+
+         
 (defun lex-class-apply-last-cxn (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (comprehension-lock (last-elt (conditional-part cxn))) :key #'feature-name)))

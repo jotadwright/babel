@@ -59,23 +59,32 @@
         (select-item-based-cxn-for-making-item-based-cxn cxn-inventory intermediary-item-based-cxn meaning-representation-formalism)))))
   nil)
 
-
+(defun create-dummy-predicates-for-args (args-list)
+  (loop for args in args-list
+        collect (list 'dummy (second args) (first args))))
+  
 
 (defun select-item-based-cxn-for-making-item-based-cxn (cxn-inventory intermediary-item-based-cxn meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-        do (when (eql (attr-val cxn :cxn-type) 'item-based)
-             (let* ((cxn-meaning (extract-meaning-predicates cxn)) ;; todo fill up the gaps created by args with a dummy predicate, remove it in the end
+        do (when (and
+                  (eql (attr-val cxn :cxn-type) 'item-based)
+                  (eql (attr-val cxn :label) 'fcg::routine))
+             (let* ((cxn-args (extract-args-apply-last cxn)) ;; fill up the gaps created by args with a dummy predicate, remove it in the end
+                    (cxn-dummy-predicates (create-dummy-predicates-for-args cxn-args))
+                    (cxn-meaning (append cxn-dummy-predicates (extract-meaning-predicates cxn)))
                     (intermediary-item-based-form-constraints (extract-form-predicates intermediary-item-based-cxn))
-                    (intermediary-item-based-meaning (extract-meaning-predicates intermediary-item-based-cxn)) ;; todo fill up the gaps!
+                    (intermediary-args (extract-args-apply-last intermediary-item-based-cxn))
+                    (intermediary-dummy-predicates (create-dummy-predicates-for-args intermediary-args))
+                    (intermediary-item-based-meaning (append intermediary-dummy-predicates (extract-meaning-predicates intermediary-item-based-cxn)))
                     (non-overlapping-meanings (multiple-value-list (diff-meaning-networks intermediary-item-based-meaning cxn-meaning meaning-representation-formalism)))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
-                    (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
+                    (overlapping-meaning-observation (set-difference (extract-meaning-predicates intermediary-item-based-cxn) non-overlapping-meaning-observation :test #'equal))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
-                    (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
-                    (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
+                    (non-overlapping-form-observation (non-overlapping-form intermediary-item-based-form-constraints cxn :nof-observation t))
+                    (non-overlapping-form-cxn (non-overlapping-form intermediary-item-based-form-constraints cxn :nof-cxn t))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
-                    (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal))
+                    (overlapping-form-observation (set-difference intermediary-item-based-form-constraints non-overlapping-form-observation :test #'equal))
                     ;; args
                     (args-holistic-cxn-1
                      (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
