@@ -295,7 +295,8 @@
                  (holistic-cxn-conditional-units (sort-units-by-meets-constraints (push new-holistic-subunit-block-apply-last (first known-holistic-cxn-subunit-blocks))
                                                                                   overlapping-form-with-rewritten-boundaries
                                                                                   )) 
-                 (holistic-cxn-contributing-units (push new-holistic-subunit-block-apply-first (second known-holistic-cxn-subunit-blocks)))
+                 (holistic-cxn-contributing-units (sort-units-by-meets-constraints (push new-holistic-subunit-block-apply-first (second known-holistic-cxn-subunit-blocks))
+                                                                                   overlapping-form-with-rewritten-boundaries))
                  (holistic-subunit-names (push leftmost-unit-holistic-cxn-2 (third known-holistic-cxn-subunit-blocks)))
                  (cat-links-to-add (push categorial-link (fourth known-holistic-cxn-subunit-blocks)))
                  
