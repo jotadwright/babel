@@ -33,13 +33,45 @@
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
 
-;; unsafe - meets constraints are not necessarily ordered correctly! fill in the boundaries and sort the meets constraints!
-(defun sort-units-by-meets-constraints (units-to-sort meets-constraints)
-  (sort units-to-sort #'< :key #'(lambda (unit) (let ((pos (position (second (unit-feature-value unit 'boundaries))
-                                                                     (apply 'concatenate 'list meets-constraints))))
+(defun sort-unvariablified-units-by-meets-constraints (units-to-sort meets-constraints)
+  (let* ((meets-fc (extract-form-predicate-by-type meets-constraints 'meets))
+         (sorted-meets-fc (sort-meets-constraints meets-fc))
+         (flat-meets-fc (apply 'concatenate 'list sorted-meets-fc)))
+  (sort units-to-sort #'< :key #'(lambda (unit) (let ((pos (position (variablify (second (first (unit-feature-value unit 'boundaries))))
+                                                                     flat-meets-fc)))
                                                   (if pos
                                                     pos
-                                                    0)))))
+                                                    0))))))
+
+;; unsafe - meets constraints are not necessarily ordered correctly! fill in the boundaries and sort the meets constraints!
+(defun sort-units-by-meets-constraints (units-to-sort meets-constraints)
+  (let* ((meets-fc (extract-form-predicate-by-type meets-constraints 'meets))
+         (sorted-meets-fc (sort-meets-constraints meets-fc))
+         (flat-meets-fc (apply 'concatenate 'list sorted-meets-fc)))
+  (sort units-to-sort #'< :key #'(lambda (unit) (let ((pos (position (second (unit-feature-value unit 'boundaries))
+                                                                     flat-meets-fc)))
+                                                  (if pos
+                                                    pos
+                                                    0))))))
+(defun make-dummy-fc-from-unit-boundaries (units)
+  (loop for unit in units
+        for boundaries = (cdr (find 'fcg::boundaries unit :key #'(lambda (item) (if (equal (type-of item) 'cons)
+                                                                             (first item)
+                                                                             item))))
+        when boundaries
+        collect (list 'fcg::meets (second (first boundaries)) (second (second boundaries)))))
+
+(defun sort-meets-constraints (form-constraints)
+  "return the sorted list of meets constraints"
+  (let* ((begin-var (first (get-boundary-units form-constraints)))
+         (first-predicate (find begin-var form-constraints :key #'second)))
+    (loop with next-predicate = first-predicate
+          with resulting-list = nil
+          for next-var = (third next-predicate)
+          while next-predicate
+          do (setf resulting-list (pushend next-predicate resulting-list))
+          (setf next-predicate (find next-var form-constraints :key #'second))
+          finally (return resulting-list))))
 
 (defun sort-units-by-form-string (units-to-sort utterance cxn-inventory)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."

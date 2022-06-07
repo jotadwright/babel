@@ -292,11 +292,17 @@
                                                           (boundaries
                                                            (left ,(first rewritten-boundaries))
                                                            (right ,(second rewritten-boundaries)))))
-                 (holistic-cxn-conditional-units (sort-units-by-meets-constraints (push new-holistic-subunit-block-apply-last (first known-holistic-cxn-subunit-blocks))
-                                                                                  overlapping-form-with-rewritten-boundaries
-                                                                                  )) 
-                 (holistic-cxn-contributing-units (sort-units-by-meets-constraints (push new-holistic-subunit-block-apply-first (second known-holistic-cxn-subunit-blocks))
-                                                                                   overlapping-form-with-rewritten-boundaries))
+                 (combined-conditional-units (push new-holistic-subunit-block-apply-last (first known-holistic-cxn-subunit-blocks)))
+                 (combined-contributing-units (push new-holistic-subunit-block-apply-first (second known-holistic-cxn-subunit-blocks)))
+                 (dummy-meets-constraints (make-dummy-fc-from-unit-boundaries combined-conditional-units))
+                                           
+                     
+                 (combined-fc (append overlapping-form-with-rewritten-boundaries dummy-meets-constraints))
+                 (holistic-cxn-conditional-units (sort-units-by-meets-constraints combined-conditional-units
+                                                                                  combined-fc
+                                                                                  ))
+                 (holistic-cxn-contributing-units (sort-units-by-meets-constraints combined-contributing-units
+                                                                                   combined-fc))
                  (holistic-subunit-names (push leftmost-unit-holistic-cxn-2 (third known-holistic-cxn-subunit-blocks)))
                  (cat-links-to-add (push categorial-link (fourth known-holistic-cxn-subunit-blocks)))
                  
