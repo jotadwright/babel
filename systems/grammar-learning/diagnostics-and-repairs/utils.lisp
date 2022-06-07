@@ -33,6 +33,7 @@
                      (setf (nth i resulting-list) cxn-obj))))
       (remove nil resulting-list))))
 
+;; unsafe - meets constraints are not necessarily ordered correctly! fill in the boundaries and sort the meets constraints!
 (defun sort-units-by-meets-constraints (units-to-sort meets-constraints)
   (sort units-to-sort #'< :key #'(lambda (unit) (let ((pos (position (second (unit-feature-value unit 'boundaries))
                                                                      (apply 'concatenate 'list meets-constraints))))
