@@ -546,7 +546,7 @@
                --
                )))
 
-(def-fcg-cxn incorrect-receiver-ditransitive-argument-structure-cxn
+(def-fcg-cxn incorrect-receiver-in-ditransitive-argument-structure-cxn
              ((?double-accusative-incorrect-ditransitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
               (?agent-unit
@@ -1151,7 +1151,7 @@
 
 ;;;;;;ERRORS
 
-(comprehend "die Blume")
+(comprehend "der Doktor")
 
 (comprehend "der Doktor verkauft den Clown das Buch")    ; double accusative
 
