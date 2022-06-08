@@ -36,6 +36,7 @@
   
 
 (defun create-holistic-cxn-from-partial-analysis (problem node)
+  
   (let* ((original-cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
          (meaning-representation-formalism (get-configuration original-cxn-inventory :meaning-representation-formalism))
@@ -75,7 +76,7 @@
                   (or existing-holistic-cxn-apply-first
                       (second (multiple-value-list (eval
                                                     `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-first
-                                                                  ((,leftmost-unit-holistic-cxn
+                                                                  ((?holistic-unit
                                                                     (args ,args-holistic-cxn)
                                                                     (syn-cat (phrase-type holistic)
                                                                              (lex-class ,lex-class-holistic-cxn))
@@ -83,7 +84,7 @@
                                                                      (left ,leftmost-unit-holistic-cxn)
                                                                      (right ,rightmost-unit-holistic-cxn)))
                                                                    <-
-                                                                   (,leftmost-unit-holistic-cxn
+                                                                   (?holistic-unit
                                                                     (HASH meaning ,remaining-meaning)
                                                                     --
                                                                     (HASH form ,root-form-constraints)))

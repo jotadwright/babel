@@ -50,4 +50,5 @@
       (push (type-of repair) (statuses last-applied-node))
       (push 'added-by-repair (statuses last-applied-node))
       ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block
-      (cip-enqueue last-applied-node (cip node) (get-configuration node :queue-mode)))))
+      (cip-enqueue last-applied-node (cip node) (get-configuration node :queue-mode))
+      )))

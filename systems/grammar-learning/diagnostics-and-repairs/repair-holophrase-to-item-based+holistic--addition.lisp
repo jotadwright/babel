@@ -113,7 +113,7 @@
                 (or existing-holistic-cxn-apply-first
                     (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-first
-                                                                ((,unit-name-holistic-cxn
+                                                                ((?holistic-unit
                                                                   (args ,args-holistic-cxn)
                                                                   (syn-cat (phrase-type holistic)
                                                                            (lex-class ,lex-class-holistic-cxn))
@@ -121,7 +121,7 @@
                                                                    (left ,leftmost-unit-holistic-cxn)
                                                                    (right ,rightmost-unit-holistic-cxn)))
                                                                  <-
-                                                                 (,unit-name-holistic-cxn
+                                                                 (?holistic-unit
                                                                   (HASH meaning ,non-overlapping-meaning)
                                                                   --
                                                                   (HASH form ,non-overlapping-form)))

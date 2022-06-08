@@ -34,6 +34,7 @@
                        :restart-data constructions-and-th-links)))))
 
 (defun create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution (problem node)
+  
   "Creates item-based construction around matching holistic constructions"
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
@@ -127,7 +128,7 @@
                     (or holistic-cxn-1-apply-first
                         (second (multiple-value-list (eval
                                                       `(def-fcg-cxn ,cxn-name-holistic-cxn-1-apply-first
-                                                                    ((,unit-name-holistic-cxn-1
+                                                                    ((?holistic-unit
                                                                       (args ,args-holistic-cxn-1)
                                                                       (syn-cat (phrase-type holistic)
                                                                                (lex-class ,lex-class-holistic-cxn-1))
@@ -135,7 +136,7 @@
                                                                        (left ,leftmost-unit-holistic-cxn-1)
                                                                        (right ,rightmost-unit-holistic-cxn-1)))
                                                                      <-
-                                                                     (,unit-name-holistic-cxn-1
+                                                                     (?holistic-unit
                                                                       (HASH meaning ,non-overlapping-meaning-cxn)
                                                                       --
                                                                       (HASH form ,non-overlapping-form-cxn)))
@@ -180,7 +181,7 @@
                     (or holistic-cxn-2-apply-first
                         (second (multiple-value-list (eval
                                                       `(def-fcg-cxn ,cxn-name-holistic-cxn-2-apply-first
-                                                                    ((,unit-name-holistic-cxn-2
+                                                                    ((?holistic-unit
                                                                       (args ,args-holistic-cxn-2)
                                                                       (syn-cat (phrase-type holistic)
                                                                                (lex-class ,lex-class-holistic-cxn-2))
@@ -188,7 +189,7 @@
                                                                        (left ,leftmost-unit-holistic-cxn-2)
                                                                        (right ,rightmost-unit-holistic-cxn-2)))
                                                                      <-
-                                                                     (,unit-name-holistic-cxn-2
+                                                                     (?holistic-unit
                                                                       (HASH meaning ,non-overlapping-meaning-observation)
                                                                       --
                                                                       (HASH form ,non-overlapping-form-observation)))
@@ -367,7 +368,7 @@
                                    new-holistic-cxn-1-apply-last
                                    new-holistic-cxn-2-apply-last
                                    item-based-cxn-apply-first))
-                   (cxns-to-apply (append applied-holistic-cxns (list item-based-cxn-apply-last)))
+                   (cxns-to-apply (append applied-holistic-cxns (list item-based-cxn-apply-last))) ; bug in apply first cxn?
               
                    (cxns-to-consolidate (loop for cxn in new-cxns
                                               unless (or (member cxn existing-cxns)
@@ -381,11 +382,12 @@
                       finally (setf cat-links-to-add new-cat-links))
                 )
               ;; add cat link to the alternative holistic cxn
-              (loop for link in cat-links-to-add
-                    for holistic-cxn-lc = (car link)
-                    for slot-lc = (cdr link)
-                    when (equal lex-class-holistic-cxn-2 holistic-cxn-lc)
-                    do (push (cons lex-class-holistic-cxn-1 slot-lc) cat-links-to-add))
+              (push (loop for link in cat-links-to-add
+                          for holistic-cxn-lc = (car link)
+                          for slot-lc = (cdr link)
+                          when (equal lex-class-holistic-cxn-2 holistic-cxn-lc)
+                          return (cons lex-class-holistic-cxn-1 slot-lc))
+                    cat-links-to-add)
                     
                                   
               (list
