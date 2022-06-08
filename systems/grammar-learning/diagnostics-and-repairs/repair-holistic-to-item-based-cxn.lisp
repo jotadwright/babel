@@ -55,8 +55,9 @@
       (let* ((car-res-cfs (car-resulting-cfs (cipn-car best-partial-analysis-node)))
              (resulting-left-pole-structure (left-pole-structure car-res-cfs))
              (resulting-root (get-root resulting-left-pole-structure))
-             (resulting-units (sort-units-by-form-string (remove resulting-root resulting-left-pole-structure) utterance original-cxn-set))
              (item-based-cxn-form-constraints (variablify-form-constraints-with-constants (unit-feature-value resulting-root 'form)))
+             ;(resulting-units (sort-units-by-form-string (remove resulting-root resulting-left-pole-structure) utterance original-cxn-set))
+             (resulting-units (sort-unvariablified-units-by-meets-constraints (remove resulting-root resulting-left-pole-structure) item-based-cxn-form-constraints))
              (chunk-item-based-cxn-form-constraints (make-item-based-name-form-constraints-from-units item-based-cxn-form-constraints resulting-units))
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
              (cxn-name-item-based-cxn (make-cxn-name
@@ -82,6 +83,7 @@
                                                  for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  for categorial-link = (cons holistic-cxn-lex-class holistic-slot-lex-class)
                                                  do (setf item-based-cxn-form-constraints updated-form-constraints)
+                                                 collect (list updated-boundaries holistic-cxn-unit-name args holistic-cxn-lex-class) into updated-boundary-name-and-args-list
                                                  collect subtracted-meaning into subtracted-meanings
                                                  collect categorial-link into categorial-links
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
@@ -100,7 +102,7 @@
                                                            (boundaries
                                                             (left ,(first updated-boundaries))
                                                             (right ,(second updated-boundaries)))) into conditional-units-apply-last
-                                                 finally (return (values conditional-units-apply-last contributing-units-apply-first holistic-subunit-names categorial-links subtracted-meanings)))))
+                                                 finally (return (values conditional-units-apply-last contributing-units-apply-first holistic-subunit-names categorial-links subtracted-meanings updated-boundary-name-and-args-list)))))
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -109,6 +111,7 @@
               (third holistic-cxn-subunit-blocks))
              (cat-links-to-add (fourth holistic-cxn-subunit-blocks))
              (subtracted-meanings (fifth holistic-cxn-subunit-blocks))
+             (updated-boundary-name-and-args-list (sixth holistic-cxn-subunit-blocks))
              (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning gold-standard-meaning subtracted-meanings))
              (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
                                          item-based-cxn-form-constraints
@@ -143,6 +146,7 @@
                                                                  ,@holistic-cxn-conditional-units)
                                                                 :attributes (:label fcg::routine
                                                                              :cxn-type item-based
+                                                                             :bare-cxn-name ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                              :repair holistic->item-based
                                                                              :meaning ,(loop for predicate in item-based-cxn-meaning
                                                                                                       unless (or
@@ -168,6 +172,7 @@
                                                                  )
                                                                 :attributes (:label fcg::meta-only
                                                                              :cxn-type item-based
+                                                                             :bare-cxn-name ,(add-cxn-suffix cxn-name-item-based-cxn)
                                                                              :repair holistic->item-based
                                                                              :meaning ,(loop for predicate in item-based-cxn-meaning
                                                                                                       unless (or
@@ -194,6 +199,7 @@
         (list
          cxns-to-apply
          cat-links-to-add
-         cxns-to-consolidate)
+         cxns-to-consolidate
+         updated-boundary-name-and-args-list)
         ))))
 

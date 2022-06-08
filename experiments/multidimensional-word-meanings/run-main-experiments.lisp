@@ -6,7 +6,7 @@
  :asdf-system "mwm"
  :package "mwm"
  :experiment-class "mwm-experiment"
- :number-of-interactions 15000
+ :number-of-interactions 5000
  :number-of-series 10
  :monitors (list "export-communicative-success"
                  "export-lexicon-size"
@@ -20,10 +20,10 @@
                          (:certainty-incf . 0.1)
                          (:certainty-decf . -0.1)
                          (:remove-on-lower-bound . nil)
-                         (:lexical-variation . nil))
+                         (:lexical-variation . nil)
+                         (:concept-history-length . 100))
  ;; configurations
  :configurations '(
-                   
                    (baseline-simulated
                     ((:experiment-type . :baseline)
                      (:world-type . :simulated)

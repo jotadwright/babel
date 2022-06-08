@@ -34,7 +34,7 @@
     (values utterance gold-standard-meaning)))
 
 (defun determine-communicative-success (cipn)
-  (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
+ ; (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (when (or
            (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
@@ -48,6 +48,7 @@
       (cond ((find 'nothing->holophrase node-statuses :test #'string=) "h")
             ((find 'holistic->item-based node-statuses :test #'string=) "i")
             ((find 'item-based->holistic node-statuses :test #'string=) "l")
+            ((find 'holistic+item-based->item-based--substitution node-statuses :test #'string=) "z")
             ((find 'holophrase->item-based+holistic+holistic--substitution node-statuses :test #'string=) "s")
             ((find 'holophrase->item-based+holistic--addition node-statuses :test #'string=) "a")
             ((find 'holophrase->item-based+holistic+holophrase--deletion node-statuses :test #'string=) "d")

@@ -77,6 +77,7 @@
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (gl::add-categorial-links
+                             gl::holistic+item-based->item-based--substitution
                              gl::item-based->holistic
                              gl::holophrase->item-based+holistic+holistic--substitution
                              gl::holophrase->item-based+holistic--addition
@@ -175,8 +176,9 @@
   "Get cxns with the same form as cxn"
   (loop for cxn in applied-cxns
         for cxn-type = (get-cxn-type cxn)
+        for alter-ego = (alter-ego-cxn cxn (grammar agent))
         for competitors = (when (eql cxn-type 'gl::item-based)
-                            (meaning-competitors-for-cxn-type
-                             cxn (grammar agent) cxn-type
-                             agent utterance))
+                            (remove alter-ego (meaning-competitors-for-cxn-type
+                                               cxn (grammar agent) cxn-type
+                                               agent utterance)))
         append competitors))

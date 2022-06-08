@@ -123,7 +123,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind material-category ?size-2 metal)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 9 (length (constructions cxn-inventory)))))
+    (test-equal 15 (length (constructions cxn-inventory)))))
 
 (deftest test-item-based-to-holistic-double-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -188,7 +188,7 @@
                                        (bind size-category ?material-9 metal)
                                        (bind material-category ?size-2 large)
                                        (query ?target-7 ?source-9 ?attribute-2))))))
-    (test-equal 14 (length (constructions cxn-inventory)))))
+    (test-equal 15 (length (constructions cxn-inventory)))))
 
 (deftest test-item-based-to-holistic-no-duplicate-item-based-cxns-comprehension ()
          (let* ((experiment (set-up-cxn-inventory-and-repairs))
@@ -231,6 +231,24 @@
                                                 (query ?target-4 ?target-object-1 ?attribute-6))))))
            (test-equal 9 (length (constructions cxn-inventory)))))
 
+(deftest test-item-based-to-holistic-repair-comprehension-amr ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-amr))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Hum !"
+                :cxn-inventory cxn-inventory
+                :gold-standard-meaning '((:MODE ?H EXPRESSIVE)
+                                         (HUM ?H)))
+    (comprehend "Ah !"
+                :cxn-inventory cxn-inventory
+                :gold-standard-meaning '((:MODE ?A EXPRESSIVE)
+                                         (AH ?A)))
+    (test-repair-status 'item-based->holistic
+                        (second (multiple-value-list
+                                 (comprehend "Oh !"
+                                             :cxn-inventory cxn-inventory
+                                             :gold-standard-meaning '((:MODE ?O EXPRESSIVE)
+                                                                      (OH ?O))))))))
+
 (deftest test-item-based-to-holistic-repair-comprehension-leading-quote-amr ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs-amr))
          (cxn-inventory (grammar (first (agents experiment)))))
@@ -250,9 +268,10 @@
                                                                       (OH ?O))))))))
 
 ; (activate-monitor trace-fcg)
-; (test-item-based-to-holistic-double-comprehension) ; fail doesn't find candidate cxn
-; (test-item-based-to-holistic-comprehension) ; fail doesn't find candidate cxn
+; (test-item-based-to-holistic-double-comprehension) ; ok - can be used to test item-based to item-based addition
+; (test-item-based-to-holistic-comprehension) ; ok
 ; (test-item-based-to-holistic-multiple-item-based-cxns-comprehension) ; ok
 ; (test-item-based-to-holistic-no-duplicate-item-based-cxns-comprehension) ; ok
 ;
-; (test-item-based-to-holistic-repair-comprehension-leading-quote-amr) ; fail
+; (test-item-based-to-holistic-repair-comprehension-amr) ; ok
+; (test-item-based-to-holistic-repair-comprehension-leading-quote-amr) ; ok

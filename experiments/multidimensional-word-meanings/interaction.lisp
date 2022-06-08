@@ -204,6 +204,9 @@
   ;; load the scenes
   (setf (world experiment)
         (make-instance 'clevr-world :data-sets '("valB")))
+
+  ;; to do: maybe summarize the concepts here, using the concept history??
+  
   ;; load the extracted scenes
   (when (eql (get-configuration experiment :world-type) :extracted)
     (let ((data-path (namestring (find-data experiment :ns-vqa-data-path))))
