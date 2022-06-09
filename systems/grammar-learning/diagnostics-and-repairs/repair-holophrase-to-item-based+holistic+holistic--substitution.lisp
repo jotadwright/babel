@@ -138,7 +138,7 @@ based on existing construction with sufficient overlap."
                 (or holistic-cxn-1-apply-first
                     (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-1-apply-first
-                                                                ((,unit-name-holistic-cxn-1
+                                                                ((?holistic-unit
                                                                   (args ,args-holistic-cxn-1)
                                                                   (syn-cat (phrase-type holistic)
                                                                            (lex-class ,lex-class-holistic-cxn-1))
@@ -146,7 +146,7 @@ based on existing construction with sufficient overlap."
                                                                    (left ,leftmost-unit-holistic-cxn-1)
                                                                    (right ,rightmost-unit-holistic-cxn-1)))
                                                                  <-
-                                                                 (,unit-name-holistic-cxn-1
+                                                                 (?holistic-unit
                                                                   (HASH meaning ,non-overlapping-meaning-cxn)
                                                                   --
                                                                   (HASH form ,non-overlapping-form-cxn)))
@@ -191,7 +191,7 @@ based on existing construction with sufficient overlap."
                 (or holistic-cxn-2-apply-first
                     (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-2-apply-first
-                                                                ((,unit-name-holistic-cxn-2
+                                                                ((?holistic-unit
                                                                   (args ,args-holistic-cxn-2)
                                                                   (syn-cat (phrase-type holistic)
                                                                            (lex-class ,lex-class-holistic-cxn-2))
@@ -199,7 +199,7 @@ based on existing construction with sufficient overlap."
                                                                    (left ,leftmost-unit-holistic-cxn-2)
                                                                    (right ,rightmost-unit-holistic-cxn-2)))
                                                                  <-
-                                                                 (,unit-name-holistic-cxn-2
+                                                                 (?holistic-unit
                                                                   (HASH meaning ,non-overlapping-meaning-observation)
                                                                   --
                                                                   (HASH form ,non-overlapping-form-observation)))

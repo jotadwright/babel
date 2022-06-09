@@ -36,6 +36,7 @@
   
 
 (defun create-holistic-cxn-from-partial-analysis (problem node)
+  
   (let* ((original-cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
          (meaning-representation-formalism (get-configuration original-cxn-inventory :meaning-representation-formalism))
@@ -75,7 +76,7 @@
                   (or existing-holistic-cxn-apply-first
                       (second (multiple-value-list (eval
                                                     `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-first
-                                                                  ((,leftmost-unit-holistic-cxn
+                                                                  ((?holistic-unit
                                                                     (args ,args-holistic-cxn)
                                                                     (syn-cat (phrase-type holistic)
                                                                              (lex-class ,lex-class-holistic-cxn))
@@ -83,7 +84,7 @@
                                                                      (left ,leftmost-unit-holistic-cxn)
                                                                      (right ,rightmost-unit-holistic-cxn)))
                                                                    <-
-                                                                   (,leftmost-unit-holistic-cxn
+                                                                   (?holistic-unit
                                                                     (HASH meaning ,remaining-meaning)
                                                                     --
                                                                     (HASH form ,root-form-constraints)))
@@ -135,10 +136,17 @@
                                               (= (length lex-classes-holistic-cxns)
                                                  (length lex-classes-item-based-units)))
                                      (create-new-categorial-links lex-classes-holistic-cxns lex-classes-item-based-units categorial-network)))
-
-                 (cxns-to-apply (append (list item-based-cxn) all-holistic-cxns))
-                 (cxns-to-consolidate (unless existing-holistic-cxn-apply-first (list new-holistic-cxn-apply-first))))
+                 (alter-item-based-cxn (alter-ego-cxn item-based-cxn original-cxn-inventory))
+                 (alter-applied-holistic-cxns (mapcar #'(lambda (cxn) (alter-ego-cxn cxn original-cxn-inventory)) applied-holistic-cxns))
+                 (all-alter-holistic-cxns (sort-cxns-by-form-string (append
+                                                               (list new-holistic-cxn-apply-first)
+                                                               alter-applied-holistic-cxns) utterance original-cxn-inventory))
+                 ;(cxns-to-apply (append (list item-based-cxn) all-holistic-cxns))
+                 (cxns-to-apply (append all-alter-holistic-cxns (list alter-item-based-cxn)))
+                 ;(cxns-to-consolidate (unless existing-holistic-cxn-apply-first (list new-holistic-cxn-apply-first))))
+                 (cxns-to-consolidate (unless existing-holistic-cxn-apply-last (list new-holistic-cxn-apply-last))))
             ;(add-element (make-html new-holistic-cxn-apply-last))
+            
             (when categorial-links
               (list
                cxns-to-apply
