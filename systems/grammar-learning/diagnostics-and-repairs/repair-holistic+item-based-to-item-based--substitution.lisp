@@ -39,15 +39,16 @@
   (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (random-elt (get-data problem :utterances)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
+         
          (cxns-and-links (create-item-based-cxn-from-partial-holistic-analysis problem node)))
     (when cxns-and-links
       (let* ((cxns-to-apply (first cxns-and-links))
              (updated-boundary-name-and-args-list (fourth cxns-and-links))
              (intermediary-item-based-cxn (last-elt cxns-to-apply))
-             (intermediary-item-based-form-constraints (extract-form-predicates intermediary-item-based-cxn))
-             (intermediary-item-based-meaning (extract-meaning-predicates intermediary-item-based-cxn))
-             (applied-holistic-cxns (remove intermediary-item-based-cxn cxns-to-apply)))
+             
+             
+             (applied-holistic-cxns (remove intermediary-item-based-cxn cxns-to-apply))
+             (alter-applied-holistic-cxns (mapcar #'(lambda (cxn) (alter-ego-cxn cxn cxn-inventory)) applied-holistic-cxns)))
         (multiple-value-bind (non-overlapping-meaning-observation
                               non-overlapping-meaning-cxn
                               non-overlapping-form-observation
@@ -103,15 +104,7 @@
                                                         cxn-inventory
                                                         :cxn-type 'item-based
                                                         :cxn-set 'fcg::routine))
-                 
-                   ;; unit names
-                   (unit-name-holistic-cxn-1
-                    leftmost-unit-holistic-cxn-1)
-                   (unit-name-holistic-cxn-2
-                    ;; fix for j-unit bug, the unit name of a unit with an empty comprehension lock needs to be part of the meets constraints
-                    (if (member leftmost-unit-holistic-cxn-2 (apply 'concatenate 'list overlapping-form-with-rewritten-boundaries))
-                      leftmost-unit-holistic-cxn-2
-                      rightmost-unit-holistic-cxn-2))
+
                    ;; lex classes
                    (lex-class-holistic-cxn-1
                     (if holistic-cxn-1-apply-first
@@ -231,6 +224,7 @@
                                                                     :cxn-inventory ,(copy-object cxn-inventory)))))))
 
                    (applied-holistic-cxns (sort-cxns-by-form-string (push new-holistic-cxn-2 applied-holistic-cxns) utterance cxn-inventory))
+                   (alter-applied-holistic-cxns (sort-cxns-by-form-string (push new-holistic-cxn-2-apply-last alter-applied-holistic-cxns) utterance cxn-inventory))
                
                    (chunk-item-based-cxn-form-constraints (make-item-based-name-form-constraints-from-cxns overlapping-form-with-rewritten-boundaries (append (list rewritten-boundaries)
                                                                                                                                                               (mapcar #'first updated-boundary-name-and-args-list ))))
@@ -362,13 +356,15 @@
                                         holistic-cxn-2-apply-last
                                         holistic-cxn-1-apply-first
                                         holistic-cxn-1-apply-last
-                                        existing-item-based-cxn-apply-first))
+                                        existing-item-based-cxn-apply-first
+                                        existing-item-based-cxn-apply-last))
                    (new-cxns (list new-holistic-cxn-1
                                    new-holistic-cxn-2
                                    new-holistic-cxn-1-apply-last
                                    new-holistic-cxn-2-apply-last
-                                   item-based-cxn-apply-first))
-                   (cxns-to-apply (append applied-holistic-cxns (list item-based-cxn-apply-last))) ; bug in apply first cxn?
+                                   item-based-cxn-apply-first
+                                   item-based-cxn-apply-last))
+                   (cxns-to-apply (append (list item-based-cxn-apply-first) alter-applied-holistic-cxns))
               
                    (cxns-to-consolidate (loop for cxn in new-cxns
                                               unless (or (member cxn existing-cxns)
