@@ -150,23 +150,34 @@
       (values form-constraints boundaries)
       )))
    |# 
-(defun add-boundaries-to-form-constraints (form-constraints boundaries &key placeholder-var)
+(defun add-boundaries-to-form-constraints (form-constraints slot-boundaries &key placeholder-var)
   "given a list of boundaries that correspond to a certain slot and a list of form constraints,
    create a new variable for left and right boundary, also if the original left and right boundary vars were identical
-   return both the form constraints and the new boundary list"
+   return both the form constraints and the new boundary lists"
   (let* ((new-form-constraints (copy-object form-constraints))
          (placeholder-var (string-upcase (if placeholder-var placeholder-var "?X")))
          (right-var (make-var (make-const (format nil "?RIGHT-~a-BOUNDARY" placeholder-var))))
          (left-var (make-var (make-const (format nil "?LEFT-~a-BOUNDARY" placeholder-var))))
-         (left-boundary (first boundaries))
-         (right-boundary (second boundaries))
+         (left-boundary (first slot-boundaries))
+         (right-boundary (second slot-boundaries))
          (matching-left-predicate (find left-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'third))
          (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
     (when matching-right-predicate
       (setf (nth 1 matching-right-predicate) right-var))
     (when matching-left-predicate
       (setf (nth 2 matching-left-predicate) left-var))
-    (values new-form-constraints (list left-var right-var))))  
+    (values new-form-constraints (list left-var right-var))))
+
+(defun fix-dummy-edge-boundaries (temp-item-based-boundaries rewritten-boundaries)
+  (list (if (equal (first temp-item-based-boundaries) ; left-x-boundary
+             (first rewritten-boundaries)) ; the var was at the beginning of the observation, replace left with right boundary
+          (second rewritten-boundaries)
+          (first temp-item-based-boundaries)
+          )
+        (if (equal (second temp-item-based-boundaries) ; right-x-boundary
+             (second rewritten-boundaries)) ; the var was at theend of the observation, replace right with left boundary
+          (first rewritten-boundaries)
+          (second temp-item-based-boundaries))))
 
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"
@@ -256,6 +267,11 @@
 (defun lex-class-cxn (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+(defun extract-main-item-based-lex-class (cxn)
+  "return the lex-class of a cxn"
+  (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
          
 (defun get-cxn-boundaries-apply-first (cxn)
