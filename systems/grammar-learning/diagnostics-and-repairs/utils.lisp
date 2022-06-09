@@ -742,7 +742,7 @@
 
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-        do (when (eql (attr-val cxn :cxn-type) 'holophrase)
+        do (when (eql (attr-val cxn :cxn-type) 'holistic)
              (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks meaning (extract-meaning-predicates cxn) meaning-representation-formalism)))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))

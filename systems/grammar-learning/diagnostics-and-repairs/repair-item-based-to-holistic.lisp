@@ -34,13 +34,18 @@
                        :restart-data holistic-cxn-and-categorial-link)))))
 
   
-
 (defun create-holistic-cxn-from-partial-analysis (problem node)
+  (do-create-holistic-cxn-from-partial-analysis
+   (random-elt (get-data problem :utterances))
+   (random-elt (get-data problem :meanings))
+   (construction-inventory node)))
+
+(defun do-create-holistic-cxn-from-partial-analysis (utterance gold-standard-meaning cxn-inventory)
   
-  (let* ((original-cxn-inventory (original-cxn-set (construction-inventory node)))
-         (utterance (random-elt (get-data problem :utterances)))
+  (let* ((original-cxn-inventory (original-cxn-set cxn-inventory))
+         
          (meaning-representation-formalism (get-configuration original-cxn-inventory :meaning-representation-formalism))
-         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
+         
          (best-partial-analysis-node (get-best-partial-analysis-cipn
                                       utterance
                                       gold-standard-meaning

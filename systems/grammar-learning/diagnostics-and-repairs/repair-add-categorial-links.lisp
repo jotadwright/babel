@@ -14,6 +14,7 @@
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
   (unless (find-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed)
+    ;(break)
     (let ((cxns-and-categorial-links (create-categorial-links problem node)))
       (if cxns-and-categorial-links
         (make-instance 'fcg::cxn-fix
@@ -22,7 +23,7 @@
                        :restart-data cxns-and-categorial-links)
         (progn (set-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed t)
           nil)))))
-
+#|
 (defmethod repair ((repair add-categorial-links)
                    (problem non-gold-standard-utterance)
                    (node cip-node)
@@ -34,7 +35,7 @@
                      :repair repair
                      :problem problem
                      :restart-data cxns-and-categorial-links))))
-
+|#
 (defun filter-by-phrase-type (type cxns)
   "returns all cxns in the list for the given type"
   (loop for cxn in cxns
@@ -51,12 +52,15 @@
         collect (cons holistic-cxn-lex-class item-slot-lex-class)))
 
 (defun create-categorial-links (problem node)
+  (do-create-categorial-links
+   (random-elt (get-data problem :utterances))
+   (random-elt (get-data problem :meanings))
+   (construction-inventory node)))
+
+(defun do-create-categorial-links (utterance gold-standard-meaning cxn-inventory)
   "Return the categorial links and applied cxns from a comprehend with :category-linking-mode :path-exists instead of :neighbours"
-  (let* ((utterance (random-elt (get-data problem :utterances)))
-         (gold-standard-meaning (random-elt (get-data problem :meanings)))
-         (cxn-inventory (construction-inventory node))
-         (orig-cxn-set (original-cxn-set cxn-inventory))
-         (categorial-network (categorial-network (construction-inventory node))))
+  (let* ((orig-cxn-set (original-cxn-set cxn-inventory))
+         (categorial-network (categorial-network cxn-inventory)))
     (disable-meta-layer-configuration cxn-inventory) ;(fcg::unify-atom
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend utterance :cxn-inventory orig-cxn-set :gold-standard-meaning gold-standard-meaning)))

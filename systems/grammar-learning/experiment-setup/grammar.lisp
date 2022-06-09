@@ -76,14 +76,14 @@
                                         (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
-                   :repairs (gl::add-categorial-links
-                             gl::holistic+item-based->item-based--substitution
-                             gl::item-based->holistic
+                   :repairs (;gl::add-categorial-links
+                             ;gl::holistic+item-based->item-based--substitution
+                             ;gl::item-based->holistic
                              gl::holophrase->item-based+holistic+holistic--substitution
-                             gl::holophrase->item-based+holistic--addition
-                             gl::holophrase->item-based+holistic+holophrase--deletion
-                             gl::holistic->item-based
-                             gl::nothing->holophrase)
+                             ;gl::holophrase->item-based+holistic--addition
+                             ;gl::holophrase->item-based+holistic+holophrase--deletion
+                             ;gl::holistic->item-based
+                             gl::nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . t))))))
     cxn-inventory))
