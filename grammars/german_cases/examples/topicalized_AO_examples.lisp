@@ -160,6 +160,27 @@
                (HASH form ((string ?policeman-word  "Polizist"))))))
 
 
+(def-fcg-cxn Polizist-cxn
+             ((?policeman-word                        
+               (referent ?p)
+               (syn-cat (lex-class noun)
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (- - - - -)       
+                               (?df - ?df - -)
+                               (+ - + - -))))
+               (sem-cat (animacy animate))
+               (error-cat (error incorrect-gender)
+                          (reason polizist-is-masculine-needs-masculine-determiner-not-feminine)))
+              <-
+              (?policeman-word                            
+               (HASH meaning ((policeman ?p)))                    
+               --
+               (HASH form ((string ?policeman-err-word  "Polizist")))))
+             :cxn-set mal-cxn)
+             
+
+
 (def-fcg-cxn Mann-cxn
              ((?man-word                        
                (referent ?m)
@@ -175,6 +196,22 @@
                (HASH meaning ((man ?m)))                    
                --
                (HASH form ((string ?man-word  "Mann"))))))
+
+(def-fcg-cxn Tiger-cxn
+             ((?tiger-word                        
+               (referent ?t)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?tiger-word                            
+               (HASH meaning ((tiger ?t)))                    
+               --
+               (HASH form ((string ?tiger-word  "Tiger"))))))
 
 
 (def-fcg-cxn Kellner-cxn
@@ -192,6 +229,25 @@
                (HASH meaning ((waiter ?k)))                    
                --
                (HASH form ((string ?waiter-word  "Kellner"))))))
+
+(def-fcg-cxn Becher-cxn
+             ((?baker-word                        
+               (referent ?b)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate))
+               (error-cat (error incorrect-noun-choice)
+                          (reason noun-does-not-match-stimulus-or-German-word)))
+              <-
+              (?baker-word                            
+               (HASH meaning ((baker ?b)))                    
+               --
+               (HASH form ((string ?baker-word  "Becher")))))
+             :cxn-set mal-cxn))
 
 
 (def-fcg-cxn Hund-cxn
@@ -465,4 +521,17 @@
               
               ))
 
-(comprehend "den Hund sucht der Kellner")
+
+;;CORRECT SENTENCES
+
+(comprehend "den Bäcker sucht der Polizist")
+(comprehend "den Jäger tötet der Tiger")
+(comprehend "den Kellner ruft der König")
+(comprehend "den Mann verfolgt der Hund")
+
+
+
+;INCORRECT SENTENCES
+(comprehend "den Becher sucht der Polizist")
+(comprehend "den Becher sucht die Polizist")
+
