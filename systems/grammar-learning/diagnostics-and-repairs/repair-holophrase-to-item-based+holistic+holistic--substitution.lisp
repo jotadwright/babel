@@ -36,8 +36,12 @@
 
 (defun repair-holophrase->item-based+holistic+holistic--substitution (problem node)
   (do-repair-holophrase->item-based+holistic+holistic--substitution
-   (random-elt (get-data problem :utterances))
-   (random-elt (get-data problem :meanings))
+   (form-constraints-with-variables
+    (random-elt (get-data problem :utterances))
+    (get-configuration (construction-inventory node) :de-render-mode))
+   (meaning-predicates-with-variables
+    (random-elt (get-data problem :meanings))
+    (get-configuration (construction-inventory node) :meaning-representation-formalism))
    (construction-inventory node)))
 
 (defun handle-potential-holistic-cxn (form meaning cxn-inventory)
@@ -53,13 +57,11 @@
 
 
 
-(defun do-repair-holophrase->item-based+holistic+holistic--substitution (utterance gold-standard-meaning cxn-inventory)
+(defun do-repair-holophrase->item-based+holistic+holistic--substitution (form-constraints meaning cxn-inventory)
   "Creates item-based construction and holistic constructions
 based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
-         (utterance-form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (meaning gold-standard-meaning)
          ) 
 
     (multiple-value-bind (non-overlapping-meaning-observation
@@ -67,12 +69,9 @@ based on existing construction with sufficient overlap."
                           non-overlapping-form-observation
                           non-overlapping-form-cxn
                           overlapping-meaning-observation
-                          ;overlapping-meaning-cxn
                           overlapping-form-observation
-                          args-holistic-cxn-1
-                          args-holistic-cxn-2
                           cxn)
-        (select-cxn-for-making-item-based-cxn cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
+        (select-cxn-for-making-item-based-cxn cxn-inventory form-constraints meaning meaning-representation-formalism)
       
       (when cxn
         
@@ -86,9 +85,6 @@ based on existing construction with sufficient overlap."
 
                ;; holistic cxn boundaries (leftmost/rightmost)
                (boundaries-cxn-2 (get-boundary-units non-overlapping-form-observation))
-               (leftmost-unit-holistic-cxn-2 (first boundaries-cxn-2))
-               (rightmost-unit-holistic-cxn-2 (second boundaries-cxn-2))
-               
                (overlapping-form-and-rewritten-boundaries (multiple-value-list (add-boundaries-to-form-constraints overlapping-form-observation boundaries-cxn-2)))
                (overlapping-form-with-rewritten-boundaries (first overlapping-form-and-rewritten-boundaries))
                (rewritten-boundaries (second overlapping-form-and-rewritten-boundaries))
@@ -107,17 +103,15 @@ based on existing construction with sufficient overlap."
                                                     :cxn-set 'fcg::routine))
                
                ;; lex classes
-
                (lex-class-item-based-cxn
                 (if existing-item-based-cxn-apply-first
                   (lex-class-cxn existing-item-based-cxn-apply-first)
                   (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(x)") :trim-cxn-suffix t)))
-
                 
                ;; cxns
                (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
                (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
-              
+               (slot-args (extract-args-from-holistic-cxn-apply-last (first (third cxns-and-links-holistic-part-observation))))
                (new-item-based-cxn-apply-last
                 (or existing-item-based-cxn-apply-last 
                     (second (multiple-value-list (eval
@@ -131,11 +125,11 @@ based on existing construction with sufficient overlap."
                                                                   --
                                                                   (HASH form ,overlapping-form-with-rewritten-boundaries))
                                                                  (?slot-unit
-                                                                  (args ,(extract-args-apply-last (first (third cxns-and-links-holistic-part-observation))))
+                                                                  (args ,slot-args)
                                                                   --
                                                                   (syn-cat (lex-class ,lex-class-item-based-cxn))
                                                                   (boundaries
-                                                                   (left ,(first rewritten-boundaries)) ;todo make new var that isn't equal to unit name
+                                                                   (left ,(first rewritten-boundaries))
                                                                    (right ,(second rewritten-boundaries)))
                                                                   ))
                                                                 :attributes (:label fcg::routine
@@ -183,8 +177,6 @@ based on existing construction with sufficient overlap."
                                                                              :string ,(third (find 'string overlapping-form-observation :key #'first)))
                                                                            
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
-               
-               
                
                (cxns-to-apply (append (first cxns-and-links-holistic-part-observation) (list new-item-based-cxn-apply-last)))
                (cat-links-to-add (append (second cxns-and-links-holistic-part-observation)

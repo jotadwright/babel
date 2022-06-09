@@ -35,20 +35,21 @@
 
 (defun create-holistic-cxn (problem node)
   (do-create-holistic-cxn
-   (random-elt (get-data problem :utterances))
-   (random-elt (get-data problem :meanings))
+   (form-constraints-with-variables
+    (random-elt (get-data problem :utterances))
+    (get-configuration (construction-inventory node) :de-render-mode))
+   (meaning-predicates-with-variables
+    (random-elt (get-data problem :meanings))
+    (get-configuration (construction-inventory node) :meaning-representation-formalism))
    (construction-inventory node)))
 
 
-(defun do-create-holistic-cxn (utterance gold-standard-meaning cxn-inventory)
+(defun do-create-holistic-cxn (form-constraints meaning cxn-inventory)
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         
-         (meaning (meaning-predicates-with-variables gold-standard-meaning meaning-representation-formalism))
-         (cxn-name (make-cxn-name utterance cxn-inventory :add-numeric-tail t))
+         (cxn-name (make-cxn-name form-constraints cxn-inventory :add-numeric-tail t))
          (cxn-name-holistic-cxn-apply-last (intern (concatenate 'string (symbol-name cxn-name) "-APPLY-LAST")))
          (cxn-name-holistic-cxn-apply-first (intern (concatenate 'string (symbol-name cxn-name) "-APPLY-FIRST")))
-         (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
          (boundaries-holistic-cxn (get-boundary-units form-constraints))
          (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
          (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
@@ -118,45 +119,3 @@
            cxns-to-consolidate
            cats-to-add)
          ))
-#|
-(defun create-holophrase-cxn (problem node)
-  "Creates a holophrase-cxn."
-  (let* ((processing-cxn-inventory (construction-inventory node))
-         (cxn-inventory (original-cxn-set processing-cxn-inventory))
-         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (utterance (random-elt (get-data problem :utterances)))
-         (meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
-         (cxn-name (make-cxn-name utterance cxn-inventory :add-numeric-tail t))
-         (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
-         (boundaries-holophrase-cxn (get-boundary-units form-constraints))
-         (leftmost-unit-holophrase-cxn (first boundaries-holophrase-cxn))
-         (rightmost-unit-holophrase-cxn (second boundaries-holophrase-cxn))
-         (args-holophrase-cxn (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
-         ;; take the last element of the form constraints (the last word) and use it for hashing
-         (hash-string (loop for fc in form-constraints
-                            when (equalp (first fc) 'string)
-                              collect (third fc) into hash-strings
-                            finally (return (last-elt hash-strings)))))
-    (assert hash-string)
-    (second (multiple-value-list  (eval
-                                   `(def-fcg-cxn ,cxn-name
-                                                 ((?holophrase-unit
-                                                   (syn-cat (phrase-type holophrase))
-                                                   (args ,args-holophrase-cxn)
-                                                   (boundaries
-                                                    (left ,leftmost-unit-holophrase-cxn)
-                                                    (right ,rightmost-unit-holophrase-cxn)))
-                                                  <-
-                                                  (?holophrase-unit
-                                                   (HASH meaning ,meaning)
-                                                   --
-                                                   (HASH form ,form-constraints)))
-                                                 :attributes (:label fcg::routine
-                                                              :cxn-type holophrase
-                                                              :repair nothing->holophrase
-                                                              :string ,hash-string)
-                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
-
-|#
-;; uses standard handle-fix
-;; see meta dot handle-fix

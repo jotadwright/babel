@@ -245,7 +245,8 @@
                      collect arg-list)))
     args))
 
-
+(defun extract-args-from-holistic-cxn-apply-last (cxn)
+  (second (find 'args (formulation-lock (first (conditional-part cxn))) :key #'feature-name)))
          
 (defun lex-class-apply-last-cxn (cxn)
   "return the lex-class of a cxn"
@@ -352,7 +353,14 @@
     (make-id name-string)
     (intern name-string))))
 
-
+(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+  "Transform a list of form constraints into a suitable construction name"
+  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
+    (make-cxn-name (format nil "~{~a~^-~}"
+                           (render (append form-constraints new-string-constraints)
+                                   (get-configuration cxn-inventory :render-mode)))
+                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
 
 (defun variablify-missing-form-strings (form-constraints)
   "create X Y Z etc variables by checking which strings are missing in meets constraints return a list of placeholder bindings in the form of string predicates"
@@ -378,14 +386,7 @@
 
 ;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
 
-(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
-  "Transform a list of form constraints into a suitable construction name"
-  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
-    (make-cxn-name (format nil "~{~a~^-~}"
-                           (render (append form-constraints new-string-constraints)
-                                   (get-configuration cxn-inventory :render-mode)))
-                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
+
 
 (defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
   "for slots that hold larger chunks, replace the rightmost boundary of the chunk with the leftmost variable, so that it appears as one slot in the cxn name"
@@ -779,10 +780,7 @@
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
                                  overlapping-meaning-observation
-                                 ;overlapping-meaning-cxn
                                  overlapping-form-observation
-                                 args-holistic-cxn-1
-                                 args-holistic-cxn-2
                                  cxn
                                  )))))))
 
