@@ -298,6 +298,63 @@
               ))
              :disable-automatic-footprints t)
 
+(def-fcg-cxn sucht-cxn
+             ((?search-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type transitive))
+               (referent ?s))  
+                        
+              <-
+              (?search-word                           
+               (HASH meaning ((suchen-01 ?s)))                   
+               --
+               (HASH form ((string ?search-word  "sucht"))))))
+
+
+(def-fcg-cxn tötet-cxn
+             ((?kill-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type transitive))
+               (referent ?k))  
+                        
+              <-
+              (?kill-word                           
+               (HASH meaning ((töten-01 ?k)))                   
+               --
+               (HASH form ((string ?kill-word  "tötet"))))))
+
+
+(def-fcg-cxn ruft-cxn
+             ((?call-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type transitive))
+               (referent ?c))  
+                        
+              <-
+              (?call-word                           
+               (HASH meaning ((rufen-01 ?c)))                   
+               --
+               (HASH form ((string ?call-word  "ruft"))))))
+
+
+
+(def-fcg-cxn verfolgt-cxn
+             ((?follow-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type transitive))
+               (referent ?v))  
+                        
+              <-
+              (?follow-word                           
+               (HASH meaning ((verfolgen-01 ?v)))                   
+               --
+               (HASH form ((string ?follow-word  "verfolgt"))))))
+
+
 
 (def-fcg-cxn topicalized-transitive-argument-structure-cxn
              ((?topicalized-transitive-argument-structure-unit
@@ -363,3 +420,49 @@
                               (:arg1 ?v ?arg1)))                  
                --
                )))
+
+(def-fcg-cxn arg0-topic-arg1-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit))
+               (HASH meaning ((topicalized ?arg1 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-patient-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect ?aspect))     
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect ?aspect)))
+              
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (referent ?arg1)
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (referent ?arg1)
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+              
+              ))
+
+(comprehend "den Hund sucht der Kellner")
