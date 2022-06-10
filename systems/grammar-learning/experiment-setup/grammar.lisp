@@ -28,7 +28,14 @@
 
 (defmethod de-render ((utterance list) (mode (eql :de-render-string-meets-no-punct))
                       &key &allow-other-keys)
-  (de-render utterance :de-render-string-meets))
+  (if (stringp (first utterance))
+    (de-render utterance :de-render-string-meets)
+    (make-instance 'coupled-feature-structure 
+		   :left-pole `((root (meaning ())
+                                      (sem-cat ())
+                                      (form ,utterance)
+                                      (syn-cat ())))
+		   :right-pole '((root)))))
 
 
 (defun remove-quotes+full-stops (utterance)
