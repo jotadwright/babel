@@ -209,14 +209,17 @@ based on existing construction with sufficient overlap."
                                                      lex-class-item-based-cxn-slot)))) 
                (cxns-to-consolidate (append (third cxns-and-links-holistic-part-observation)
                                             (list new-item-based-cxn-apply-first)
-                                            (third cxns-and-links-holistic-part-cxn))))
+                                            (third cxns-and-links-holistic-part-cxn)))
+               (cats-to-add (append (list lex-class-item-based-cxn)
+                                    (fourth cxns-and-links-holistic-part-observation)
+                                    (fourth cxns-and-links-holistic-part-cxn))))
+                
                                   
           (list
            cxns-to-apply
            cat-links-to-add
            cxns-to-consolidate
-           (append (fourth cxns-and-links-holistic-part-observation)
-                   (fourth cxns-and-links-holistic-part-cxn))
+           cats-to-add
            ))))))
 
 
