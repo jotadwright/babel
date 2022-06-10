@@ -598,6 +598,20 @@
   "Succeeds if categories are connected (= linked directly or indirectly) with all links above 0."
   (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
 
+(defmethod categories-linked-p (category-1 category-2 (categorial-network categorial-network) (mode (eql :categories-exist)))
+  "Succeeds if categories are connected (= linked directly or indirectly) with all links above 0."
+  (and
+   (category-exists-p category-1 categorial-network)
+   (category-exists-p category-2 categorial-network)))
+
+(defmethod categories-linked-p (category-1 category-2 (cxn-inventory fcg-construction-set) (mode (eql :categories-exist)))
+  "Succeeds if categories are connected (= linked directly or indirectly) with all links above 0."
+  (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
+
+(defmethod categories-linked-p (category-1 category-2 (cxn-inventory hashed-fcg-construction-set) (mode (eql :categories-exist)))
+  "Succeeds if categories are connected (= linked directly or indirectly) with all links above 0."
+  (categories-linked-p category-1 category-2 (categorial-network cxn-inventory) mode))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Calculations based on categorial networks             ;;
