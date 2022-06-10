@@ -165,21 +165,20 @@
                (referent ?p)
                (syn-cat (lex-class noun)
                         (case ((?nf - ?nf - -)     
-                               (?af - ?af - -)      
+                               (?am - ?af - -)      
                                (- - - - -)       
                                (?df - ?df - -)
                                (+ - + - -))))
                (sem-cat (animacy animate))
-               (error-cat (error incorrect-gender)
-                          (reason polizist-is-masculine-needs-masculine-determiner-not-feminine)))
+              (error-cat (error incorrect-determiner)
+                         (reason polizist-is-a-masculine-noun-needs-a-masculine-determiner-not-feminine)))
               <-
               (?policeman-word                            
                (HASH meaning ((policeman ?p)))                    
                --
-               (HASH form ((string ?policeman-err-word  "Polizist")))))
+               (HASH form ((string ?policeman-word  "Polizist")))))
              :cxn-set mal-cxn)
              
-
 
 (def-fcg-cxn Mann-cxn
              ((?man-word                        
@@ -247,7 +246,7 @@
                (HASH meaning ((baker ?b)))                    
                --
                (HASH form ((string ?baker-word  "Becher")))))
-             :cxn-set mal-cxn))
+             :cxn-set mal-cxn)
 
 
 (def-fcg-cxn Hund-cxn
@@ -353,6 +352,48 @@
                (HASH form ((meets ?article ?noun)))
               ))
              :disable-automatic-footprints t)
+
+(def-fcg-cxn noun-phrase-incorrect-cxn
+             ((?noun-phrase
+               (referent ?x)
+               (syn-cat (lex-class noun-phrase)
+                        (case ?case))
+               (sem-cat (animacy ?animacy))
+               (error-cat (error ?e)
+                          (reason ?r))
+               (subunits (?article ?noun))
+               (boundaries (leftmost-unit ?article)
+                           (rightmost-unit ?noun)))
+              (?article
+               (referent ?x)
+               (part-of-noun-phrase +))
+
+              (?noun
+               (footprints (determined)))
+              <-
+              (?article
+               --
+               (syn-cat (lex-class article)
+                        (case ?case)))
+              (?noun
+               (footprints (not determined))
+               (referent ?x)
+               (syn-cat (lex-class noun)
+                        (case ?case)
+                        )
+               (sem-cat (animacy ?animacy))
+               --
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ?case))
+               (error-cat (error ?e)
+                          (reason ?r)))
+              (?noun-phrase
+               --
+               (HASH form ((meets ?article ?noun)))
+              ))
+             :disable-automatic-footprints t
+             :cxn-set mal-cxn)
 
 (def-fcg-cxn sucht-cxn
              ((?search-word                         
@@ -477,6 +518,74 @@
                --
                )))
 
+(def-fcg-cxn incorrect-patient-in-topicalized-transitive-argument-structure-cxn
+             ((?incorrect-patient-in-topicalized-transitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+               (sem-cat (animacy animate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+              (error-cat (error ?e)
+                         (reason ?r))
+              (sem-cat (animacy animate))
+              (referent ?arg1))
+              
+              
+              (?incorrect-patient-in-topicalized-transitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
 (def-fcg-cxn arg0-topic-arg1-information-structure-cxn
              (
               <-
@@ -532,6 +641,7 @@
 
 
 ;INCORRECT SENTENCES
+(comprehend "den Becher")
 (comprehend "den Becher sucht der Polizist")
 (comprehend "den Becher sucht die Polizist")
 
