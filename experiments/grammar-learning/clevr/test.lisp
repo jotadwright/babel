@@ -81,7 +81,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 12) ; 552 has issue!
+;(run-series *experiment* 100) ; 552 has issue!
 
 ;(run-series *experiment* 2000) ; item-based to holistic fails
 

@@ -45,7 +45,7 @@
    (construction-inventory node)))
 
 (defun handle-potential-holistic-cxn (form meaning cxn-inventory)
-  (cond ;((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
+  (cond ((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
         ;((do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory)))
         ((do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory)))
         ;((do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory)))
@@ -90,8 +90,8 @@ based on existing construction with sufficient overlap."
                (overlapping-form-with-rewritten-boundaries (first overlapping-form-and-rewritten-boundaries))
                (rewritten-boundaries (second overlapping-form-and-rewritten-boundaries))
                (dummy-slot-fc (list (list 'fcg::meets (first rewritten-boundaries) (second rewritten-boundaries))))
-               (temp-item-based-boundaries (get-boundary-units (append dummy-slot-fc overlapping-form-with-rewritten-boundaries)))
-               (rewritten-item-based-boundaries (fix-dummy-edge-boundaries temp-item-based-boundaries rewritten-boundaries))
+               (rewritten-item-based-boundaries (get-boundary-units (append dummy-slot-fc overlapping-form-with-rewritten-boundaries)))
+               ;(rewritten-item-based-boundaries (fix-dummy-edge-boundaries temp-item-based-boundaries rewritten-boundaries))
                
 
                (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
@@ -120,7 +120,7 @@ based on existing construction with sufficient overlap."
                ;; cxns and links from iterating over all repairs
                (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
                (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
-               (slot-args (extract-args-from-holistic-cxn-apply-last (first (third cxns-and-links-holistic-part-observation))))
+               (slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part-observation))))
                
                (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
 
@@ -177,7 +177,7 @@ based on existing construction with sufficient overlap."
                                                                  (?slot-unit 
                                                                   (syn-cat (phrase-type holistic)
                                                                            (lex-class ,lex-class-item-based-cxn-slot))
-                                                                  (args ,(extract-args-apply-last (first (third cxns-and-links-holistic-part-observation))))
+                                                                  (args ,slot-args)
                                                                   (boundaries
                                                                    (left ,(first rewritten-boundaries))
                                                                    (right ,(second rewritten-boundaries)))
@@ -203,13 +203,16 @@ based on existing construction with sufficient overlap."
                
                (cxns-to-apply (append (first cxns-and-links-holistic-part-observation) (list new-item-based-cxn-apply-last)))
                (cat-links-to-add (append (second cxns-and-links-holistic-part-observation)
+                                         (second cxns-and-links-holistic-part-cxn)
                                          (list (cons (first (fourth cxns-and-links-holistic-part-observation))
                                                      lex-class-item-based-cxn-slot)
                                                (cons (first (fourth cxns-and-links-holistic-part-cxn))
                                                      lex-class-item-based-cxn-slot)))) 
-               (cxns-to-consolidate (append (third cxns-and-links-holistic-part-observation)
-                                            (list new-item-based-cxn-apply-first)
-                                            (third cxns-and-links-holistic-part-cxn)))
+               (cxns-to-consolidate (append
+                                     (first cxns-and-links-holistic-part-cxn)
+                                     (third cxns-and-links-holistic-part-observation)
+                                     (list new-item-based-cxn-apply-first)
+                                     (third cxns-and-links-holistic-part-cxn)))
                (cats-to-add (append (list lex-class-item-based-cxn)
                                     (fourth cxns-and-links-holistic-part-observation)
                                     (fourth cxns-and-links-holistic-part-cxn))))

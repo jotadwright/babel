@@ -258,7 +258,22 @@
 
 (defun extract-args-from-holistic-cxn-apply-last (cxn)
   (second (find 'args (formulation-lock (first (conditional-part cxn))) :key #'feature-name)))
-         
+
+
+(defun extract-args-apply-first (cxn)
+  (let* ((contributing-units (contributing-part cxn))
+         (top-unit (cond ((eql 'holistic (attr-val cxn :cxn-type))
+                          (first contributing-units))
+                         ((eql 'item-based (attr-val cxn :cxn-type))
+                          (loop for unit in contributing-units
+                                if (eql 'item-based (second (find 'phrase-type (rest (find 'syn-cat (fcg::unit-structure unit) :key #'first)) :key #'first)))
+                                  do (return unit))))))
+    (assert top-unit)
+    (second (find 'args (fcg::unit-structure top-unit) :key #'first))))
+
+    
+
+
 (defun lex-class-apply-last-cxn (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (comprehension-lock (last-elt (conditional-part cxn))) :key #'feature-name)))
@@ -1097,7 +1112,7 @@
         return predicate))
 
 (defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
+  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
@@ -1111,7 +1126,7 @@
 
 (defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
   (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-meta-layer-cxn-set-only)
-  (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
+  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
