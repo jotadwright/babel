@@ -194,7 +194,8 @@
       (when (and (equal 1 (length form-constraints))
                  (equal 'string (first (first form-constraints))))
         (list (second (first form-constraints)) (second (first form-constraints)))))))
-                           
+
+
 
 (defun initial-transient-structure (node)
   (if (find 'fcg::initial (statuses node))
@@ -780,8 +781,9 @@
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
-                    (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
-                    (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
+                    (nof-obs-and-cxn (multiple-value-list (diff-form-constraints utterance-form-constraints (extract-form-predicates cxn))))
+                    (non-overlapping-form-observation (first nof-obs-and-cxn))
+                    (non-overlapping-form-cxn (second nof-obs-and-cxn))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
                     (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal))
                     ;; args

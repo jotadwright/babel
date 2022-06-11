@@ -202,20 +202,22 @@ based on existing construction with sufficient overlap."
                                                                 :cxn-inventory ,(copy-object cxn-inventory)))))))
                
                (cxns-to-apply (append (first cxns-and-links-holistic-part-observation) (list new-item-based-cxn-apply-last)))
-               (cat-links-to-add (append (second cxns-and-links-holistic-part-observation)
+               (cat-links-to-add (remove nil (append (second cxns-and-links-holistic-part-observation)
                                          (second cxns-and-links-holistic-part-cxn)
-                                         (list (cons (first (fourth cxns-and-links-holistic-part-observation))
-                                                     lex-class-item-based-cxn-slot)
-                                               (cons (first (fourth cxns-and-links-holistic-part-cxn))
-                                                     lex-class-item-based-cxn-slot)))) 
+                                         (list (when (first (fourth cxns-and-links-holistic-part-observation)) ;add-categorial links can return nil!
+                                                 (cons (first (fourth cxns-and-links-holistic-part-observation))
+                                                       lex-class-item-based-cxn-slot))
+                                               (when (first (fourth cxns-and-links-holistic-part-cxn))
+                                                   (cons (first (fourth cxns-and-links-holistic-part-cxn))
+                                                     lex-class-item-based-cxn-slot))))))
                (cxns-to-consolidate (append
                                      (first cxns-and-links-holistic-part-cxn)
                                      (third cxns-and-links-holistic-part-observation)
                                      (list new-item-based-cxn-apply-first)
                                      (third cxns-and-links-holistic-part-cxn)))
-               (cats-to-add (append (list lex-class-item-based-cxn)
+               (cats-to-add (remove nil (append (list lex-class-item-based-cxn)
                                     (fourth cxns-and-links-holistic-part-observation)
-                                    (fourth cxns-and-links-holistic-part-cxn))))
+                                    (fourth cxns-and-links-holistic-part-cxn)))))
                 
                                   
           (list

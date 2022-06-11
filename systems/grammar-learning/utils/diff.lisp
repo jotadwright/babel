@@ -1,17 +1,6 @@
 (in-package :grammar-learning)
 
-(defun remove-bind-statements (network)
-  (loop for predicate in network
-        unless (equal (first predicate) 'utils::bind)
-        collect predicate))
 
-(defun add-bind-statements (new-network orig-network)
-  (loop for predicate in new-network
-        for open-var = (first (third (multiple-value-list (extract-vars-from-irl-network (list predicate)))))
-        for bind = (get-irl-predicate-from-in-var open-var orig-network)
-        when bind
-        collect bind into binds
-        finally (return (append new-network binds))))
   
 
 (defmethod diff-networks (network-1 network-2 first-predicate-fn next-predicate-fn compare-networks-fn add-atoms-fn rem-atoms-fn)
@@ -89,6 +78,65 @@
                  #'add-bind-statements
                  #'remove-bind-statements))
 
+(defun add-dummy-end-meets (form-constraints)
+  (append form-constraints
+          (list (list 'fcg::meets (second (get-boundary-units form-constraints)) 'gl::dummy))))
+
+(defmethod diff-form-constraints (fc-1 fc-2)
+  (multiple-value-bind (fc-1-diff fc-2-diff)
+      (diff-networks (add-dummy-end-meets fc-1)
+                 (add-dummy-end-meets fc-2)
+                 #'get-first-form-constraint
+                 #'get-next-form-constraint
+                 #'compare-form-constraints
+                 #'add-string-atoms
+                 #'remove-string-atoms)
+    (values (remove-dangling-meets fc-1-diff) (remove-dangling-meets fc-2-diff))
+    ))
+
+(defun remove-dangling-meets (form-constraints)
+  (loop with string-predicates = (extract-form-predicate-by-type form-constraints 'string)
+        for predicate in (extract-form-predicate-by-type form-constraints 'meets)
+        when (and (member (second predicate) string-predicates :key #'second)
+                  (member (third predicate) string-predicates :key #'second))
+        collect predicate into resulting-meets
+        finally (return (append resulting-meets string-predicates)))
+  
+  )
+
+(defun remove-string-atoms (network)
+  (extract-form-predicate-by-type network 'meets))
+
+(defun add-string-atoms (new-network orig-network)
+  (loop with result-strings = nil
+        for predicate in new-network
+        for left-var = (second predicate)
+        for left-string-predicate = (find left-var (extract-form-predicate-by-type orig-network 'string) :key #'second)
+        do (pushnew left-string-predicate result-strings)
+        finally (return (append new-network result-strings))))
+
+(defun remove-bind-statements (network)
+  (loop for predicate in network
+        unless (equal (first predicate) 'utils::bind)
+        collect predicate))
+
+(defun add-bind-statements (new-network orig-network)
+  (loop for predicate in new-network
+        for open-var = (first (third (multiple-value-list (extract-vars-from-irl-network (list predicate)))))
+        for bind = (get-irl-predicate-from-in-var open-var orig-network)
+        when bind
+        collect bind into binds
+        finally (return (append new-network binds))))
+       
+(defun compare-form-constraints (predicate-1 predicate-2 network-1 network-2)
+  (let* ((left-var-1 (second predicate-1))
+         (left-string-1 (third (find left-var-1 (extract-form-predicate-by-type network-1 'string) :key #'second)))
+         (left-var-2 (second predicate-2))
+         (left-string-2 (third (find left-var-2 (extract-form-predicate-by-type network-2 'string) :key #'second)))
+         )
+    (string= left-string-1 left-string-2)))
+         
+
 (defun compare-irl-predicates (predicate-1 predicate-2 network-1 network-2)
   ; todo: find subnetworks of open vars, then use equivalent-irl-programs? on those! these subnetworks can have a depth larger than 1!
   (let* ((open-vars-1 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-1)))))
@@ -120,7 +168,13 @@
   (let ((in-var (first (multiple-value-list (extract-vars-from-irl-network (list predicate))))))
     (find in-var (remove predicate irl-program) :test #'member)))
 
+(defun get-next-form-constraint (curr-predicate form-constraints)
+  (let ((start-var (third curr-predicate)))
+    (find start-var (extract-form-predicate-by-type form-constraints 'meets) :key #'second)))
 
+(defun get-first-form-constraint (form-constraints)
+  (let ((start-var (first (get-boundary-units form-constraints))))
+    (find start-var (extract-form-predicate-by-type form-constraints 'meets) :key #'second)))
 
 (defun compare-irl-networks-with-common-predicate-in-diff ()
   (let ((fc-1 '((STRING GRAMMAR-LEARNING::?HOW-180 "how")
@@ -151,6 +205,19 @@
                      (FCG:MEETS GRAMMAR-LEARNING::?SHINY-221 GRAMMAR-LEARNING::?BLOCKS-50)
                      (FCG:MEETS GRAMMAR-LEARNING::?BLOCKS-50 GRAMMAR-LEARNING::?ARE-367)
                      (FCG:MEETS GRAMMAR-LEARNING::?ARE-367 GRAMMAR-LEARNING::?THERE-381)))
+        (fc-3 '((STRING GRAMMAR-LEARNING::?HOW-180 "how")
+                     (STRING GRAMMAR-LEARNING::?MANY-120 "many")
+                     (STRING GRAMMAR-LEARNING::?BROWN-144 "yellow")
+                     (STRING GRAMMAR-LEARNING::?SHINY-216 "shiny")
+                     (STRING GRAMMAR-LEARNING::?OBJECTS-56 "spheres")
+                     (STRING GRAMMAR-LEARNING::?ARE-357 "are")
+                     (STRING GRAMMAR-LEARNING::?THERE-371 "there")
+                     (FCG:MEETS GRAMMAR-LEARNING::?HOW-180 GRAMMAR-LEARNING::?MANY-120)
+                     (FCG:MEETS GRAMMAR-LEARNING::?MANY-120 GRAMMAR-LEARNING::?BROWN-144)
+                     (FCG:MEETS GRAMMAR-LEARNING::?BROWN-144 GRAMMAR-LEARNING::?SHINY-216)
+                     (FCG:MEETS GRAMMAR-LEARNING::?SHINY-216 GRAMMAR-LEARNING::?OBJECTS-56)
+                     (FCG:MEETS GRAMMAR-LEARNING::?OBJECTS-56 GRAMMAR-LEARNING::?ARE-357)
+                     (FCG:MEETS GRAMMAR-LEARNING::?ARE-357 GRAMMAR-LEARNING::?THERE-371)))
         (m-1 '((CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?SOURCE-1)
               (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-5862 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?COLOR-10)
               (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?MATERIAL-4 CLEVR-WORLD:METAL)
@@ -170,7 +237,8 @@
               (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-9626 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?COLOR-8)
               (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE)
               (CLEVR-WORLD:COUNT! GRAMMAR-LEARNING::?TARGET-16 GRAMMAR-LEARNING::?TARGET-9641))))
-    (diff-meaning-networks m-1 m-2 :irl)
+    ;(diff-meaning-networks m-1 m-2 :irl)
+    (diff-form-constraints fc-1 fc-3)
     )
   )
 ;(compare-irl-networks-with-common-predicate-in-diff)

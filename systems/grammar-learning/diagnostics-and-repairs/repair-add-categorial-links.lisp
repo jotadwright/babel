@@ -67,7 +67,7 @@
         (enable-meta-layer-configuration cxn-inventory)
         (when (member 'succeeded (statuses cip-node) :test #'string=)
             (list
-             (reverse (applied-constructions cip-node))
+             (mapcar #'original-cxn (reverse (applied-constructions cip-node)))
              (extract-used-categorial-links cip-node)
              nil
              nil)))))
