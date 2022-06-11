@@ -118,7 +118,7 @@
                                              (filter ?target-2 ?target-1 ?color-2)
                                              (bind size-category ?size-4 large)
                                              (query ?target-8 ?source-10 ?attribute-2)))
-    (test-repair-status 'nothing->holophrase
+    (test-repair-status 'nothing->holistic
                         (second (multiple-value-list
                                  (comprehend "The large yellow object is what material?"
                 :cxn-inventory cxn-inventory
@@ -179,7 +179,7 @@
                                              (filter ?target-2 ?target-1 ?color-2)
                                              (bind size-category ?size-4 large)
                                              (query ?target-8 ?source-10 ?attribute-2)))
-    (test-repair-status 'nothing->holophrase
+    (test-repair-status 'nothing->holistic
                         (second (multiple-value-list
                                  (comprehend "The tiny yellow object is what material?"
                 :cxn-inventory cxn-inventory
@@ -242,7 +242,7 @@
                                              (filter ?target-2 ?target-1 ?color-12)
                                              (bind size-category ?size-2 small)
                                              (query ?target-8 ?source-10 ?attribute-2)))
-    (test-repair-status 'nothing->holophrase
+    (test-repair-status 'nothing->holistic
                         (second (multiple-value-list
                                  (comprehend "The tiny blue object is what shape?"
                 :cxn-inventory cxn-inventory
@@ -272,7 +272,7 @@
                                        (filter ?target-2 ?target-1 ?color-2)
                                        (bind size-category ?size-4 small)
                                        (query ?target-8 ?source-10 ?attribute-2)))
-    (test-repair-status 'nothing->holophrase
+    (test-repair-status 'nothing->holistic
                         (second (multiple-value-list
                                  (comprehend "What is the material of the tiny gray object?"
               :cxn-inventory cxn-inventory
@@ -357,7 +357,6 @@
 ;; (test-varying-word-order-substitution-comprehension) ;should be holophrase
 ;; (test-varying-length-substitution-repair-comprehension) ;ok
 ;; (test-varying-length-substitution-repair-comprehension-reversed) ;ok
-;; (test-no-duplicate-item-based-cxns-substitution-comprehension) ;ok
 
 
 ;; AMR testcases

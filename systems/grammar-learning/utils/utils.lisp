@@ -967,65 +967,12 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :amr)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
-(defun compare-irl-predicates (predicate-1 predicate-2 network-1 network-2)
-  ; todo: find subnetworks of open vars, then use equivalent-irl-programs? on those! these subnetworks can have a depth larger than 1!
-  (let* ((open-vars-1 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-1)))))
-         (open-vars-2 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-2)))))
-         (predicate-unification-bindings (unify-irl-programs (list predicate-1) (list predicate-2)))
-         (sub-predicate-1 (get-irl-predicate-from-in-var (first open-vars-1) network-1))
-         (sub-predicate-2 (get-irl-predicate-from-in-var (first open-vars-2) network-2))
-         (sub-predicate-unification-bindings (unify-irl-programs (list sub-predicate-1)
-                                                                 (list sub-predicate-2))))
-    (cond ((and (not (or open-vars-1 open-vars-2))
-                predicate-unification-bindings)
-           ;; no open vars, and it unifies
-           (values t nil nil))
-             
-          ((and open-vars-1
-                open-vars-2
-                predicate-unification-bindings
-                sub-predicate-unification-bindings)
-           ;; both have open vars, and the bound predicates unify
-           (values t sub-predicate-1 sub-predicate-2))
-          )))
+
 
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :amr)))
   (multiple-value-bind (n1-diff n2-diff bindings) (amr::diff-amr-networks network-1 network-2)
     (values n1-diff n2-diff)))
 
-
-(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
-  "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
-  ;todo: identify all subnetworks, resolve them, then loop through parent network and combine resolved result with subnetwork
-  (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
-        with current-predicate-2 = (get-predicate-with-target-var network-2)
-        with last-equivalent-predicate-1 = current-predicate-1
-        with overlapping-predicates-1 = nil
-        with overlapping-predicates-2 = nil
-        with rest-network-1 = (set-difference network-1 overlapping-predicates-1)
-        with rest-network-2 = (set-difference network-2 overlapping-predicates-2)
-        while (or current-predicate-1 current-predicate-2)
-        for next-predicate-1 = (get-next-irl-predicate current-predicate-1 rest-network-1)
-        for next-predicate-2 = (get-next-irl-predicate current-predicate-2 rest-network-2)
-        do (multiple-value-bind (equivalent-predicates-p bind-1 bind-2)
-               (compare-irl-predicates current-predicate-1 current-predicate-2 rest-network-1 rest-network-2)
-             (if equivalent-predicates-p
-               (progn ;; true condition
-                 (setf last-equivalent-predicate-1 current-predicate-1) ;; keep track of last successful comparison
-                 (push current-predicate-1 overlapping-predicates-1)
-                 (push current-predicate-2 overlapping-predicates-2)
-                 (when bind-1 (push bind-1 overlapping-predicates-1))
-                 (when bind-2 (push bind-2 overlapping-predicates-2))
-                 (setf current-predicate-1 next-predicate-1)
-                 (setf current-predicate-2 next-predicate-2))
-               ;; false condition
-               (setf current-predicate-1 next-predicate-1)) ; traverse network 1 while network 2 stays static
-             (when (and (not current-predicate-1) current-predicate-2) ;; stack 1 is empty, stack 2 is not so go back to the last equivalent predicate, and take the next predicate
-               (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 rest-network-1))
-               (setf current-predicate-2 next-predicate-2)))
-               
-        finally (return (values (set-difference network-1 overlapping-predicates-1)
-                                (set-difference network-2 overlapping-predicates-2)))))
 
 (defun substitute-predicate-bindings (predicate bindings)
   (loop with frame-bindings = (irl::map-frame-bindings bindings)
@@ -1094,15 +1041,6 @@
   (values (last-elt (get-open-vars irl-network))
           (get-target-var irl-network)
           (set-difference (get-open-vars irl-network) (last (get-open-vars irl-network)))))
-
-(defun get-predicate-with-target-var (irl-program)
-  "Find the predicate with the target var, given an irl program"
-  (find (get-target-var irl-program) irl-program :test #'member))
-
-(defun get-next-irl-predicate (predicate irl-program)
-  "Find the next predicate, given a variable"
-  (let ((in-var (first (multiple-value-list (extract-vars-from-irl-network (list predicate))))))
-    (find in-var (remove predicate irl-program) :test #'member)))
 
 (defun get-irl-predicate-from-in-var (var irl-program)
   "Find the next predicate, given an input variable"

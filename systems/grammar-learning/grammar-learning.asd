@@ -6,11 +6,14 @@
   :depends-on ("utils" "monitors" "plot-raw-data" "web-interface" "fcg" "irl" "amr" "meta-layer-learning" "cl-change-case" "experiment-framework" "test-framework" "plot-raw-data" "clevr-world" "cl-json" )
   :serial t
   :components ((:file "package")
-               (:module diagnostics-and-repairs
+               (:module utils
                 :serial t
                 :components ((:file "fcg-utils")
                              (:file "utils")
-                             (:file "goal-tests")
+                             (:file "diff")))
+               (:module diagnostics-and-repairs
+                :serial t
+                :components ((:file "goal-tests")
                              (:file "handle-fix")
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
