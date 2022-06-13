@@ -1061,8 +1061,7 @@
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t)
-  (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
+  (set-configuration cxn-inventory :consolidate-repairs t))
 
 (defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
   (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-meta-layer-cxn-set-only)
@@ -1076,8 +1075,7 @@
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t)
-  (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
+  (set-configuration cxn-inventory :consolidate-repairs t))
 
 (defmethod get-best-partial-analysis-cipn ((utterance string) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
