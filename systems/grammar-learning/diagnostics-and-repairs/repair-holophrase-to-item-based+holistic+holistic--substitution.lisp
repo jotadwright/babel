@@ -45,7 +45,7 @@
    (construction-inventory node)))
 
 (defun handle-potential-holistic-cxn (form meaning cxn-inventory)
-  (cond ((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
+  (cond ;((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
         ;((do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory)))
         ((do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory)))
         ;((do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory)))
@@ -117,12 +117,17 @@ based on existing construction with sufficient overlap."
                   (lex-class-cxn existing-item-based-cxn-apply-first)
                   (make-lex-class (concatenate 'string (symbol-name lex-class-item-based-cxn) "-(x)"))))
 
+               ;; args
+               (slot-args (extract-args-from-meaning-networks non-overlapping-meaning-observation meaning meaning-representation-formalism))
+               (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+
                ;; cxns and links from iterating over all repairs
                (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
                (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
-               (slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part-observation))))
                
-               (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+               
+               
+               
 
                
                (new-item-based-cxn-apply-last
