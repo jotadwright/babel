@@ -68,7 +68,7 @@
                                    (subunits set)
                                    (footprints set))
                    :fcg-configurations ((:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
-                                        (:parse-goal-tests :non-gold-standard-meaning)
+                                        (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure )
                                         (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
                                         (:parse-order routine)
