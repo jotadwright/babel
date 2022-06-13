@@ -645,13 +645,16 @@
                ))
              :cxn-set mal-cxn)
 
-(def-fcg-cxn incorrect-agent-in-topicalized-transitive-argument-structure-cxn
-             ((?incorrect-agent-in-topicalized-transitive-argument-structure-unit
+
+(def-fcg-cxn incorrect-patient-case-in-topicalized-transitive-argument-structure-cxn
+             ((?incorrect-patient-case-in-topicalized-transitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?patient-unit)))
               (?agent-unit
                (syn-cat (syn-role subject)))
               (?patient-unit
-               (syn-cat (syn-role direct-object)))
+               (syn-cat (syn-role indirect-object))
+               (error-cat (error incorrect-case-selection)
+                         (reason with-transitive-verbs-objects-are-in-accusative)))
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
@@ -680,9 +683,137 @@
                                (- - - - -)        
                                (- - - - -)
                                (?as ?nm ?nf ?nn ?np))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)                  
+                               (- - - - -)
+                               (+ ?dm ?df ?dn ?dp)
+                               (?ps ?dm ?df ?dn ?dp))))
+               (sem-cat (animacy animate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)                  
+                               (- - - - -)
+                               (+ ?dm ?df ?dn ?dp)
+                               (?ps ?dm ?df ?dn ?dp))))
+              (sem-cat (animacy animate))
+              (referent ?arg1))        
+              (?incorrect-patient-case-in-topicalized-transitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(def-fcg-cxn incorrect-patient-case-in-topicalized-transitive-argument-structure-cxn
+             ((?incorrect-patient-case-in-topicalized-transitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?patient-unit
+               (syn-cat (syn-role indirect-object))
+               (error-cat (error incorrect-case-selection)
+                         (reason with-transitive-verbs-objects-are-in-accusative)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)                  
+                               (- - - - -)
+                               (+ ?dm ?df ?dn ?dp)
+                               (?ps ?dm ?df ?dn ?dp))))
+               (sem-cat (animacy animate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)                  
+                               (- - - - -)
+                               (+ ?dm ?df ?dn ?dp)
+                               (?ps ?dm ?df ?dn ?dp))))
+              (sem-cat (animacy animate))
+              (referent ?arg1))        
+              (?incorrect-patient-case-in-topicalized-transitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(def-fcg-cxn incorrect-agent-and-patient-in-topicalized-transitive-argument-structure-cxn
+             ((?incorrect-agent-and-patient-in-topicalized-transitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              (?agent-unit
+               (syn-cat (syn-role incorrect-direct-object)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap))))
                         (sem-cat (animacy animate))
-                        (error-cat (error ?e)
-                         (reason ?r))
               (referent ?arg0))
               
               (?patient-unit
@@ -706,7 +837,7 @@
               (referent ?arg1))
               
               
-              (?incorrect-agent-in-topicalized-transitive-argument-structure-unit
+              (?incorrect-agent-and-patient-in-topicalized-transitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg1 ?v ?arg1)))                  
                --
@@ -759,7 +890,7 @@
               ))
 
 
-(def-fcg-cxn arg0-topic-arg1-information-structure-cxn
+(def-fcg-cxn arg0-topic-arg1-incorrect-information-structure-cxn
              (
               <-
               (?argument-structure-unit
@@ -805,6 +936,55 @@
              :cxn-set mal-cxn)
 
 
+(def-fcg-cxn incorrect-arg0-topic-arg1-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit))
+               (HASH meaning ((topicalized ?arg1 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-patient-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect ?aspect))     
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect ?aspect)))
+              
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (referent ?arg1)
+               (syn-cat (syn-role indirect-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (referent ?arg1)
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+              
+              )
+             :cxn-set mal-cxn)
+
+
+
+
+
 ;;CORRECT SENTENCES
 
 (comprehend "den Bäcker sucht der Polizist")
@@ -819,4 +999,7 @@
 (comprehend "den Bäcker sucht den Polizist")
 (comprehend "den Becher sucht der Polizist")
 (comprehend "den Bäcker sucht die Polizist")
+(comprehend "dem Kellner ruft der König")
+(comprehend "dem Mann verfolgt der Hund")
+(comprehend "den Mann verfolgt den Hund")
 
