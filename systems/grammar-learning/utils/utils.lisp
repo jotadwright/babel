@@ -344,14 +344,14 @@
               (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
               (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
               (if args-list
-                (irl:equivalent-irl-programs? (append (loop for args in args-list
-                                                    for dummy-predicate = (append (list 'args) args)
-                                                    collect dummy-predicate) meaning)
-                                              (append (loop for args in cxn-args
-                                                    for dummy-predicate = (append (list 'args) args)
-                                                    collect dummy-predicate) (extract-meaning-predicates cxn)))
-                                              
-                                              
+                (equal (loop for args in args-list
+                             for left-res = (arg-is-part-of-meaning-p (first args) meaning)
+                             for right-res = (arg-is-part-of-meaning-p (second args) meaning)
+                             append (list left-res right-res))
+                       (loop for args in cxn-args
+                             for left-res = (arg-is-part-of-meaning-p (first args) (extract-meaning-predicates cxn))
+                             for right-res = (arg-is-part-of-meaning-p (second args) (extract-meaning-predicates cxn))
+                             append (list left-res right-res)))                           
                 t)
               ;; check args: look up if the first arg is in the meaning representation, or if the second arg is in the meaning representation - this order should match!
               
