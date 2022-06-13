@@ -734,7 +734,7 @@
                        args-holistic-cxn)))
 
 (defun find-superset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
-  ;; todo: there could also be more than one superset cxn!
+  ;; todo: check only routine cxns, do all processing after the when!
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-form-constraints = (extract-form-predicates cxn)
         for cxn-meaning-constraints = (extract-meaning-predicates cxn)
@@ -748,7 +748,7 @@
         for overlapping-form = (set-difference (extract-form-predicates cxn) non-overlapping-form :test #'equal)
         for overlapping-meaning = (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning :test #'equal)
         for args-holistic-cxn = (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism)   
-        when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
+        when (and (eql cxn-type 'holistic) ; todo: we might want to remove this!
                   non-overlapping-form
                   non-overlapping-meaning
                   (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous

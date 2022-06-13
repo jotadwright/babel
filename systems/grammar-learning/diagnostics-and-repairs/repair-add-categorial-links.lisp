@@ -66,10 +66,11 @@
     (disable-meta-layer-configuration cxn-inventory) 
     (with-disabled-monitor-notifications
       (multiple-value-bind (parsed-meaning cip-node)
-          (comprehend form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning)
-        (declare (ignore parsed-meaning))
+          (comprehend form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning) ;; issue: the cxn applies, but it contains meaning that is repeated in the surrounding item-based cxn - the parsed meaning needs to match the meaning!
         (enable-meta-layer-configuration cxn-inventory)
-        (when (member 'succeeded (statuses cip-node) :test #'string=)
+        (when (and
+               (member 'succeeded (statuses cip-node) :test #'string=)
+               (equivalent-meaning-networks parsed-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
           (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
                  (categories-to-add (list (extract-contributing-lex-class (last-elt cxns-to-apply)))))
             (list
