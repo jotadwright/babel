@@ -72,6 +72,7 @@
                                         (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
                                         (:parse-order routine)
+                                        (:max-nr-of-nodes . 10000)
                                         (:production-order routine)
                                         (:meaning-representation-formalism . ,(get-configuration experiment :meaning-representation))
                                         (:render-mode . :generate-and-test)
@@ -83,7 +84,7 @@
                                         (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
-                   :repairs (;gl::add-categorial-links
+                   :repairs (gl::add-categorial-links
                              ;gl::holistic+item-based->item-based--substitution
                              ;gl::item-based->holistic
                              gl::holophrase->item-based+holistic+holistic--substitution

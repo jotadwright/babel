@@ -285,7 +285,7 @@
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
-(defun extract-main-item-based-lex-class (cxn)
+(defun extract-contributing-lex-class (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))

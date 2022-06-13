@@ -45,7 +45,7 @@
    (construction-inventory node)))
 
 (defun handle-potential-holistic-cxn (form meaning cxn-inventory)
-  (cond ;((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
+  (cond ((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
         ;((do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory)))
         ((do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory)))
         ;((do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory)))
@@ -110,7 +110,7 @@ based on existing construction with sufficient overlap."
                ;; lex classes
                (lex-class-item-based-cxn
                 (if existing-item-based-cxn-apply-first
-                  (extract-main-item-based-lex-class existing-item-based-cxn-apply-first)
+                  (extract-contributing-lex-class existing-item-based-cxn-apply-first)
                   (make-lex-class (symbol-name cxn-name-item-based-cxn) :trim-cxn-suffix t)))
                (lex-class-item-based-cxn-slot
                 (if existing-item-based-cxn-apply-first

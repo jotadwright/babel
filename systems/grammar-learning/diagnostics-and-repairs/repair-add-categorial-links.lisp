@@ -53,24 +53,32 @@
 
 (defun create-categorial-links (problem node)
   (do-create-categorial-links
-   (random-elt (get-data problem :utterances))
-   (random-elt (get-data problem :meanings))
+   (form-constraints-with-variables
+    (random-elt (get-data problem :utterances))
+    (get-configuration (construction-inventory node) :de-render-mode))
+   (meaning-predicates-with-variables
+    (random-elt (get-data problem :meanings))
+    (get-configuration (construction-inventory node) :meaning-representation-formalism))
    (construction-inventory node)))
 
-(defun do-create-categorial-links (utterance gold-standard-meaning cxn-inventory)
+(defun do-create-categorial-links (form-constraints meaning cxn-inventory)
   "Return the categorial links and applied cxns from a comprehend with :category-linking-mode :path-exists instead of :neighbours"
     (disable-meta-layer-configuration cxn-inventory) 
     (with-disabled-monitor-notifications
-      (multiple-value-bind (meaning cip-node)
-          (comprehend utterance :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning gold-standard-meaning)
-        (declare (ignore meaning))
+      (multiple-value-bind (parsed-meaning cip-node)
+          (comprehend form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning)
+        (declare (ignore parsed-meaning))
         (enable-meta-layer-configuration cxn-inventory)
         (when (member 'succeeded (statuses cip-node) :test #'string=)
+          (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
+                 (categories-to-add (list (extract-contributing-lex-class (last-elt cxns-to-apply)))))
             (list
-             (mapcar #'original-cxn (reverse (applied-constructions cip-node)))
+             cxns-to-apply
              (extract-used-categorial-links cip-node)
              nil
-             nil)))))
+             categories-to-add))))))
+
+
 
 (defun extract-used-categorial-links (solution-cipn)
   "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."
@@ -80,8 +88,9 @@
                         (units-matching-lex-class (loop for unit in (conditional-part original-cxn)
                                                         for features = (append (comprehension-lock unit) (formulation-lock unit))
                                                         for lex-class = (second (find 'lex-class (rest (find 'syn-cat features :key #'first)) :key #'first))
+                                                        for renamed-unit-name = (cdr (find (name unit) (renamings (processing-cxn original-cxn)) :key #'first))
                                                         when lex-class
-                                                          collect (cons (cdr (find (name unit) (renamings processing-cxn) :key #'first)) lex-class))))
+                                                          collect (cons (cdr (find renamed-unit-name (renamings processing-cxn) :key #'first)) lex-class))))
                    (loop for (cxn-unit-name . cxn-lex-class) in units-matching-lex-class
                          for ts-unit-name = (cdr (find cxn-unit-name (car-second-merge-bindings (cipn-car cipn)) :key #'first))
                          for ts-unit = (find ts-unit-name (left-pole-structure (car-source-cfs (cipn-car cipn))):key #'first)
