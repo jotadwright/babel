@@ -15,11 +15,13 @@
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications
     (let* ((processing-cxns-to-apply (mapcar #'get-processing-cxn (first (restart-data fix))))
-           (original-cxns-to-consolidate (third (restart-data fix)))
            (categorial-links (second (restart-data fix)))
+           (original-cxns-to-consolidate (third (restart-data fix)))
+           (categories-to-add (fourth (restart-data fix)))
            ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
            (orig-categorial-network (categorial-network (construction-inventory node)))
            (temp-categorial-network (copy-object (categorial-network (construction-inventory node))))
+           (cats (add-categories categories-to-add temp-categorial-network :recompute-transitive-closure nil))
            (cat-links (loop for categorial-link in categorial-links
                             do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-categorial-network :recompute-transitive-closure nil)
                             (add-link (car categorial-link) (cdr categorial-link) temp-categorial-network :recompute-transitive-closure nil)
@@ -44,6 +46,7 @@
       ;; Add cxns to blackboard of second new node
       (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-cxns original-cxns-to-consolidate)
       (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-categorial-links categorial-links)
+      (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-categories categories-to-add)
       ;; set cxn-supplier to second new node
       (setf (cxn-supplier last-applied-node) (cxn-supplier node))
       ;; set statuses (colors in web interface)

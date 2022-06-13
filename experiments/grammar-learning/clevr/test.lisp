@@ -29,6 +29,9 @@
   (activate-monitor export-type-hierarchy-to-json))
 
 
+
+
+
 ;; full logging except trace-fcg
 (progn
   (deactivate-all-monitors)
@@ -38,7 +41,6 @@
   ;(activate-monitor show-type-hierarchy-after-n-interactions)
   ;(activate-monitor trace-interactions-in-wi)
   )
-
 ;; full logging
 (progn
   (deactivate-all-monitors)
@@ -48,7 +50,6 @@
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
-
 
 (progn
   (wi::reset)
@@ -66,6 +67,7 @@
                                                    :name "stage-1" :type "jsonl")))))))
                               
 
+
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t))
@@ -79,16 +81,14 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 20)
+;(run-series *experiment* 100) ; 552 has issue!
 
 ;(run-series *experiment* 2000) ; item-based to holistic fails
 
 
 #|
 ISSUES:
-
-I2: there aren't that many holophrases to learn from, add the repairs that learn from a combination of cxns
-
+variablifying form and meaning happens twice in substitution repair! change holistic and subst repair accordingly
 
  
 TODO:
@@ -146,5 +146,9 @@ what ?x applies
 
 telkens als je een item-based kan toepassen ga je niet gewoon een holistic cxn maken van de rest, maar ga je opnieuw voor dat deel door alle repairs
 
+
+recursief design:
+
+na elke repair: maak een nieuw probleem aan als er nog een holistic cxn geleerd wordt
 
 |#

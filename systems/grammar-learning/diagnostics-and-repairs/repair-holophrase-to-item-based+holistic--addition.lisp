@@ -29,8 +29,13 @@
                        :problem problem
                        :restart-data constructions-and-categorial-links)))))
 
+(defun repair-holophrase->item-based+holistic--addition (problem node)
+  (do-repair-holophrase->item-based+holistic--addition
+   (random-elt (get-data problem :utterances))
+   (random-elt (get-data problem :meanings))
+   (construction-inventory node)))
 
-(defun repair-holophrase->item-based+holistic--addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
+(defun do-repair-holophrase->item-based+holistic--addition (utterance gold-standard-meaning cxn-inventory) 
   "Creates item-based construction and a holistic construction
    based on an existing holophrase construction of which the form/meaning are a subset of the observed phrase, and there is a maximum of one differing meaning predicate
 
@@ -42,11 +47,8 @@
    - holistic-cxn: red-cxn
    - item based-cxn: the-X-cube-cxn
    "
-  (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
-         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
-                                                                   meaning-representation-formalism))
-         (utterance (random-elt (get-data problem :utterances))))
+  (let* ((cxn-inventory (original-cxn-set cxn-inventory))
+         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism)))
     (multiple-value-bind (subset-holophrase-cxn
                           ;superset-form
                           non-overlapping-form

@@ -45,7 +45,7 @@
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (if (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
       (if (determine-communicative-success cipn) "." "x") ; return a dot or x in evaluation mode
-      (cond ((find 'nothing->holophrase node-statuses :test #'string=) "h")
+      (cond ((find 'nothing->holistic node-statuses :test #'string=) "h")
             ((find 'holistic->item-based node-statuses :test #'string=) "i")
             ((find 'item-based->holistic node-statuses :test #'string=) "l")
             ((find 'holistic+item-based->item-based--substitution node-statuses :test #'string=) "z")

@@ -34,12 +34,18 @@
                        :restart-data constructions-and-th-links)))))
 
 (defun create-item-based-cxn-from-partial-holistic-analysis (problem node)
+  (do-repair-holophrase->item-based+holistic+holistic--substitution
+   (random-elt (get-data problem :utterances))
+   (random-elt (get-data problem :meanings))
+   (construction-inventory node)))
+
+(defun do-create-item-based-cxn-from-partial-holistic-analysis (utterance gold-standard-meaning cxn-inventory)
   "Creates item-based construction around matching holistic constructions"
-  (let* ((cxn-inventory (construction-inventory node))
+  (let* (
          (original-cxn-set (original-cxn-set cxn-inventory))
-         (utterance (random-elt (get-data problem :utterances)))
+         
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings)) meaning-representation-formalism))
+         (gold-standard-meaning (meaning-predicates-with-variables gold-standard-meaning meaning-representation-formalism))
          (best-partial-analysis-node (get-best-partial-analysis-cipn
                                       utterance
                                       gold-standard-meaning
@@ -199,7 +205,7 @@
         (list
          cxns-to-apply
          cat-links-to-add
-         cxns-to-consolidate
-         updated-boundary-name-and-args-list)
+         cxns-to-consolidate)
+         ;updated-boundary-name-and-args-list)
         ))))
 

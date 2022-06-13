@@ -33,17 +33,19 @@
                        :repair repair
                        :problem problem
                        :restart-data constructions-and-categorial-links)))))
+(defun repair-holophrase->item-based+holistic+holophrase--deletion (problem node)
+  (do-repair-holophrase->item-based+holistic+holophrase--deletion
+   (random-elt (get-data problem :utterances))
+   (random-elt (get-data problem :meanings))
+   (construction-inventory node)))
 
-(defun repair-holophrase->item-based+holistic+holophrase--deletion (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)
+(defun do-repair-holophrase->item-based+holistic+holophrase--deletion (utterance gold-standard-meaning cxn-inventory) 
   "Creates item-based construction, a holophrase and a holistic construction
    based on an existing holophrase construction of which the form/meaning are a superset of the observed phrase.
    "
-  (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
-         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (gold-standard-meaning (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
-                                                                   meaning-representation-formalism))
+  (let* ((cxn-inventory (original-cxn-set cxn-inventory))
+         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism)))
          
-         (utterance (random-elt (get-data problem :utterances))))
     (multiple-value-bind (superset-holophrase-cxn
                           non-overlapping-form
                           non-overlapping-meaning
@@ -55,7 +57,7 @@
       (when superset-holophrase-cxn
         (let* (
                (meaning
-                (meaning-predicates-with-variables (random-elt (get-data problem :meanings))
+                (meaning-predicates-with-variables gold-standard-meaning
                                                    meaning-representation-formalism))
                (args-holophrase-cxn (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
                (existing-holistic-cxn-apply-first

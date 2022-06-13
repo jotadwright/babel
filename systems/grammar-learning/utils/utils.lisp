@@ -150,23 +150,34 @@
       (values form-constraints boundaries)
       )))
    |# 
-(defun add-boundaries-to-form-constraints (form-constraints boundaries &key placeholder-var)
+(defun add-boundaries-to-form-constraints (form-constraints slot-boundaries &key placeholder-var)
   "given a list of boundaries that correspond to a certain slot and a list of form constraints,
    create a new variable for left and right boundary, also if the original left and right boundary vars were identical
-   return both the form constraints and the new boundary list"
+   return both the form constraints and the new boundary lists"
   (let* ((new-form-constraints (copy-object form-constraints))
          (placeholder-var (string-upcase (if placeholder-var placeholder-var "?X")))
          (right-var (make-var (make-const (format nil "?RIGHT-~a-BOUNDARY" placeholder-var))))
          (left-var (make-var (make-const (format nil "?LEFT-~a-BOUNDARY" placeholder-var))))
-         (left-boundary (first boundaries))
-         (right-boundary (second boundaries))
+         (left-boundary (first slot-boundaries))
+         (right-boundary (second slot-boundaries))
          (matching-left-predicate (find left-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'third))
          (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
     (when matching-right-predicate
       (setf (nth 1 matching-right-predicate) right-var))
     (when matching-left-predicate
       (setf (nth 2 matching-left-predicate) left-var))
-    (values new-form-constraints (list left-var right-var))))  
+    (values new-form-constraints (list left-var right-var))))
+
+(defun fix-dummy-edge-boundaries (temp-item-based-boundaries rewritten-boundaries)
+  (list (if (equal (first temp-item-based-boundaries) ; left-x-boundary
+             (first rewritten-boundaries)) ; the var was at the beginning of the observation, replace left with right boundary
+          (second rewritten-boundaries)
+          (first temp-item-based-boundaries)
+          )
+        (if (equal (second temp-item-based-boundaries) ; right-x-boundary
+             (second rewritten-boundaries)) ; the var was at theend of the observation, replace right with left boundary
+          (first rewritten-boundaries)
+          (second temp-item-based-boundaries))))
 
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit based on meets constraints, even when the meets predicates are in a random order"
@@ -183,7 +194,8 @@
       (when (and (equal 1 (length form-constraints))
                  (equal 'string (first (first form-constraints))))
         (list (second (first form-constraints)) (second (first form-constraints)))))))
-                           
+
+
 
 (defun initial-transient-structure (node)
   (if (find 'fcg::initial (statuses node))
@@ -245,8 +257,24 @@
                      collect arg-list)))
     args))
 
+(defun extract-args-from-holistic-cxn-apply-last (cxn)
+  (second (find 'args (formulation-lock (first (conditional-part cxn))) :key #'feature-name)))
 
-         
+
+(defun extract-args-apply-first (cxn)
+  (let* ((contributing-units (contributing-part cxn))
+         (top-unit (cond ((eql 'holistic (attr-val cxn :cxn-type))
+                          (first contributing-units))
+                         ((eql 'item-based (attr-val cxn :cxn-type))
+                          (loop for unit in contributing-units
+                                if (eql 'item-based (second (find 'phrase-type (rest (find 'syn-cat (fcg::unit-structure unit) :key #'first)) :key #'first)))
+                                  do (return unit))))))
+    (assert top-unit)
+    (second (find 'args (fcg::unit-structure top-unit) :key #'first))))
+
+    
+
+
 (defun lex-class-apply-last-cxn (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (comprehension-lock (last-elt (conditional-part cxn))) :key #'feature-name)))
@@ -255,6 +283,11 @@
 (defun lex-class-cxn (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+(defun extract-main-item-based-lex-class (cxn)
+  "return the lex-class of a cxn"
+  (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
          
 (defun get-cxn-boundaries-apply-first (cxn)
@@ -352,7 +385,14 @@
     (make-id name-string)
     (intern name-string))))
 
-
+(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+  "Transform a list of form constraints into a suitable construction name"
+  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
+    (make-cxn-name (format nil "~{~a~^-~}"
+                           (render (append form-constraints new-string-constraints)
+                                   (get-configuration cxn-inventory :render-mode)))
+                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
 
 (defun variablify-missing-form-strings (form-constraints)
   "create X Y Z etc variables by checking which strings are missing in meets constraints return a list of placeholder bindings in the form of string predicates"
@@ -378,14 +418,7 @@
 
 ;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
 
-(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
-  "Transform a list of form constraints into a suitable construction name"
-  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
-    (make-cxn-name (format nil "~{~a~^-~}"
-                           (render (append form-constraints new-string-constraints)
-                                   (get-configuration cxn-inventory :render-mode)))
-                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
+
 
 (defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
   "for slots that hold larger chunks, replace the rightmost boundary of the chunk with the leftmost variable, so that it appears as one slot in the cxn name"
@@ -742,14 +775,15 @@
 
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-        do (when (eql (attr-val cxn :cxn-type) 'holophrase)
+        do (when (eql (attr-val cxn :cxn-type) 'holistic)
              (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks meaning (extract-meaning-predicates cxn) meaning-representation-formalism)))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
-                    (non-overlapping-form-observation (non-overlapping-form utterance-form-constraints cxn :nof-observation t))
-                    (non-overlapping-form-cxn (non-overlapping-form utterance-form-constraints cxn :nof-cxn t))
+                    (nof-obs-and-cxn (multiple-value-list (diff-form-constraints utterance-form-constraints (extract-form-predicates cxn))))
+                    (non-overlapping-form-observation (first nof-obs-and-cxn))
+                    (non-overlapping-form-cxn (second nof-obs-and-cxn))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
                     (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal))
                     ;; args
@@ -779,10 +813,7 @@
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
                                  overlapping-meaning-observation
-                                 ;overlapping-meaning-cxn
                                  overlapping-form-observation
-                                 args-holistic-cxn-1
-                                 args-holistic-cxn-2
                                  cxn
                                  )))))))
 
@@ -938,65 +969,12 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :amr)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
-(defun compare-irl-predicates (predicate-1 predicate-2 network-1 network-2)
-  ; todo: find subnetworks of open vars, then use equivalent-irl-programs? on those! these subnetworks can have a depth larger than 1!
-  (let* ((open-vars-1 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-1)))))
-         (open-vars-2 (third (multiple-value-list (extract-vars-from-irl-network (list predicate-2)))))
-         (predicate-unification-bindings (unify-irl-programs (list predicate-1) (list predicate-2)))
-         (sub-predicate-1 (get-irl-predicate-from-in-var (first open-vars-1) network-1))
-         (sub-predicate-2 (get-irl-predicate-from-in-var (first open-vars-2) network-2))
-         (sub-predicate-unification-bindings (unify-irl-programs (list sub-predicate-1)
-                                                                 (list sub-predicate-2))))
-    (cond ((and (not (or open-vars-1 open-vars-2))
-                predicate-unification-bindings)
-           ;; no open vars, and it unifies
-           (values t nil nil))
-             
-          ((and open-vars-1
-                open-vars-2
-                predicate-unification-bindings
-                sub-predicate-unification-bindings)
-           ;; both have open vars, and the bound predicates unify
-           (values t sub-predicate-1 sub-predicate-2))
-          )))
+
 
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :amr)))
   (multiple-value-bind (n1-diff n2-diff bindings) (amr::diff-amr-networks network-1 network-2)
     (values n1-diff n2-diff)))
 
-
-(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
-  "traverse both networks, return the overlapping predicates, assumes the network to be linear, and the variables to have a fixed position"
-  ;todo: identify all subnetworks, resolve them, then loop through parent network and combine resolved result with subnetwork
-  (loop with current-predicate-1 = (get-predicate-with-target-var network-1)
-        with current-predicate-2 = (get-predicate-with-target-var network-2)
-        with last-equivalent-predicate-1 = current-predicate-1
-        with overlapping-predicates-1 = nil
-        with overlapping-predicates-2 = nil
-        with rest-network-1 = (set-difference network-1 overlapping-predicates-1)
-        with rest-network-2 = (set-difference network-2 overlapping-predicates-2)
-        while (or current-predicate-1 current-predicate-2)
-        for next-predicate-1 = (get-next-irl-predicate current-predicate-1 rest-network-1)
-        for next-predicate-2 = (get-next-irl-predicate current-predicate-2 rest-network-2)
-        do (multiple-value-bind (equivalent-predicates-p bind-1 bind-2)
-               (compare-irl-predicates current-predicate-1 current-predicate-2 rest-network-1 rest-network-2)
-             (if equivalent-predicates-p
-               (progn ;; true condition
-                 (setf last-equivalent-predicate-1 current-predicate-1) ;; keep track of last successful comparison
-                 (push current-predicate-1 overlapping-predicates-1)
-                 (push current-predicate-2 overlapping-predicates-2)
-                 (when bind-1 (push bind-1 overlapping-predicates-1))
-                 (when bind-2 (push bind-2 overlapping-predicates-2))
-                 (setf current-predicate-1 next-predicate-1)
-                 (setf current-predicate-2 next-predicate-2))
-               ;; false condition
-               (setf current-predicate-1 next-predicate-1)) ; traverse network 1 while network 2 stays static
-             (when (and (not current-predicate-1) current-predicate-2) ;; stack 1 is empty, stack 2 is not so go back to the last equivalent predicate, and take the next predicate
-               (setf current-predicate-1 (get-next-irl-predicate last-equivalent-predicate-1 rest-network-1))
-               (setf current-predicate-2 next-predicate-2)))
-               
-        finally (return (values (set-difference network-1 overlapping-predicates-1)
-                                (set-difference network-2 overlapping-predicates-2)))))
 
 (defun substitute-predicate-bindings (predicate bindings)
   (loop with frame-bindings = (irl::map-frame-bindings bindings)
@@ -1066,15 +1044,6 @@
           (get-target-var irl-network)
           (set-difference (get-open-vars irl-network) (last (get-open-vars irl-network)))))
 
-(defun get-predicate-with-target-var (irl-program)
-  "Find the predicate with the target var, given an irl program"
-  (find (get-target-var irl-program) irl-program :test #'member))
-
-(defun get-next-irl-predicate (predicate irl-program)
-  "Find the next predicate, given a variable"
-  (let ((in-var (first (multiple-value-list (extract-vars-from-irl-network (list predicate))))))
-    (find in-var (remove predicate irl-program) :test #'member)))
-
 (defun get-irl-predicate-from-in-var (var irl-program)
   "Find the next predicate, given an input variable"
   (loop for predicate in irl-program
@@ -1083,7 +1052,7 @@
         return predicate))
 
 (defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
+  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
@@ -1097,7 +1066,7 @@
 
 (defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
   (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-meta-layer-cxn-set-only)
-  (set-configuration cxn-inventory :category-linking-mode :path-exists-ignore-transitive-closure)
+  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
