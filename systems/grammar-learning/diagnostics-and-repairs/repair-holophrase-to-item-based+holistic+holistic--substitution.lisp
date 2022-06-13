@@ -93,19 +93,34 @@ based on existing construction with sufficient overlap."
                (rewritten-item-based-boundaries (get-boundary-units (append dummy-slot-fc overlapping-form-with-rewritten-boundaries)))
                ;(rewritten-item-based-boundaries (fix-dummy-edge-boundaries temp-item-based-boundaries rewritten-boundaries))
                
+               
+               
+               
+               
 
-               (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
-                                                     overlapping-form-with-rewritten-boundaries
-                                                     overlapping-meaning-observation
-                                                     cxn-inventory
-                                                     :cxn-type 'item-based
-                                                     :cxn-set 'fcg::meta-only))
+               ;; cxns and links from iterating over all repairs
+               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
+               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
+
+               ;; args
+               (slot-args (extract-args-from-meaning-networks non-overlapping-meaning-observation meaning meaning-representation-formalism))
+               ;(slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part-observation)))) ; this should work too!
+               
+               
+               
+               (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+               
+               
                (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
                                                     overlapping-form-with-rewritten-boundaries
                                                     overlapping-meaning-observation
+                                                    (list slot-args)
                                                     cxn-inventory
                                                     :cxn-type 'item-based
                                                     :cxn-set 'fcg::routine))
+
+               (existing-item-based-cxn-apply-first (when existing-item-based-cxn-apply-last
+                                                      (alter-ego-cxn existing-item-based-cxn-apply-last cxn-inventory)))
                
                ;; lex classes
                (lex-class-item-based-cxn
@@ -116,18 +131,6 @@ based on existing construction with sufficient overlap."
                 (if existing-item-based-cxn-apply-first
                   (lex-class-cxn existing-item-based-cxn-apply-first)
                   (make-lex-class (concatenate 'string (symbol-name lex-class-item-based-cxn) "-(x)"))))
-
-               ;; args
-               (slot-args (extract-args-from-meaning-networks non-overlapping-meaning-observation meaning meaning-representation-formalism))
-               (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
-
-               ;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
-               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
-               
-               
-               
-               
 
                
                (new-item-based-cxn-apply-last

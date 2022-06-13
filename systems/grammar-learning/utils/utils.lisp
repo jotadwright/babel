@@ -328,16 +328,33 @@
                                              (set-difference network-2 unique-part-network-2)))
       (values unique-part-network-1 unique-part-network-2))))
 
-(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory &key cxn-type cxn-set)
+(defun arg-is-part-of-meaning-p (arg-var meaning)
+  (when (or (find arg-var (remove-bind-statements meaning) :key #'second)
+            (find arg-var (remove-bind-statements meaning) :key #'third))
+    t))
+
+(defun find-cxn-by-form-and-meaning (form meaning args-list cxn-inventory &key cxn-type cxn-set)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-type-cxn = (attr-val cxn :cxn-type)
+        for cxn-args = (extract-args-apply-last cxn)
         when (and
               (if cxn-type (equal cxn-type cxn-type-cxn) t)
               (if cxn-set (equal cxn-set (attr-val cxn :label)) t)
               (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
               (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-                  ; note: boundaries and args are ignored, as they are designed to always match, and fully depend on form and meaning anyway.
+              (if args-list
+                (irl:equivalent-irl-programs? (append (loop for args in args-list
+                                                    for dummy-predicate = (append (list 'args) args)
+                                                    collect dummy-predicate) meaning)
+                                              (append (loop for args in cxn-args
+                                                    for dummy-predicate = (append (list 'args) args)
+                                                    collect dummy-predicate) (extract-meaning-predicates cxn)))
+                                              
+                                              
+                t)
+              ;; check args: look up if the first arg is in the meaning representation, or if the second arg is in the meaning representation - this order should match!
+              
               )
         return cxn))
 
