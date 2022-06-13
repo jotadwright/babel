@@ -712,13 +712,15 @@
                ))
              :cxn-set mal-cxn)
 
-(def-fcg-cxn incorrect-agent-in-topicalized-transitive-argument-structure-cxn
-             ((?incorrect-agent-in-topicalized-transitive-argument-structure-unit
+(def-fcg-cxn incorrect-patient-case-in-topicalized-transitive-argument-structure-cxn
+             ((?incorrect-patient-case-in-topicalized-transitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?patient-unit)))
               (?agent-unit
                (syn-cat (syn-role subject)))
               (?patient-unit
-               (syn-cat (syn-role direct-object)))
+               (syn-cat (syn-role indirect-object))
+               (error-cat (error incorrect-case-selection)
+                         (reason with-transitive-verbs-objects-are-in-accusative)))
               <-
               (?verb-unit
                (syn-cat (lex-class verb)
@@ -747,9 +749,71 @@
                                (- - - - -)        
                                (- - - - -)
                                (?as ?nm ?nf ?nn ?np))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)                  
+                               (- - - - -)
+                               (+ ?dm ?df ?dn ?dp)
+                               (?ps ?dm ?df ?dn ?dp))))
+               (sem-cat (animacy animate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (- - - - -)                  
+                               (- - - - -)
+                               (+ ?dm ?df ?dn ?dp)
+                               (?ps ?dm ?df ?dn ?dp))))
+              (sem-cat (animacy animate))
+              (referent ?arg1))        
+              (?incorrect-patient-case-in-topicalized-transitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(def-fcg-cxn incorrect-agent-and-patient-in-topicalized-transitive-argument-structure-cxn
+             ((?incorrect-agent-and-patient-in-topicalized-transitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              (?agent-unit
+               (syn-cat (syn-role incorrect-direct-object)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?as ?am ?af ?an ?ap))))
                         (sem-cat (animacy animate))
-                        (error-cat (error ?e)
-                         (reason ?r))
               (referent ?arg0))
               
               (?patient-unit
@@ -773,7 +837,7 @@
               (referent ?arg1))
               
               
-              (?incorrect-agent-in-topicalized-transitive-argument-structure-unit
+              (?incorrect-agent-and-patient-in-topicalized-transitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg1 ?v ?arg1)))                  
                --
@@ -936,4 +1000,6 @@
 (comprehend "den Becher sucht der Polizist")
 (comprehend "den Bäcker sucht die Polizist")
 (comprehend "dem Kellner ruft der König")
+(comprehend "dem Mann verfolgt der Hund")
+(comprehend "den Mann verfolgt den Hund")
 
