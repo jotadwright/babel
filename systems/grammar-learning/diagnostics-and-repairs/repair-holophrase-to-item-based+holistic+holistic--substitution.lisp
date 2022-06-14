@@ -104,7 +104,7 @@ based on existing construction with sufficient overlap."
 
                ;; args
                (slot-args (extract-args-from-meaning-networks non-overlapping-meaning-observation meaning meaning-representation-formalism))
-               ;(slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part-observation)))) ; this should work too!
+               (alt-slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part-observation)))) ; this should work too!
                
                
                
@@ -145,14 +145,18 @@ based on existing construction with sufficient overlap."
                                                                    (right ,(second rewritten-item-based-boundaries)))
                                                                   (args ,item-based-args)
                                                                   (subunits (?slot-unit)))
+                                                                 (?slot-unit 
+                                                                  (footprints (used-as-slot-filler)))
                                                                  <-
                                                                  (?item-based-unit
                                                                   (HASH meaning ,overlapping-meaning-observation)
                                                                   --
                                                                   (HASH form ,overlapping-form-with-rewritten-boundaries))
                                                                  (?slot-unit
+                                                                  (footprints (NOT used-as-slot-filler))
                                                                   (args ,slot-args)
                                                                   --
+                                                                  (footprints (NOT used-as-slot-filler))
                                                                   (syn-cat (lex-class ,lex-class-item-based-cxn-slot))
                                                                   (boundaries
                                                                    (left ,(first rewritten-boundaries))
@@ -182,7 +186,8 @@ based on existing construction with sufficient overlap."
                                                                    (right ,(second rewritten-item-based-boundaries)))
                                                                   (args ,item-based-args)
                                                                   (subunits (?slot-unit)))
-                                                                 (?slot-unit 
+                                                                 (?slot-unit
+                                                                  (footprints (used-as-slot-filler))
                                                                   (syn-cat (phrase-type holistic)
                                                                            (lex-class ,lex-class-item-based-cxn-slot))
                                                                   (args ,slot-args)

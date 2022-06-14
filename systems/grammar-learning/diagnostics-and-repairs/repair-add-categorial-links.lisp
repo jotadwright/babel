@@ -13,16 +13,13 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
-  (unless (find-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed)
-    ;(break)
-    (let ((cxns-and-categorial-links (create-categorial-links problem node)))
-      (if cxns-and-categorial-links
-        (make-instance 'fcg::cxn-fix
-                       :repair repair
-                       :problem problem
-                       :restart-data cxns-and-categorial-links)
-        (progn (set-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed t)
-          nil)))))
+  (let ((cxns-and-categorial-links (create-categorial-links problem node)))
+    (if cxns-and-categorial-links
+      (make-instance 'fcg::cxn-fix
+                     :repair repair
+                     :problem problem
+                     :restart-data cxns-and-categorial-links)
+      nil)))
 #|
 (defmethod repair ((repair add-categorial-links)
                    (problem non-gold-standard-utterance)
@@ -66,11 +63,12 @@
     (disable-meta-layer-configuration cxn-inventory) 
     (with-disabled-monitor-notifications
       (multiple-value-bind (parsed-meaning cip-node)
-          (comprehend form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning) ;; issue: the cxn applies, but it contains meaning that is repeated in the surrounding item-based cxn - the parsed meaning needs to match the meaning!
+          (comprehend form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning)
         (enable-meta-layer-configuration cxn-inventory)
         (when (and
                (member 'succeeded (statuses cip-node) :test #'string=)
                (equivalent-meaning-networks parsed-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
+               
           (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
                  (categories-to-add (list (extract-contributing-lex-class (last-elt cxns-to-apply)))))
             (list
@@ -80,21 +78,22 @@
              categories-to-add))))))
 
 
-
 (defun extract-used-categorial-links (solution-cipn)
   "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."
   (loop for cipn in (rest (reverse (cons solution-cipn (all-parents solution-cipn))))
           append (let* ((processing-cxn (car-applied-cxn (cipn-car cipn)))
-                        (original-cxn (original-cxn processing-cxn))
-                        (units-matching-lex-class (loop for unit in (conditional-part original-cxn)
-                                                        for features = (append (comprehension-lock unit) (formulation-lock unit))
-                                                        for lex-class = (second (find 'lex-class (rest (find 'syn-cat features :key #'first)) :key #'first))
-                                                        for renamed-unit-name = (cdr (find (name unit) (renamings (processing-cxn original-cxn)) :key #'first))
+                        (units-matching-lex-class (loop for unit in (right-pole-structure processing-cxn)
+                                                        for syn-cat = (rest (unit-feature-value unit 'syn-cat))
+                                                        for lex-class = (second (find 'lex-class syn-cat :key #'first))
                                                         when lex-class
-                                                          collect (cons (cdr (find renamed-unit-name (renamings processing-cxn) :key #'first)) lex-class))))
+                                                          collect (cons (first unit) lex-class))))
                    (loop for (cxn-unit-name . cxn-lex-class) in units-matching-lex-class
                          for ts-unit-name = (cdr (find cxn-unit-name (car-second-merge-bindings (cipn-car cipn)) :key #'first))
                          for ts-unit = (find ts-unit-name (left-pole-structure (car-source-cfs (cipn-car cipn))):key #'first)
                          for ts-lex-class = (second (find 'lex-class (second (find 'syn-cat (rest ts-unit) :key #'first)) :key #'first))
-                         collect (cons cxn-lex-class ts-lex-class)))))
+                         if (and cxn-lex-class ts-lex-class)
+                         collect (cons cxn-lex-class ts-lex-class)
+                         else do (error "cxn-lex-class or ts-lex-class was nil!!")))))
+
+;; (extract-used-categorial-links *saved-cipn*)
             

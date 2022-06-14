@@ -33,10 +33,17 @@
     (make-instance 'coupled-feature-structure 
 		   :left-pole `((root (meaning ())
                                       (sem-cat ())
-                                      (form ,utterance)
+                                      (form ,(instantiate-form-constraints utterance))
                                       (syn-cat ())))
 		   :right-pole '((root)))))
 
+(defun instantiate-form-constraints (list-of-form-constraints)
+  (loop for fc in list-of-form-constraints
+        collect (loop for el in fc
+                      if (variable-p el)
+                      collect (intern (subseq (symbol-name el) 1))
+                      else
+                      collect el)))
 
 (defun remove-quotes+full-stops (utterance)
   (let ((words (split (remove-spurious-spaces utterance) #\space)))
@@ -67,12 +74,13 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
+                   :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                                        (:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
                                         (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure )
                                         (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
                                         (:parse-order routine)
-                                        (:max-nr-of-nodes . 10000)
+                                        (:max-nr-of-nodes . 250)
                                         (:production-order routine)
                                         (:meaning-representation-formalism . ,(get-configuration experiment :meaning-representation))
                                         (:render-mode . :generate-and-test)
@@ -169,7 +177,7 @@
                 collect comp))
          (holophrase-competitors
           (loop for other-cxn in (constructions-list cxn-inventory)
-                when (and (eql (get-cxn-type other-cxn) 'gl::holophrase)
+                when (and (eql (get-cxn-type other-cxn) 'gl::holistic)
                           (string= (extract-and-render other-cxn)
                                    (list-of-strings->string
                                     (fcg::tokenize utterance))))

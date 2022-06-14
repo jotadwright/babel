@@ -16,9 +16,16 @@
   
 (defmethod run-alignment ((agent clevr-learning-learner)
                           cipn (strategy (eql :lateral-inhibition)))
+
+  (notify alignment-started)
+  ;; align categorial links
+  (loop for (cat-1 . cat-2) in (extract-used-categorial-links cipn)
+        do (incf-link-weight cat-1 cat-2 (categorial-network (construction-inventory cipn))))
+
+  ;; align cxns
   (let ((applied-cxns (original-applied-constructions cipn))
         (utterance (utterance agent)))
-    (notify alignment-started)
+    
     ;; reward the applied cxns and punish competitors
     (loop with cxn-delta = (get-configuration agent :cxn-incf-score)
           for cxn in applied-cxns
@@ -27,6 +34,7 @@
             (when alter-ego-cxn
               (inc-cxn-score alter-ego-cxn :delta cxn-delta))
           finally (notify cxns-rewarded applied-cxns))
+    #|
     (loop with cxn-delta = (get-configuration agent :cxn-decf-score)
           for competitor in (get-meaning-competitors agent applied-cxns utterance)
           for alter-ego-competitor = (alter-ego-cxn competitor (grammar agent))
@@ -34,5 +42,7 @@
             (when alter-ego-competitor
               (dec-cxn-score agent alter-ego-competitor :delta cxn-delta))
           collect competitor into punished-cxns
-          finally (notify cxns-punished punished-cxns))))
+          finally (notify cxns-punished punished-cxns))
+    |#
+    ))
       

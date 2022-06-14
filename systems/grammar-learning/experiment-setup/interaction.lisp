@@ -23,6 +23,18 @@
 ;; + Interaction +
 ;; ---------------
 
+(defun matches-gold-standard-meaning (node)
+  "Checks whether the extracted meaning is equivalent with the gold standard meaning."
+  (and (fully-expanded? node)
+    (let* ((resulting-cfs (car-resulting-cfs (cipn-car node)))
+           (meaning (extract-meanings (left-pole-structure resulting-cfs)))
+           (meaning-representation-formalism (get-configuration (construction-inventory node) :meaning-representation-formalism))
+           (gold-standard-meanings (get-data resulting-cfs :meanings)))
+      (when (find meaning gold-standard-meanings :test #'(lambda (m1 m2)
+                                                         (equivalent-meaning-networks m1 m2 meaning-representation-formalism)))
+        
+        t))))
+
 (define-event interaction-before-finished
   (utterance string) (gold-standard-meaning t))
 
@@ -36,12 +48,11 @@
 (defun determine-communicative-success (cipn)
   (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
-    (when (and
-           (or
-            (not (find 'ADDED-BY-REPAIR node-statuses :test #'string=))
-            (find 'add-categorial-links node-statuses :test #'string=))
-           (cip-goal-test cipn :non-gold-standard-meaning))
-      t)))
+    (unless (find 'ADDED-BY-REPAIR node-statuses :test #'string=)
+      (matches-gold-standard-meaning cipn))))
+           
+           
+      
 
 (defun get-last-repair-symbol (cipn)
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))

@@ -14,6 +14,7 @@
 
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
   (with-disabled-monitor-notifications
+  ;(add-element '((h1) "debug handle fix"))
     (let* ((processing-cxns-to-apply (mapcar #'get-processing-cxn (first (restart-data fix))))
            (categorial-links (second (restart-data fix)))
            (original-cxns-to-consolidate (third (restart-data fix)))
@@ -26,9 +27,11 @@
                             do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-categorial-network :recompute-transitive-closure nil)
                             (add-link (car categorial-link) (cdr categorial-link) temp-categorial-network :recompute-transitive-closure nil)
                             finally (set-categorial-network (construction-inventory node) temp-categorial-network)))
-           (dbg (loop for cxn in processing-cxns-to-apply
-                      for orig-cxn = (original-cxn cxn)
-                      do (add-element (make-html orig-cxn))))
+           ;(dbg (loop for cxn in processing-cxns-to-apply
+           ;           for orig-cxn = (original-cxn cxn)
+           ;           do (add-element (make-html orig-cxn))))
+           ;(dbg (loop for orig-cxn in original-cxns-to-consolidate
+           ;           do (add-element (make-html orig-cxn))))
            (applied-nodes (loop with last-node = (initial-node node)
                                 for cxn in processing-cxns-to-apply
                                 do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply cxn (if (initial-node-p last-node)
@@ -54,4 +57,5 @@
       (push 'added-by-repair (statuses last-applied-node))
       ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block
       (cip-enqueue last-applied-node (cip node) (get-configuration node :queue-mode))
+      ;(add-element '((h1) "end handle fix"))
       )))
