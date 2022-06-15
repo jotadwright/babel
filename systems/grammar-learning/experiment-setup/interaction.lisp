@@ -48,8 +48,15 @@
 (defun determine-communicative-success (cipn)
   (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
-    (unless (find 'ADDED-BY-REPAIR node-statuses :test #'string=)
-      (matches-gold-standard-meaning cipn))))
+    (cond ((find 'ADDED-BY-REPAIR node-statuses :test #'string=)
+           nil)
+          ((loop for current-node in (traverse-depth-first (top-node (cip cipn)) :collect-fn #'identity)
+                 if (and (field? (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)
+                        (not (get-data (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)))
+                 do (return t))
+           nil)
+          (t
+           (matches-gold-standard-meaning cipn)))))
            
            
       
@@ -80,13 +87,13 @@
                      interaction &key)
   "the learner attempts to comprehend the utterance with its grammar, and applies any repairs if necessary"
     (let* ((cipn (second (multiple-value-list (run-learner-comprehension-task (learner experiment)))))
-           (successp (determine-communicative-success cipn)))
+           (success? (determine-communicative-success cipn)))
       (setf (success-buffer experiment) (append (success-buffer experiment)
-                                                (list (if successp 1 0))))
+                                                (list (if success? 1 0))))
       (setf (repair-buffer experiment) (append (repair-buffer experiment)
                                                 (list (get-last-repair-symbol cipn))))            
       (loop for agent in (population experiment)
-            do (setf (communicated-successfully agent) successp))))
+            do (setf (communicated-successfully agent) success?))))
     
 (define-event agent-confidence-level (level float))
 

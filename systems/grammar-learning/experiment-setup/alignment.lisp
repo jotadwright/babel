@@ -23,26 +23,29 @@
         do (incf-link-weight cat-1 cat-2 (categorial-network (construction-inventory cipn))))
 
   ;; align cxns
-  (let ((applied-cxns (original-applied-constructions cipn))
-        (utterance (utterance agent)))
+  (let ((applied-cxns (original-applied-constructions cipn)))
     
-    ;; reward the applied cxns and punish competitors
+    ;; reward the applied cxns 
     (loop with cxn-delta = (get-configuration agent :cxn-incf-score)
           for cxn in applied-cxns
           for alter-ego-cxn = (alter-ego-cxn cxn (grammar agent))
           do (inc-cxn-score cxn :delta cxn-delta)
-            (when alter-ego-cxn
-              (inc-cxn-score alter-ego-cxn :delta cxn-delta))
+          (when alter-ego-cxn
+            (inc-cxn-score alter-ego-cxn :delta cxn-delta))
           finally (notify cxns-rewarded applied-cxns))
-    #|
-    (loop with cxn-delta = (get-configuration agent :cxn-decf-score)
-          for competitor in (get-meaning-competitors agent applied-cxns utterance)
-          for alter-ego-competitor = (alter-ego-cxn competitor (grammar agent))
-          do (dec-cxn-score agent competitor :delta cxn-delta)
-            (when alter-ego-competitor
-              (dec-cxn-score agent alter-ego-competitor :delta cxn-delta))
-          collect competitor into punished-cxns
-          finally (notify cxns-punished punished-cxns))
-    |#
-    ))
+    
+     (loop for current-node in (traverse-depth-first (top-node (cip cipn)) :collect-fn #'identity)
+                 when (and (field? (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)
+                         (not (get-data (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)))
+                 do (loop for bad-node in (set-difference (remove (top-node (cip cipn))
+                                                                  (cons current-node (all-parents current-node)))
+                                                          (remove (top-node (cip cipn))
+                                                                  (cons cipn (all-parents cipn)))
+                                                          :key #'(lambda (node) (name (car-applied-cxn (cipn-car node)))))
+                          for bad-cxn = (car-applied-cxn (cipn-car bad-node))
+                          do (dec-cxn-score agent bad-cxn :delta (get-configuration agent :cxn-decf-score))
+                          (dec-cxn-score agent (alter-ego-cxn bad-cxn (grammar agent)) :delta (get-configuration agent :cxn-decf-score))
+                          append (list bad-cxn (alter-ego-cxn bad-cxn (grammar agent))) into punished-cxns
+                          finally (notify cxns-punished (mapcar #'original-cxn punished-cxns))))))
+
       
