@@ -48,7 +48,14 @@
 (defun determine-communicative-success (cipn)
   (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
-    (cond ((find 'ADDED-BY-REPAIR node-statuses :test #'string=)
+    (cond ((and (find 'add-categorial-links node-statuses :test #'string=)
+                (not (loop for current-node in (traverse-depth-first (top-node (cip cipn)) :collect-fn #'identity)
+                           if (and (field? (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)
+                                   (not (get-data (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)))
+                           do (return t))))
+           t)
+                
+     ((find 'ADDED-BY-REPAIR node-statuses :test #'string=)
            nil)
           ((loop for current-node in (traverse-depth-first (top-node (cip cipn)) :collect-fn #'identity)
                  if (and (field? (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)
@@ -56,10 +63,7 @@
                  do (return t))
            nil)
           (t
-           (matches-gold-standard-meaning cipn)))))
-           
-           
-      
+           t))))
 
 (defun get-last-repair-symbol (cipn)
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))

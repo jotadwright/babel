@@ -22,6 +22,44 @@
   (loop for (cat-1 . cat-2) in (extract-used-categorial-links cipn)
         do (incf-link-weight cat-1 cat-2 (categorial-network (construction-inventory cipn))))
 
+  ;; comprehend-all
+  (set-configuration (grammar agent) :use-meta-layer nil)
+  #|(multiple-value-bind (meanings solution-cipns)
+      (comprehend-all (utterance agent)
+                      :silent nil
+                      :gold-standard-meaning (list (meaning agent))
+                      :cxn-inventory (grammar agent))
+    (loop with first-solution = (first solution-cipns)
+          with first-solution-nodes = (remove (top-node (cip first-solution))
+                                              (cons first-solution (all-parents first-solution)))
+          for solution-node in (rest solution-cipns)
+                 do (loop for bad-node in (set-difference (remove (top-node (cip solution-node))
+                                                                  (cons solution-node (all-parents solution-node)))
+                                                          first-solution-nodes
+                                                          :key #'(lambda (node) (name (car-applied-cxn (cipn-car node)))))
+                          for bad-cxn = (original-cxn (car-applied-cxn (cipn-car bad-node)))
+                          do (dec-cxn-score agent bad-cxn :delta (get-configuration agent :cxn-decf-score))
+                          (dec-cxn-score agent (alter-ego-cxn bad-cxn (grammar agent)) :delta (get-configuration agent :cxn-decf-score))
+                          append (list bad-cxn (alter-ego-cxn bad-cxn (grammar agent))) into punished-cxns
+                          finally (notify cxns-punished punished-cxns)))
+    )|#
+
+  (multiple-value-bind (meanings solution-cipns)
+      (comprehend-all (utterance agent)
+                      :silent nil
+                      :gold-standard-meaning (list (meaning agent))
+                      :cxn-inventory (grammar agent))
+    (loop for solution-node in solution-cipns
+          for competitor-cxns = (set-difference (applied-constructions solution-node) (applied-constructions cipn) :key #'name)
+          do (loop for proc-bad-cxn in competitor-cxns
+                   for bad-cxn = (original-cxn proc-bad-cxn)
+                   do (dec-cxn-score agent bad-cxn :delta (get-configuration agent :cxn-decf-score))
+                   (dec-cxn-score agent (alter-ego-cxn bad-cxn (grammar agent)) :delta (get-configuration agent :cxn-decf-score))
+                   append (list bad-cxn (alter-ego-cxn bad-cxn (grammar agent))) into punished-cxns
+                   finally (notify cxns-punished punished-cxns)))
+    )
+  (set-configuration (grammar agent) :use-meta-layer t)
+
   ;; align cxns
   (let ((applied-cxns (original-applied-constructions cipn)))
     
@@ -42,10 +80,10 @@
                                                           (remove (top-node (cip cipn))
                                                                   (cons cipn (all-parents cipn)))
                                                           :key #'(lambda (node) (name (car-applied-cxn (cipn-car node)))))
-                          for bad-cxn = (car-applied-cxn (cipn-car bad-node))
+                          for bad-cxn = (original-cxn (car-applied-cxn (cipn-car bad-node)))
                           do (dec-cxn-score agent bad-cxn :delta (get-configuration agent :cxn-decf-score))
                           (dec-cxn-score agent (alter-ego-cxn bad-cxn (grammar agent)) :delta (get-configuration agent :cxn-decf-score))
                           append (list bad-cxn (alter-ego-cxn bad-cxn (grammar agent))) into punished-cxns
-                          finally (notify cxns-punished (mapcar #'original-cxn punished-cxns))))))
+                          finally (notify cxns-punished punished-cxns)))))
 
       
