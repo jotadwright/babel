@@ -96,7 +96,7 @@
                              ;gl::holistic+item-based->item-based--substitution
                              ;gl::item-based->holistic
                              gl::holophrase->item-based+holistic+holistic--substitution
-                             ;gl::holophrase->item-based+holistic--addition
+                             gl::holophrase->item-based+holistic--addition
                              ;gl::holophrase->item-based+holistic+holophrase--deletion
                              ;gl::holistic->item-based
                              gl::nothing->holistic)
