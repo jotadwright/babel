@@ -46,7 +46,7 @@
 
   (multiple-value-bind (meanings solution-cipns)
       (comprehend-all (utterance agent)
-                      :silent nil
+                      :silent t
                       :gold-standard-meaning (list (meaning agent))
                       :cxn-inventory (grammar agent))
     (let ((comprehended-punished-cxns (loop for solution-node in solution-cipns
