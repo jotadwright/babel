@@ -752,7 +752,41 @@
                           overlapping-form-observation
                           overlapping-meaning-observation       
                           )))))))
-
+(defun find-superset-holistic-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
+  (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
+        do (when (and (eql (attr-val cxn :cxn-type) 'holistic)
+                      (eql (attr-val cxn :label) 'fcg::routine))
+             
+             (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks (extract-meaning-predicates cxn) meaning meaning-representation-formalism)))
+                    (non-overlapping-meaning-observation (first non-overlapping-meanings))
+                    (non-overlapping-meaning-cxn (second non-overlapping-meanings))
+                    (overlapping-meaning-observation (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-observation :test #'equal))
+                    
+                    (nof-obs-and-cxn (multiple-value-list (diff-form-constraints (extract-form-predicates cxn) utterance-form-constraints)))
+                    (non-overlapping-form-observation (first nof-obs-and-cxn))
+                    (non-overlapping-form-cxn (second nof-obs-and-cxn))
+                    (overlapping-form-observation (set-difference (extract-form-predicates cxn) non-overlapping-form-observation :test #'equal))
+                    ;; args
+                    (args-holistic-cxn
+                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+               (when (and
+                      overlapping-meaning-observation
+                      non-overlapping-meaning-observation
+                      (not non-overlapping-meaning-cxn)
+                      non-overlapping-form-observation
+                      (not non-overlapping-form-cxn)
+                      overlapping-form-observation
+                      (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous
+                      cxn
+                      (check-meets-continuity non-overlapping-form-observation)
+                      )
+                 (return (values
+                          cxn
+                          non-overlapping-form-observation
+                          non-overlapping-meaning-observation      
+                          overlapping-form-observation
+                          overlapping-meaning-observation       
+                          )))))))
 (defun find-superset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
   ;; todo: check only routine cxns, do all processing after the when!
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
