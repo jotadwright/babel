@@ -13,25 +13,12 @@
                    &key &allow-other-keys)
   "Repair by making a new item-based construction."
   (when (initial-node-p node)
-    (let ((constructions-and-th-links (create-item-based-cxn-from-partial-holistic-analysis problem node)))
-      (when constructions-and-th-links
+    (let ((constructions-and-categorial-links (create-item-based-cxn-from-partial-holistic-analysis problem node)))
+      (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
-                       :restart-data constructions-and-th-links)))))
-
-(defmethod repair ((repair holistic->item-based)
-                   (problem non-gold-standard-utterance)
-                   (node cip-node)
-                   &key &allow-other-keys)
-  "Repair by making a new item-based construction."
-  (when (initial-node-p node)
-    (let ((constructions-and-th-links (create-item-based-cxn-from-partial-holistic-analysis problem node)))
-      (when constructions-and-th-links
-        (make-instance 'fcg::cxn-fix
-                       :repair repair
-                       :problem problem
-                       :restart-data constructions-and-th-links)))))
+                       :restart-data constructions-and-categorial-links)))))
 
 (defun create-item-based-cxn-from-partial-holistic-analysis (problem node)
   (do-repair-holophrase->item-based+holistic+holistic--substitution

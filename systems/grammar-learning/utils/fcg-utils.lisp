@@ -80,6 +80,36 @@
         ;; Return value
         (values meaning solution cip)))))
 
+
+(defmethod comprehend-all (utterance &key (cxn-inventory *fcg-constructions*) (gold-standard-meaning nil) (silent nil) (n nil))
+  "comprehend the input utterance with a given FCG grammar, obtaining all possible combinations"
+  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
+        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+    
+    ;; Add utterance and meaning to blackboard
+    (set-data initial-cfs :utterances (listify utterance))
+    (set-data initial-cfs :meanings (if (atom (caar gold-standard-meaning)) (list gold-standard-meaning) gold-standard-meaning))
+    
+    (unless silent (notify parse-all-started n (listify utterance)))
+    (multiple-value-bind (solutions cip)
+        (if n
+          (fcg-apply-with-n-solutions processing-cxn-inventory initial-cfs '<- n
+                                      :notify (not silent))
+          (fcg-apply-exhaustively processing-cxn-inventory initial-cfs '<-
+                                  :notify (not silent)))
+      (let ((meanings (mapcar #'(lambda(solution)
+                                  (extract-meanings
+                                   (left-pole-structure
+                                    (car-resulting-cfs (cipn-car solution)))))
+                              solutions)))
+        (unless silent (notify parse-all-finished meanings
+                               processing-cxn-inventory))
+        (values meanings solutions cip)))))
+
+
+
+
+
 (defmethod formulate (meaning &key
                             (cxn-inventory *fcg-constructions*)
                             (gold-standard-utterance nil)

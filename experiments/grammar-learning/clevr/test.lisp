@@ -29,18 +29,13 @@
   (activate-monitor export-type-hierarchy-to-json))
 
 
-
-
-
-;; full logging except trace-fcg
+;; sparse logging, no trace-fcg
 (progn
   (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions)
-  ;(activate-monitor export-categorial-network-evolution-to-jsonl)
-  ;(activate-monitor show-type-hierarchy-after-n-interactions)
-  ;(activate-monitor trace-interactions-in-wi)
-  )
+  (activate-monitor summarize-results-after-n-interactions))
+  
+
 ;; full logging
 (progn
   (deactivate-all-monitors)
@@ -67,11 +62,13 @@
                                                    :name "stage-1" :type "jsonl")))))))
                               
 
-
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
-;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t))
-;(add-element (make-html (grammar (first (agents *experiment*)))))
+;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights? t :render-program "circo"))
+;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t :render-program "fdp"))
+;(add-element (make-html (grammar (first (agents *experiment*))) :sort-by-type-and-score t)) :routine-only))
+
+;(defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 
 ;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
 
@@ -81,14 +78,14 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 100) ; 552 has issue!
+;(run-series *experiment* 1000) ; 
 
-;(run-series *experiment* 2000) ; item-based to holistic fails
+;(run-series *experiment* 150) ;
 
 
 #|
 ISSUES:
-variablifying form and meaning happens twice in substitution repair! change holistic and subst repair accordingly
+
 
  
 TODO:

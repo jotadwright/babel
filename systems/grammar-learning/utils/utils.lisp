@@ -285,7 +285,7 @@
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
-(defun extract-main-item-based-lex-class (cxn)
+(defun extract-contributing-lex-class (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
@@ -328,16 +328,33 @@
                                              (set-difference network-2 unique-part-network-2)))
       (values unique-part-network-1 unique-part-network-2))))
 
-(defun find-cxn-by-form-and-meaning (form meaning cxn-inventory &key cxn-type cxn-set)
+(defun arg-is-part-of-meaning-p (arg-var meaning)
+  (when (or (find arg-var (remove-bind-statements meaning) :key #'second)
+            (find arg-var (remove-bind-statements meaning) :key #'third))
+    t))
+
+(defun find-cxn-by-form-and-meaning (form meaning args-list cxn-inventory &key cxn-type cxn-set)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-type-cxn = (attr-val cxn :cxn-type)
+        for cxn-args = (extract-args-apply-last cxn)
         when (and
               (if cxn-type (equal cxn-type cxn-type-cxn) t)
               (if cxn-set (equal cxn-set (attr-val cxn :label)) t)
               (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
               (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-                  ; note: boundaries and args are ignored, as they are designed to always match, and fully depend on form and meaning anyway.
+              (if args-list
+                (equal (loop for args in args-list
+                             for left-res = (arg-is-part-of-meaning-p (first args) meaning)
+                             for right-res = (arg-is-part-of-meaning-p (second args) meaning)
+                             append (list left-res right-res))
+                       (loop for args in cxn-args
+                             for left-res = (arg-is-part-of-meaning-p (first args) (extract-meaning-predicates cxn))
+                             for right-res = (arg-is-part-of-meaning-p (second args) (extract-meaning-predicates cxn))
+                             append (list left-res right-res)))                           
+                t)
+              ;; check args: look up if the first arg is in the meaning representation, or if the second arg is in the meaning representation - this order should match!
+              
               )
         return cxn))
 
@@ -700,41 +717,78 @@
                   (form-constraints-with-variables utterance (get-configuration (cxn-inventory superset-cxn) :de-render-mode))
                   :test #'irl:unify-irl-programs))
 
-(defun find-subset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
+(defun find-subset-holistic-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-        for cxn-form-constraints = (extract-form-predicates cxn)
-        for cxn-meaning-constraints = (extract-meaning-predicates cxn)
-        for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
-        for non-overlapping-form = (non-overlapping-form superset-form cxn :nof-observation t)
-        for non-overlapping-form-inverted = (set-difference cxn-form-constraints superset-form  :test #'irl:unify-irl-programs)
-        for non-overlapping-meanings = (multiple-value-list (diff-meaning-networks gold-standard-meaning cxn-meaning-constraints meaning-representation-formalism))
-        for non-overlapping-meaning = (first non-overlapping-meanings)
-        for non-overlapping-meaning-inverted = (second non-overlapping-meanings)
-        for overlapping-form = (set-difference superset-form non-overlapping-form :test #'equal)
-        for overlapping-meaning = (set-difference gold-standard-meaning non-overlapping-meaning :test #'equal)
-        for args-holistic-cxn = (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism)
-        for cxn-type = (attr-val cxn :cxn-type)
-        when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
-                  non-overlapping-form
-                  non-overlapping-meaning
-                  overlapping-form
-                  overlapping-meaning
-                  (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous
-                  (not non-overlapping-form-inverted) ; the set diff of smaller - larger = nil
-                  (not non-overlapping-meaning-inverted)
-                  (check-meets-continuity non-overlapping-form))
-                  
-        ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too, and the meets of the new holistic cxn should all be connected
-        return (values cxn
-                       ;superset-form
-                       non-overlapping-form
-                       non-overlapping-meaning
-                       overlapping-form
-                       overlapping-meaning
-                       args-holistic-cxn)))
-
+        do (when (and (eql (attr-val cxn :cxn-type) 'holistic)
+                      (eql (attr-val cxn :label) 'fcg::routine))
+             
+             (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks meaning (extract-meaning-predicates cxn) meaning-representation-formalism)))
+                    (non-overlapping-meaning-observation (first non-overlapping-meanings))
+                    (non-overlapping-meaning-cxn (second non-overlapping-meanings))
+                    (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
+                    
+                    (nof-obs-and-cxn (multiple-value-list (diff-form-constraints utterance-form-constraints (extract-form-predicates cxn))))
+                    (non-overlapping-form-observation (first nof-obs-and-cxn))
+                    (non-overlapping-form-cxn (second nof-obs-and-cxn))
+                    (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal))
+                    ;; args
+                    (args-holistic-cxn
+                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+               (when (and
+                      overlapping-meaning-observation
+                      non-overlapping-meaning-observation
+                      (not non-overlapping-meaning-cxn)
+                      non-overlapping-form-observation
+                      (not non-overlapping-form-cxn)
+                      overlapping-form-observation
+                      (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous
+                      cxn
+                      (check-meets-continuity non-overlapping-form-observation)
+                      )
+                 (return (values
+                          cxn
+                          non-overlapping-form-observation
+                          non-overlapping-meaning-observation      
+                          overlapping-form-observation
+                          overlapping-meaning-observation       
+                          )))))))
+(defun find-superset-holistic-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
+  (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
+        do (when (and (eql (attr-val cxn :cxn-type) 'holistic)
+                      (eql (attr-val cxn :label) 'fcg::routine))
+             
+             (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks (extract-meaning-predicates cxn) meaning meaning-representation-formalism)))
+                    (non-overlapping-meaning-observation (first non-overlapping-meanings))
+                    (non-overlapping-meaning-cxn (second non-overlapping-meanings))
+                    (overlapping-meaning-observation (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-observation :test #'equal))
+                    
+                    (nof-obs-and-cxn (multiple-value-list (diff-form-constraints (extract-form-predicates cxn) utterance-form-constraints)))
+                    (non-overlapping-form-observation (first nof-obs-and-cxn))
+                    (non-overlapping-form-cxn (second nof-obs-and-cxn))
+                    (overlapping-form-observation (set-difference (extract-form-predicates cxn) non-overlapping-form-observation :test #'equal))
+                    ;; args
+                    (args-holistic-cxn
+                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+               (when (and
+                      overlapping-meaning-observation
+                      non-overlapping-meaning-observation
+                      (not non-overlapping-meaning-cxn)
+                      non-overlapping-form-observation
+                      (not non-overlapping-form-cxn)
+                      overlapping-form-observation
+                      (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous
+                      cxn
+                      (check-meets-continuity non-overlapping-form-observation)
+                      )
+                 (return (values
+                          cxn
+                          non-overlapping-form-observation
+                          non-overlapping-meaning-observation      
+                          overlapping-form-observation
+                          overlapping-meaning-observation       
+                          )))))))
 (defun find-superset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
-  ;; todo: there could also be more than one superset cxn!
+  ;; todo: check only routine cxns, do all processing after the when!
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-form-constraints = (extract-form-predicates cxn)
         for cxn-meaning-constraints = (extract-meaning-predicates cxn)
@@ -748,7 +802,7 @@
         for overlapping-form = (set-difference (extract-form-predicates cxn) non-overlapping-form :test #'equal)
         for overlapping-meaning = (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning :test #'equal)
         for args-holistic-cxn = (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism)   
-        when (and (eql cxn-type 'holophrase) ; todo: we might want to remove this!
+        when (and (eql cxn-type 'holistic) ; todo: we might want to remove this!
                   non-overlapping-form
                   non-overlapping-meaning
                   (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous
@@ -775,7 +829,9 @@
 
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-        do (when (eql (attr-val cxn :cxn-type) 'holistic)
+        do (when (and (eql (attr-val cxn :cxn-type) 'holistic)
+                      (eql (attr-val cxn :label) 'fcg::routine))
+             
              (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks meaning (extract-meaning-predicates cxn) meaning-representation-formalism)))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
@@ -1061,8 +1117,7 @@
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t)
-  (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
+  (set-configuration cxn-inventory :consolidate-repairs t))
 
 (defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
   (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-meta-layer-cxn-set-only)
@@ -1076,8 +1131,7 @@
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t)
-  (set-configuration cxn-inventory :parse-goal-tests '(:non-gold-standard-meaning)))
+  (set-configuration cxn-inventory :consolidate-repairs t))
 
 (defmethod get-best-partial-analysis-cipn ((utterance string) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
@@ -1129,3 +1183,145 @@
         when (equal cxn-type type)
         do (delete-cxn cxn cxn-inventory)
         finally (return cxn-inventory)))
+
+(defun create-item-based-cxn (cxn-inventory
+                              overlapping-form
+                              non-overlapping-form
+                              overlapping-meaning
+                              non-overlapping-meaning
+                              meaning
+                              meaning-representation-formalism
+                              repair-name)             
+  (let* (;; cxn names
+         (cxn-name-item-based-cxn
+          (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-numeric-tail t))
+         (cxn-name-item-based-cxn-apply-last (intern (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-APPLY-LAST")))
+         (cxn-name-item-based-cxn-apply-first (intern (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-APPLY-FIRST")))
+         ;; slot boundaries (leftmost/rightmost)
+         (slot-boundaries (get-boundary-units non-overlapping-form))
+         (overlapping-form-and-rewritten-boundaries
+          (multiple-value-list (add-boundaries-to-form-constraints overlapping-form slot-boundaries)))
+         (overlapping-form-with-rewritten-boundaries (first overlapping-form-and-rewritten-boundaries))
+         (rewritten-boundaries (second overlapping-form-and-rewritten-boundaries))
+         (dummy-slot-fc (list (list 'fcg::meets (first rewritten-boundaries) (second rewritten-boundaries))))
+         (rewritten-item-based-boundaries (get-boundary-units (append dummy-slot-fc overlapping-form-with-rewritten-boundaries)))
+         
+         ;; args
+         (slot-args (extract-args-from-meaning-networks non-overlapping-meaning meaning meaning-representation-formalism))
+         ;(alt-slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part)))) ; this should work too!
+         (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+         (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
+                                              overlapping-form-with-rewritten-boundaries
+                                              overlapping-meaning
+                                              (list slot-args)
+                                              cxn-inventory
+                                              :cxn-type 'item-based
+                                              :cxn-set 'fcg::routine))
+         (existing-item-based-cxn-apply-first (when existing-item-based-cxn-apply-last
+                                                (alter-ego-cxn existing-item-based-cxn-apply-last cxn-inventory)))
+         ;; lex classes
+         (lex-class-item-based-cxn
+          (if existing-item-based-cxn-apply-first
+            (extract-contributing-lex-class existing-item-based-cxn-apply-first)
+            (make-lex-class (symbol-name cxn-name-item-based-cxn) :trim-cxn-suffix t)))
+         (lex-class-item-based-cxn-slot
+          (if existing-item-based-cxn-apply-first
+            (lex-class-cxn existing-item-based-cxn-apply-first)
+            (make-lex-class (concatenate 'string (symbol-name lex-class-item-based-cxn) "-(x)"))))
+
+         (new-item-based-cxn-apply-last
+          (or existing-item-based-cxn-apply-last 
+              (second (multiple-value-list (eval
+                                            `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-last
+                                                          ((?item-based-unit
+                                                            (syn-cat (phrase-type item-based)
+                                                                     (lex-class ,lex-class-item-based-cxn))
+                                                            (boundaries
+                                                             (left ,(first rewritten-item-based-boundaries))
+                                                             (right ,(second rewritten-item-based-boundaries)))
+                                                            (args ,item-based-args)
+                                                            (subunits (?slot-unit)))
+                                                           (?slot-unit 
+                                                            (footprints (used-as-slot-filler)))
+                                                           <-
+                                                           (?item-based-unit
+                                                            (HASH meaning ,overlapping-meaning)
+                                                            --
+                                                            (HASH form ,overlapping-form-with-rewritten-boundaries))
+                                                           (?slot-unit
+                                                            (footprints (NOT used-as-slot-filler))
+                                                            (args ,slot-args)
+                                                            --
+                                                            (footprints (NOT used-as-slot-filler))
+                                                            (syn-cat (lex-class ,lex-class-item-based-cxn-slot))
+                                                            (boundaries
+                                                             (left ,(first rewritten-boundaries))
+                                                             (right ,(second rewritten-boundaries)))
+                                                            ))
+                                                          :attributes (:label fcg::routine
+                                                                       :cxn-type item-based
+                                                                       :bare-cxn-name ,cxn-name-item-based-cxn
+                                                                       :repair ,repair-name
+                                                                       :meaning ,(loop for predicate in overlapping-meaning
+                                                                                       unless (or
+                                                                                               (equal (first predicate) 'get-context)
+                                                                                               (equal (first predicate) 'bind))
+                                                                                       return (first predicate))
+                                                                       :string ,(third (find 'string overlapping-form :key #'first)))
+                                                                           
+                                                          :cxn-inventory ,(copy-object cxn-inventory)))))))
+         (new-item-based-cxn-apply-first
+          (or existing-item-based-cxn-apply-first
+              (second (multiple-value-list (eval
+                                            `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-first
+                                                          ((?item-based-unit
+                                                            (syn-cat (phrase-type item-based)
+                                                                     (lex-class ,lex-class-item-based-cxn))
+                                                            (boundaries
+                                                             (left ,(first rewritten-item-based-boundaries))
+                                                             (right ,(second rewritten-item-based-boundaries)))
+                                                            (args ,item-based-args)
+                                                            (subunits (?slot-unit)))
+                                                           (?slot-unit
+                                                            (footprints (used-as-slot-filler))
+                                                            (syn-cat (phrase-type holistic)
+                                                                     (lex-class ,lex-class-item-based-cxn-slot))
+                                                            (args ,slot-args)
+                                                            (boundaries
+                                                             (left ,(first rewritten-boundaries))
+                                                             (right ,(second rewritten-boundaries)))
+                                                            )
+                                                           <-
+                                                           (?item-based-unit
+                                                            (HASH meaning ,overlapping-meaning)
+                                                            --
+                                                            (HASH form ,overlapping-form-with-rewritten-boundaries))
+                                                           )
+                                                          :attributes (:label fcg::meta-only
+                                                                       :cxn-type item-based
+                                                                       :bare-cxn-name ,cxn-name-item-based-cxn
+                                                                       :repair ,repair-name
+                                                                       :meaning ,(loop for predicate in overlapping-meaning
+                                                                                       unless (or
+                                                                                               (equal (first predicate) 'get-context)
+                                                                                               (equal (first predicate) 'bind))
+                                                                                       return (first predicate))
+                                                                       :string ,(third (find 'string overlapping-form :key #'first)))
+                                                                           
+                                                          :cxn-inventory ,(copy-object cxn-inventory))))))))
+    (values new-item-based-cxn-apply-first
+            new-item-based-cxn-apply-last
+            lex-class-item-based-cxn
+            lex-class-item-based-cxn-slot)))
+
+
+(defun handle-potential-holistic-cxn (form meaning cxn-inventory)
+  (cond ((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
+        ;((do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory)))
+        ((do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory)))
+        ((do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory)))
+        ;((do-repair-holophrase->item-based+holistic+holophrase--deletion form meaning (processing-cxn-inventory cxn-inventory)))
+        ;((do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory)))
+        (t
+         (do-create-holistic-cxn form meaning (processing-cxn-inventory cxn-inventory))))
+  )

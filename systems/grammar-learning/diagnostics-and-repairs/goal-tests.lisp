@@ -11,10 +11,12 @@
            (meaning (extract-meanings (left-pole-structure resulting-cfs)))
            (meaning-representation-formalism (get-configuration (construction-inventory node) :meaning-representation-formalism))
            (gold-standard-meanings (get-data resulting-cfs :meanings)))
-      (when (find meaning gold-standard-meanings :test #'(lambda (m1 m2)
+      (if (find meaning gold-standard-meanings :test #'(lambda (m1 m2)
                                                          (equivalent-meaning-networks m1 m2 meaning-representation-formalism)))
-        (set-data (blackboard (construction-inventory node)) :add-categorial-links-repair-failed nil)
-        t))))
+        (progn (set-data (goal-test-data node) :result-goal-test-non-gold-standard-meaning t)
+          t)
+        (progn (set-data (goal-test-data node) :result-goal-test-non-gold-standard-meaning nil)
+          nil)))))
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :non-gold-standard-utterance)))
   "Checks whether the extracted meaning is equivalent with the gold standard meaning."

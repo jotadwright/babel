@@ -33,10 +33,17 @@
     (make-instance 'coupled-feature-structure 
 		   :left-pole `((root (meaning ())
                                       (sem-cat ())
-                                      (form ,utterance)
+                                      (form ,(instantiate-form-constraints utterance))
                                       (syn-cat ())))
 		   :right-pole '((root)))))
 
+(defun instantiate-form-constraints (list-of-form-constraints)
+  (loop for fc in list-of-form-constraints
+        collect (loop for el in fc
+                      if (variable-p el)
+                      collect (intern (subseq (symbol-name el) 1))
+                      else
+                      collect el)))
 
 (defun remove-quotes+full-stops (utterance)
   (let ((words (split (remove-spurious-spaces utterance) #\space)))
@@ -67,11 +74,13 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
-                                        (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure )
+                   :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                                        (:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
+                                        (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
                                         (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
                                         (:parse-order routine)
+                                        (:max-nr-of-nodes . 250)
                                         (:production-order routine)
                                         (:meaning-representation-formalism . ,(get-configuration experiment :meaning-representation))
                                         (:render-mode . :generate-and-test)
@@ -83,12 +92,12 @@
                                         (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
-                   :repairs (;gl::add-categorial-links
+                   :repairs (gl::add-categorial-links
                              ;gl::holistic+item-based->item-based--substitution
                              ;gl::item-based->holistic
-                             gl::holophrase->item-based+holistic+holistic--substitution
+                             ;gl::holophrase->item-based+holistic+holistic--substitution
                              ;gl::holophrase->item-based+holistic--addition
-                             ;gl::holophrase->item-based+holistic+holophrase--deletion
+                             gl::holophrase->item-based+holistic+holophrase--deletion
                              ;gl::holistic->item-based
                              gl::nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
@@ -100,8 +109,8 @@
 (defun inc-cxn-score (cxn &key (delta 0.1) (upper-bound 1.0))
   "increase the score of the cxn"
   (incf (attr-val cxn :score) delta)
-  (when (> (attr-val cxn :score) upper-bound)
-    (setf (attr-val cxn :score) upper-bound))
+  ;(when (> (attr-val cxn :score) upper-bound)
+  ;  (setf (attr-val cxn :score) upper-bound))
   cxn)
 
 (defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0))
@@ -168,7 +177,7 @@
                 collect comp))
          (holophrase-competitors
           (loop for other-cxn in (constructions-list cxn-inventory)
-                when (and (eql (get-cxn-type other-cxn) 'gl::holophrase)
+                when (and (eql (get-cxn-type other-cxn) 'gl::holistic)
                           (string= (extract-and-render other-cxn)
                                    (list-of-strings->string
                                     (fcg::tokenize utterance))))
