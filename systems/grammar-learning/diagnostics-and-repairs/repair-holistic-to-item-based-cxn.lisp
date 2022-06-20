@@ -87,6 +87,7 @@
                                                  collect `(,holistic-cxn-unit-name 
                                                             (footprints (used-as-slot-filler))) into contributing-footprints
                                                  collect `(,holistic-cxn-unit-name
+                                                           (footprints (used-as-slot-filler))
                                                            (syn-cat (phrase-type holistic)
                                                                     (lex-class ,holistic-slot-lex-class))
                                                            (args ,args)
@@ -97,6 +98,7 @@
                                                            (footprints (NOT used-as-slot-filler))
                                                            (args ,args)
                                                            --
+                                                           (footprints (NOT used-as-slot-filler))
                                                            (syn-cat (gl::lex-class ,holistic-slot-lex-class))
                                                            (boundaries
                                                             (left ,(first updated-boundaries))
@@ -132,44 +134,7 @@
                 (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-LAST"))
              (cxn-name-item-based-cxn-apply-first
                 (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-FIRST"))
-(def-fcg-cxn ,cxn-name-item-based-cxn-apply-last
-                                                          ((?item-based-unit
-                                                            (syn-cat (phrase-type item-based)
-                                                                     (lex-class ,lex-class-item-based-cxn))
-                                                            (boundaries
-                                                             (left ,(first rewritten-item-based-boundaries))
-                                                             (right ,(second rewritten-item-based-boundaries)))
-                                                            (args ,item-based-args)
-                                                            (subunits (?slot-unit)))
-                                                           (?slot-unit 
-                                                            (footprints (used-as-slot-filler)))
-                                                           <-
-                                                           (?item-based-unit
-                                                            (HASH meaning ,overlapping-meaning)
-                                                            --
-                                                            (HASH form ,overlapping-form-with-rewritten-boundaries))
-                                                           (?slot-unit
-                                                            (footprints (NOT used-as-slot-filler))
-                                                            (args ,slot-args)
-                                                            --
-                                                            (footprints (NOT used-as-slot-filler))
-                                                            (syn-cat (lex-class ,lex-class-item-based-cxn-slot))
-                                                            (boundaries
-                                                             (left ,(first rewritten-boundaries))
-                                                             (right ,(second rewritten-boundaries)))
-                                                            ))
-                                                          :attributes (:label fcg::routine
-                                                                       :cxn-type item-based
-                                                                       :bare-cxn-name ,cxn-name-item-based-cxn
-                                                                       :repair ,repair-name
-                                                                       :meaning ,(loop for predicate in overlapping-meaning
-                                                                                       unless (or
-                                                                                               (equal (first predicate) 'get-context)
-                                                                                               (equal (first predicate) 'bind))
-                                                                                       return (first predicate))
-                                                                       :string ,(third (find 'string overlapping-form :key #'first)))
-                                                                           
-                                                          :cxn-inventory ,(copy-object cxn-inventory))
+
              (item-based-cxn-apply-last
                 (or existing-item-based-cxn-apply-last 
                     (second (multiple-value-list (eval
@@ -206,7 +171,12 @@
                   (second (multiple-value-list (eval
                                                   `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-first
                                                                 ((?item-based-unit
-                                                                  (syn-cat (phrase-type item-based))
+                                                                  (syn-cat (phrase-type item-based)
+                                                                           (lex-class ,lex-class-item-based-cxn))
+                                                                  (boundaries
+                                                                   (left ,(first rewritten-item-based-boundaries))
+                                                                   (right ,(second rewritten-item-based-boundaries)))
+                                                                  (args ,item-based-args)
                                                                   (subunits ,holistic-subunit-names))
                                                                  ,@holistic-cxn-contributing-units
                                                                  <-
