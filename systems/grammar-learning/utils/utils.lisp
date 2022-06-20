@@ -1142,21 +1142,21 @@
         (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
         (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
 
-(defmethod get-best-partial-analysis-cipn ((utterance string) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
     (with-disabled-monitor-notifications
-      (let* ((comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory original-cxn-inventory)))
+      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
              (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
 
-(defmethod get-best-partial-analysis-cipn ((utterance string) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-exclude-item-based)))
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-exclude-item-based)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
     (with-disabled-monitor-notifications
       (let* ((temp-inventory (remove-cxns-with-phrase-type 'item-based (copy-object original-cxn-inventory)))
-             (comprehension-result (multiple-value-list (comprehend-all utterance :cxn-inventory temp-inventory)))
+             (comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory temp-inventory)))
              (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
@@ -1315,13 +1315,3 @@
             lex-class-item-based-cxn-slot)))
 
 
-(defun handle-potential-holistic-cxn (form meaning cxn-inventory)
-  (cond ((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
-        ;((do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory)))
-        ((do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory)))
-        ((do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory)))
-        ;((do-repair-holophrase->item-based+holistic+holophrase--deletion form meaning (processing-cxn-inventory cxn-inventory)))
-        ;((do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory)))
-        (t
-         (do-create-holistic-cxn form meaning (processing-cxn-inventory cxn-inventory))))
-  )

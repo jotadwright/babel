@@ -95,14 +95,25 @@
                    :repairs (gl::add-categorial-links
                              ;gl::holistic+item-based->item-based--substitution
                              ;gl::item-based->holistic
-                             ;gl::holophrase->item-based+holistic+holistic--substitution
+                             gl::holophrase->item-based+holistic+holistic--substitution
                              ;gl::holophrase->item-based+holistic--addition
-                             gl::holophrase->item-based+holistic+holophrase--deletion
-                             ;gl::holistic->item-based
+                             ;gl::holophrase->item-based+holistic+holophrase--deletion
+                             gl::holistic->item-based
                              gl::nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . t))))))
     cxn-inventory))
+
+(defun handle-potential-holistic-cxn (form meaning cxn-inventory)
+  (cond ((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
+        ;((do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory)))
+        ((do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory)))
+        ;((do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory)))
+        ;((do-repair-holophrase->item-based+holistic+holophrase--deletion form meaning (processing-cxn-inventory cxn-inventory)))
+        ;((do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory)))
+        (t
+         (do-create-holistic-cxn form meaning (processing-cxn-inventory cxn-inventory))))
+  )
 
 (define-event lexicon-changed)
 
