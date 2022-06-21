@@ -32,8 +32,7 @@
 
 (defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning cxn-inventory)
   "Creates item-based construction around matching holistic constructions"
-  (let* (
-         (original-cxn-set (original-cxn-set cxn-inventory))
+  (let* ((original-cxn-set (original-cxn-set cxn-inventory))
          
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          
@@ -125,7 +124,7 @@
                      (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
                                                            item-based-cxn-form-constraints
                                                            item-based-cxn-meaning
-                                                           item-based-args
+                                                           slot-args-list
                                                            original-cxn-set
                                                            :cxn-type 'item-based
                                                            :cxn-set 'fcg::meta-only))
