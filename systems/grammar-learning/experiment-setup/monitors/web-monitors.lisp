@@ -96,7 +96,7 @@
       (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
       (add-element `((h3) ,(format nil  "Type hierarchy nodes: ~a" num-th-nodes)))
       (add-element `((h3) ,(format nil  "Type hierarchy edges: ~a" num-th-edges)))
-      (add-element (make-html (grammar (first (interacting-agents experiment))) :sort-by-type-and-score t :hide-zero-scored-cxns nil))
+      (add-element (make-html (grammar (first (interacting-agents experiment))) :sort-by-type-and-score t :hide-zero-scored-cxns nil :routine-only t))
       (add-element '((hr))))))
 
 (define-event-handler (show-type-hierarchy-after-n-interactions interaction-finished)
@@ -107,6 +107,13 @@
 
 (define-event-handler (trace-interactions-in-wi alignment-started)
   (add-element '((h2) "Alignment started")))
+
+
+(define-event-handler (trace-interactions-in-wi cxns-learned)
+  (add-element '((h3) "The following cxns were learned:"))
+  (mapcar #'(lambda (cxn)
+              (add-element (make-html cxn)))
+          cxns))
 
 (define-event-handler (trace-interactions-in-wi cxns-rewarded)
   (add-element '((h3) "The following cxns are rewarded:"))

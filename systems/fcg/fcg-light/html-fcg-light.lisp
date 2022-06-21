@@ -1190,7 +1190,8 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                       &key
                       (expand-initially nil)
                       (sort-by-type-and-score nil)
-                      (hide-zero-scored-cxns nil))
+                      (hide-zero-scored-cxns nil)
+                      (routine-only nil))
   (let* ((ci-id (make-id (type-of ci)))
          (element-id-1 (make-id 'construction-inventory))
 	 (element-id-2 (make-id 'construction-inventory))
@@ -1205,7 +1206,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
          (cxnlist (mapcar #'downcase (mapcar #'name (if sort-by-type-and-score
                                                       (sort-cxns-list-by-type-and-score constructions-list)
                                                       constructions-list))))
-	 (title (make-html-construction-inventory-title ci :hide-zero-scored-cxns hide-zero-scored-cxns))
+	 (title (make-html-construction-inventory-title ci :hide-zero-scored-cxns hide-zero-scored-cxns :routine-only routine-only))
          (outer-div
           (lambda (expanded? children)
             (make-div-with-menu 
@@ -1239,11 +1240,11 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                   ((a ,@(make-expand/collapse-link-parameters 
                          element-id-2 t "show more details"))
                    ,title))
-                 ((div :class "fcg-light-construction-inventory-sep")
+                 ((div :clas "fcg-light-construction-inventory-sep")
                   ((table :class "two-col")
                    ((tbody)
                     ((tr)
-                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns)))))))))
+                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns :routine-only routine-only)))))))))
             ;; non-static html
             (lambda ()
               (funcall 
@@ -1272,7 +1273,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                   ((table :class "two-col")
                    ((tbody)
                     ((tr)
-                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns)))))))))))
+                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns :routine-only routine-only)))))))))))
          (expanded-version-2
           (if wi::*static-html*
             (lambda ()
@@ -1293,7 +1294,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                   ((table :class "two-col")
                    ((tbody)
                     ((tr) 
-                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns)))))))))
+                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns :routine-only routine-only)))))))))
             (lambda ()
               (funcall 
                outer-div t
@@ -1327,7 +1328,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                   ((table :class "two-col")
                    ((tbody)
                     ((tr) 
-                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns))))))))))))
+                     ((td :colspan "2") ,@(make-html-construction-inventory-body ci :sort-by-type-and-score sort-by-type-and-score :hide-zero-scored-cxns hide-zero-scored-cxns :routine-only routine-only))))))))))))
     (store-wi-object ci ci-id)
     (make-expandable/collapsable-element 
      element-id-1 (make-id 'cs) collapsed-version
