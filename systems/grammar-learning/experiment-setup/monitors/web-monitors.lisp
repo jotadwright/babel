@@ -10,18 +10,10 @@
   (agent clevr-learning-agent)
   (process-result-data list))
 
-
-
-
-
-
-
-
 (define-monitor trace-interactions-in-wi)
 (define-monitor summarize-results-after-n-interactions)
 (define-monitor evaluation-after-n-interactions)
 (define-monitor show-type-hierarchy-after-n-interactions)
-
 
 (define-event-handler (trace-interactions-in-wi corpus-utterances-loaded)
   (add-element `((h1) ,(format nil "Corpus utterances loaded"))))

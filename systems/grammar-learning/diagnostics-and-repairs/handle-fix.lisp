@@ -28,7 +28,8 @@
                             do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-categorial-network :recompute-transitive-closure nil)
                             (add-link (car categorial-link) (cdr categorial-link) temp-categorial-network :recompute-transitive-closure nil)
                             finally (set-categorial-network (construction-inventory node) temp-categorial-network)))
-           (learned-cxns (remove-if-not #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine))
+           (learned-cxns (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
+                                                             (equal 'SINGLE-FLOAT (type-of (cdr (first (attributes cxn)))))))
                                  (append (mapcar #'original-cxn processing-cxns-to-apply) original-cxns-to-consolidate)))
 
            (applied-nodes (with-disabled-monitor-notifications
@@ -45,8 +46,8 @@
       
       ;; ignore
       (declare (ignore cat-links cats))
-      
-      (notify cxns-learned learned-cxns)
+      (when learned-cxns
+        (notify cxns-learned learned-cxns))
       ;; Reset categorial network
       (set-categorial-network (construction-inventory node) orig-categorial-network)
       ;; Add cxns to blackboard of second new node
