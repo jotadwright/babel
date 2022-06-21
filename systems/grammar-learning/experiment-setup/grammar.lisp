@@ -121,8 +121,8 @@
 (defun inc-cxn-score (cxn &key (delta 0.1) (upper-bound 1.0))
   "increase the score of the cxn"
   (incf (attr-val cxn :score) delta)
-  ;(when (> (attr-val cxn :score) upper-bound)
-  ;  (setf (attr-val cxn :score) upper-bound))
+  (when (> (attr-val cxn :score) upper-bound)
+    (setf (attr-val cxn :score) upper-bound))
   cxn)
 
 (defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0))
