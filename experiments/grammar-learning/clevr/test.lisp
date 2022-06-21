@@ -2,7 +2,7 @@
 (in-package :grammar-learning)
 
 
-(setf *raise-errors* t)
+;(setf *raise-errors* nil)
 ;; full logging except trace-fcg
 (progn
   (deactivate-all-monitors)
@@ -66,7 +66,7 @@
 
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights? t :render-program "circo"))
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t :render-program "fdp"))
-;(add-element (make-html (grammar (first (agents *experiment*))) :sort-by-type-and-score t)) :routine-only))
+;(add-element (make-html (grammar (first (agents *experiment*))) :sort-by-type-and-score t :routine-only t))
 
 ;(defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 
@@ -78,9 +78,9 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 1000) ; 
+;(run-series *experiment* 60) ; 61 has empty args in slot!
 
-;(run-series *experiment* 150) ;
+;(run-series *experiment* 13) ;
 
 
 #|
