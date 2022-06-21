@@ -14,7 +14,7 @@
   ;; original-cxns-to-consolidate (list) ! exclude existing!
 
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
-  ;
+  
   ;(add-element '((h1) "debug handle fix"))
     (let* ((processing-cxns-to-apply (mapcar #'get-processing-cxn (first (restart-data fix))))
            (categorial-links (second (restart-data fix)))
