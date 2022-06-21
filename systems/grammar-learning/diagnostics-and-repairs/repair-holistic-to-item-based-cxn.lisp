@@ -21,7 +21,7 @@
                        :restart-data constructions-and-categorial-links)))))
 
 (defun create-item-based-cxn-from-partial-holistic-analysis (problem node)
-  (do-repair-holophrase->item-based+holistic+holistic--substitution
+  (do-create-item-based-cxn-from-partial-holistic-analysis
    (form-constraints-with-variables
     (random-elt (get-data problem :utterances))
     (get-configuration (construction-inventory node) :de-render-mode))
