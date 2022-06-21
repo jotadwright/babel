@@ -103,7 +103,8 @@
                                                            (boundaries
                                                             (left ,(first updated-boundaries))
                                                             (right ,(second updated-boundaries)))) into conditional-units-apply-last
-                                                 finally (return (values conditional-units-apply-last contributing-units-apply-first holistic-subunit-names categorial-links subtracted-meanings updated-boundary-name-and-args-list contributing-footprints)))))
+                                                 collect (list 'fcg::meets (first updated-boundaries) (second updated-boundaries)) into dummy-slot-fcs
+                                                 finally (return (values conditional-units-apply-last contributing-units-apply-first holistic-subunit-names categorial-links subtracted-meanings updated-boundary-name-and-args-list contributing-footprints dummy-slot-fcs)))))
              (holistic-cxn-conditional-units
               (first holistic-cxn-subunit-blocks))
              (holistic-cxn-contributing-units
@@ -114,6 +115,7 @@
              (subtracted-meanings (fifth holistic-cxn-subunit-blocks))
              (updated-boundary-name-and-args-list (sixth holistic-cxn-subunit-blocks))
              (contributing-footprints (seventh holistic-cxn-subunit-blocks))
+             (dummy-slot-fcs (eighth holistic-cxn-subunit-blocks))
              (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))
              (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
                                          item-based-cxn-form-constraints
@@ -131,9 +133,15 @@
                 (make-lex-class (symbol-name cxn-name-item-based-cxn) :trim-cxn-suffix t)))
              
              (cxn-name-item-based-cxn-apply-last
-                (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-LAST"))
+                (intern (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-LAST")))
              (cxn-name-item-based-cxn-apply-first
-                (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-FIRST"))
+                (intern (concatenate 'string (symbol-name (add-cxn-suffix cxn-name-item-based-cxn)) "-APPLY-FIRST")))
+
+             ;; boundaries
+             (rewritten-item-based-boundaries (get-boundary-units (append dummy-slot-fcs item-based-cxn-form-constraints)))
+
+             ;; args
+             (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
 
              (item-based-cxn-apply-last
                 (or existing-item-based-cxn-apply-last 
