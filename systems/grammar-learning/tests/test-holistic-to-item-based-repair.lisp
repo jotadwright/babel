@@ -134,7 +134,7 @@
                                        (bind size-category ?size-4 large)
                                        (query ?target-4 ?target-object-1 ?attribute-2))))))))
 
-(deftest test-holistic-to-item-based-duplicates-comprehension ()
+(defun test-holistic-to-item-based-duplicates-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "Are any green cubes visible?"
