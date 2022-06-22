@@ -105,7 +105,8 @@
     cxn-inventory))
 
 (defun handle-potential-holistic-cxn (form meaning cxn-inventory)
-  (cond ((when (member 'gl::add-categorial-links (repairs cxn-inventory))
+  (type-of (first (repairs cxn-inventory)))
+  (cond ((when (member 'gl::add-categorial-links (repairs cxn-inventory) :key #'type-of)
                        (do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory))))
         ((when (member 'gl::holophrase->item-based+holistic+holistic--substitution (repairs cxn-inventory))
                        (do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory))))
