@@ -43,9 +43,9 @@
                    :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
                    :type "fcg")))
 
-(cl-store:store *restored-grammar-sbcl* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
+(cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-cleaned-sbcl"
+                                :name "propbank-grammar-ontonotes-ewt-core-roles+-leafs-no-aux-lw"
                                 :type "fcg"))
 
 
@@ -70,9 +70,10 @@
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
+     :argm-leaf
      ;:argm-pp
      ;:argm-sbar
-     ;:argm-leaf
+     ;
      ;:argm-phrase-with-string
      )
     (:cxn-supplier-mode . :propbank-english)))
@@ -80,7 +81,7 @@
 (defvar *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
 
 (learn-propbank-grammar
- (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))
+  (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*)))
  :selected-rolesets nil
  :excluded-rolesets '("be.01" "be.02" "be.03"
                       "do.01" "do.02" "do.04" "do.11" "do.12"
@@ -131,19 +132,26 @@
 
 (monitors:activate-monitor trace-fcg)
 
-(comprehend "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-propbank-grammar*)
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar-lw*)
 
-(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory*)
+(comprehend-and-extract-frames "Studies show the different experiences of genders across many domains including education, life expectancy, personality, interests, family life, careers, and political affiliation" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
 
-(comprehend-and-extract-frames "She sent her mother a dozen roses" :cxn-inventory *restored-propbank-grammar*)
+(comprehend-and-extract-frames "Gender inequality is experienced differently across different cultures and also affects non-binary people ." :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
+
+(comprehend-and-extract-frames "The 'Thermidorian Reaction' was named after the month in which the coup took place and was the latter part of the National Convention's rule of France ." :cxn-inventory *restored-grammar-lw*)
+
+
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar-lw*)
+
+(comprehend-and-extract-frames "She did not send her mother a dozen roses" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
 
 (comprehend-and-extract-frames (sentence-string (nth 0 (train-split *ewt-annotations*))) :cxn-inventory *propbank-ewt-learned-cxn-inventory*)
 
 
 
-(comprehend-and-extract-frames "It is feared if far-right candidate becomes French president she will try to destroy the bloc from inside" :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "It is feared if far-right candidate becomes French president she will try to destroy the bloc from inside" :cxn-inventory *restored-grammar-lw*)
 
-(comprehend-and-extract-frames "Much of what the far-right Rassemblement National leader does want to do, however implies breaking the EU’s rules, and her possible arrival in the Élysée Palace next weekend could prove calamitous for the 27-member bloc." :cxn-inventory *restored-grammar*)
+(comprehend-and-extract-frames "Much of what the far-right Rassemblement National leader does want to do, however implies breaking the EU's rules, and her possible arrival in the Elys�e Palace next weekend could prove calamitous for the 27-member bloc." :cxn-inventory *restored-grammar-lw*)
 
 
 
