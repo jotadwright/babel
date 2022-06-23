@@ -102,7 +102,7 @@
 
 
 (define-event-handler (trace-interactions-in-wi cxns-learned)
-  (add-element '((h3) "The following cxns were learned:"))
+  (add-element `((h3) ,(format nil "The following cxns were learned (~a):" (length cxns))))
   (mapcar #'(lambda (cxn)
               (add-element (make-html cxn)))
           cxns))

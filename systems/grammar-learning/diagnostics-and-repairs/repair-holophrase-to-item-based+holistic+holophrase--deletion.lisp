@@ -75,9 +75,10 @@
                                      (third cxns-and-links-holistic-part-observation)
                                      (list new-item-based-cxn-apply-last new-item-based-cxn-apply-first)))
                                      
-               (cats-to-add (remove nil (append (list lex-class-item-based-cxn)
+               (cats-to-add (remove nil (append (fourth cxns-and-links-holistic-part-observation)
+                                                (list lex-class-item-based-cxn)
                                                 (fourth cxns-and-links-holistic-part-cxn)
-                                                (fourth cxns-and-links-holistic-part-observation)))))
+                                                ))))
         
           (list
            cxns-to-apply

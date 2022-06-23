@@ -96,8 +96,8 @@
                              ;gl::holistic+item-based->item-based--substitution
                              ;gl::item-based->holistic
                              gl::holophrase->item-based+holistic+holistic--substitution
-                             ;gl::holophrase->item-based+holistic--addition
-                             ;gl::holophrase->item-based+holistic+holophrase--deletion
+                             gl::holophrase->item-based+holistic--addition
+                             gl::holophrase->item-based+holistic+holophrase--deletion
                              gl::holistic->item-based
                              gl::nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
@@ -105,13 +105,18 @@
     cxn-inventory))
 
 (defun handle-potential-holistic-cxn (form meaning cxn-inventory)
-  (cond ((do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory)))
-        ((do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory)))
-        ((do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory)))
-        
-        ;((do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory)))
-        ;((do-repair-holophrase->item-based+holistic+holophrase--deletion form meaning (processing-cxn-inventory cxn-inventory)))
-        ;((do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory)))
+  (cond ((when (member 'gl::add-categorial-links (repairs cxn-inventory) :key #'type-of)
+                       (do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::holophrase->item-based+holistic+holistic--substitution (repairs cxn-inventory) :key #'type-of)
+                       (do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::holistic->item-based (repairs cxn-inventory) :key #'type-of)
+                       (do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::holophrase->item-based+holistic--addition (repairs cxn-inventory) :key #'type-of)
+                       (do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::holophrase->item-based+holistic+holophrase--deletion (repairs cxn-inventory) :key #'type-of)
+                       (do-repair-holophrase->item-based+holistic+holophrase--deletion form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::item-based->holistic (repairs cxn-inventory) :key #'type-of)
+                       (do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory))))
         (t
          (do-create-holistic-cxn form meaning (processing-cxn-inventory cxn-inventory))))
   )

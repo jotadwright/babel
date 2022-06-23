@@ -46,7 +46,7 @@
          (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
          (applied-holistic-cxns (filter-by-phrase-type 'holistic applied-cxns)))
     (when (and applied-holistic-cxns
-               (not item-based-cxn) ; todo: check if we can win something here!
+               (not item-based-cxn) 
                (equal (remove-duplicates applied-cxns :key #'name) applied-cxns)) ;; don't allow duplicates: todo fix args lookup and remove this
       (let* ((car-res-cfs (car-resulting-cfs (cipn-car best-partial-analysis-node)))
              (resulting-left-pole-structure (left-pole-structure car-res-cfs))
@@ -98,7 +98,7 @@
                                                                (args ,args)
                                                                --
                                                                (footprints (NOT used-as-slot-filler))
-                                                               (syn-cat (gl::lex-class ,holistic-slot-lex-class))
+                                                               (syn-cat (lex-class ,holistic-slot-lex-class))
                                                                (boundaries
                                                                 (left ,(first updated-boundaries))
                                                                 (right ,(second updated-boundaries)))) into conditional-units-apply-last
