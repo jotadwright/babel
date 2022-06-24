@@ -94,11 +94,11 @@
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (gl::add-categorial-links
                              ;gl::holistic+item-based->item-based--substitution
-                             ;gl::item-based->holistic
+                             gl::item-based->holistic
                              gl::holophrase->item-based+holistic+holistic--substitution
-                             gl::holophrase->item-based+holistic--addition
-                             gl::holophrase->item-based+holistic+holophrase--deletion
-                             gl::holistic->item-based
+                             ;gl::holophrase->item-based+holistic--addition
+                             ;gl::holophrase->item-based+holistic+holophrase--deletion
+                             ;gl::holistic->item-based
                              gl::nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . t))))))
@@ -132,14 +132,17 @@
 
 (defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0))
   "decrease the score of the cxn."
-  (decf (attr-val cxn :score) delta)
-  (when (<= (attr-val cxn :score) lower-bound)
-    (if (get-configuration (experiment agent) :remove-cxn-on-lower-bound) 
-      (progn (notify lexicon-changed)
-        (with-disabled-monitor-notifications
-          (delete-cxn-and-th-node cxn agent)))
-      (setf (attr-val cxn :score) lower-bound)))
-  (grammar agent))
+  (setf (attr-val cxn :score) (let ((current-score (attr-val cxn :score)))
+                                (if (> current-score 1.0)
+                                    (- current-score (* current-score delta))
+                                    (- current-score delta)))))
+  ;(when (<= (attr-val cxn :score) lower-bound)
+  ;  (if (get-configuration (experiment agent) :remove-cxn-on-lower-bound) 
+  ;    (progn (notify lexicon-changed)
+  ;      (with-disabled-monitor-notifications
+  ;        (delete-cxn-and-th-node cxn agent)))
+  ;    (setf (attr-val cxn :score) lower-bound)))
+  ;;(grammar agent))
 
 (defun delete-cxn-and-th-node (cxn agent)
   (let ((lex-class

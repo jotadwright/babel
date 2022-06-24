@@ -239,7 +239,7 @@
               (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-9626 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?COLOR-8)
               (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE)
               (CLEVR-WORLD:COUNT! GRAMMAR-LEARNING::?TARGET-16 GRAMMAR-LEARNING::?TARGET-9641))))
-    ;(diff-meaning-networks m-1 m-2 :irl)
+    (diff-meaning-networks m-1 m-2 :irl)
     (diff-form-constraints fc-1 fc-3)
     )
   )
