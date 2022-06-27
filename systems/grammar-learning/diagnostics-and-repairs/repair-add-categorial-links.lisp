@@ -81,7 +81,13 @@
 (defun extract-used-categorial-links (solution-cipn)
   "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."
   (loop for cipn in (rest (reverse (cons solution-cipn (all-parents solution-cipn))))
-          append (let* ((processing-cxn (car-applied-cxn (cipn-car cipn)))
+          append (let* (
+                        (processing-cxn (car-applied-cxn (cipn-car cipn)))
+                        (processing-cxn (if (equal (attr-val processing-cxn :label) 'fcg::routine)
+                                          processing-cxn
+                                          (first (remove (name processing-cxn)
+                                                  (find-all (attr-val processing-cxn :bare-cxn-name) (constructions-list (construction-inventory cipn)) :key #'(lambda(cxn) (attr-val cxn :bare-cxn-name))) :key #'name))))
+                                                  
                         (units-matching-lex-class (loop for unit in (right-pole-structure processing-cxn)
                                                         for syn-cat = (rest (unit-feature-value unit 'syn-cat))
                                                         for lex-class = (second (find 'lex-class syn-cat :key #'first))
@@ -92,8 +98,8 @@
                          for ts-unit = (find ts-unit-name (left-pole-structure (car-source-cfs (cipn-car cipn))):key #'first)
                          for ts-lex-class = (second (find 'lex-class (second (find 'syn-cat (rest ts-unit) :key #'first)) :key #'first))
                          if (and cxn-lex-class ts-lex-class)
-                         collect (cons cxn-lex-class ts-lex-class)
-                         else do (error "cxn-lex-class or ts-lex-class was nil!!")))))
+                         collect (cons cxn-lex-class ts-lex-class)))))
+                         ;else do (error "cxn-lex-class or ts-lex-class was nil!!")))))
 
 ;; (extract-used-categorial-links *saved-cipn*)
             

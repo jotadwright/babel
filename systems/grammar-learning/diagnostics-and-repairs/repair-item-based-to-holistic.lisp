@@ -42,80 +42,71 @@
                                       original-cxn-inventory
                                       :optimal-form-coverage-item-based-first))
          (applied-cxns (when best-partial-analysis-node
-                         (applied-constructions best-partial-analysis-node)))
-         (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
-         (applied-holistic-cxns (filter-by-phrase-type 'holistic applied-cxns)))
-    (when item-based-cxn
-      (let* ((root-form-constraints (form-predicates-with-variables (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node)))) 'form)))
+                         (applied-constructions best-partial-analysis-node))))
+         
+    (when (filter-by-phrase-type 'item-based applied-cxns) ;; at least one item-based cxn applied
+      (let* ((remaining-form-constraints (form-predicates-with-variables (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node)))) 'form)))
              (inverted-cxn-meanings (get-inverted-cxn-meanings applied-cxns meaning))
              (remaining-meaning (subtract-cxn-meanings-from-gold-standard-meaning inverted-cxn-meanings meaning))
              (args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism))) ;take args from item-based; filling in the bindings
         (when (and remaining-meaning
                    (<= (length args-holistic-cxn) 2)
-                   (check-meets-continuity root-form-constraints) ;there is one continuous string in root
+                   (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root
                    (cxn-meaning-is-valid-gold-standard-subset-p inverted-cxn-meanings)) ;; the subtracted meaning must not be nil
           (let* (;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn root-form-constraints remaining-meaning original-cxn-inventory))
-               (dummy-holistic-cxns-and-links (do-create-holistic-cxn root-form-constraints remaining-meaning (processing-cxn-inventory original-cxn-inventory)))
-               
-               (all-holistic-cxns (sort-cxns-by-meets-constraints (append
-                                                             (third dummy-holistic-cxns-and-links)
-                                                             applied-holistic-cxns) form-constraints))
-               (lex-classes-holistic-cxns (loop for lc in (mapcar #'lex-class-apply-last-cxn all-holistic-cxns)
-                                                collect (if (equal lc (first (fourth dummy-holistic-cxns-and-links)))
-                                                          (first (fourth cxns-and-links-holistic-part-observation))
-                                                          lc)))
-                                                  ;;substitute the dummy category with the recursive category!
-               (lex-classes-item-based-units (when item-based-cxn (get-all-unit-lex-classes item-based-cxn)))
-               
+                 (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn remaining-form-constraints remaining-meaning original-cxn-inventory))
+                 (temp-cxn-inventory (eval `(def-fcg-constructions
+                                                temp-metalayer-grammar
+                                              :cxn-inventory temp-metalayer-grammar
+                                              :hashed t
+                                              :feature-types ((args sequence)
+                                                              (form set-of-predicates)
+                                                              (meaning set-of-predicates)
+                                                              (subunits set)
+                                                              (footprints set))
+                                              :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                                                                   (:cxn-supplier-mode . ,(get-configuration original-cxn-inventory :learner-cxn-supplier))
+                                                                   (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure)
+                                                                   (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
+                                                                   (:parse-order routine)
+                                                                   (:max-nr-of-nodes . 250)
+                                                                   (:production-order routine)
+                                                                   (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
+                                                                   (:render-mode . :generate-and-test)
+                                                                   (:category-linking-mode . :categories-exist)
+                                                                   (:update-categorial-links . t)
+                                                                   (:consolidate-repairs . t)
+                                                                   (:use-meta-layer . nil)
+                                                                   (:update-categorial-links . nil)
+                                                                   (:consolidate-repairs . nil)
+                                                                   (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
+                                                                   (:ignore-transitive-closure . t)
+                                                                   (:hash-mode . :hash-string-meaning-lex-id)))))
 
-               ;; create all categorial links
-               (categorial-links (when (and lex-classes-holistic-cxns
-                                            lex-classes-item-based-units
-                                            (= (length lex-classes-holistic-cxns)
-                                               (length lex-classes-item-based-units)))
-                                   (create-new-categorial-links lex-classes-holistic-cxns lex-classes-item-based-units (categorial-network original-cxn-inventory))))
 
-               ;; build result
-               (cxns-to-apply (append (first cxns-and-links-holistic-part-observation)
-                                      (mapcar #'(lambda (cxn) (alter-ego-cxn cxn original-cxn-inventory)) applied-holistic-cxns)
-                                      (list (alter-ego-cxn item-based-cxn original-cxn-inventory))))
-               (cat-links-to-add (remove nil (append (second cxns-and-links-holistic-part-observation)
-                                                     categorial-links)))
-               (cxns-to-consolidate (third cxns-and-links-holistic-part-observation))
+                 (temp-cxns-to-add (append (mapcar #'(lambda (cxn) (alter-ego-cxn (original-cxn cxn) original-cxn-inventory)) applied-cxns)
+                                           (first cxns-and-links-holistic-part-observation)))
+                 (temp-cats-to-add (mapcar #'extract-contributing-lex-class temp-cxns-to-add)))
+            (add-categories temp-cats-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
+            (mapcar #'(lambda (cxn) (add-cxn cxn temp-cxn-inventory)) temp-cxns-to-add)
+            (let* ((solution-cipn (second (multiple-value-list (comprehend form-constraints :cxn-inventory temp-cxn-inventory))))
+                   
+                   ;; build result
+                   (cxns-to-apply (mapcar #'original-cxn (applied-constructions solution-cipn)))
+                   (cat-links-to-add (remove nil (append (second cxns-and-links-holistic-part-observation)
+                                                         (extract-used-categorial-links solution-cipn))))
+                   (cxns-to-consolidate (third cxns-and-links-holistic-part-observation))
                                      
-               (cats-to-add (remove nil (append (list (extract-contributing-lex-class item-based-cxn))
-                                                (fourth cxns-and-links-holistic-part-observation)))))
+                   (cats-to-add (remove nil (append (mapcar #'extract-contributing-lex-class cxns-to-apply) ;; we need to know which is the top level item-based cxn, it could be passed down in recursive case
+                                                    (fourth cxns-and-links-holistic-part-observation)))))
         
-          (list
-           cxns-to-apply
-           cat-links-to-add
-           cxns-to-consolidate
-           cats-to-add
-           ))
-          )))))
+              (list
+               cxns-to-apply
+               cat-links-to-add
+               cxns-to-consolidate
+               cats-to-add
+               ))
+            ))))))
           
                  
-#|(all-holistic-cxns (sort-cxns-by-form-string (append
-                                                (list new-holistic-cxn-apply-last)
-                                                applied-holistic-cxns) utterance original-cxn-inventory))
-  (lex-classes-holistic-cxns (when all-holistic-cxns (mapcar #'lex-class-apply-last-cxn all-holistic-cxns)))
-  (lex-classes-item-based-units (when item-based-cxn (get-all-unit-lex-classes item-based-cxn)))
-  ;; assign all categorial links
-  (categorial-links (when (and lex-classes-holistic-cxns
-                               lex-classes-item-based-units
-                               (= (length lex-classes-holistic-cxns)
-                                  (length lex-classes-item-based-units)))
-                      (create-new-categorial-links lex-classes-holistic-cxns lex-classes-item-based-units categorial-network)))
-  (alter-item-based-cxn (alter-ego-cxn item-based-cxn original-cxn-inventory))
-  (alter-applied-holistic-cxns (mapcar #'(lambda (cxn) (alter-ego-cxn cxn original-cxn-inventory)) applied-holistic-cxns))
-  (all-alter-holistic-cxns (sort-cxns-by-form-string (append
-                                                      (list new-holistic-cxn-apply-first)
-                                                      alter-applied-holistic-cxns) utterance original-cxn-inventory))
- ;(cxns-to-apply (append (list item-based-cxn) all-holistic-cxns))
-  (cxns-to-apply (append all-alter-holistic-cxns (list alter-item-based-cxn)))
- ;(cxns-to-consolidate (unless existing-holistic-cxn-apply-first (list new-holistic-cxn-apply-first))))
-  (cxns-to-consolidate (unless existing-holistic-cxn-apply-last (list new-holistic-cxn-apply-last))))
- ;(add-element (make-html new-holistic-cxn-apply-last))
-|#
 
