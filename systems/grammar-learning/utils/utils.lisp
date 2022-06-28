@@ -220,6 +220,12 @@
 ;; to do: split into method with type specification for processing cxn vs original cxn
 ;fcg-construction
 ;construction
+(defun get-all-conditional-unit-lex-classes (cxn)
+  (loop for unit in (subseq (conditional-part cxn) 1)
+        for lex-class = (lex-class-item-based-apply-last unit)
+        collect lex-class))
+
+
 (defun get-all-unit-lex-classes (cxn)
   (loop for unit in (subseq (contributing-part cxn) 1)
         for lex-class = (lex-class-item-based unit)
@@ -1166,12 +1172,12 @@
 (defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-exclude-item-based)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-    (with-disabled-monitor-notifications
+    ;(with-disabled-monitor-notifications
       (let* ((temp-inventory (remove-cxns-with-phrase-type 'item-based (copy-object original-cxn-inventory)))
              (comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory temp-inventory)))
              (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration original-cxn-inventory)
-        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form)))))))
 
 
 

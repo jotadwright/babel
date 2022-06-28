@@ -86,27 +86,29 @@
 
                  (temp-cxns-to-add (append (mapcar #'(lambda (cxn) (alter-ego-cxn (original-cxn cxn) original-cxn-inventory)) applied-cxns)
                                            (first cxns-and-links-holistic-part-observation)))
-                 (temp-cats-to-add (mapcar #'extract-contributing-lex-class temp-cxns-to-add)))
+                 (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-add)
+                                           (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-add))))
             (add-categories temp-cats-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
-            (mapcar #'(lambda (cxn) (add-cxn cxn temp-cxn-inventory)) temp-cxns-to-add)
-            (let* ((solution-cipn (second (multiple-value-list (comprehend form-constraints :cxn-inventory temp-cxn-inventory))))
+            (dolist (cxn temp-cxns-to-add)
+              (add-cxn cxn temp-cxn-inventory))
+            (let* ((solution-cipn (second (multiple-value-list (comprehend form-constraints :cxn-inventory temp-cxn-inventory :silent t))))
                    
                    ;; build result
-                   (cxns-to-apply (mapcar #'original-cxn (applied-constructions solution-cipn)))
-                   (cat-links-to-add (remove nil (append (second cxns-and-links-holistic-part-observation)
-                                                         (extract-used-categorial-links solution-cipn))))
+                   (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
+                   (cat-links-to-add (remove-duplicates (remove nil (append (second cxns-and-links-holistic-part-observation)
+                                                                            (extract-used-categorial-links solution-cipn))) :test #'equal))
                    (cxns-to-consolidate (third cxns-and-links-holistic-part-observation))
                                      
-                   (cats-to-add (remove nil (append (mapcar #'extract-contributing-lex-class cxns-to-apply) ;; we need to know which is the top level item-based cxn, it could be passed down in recursive case
-                                                    (fourth cxns-and-links-holistic-part-observation)))))
+                   (cats-to-add (remove-duplicates (remove nil (append (mapcar #'extract-contributing-lex-class (reverse cxns-to-apply)) ;; top-level item-based cat needs to be first!
+                                                                       (fourth cxns-and-links-holistic-part-observation))) :test #'equal :from-end t)))
         
               (list
                cxns-to-apply
                cat-links-to-add
                cxns-to-consolidate
                cats-to-add
-               ))
-            ))))))
+               ))))))))
+            
           
                  
 

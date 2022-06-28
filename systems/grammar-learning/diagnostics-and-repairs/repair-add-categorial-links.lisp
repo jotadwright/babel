@@ -98,7 +98,7 @@
                          for ts-unit = (find ts-unit-name (left-pole-structure (car-source-cfs (cipn-car cipn))):key #'first)
                          for ts-lex-class = (second (find 'lex-class (second (find 'syn-cat (rest ts-unit) :key #'first)) :key #'first))
                          if (and cxn-lex-class ts-lex-class)
-                         collect (cons cxn-lex-class ts-lex-class)))))
+                         collect (cons ts-lex-class cxn-lex-class)))))
                          ;else do (error "cxn-lex-class or ts-lex-class was nil!!")))))
 
 ;; (extract-used-categorial-links *saved-cipn*)
