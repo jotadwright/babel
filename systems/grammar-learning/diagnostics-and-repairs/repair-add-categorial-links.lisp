@@ -70,12 +70,13 @@
                (equivalent-meaning-networks parsed-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
                
           (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
-                 (categories-to-add (list (extract-contributing-lex-class (last-elt cxns-to-apply)))))
+                 (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply))))
             (list
              cxns-to-apply
              (extract-used-categorial-links cip-node)
              nil
-             categories-to-add))))))
+             nil
+             top-level-category))))))
 
 
 (defun extract-used-categorial-links (solution-cipn)

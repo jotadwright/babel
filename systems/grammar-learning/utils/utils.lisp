@@ -1158,7 +1158,35 @@
       (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
              (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
-        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
+        (first (sort cip-nodes #'(lambda (cipn-1 cipn-2)
+                                   (cond ((< (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn-1)))) 'form))
+                                             (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn-2)))) 'form)))
+                                          cipn-1)
+                                         ((> (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn-1)))) 'form))
+                                             (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn-2)))) 'form)))
+                                          cipn-2)
+                                         ((>= (length (applied-constructions cipn-1))
+                                             (length (applied-constructions cipn-2)))
+                                          cipn-1)
+                                         (t
+                                          cipn-2))))))))
+
+(defun get-root-form-predicates (cipn)
+  (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
+
+(defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
+  (sort cip-nodes #'(lambda (cipn-1 cipn-2)
+                      (cond ((< (length (get-root-form-predicates cipn-1)
+                                (length (get-root-form-predicates cipn-2)))
+                             cipn-1)
+                            ((> (length (get-root-form-predicates cipn-1))
+                                (length (get-root-form-predicates cipn-2)))
+                             cipn-2)
+                            ((>= (length (applied-constructions cipn-1))
+                                 (length (applied-constructions cipn-2)))
+                             cipn-1)
+                            (t
+                             cipn-2)))))
 
 (defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
@@ -1167,20 +1195,7 @@
       (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
              (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration original-cxn-inventory)
-        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))))))))
-
-(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-exclude-item-based)))
-  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
-  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-    ;(with-disabled-monitor-notifications
-      (let* ((temp-inventory (remove-cxns-with-phrase-type 'item-based (copy-object original-cxn-inventory)))
-             (comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory temp-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
-        (enable-meta-layer-configuration original-cxn-inventory)
-        (first (sort cip-nodes #'< :key #'(lambda (cipn) (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form)))))))
-
-
-
+        (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
 (defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes

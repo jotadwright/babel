@@ -55,9 +55,10 @@
                    (cxn-meaning-is-valid-gold-standard-subset-p inverted-cxn-meanings)) ;; the subtracted meaning must not be nil
           (let* (;; cxns and links from iterating over all repairs
                  (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn remaining-form-constraints remaining-meaning original-cxn-inventory))
+                 (inventory-name (gensym))
                  (temp-cxn-inventory (eval `(def-fcg-constructions
-                                                temp-metalayer-grammar
-                                              :cxn-inventory temp-metalayer-grammar
+                                                ,inventory-name
+                                              :cxn-inventory ,inventory-name
                                               :hashed t
                                               :feature-types ((args sequence)
                                                               (form set-of-predicates)
@@ -66,7 +67,7 @@
                                                               (footprints set))
                                               :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
                                                                    (:cxn-supplier-mode . ,(get-configuration original-cxn-inventory :learner-cxn-supplier))
-                                                                   (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure)
+                                                                   (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
                                                                    (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
                                                                    (:parse-order routine)
                                                                    (:max-nr-of-nodes . 250)
@@ -91,7 +92,7 @@
             (add-categories temp-cats-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
             (dolist (cxn temp-cxns-to-add)
               (add-cxn cxn temp-cxn-inventory))
-            (let* ((solution-cipn (second (multiple-value-list (comprehend form-constraints :cxn-inventory temp-cxn-inventory :silent t))))
+            (let* ((solution-cipn (second (multiple-value-list (comprehend form-constraints :gold-standard-meaning meaning :cxn-inventory temp-cxn-inventory :silent t))))
                    
                    ;; build result
                    (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
@@ -99,14 +100,14 @@
                                                                             (extract-used-categorial-links solution-cipn))) :test #'equal))
                    (cxns-to-consolidate (third cxns-and-links-holistic-part-observation))
                                      
-                   (cats-to-add (remove-duplicates (remove nil (append (mapcar #'extract-contributing-lex-class (reverse cxns-to-apply)) ;; top-level item-based cat needs to be first!
-                                                                       (fourth cxns-and-links-holistic-part-observation))) :test #'equal :from-end t)))
+                   (cats-to-add (fourth cxns-and-links-holistic-part-observation)))
         
               (list
                cxns-to-apply
                cat-links-to-add
                cxns-to-consolidate
                cats-to-add
+               (extract-contributing-lex-class (first cxns-to-apply))
                ))))))))
             
           

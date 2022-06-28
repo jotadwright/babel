@@ -117,5 +117,6 @@
            cxns-to-apply
            nil
            cxns-to-consolidate
-           cats-to-add)
+           cats-to-add
+           lex-class-holistic-cxn)
          ))

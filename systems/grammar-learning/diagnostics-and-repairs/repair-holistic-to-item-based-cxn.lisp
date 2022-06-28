@@ -40,7 +40,7 @@
                                       form-constraints
                                       meaning
                                       original-cxn-set
-                                      :optimal-form-coverage-exclude-item-based))
+                                      :optimal-form-coverage))
          (applied-cxns (when best-partial-analysis-node
                          (applied-constructions best-partial-analysis-node)))
          (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))

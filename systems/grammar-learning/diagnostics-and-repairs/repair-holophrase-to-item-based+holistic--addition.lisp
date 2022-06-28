@@ -59,9 +59,8 @@
                ;; build result
                (cxns-to-apply (append (first cxns-and-links-holistic-part-observation) (list new-item-based-cxn-apply-last)))
                (cat-links-to-add (remove nil (append (second cxns-and-links-holistic-part-observation)
-                                                     (list (when (first (fourth cxns-and-links-holistic-part-observation))
-                                                             (cons (first (fourth cxns-and-links-holistic-part-observation))
-                                                                   lex-class-item-based-cxn-slot))))))
+                                                     (list (cons (fifth cxns-and-links-holistic-part-observation)
+                                                                 lex-class-item-based-cxn-slot)))))
                (cxns-to-consolidate (append
                                      (third cxns-and-links-holistic-part-observation)
                                      (list new-item-based-cxn-apply-first)))
@@ -74,5 +73,6 @@
            cat-links-to-add
            cxns-to-consolidate
            cats-to-add
+           lex-class-item-based-cxn
            ))))))
 
