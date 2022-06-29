@@ -1151,43 +1151,6 @@
   (set-configuration cxn-inventory :use-meta-layer t)
   (set-configuration cxn-inventory :consolidate-repairs t))
 
-(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
-  (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
-  
-    (with-disabled-monitor-notifications
-      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
-        (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
-        (first (sort cip-nodes #'(lambda (cipn-1 cipn-2)
-                                   (cond ((< (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn-1)))) 'form))
-                                             (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn-2)))) 'form)))
-                                          cipn-1)
-                                         ((> (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn-1)))) 'form))
-                                             (length (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn-2)))) 'form)))
-                                          cipn-2)
-                                         ((>= (length (applied-constructions cipn-1))
-                                             (length (applied-constructions cipn-2)))
-                                          cipn-1)
-                                         (t
-                                          cipn-2))))))))
-
-(defun get-root-form-predicates (cipn)
-  (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
-
-(defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
-  (sort cip-nodes #'(lambda (cipn-1 cipn-2)
-                      (cond ((< (length (get-root-form-predicates cipn-1))
-                                (length (get-root-form-predicates cipn-2)))
-                             cipn-1)
-                            ((> (length (get-root-form-predicates cipn-1))
-                                (length (get-root-form-predicates cipn-2)))
-                             cipn-2)
-                            ((>= (length (applied-constructions cipn-1))
-                                 (length (applied-constructions cipn-2)))
-                             cipn-1)
-                            (t
-                             cipn-2)))))
-
 (defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
@@ -1196,6 +1159,34 @@
              (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
+
+
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
+  (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
+             (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+        (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
+        (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
+
+(defun get-root-form-predicates (cipn)
+  (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
+
+(defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
+  (cond ((< (length (get-root-form-predicates cipn-1))
+            (length (get-root-form-predicates cipn-2)))
+         cipn-1)
+        ((> (length (get-root-form-predicates cipn-1))
+            (length (get-root-form-predicates cipn-2)))
+         cipn-2)
+        ((>= (length (applied-constructions cipn-1))
+             (length (applied-constructions cipn-2)))
+         cipn-1)
+        (t
+         cipn-2)))
+
+
 
 (defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes
@@ -1261,7 +1252,7 @@
           (if existing-item-based-cxn-apply-first
             (lex-class-cxn existing-item-based-cxn-apply-first)
             (make-lex-class (concatenate 'string (symbol-name lex-class-item-based-cxn) "-(x)"))))
-
+         (cxn-inventory-copy (copy-object cxn-inventory))
          (new-item-based-cxn-apply-last
           (or existing-item-based-cxn-apply-last 
               (second (multiple-value-list (eval
@@ -1302,7 +1293,7 @@
                                                                                        return (first predicate))
                                                                        :string ,(third (find 'string overlapping-form :key #'first)))
                                                                            
-                                                          :cxn-inventory ,(copy-object cxn-inventory)))))))
+                                                          :cxn-inventory ,cxn-inventory-copy))))))
          (new-item-based-cxn-apply-first
           (or existing-item-based-cxn-apply-first
               (second (multiple-value-list (eval
@@ -1341,10 +1332,39 @@
                                                                                        return (first predicate))
                                                                        :string ,(third (find 'string overlapping-form :key #'first)))
                                                                            
-                                                          :cxn-inventory ,(copy-object cxn-inventory))))))))
+                                                          :cxn-inventory ,cxn-inventory-copy)))))))
     (values new-item-based-cxn-apply-first
             new-item-based-cxn-apply-last
             lex-class-item-based-cxn
             lex-class-item-based-cxn-slot)))
 
-
+(defun create-temp-cxn-inventory (original-cxn-inventory)
+  (let ((inventory-name (gensym)))
+    (eval `(def-fcg-constructions
+                                       ,inventory-name
+                                     :cxn-inventory ,inventory-name
+                                     :hashed t
+                                     :feature-types ((args sequence)
+                                                     (form set-of-predicates)
+                                                     (meaning set-of-predicates)
+                                                     (subunits set)
+                                                     (footprints set))
+                                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                                                          (:cxn-supplier-mode . ,(get-configuration original-cxn-inventory :learner-cxn-supplier))
+                                                          (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
+                                                          (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
+                                                          (:parse-order routine)
+                                                          (:max-nr-of-nodes . 250)
+                                                          (:production-order routine)
+                                                          (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
+                                                          (:render-mode . :generate-and-test)
+                                                          (:category-linking-mode . :categories-exist)
+                                                          (:update-categorial-links . t)
+                                                          (:consolidate-repairs . t)
+                                                          (:use-meta-layer . nil)
+                                                          (:update-categorial-links . nil)
+                                                          (:consolidate-repairs . nil)
+                                                          (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
+                                                          (:ignore-transitive-closure . t)
+                                                          (:hash-mode . :hash-string-meaning-lex-id))))))
+        

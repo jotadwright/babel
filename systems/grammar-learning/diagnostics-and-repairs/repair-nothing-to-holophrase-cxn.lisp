@@ -60,6 +60,7 @@
                             when (equalp (first fc) 'string)
                             collect (third fc) into hash-strings
                             finally (return (last-elt hash-strings))))
+         (cxn-inventory-copy (copy-object cxn-inventory))
     
          (holistic-cxn-apply-first (second (multiple-value-list  (eval
                                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-first
@@ -81,7 +82,7 @@
                                                                                              :repair nothing->holistic
                                                                                              :meaning ,(fourth (find 'bind meaning :key #'first))
                                                                                              :string ,hash-string)
-                                                                                :cxn-inventory ,(copy-object cxn-inventory))))))
+                                                                                :cxn-inventory ,cxn-inventory-copy)))))
          (holistic-cxn-apply-last (second (multiple-value-list  (eval
                                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-last
                                                                 (
@@ -108,7 +109,7 @@
                                                                              :repair nothing->holistic
                                                                              :meaning ,(fourth (find 'bind meaning :key #'first))
                                                                              :string ,hash-string)
-                                                                :cxn-inventory ,(copy-object cxn-inventory))))))
+                                                                :cxn-inventory ,cxn-inventory-copy)))))
          (cxns-to-apply (list holistic-cxn-apply-first))
          (cxns-to-consolidate (list holistic-cxn-apply-last))
          (cats-to-add (list lex-class-holistic-cxn)))
