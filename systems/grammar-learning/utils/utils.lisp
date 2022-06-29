@@ -1176,7 +1176,7 @@
 
 (defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
   (sort cip-nodes #'(lambda (cipn-1 cipn-2)
-                      (cond ((< (length (get-root-form-predicates cipn-1)
+                      (cond ((< (length (get-root-form-predicates cipn-1))
                                 (length (get-root-form-predicates cipn-2)))
                              cipn-1)
                             ((> (length (get-root-form-predicates cipn-1))
