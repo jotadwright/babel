@@ -74,19 +74,24 @@
                                                  for holistic-cxn-unit-name = (first boundary-list)
                                                  ;for holistic-cxn-lex-class = (unit-feature-value (unit-feature-value unit 'syn-cat) 'lex-class)
                                                  do (setf item-based-cxn-form-constraints updated-form-constraints)
-                                                 collect args into slot-args-list
+                                                 
                                                  collect subtracted-meaning into subtracted-meanings
+                                                 unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
+                                                 collect args into slot-args-list
+                                                 unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
                                                  collect holistic-cxn-unit-name into holistic-subunit-names
+                                                 unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
                                                  collect `(,holistic-cxn-unit-name 
                                                            (footprints (used-as-slot-filler))) into contributing-footprints
+                                                 unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
                                                  collect `(,holistic-cxn-unit-name
                                                            (footprints (used-as-slot-filler))
-                                                           (syn-cat (phrase-type holistic)
-                                                                    (lex-class ,holistic-slot-lex-class))
+                                                           (syn-cat (lex-class ,holistic-slot-lex-class))
                                                            (args ,args)
                                                            (boundaries
                                                             (left ,(first updated-boundaries))
                                                             (right ,(second updated-boundaries)))) into contributing-units-apply-first
+                                                 unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
                                                  collect `(,holistic-cxn-unit-name
                                                            (footprints (NOT used-as-slot-filler))
                                                            (args ,args)
@@ -96,6 +101,7 @@
                                                            (boundaries
                                                             (left ,(first updated-boundaries))
                                                             (right ,(second updated-boundaries)))) into conditional-units-apply-last
+                                                 unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
                                                  collect (list 'fcg::meets (first updated-boundaries) (second updated-boundaries)) into dummy-slot-fcs
                                                  finally (return (values conditional-units-apply-last
                                                                          contributing-units-apply-first
