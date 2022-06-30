@@ -28,12 +28,6 @@
   (activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
 
-
-;; sparse logging, no trace-fcg
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions))
   
 
 ;; full logging
@@ -45,6 +39,14 @@
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
+
+
+
+;; sparse logging, no trace-fcg
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions))
 
 (progn
   (wi::reset)
@@ -78,15 +80,15 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 60) ; 61 has empty args in slot!
+;(run-series *experiment* 500) ;  
 
-;(run-series *experiment* 13) ;
+;(run-series *experiment* 1500) ;
 
 
 #|
 ISSUES:
 
-
+heel veel duplicates! verwijder deze eens
  
 TODO:
 - add new repairs that don't only start from holophrases, but also from minimally differing combinations of cxns
