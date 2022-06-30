@@ -30,6 +30,17 @@
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    (construction-inventory node)))
 
+
+(defun extract-meaning-from-tree (top-unit-name transient-structure)
+  (let ((top-unit (find top-unit-name (left-pole-structure transient-structure) :key #'first :test #'string=)))
+    (extract-meanings
+     (cons top-unit
+           (all-subunits
+            top-unit
+            (left-pole-structure transient-structure))))))
+
+               
+               
 (defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning cxn-inventory)
   "Creates item-based construction around matching holistic constructions"
   (let* ((original-cxn-set (original-cxn-set cxn-inventory))
@@ -43,12 +54,13 @@
                                       :optimal-form-coverage))
          (applied-cxns (when best-partial-analysis-node
                          (applied-constructions best-partial-analysis-node))))
-    (when (and (filter-by-phrase-type 'holistic applied-cxns)
+    (when (and applied-cxns
                (get-root-form-predicates best-partial-analysis-node))
       (let* ((item-based-cxn-form-constraints (variablify-form-constraints-with-constants (get-root-form-predicates best-partial-analysis-node)))
              (resulting-left-pole-structure (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node))))
              (resulting-root (get-root resulting-left-pole-structure))
              (resulting-units (sort-unvariablified-units-by-meets-constraints (remove resulting-root resulting-left-pole-structure) item-based-cxn-form-constraints))
+             ;(item-based-cxn-meaning (subtract-all-unit-meanings resulting-units meaning))
              (chunk-item-based-cxn-form-constraints (make-item-based-name-form-constraints-from-units item-based-cxn-form-constraints resulting-units))
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
              (cxn-name-item-based-cxn (make-cxn-name
@@ -61,7 +73,7 @@
                                                  for boundaries = (unit-feature-value unit 'boundaries)
                                                  
                                                  for string-var = (first (get-boundary-units form-constraints))
-                                                 for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff meaning (unit-feature-value unit 'meaning)))
+                                                 for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff meaning (extract-meaning-from-tree (first unit) (car-resulting-cfs (cipn-car best-partial-analysis-node)))))
                                                  for parent-meaning = (first subtracted-meaning-list)
                                                  for subtracted-meaning = (second subtracted-meaning-list)
                                                  for args = (extract-args-from-meaning-networks subtracted-meaning parent-meaning meaning-representation-formalism)
@@ -237,24 +249,3 @@
                lex-class-item-based-cxn
                ))))))))
             
-#|
-                 (cxns-to-apply (append applied-cxns (list item-based-cxn-apply-last)))
-                 (cxns-to-consolidate (unless existing-item-based-cxn-apply-first
-                                        (list item-based-cxn-apply-first)))
-                 (cats-to-add (list lex-class-item-based-cxn)))
-            (when existing-item-based-cxn-apply-first ; we ordered the units, so they'll always be in the order in which they appear in the utterance
-              (loop for item-lc in (get-all-unit-lex-classes existing-item-based-cxn-apply-first)
-                    for cat-link in cat-links-to-add
-                    for holistic-lc = (first cat-link)
-                    collect (cons holistic-lc item-lc) into new-cat-links
-                    finally (setf cat-links-to-add new-cat-links))
-          ;(add-element (make-html (categorial-network original-cxn-set)))
-              )
-        ;(add-element (make-html item-based-cxn-apply-last))
-        
-            (list
-             cxns-to-apply
-             cat-links-to-add
-             cxns-to-consolidate
-             cats-to-add)
-            ))))))|#

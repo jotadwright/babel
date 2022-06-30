@@ -1191,8 +1191,7 @@
 (defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes
         for candidate-meaning in candidate-meanings
-        for subset-meaning = (second (multiple-value-list (commutative-irl-subset-diff gold-standard-meaning candidate-meaning)))
-        when subset-meaning
+        when (irl::embedding candidate-meaning gold-standard-meaning)
         collect cipn))
 
 (defun remove-nodes-containing-applied-cxns-with-type (type nodes)
