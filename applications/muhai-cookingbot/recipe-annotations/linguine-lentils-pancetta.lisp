@@ -54,14 +54,15 @@
 (cover ?saucepan-covered ?ks-with-lentils-salted-and-covered ?ks-with-lentils-salted ?saucepan-with-salt ?lid ?quant-2 ?unit-2) ;;no lid, quantity and unit given => use standard saucepan lid
 ;; Set over low heat and cook until the water comes to a boil.
 (transfer ?saucepan-on-stove ?ks-with-saucepan-on-stove ?ks-with-lentils-salted-and-covered ?saucepan-covered stove) ;;last elt = destination
-(light-stove ?ks-with-stove-on ?ks-with-saucepan-on-stove low-heat)
+(set-stove ?ks-with-stove-on ?ks-with-saucepan-on-stove low-heat)
 (boil ?boiling-lentils ?ks-with-lentils-boiling ?ks-with-stove-on ?saucepan-on-stove ?quant-3 ?unit-3) ;;no boiling time given ==> until contents of container reaches boiling point
 ;; Set lid on an angle and cook over very low heat for about 30 minutes, or until lentils are tender.
 (uncover ?saucepan-with-lid-on-angle ?ks-with-uncovered-lid ?ks-with-lentils-boiling ?boiling-lentils lid-on-angle) ;; lid-on-angle = type of uncovering
-
-
+(set-stove ?ks-with-lentils-cooking-on-very-low-heat ?ks-with-uncovered-lid very-low-heat)
+(cook ?lentils-cooked ?ks-with-cooked-lentils ?ks-with-lentils-cooking-on-very-low-heat ?saucepan-with-lid-on-angle 30 min)
 ;; Remove from the heat and set aside lentils in their liquid.
-
+(transfer ?cooked-lentils-on-countertop ?ks-with-cooked-lentils-on-countertop ?ks-with-cooked-lentils ?lentils-cooked countertop) ;;destination = countertop
+)
 ;; Step 2
 ;;;;;;;;;;
 
