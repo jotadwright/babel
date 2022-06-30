@@ -136,13 +136,19 @@
           when cxn
           do (return cxn))))
 
+
+
 (defmethod find-cxn ((construction t) (hashed-construction-set hashed-construction-set) 
-                     &key (key #'name) (test #'eql) (search-trash nil) (hash-key nil))
-  ;; this function relies on the hash-key being provided!
-  (find construction
-        (append (gethash hash-key (constructions-hash-table hashed-construction-set))
-                (when search-trash (trash hashed-construction-set)))
-        :key key :test test))
+                     &key (key #'name) (test #'eql) (search-trash nil) (hash-key nil hash-key-provided-p))
+  (if hash-key-provided-p
+    (find construction
+          (append (gethash hash-key (constructions-hash-table hashed-construction-set))
+                  (when search-trash (trash hashed-construction-set)))
+          :key key :test test)
+    (loop for cxn in (constructions-list hashed-construction-set)
+          when (funcall test (funcall key cxn) cxn)
+          return cxn)))
+    
 
 
 ;; #########################################################

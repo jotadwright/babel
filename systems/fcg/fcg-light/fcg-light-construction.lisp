@@ -418,12 +418,15 @@ construction on the fly."
         do (return cxn)))
 
 (defmethod find-cxn ((construction t) (hashed-fcg-construction-set hashed-fcg-construction-set) 
-                     &key (key #'name) (test #'eql) (search-trash nil) (hash-key nil))
-  ;; this function relies on the hash-key being provided!
-  (find construction
-        (append (gethash hash-key (constructions-hash-table hashed-fcg-construction-set))
-                (when search-trash (trash hashed-fcg-construction-set)))
-        :key key :test test))
+                     &key (key #'name) (test #'eql) (search-trash nil) (hash-key nil hash-key-provided-p))
+  (if hash-key-provided-p
+    (find construction
+          (append (gethash hash-key (constructions-hash-table hashed-fcg-construction-set))
+                  (when search-trash (trash hashed-fcg-construction-set)))
+          :key key :test test)
+    (loop for cxn in (constructions-list hashed-fcg-construction-set)
+          when (funcall test (funcall key cxn) construction)
+          return cxn)))
 
 (defmethod add-cxn ((fcg-construction fcg-construction)
                     (fcg-construction-set hashed-fcg-construction-set)
@@ -490,13 +493,16 @@ construction on the fly."
 (defmethod delete-cxn ((construction t) 
                        (construction-set hashed-fcg-construction-set)
                        &key (key #'name) (test #'eql) (move-to-trash nil)
-                       (hash-key nil))
+                       (hash-key nil hash-key-provided-p))
   "Deletes a construction from the fcg-construction-set and the
    processing construction inventory. Also removes the hashkey if the
    value has become NIL."
   ;; this function relies on the hash-key being provided!
-  (let ((to-delete (find-cxn construction construction-set
-                             :test test :key key :hash-key hash-key)))
+  (let ((to-delete (if hash-key-provided-p
+                     (find-cxn construction construction-set
+                             :test test :key key :hash-key hash-key)
+                     (find-cxn construction construction-set
+                             :test test :key key))))
 
     (when to-delete
       (when move-to-trash
@@ -510,7 +516,7 @@ construction on the fly."
                 (remove to-delete (gethash hash (constructions-hash-table construction-set))))
        (unless (gethash hash (constructions-hash-table construction-set))
          (remhash hash (constructions-hash-table construction-set)))
-       (delete-cxn (get-processing-cxn to-delete) (processing-cxn-inventory construction-set)
+       (delete-cxn (find-cxn construction (processing-cxn-inventory construction-set) :key key :test test :hash-key hash) (processing-cxn-inventory construction-set)
                    :hash-key hash))
       
       to-delete)))
@@ -536,8 +542,7 @@ construction on the fly."
        (unless (gethash hash (constructions-hash-table construction-set))
          (remhash hash (constructions-hash-table construction-set)))
        (delete-cxn (get-processing-cxn to-delete)
-                   (processing-cxn-inventory construction-set)
-                   :hash-key hash))
+                   (processing-cxn-inventory construction-set)))
       to-delete)))
 
 

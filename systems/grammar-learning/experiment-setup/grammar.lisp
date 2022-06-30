@@ -132,10 +132,24 @@
 
 (defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0))
   "decrease the score of the cxn."
-  (setf (attr-val cxn :score) (let ((current-score (attr-val cxn :score)))
-                                (if (> current-score 1.0)
-                                    (- current-score (* current-score delta))
-                                    (- current-score delta)))))
+  (let* ((alter-ego-cxn (alter-ego-cxn cxn (grammar agent)))
+         (current-score (attr-val cxn :score))
+         (new-score (if (> current-score 1.0)
+                      (- current-score (* current-score delta))
+                      (- current-score delta))))
+         
+  (setf (attr-val cxn :score) new-score)
+  (setf (attr-val alter-ego-cxn :score) new-score)
+  (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
+             (< (attr-val cxn :score) lower-bound))
+    (delete-cxn (name cxn) (grammar agent) :key #'name)
+    (delete-cxn (name alter-ego-cxn) (grammar agent)) :key #'name)))
+
+
+
+
+
+
   ;(when (<= (attr-val cxn :score) lower-bound)
   ;  (if (get-configuration (experiment agent) :remove-cxn-on-lower-bound) 
   ;    (progn (notify lexicon-changed)
