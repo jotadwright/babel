@@ -191,6 +191,7 @@
                                                                                                return (first predicate))
                                                                                :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))
                                                                            
+                                                                  :score ,(get-configuration original-cxn-set :initial-cxn-score)
                                                                   :cxn-inventory ,cxn-inventory-copy))))))
                  (item-based-cxn-apply-first
                   (or existing-item-based-cxn-apply-first
@@ -221,7 +222,7 @@
                                                                                                        (equal (first predicate) 'bind))
                                                                                                return (first predicate))
                                                                                :string ,(third (find 'string item-based-cxn-form-constraints :key #'first)))
-                                                                           
+                                                                  :score ,(get-configuration original-cxn-set :initial-cxn-score)
                                                                   :cxn-inventory ,cxn-inventory-copy))))))
                  (temp-cxn-inventory (create-temp-cxn-inventory original-cxn-set))
                  (temp-cxns-to-add (append (mapcar #'original-cxn applied-cxns)

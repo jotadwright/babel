@@ -1291,7 +1291,7 @@
                                                                                                (equal (first predicate) 'bind))
                                                                                        return (first predicate))
                                                                        :string ,(third (find 'string overlapping-form :key #'first)))
-                                                                           
+                                                          :score ,(get-configuration cxn-inventory :initial-cxn-score)                 
                                                           :cxn-inventory ,cxn-inventory-copy))))))
          (new-item-based-cxn-apply-first
           (or existing-item-based-cxn-apply-first
@@ -1330,7 +1330,7 @@
                                                                                                (equal (first predicate) 'bind))
                                                                                        return (first predicate))
                                                                        :string ,(third (find 'string overlapping-form :key #'first)))
-                                                                           
+                                                          :score ,(get-configuration cxn-inventory :initial-cxn-score)               
                                                           :cxn-inventory ,cxn-inventory-copy)))))))
     (values new-item-based-cxn-apply-first
             new-item-based-cxn-apply-last

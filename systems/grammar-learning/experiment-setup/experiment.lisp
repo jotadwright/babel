@@ -21,7 +21,7 @@
 (define-configuration-default-value :de-render-mode :de-render-string-meets)
 
 ;; Strategies and scores
-(define-configuration-default-value :initial-cxn-score 0.5)
+(define-configuration-default-value :initial-cxn-score 1.0)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.3)

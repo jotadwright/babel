@@ -75,7 +75,14 @@
                                    (subunits set)
                                    (footprints set))
                    :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
-                                        (:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
+                                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+                                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+                                        (:cxn-supplier-mode . :hashed-routine-only) ;; use hashing
+                                        ;; for using heuristics
+                                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
+                                        (:heuristics :cxn-score) ;; list of heuristic functions (modes of #'apply-heuristic)
+                                        (:heuristic-value-mode . :average-heuristics-and-parent)
+                                        ;(:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
                                         (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
                                         (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
@@ -88,6 +95,7 @@
                                         (:update-categorial-links . t)
                                         (:consolidate-repairs . t)
                                         (:use-meta-layer . t)
+                                        (:initial-cxn-score . ,(get-configuration experiment :initial-cxn-score))
                                         (:initial-categorial-link-weight . ,(get-configuration experiment :initial-categorial-link-weight))
                                         (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))

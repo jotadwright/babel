@@ -82,6 +82,7 @@
                                                                                              :repair nothing->holistic
                                                                                              :meaning ,(fourth (find 'bind meaning :key #'first))
                                                                                              :string ,hash-string)
+                                                                                :score ,(get-configuration cxn-inventory :initial-cxn-score)
                                                                                 :cxn-inventory ,cxn-inventory-copy)))))
          (holistic-cxn-apply-last (second (multiple-value-list  (eval
                                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-last
@@ -109,6 +110,7 @@
                                                                              :repair nothing->holistic
                                                                              :meaning ,(fourth (find 'bind meaning :key #'first))
                                                                              :string ,hash-string)
+                                                                :score ,(get-configuration cxn-inventory :initial-cxn-score)
                                                                 :cxn-inventory ,cxn-inventory-copy)))))
          (cxns-to-apply (list holistic-cxn-apply-first))
          (cxns-to-consolidate (list holistic-cxn-apply-last))

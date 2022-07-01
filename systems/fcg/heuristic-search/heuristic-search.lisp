@@ -187,12 +187,25 @@
         finally (return (+ (priority (parent node))
                            heuristic-value))))
 
+(defmethod heuristic-value ((node cip-node) (mode (eql :average-heuristics-and-parent)))
+  "Heuristic value of a cip-node is the average of the sums of the results of all heuristic functions and the heuristic value of the parent."
+  (loop with depth = (length (all-parents node))
+        for heuristic in (get-configuration (cip node) :heuristics)
+        sum (apply-heuristic node heuristic) into heuristic-value
+        finally (return (/ (+ (* depth (priority (parent node)))
+                              heuristic-value)
+                           (+ 1 depth)))))
+
 (defgeneric apply-heuristic (node mode)
   (:documentation "Applies a single heuristic to a node and returns a score (typically normalized between 0 and 1)."))
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :nr-of-applied-cxns)))
   "Add 1 for each node."
   1)
+
+(defmethod apply-heuristic ((node cip-node) (mode (eql :cxn-score)))
+  (let ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node)))))
+    (attr-val applied-cxn :score)))
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :nr-of-units-matched)))
   "Returns a normalisation of the number of units matched by the cxn."

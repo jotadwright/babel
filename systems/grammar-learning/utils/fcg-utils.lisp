@@ -149,7 +149,25 @@
 ;; cxn-supplier-hashed-and-scored-default-cxn-set-only
 ;; ---------------------------------------------------------
 
-(export '(cxn-supplier-hashed-and-scored-routine-cxn-set-only))
+(export '(cxn-supplier-hashed-and-scored-routine-cxn-set-only cxn-supplier-hashed-routine-set-only))
+
+
+(defclass cxn-supplier-hashed-routine-set-only ()
+  ()
+  (:documentation "Construction supplier that returns all constructions except incompatible hashed ones."))
+
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :hashed-routine-only)))
+  "Creates an instance of the cxn-supplier."
+  (make-instance 'cxn-supplier-hashed-routine-set-only))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-routine-set-only) (node cip-node))
+  "Returns all constructions that satisfy the hash of the node."
+  (loop for cxn in (constructions-for-application-hashed node)
+                when (equal (attr-val cxn :label) 'routine)
+                collect cxn))
+  
+
+
 
 (defun constructions-for-application-hashed-and-scored-routine-cxn-set-only (node)
   "computes all constructions that could be applied for this node
