@@ -162,9 +162,7 @@
 
 (defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-routine-set-only) (node cip-node))
   "Returns all constructions that satisfy the hash of the node."
-  (loop for cxn in (constructions-for-application-hashed node)
-                when (equal (attr-val cxn :label) 'routine)
-                collect cxn))
+  (all-constructions-of-label-hashed node :routine))
   
 
 
