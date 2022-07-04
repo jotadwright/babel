@@ -75,16 +75,8 @@
                                    (subunits set)
                                    (footprints set))
                    :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
-                                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
-                                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
-                                        (:cxn-supplier-mode . :hashed-routine-only) ;; use hashing
-                                        ;; for using heuristics
-                                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
-                                        (:heuristics :cxn-score) ;; list of heuristic functions (modes of #'apply-heuristic)
-                                        (:heuristic-value-mode . :average-heuristics-and-parent)
-                                        ;(:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
+                                        (:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
                                         (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
-                                        (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
                                         (:parse-order routine)
                                         (:max-nr-of-nodes . 250)
