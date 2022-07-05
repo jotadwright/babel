@@ -1,3 +1,4 @@
+
 (ql:quickload :grammar-learning)
 (in-package :grammar-learning)
 
@@ -48,7 +49,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions))
 
-(progn
+(defun create-experiment ()
   (wi::reset)
   (notify reset-monitors)
   (defparameter *experiment*
@@ -62,6 +63,9 @@
                                      cl-user:*babel-corpora*))
                          (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                    :name "stage-1" :type "jsonl")))))))
+
+
+
                               
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
@@ -74,15 +78,18 @@
 
 ;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
 
+
+(create-experiment)
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 500) ;  
+;(run-series *experiment* 28) ;  
 
 ;(run-series *experiment* 1500) ;
+
 
 
 #|

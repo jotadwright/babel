@@ -7,7 +7,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (export '(extract-meaning-predicates
-          extract-form-predicates))
+          extract-form-predicates
+          ordered-fcg-apply
+          ordered-comprehend-in-sandbox))
 
 (defgeneric extract-meaning-predicates (object))
 
@@ -57,6 +59,42 @@
         when (and (equal (first feature-value) 'HASH)
                   (equal (second feature-value) feature))
         return (third feature-value)))
+
+(defun initial-node (node)
+  "returns the first node in the cip"
+  (if (all-parents node)
+    (last-elt (all-parents node))
+    node))
+
+(defun create-temp-cxn-inventory (original-cxn-inventory)
+  (let ((inventory-name (gensym)))
+    (eval `(def-fcg-constructions
+                                       ,inventory-name
+                                     :cxn-inventory ,inventory-name
+                                     :hashed t
+                                     :feature-types ((args sequence)
+                                                     (form set-of-predicates)
+                                                     (meaning set-of-predicates)
+                                                     (subunits set)
+                                                     (footprints set))
+                                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                                                          (:cxn-supplier-mode . ,(get-configuration original-cxn-inventory :learner-cxn-supplier))
+                                                          (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
+                                                          (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
+                                                          (:parse-order routine)
+                                                          (:max-nr-of-nodes . 250)
+                                                          (:production-order routine)
+                                                          (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
+                                                          (:render-mode . :generate-and-test)
+                                                          (:category-linking-mode . :categories-exist)
+                                                          (:update-categorial-links . t)
+                                                          (:consolidate-repairs . t)
+                                                          (:use-meta-layer . nil)
+                                                          (:update-categorial-links . nil)
+                                                          (:consolidate-repairs . nil)
+                                                          (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
+                                                          (:ignore-transitive-closure . t)
+                                                          (:hash-mode . :hash-string-meaning-lex-id))))))
 
 (defmethod comprehend (utterance &key
                                  (cxn-inventory *fcg-constructions*)
@@ -108,6 +146,38 @@
 
 
 
+(defun ordered-comprehend-in-sandbox (utterance-or-form-constraints original-cxns-to-apply categories cxn-inventory)
+  "Creates a copy of the cxn inventory and applies a list of original cxns (in the order they appear in the list). Returns the solution cipn."
+  (let ((temp-cxn-inventory (create-temp-cxn-inventory cxn-inventory)))
+    ;; add categories and temp cxns
+    (add-categories categories (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
+    (dolist (cxn original-cxns-to-apply)
+      (add-cxn cxn temp-cxn-inventory))
+    (let* ((initial-cfs (de-render utterance-or-form-constraints (get-configuration temp-cxn-inventory :de-render-mode)
+                                :cxn-inventory temp-cxn-inventory))
+           (initial-node (top-node (create-construction-inventory-processor temp-cxn-inventory
+                                                                                   (get-configuration
+                                                                                    temp-cxn-inventory
+                                                                                    'construction-inventory-processor-mode)
+                                                                                   :initial-cfs initial-cfs
+                                                                                   :direction '<-))))
+           (ordered-fcg-apply (mapcar #'get-processing-cxn original-cxns-to-apply) initial-node '<- (processing-cxn-inventory temp-cxn-inventory)))))
+  
+
+(defun ordered-fcg-apply (processing-cxns-to-apply initial-node direction cxn-inventory)
+  "Apply a list of processing cxns in the order they appear in the list. Returns the solution cipn."
+  (with-disabled-monitor-notifications
+    (loop with current-node = initial-node
+          for cxn in processing-cxns-to-apply
+          do (setf current-node (fcg::cip-add-child current-node
+                                                    (first (fcg-apply cxn (if (initial-node-p current-node)
+                                                                            (car-source-cfs (cipn-car (initial-node current-node)))
+                                                                            (car-resulting-cfs (cipn-car current-node)))
+                                                                                       
+                                                                      direction
+                                                                      :configuration (configuration cxn-inventory)
+                                                                      :cxn-inventory cxn-inventory))))
+          finally return current-node)))
 
 
 (defmethod formulate (meaning &key

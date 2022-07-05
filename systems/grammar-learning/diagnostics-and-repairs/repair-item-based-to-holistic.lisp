@@ -55,30 +55,28 @@
                    (cxn-meaning-is-valid-gold-standard-subset-p inverted-cxn-meanings)) ;; the subtracted meaning must not be nil
           (let* (;; cxns and links from iterating over all repairs
                  (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn remaining-form-constraints remaining-meaning original-cxn-inventory))
-                 (temp-cxn-inventory (create-temp-cxn-inventory original-cxn-inventory))
-                 (temp-cxns-to-add (append (mapcar #'(lambda (cxn) (alter-ego-cxn (original-cxn cxn) original-cxn-inventory)) applied-cxns)
-                                           (first cxns-and-links-holistic-part-observation)))
-                 (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-add)
-                                           (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-add))))
-            (add-categories temp-cats-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
-            (dolist (cxn temp-cxns-to-add)
-              (add-cxn cxn temp-cxn-inventory))
-            (let* ((solution-cipn (second (multiple-value-list (comprehend form-constraints :gold-standard-meaning meaning :cxn-inventory temp-cxn-inventory :silent t))))
+                 (temp-cxns-to-apply (append
+                                      (first cxns-and-links-holistic-part-observation)
+                                      (mapcar #'(lambda (cxn) (alter-ego-cxn (original-cxn cxn) original-cxn-inventory)) applied-cxns)))
+                                           
+                 (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-apply)
+                                           (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-apply)))
+                 (solution-cipn (ordered-comprehend-in-sandbox form-constraints temp-cxns-to-apply temp-cats-to-add original-cxn-inventory))
                    
-                   ;; build result
-                   (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
-                   (cat-links-to-add (remove-duplicates (remove nil (append (second cxns-and-links-holistic-part-observation)
-                                                                            (extract-used-categorial-links solution-cipn))) :test #'equal))
-                   (cxns-to-consolidate (third cxns-and-links-holistic-part-observation))
-                   (cats-to-add (fourth cxns-and-links-holistic-part-observation)))
+                 ;; build result
+                 (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
+                 (cat-links-to-add (remove-duplicates (remove nil (append (second cxns-and-links-holistic-part-observation)
+                                                                          (extract-used-categorial-links solution-cipn))) :test #'equal))
+                 (cxns-to-consolidate (third cxns-and-links-holistic-part-observation))
+                 (cats-to-add (fourth cxns-and-links-holistic-part-observation)))
         
               (list
                cxns-to-apply
                cat-links-to-add
                cxns-to-consolidate
                cats-to-add
-               (extract-contributing-lex-class (first cxns-to-apply))
-               ))))))))
+               (extract-contributing-lex-class (last-elt cxns-to-apply))
+               )))))))
             
           
                  

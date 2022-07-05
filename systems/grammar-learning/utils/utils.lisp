@@ -211,11 +211,7 @@
     (car-source-cfs (cipn-car node))
     (car-source-cfs (cipn-car (last-elt (all-parents node))))))
 
-(defun initial-node (node)
-  "returns the first node in the cip"
-  (if (all-parents node)
-    (last-elt (all-parents node))
-    node))
+
 
 ;; to do: split into method with type specification for processing cxn vs original cxn
 ;fcg-construction
@@ -1336,34 +1332,4 @@
             new-item-based-cxn-apply-last
             lex-class-item-based-cxn
             lex-class-item-based-cxn-slot)))
-
-(defun create-temp-cxn-inventory (original-cxn-inventory)
-  (let ((inventory-name (gensym)))
-    (eval `(def-fcg-constructions
-                                       ,inventory-name
-                                     :cxn-inventory ,inventory-name
-                                     :hashed t
-                                     :feature-types ((args sequence)
-                                                     (form set-of-predicates)
-                                                     (meaning set-of-predicates)
-                                                     (subunits set)
-                                                     (footprints set))
-                                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
-                                                          (:cxn-supplier-mode . ,(get-configuration original-cxn-inventory :learner-cxn-supplier))
-                                                          (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
-                                                          (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
-                                                          (:parse-order routine)
-                                                          (:max-nr-of-nodes . 250)
-                                                          (:production-order routine)
-                                                          (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
-                                                          (:render-mode . :generate-and-test)
-                                                          (:category-linking-mode . :categories-exist)
-                                                          (:update-categorial-links . t)
-                                                          (:consolidate-repairs . t)
-                                                          (:use-meta-layer . nil)
-                                                          (:update-categorial-links . nil)
-                                                          (:consolidate-repairs . nil)
-                                                          (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
-                                                          (:ignore-transitive-closure . t)
-                                                          (:hash-mode . :hash-string-meaning-lex-id))))))
         
