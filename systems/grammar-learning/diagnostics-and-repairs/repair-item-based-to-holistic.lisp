@@ -43,7 +43,7 @@
                                       :optimal-form-coverage-item-based-first))
          (applied-cxns (when best-partial-analysis-node
                          (applied-constructions best-partial-analysis-node))))
-         
+
     (when (filter-by-phrase-type 'item-based applied-cxns) ;; at least one item-based cxn applied
       (let* ((remaining-form-constraints (form-predicates-with-variables (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node)))) 'form)))
              (inverted-cxn-meanings (get-inverted-cxn-meanings applied-cxns meaning))

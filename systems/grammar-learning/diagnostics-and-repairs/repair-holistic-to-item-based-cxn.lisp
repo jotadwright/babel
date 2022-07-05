@@ -225,7 +225,7 @@
                                                                   :score ,(get-configuration original-cxn-set :initial-cxn-score)
                                                                   :cxn-inventory ,cxn-inventory-copy))))))
                  (temp-cxn-inventory (create-temp-cxn-inventory original-cxn-set))
-                 (temp-cxns-to-add (append (mapcar #'original-cxn applied-cxns)
+                 (temp-cxns-to-add (append (reverse (mapcar #'original-cxn applied-cxns))
                                            (list item-based-cxn-apply-last)))
                  (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-add)
                                            (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-add))))
@@ -234,8 +234,12 @@
             (add-categories temp-cats-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
             (dolist (cxn temp-cxns-to-add)
               (add-cxn cxn temp-cxn-inventory))
-            (let* ((solution-cipn (second (multiple-value-list (comprehend form-constraints :gold-standard-meaning meaning :cxn-inventory temp-cxn-inventory :silent t))))
-                   
+            (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :gold-standard-meaning meaning :cxn-inventory temp-cxn-inventory :silent t))) ; maybe just do an fcg-apply with the ordered list instead of comprehend-all and searching for the correct order
+                   (solution-cipn (loop for cipn in (second comprehension-result)
+                                        when (loop for cxn in (applied-constructions cipn)
+                                                 for ordered-cxn in (reverse temp-cxns-to-add)
+                                                 always (string= (name cxn) (name ordered-cxn)))
+                                        return cipn))
                    ;; build result
                    (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
                    (cat-links-to-add (extract-used-categorial-links solution-cipn))

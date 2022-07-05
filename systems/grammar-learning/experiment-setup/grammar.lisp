@@ -94,7 +94,7 @@
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (gl::add-categorial-links
                              ;gl::holistic+item-based->item-based--substitution
-                             ;gl::item-based->holistic
+                             gl::item-based->holistic
                              gl::holophrase->item-based+holistic+holistic--substitution
                              ;gl::holophrase->item-based+holistic--addition
                              ;gl::holophrase->item-based+holistic+holophrase--deletion
