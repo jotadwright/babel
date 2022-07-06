@@ -2745,7 +2745,7 @@
 ;;;beim Bäcker ist der Mann
 (formulate '((sein-01 s) (man m) (arg1 s m) (baker b) (arg2 s b) (topicalized b +)))
 
-;;; der Mann kommt aus dem Backer
+;;; der Mann kommt aus dem Bäcker
 (formulate '((kommen-01 k) (man m) (baker b) (arg0 k m) (arg3 k b) (topicalized m +)))
 
 ;;; der Mann spaziert durch den Tunnel
@@ -2758,7 +2758,7 @@
 (formulate '((brought-01 hm) (man m) (arg0 hm m) (clown c) (arg2 hm c) (flowers f) (arg1 hm f) (topicalized m +)))
 
 ;;; der Mann geht ohne den Clown zur Arbeit 
-(formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a neg) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
+;(formulate '((man m) (work w) (clown c) (accompany-01 a) (polarity a neg) (arg0 a c) (arg1 a m) (gehen-01 g) (arg0 g m) (arg4 g w) (manner g a) (topicalized m +)))
 
 
 ;;der Mann fährt mit dem Fahrrad zur Arbeit

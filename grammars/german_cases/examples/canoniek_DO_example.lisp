@@ -1132,6 +1132,9 @@
              :cxn-set mal-cxn)
 
 
+
+
+
 ;;;;FORMULATION
 
 ;;;der Doktor verkauft dem Clown das Buch
@@ -1149,10 +1152,6 @@
 (comprehend "die Frau gibt dem Mann den Apfel")
 
 
-
-;;;;FORMULATION
-;;;der Doktor verkauft dem Clown das Buch
-(formulate '((verkaufen-01 v) (doctor d) (clown c) (book b) (arg0 v d) (arg1 v b) (arg2 v c) (topicalized d +)))
 
 
 ;;;;;;ERRORS
