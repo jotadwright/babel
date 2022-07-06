@@ -45,7 +45,7 @@
       (when cxn
         
         (let* (;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning cxn-inventory))
+               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning (processing-cxn-inventory cxn-inventory)))
                (cxns-and-links-holistic-part-observation (do-create-holistic-cxn form-constraints meaning (processing-cxn-inventory cxn-inventory)))
                
                
@@ -65,22 +65,24 @@
 
                ;; build result
                (cxns-to-apply (first cxns-and-links-holistic-part-observation))
-               (cat-links-to-add (remove nil (append (list (when (first (fourth cxns-and-links-holistic-part-cxn))
-                                                             (cons (first (fourth cxns-and-links-holistic-part-cxn))
-                                                                   lex-class-item-based-cxn-slot))))))
+               (cat-links-to-add (remove nil (append (list (second cxns-and-links-holistic-part-cxn)
+                                                           (cons (fifth cxns-and-links-holistic-part-cxn)
+                                                                   lex-class-item-based-cxn-slot)))))
                (cxns-to-consolidate (append
                                      (first cxns-and-links-holistic-part-cxn)
                                      (third cxns-and-links-holistic-part-cxn)
                                      (third cxns-and-links-holistic-part-observation)
                                      (list new-item-based-cxn-apply-last new-item-based-cxn-apply-first)))
                                      
-               (cats-to-add (remove nil (append (list lex-class-item-based-cxn)
+               (cats-to-add (remove nil (append (fourth cxns-and-links-holistic-part-observation)
+                                                (list lex-class-item-based-cxn)
                                                 (fourth cxns-and-links-holistic-part-cxn)
-                                                (fourth cxns-and-links-holistic-part-observation)))))
+                                                ))))
         
           (list
            cxns-to-apply
            cat-links-to-add
            cxns-to-consolidate
            cats-to-add
+           lex-class-item-based-cxn
            ))))))

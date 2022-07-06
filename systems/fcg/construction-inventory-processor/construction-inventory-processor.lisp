@@ -1132,6 +1132,7 @@ added here. Preprocessing is only used in parsing currently."
   ;; fix-cxns field is used by repair
   (when (field? (car-resulting-cfs (cipn-car node)) :fix-cxns)
     (loop for cxn in (get-data (car-resulting-cfs (cipn-car node)) :fix-cxns)
+          unless (find-cxn cxn (original-cxn-set (construction-inventory node)) :key #'identity)
           do (add-cxn cxn (original-cxn-set (construction-inventory node)))))
   ;; fix-th-links
   (when (field? (car-resulting-cfs (cipn-car node)) :fix-categories)

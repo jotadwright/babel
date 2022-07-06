@@ -660,7 +660,7 @@
                 else collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint :lemma argm-lemma)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame nil footprint :include-gram-category? nil))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
-         (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role nil nil argm-lemma))
+         (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role :mode :argm-lemma))
          (schema (loop for (role . nil) in units-with-role
                        for cxn-unit in cxn-units-with-role
                        collect (cons (intern (role-type role))

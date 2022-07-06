@@ -1,6 +1,6 @@
 (in-package :grammar-learning)
 
-(deftest test-item-based-to-holistic-multiple-item-based-cxns-comprehension ()
+(defun test-item-based-to-holistic-multiple-item-based-cxns-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The gray object is what material?"
@@ -275,3 +275,9 @@
 ;
 ; (test-item-based-to-holistic-repair-comprehension-amr) ; ok
 ; (test-item-based-to-holistic-repair-comprehension-leading-quote-amr) ; ok
+
+
+
+
+
+;(test-item-based-to-holistic-multiple-item-based-cxns-comprehension)

@@ -3,6 +3,8 @@
 ;; Abstract repair class
 (defclass add-cxns-and-categorial-links (repair)
   ())
+(define-event cxns-learned (cxns list))
+
 
 ;; Generic handle fix for grammar learning
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-cxns-and-categorial-links) (problem problem) (node cip-node) &key &allow-other-keys) 
@@ -13,8 +15,6 @@
   ;; original-cxns-to-consolidate (list) ! exclude existing!
 
   (push fix (fixes (problem fix))) ;;we add the current fix to the fixes slot of the problem
-  (with-disabled-monitor-notifications
-  ;(add-element '((h1) "debug handle fix"))
     (let* ((processing-cxns-to-apply (mapcar #'get-processing-cxn (first (restart-data fix))))
            (categorial-links (second (restart-data fix)))
            (original-cxns-to-consolidate (third (restart-data fix)))
@@ -27,35 +27,27 @@
                             do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-categorial-network :recompute-transitive-closure nil)
                             (add-link (car categorial-link) (cdr categorial-link) temp-categorial-network :recompute-transitive-closure nil)
                             finally (set-categorial-network (construction-inventory node) temp-categorial-network)))
-           ;(dbg (loop for cxn in processing-cxns-to-apply
-           ;           for orig-cxn = (original-cxn cxn)
-           ;           do (add-element (make-html orig-cxn))))
-           ;(dbg (loop for orig-cxn in original-cxns-to-consolidate
-           ;           do (add-element (make-html orig-cxn))))
-           (applied-nodes (loop with last-node = (initial-node node)
-                                for cxn in processing-cxns-to-apply
-                                do (setf last-node (fcg::cip-add-child last-node (first (fcg-apply cxn (if (initial-node-p last-node)
-                                                                                                         (car-source-cfs (cipn-car (initial-node last-node)))
-                                                                                                         (car-resulting-cfs (cipn-car last-node)))
-                                                                                                   (direction (cip node))
-                                                                                                   :configuration (configuration (construction-inventory node))
-                                                                                                   :cxn-inventory (construction-inventory node)))))
-                                collect last-node))
-           (last-applied-node (last-elt applied-nodes)))
+           (learned-cxns (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
+                                                             (equal 'SINGLE-FLOAT (type-of (cdr (first (attributes cxn)))))))
+                                 (append (mapcar #'original-cxn processing-cxns-to-apply) original-cxns-to-consolidate)))
+
+           (solution-node (ordered-fcg-apply processing-cxns-to-apply (initial-node node) (direction (cip node)) (construction-inventory node))))
+      
       ;; ignore
-      (declare (ignore cat-links))
+      (declare (ignore cat-links cats))
+      (when learned-cxns
+        (notify cxns-learned learned-cxns))
       ;; Reset categorial network
       (set-categorial-network (construction-inventory node) orig-categorial-network)
       ;; Add cxns to blackboard of second new node
-      (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-cxns original-cxns-to-consolidate)
-      (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-categorial-links categorial-links)
-      (set-data (car-resulting-cfs  (cipn-car last-applied-node)) :fix-categories categories-to-add)
+      (set-data (car-resulting-cfs  (cipn-car solution-node)) :fix-cxns original-cxns-to-consolidate)
+      (set-data (car-resulting-cfs  (cipn-car solution-node)) :fix-categorial-links categorial-links)
+      (set-data (car-resulting-cfs  (cipn-car solution-node)) :fix-categories categories-to-add)
       ;; set cxn-supplier to second new node
-      (setf (cxn-supplier last-applied-node) (cxn-supplier node))
+      (setf (cxn-supplier solution-node) (cxn-supplier node))
       ;; set statuses (colors in web interface)
-      (push (type-of repair) (statuses last-applied-node))
-      (push 'added-by-repair (statuses last-applied-node))
+      (push (type-of repair) (statuses solution-node))
+      (push 'added-by-repair (statuses solution-node))
       ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block
-      (cip-enqueue last-applied-node (cip node) (get-configuration node :queue-mode))
-      ;(add-element '((h1) "end handle fix"))
-      )))
+      (cip-enqueue solution-node (cip node) (get-configuration node :queue-mode))
+      ))

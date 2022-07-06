@@ -1256,11 +1256,18 @@ table.car > tbody > tr > td:first-child { padding-right:15px; }
 (defgeneric make-html-construction-inventory-title (construction-inventory &key &allow-other-keys)
   (:documentation "returns some html for displaying the title of a construction set"))
 
-(defmethod make-html-construction-inventory-title ((ci construction-inventory) &key (hide-zero-scored-cxns nil) &allow-other-keys)
-  `((span) ,(get-construction-inventory-title-string ci)
-    ,(format nil " (~a)" (if hide-zero-scored-cxns
+(defmethod make-html-construction-inventory-title ((ci construction-inventory) &key (hide-zero-scored-cxns nil) (routine-only nil)  &allow-other-keys)
+  
+    (if routine-only
+      `((span) ,(get-construction-inventory-title-string ci)
+        ,(format nil " (~a)" (if hide-zero-scored-cxns
+                           (count-if #'(lambda (cxn) (and (> (attr-val cxn :score) 0)
+                                                          (eql (attr-val cxn :label) 'fcg::routine))) (constructions-list ci))
+                           (count-if #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine)) (constructions-list ci)))))
+    `((span) ,(get-construction-inventory-title-string ci)
+      ,(format nil " (~a)" (if hide-zero-scored-cxns
                            (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
-                           (size ci)))))
+                           (size ci))))))
 
 (defgeneric make-html-construction-inventory-body (cs &key &allow-other-keys)
   (:documentation "returns some html for the body of a construction set"))
@@ -1275,11 +1282,13 @@ table.car > tbody > tr > td:first-child { padding-right:15px; }
                     :wrap-in-paragraph nil
                     :configuration configuration)))))
 
-(defmethod make-html-construction-inventory-body ((ci hashed-construction-set) &key (configuration nil) (sort-by-type-and-score nil) (hide-zero-scored-cxns nil))
+(defmethod make-html-construction-inventory-body ((ci hashed-construction-set) &key (configuration nil) (sort-by-type-and-score nil) (hide-zero-scored-cxns nil) (routine-only nil))
   (let ((configuration (or configuration (visualization-configuration ci)))
         (cxns-list (if hide-zero-scored-cxns
                      (hide-zero-scored-cxns (constructions ci))
                      (constructions ci))))
+    (when routine-only
+      (setf cxns-list (remove-if-not #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine)) cxns-list)))
     (html-hide-rest-of-long-list 
      (if sort-by-type-and-score
        (sort cxns-list #'> :key (lambda (cxn) (attr-val cxn :score)))

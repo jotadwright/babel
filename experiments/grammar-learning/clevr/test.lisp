@@ -1,8 +1,9 @@
+
 (ql:quickload :grammar-learning)
 (in-package :grammar-learning)
 
 
-(setf *raise-errors* t)
+;(setf *raise-errors* nil)
 ;; full logging except trace-fcg
 (progn
   (deactivate-all-monitors)
@@ -28,12 +29,6 @@
   (activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
 
-
-;; sparse logging, no trace-fcg
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions))
   
 
 ;; full logging
@@ -46,7 +41,15 @@
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
+
+
+;; sparse logging, no trace-fcg
 (progn
+  (deactivate-all-monitors)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions))
+
+(defun create-experiment ()
   (wi::reset)
   (notify reset-monitors)
   (defparameter *experiment*
@@ -60,33 +63,39 @@
                                      cl-user:*babel-corpora*))
                          (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                    :name "stage-1" :type "jsonl")))))))
+
+
+
                               
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights? t :render-program "circo"))
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t :render-program "fdp"))
-;(add-element (make-html (grammar (first (agents *experiment*))) :sort-by-type-and-score t)) :routine-only))
+;(add-element (make-html (grammar (first (agents *experiment*))) :sort-by-type-and-score t :routine-only t))
 
 ;(defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 
 ;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
 
+
+(create-experiment)
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 1000) ; 
+;(run-series *experiment* 28) ;  
 
-;(run-series *experiment* 150) ;
+;(run-series *experiment* 1500) ;
+
 
 
 #|
 ISSUES:
 
-
+heel veel duplicates! verwijder deze eens
  
 TODO:
 - add new repairs that don't only start from holophrases, but also from minimally differing combinations of cxns

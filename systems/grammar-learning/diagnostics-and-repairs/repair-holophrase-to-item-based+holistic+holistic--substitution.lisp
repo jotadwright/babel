@@ -69,12 +69,10 @@ based on existing construction with sufficient overlap."
                (cxns-to-apply (append (first cxns-and-links-holistic-part-observation) (list new-item-based-cxn-apply-last)))
                (cat-links-to-add (remove nil (append (second cxns-and-links-holistic-part-observation)
                                                      (second cxns-and-links-holistic-part-cxn)
-                                                     (list (when (first (fourth cxns-and-links-holistic-part-observation)) ;add-categorial links can return nil!
-                                                             (cons (first (fourth cxns-and-links-holistic-part-observation))
-                                                                   lex-class-item-based-cxn-slot))
-                                                           (when (first (fourth cxns-and-links-holistic-part-cxn))
-                                                             (cons (first (fourth cxns-and-links-holistic-part-cxn))
-                                                                   lex-class-item-based-cxn-slot))))))
+                                                     (list (cons (fifth cxns-and-links-holistic-part-observation)
+                                                                 lex-class-item-based-cxn-slot)
+                                                           (cons (fifth cxns-and-links-holistic-part-cxn)
+                                                                 lex-class-item-based-cxn-slot)))))
                (cxns-to-consolidate (append
                                      (first cxns-and-links-holistic-part-cxn)
                                      (third cxns-and-links-holistic-part-observation)
@@ -90,6 +88,7 @@ based on existing construction with sufficient overlap."
            cat-links-to-add
            cxns-to-consolidate
            cats-to-add
+           lex-class-item-based-cxn
            ))))))
 
 

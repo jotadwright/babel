@@ -7,7 +7,7 @@
   (:documentation "Entry point for the learner's comprehension task"))
 
 (defmethod run-learner-comprehension-task (agent)
-  (set-data (blackboard (grammar agent)) :add-th-links-repair-failed nil)
+  ;(set-data (blackboard (grammar agent)) :add-th-links-repair-failed nil)
     (multiple-value-bind (comprehended-meaning cipn)
       (comprehend (utterance agent) :cxn-inventory (grammar agent) :gold-standard-meaning (meaning agent))
     (let* ((applied-cxns (all-applied-cxns cipn)))

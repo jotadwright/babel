@@ -77,7 +77,6 @@
                    :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
                                         (:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
                                         (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
-                                        (:production-goal-tests :non-gold-standard-utterance)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
                                         (:parse-order routine)
                                         (:max-nr-of-nodes . 250)
@@ -88,21 +87,39 @@
                                         (:update-categorial-links . t)
                                         (:consolidate-repairs . t)
                                         (:use-meta-layer . t)
+                                        (:initial-cxn-score . ,(get-configuration experiment :initial-cxn-score))
                                         (:initial-categorial-link-weight . ,(get-configuration experiment :initial-categorial-link-weight))
                                         (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (gl::add-categorial-links
                              ;gl::holistic+item-based->item-based--substitution
-                             ;gl::item-based->holistic
-                             ;gl::holophrase->item-based+holistic+holistic--substitution
+                             gl::item-based->holistic
+                             gl::holophrase->item-based+holistic+holistic--substitution
                              ;gl::holophrase->item-based+holistic--addition
-                             gl::holophrase->item-based+holistic+holophrase--deletion
-                             ;gl::holistic->item-based
+                             ;gl::holophrase->item-based+holistic+holophrase--deletion
+                             gl::holistic->item-based
                              gl::nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . t))))))
     cxn-inventory))
+
+(defun handle-potential-holistic-cxn (form meaning cxn-inventory)
+  (cond ((when (member 'gl::add-categorial-links (repairs cxn-inventory) :key #'type-of)
+                       (do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::holophrase->item-based+holistic+holistic--substitution (repairs cxn-inventory) :key #'type-of)
+                       (do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::holistic->item-based (repairs cxn-inventory) :key #'type-of)
+                       (do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::holophrase->item-based+holistic--addition (repairs cxn-inventory) :key #'type-of)
+                       (do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::holophrase->item-based+holistic+holophrase--deletion (repairs cxn-inventory) :key #'type-of)
+                       (do-repair-holophrase->item-based+holistic+holophrase--deletion form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'gl::item-based->holistic (repairs cxn-inventory) :key #'type-of)
+                       (do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory))))
+        (t
+         (do-create-holistic-cxn form meaning (processing-cxn-inventory cxn-inventory))))
+  )
 
 (define-event lexicon-changed)
 
@@ -115,14 +132,31 @@
 
 (defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0))
   "decrease the score of the cxn."
-  (decf (attr-val cxn :score) delta)
-  (when (<= (attr-val cxn :score) lower-bound)
-    (if (get-configuration (experiment agent) :remove-cxn-on-lower-bound) 
-      (progn (notify lexicon-changed)
-        (with-disabled-monitor-notifications
-          (delete-cxn-and-th-node cxn agent)))
-      (setf (attr-val cxn :score) lower-bound)))
-  (grammar agent))
+  (let* ((alter-ego-cxn (alter-ego-cxn cxn (grammar agent)))
+         (current-score (attr-val cxn :score))
+         (new-score (if (> current-score 1.0)
+                      (- current-score (* current-score delta))
+                      (- current-score delta))))
+         
+  (setf (attr-val cxn :score) new-score)
+  (setf (attr-val alter-ego-cxn :score) new-score)
+  (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
+             (< (attr-val cxn :score) lower-bound))
+    (delete-cxn (name cxn) (grammar agent) :key #'name)
+    (delete-cxn (name alter-ego-cxn) (grammar agent)) :key #'name)))
+
+
+
+
+
+
+  ;(when (<= (attr-val cxn :score) lower-bound)
+  ;  (if (get-configuration (experiment agent) :remove-cxn-on-lower-bound) 
+  ;    (progn (notify lexicon-changed)
+  ;      (with-disabled-monitor-notifications
+  ;        (delete-cxn-and-th-node cxn agent)))
+  ;    (setf (attr-val cxn :score) lower-bound)))
+  ;;(grammar agent))
 
 (defun delete-cxn-and-th-node (cxn agent)
   (let ((lex-class

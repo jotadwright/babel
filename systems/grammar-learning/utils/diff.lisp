@@ -45,7 +45,8 @@
                       (non-overlapping-predicates-2 (sort-meaning-predicates
                                                      (set-difference (funcall rem-atoms-fn network-2) overlapping-predicates-2)
                                                      sorted-network-2))
-                      (start-pos-1 (position (first non-overlapping-predicates-1) sorted-network-1))
+                      (start-pos-1 (cond ((position (first non-overlapping-predicates-1) sorted-network-1))
+                                         (t 0)))
                       (end-pos-1 (position (last-elt non-overlapping-predicates-1) sorted-network-1))
                       (non-overlapping-continuous-predicates-1
                        (when non-overlapping-predicates-1
@@ -67,7 +68,8 @@
                                        )))))
 
 (defun sort-meaning-predicates (network-to-sort sorted-source-network)
-  (sort network-to-sort #'< :key #'(lambda (x) (position x sorted-source-network))))
+  (sort network-to-sort #'< :key #'(lambda (x) (cond ((position x sorted-source-network))
+                                                     (t 0)))))
 
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
   (diff-networks network-1
@@ -237,7 +239,7 @@
               (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-9626 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?COLOR-8)
               (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE)
               (CLEVR-WORLD:COUNT! GRAMMAR-LEARNING::?TARGET-16 GRAMMAR-LEARNING::?TARGET-9641))))
-    ;(diff-meaning-networks m-1 m-2 :irl)
+    (diff-meaning-networks m-1 m-2 :irl)
     (diff-form-constraints fc-1 fc-3)
     )
   )
