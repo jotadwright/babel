@@ -541,6 +541,7 @@
   "does the inverse set difference between the gold std meaning and the cxn meanings, as to return the matching part from the gold standard meanings that can be subtracted with equals"
   (loop for cxn in cxns
         for meaning = (get-subtracted-meaning-from-cxn cxn gold-standard-meaning)
+        when meaning
         collect meaning))
 
 (defun cxn-meaning-is-valid-gold-standard-subset-p (cxn-meanings)

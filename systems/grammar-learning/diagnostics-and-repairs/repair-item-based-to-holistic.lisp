@@ -49,7 +49,8 @@
              (inverted-cxn-meanings (get-inverted-cxn-meanings applied-cxns meaning))
              (remaining-meaning (subtract-cxn-meanings-from-gold-standard-meaning inverted-cxn-meanings meaning))
              (args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism))) ;take args from item-based; filling in the bindings
-        (when (and remaining-meaning
+        (when (and inverted-cxn-meanings
+                   remaining-meaning
                    (<= (length args-holistic-cxn) 2)
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root
                    (irl::embedding remaining-meaning meaning)) ;; the subtracted meaning must not be nil
