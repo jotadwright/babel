@@ -9,7 +9,8 @@
 (export '(extract-meaning-predicates
           extract-form-predicates
           ordered-fcg-apply
-          ordered-comprehend-in-sandbox))
+          ordered-comprehend-in-sandbox
+          initial-node))
 
 (defgeneric extract-meaning-predicates (object))
 
