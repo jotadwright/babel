@@ -49,19 +49,25 @@
              (inverted-cxn-meanings (get-inverted-cxn-meanings applied-cxns meaning))
              (remaining-meaning (subtract-cxn-meanings-from-gold-standard-meaning inverted-cxn-meanings meaning))
              (args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism))) ;take args from item-based; filling in the bindings
-        (when (and remaining-meaning
+        (when (and inverted-cxn-meanings
+                   remaining-meaning
                    (<= (length args-holistic-cxn) 2)
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root
-                   (cxn-meaning-is-valid-gold-standard-subset-p inverted-cxn-meanings)) ;; the subtracted meaning must not be nil
+                   (irl::embedding remaining-meaning meaning)) ;; the subtracted meaning must not be nil
           (let* (;; cxns and links from iterating over all repairs
                  (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn remaining-form-constraints remaining-meaning original-cxn-inventory))
-                 (temp-cxns-to-apply (append
+                 
+                 (temp-cxns-to-add (append
                                       (first cxns-and-links-holistic-part-observation)
                                       (mapcar #'(lambda (cxn) (alter-ego-cxn (original-cxn cxn) original-cxn-inventory)) applied-cxns)))
                                            
-                 (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-apply)
-                                           (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-apply)))
-                 (solution-cipn (ordered-comprehend-in-sandbox form-constraints temp-cxns-to-apply temp-cats-to-add original-cxn-inventory))
+                 (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-add)
+                                           (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-add)))
+                 (solution-cipn (comprehend-in-sandbox form-constraints original-cxn-inventory
+                                                       :apply-sequentially nil
+                                                       :gold-standard-meaning meaning
+                                                       :cxns-to-add temp-cxns-to-add
+                                                       :categories-to-add temp-cats-to-add))
                    
                  ;; build result
                  (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))

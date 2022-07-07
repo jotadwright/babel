@@ -9,7 +9,8 @@
 (export '(extract-meaning-predicates
           extract-form-predicates
           ordered-fcg-apply
-          ordered-comprehend-in-sandbox))
+          comprehend-in-sandbox
+          initial-node))
 
 (defgeneric extract-meaning-predicates (object))
 
@@ -145,23 +146,33 @@
         (values meanings solutions cip)))))
 
 
-
-(defun ordered-comprehend-in-sandbox (utterance-or-form-constraints original-cxns-to-apply categories cxn-inventory)
+(defun comprehend-in-sandbox (utterance cxn-inventory
+                                        &key
+                                        (apply-sequentially nil)
+                                        (gold-standard-meaning nil)
+                                        (cxns-to-add nil)
+                                        (categories-to-add nil)
+                                        (categorial-links-to-add nil))
   "Creates a copy of the cxn inventory and applies a list of original cxns (in the order they appear in the list). Returns the solution cipn."
   (let ((temp-cxn-inventory (create-temp-cxn-inventory cxn-inventory)))
-    ;; add categories and temp cxns
-    (add-categories categories (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
-    (dolist (cxn original-cxns-to-apply)
+    (add-categories categories-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
+    (dolist (categorial-link categorial-links-to-add)
+      (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil))
+    (dolist (cxn cxns-to-add)
       (add-cxn cxn temp-cxn-inventory))
-    (let* ((initial-cfs (de-render utterance-or-form-constraints (get-configuration temp-cxn-inventory :de-render-mode)
+    (if apply-sequentially
+      (let* ((initial-cfs (de-render utterance (get-configuration temp-cxn-inventory :de-render-mode)
                                 :cxn-inventory temp-cxn-inventory))
-           (initial-node (top-node (create-construction-inventory-processor temp-cxn-inventory
+             (initial-node (top-node (create-construction-inventory-processor temp-cxn-inventory
                                                                                    (get-configuration
                                                                                     temp-cxn-inventory
                                                                                     'construction-inventory-processor-mode)
                                                                                    :initial-cfs initial-cfs
                                                                                    :direction '<-))))
-           (ordered-fcg-apply (mapcar #'get-processing-cxn original-cxns-to-apply) initial-node '<- (processing-cxn-inventory temp-cxn-inventory)))))
+        (ordered-fcg-apply (mapcar #'get-processing-cxn cxns-to-add) initial-node '<- (processing-cxn-inventory temp-cxn-inventory)))
+      ;; non-sequential normal comprehend
+      (second (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t))))
+      ))
   
 
 (defun ordered-fcg-apply (processing-cxns-to-apply initial-node direction cxn-inventory)
