@@ -18,11 +18,12 @@
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-holophrase-to-item-based+holistic+holistic--substitution")
-                             (:file "repair-holophrase-to-item-based+holistic--addition")
-                             (:file "repair-holophrase-to-item-based+holistic+holophrase--deletion")
+                             (:file "repair-holistic-substitution")
+                             (:file "repair-holistic-addition")
+                             (:file "repair-holistic-deletion")
                              (:file "repair-holistic-to-item-based-cxn")
-                             (:file "repair-item-based-to-holistic")))
+                             (:file "repair-item-based-to-holistic")
+                             (:file "repair-item-based-substitution")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")
@@ -43,6 +44,7 @@
                 :serial t
                 :components ((:file "utils")
                              (:file "test-utils")
+                             (:file "test-item-based-substitution-repair")
                              (:file "test-substitution-repair")
                              (:file "test-addition-repair")
                              (:file "test-deletion-repair")
