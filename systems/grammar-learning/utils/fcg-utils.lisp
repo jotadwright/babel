@@ -180,7 +180,7 @@
 
 (defun ordered-fcg-apply (processing-cxns-to-apply initial-node direction cxn-inventory)
   "Apply a list of processing cxns in the order they appear in the list. Returns the solution cipn."
-  (with-disabled-monitor-notifications
+  ;(with-disabled-monitor-notifications
     (loop with current-node = initial-node
           for cxn in processing-cxns-to-apply
           do (setf current-node (fcg::cip-add-child current-node
@@ -191,7 +191,7 @@
                                                                       direction
                                                                       :configuration (configuration cxn-inventory)
                                                                       :cxn-inventory cxn-inventory))))
-          finally return current-node)))
+          finally return current-node));)
 
 
 (defmethod formulate (meaning &key
