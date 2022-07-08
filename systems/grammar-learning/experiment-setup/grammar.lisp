@@ -93,7 +93,7 @@
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (gl::add-categorial-links
-                             ;gl::holistic+item-based->item-based--substitution
+                             gl::holistic+item-based->item-based--substitution
                              gl::item-based->holistic
                              gl::holophrase->item-based+holistic+holistic--substitution
                              ;gl::holophrase->item-based+holistic--addition
@@ -141,7 +141,7 @@
   (setf (attr-val cxn :score) new-score)
   (setf (attr-val alter-ego-cxn :score) new-score)
   (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
-             (< (attr-val cxn :score) lower-bound))
+             (<= (attr-val cxn :score) lower-bound))
     (delete-cxn (name cxn) (grammar agent) :key #'name)
     (delete-cxn (name alter-ego-cxn) (grammar agent)) :key #'name)))
 

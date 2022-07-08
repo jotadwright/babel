@@ -10,7 +10,8 @@
           extract-form-predicates
           ordered-fcg-apply
           comprehend-in-sandbox
-          initial-node))
+          initial-node
+          create-temp-cxn-inventory))
 
 (defgeneric extract-meaning-predicates (object))
 
@@ -67,9 +68,9 @@
     (last-elt (all-parents node))
     node))
 
-(defun create-temp-cxn-inventory (original-cxn-inventory)
-  (let ((inventory-name (gensym)))
-    (eval `(def-fcg-constructions
+(defun create-temp-cxn-inventory (original-cxn-inventory &key (cxns-to-add nil) (categories-to-add nil) (categorial-links-to-add nil))
+  (let* ((inventory-name (gensym))
+         (temp-cxn-inventory (eval `(def-fcg-constructions
                                        ,inventory-name
                                      :cxn-inventory ,inventory-name
                                      :hashed t
@@ -96,6 +97,13 @@
                                                           (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
                                                           (:ignore-transitive-closure . t)
                                                           (:hash-mode . :hash-string-meaning-lex-id))))))
+    (add-categories categories-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
+    (dolist (categorial-link categorial-links-to-add)
+      (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil))
+    (dolist (cxn cxns-to-add)
+      (add-cxn cxn temp-cxn-inventory))
+    temp-cxn-inventory))
+    
 
 (defmethod comprehend (utterance &key
                                  (cxn-inventory *fcg-constructions*)
@@ -153,13 +161,8 @@
                                         (cxns-to-add nil)
                                         (categories-to-add nil)
                                         (categorial-links-to-add nil))
-  "Creates a copy of the cxn inventory and applies a list of original cxns (in the order they appear in the list). Returns the solution cipn."
-  (let ((temp-cxn-inventory (create-temp-cxn-inventory cxn-inventory)))
-    (add-categories categories-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
-    (dolist (categorial-link categorial-links-to-add)
-      (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil))
-    (dolist (cxn cxns-to-add)
-      (add-cxn cxn temp-cxn-inventory))
+  "Creates a copy of the cxn inventory and applies a list of original cxns. Returns the solution cipn."
+  (let ((temp-cxn-inventory (create-temp-cxn-inventory cxn-inventory :cxns-to-add cxns-to-add :categories-to-add categories-to-add :categorial-links-to-add categorial-links-to-add)))
     (if apply-sequentially
       (let* ((initial-cfs (de-render utterance (get-configuration temp-cxn-inventory :de-render-mode)
                                 :cxn-inventory temp-cxn-inventory))
