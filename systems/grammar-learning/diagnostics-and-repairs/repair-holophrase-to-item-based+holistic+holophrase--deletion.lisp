@@ -45,7 +45,7 @@
       (when cxn
         
         (let* (;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning (processing-cxn-inventory cxn-inventory)))
+               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning cxn-inventory))
                (cxns-and-links-holistic-part-observation (do-create-holistic-cxn form-constraints meaning (processing-cxn-inventory cxn-inventory)))
                
                
