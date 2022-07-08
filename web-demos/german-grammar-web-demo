@@ -1,0 +1,38 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; THE BASICS OF FLUID CONSTRUCTION GRAMMAR    ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Luc Steels, may 2016
+;;; with help from Katrien Beuls and Paul Van Eecke
+
+;;;; 1. Load and set up FCG
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(asdf:operate 'asdf:load-op :fcg)
+(in-package :fcg)
+
+; don't forget to open a web browser at http://localhost:8000
+
+;; Larger font for text in <p> tags
+(define-css 'main
+            "p {font-size: 10pt}")
+
+(defun my-head-menu ()
+  ; the header file 
+  (clear-page)
+  (deactivate-all-monitors) ; just to be sure that there is no other stuff 
+  (activate-monitor trace-fcg)
+  (set-configuration *fcg-constructions* :form-predicates '(meets))
+  (add-element
+   '((h1) "Modelling language learners' errors with Fluid Construction Grammar"))
+  (add-element '((p) "This is a web demo with which we present the efficacy of Fluid Construction Grammar in accurately modeling language acquisition and learning processes."))
+; how to make a link here to: "https:www.fcg-net.org/projects/web-demonstration-guide/"
+  (add-element '((p)"Please check our " ((a :href "https:www.fcg-net.org/projects/web-demonstration-guide/") "web demonstration guide ") "to find out more on what you can see in the demo and what you can do with it."))
+  (add-element '((p) "This demonstration has the following parts:"))
+  (add-element '((h3)  ((a :href "#intro") "I. Language acquisition through intention reading and patter finding")))
+  (add-element '((h3)  ((a :href "#fcg") "II. A quick guide to Fluid Construction Grammarn")))
+  (add-element '((h3)  ((a :href "#case-study") "III. German argument and information structure")))
+  (add-element '((h3)  ((a :href "#model-german-grammar") "IV. A computational model for the German grammar")))
+  (add-element '((h3)  ((a :href "#errors") "V. Detecting errors and providing feedback")))
+  (add-element '((p :style "color:darkred") "DISCLAIMER: It is recommended to use Firefox or Safari to optimally explore the contents of this page.")))
+
+;(my-head-menu)
