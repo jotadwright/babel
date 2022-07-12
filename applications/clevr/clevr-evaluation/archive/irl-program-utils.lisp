@@ -14,17 +14,17 @@
 (defun all-linked-predicates (predicate var irl-program)
   "Find the next predicate, given a variable"
   (when (member var predicate)
-    (remove predicate (find-all var irl-program :test #'member) :test #'equal)))
+    (loop for p in (remove 'bind irl-program :key #'first)
+          for connecting-vars = (cons (output-var p) (input-vars p))
+          when (and (not (equalp p predicate))
+                    (find var connecting-vars))
+          collect p)))
 
 (defun linked-bind-statement (predicate irl-program)
   "Get the bind-predicate linked to the given predicate"
   (let* ((var (binding-var predicate))
-         (all-linked (all-linked-predicates predicate var irl-program))
-         (binding-list (remove-if-not #'(lambda (pred)
-                                          (eql (first pred) 'bind))
-                                      all-linked)))
-    (when binding-list
-      (first binding-list))))
+         (all-bind-statements (find-all 'bind irl-program :key #'first)))
+    (find var all-bind-statements :key #'third)))
 
 (defun predicate-name (predicate)
   (first predicate))
@@ -37,9 +37,13 @@
 (defun input-vars (predicate)
   "Get the (possibly multiple) input variable(s) of a predicate"
   (unless (eql (first predicate) 'bind)
-    (if (member (first predicate) '(filter query same equal? relate))
-      (subseq predicate 2 (- (length predicate) 1))    
-      (subseq predicate 2))))
+    (cond ((member (first predicate) '(relate same))
+           (subseq predicate 2 (- (length predicate) 3)))
+          ((member (first predicate) '(filter query))
+           (subseq predicate 2 (- (length predicate) 2)))
+          ((member (first predicate) '(equal?))
+           (subseq predicate 2 (- (length predicate) 1)))
+          (t (subseq predicate 2)))))
 
 (defun binding-var (predicate)
   "Get the binding variable of a predicate"

@@ -26,4 +26,10 @@
   :components ((:file "package")
                (:file "utils")
                (:file "coverage")
-               (:file "accuracy")))
+               (:file "accuracy")
+               (:module "archive"
+                :serial t
+                :components ((:file "utils")
+                             (:file "irl-program-utils")
+                             (:file "functional-programs")
+                             (:file "preprocess-program")))))
