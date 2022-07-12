@@ -40,7 +40,7 @@
 (defparameter *restored-grammar-lw*
   (cl-store:restore
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                   :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
+                   :name "propbank-grammar-ontonotes-ewt-core-roles+-leafs-no-aux-lw"
                    :type "fcg")))
 
 (cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
@@ -136,12 +136,12 @@
 
 (comprehend-and-extract-frames "Studies show the different experiences of genders across many domains including education, life expectancy, personality, interests, family life, careers, and political affiliation" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
 
-(comprehend-and-extract-frames "Gender inequality is experienced differently across different cultures and also affects non-binary people ." :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
+(comprehend-and-extract-frames "Gender inequality is experienced differently across different cultures and also affects non-binary people ." :cxn-inventory *restored-grammar-lw*)
 
-(comprehend-and-extract-frames "The 'Thermidorian Reaction' was named after the month in which the coup took place and was the latter part of the National Convention's rule of France ." :cxn-inventory *restored-grammar-lw*)
+(comprehend-and-extract-frames "In simple societies, those that have few social roles and statuses occupied by its members, social inequality may be very low" :cxn-inventory *restored-grammar-lw*)
 
 
-(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar-lw*)
+(comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
 
 (comprehend-and-extract-frames "She did not send her mother a dozen roses" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
 

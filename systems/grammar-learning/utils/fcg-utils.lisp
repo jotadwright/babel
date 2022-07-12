@@ -191,7 +191,7 @@
                                                                       direction
                                                                       :configuration (configuration cxn-inventory)
                                                                       :cxn-inventory cxn-inventory))))
-          finally return current-node)))
+          finally (return current-node))))
 
 
 (defmethod formulate (meaning &key
