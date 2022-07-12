@@ -52,6 +52,20 @@
  ;; output directory
  :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))
 
+(create-graph-mixing-strategies
+ '(("incremental-simulated-bidirectional-switch-1000" . "communicative-success")
+   ("incremental-extracted-bidirectional-switch-1000" . "communicative-success"))
+ :plot-file-name "incremental-bidirectional-switch-1000"
+ :average-windows '(100 100) :use-y-axis '(1 1)
+ :y1-min 0 :y1-max 1 :x-label "Number of Games"
+ :y1-label "Communicative Success"
+ :captions '("simulated environment" "noisy environment")
+ :error-bars '(:percentile 5 95)
+ :error-bar-modes '(:lines)
+ :key-location "bottom"
+ :fsize 12 
+ :open nil)
+
 (create-graph-for-single-strategy
  "cogent-simulated-bidirectional-switch-1000"
  '("communicative-success"

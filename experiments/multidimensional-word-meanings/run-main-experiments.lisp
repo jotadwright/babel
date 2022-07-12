@@ -122,7 +122,7 @@
  :use-y-axis '(1 2)
  :y1-min 0 :y1-max 1
  :y2-min 0 :y2-max 30
- :xwlabel "Number of Games"
+ :x-label "Number of Games"
  :y1-label "Communicative Success"
  :y2-label "Number of Concepts"
  :captions '("communicative success"
