@@ -71,11 +71,11 @@
       (if (determine-communicative-success cipn) "." "x") ; return a dot or x in evaluation mode
       (cond ((find 'nothing->holistic node-statuses :test #'string=) "h")
             ((find 'holistic->item-based node-statuses :test #'string=) "i")
-            ((find 'item-based->holistic node-statuses :test #'string=) "l")
-            ((find 'holistic+item-based->item-based--substitution node-statuses :test #'string=) "z")
-            ((find 'holophrase->item-based+holistic+holistic--substitution node-statuses :test #'string=) "s")
-            ((find 'holophrase->item-based+holistic--addition node-statuses :test #'string=) "a")
-            ((find 'holophrase->item-based+holistic+holophrase--deletion node-statuses :test #'string=) "d")
+            ((find 'item-based->holistic node-statuses :test #'string=) "H")
+            ((find 'item-based->item-based--substitution node-statuses :test #'string=) "S")
+            ((find 'holistic->item-based--substitution node-statuses :test #'string=) "s")
+            ((find 'holistic->item-based--addition node-statuses :test #'string=) "a")
+            ((find 'holistic->item-based--deletion node-statuses :test #'string=) "d")
             ((find 'add-categorial-links node-statuses :test #'string=) "c")
             (t (error "Did not find any repair node statuses and no solution was found!"))))))
          
