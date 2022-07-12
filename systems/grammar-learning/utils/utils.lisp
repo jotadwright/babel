@@ -937,11 +937,6 @@
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
-                                 overlapping-meaning-observation
-                                 ;overlapping-meaning-cxn
-                                 overlapping-form-observation
-                                 args-holistic-cxn-1
-                                 args-holistic-cxn-2
                                  cxn
                                  )))))))
 

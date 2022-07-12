@@ -42,7 +42,7 @@
                                        (bind size-category ?size-4 large)
                                        (query ?target-8 ?source-10 ?attribute-2))))))))
 
-(deftest test-holistic+item-based-to-item-based-substitution-2-comprehension ()
+(defun test-holistic+item-based-to-item-based-substitution-2-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The tiny yellow cube is what shape?"

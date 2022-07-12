@@ -1,11 +1,11 @@
-
+;(ql:quickload :muhai-cookingbot)
+(in-package :muhai-cookingbot)
 ;;#############################################
 ;;# Linguine with lentils and pancetta        #
 ;;#############################################
 
-(defvar *linguine-lentil-recipe*)
+(setf *linguine-lentils-recipe*
 
-(setf *linguine-lentil-recipe*
       '((get-kitchen ?input-kitchen-state) ;;retrieve the current kitchen state
         
 ; Ingredients
@@ -14,7 +14,7 @@
 ;;200g small brown lentils
 (fetch-and-proportion ?lentils ?ks-with-lentils ?input-kitchen-state ?emtpy-container-1 brown-lentils 200 g)
 ;;2 tablespoons extra-virgin olive oil
-(fetch-and-proportion ?olive-oil ?ks-with-olive-oil ?ks-with-lentils ?emtpy-container-2 extra-virgin-olive-oil 2 tablespoon)
+(fetch-and-proportion ?olive-oil ?ks-with-olive-oil ?ks-with-lentils ?emtpy-container-2 olive-oil 2 tablespoon)
 ;;125g pancetta, cut into thin slivers
 (fetch-and-proportion ?pancetta ?ks-with-pancetta ?ks-with-olive-oil ?emtpy-container-3 pancetta 125 g)
 (cut ?cut-pancetta ?ks-with-cut-pancetta ?ks-with-pancetta ?pancetta thin-slivers ?cutting-tool)
@@ -25,8 +25,9 @@
 (fetch-and-proportion ?garlic ?ks-with-garlic ?ks-with-cut-celery ?empty-container-5 garlic 4 clove)
 (cut ?chopped-garlic ?ks-with-chopped-garlic ?ks-with-garlic ?garlic ?cut-pattern ?cutting-tool)
 ;;2 teaspoons chopped rosemary leaves
-(fetch-and-proportion ?rosemary ?ks-with-rosemary ?ks-with-chopped-garlic ?empty-container-6 rosemary-leaves 2 teaspoon)
-(cut ?chopped-rosemary ?ks-with-chopped-rosemary ?ks-with-rosemary ?rosemary ?cut-pattern ?cutting-tool)
+(fetch-and-proportion ?rosemary ?ks-with-rosemary ?ks-with-chopped-garlic ?empty-container-6 fresh-rosemary 2 teaspoon)
+(pick ?rosemary-leaves ?rosemary-stalks ?ks-with-rosemary-leaves ?ks-with-rosemary ?rosemary)
+(cut ?chopped-rosemary ?ks-with-chopped-rosemary ?ks-with-rosemary-leaves ?rosemary-leaves ?cut-pattern ?cutting-tool)
 ;;1-2 fresh hot red chillies, slided and seeded, if desired
 (fetch-and-proportion ?chilipepper ?ks-with-chilipepper ?ks-with-chopped-rosemary ?empty-container-7 red-chilipepper 1 piece)
 ;;125ml dry white wine
@@ -62,7 +63,7 @@
 (cook ?lentils-cooked ?ks-with-cooked-lentils ?ks-with-lentils-cooking-on-very-low-heat ?saucepan-with-lid-on-angle 30 min)
 ;; Remove from the heat and set aside lentils in their liquid.
 (transfer ?cooked-lentils-on-countertop ?ks-with-cooked-lentils-on-countertop ?ks-with-cooked-lentils ?lentils-cooked countertop) ;;destination = countertop
-)
+))
 ;; Step 2
 ;;;;;;;;;;
 
@@ -85,3 +86,95 @@
 ;; Add pasta to lentil mixture and toss over heat for 1 minutes.
 ;; Remove from heat and toss in parsley leaves and pancetta.
 ;; Serve in deep, heated bowls.
+
+
+
+(defparameter *initial-kitchen-state* 
+  (make-instance 
+   'kitchen-state
+   :contents
+   (list (make-instance 'fridge
+                        :contents (list (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'butter
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))))
+         (make-instance 'pantry
+                        :contents (list (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'white-sugar :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'vanilla-extract :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 100)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'almond-extract :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 100)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'all-purpose-flour :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'almond-flour :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'powdered-white-sugar :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))))
+         (make-instance 'kitchen-cabinet
+                        :contents (list
+                                   ;; bowls
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+
+                                   ;; tools
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+
+                                   ;; baking equipment
+                                   (make-instance 'baking-tray)
+                                   (make-instance 'baking-paper)))
+         (make-instance 'stove
+                        :contents nil))))
+
+
+(defparameter *pdm* (initialise-personal-dynamic-memory
+                    *fcg-constructions*
+                    `((get-kitchen ,(make-var 'kitchen-state)))))
+
+
+(append-meaning-and-irl-bindings *linguine-lentils-recipe* nil)
+
+(evaluate-irl-program *linguine-lentils-recipe* nil)

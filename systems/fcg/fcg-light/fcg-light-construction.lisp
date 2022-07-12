@@ -59,6 +59,7 @@
           --
           cxn-set
           hash
+          args
           comprehend
           comprehend-all
           formulate

@@ -355,6 +355,19 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying perishable objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated perishable))))
 
+
+(defclass pluckable (kitchen-entity)
+  ((is-plucked :type boolean :initarg :is-plucked :accessor is-plucked :initform nil)
+   (plucked :type ingredient :initarg :plucked :accessor plucked :initform nil) ;;leaves
+   (pluckee :type ingredient :initarg :pluckee :accessor pluckee :initform nil)) ;;sprig
+  (:documentation "For objects that can be plucked such as fresh herbs"))
+
+(defmethod copy-object-content ((pluckable pluckable) (copy pluckable))
+  "Copying pluckable objects."
+  (setf (is-plucked copy) (copy-object (is-plucked pluckable)))
+  (setf (plucked copy) (copy-object (plucked pluckable)))
+  (setf (pluckee copy) (copy-object (pluckee pluckable))))
+
 (defclass reusable (kitchen-entity)
   ((used :type boolean :initarg :used :accessor used :initform nil))
   (:documentation "For objects that can be reused (and might not cleaning first)."))
@@ -531,6 +544,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((pantry pantry) (copy pantry))
   "Copying pantries."
   (setf (arrangement copy) (copy-object (arrangement pantry))))
+
+
+(defclass saucepan (transferable-container reusable)
+  ()
+  (:documentation "A sauce pan. It's a transferable container."))
   
 (defclass sift (can-sift reusable)
  ()
@@ -547,6 +565,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass spatula (can-spread reusable)
   ()
   (:documentation "A spatula that can spread."))
+
+(defclass stove (container)
+  ((arrangement :initform (make-instance 'side-to-side)))
+  (:documentation "The stove It's a container."))
+
+(defmethod copy-object-content ((stove stove) (copy stove))
+  "Copying stoves"
+  (setf (arrangement copy) (copy-object (arrangement stove))))
 
 (defclass table-spoon (can-spread reusable)
   ()
@@ -611,6 +637,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Black beans."))
 
+(defclass brown-lentils (lentils)
+  ()
+  (:documentation "Brown lentils."))
+
+
 (defclass brown-sugar (sugar)
   ()
   (:documentation "Plain brown sugar."))
@@ -640,6 +671,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass caster-sugar (sugar)
   ()
   (:documentation "Caster sugar, granulated sugar with a very fine consistency."))
+
+(defclass celery (ingredient cuttable) ;;stalkable?
+  ((keep-refrigerated :initform T))
+  (:documentation "Celery"))
+
+(defmethod copy-object-content ((celery celery) (copy celery))
+  "Copying celery objects."
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated celery))))
 
 (defclass cherry-tomato (ingredient cuttable)
   ((keep-refrigerated :initform T))
@@ -678,6 +717,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Dried dill weed."))
 
+(defclass dry-white-wine (ingredient fluid)
+  ()
+  (:documentation "Dry white wine"))
+
 (defclass egg (ingredient)
   ((keep-refrigerated :initform T))
   (:documentation "Eggs."))
@@ -694,13 +737,21 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Abstract class for all flour."))
 
-(defclass fresh-basil (ingredient cuttable)
+(defclass fresh-basil (ingredient cuttable pluckable)
   ()
   (:documentation "Fresh basil."))
 
-(defclass fresh-cilantro (ingredient cuttable)
+(defclass fresh-cilantro (ingredient cuttable pluckable)
   ()
   (:documentation "Fresh cilantro (coriander)."))
+
+(defclass fresh-parsley (ingredient cuttable pluckable)
+  ()
+  (:documentation "Fresh parsley"))
+
+(defclass fresh-rosemary (ingredient cuttable pluckable)
+  ()
+  (:documentation "Fresh rosemary"))
 
 (defclass frozen-corn (ingredient has-temperature)
   ((keep-frozen :initform T))
@@ -709,6 +760,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((frozen-corn frozen-corn) (copy frozen-corn))
   "Copying frozen-corn objects."
   (setf (keep-frozen copy) (copy-object (keep-frozen frozen-corn))))
+
+
+(defclass garlic (ingredient cuttable)
+  ()
+  (:documentation "Garlic"))
 
 (defclass ground-allspice (ingredient)
   ()
@@ -754,9 +810,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Juice is an abstract class"))
 
+(defclass lentils (ingredient)
+  ()
+  (:documentation "Abstract class for all types of lentils"))
+
 (defclass lime-juice (ingredient)
   ()
   (:documentation "Lime juice."))
+
+(defclass linguine (ingredient)
+  ()
+  (:documentation "Linguine."))
 
 (defclass milk (ingredient)
   ((keep-refrigerated :initform T))
@@ -794,6 +858,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Onion."))
 
+(defclass pancetta (ingredient cuttable)
+  ()
+  (:documentation "Pancetta."))
+
+
 (defclass peach-juice (juice)
   ()
   (:documentation "Peach-juice."))
@@ -809,6 +878,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass raisin (ingredient)
   ()
   (:documentation "Raisin."))
+
+(defclass red-chilipepper (ingredient)
+  ()
+  (:documentation "Ret hot chili pepper."))
 
 (defclass red-onion (ingredient cuttable)
   ()
@@ -943,9 +1016,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A halved pattern."))
 
+(defclass thin-slivers (cutting-pattern)
+  ()
+  (:documentation "A pattern for cutting objects into thin slivers "))
+
 (defclass three-quarter-inch-cubes (cutting-pattern)
   ()
   (:documentation "A pattern for cutting objects into 3/4 inch cubes "))
+
+(defclass peasized-cubes (cutting-pattern)
+  ()
+  (:documentation "A pattern for cutting objects into peasized cubes "))
 
 (defclass two-inch (arrangement-pattern)
   ()
@@ -1009,6 +1090,18 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Unit: piece."))
 
+(defclass stalk (unit)
+  ()
+  (:documentation "Unit: stalk"))
+
+(defclass clove (unit)
+  ()
+  (:documentation "Unit: clove"))
+
+(defclass cm (unit)
+  ()
+  (:documentation "Unit: cm"))
+
 (defclass g (unit)
   ()
   (:documentation "Unit: gram."))
@@ -1017,9 +1110,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Unit: cup."))
 
+(defclass handful (unit)
+  ()
+  (:documentation "Unit: handful"))
+
 (defclass tablespoon (unit)
   ()
   (:documentation "Unit: tablespoon."))
+
+(defclass teaspoon (unit)
+  ()
+  (:documentation "Unit: teaspoon"))
 
 (defclass l (unit)
   ()

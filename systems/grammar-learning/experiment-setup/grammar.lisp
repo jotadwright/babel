@@ -92,34 +92,33 @@
                                         (:ignore-transitive-closure . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
-                   :repairs (gl::add-categorial-links
-                             ;gl::holistic+item-based->item-based--substitution
-                             gl::item-based->holistic
-                             gl::holophrase->item-based+holistic+holistic--substitution
-                             ;gl::holophrase->item-based+holistic--addition
-                             ;gl::holophrase->item-based+holistic+holophrase--deletion
-                             gl::holistic->item-based
-                             gl::nothing->holistic)
+                   :repairs (add-categorial-links
+                             item-based->item-based--substitution
+                             item-based->holistic
+                             holistic->item-based--substitution
+                             holistic->item-based--addition
+                             holistic->item-based--deletion
+                             holistic->item-based
+                             nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . t))))))
     cxn-inventory))
 
 (defun handle-potential-holistic-cxn (form meaning cxn-inventory)
-  (cond ((when (member 'gl::add-categorial-links (repairs cxn-inventory) :key #'type-of)
-                       (do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory))))
-        ((when (member 'gl::holophrase->item-based+holistic+holistic--substitution (repairs cxn-inventory) :key #'type-of)
-                       (do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory))))
-        ((when (member 'gl::holistic->item-based (repairs cxn-inventory) :key #'type-of)
-                       (do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory))))
-        ((when (member 'gl::holophrase->item-based+holistic--addition (repairs cxn-inventory) :key #'type-of)
-                       (do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory))))
-        ((when (member 'gl::holophrase->item-based+holistic+holophrase--deletion (repairs cxn-inventory) :key #'type-of)
-                       (do-repair-holophrase->item-based+holistic+holophrase--deletion form meaning (processing-cxn-inventory cxn-inventory))))
-        ((when (member 'gl::item-based->holistic (repairs cxn-inventory) :key #'type-of)
-                       (do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory))))
+  (cond ((when (member 'add-categorial-links (repairs cxn-inventory) :key #'type-of)
+         (do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'holistic->item-based--substitution (repairs cxn-inventory) :key #'type-of)
+         (do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'holistic->item-based (repairs cxn-inventory) :key #'type-of)
+         (do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'holistic->item-based--addition (repairs cxn-inventory) :key #'type-of)
+         (do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'holistic->item-based--deletion (repairs cxn-inventory) :key #'type-of)
+         (do-repair-holophrase->item-based+holistic+holophrase--deletion form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'item-based->holistic (repairs cxn-inventory) :key #'type-of)
+         (do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory))))
         (t
-         (do-create-holistic-cxn form meaning (processing-cxn-inventory cxn-inventory))))
-  )
+         (do-create-holistic-cxn form meaning (processing-cxn-inventory cxn-inventory)))))
 
 (define-event lexicon-changed)
 
@@ -141,7 +140,7 @@
   (setf (attr-val cxn :score) new-score)
   (setf (attr-val alter-ego-cxn :score) new-score)
   (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
-             (< (attr-val cxn :score) lower-bound))
+             (<= (attr-val cxn :score) lower-bound))
     (delete-cxn (name cxn) (grammar agent) :key #'name)
     (delete-cxn (name alter-ego-cxn) (grammar agent)) :key #'name)))
 

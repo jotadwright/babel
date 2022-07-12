@@ -57,7 +57,7 @@
                                              (bind size-category ?size-4 large)
                                              (query ?target-8 ?source-10 ?attribute-2))))))))
 
-(test)
+;(test)
 
 (deftest test-double-addition-repair-comprehension ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
