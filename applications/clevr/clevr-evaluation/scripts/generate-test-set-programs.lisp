@@ -9,13 +9,13 @@
 (defparameter *clevr-test-corpus-path*
   (merge-pathnames
    (make-pathname :directory '(:relative "CLEVR-v1.0" "questions")
-                  :name "CLEVR_val_corpus" :type "csv")
+                  :name "CLEVR_test_corpus" :type "csv")
    cl-user:*babel-corpora*))
 
 (defparameter *output-path*
   (merge-pathnames
    (make-pathname :directory '(:relative "CLEVR-v1.0" "questions")
-                  :name "CLEVR_val_programs" :type "csv")
+                  :name "CLEVR_test_programs" :type "csv")
    cl-user:*babel-corpora*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,7 +31,9 @@
    meaning and the cipn"
   (multiple-value-bind (irl-program cipn)
       (clevr-grammar::understand utterance)
-    (values irl-program cipn)))
+    (if (succeededp cipn)
+      (values irl-program cipn)
+      (error "Failed to comprehend \"~a\"" utterance))))
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Main Function ;;
