@@ -59,7 +59,7 @@ based on existing construction with sufficient overlap."
                                                                                     non-overlapping-meaning-observation
                                                                                     meaning
                                                                                     meaning-representation-formalism
-                                                                                    'holophrase->item-based+holistic+holistic--substitution)))
+                                                                                    'holistic->item-based--substitution)))
                (new-item-based-cxn-apply-first (first item-based-cxn-variants))
                (new-item-based-cxn-apply-last (second item-based-cxn-variants))
                (lex-class-item-based-cxn (third item-based-cxn-variants))

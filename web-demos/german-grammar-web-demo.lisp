@@ -71,7 +71,7 @@ and differences developed in their sensory-motor experiences on the structures o
 (add-element '((img :src "http://localhost/tutorial-call-main/fcg_features.png")))
 
   
-  (add-element '((p) "The fundamental unit of FCG is the construction, which constitutes a linguistic unit with a  <b>semantic </b> part related to <b>meaning</b> and a <b>syntactic</b> part related to <b>form</b>. There can be different types of constructions, such as <i>lexical constructions</i> for nouns with a basic meaning and form, along with some basic semantic (e.g. <i>animacy</i>) and syntactic (e.g. <i>lex-class noun </i>) information, and <i>phrasal ones</i> that combine lexical constructions for nouns with other units, for example determiners or prepositions."))
+  (add-element '((p) "The fundamental unit of FCG is the <b>construction</b>, which constitutes a linguistic unit with a  <b>semantic </b> part related to <b>meaning</b> and a <b>syntactic</b> part related to <b>form</b>. There can be different types of constructions, such as <i>lexical constructions</i> for nouns with a basic meaning and form, along with some basic semantic (e.g. <i>animacy</i>) and syntactic (e.g. <i>lex-class noun </i>) information, and <i>phrasal ones</i> that combine lexical constructions for nouns with other units, for example determiners or prepositions."))
 
   (add-element '((p) "These constructions interact together with each other by exploiting the principle of modularity. Just like Lego blocks simpler constructions contribute to build more complex constructions."))
   
@@ -196,12 +196,558 @@ the production-locks rather than the comprehension-locks."))
    (parse-example-the-dog inventory) (parse-example-dog-the inventory) (produce-example-the-dog inventory)))
 
 
+(defun German-case-study ()
+  (add-element '((a :name "case-study")))
+  (add-element '((h1) "III. German argument and information structure"))
+  (add-element '((img :src "http://localhost/tutorial-call-main/case_study.png"  :width "500" :height "300")))
+  (add-element '((p) "In this research project, we focus on the analysis of 1,487 transcribed and annotated spoken productions of 36 students of German as a second language from the academic program in Languages and Literature at the University of Ghent, collected in an oral elicited imitation task (Baten and Cornillie 2019). The learners heard an audio stimulus containing transitive,ditransitive and intransitive verbs, along with noun and prepositional phrases, which they had to match to one of two displayed pictures with different semantic roles. Subsequently, they needed to produce an oral response describing the selected picture, which should have corresponded to the initially heard utterance meaning (see image below)."))
+
+(add-element '((img :src "http://localhost/tutorial-call-main/example_case.jpg"  :width "500" :height "550")))
+(add-element '((p) "However, sometimes the productions of students deviated from the stimuli they received either by argument or information structure, as well as beccause of grammatical <b> errors in the form or meaning of the sentences </b>.")))
+
+
+
+(defun German-grammar ()
+  (add-element '((a :name "model-german-grammar")))
+  (add-element '((h1) "IV. A computational model for the German grammar"))
+  (add-element '((p) "One of the distinctive aspects of German is its rich and articulated case system. It can be a rather complex concept to learn, especially for those learners whose native languages do not exhibit such a range of case options. In addition, the presence of syncretism between different cases makes the acquisition, but also the modeling, of this system more challenging."))
+  (add-element '((p) "In our case, the cases and the distribution of parts of speech in the sentence were of great importance. Therefore, our task was first to create a model of the German grammar capable of taking into account the case system, the argument structure of transitive, intransitive and ditransitive verbs, but also to encapsulate the features of information structure."))
+  (add-element '((p) "We do so exploiting the highly customizable nature of FCG constructions and their versatility, as well as the AMR formalism and van Trijp's case matrices"))
+
+(add-element '((img :src "http://localhost/tutorial-call-main/german_grammar.jpg" :width "650" :height "220"))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;:EXAMPLES of DO;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(def-fcg-constructions german-case-grammar
+  :feature-types ((args sequence)
+                  (form set-of-predicates)
+                  (meaning set-of-predicates)
+                  (subunits set)
+                  (footprints set)
+                  (case sequence))
+  :fcg-configurations ((:max-nr-of-nodes . 40000)
+                       (:hide-features footprints sem-cat form boundaries)
+                       (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)
+                       ;; to activate heuristic search
+                       (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+                       (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+                       (:cxn-supplier-mode . :cxn-sets) ;; returns all cxns at once
+                       (:node-tests :mal-cxn-applied :restrict-search-depth :restrict-nr-of-nodes :check-duplicate)
+                       ;; for using heuristics
+                       (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
+                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-sets) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
+                       (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
+                       ;; cxn sets
+                       (:parse-order cxn  mal-cxn)
+                       (:production-order cxn mal-cxn )
+                       ;; goal tests
+                       (:production-goal-tests
+                        :no-applicable-cxns :connected-structure
+                        :no-meaning-in-root)))
+
+
+(defmethod cip-node-test ((node cip-node) (mode (eql :mal-cxn-applied)))
+  (if (equal (attr-val (first (applied-constructions node)) :label) 'mal-cxn)
+    (and (push 'mal-cxn-applied (statuses node))
+         t)
+      t
+      ))
+
+(pushnew '((mal-cxn-applied) .  "#eb4034;") *status-colors*)
+
+(def-fcg-cxn der-cxn
+             ((?the-word
+               (footprints (article))) 
+             <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((?nm ?nm - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (?gen - ?gf - ?gp)    ;genitive feminine
+                               (?df - ?df - -)      ;sing, masc, fem, neut, plural
+                               (?s ?nm ?f - ?gp))))   ;sing, masc, fem, neut, plural
+
+               --
+               (HASH form ((string ?the-word "der")))))
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn dem-cxn
+             ((?the-word
+               (footprints (article))) 
+             <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
+                               (- - - - -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (+ ?dm - ?dn -)      ;sing, masc, fem, neut, plural
+                               (+ ?dm - ?dn -))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "dem")))))
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn das-cxn
+             ((?the-word
+               (footprints (article))) 
+             <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((?nn - - ?nn -)    ;nom, acc, gen, dat  (nom masculine)
+                               (?an - - ?an -)        ;masc, fem, neut, plural
+                               (- - - - -)    ;genitive feminine
+                               (- - - - -)
+                               (+ - - + -))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "das")))))
+             :disable-automatic-footprints t)
+
+
+(def-fcg-cxn den-cxn
+             ((?the-word
+               (footprints (article))) 
+             <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((- - - - -)        
+                               (?am ?am - - -)        
+                               (- - - - -)          
+                               (?dp - - - ?dp)
+                               (?am ?am - - ?dp))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((string ?the-word "den")))))
+             :disable-automatic-footprints t)
+
+
+(def-fcg-cxn Doktor-cxn
+             ((?doctor-word
+               (referent ?d)                  
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+                        
+              <-
+              (?doctor-word
+               (HASH meaning ((doctor ?d)))                     
+               --
+               (HASH form ((string ?doctor-word  "Doktor"))))))
+
+
+
+
+(def-fcg-cxn Buch-cxn
+             ((?book-word                        
+               (referent ?b)
+               (syn-cat (lex-class noun)
+                        (case ((?nn - - ?nn -)     
+                               (?an - - ?an -)      
+                               (- - - - -)       
+                               (?dn - - ?dn -)
+                               (+ - - + -))))
+                        (sem-cat (animacy inanimate)))
+              <-
+              (?book-word                            
+               (HASH meaning ((book ?b)))                    
+               --
+               (HASH form ((string ?book-word  "Buch"))))))
+
+
+
+(def-fcg-cxn Clown-cxn
+             ((?clown-word                        
+               (referent ?c)
+               (syn-cat (lex-class noun)
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?clown-word                            
+               (HASH meaning ((clown ?c)))                    
+               --
+               (HASH form ((string ?clown-word  "Clown"))))))
+
+(def-fcg-cxn noun-phrase-cxn
+             ((?noun-phrase
+               (referent ?x)
+               (syn-cat (lex-class noun-phrase)
+                        (case ?case))
+               (sem-cat (animacy ?animacy))
+               (subunits (?article ?noun))
+               (boundaries (leftmost-unit ?article)
+                           (rightmost-unit ?noun)))
+              (?article
+               (referent ?x)
+               (part-of-noun-phrase +))
+
+              (?noun
+               (footprints (determined)))
+              <-
+              (?article
+               --
+               (syn-cat (lex-class article)
+                        (case ?case)))
+              (?noun
+               (footprints (not determined))
+               (referent ?x)
+               (syn-cat (lex-class noun)
+                        (case ?case)
+                        )
+               (sem-cat (animacy ?animacy))
+               --
+               (footprints (not determined))
+               (syn-cat (lex-class noun)
+                        (case ?case)))
+              (?noun-phrase
+               --
+               (HASH form ((meets ?article ?noun)))
+              ))
+             :disable-automatic-footprints t)
+
+(def-fcg-cxn verkauft-cxn
+             ((?sell-word
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type ditransitive))
+               (referent ?v))  
+                        
+              <-
+              (?sell-word                           
+               (HASH meaning ((verkaufen-01 ?v)))
+               --
+               (HASH form ((string ?sell-word  "verkauft"))))))
+
+(def-fcg-cxn ditransitive-argument-structure-cxn
+             ((?ditransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+               (sem-cat (animacy inanimate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+              (sem-cat (animacy inanimate))
+              (referent ?arg1))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?rs ?dm ?df ?dn ?dp))))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class noun-phrase)
+               (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?rs ?dm ?df ?dn ?dp))))
+              (referent ?arg2))
+              
+              (?ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg2 ?v ?arg2)))                  
+               --
+               )))
+
+(def-fcg-cxn topic-arg0-arg1-arg2-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-receiver-unit)
+                           (meets ?rightmost-receiver-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (referent ?arg0)
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object))
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))
+                --
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))
+              
+              ))
+
+(defun display-constructions-german-grammar (cxn-inventory)
+  (add-element '((a :name  "noun-phrase")))
+  (add-element '((p) "1. <i> Some noun-phrase constructions examples.</i>"))
+  (add-element (make-html (find-cxn 'noun-phrase-cxn cxn-inventory)))
+  (add-element '((p) "2. <i> A construction schema for the argument structure of the ditransitive utterance `der Doktor verkauft dem Clown das Buch'.</i>"))
+  (add-element (make-html (find-cxn 'ditransitive-argument-structure-cxn cxn-inventory)))
+  (add-element (make-html (find-cxn 'topic-arg0-arg1-arg2-information-structure-cxn cxn-inventory)))
+  )
+
+(defun parse-example-dem-Clown (inventory)
+  (add-element '((h1) "Comprehending a dative noun-phrase 'dem Clown'."))
+  (comprehend '("dem" "Clown") :cxn-inventory cxn-inventory))
+
+(defun parse-example-ditransitive-arg-structure (inventory)
+  (add-element '((h3) "Parsing a ditransitive clause: `der Doktor verkauft dem Clown das Buch'."))
+  (comprehend '("der" "Doktor" "verkauft" "dem" "Clown" "das" "Buch") 
+         :cxn-inventory inventory))
+
+(defun ditransitive-example () 
+  (let ((inventory (make-german-grammar-cxns)))
+    (set-configuration inventory :form-predicates '(meets))
+   (display-constructions-german-grammar inventory)
+   (parse-example-dem-Clown inventory)
+   (parse-example-ditransitive-arg-structure inventory)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;incorrect receiver case
+
+(def-fcg-cxn incorrect-receiver-in-ditransitive-argument-structure-cxn
+             ((?double-accusative-incorrect-ditransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              (?receiver-unit
+               (syn-cat (syn-role direct-object))
+               (error-cat (error incorrect-case-selection-for-this-argument-role)
+                          (reason this-argument-should-be-a-receiver-in-dative-case-not-another-object-in-accusative)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                      (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))) )
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+               (sem-cat (animacy inanimate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                       (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+              (sem-cat (animacy inanimate))
+              (referent ?arg1))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        )
+               (referent ?arg1e)
+                --
+              (syn-cat 
+                (lex-class noun-phrase)
+                        )
+              (sem-cat (animacy animate))
+              (referent ?arg1e))
+              
+              (?double-accusative-incorrect-ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              ;(:arg1 ?v ?arg1e)
+                              (:arg1-error ?v ?arg1e)
+                              (:arg2 ?v missing-for-error-should-be ?arg1e)
+                              ))                  
+               --
+               ))
+             :cxn-set mal-cxn)
+
+(def-fcg-cxn topic-arg0-arg1-arg2-incorrect-acc-information-structure-cxn
+             (
+              <-
+              (?incorrect-argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-agent-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-receiver-unit)
+                           (meets ?rightmost-receiver-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (referent ?arg0)
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))
+                --
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))
+              
+              )
+             :cxn-set mal-cxn)
+
 
 (defun total-demo ()
   (my-head-menu)
   (intro)
   (fcg-guide)
   (simple-np-example)
+  (German-case-study)
+  (German-grammar)
+  (ditransitive-example)
   )
 
 ; (total-demo)
