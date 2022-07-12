@@ -525,6 +525,9 @@
 (defun create-item-based-lex-class-with-var (placeholder-var-string-predicates cxn-name-item-based-cxn slot-var)
   "create the what-is-the-size-of-the-?Y-?X-12-(?X) lex class for a specific slot var"
   (let ((placeholder (third (find slot-var placeholder-var-string-predicates :key #'second))))
+    (unless placeholder
+      (+ 1 1))
+    ;(assert (not (equal nil placeholder)))
     (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(" placeholder ")"))))
 
 
