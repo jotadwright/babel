@@ -146,7 +146,7 @@
                   (when search-trash (trash hashed-construction-set)))
           :key key :test test)
     (loop for cxn in (constructions-list hashed-construction-set)
-          when (funcall test (funcall key cxn) cxn)
+          when (funcall test construction (funcall key cxn))
           return cxn)))
     
 
