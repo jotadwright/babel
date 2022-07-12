@@ -448,13 +448,7 @@
 
 
 
-(defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
-  "for slots that hold larger chunks, replace the rightmost boundary of the chunk with the leftmost variable, so that it appears as one slot in the cxn name"
-  (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
-         (left-boundary (first slot-boundaries))
-         (right-boundary (second slot-boundaries)))
-    (loop for fc in (copy-object item-based-meet-constraints)
-          collect (replace-chunk-variables fc left-boundary right-boundary left-boundary))))
+
 
 (defun replace-chunk-variables (fc first-chunk-var last-chunk-var new-slot-var)
   (when (equalp first-chunk-var (third fc))
@@ -576,9 +570,20 @@
 (defun make-item-based-name-form-constraints-from-units (item-based-cxn-form-constraints resulting-units)
   (loop with item-based-fc = item-based-cxn-form-constraints
         for unit in resulting-units
-        for fc = (variablify-form-constraints-with-constants (unit-feature-value unit 'form))
-        do (setf item-based-fc (substitute-slot-meets-constraints fc item-based-fc))
+        for boundaries = (unit-feature-value unit 'boundaries)
+        for left-boundary = (variablify (second (first boundaries)))
+        for right-boundary = (variablify (second (second boundaries)))
+        do (setf item-based-fc (loop for fc in (copy-object item-based-fc)
+                                     collect (replace-chunk-variables fc left-boundary right-boundary left-boundary)))
         finally (return item-based-fc)))
+
+(defun substitute-slot-meets-constraints (chunk-meet-constraints item-based-meet-constraints)
+  "for slots that hold larger chunks, replace the rightmost boundary of the chunk with the leftmost variable, so that it appears as one slot in the cxn name"
+  (let* ((slot-boundaries (get-boundary-units chunk-meet-constraints))
+         (left-boundary (first slot-boundaries))
+         (right-boundary (second slot-boundaries)))
+    (loop for fc in (copy-object item-based-meet-constraints)
+          collect (replace-chunk-variables fc left-boundary right-boundary left-boundary))))
 
 (defun make-item-based-name-form-constraints-from-cxns (item-based-cxn-form-constraints boundary-list)
   (loop with item-based-fc = item-based-cxn-form-constraints
