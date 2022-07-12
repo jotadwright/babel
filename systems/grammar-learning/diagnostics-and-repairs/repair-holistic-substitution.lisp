@@ -4,10 +4,10 @@
 ;; Repair Add item-based construction ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass holophrase->item-based+holistic+holistic--substitution (add-cxns-and-categorial-links) 
+(defclass holistic->item-based--substitution (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node)))
 
-(defmethod repair ((repair holophrase->item-based+holistic+holistic--substitution)
+(defmethod repair ((repair holistic->item-based--substitution)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)

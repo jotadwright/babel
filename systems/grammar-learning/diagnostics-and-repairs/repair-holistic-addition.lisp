@@ -1,9 +1,9 @@
 (in-package :grammar-learning)
 
-(defclass holophrase->item-based+holistic--addition (add-cxns-and-categorial-links) 
+(defclass holistic->item-based--addition (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node))) ;; it's always fcg::new-node, we created a new node in the search process
 
-(defmethod repair ((repair holophrase->item-based+holistic--addition)
+(defmethod repair ((repair holistic->item-based--addition)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
