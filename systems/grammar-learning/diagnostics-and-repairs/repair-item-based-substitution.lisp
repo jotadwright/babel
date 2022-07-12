@@ -9,10 +9,10 @@
 ;; 4. runs holistic->item-based again to create an item-based cxn e.g. the ?x is what ?y?
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass holistic+item-based->item-based--substitution (add-cxns-and-categorial-links) 
+(defclass item-based->item-based--substitution (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node)))
 
-(defmethod repair ((repair holistic+item-based->item-based--substitution)
+(defmethod repair ((repair item-based->item-based--substitution)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
@@ -81,8 +81,8 @@
                    (cats-to-add (append (fourth item-based-cxn-and-links)
                                         (fourth cxns-and-links-holistic-part-observation)
                                         (fourth cxns-and-links-holistic-part-cxn))))
-
-        
+              ;; overwrite repair status attribute
+              (setf (attr-val (last-elt cxns-to-apply) :repair) 'item-based->item-based--substitution)
               (list
                cxns-to-apply
                cat-links-to-add
