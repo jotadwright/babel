@@ -48,6 +48,53 @@
 
 (defmethod enqueue-ippn-nodes ((list-of-nodes list)
                                (processor irl-program-processor)
+                               (mode (eql :best-first)))
+  "Best first. The nodes with the best score for all bindings
+   will be in front of the queue."
+  (labels ((sum-all-binding-scores (node)
+             (loop for b in (bindings node)
+                   when (value b) sum (score b))))
+    (sorted-insert (queue processor) list-of-nodes
+                   :key #'sum-all-binding-scores :test #'>)))
+
+(defmethod enqueue-ippn-nodes ((list-of-nodes list)
+                               (processor irl-program-processor)
+                               (mode (eql :best-first-sum-new-bindings)))
+  "Best first. The nodes with the best score for the new bindings
+   will be in front of the queue. Scores of new bindings are summed."
+  (labels ((sum-new-bindings-scores (node)
+             (let* ((node-bindings (bindings node))
+                    (parent-bindings (bindings (parent node)))
+                    (new-bindings-scores
+                     (loop for nb in node-bindings
+                           for pb in parent-bindings
+                           when (and (null (value pb))
+                                     (not (null (value nb))))
+                           collect (score nb))))
+               (apply #'+ new-bindings-scores))))
+    (sorted-insert (queue processor) list-of-nodes
+                   :key #'sum-new-bindings-scores :test #'>)))
+
+(defmethod enqueue-ippn-nodes ((list-of-nodes list)
+                               (processor irl-program-processor)
+                               (mode (eql :best-first-avg-new-bindings)))
+  "Best first. The nodes with the best score for the new bindings
+   will be in front of the queue. Scores of new bindings are averaged."
+  (labels ((avg-new-bindings-scores (node)
+             (let* ((node-bindings (bindings node))
+                    (parent-bindings (bindings (parent node)))
+                    (new-bindings-scores
+                     (loop for nb in node-bindings
+                           for pb in parent-bindings
+                           when (and (null (value pb))
+                                     (not (null (value nb))))
+                           collect (score nb))))
+               (average new-bindings-scores))))
+    (sorted-insert (queue processor) list-of-nodes
+                   :key #'avg-new-bindings-scores :test #'>)))
+
+(defmethod enqueue-ippn-nodes ((list-of-nodes list)
+                               (processor irl-program-processor)
                                (mode (eql :depth-first)))
   "Depth first. The nodes with the largest depth will be in front of
    the queue. There is no particular order for nodes with identical
