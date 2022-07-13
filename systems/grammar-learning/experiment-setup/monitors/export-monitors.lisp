@@ -8,12 +8,15 @@
                  and prints the number after :dot-interval")
 
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (let ((symbol-to-print (last-elt (repair-buffer experiment))))
+  (let ((symbol-to-print (last-elt (repair-buffer experiment)))
+        (windowed-success (* 100 (float (average (subseq (success-buffer experiment)
+                                                            (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
+                                                            (length (success-buffer experiment))))))))
     (cond ((= (interaction-number interaction) 1)
            (format t "~%~a" symbol-to-print))
           ((= (mod (interaction-number interaction)
                    (get-configuration experiment :dot-interval)) 0)
-           (format t "~a (~a)~%" symbol-to-print (interaction-number interaction)))
+           (format t "~a (~a / ~a%)~%" symbol-to-print (interaction-number interaction) windowed-success))
          ;(wi:clear-page))
           (t (format t "~a" symbol-to-print)))))
 

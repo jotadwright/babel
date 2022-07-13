@@ -63,7 +63,6 @@
              (resulting-left-pole-structure (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node))))
              (resulting-root (get-root resulting-left-pole-structure))
              (resulting-units (sort-unvariablified-units-by-meets-constraints (remove-child-units (remove resulting-root resulting-left-pole-structure)) item-based-cxn-form-constraints))
-             ;(item-based-cxn-meaning (subtract-all-unit-meanings resulting-units meaning))
              (chunk-item-based-cxn-form-constraints (make-item-based-name-form-constraints-from-units item-based-cxn-form-constraints resulting-units))
              (placeholder-var-string-predicates (variablify-missing-form-strings chunk-item-based-cxn-form-constraints))
              (cxn-name-item-based-cxn (make-cxn-name

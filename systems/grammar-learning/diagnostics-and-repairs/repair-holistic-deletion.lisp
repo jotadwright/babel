@@ -65,9 +65,9 @@
 
                ;; build result
                (cxns-to-apply (first cxns-and-links-holistic-part-observation))
-               (cat-links-to-add (remove nil (append (list (second cxns-and-links-holistic-part-cxn)
-                                                           (cons (fifth cxns-and-links-holistic-part-cxn)
-                                                                   lex-class-item-based-cxn-slot)))))
+               (cat-links-to-add (remove nil (append (second cxns-and-links-holistic-part-cxn)
+                                                     (list (cons (fifth cxns-and-links-holistic-part-cxn)
+                                                                 lex-class-item-based-cxn-slot)))))
                (cxns-to-consolidate (append
                                      (first cxns-and-links-holistic-part-cxn)
                                      (third cxns-and-links-holistic-part-cxn)

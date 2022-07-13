@@ -58,8 +58,7 @@
               for cxn in applied-cxns
               for alter-ego-cxn = (alter-ego-cxn cxn (grammar agent))
               do (inc-cxn-score cxn :delta cxn-delta)
-              (when alter-ego-cxn
-                (inc-cxn-score alter-ego-cxn :delta cxn-delta))
+              (inc-cxn-score alter-ego-cxn :delta cxn-delta)
               finally (notify cxns-rewarded applied-cxns))
     
         ))))
