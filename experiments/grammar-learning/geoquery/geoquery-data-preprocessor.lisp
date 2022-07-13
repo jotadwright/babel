@@ -1,30 +1,65 @@
-(in-package :fcg)
+
 (ql:quickload :xmls)
+(ql:quickload :cl-ppcre)
+(ql:quickload :grammar-learning)
+(in-package :fcg)
 
 (defun parse-geoquery (file-string)
   (with-open-file (stream file-string :direction :input)
-    (loop for example in (subseq (xmls:parse-to-list stream) 2 5)
+    (loop for example in (subseq (xmls:parse-to-list stream) 16 17)
           for id = (second (first (second example)))
           for nl = (find-all "nl" (subseq example 1) :key #'first :test #'equal)
           for mr = (third (find "geo-prolog" (subseq example 1) :key #'(lambda (el) (second (first (second el)))) :test #'equal))
-          collect (list id nl mr))))
+          for pred-mr = (geo-prolog-to-predicates mr)
+          collect (list id nl mr pred-mr))))
                    
-(defun geo-prolog-to-predicate-semantics (geo-prolog-string)
-  (split-string geo-prolog-string '(#\( ))
-  )
+(defun geo-prolog-to-predicates (geo-prolog-string)
+  (loop with curr-predicate = nil
+        with result = nil
+        with const-id = nil
+        for el in (remove "" (cl-ppcre::split "[,\(\)]" geo-prolog-string) :test #'equal)
+        do (cond (const-id
+                  (setf curr-predicate (append curr-predicate (list (intern (string-upcase (string-append
+                                                                                            "+"
+                                                                                            const-id
+                                                                                            "-"
+                                                                                            (string-replace el " " "-")
+                                                                                            "+"
+                                                                                            )) :GL-DATA))))
+                  (setf const-id nil))
+
+                 ((member (string-downcase el) '("stateid" "countryid" "cityid") :test #'string=)
+                  (setf const-id (string-downcase el)))
+                  
+                 ((lower-case-p (first (coerce el 'list)))
+                  (when curr-predicate
+                    (setf result (append result (list curr-predicate))))
+                  (setf curr-predicate (list (intern (string-upcase el) :GL-DATA))))
+                 
+                 (t
+                  (setf curr-predicate (append curr-predicate (list (variablify el))))))
+        finally (return (append result (list curr-predicate)))))
 
 
-(geo-prolog-to-predicate-semantics "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid(mississippi))))")
+(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
+
+
+
+
+
+
+
+(geo-prolog-to-predicates "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid(mississippi))))")
 
 #|
  ((answer ?a)
   (high-point ?b ?a)
   (state ?b)
   (next-to ?b ?c)
-  (const ?c "stateid-mississippi"))
+  (const ?c +stateid-mississippi+))
   
     
 |#
-(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
+
 
 ;; split term, if var, add var, if term recurse
