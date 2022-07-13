@@ -15,20 +15,29 @@
    get-context predicate that links to 2 (or more) other predicates.
    Decouple these get-context predicates such that the meaning network
    is also a tree"
-  (let* ((context-predicate (find 'get-context irl-program :key #'first))
+  (let* ((context-predicate (find 'segment-scene irl-program :key #'first))
          (context-var (second context-predicate))
-         (next-predicates (all-linked-predicates context-predicate context-var irl-program)))
+         (scene-var (third context-predicate))
+         (next-predicates (all-linked-predicates context-predicate context-var irl-program))
+         (changed-predicates nil))
     (when (> (length next-predicates) 1)
       (let ((new-vars (loop repeat (length next-predicates)
                             collect (make-var 'context))))
         (loop for var in new-vars
               for predicate in next-predicates
+              for new-predicate = (subst var context-var predicate)
               do (progn
                    (setf irl-program (remove predicate irl-program :test #'equal))
-                   (push `(get-context ,var) irl-program)
-                   (push (subst var context-var predicate) irl-program))
+                   (push `(segment-scene ,var ,scene-var) irl-program)
+                   (push new-predicate irl-program)
+                   (push new-predicate changed-predicates))
               finally
-              (setf irl-program (remove context-predicate irl-program :test #'equal)))))
+              (setf irl-program (remove context-predicate irl-program :test #'equal)))
+        (loop with other-predicates = (remove 'bind (set-difference irl-program changed-predicates :test #'equal) :key #'first)
+              for pred in other-predicates
+              when (find context-var pred)
+              do (progn (setf irl-program (remove pred irl-program :test #'equal))
+                   (push (subst (random-elt new-vars) context-var pred) irl-program)))))
     (notify duplicate-context-finished irl-program)
     irl-program))
 
@@ -81,18 +90,23 @@
   (let (filter-groups prev-was-filter)
     (traverse-meaning-network irl-program
                               ;; use get-context predicates as start of the search (can be multiple)
-                              :first-predicate-fn #'(lambda (program) (find-all 'get-context program :key #'first))
+                              :first-predicate-fn
+                              #'(lambda (program)
+                                  (find-all 'segment-scene program :key #'first))
                               ;; traverse the network by following in/out variables
-                              :next-predicate-fn #'(lambda (predicate program) (all-linked-predicates predicate (output-var predicate) program))
+                              :next-predicate-fn
+                              #'(lambda (predicate program)
+                                  (all-linked-predicates predicate (output-var predicate) program))
                               ;; collect filter predicates in groups
-                              :do-fn #'(lambda (predidate)
-                                         (cond ((and prev-was-filter (eql (first predidate) 'filter))
-                                                (push predidate (first filter-groups)))
-                                               ((eql (first predidate) 'filter)
-                                                (push (list predidate) filter-groups)
-                                                (setf prev-was-filter t))
-                                               (prev-was-filter
-                                                (setf prev-was-filter nil)))))
+                              :do-fn
+                              #'(lambda (predidate)
+                                  (cond ((and prev-was-filter (eql (first predidate) 'filter))
+                                         (push predidate (first filter-groups)))
+                                        ((eql (first predidate) 'filter)
+                                         (push (list predidate) filter-groups)
+                                         (setf prev-was-filter t))
+                                        (prev-was-filter
+                                         (setf prev-was-filter nil)))))
     ;; only return groups of more than 1 filter predicate
     (remove-if #'(lambda (l) (= l 1)) filter-groups :key #'length)))
 
@@ -166,10 +180,16 @@
    the case, don't even bother to process the network further."
   (let* ((final-primitive (predicate-name (get-target-predicate irl-program))))
     (when final-primitive
-      (let* ((processed-irl-program
-              (reverse-nominal-groups
-               (filter-things
-                (duplicate-context irl-program)))))
+      (let ((processed-irl-program
+             (loop with current-irl-program = irl-program
+                   for fn in (list #'duplicate-context
+                                   #'filter-things
+                                   #'reverse-nominal-groups)
+                   for next-program = (funcall fn current-irl-program)
+                   if (connected-semantic-network current-irl-program)
+                   do (setf current-irl-program next-program)
+                   else do (error "Something went wrong during ~a~%" fn)
+                   finally (return current-irl-program))))
         (notify process-network-finished processed-irl-program)
         processed-irl-program))))
 

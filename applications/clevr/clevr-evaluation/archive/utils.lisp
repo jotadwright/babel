@@ -6,7 +6,7 @@
 (defgeneric predicate->clevr-program-node (predicate bind-statement type)
   (:documentation "Make a clevr program node from the given predicate"))
 
-(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'get-context)))
+(defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'segment-scene)))
   (declare (ignorable predicate bind-statement))
   (make-instance 'clevr-function :function-name 'scene))
 
@@ -14,7 +14,7 @@
   (let* ((category (first (split (mkstr (bind-statement-type bind-statement)) #\-)))
          (filter-type (internal-symb (upcase (string-append "filter_" category)))))
     (make-instance 'clevr-function :function-name filter-type
-                   :args (list (internal-symb (bind-statement-value bind-statement))))))
+                   :arguments (list (internal-symb (bind-statement-value bind-statement))))))
 
 (defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'unique)))
   (declare (ignorable predicate bind-statement))
@@ -22,7 +22,7 @@
 
 (defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'relate)))
   (make-instance 'clevr-function :function-name 'relate
-                 :args (list (internal-symb (bind-statement-value bind-statement)))))
+                 :arguments (list (internal-symb (bind-statement-value bind-statement)))))
 
 (defmethod predicate->clevr-program-node (predicate bind-statement (type (eql 'union!)))
   (declare (ignorable predicate bind-statement))

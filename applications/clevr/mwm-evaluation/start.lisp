@@ -1,5 +1,25 @@
+
+(progn
+(setf *automatically-start-web-interface* nil)
 (ql:quickload :mwm-evaluation)
 (in-package :mwm-evaluation)
+)
+
+(progn
+  (defparameter *extracted-concepts-path*
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings"
+                               "store" "baseline-extracted-default-lexicon")))
+  (defparameter *extracted-scenes-path*
+  (merge-pathnames
+   (make-pathname :directory '(:relative "Frontiers-data" "CLEVR" "val"))
+   cl-user:*babel-corpora*))
+  (defparameter *config-entries*
+  '((:dot-interval . 100)
+    (:nr-of-scenes . nil)
+    (:nr-of-questions . nil)
+    (:data-split . "val")
+    (:world-type . :extracted)))
+  (evaluate-mwm-serie 10 *config-entries*))
 
 
 (activate-monitor trace-fcg)
@@ -10,24 +30,28 @@
 ;; Evaluation ;;
 ;;------------;;
 
+(defparameter *extracted-concepts-path*
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings"
+                               "store" "baseline-extracted-default-lexicon")))
+
 (defparameter *config-entries*
   '((:dot-interval . 100)
-    (:nr-of-scenes . 1)
+    (:nr-of-scenes . nil)
     (:nr-of-questions . nil)
     (:data-split . "val")
     (:world-type . :extracted)))
 
 ;; Evaluate one particular serie
 ;(evaluate-mwm-serie 1 *config-entries*)
-;(evaluate-mwm-serie 2)
-;(evaluate-mwm-serie 3)
-;(evaluate-mwm-serie 4)
-;(evaluate-mwm-serie 5)
-;(evaluate-mwm-serie 6)
-;(evaluate-mwm-serie 7)
-;(evaluate-mwm-serie 8)
-;(evaluate-mwm-serie 9)
-;(evaluate-mwm-serie 10)
+;(evaluate-mwm-serie 2 *config-entries*)
+;(evaluate-mwm-serie 3 *config-entries*)
+;(evaluate-mwm-serie 4 *config-entries*)
+;(evaluate-mwm-serie 5 *config-entries*)
+;(evaluate-mwm-serie 6 *config-entries*)
+;(evaluate-mwm-serie 7 *config-entries*)
+;(evaluate-mwm-serie 8 *config-entries*)
+;(evaluate-mwm-serie 9 *config-entries*)
+;(evaluate-mwm-serie 10 *config-entries*)
 
 ;; Evaluate on all series of concepts by loading the different series into the ontology
 ;(evaluate-all-series)
