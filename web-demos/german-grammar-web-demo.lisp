@@ -12,8 +12,10 @@
 ; don't forget to open a web browser at http://localhost:8000
 
 ;; Larger font for text in <p> tags
+
 (define-css 'main
-            "p {font-size: 11pt}")
+            "")
+
 
 (defun my-head-menu ()
   ; the header file 
@@ -23,11 +25,13 @@
   (set-configuration *fcg-constructions* :form-predicates '(meets))
   (add-element
    '((h1) "Modelling language learners' errors with Fluid Construction Grammar"))
-  (add-element '((p) "This is a web demo with which we present the efficacy of Fluid Construction Grammar
-in accurately modeling language acquisition and learning processes."))
+  (add-element '((p) "This is a web demo that supplements the poster <i>'A computational construction grammar account of the interplay between argument structure and information structure in German'</i>  presented at " ((a :href "https://clin2022.uvt.nl/a-computational-construction-grammar-account-of-the-interplay-between-argument-structure-and-information-structure-in-german/") "CLIN32 2022")" in Tilburg."))
+  (add-element '((p) "We present an explanation of our contribution on how Fluid Construction Grammar
+can be applied to accurately model language acquisition and learning processes in second language learning, also providing to error detection mechanisms and  meaningful feedback."))
 ; how to make a link here to: "https:www.fcg-net.org/projects/web-demonstration-guide/"
   (add-element '((p)"Please check our " ((a :href "https:www.fcg-net.org/projects/web-demonstration-guide/") "web demonstration guide ") "to find out more on what you can see in the demo and what you can do with it."))
   (add-element '((p) "This demonstration has the following parts:"))
+  (add-element '((h3)  ((a :href "#abstract") "Abstract")))
   (add-element '((h3)  ((a :href "#intro") "I. Language acquisition through intention reading and pattern finding")))
   (add-element '((h3)  ((a :href "#fcg") "II. A quick guide to Fluid Construction Grammar")))
   (add-element '((h3)  ((a :href "#case-study") "III. German argument and information structure")))
@@ -37,6 +41,16 @@ in accurately modeling language acquisition and learning processes."))
 
 ;(my-head-menu)
 
+
+(defun abstract ()
+  (add-element '((a :name "abstract")))
+  (add-element '((h1) "Abstract"))
+  (add-element '((p) "We present a fully operational computational construction grammar that models the interplay between argument structure and information structure in German. We show how argument structure constructions map between semantic roles and their case realisations (nominative, accusative, genitive, dative), and how they specify the syntactic roles of the different arguments (subject, direct object, indirect object, prepositional object). In turn, information structure constructions map between syntactic roles and word order patterns, potentially topicalising particular arguments. Our model of the German grammar starting from the productions of learners makes two main contributions to the field of computational construction grammars:
+
+<li> It extends the feature matrix system proposed by Van Trijp (2011) adding an additional row to collect information from different cases, genders and number at the same time; </li>
+<li>It operationalizes the intuition of Goldberg (2013) according to which argument structure constructions and information structure constructions can be handled independently.</li>
+
+Our grammar is a proof of concept of the potential of FCG in modelling second language acquisition processes and providing feedback not only on morpho-syntactic errors, but also in providing information about the roles of the participants in an event and whether they are topicalised or not.")))
 
 
 (defun intro ()
@@ -72,7 +86,7 @@ and differences developed in their sensory-motor experiences on the structures o
 
   (add-element '((p) "These constructions interact together with each other by exploiting the principle of modularity. Just like Lego blocks simpler constructions contribute to build more complex constructions."))
   
-  (add-element '((img :src "https://cdn.dribbble.com/users/891352/screenshots/3629157/lego-loop.gif")))
+  (add-element '((img :src "https://cdn.dribbble.com/users/891352/screenshots/3629157/lego-loop.gif" :width "600" :height "400")))
 
   (add-element '((p) "Concomitantly, constructions can map meaning to semantic categories, but also syntactic categories to a form, namely a word or phrase, and semantic categories to syntactic units. To represent how constructions are used by a language user or learner, they are arranged in a data structure called <i>transient structure </i>. It displays how the processing of a linguistic utterance happens during the application of constructions."))
   
@@ -963,6 +977,7 @@ of the argument structure,</li>
 
 (defun total-demo ()
   (my-head-menu)
+  (abstract)
   (intro)
   (fcg-guide)
   (simple-np-example)
