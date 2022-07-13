@@ -51,11 +51,10 @@
                                (mode (eql :best-first)))
   "Best first. The nodes with the best score for all bindings
    will be in front of the queue."
-  (labels ((sum-all-binding-scores (node)
-             (loop for b in (bindings node)
-                   when (value b) sum (score b))))
-    (sorted-insert (queue processor) list-of-nodes
-                   :key #'sum-all-binding-scores :test #'>)))
+  (sorted-insert (queue processor) list-of-nodes :test #'>
+                 :key #'(lambda (node)
+                          (loop for b in (bindings node)
+                                when (value b) sum (score b)))))
 
 (defmethod enqueue-ippn-nodes ((list-of-nodes list)
                                (processor irl-program-processor)
