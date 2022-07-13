@@ -521,7 +521,7 @@
   (let ((placeholder (third (find slot-var placeholder-var-string-predicates :key #'second))))
     (unless placeholder
       (+ 1 1))
-    ;(assert (not (equal nil placeholder)))
+    (assert (not (equal nil placeholder)))
     (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(" placeholder ")"))))
 
 
