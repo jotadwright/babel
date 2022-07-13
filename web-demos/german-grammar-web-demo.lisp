@@ -219,7 +219,7 @@ the production-locks rather than the comprehension-locks."))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;:EXAMPLES of DO;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;:EXAMPLES of GERMAN DO;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -248,7 +248,7 @@ the production-locks rather than the comprehension-locks."))
                        ;; goal tests
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
-                        :no-meaning-in-root)))
+                        :no-meaning-in-root))
 
 
 (defmethod cip-node-test ((node cip-node) (mode (eql :mal-cxn-applied)))
@@ -519,6 +519,57 @@ the production-locks rather than the comprehension-locks."))
                --
                )))
 
+(def-fcg-cxn arg0-arg1-topic-arg2-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg2 +)))  
+                          
+               --
+               (HASH form ((meets ?rightmost-receiver-unit ?verb-unit)
+                           (meets ?verb-unit ?leftmost-agent-unit)
+                           (meets ?rightmost-agent-unit ?leftmost-patient-unit)))
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)))
+              
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (boundaries (leftmost-unit ?leftmost-agent-unit)
+                          (rightmost-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries (leftmost-unit ?leftmost-patient-unit)
+                          (rightmost-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (referent ?arg2)
+               (syn-cat (syn-role indirect-object))
+               (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit))
+                --
+              (referent ?arg2)
+              (syn-cat (syn-role indirect-object))
+              (boundaries (leftmost-unit ?leftmost-receiver-unit)
+                          (rightmost-unit ?rightmost-receiver-unit)))))
+
 (def-fcg-cxn topic-arg0-arg1-arg2-information-structure-cxn
              (
               <-
@@ -570,32 +621,64 @@ the production-locks rather than the comprehension-locks."))
               (boundaries (leftmost-unit ?leftmost-receiver-unit)
                           (rightmost-unit ?rightmost-receiver-unit)))
               
-              ))
+              )))
 
 (defun display-constructions-german-grammar (cxn-inventory)
   (add-element '((a :name  "noun-phrase")))
-  (add-element '((p) "1. <i> Some noun-phrase constructions examples.</i>"))
+  (add-element '((p) "1. <i> A noun-phrase construction example.</i>"))
+  (add-element '((p) "Note that although a noun phrase can consist of any article and noun, these two must present the <b>same case</b> for the application of this construction to be successful. "))
   (add-element (make-html (find-cxn 'noun-phrase-cxn cxn-inventory)))
-  (add-element '((p) "2. <i> A construction schema for the argument structure of the ditransitive utterance `der Doktor verkauft dem Clown das Buch'.</i>"))
+  (add-element '((p) "2. <i> A construction schema for the argument structure of a ditransitive utterance.</i>"))
   (add-element (make-html (find-cxn 'ditransitive-argument-structure-cxn cxn-inventory)))
+  (add-element '((p) "By expanding the subunits of this construction, we can see that for each of the arguments of a ditransitive verb there is a case to match."))
+  (add-element '((ul) " <li>  Nominative for the <i>arg0</i> or <i>agent</i> </li>
+                        <li> Accusative for the <i>arg1</i> or <i>patient</i> </li>
+                        <li> Dative for the <i>arg2</i> or <i>patient</i> </li>"))
   (add-element (make-html (find-cxn 'topic-arg0-arg1-arg2-information-structure-cxn cxn-inventory)))
+  (add-element '((p) "By expanding the subunits of this construction, we can notice that the information structure in this construction is enclosed in the collocation of each of the noun phrases representing the verb arguments in the sentence."))
+  (add-element '((ul) " <li> <i>arg0</i> or <i>agent</i> in first position (topicalized), preceding the verb</li>
+                        <li> <i>arg2</i> or <i>receiver</i> in second position after the verb </li> 
+                         <li> <i>arg1</i> or <i>patient</i> in third position after the receiver </li>
+In this case the topicalized argument is the subject or agent."))
+  (add-element '((p) "In the following construction, instead, the topicalized element is the receiver or arg2 in first position preceding the verb."))
+  (add-element (make-html (find-cxn 'arg0-arg1-topic-arg2-information-structure-cxn cxn-inventory)))
   )
 
 (defun parse-example-dem-Clown (inventory)
   (add-element '((h1) "Comprehending a dative noun-phrase 'dem Clown'."))
-  (comprehend '("dem" "Clown") :cxn-inventory cxn-inventory))
+  (add-element '((p) "In the following application process of the noun-phrase construction, if you expand the construction after it has been applied, you can notice that the cases for both the article and the noun are matched through the matrix in dative masculine singular"))
+  (comprehend '("dem" "Clown") :cxn-inventory inventory))
 
 (defun parse-example-ditransitive-arg-structure (inventory)
   (add-element '((h3) "Parsing a ditransitive clause: `der Doktor verkauft dem Clown das Buch'."))
+  (add-element '((p) "In this case you can observe how the different constructions contribute to the comprehension of the sentence in the application process. More specifically, analyzing the contructional dependencies you can notice how they interact with each other to form noun phrases and become the arguments of the ditransitive verb."))
   (comprehend '("der" "Doktor" "verkauft" "dem" "Clown" "das" "Buch") 
          :cxn-inventory inventory))
 
+(defun parse-example-topicalized-ditransitive-arg-structure (inventory)
+  (add-element '((h3) "Parsing a ditransitive clause with topicalized receiver: `dem Clown verkauft der Doktor das Buch'."))
+  (add-element '((p) "In the following construction, you can monitor the comprehension of a distransitive utterance with topicalized receiver. In this case the argument structure is the same but the information structure differs given the order of the different arguments."))
+  (comprehend '("dem" "Clown" "verkauft" "der" "Doktor" "das" "Buch") 
+         :cxn-inventory inventory))
+
+(defun produce-ditransitive-example (inventory)
+  (add-element '((h3) "Producing a ditransive clause: 'dem Clown verkauft der Doktor das Buch'."))
+  (add-element '((p) "The same construction schemas work again for formulation, but now the production-locks are being used for matching. Note that we can customize each argument of the utterance changing the referent and specify which one we would like to have in topicalized position."))
+             (formulate '((verkaufen-01 s) (doctor d) (clown c) (book b) (arg0 s d) (arg1 s b) (arg2 s c) (topicalized c +))
+           ))
+
 (defun ditransitive-example () 
-  (let ((inventory (make-german-grammar-cxns)))
+  (let ((inventory (make-german-case-grammar-cxns)))
     (set-configuration inventory :form-predicates '(meets))
    (display-constructions-german-grammar inventory)
    (parse-example-dem-Clown inventory)
-   (parse-example-ditransitive-arg-structure inventory)))
+   (parse-example-ditransitive-arg-structure inventory)
+   (parse-example-topicalized-ditransitive-arg-structure inventory)
+   (produce-ditransitive-example inventory)))
+
+
+
+;test (progn (clear-page) (ditransitive-example))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;incorrect receiver case
