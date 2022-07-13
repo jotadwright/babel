@@ -191,24 +191,21 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-main-results"
-                          "baseline-simulated")
+                          "raw-data" "baseline-simulated")
              :name "communicative-success" :type "lisp"))
   (defparameter *simulated-success-data* (read stream)))
 
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-main-results"
-                          "baseline-simulated-bidirectional")
+                          "raw-data"  "baseline-simulated-bidirectional")
              :name "communicative-success" :type "lisp"))
   (defparameter *bidirectional-simulated-success-data* (read stream)))
 
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-main-results"
-                          "baseline-simulated-bidirectional")
+                          "raw-data" "baseline-simulated-bidirectional")
              :name "communicative-success-given-conceptualisation"
              :type "lisp"))
   (defparameter *bidirectional-simulated-success-given-conceptualisation-data* (read stream)))
@@ -216,24 +213,21 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-main-results"
-                          "baseline-extracted")
+                          "raw-data"  "baseline-extracted")
              :name "communicative-success" :type "lisp"))
   (defparameter *extracted-success-data* (read stream)))
 
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-main-results"
-                          "baseline-extracted-bidirectional")
+                          "raw-data" "baseline-extracted-bidirectional")
              :name "communicative-success" :type "lisp"))
   (defparameter *bidirectional-extracted-success-data* (read stream)))
 
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-main-results"
-                          "baseline-extracted-bidirectional")
+                          "raw-data" "baseline-extracted-bidirectional")
              :name "communicative-success-given-conceptualisation"
              :type "lisp"))
   (defparameter *bidirectional-extracted-success-given-conceptualisation-data* (read stream)))
@@ -241,8 +235,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-cogent"
-                          "cogent-simulated-switch-500")
+                          "raw-data"  "cogent-simulated-switch-500")
              :name "communicative-success"
              :type "lisp"))
   (defparameter *cogent-simulated-switch-500* (read stream)))
@@ -250,8 +243,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-cogent"
-                          "cogent-simulated-switch-1000")
+                          "raw-data" "cogent-simulated-switch-1000")
              :name "communicative-success"
              :type "lisp"))
   (defparameter *cogent-simulated-switch-1000* (read stream)))
@@ -259,8 +251,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-cogent"
-                          "cogent-simulated-bidirectional-switch-500")
+                          "raw-data" "cogent-simulated-bidirectional-switch-500")
              :name "communicative-success"
              :type "lisp"))
   (defparameter *cogent-simulated-bidirectional-switch-500* (read stream)))
@@ -268,8 +259,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-cogent"
-                          "cogent-simulated-bidirectional-switch-1000")
+                          "raw-data" "cogent-simulated-bidirectional-switch-1000")
              :name "communicative-success"
              :type "lisp"))
   (defparameter *cogent-simulated-bidirectional-switch-1000* (read stream)))
@@ -277,8 +267,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-cogent"
-                          "cogent-extracted-switch-500")
+                          "raw-data" "cogent-extracted-switch-500")
              :name "communicative-success"
              :type "lisp"))
   (defparameter *cogent-extracted-switch-500* (read stream)))
@@ -286,8 +275,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-cogent"
-                          "cogent-extracted-switch-1000")
+                          "raw-data" "cogent-extracted-switch-1000")
              :name "communicative-success"
              :type "lisp"))
   (defparameter *cogent-extracted-switch-1000* (read stream)))
@@ -295,8 +283,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-cogent"
-                          "cogent-extracted-bidirectional-switch-500")
+                          "raw-data" "cogent-extracted-bidirectional-switch-500")
              :name "communicative-success"
              :type "lisp"))
   (defparameter *cogent-extracted-bidirectional-switch-500* (read stream)))
@@ -304,8 +291,7 @@
 (with-open-file
     (stream (babel-pathname
              :directory '("experiments" "multidimensional-word-meanings"
-                          "raw-data" "thesis-cogent"
-                          "cogent-extracted-bidirectional-switch-1000")
+                          "raw-data" "cogent-extracted-bidirectional-switch-1000")
              :name "communicative-success"
              :type "lisp"))
   (defparameter *cogent-extracted-bidirectional-switch-1000* (read stream)))
@@ -319,6 +305,19 @@
         end
         count series into denom
         finally (return (float (/ sum-list denom)))))
+
+(compute-success-at-point *simulated-success-data* 5000 100) ;; 0.997
+(compute-success-at-point *bidirectional-simulated-success-data* 5000 100) ;; 0.989
+(compute-success-at-point *bidirectional-simulated-success-given-conceptualisation-data* 5000 100) ;; 0.998
+
+(compute-success-at-point *extracted-success-data* 5000 100) ;; 0.920
+(compute-success-at-point *bidirectional-extracted-success-data* 5000 100) ;; 0.865
+(compute-success-at-point *bidirectional-extracted-success-given-conceptualisation-data* 5000 100) ;; 0.944
+
+
+
+
+
 
 (compute-success-at-point *simulated-success-data* 5000 100) ;; 0.996
 (compute-success-at-point *cogent-simulated-switch-500* 5000 100) ;; 0.983

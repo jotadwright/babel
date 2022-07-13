@@ -24,6 +24,18 @@
                          (:concept-history-length . 100))
  ;; configurations
  :configurations '(
+                   (cogent-simulated-bidirectional-switch-500
+                    ((:experiment-type . :cogent)
+                     (:world-type . :simulated)
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
+                   (cogent-extracted-bidirectional-switch-500
+                    ((:experiment-type . :cogent)
+                     (:world-type . :extracted)
+                     (:determine-interacting-agents-mode . :default)
+                     (:alignment-filter . :all)
+                     (:switch-conditions-after-n-interactions . 500)))
                    (cogent-simulated-bidirectional-switch-1000
                     ((:experiment-type . :cogent)
                      (:world-type . :simulated)
@@ -39,6 +51,20 @@
                    )
  ;; output directory
  :output-dir (babel-pathname :directory '("experiments" "multidimensional-word-meanings" "raw-data")))
+
+(create-graph-mixing-strategies
+ '(("cogent-simulated-bidirectional-switch-500" . "communicative-success")
+   ("cogent-extracted-bidirectional-switch-500" . "communicative-success"))
+ :plot-file-name "cogent-bidirectional-switch-500"
+ :average-windows '(100 100) :use-y-axis '(1 1)
+ :y1-min 0 :y1-max 1 :x-label "Number of Games"
+ :y1-label "Communicative Success"
+ :captions '("simulated environment" "noisy environment")
+ :error-bars '(:percentile 5 95)
+ :error-bar-modes '(:lines)
+ :key-location "bottom"
+ :fsize 12
+ :open nil)
 
 (create-graph-for-single-strategy
  "cogent-simulated-bidirectional-switch-1000"

@@ -11,8 +11,8 @@
    the same value inputs and the same number of children"
   (and (equalp (mkstr (function-name clevr-node))
                (mkstr (function-name fcg-node)))
-       (equalp (args clevr-node)
-               (args fcg-node))
+       (equalp (arguments clevr-node)
+               (arguments fcg-node))
        (length= (children clevr-node)
                 (children fcg-node))))
 
@@ -146,8 +146,9 @@
                (add-node program-tree node :parent parent-node)
                (dolist (var in-vars)
                  (when (variable-p var)
-                   (let ((all-linked (all-linked-predicates current-predicate var irl-program)))
-                     (dolist (p all-linked) (push (cons p node) stack)))))))
+                   (unless (eql (car current-predicate) 'segment-scene)
+                     (let ((all-linked (all-linked-predicates current-predicate var irl-program)))
+                       (dolist (p all-linked) (push (cons p node) stack))))))))
     (notify meaning->tree-finished program-tree)
     program-tree))
 
@@ -160,7 +161,7 @@
                               :key (lambda (node)
                                      (format nil "~a(~{~a~^, ~})"
                                              (function-name node)
-                                             (args node)))
+                                             (arguments node)))
                               :arrowdir "back")
                   :path out-path
                   :format format
@@ -185,10 +186,10 @@
 |#
 
 (defmethod encode-for-json ((node clevr-function))
-  `((:id . ,(id node))
+  `((:id . ,(mkstr (id node)))
     (:function . ,(downcase (replace-char (mkstr (function-name node)) #\- #\_)))
-    (:value--inputs . ,(if (null (args node)) "[]" (args node)))
-    (:inputs . ,(if (null (children node)) "[]" (children node)))))
+    (:value--inputs . ,(if (null (arguments node)) '() (arguments node)))
+    (:inputs . ,(if (null (children node)) '() (children node)))))
 
 (defun tree->json (program-tree)
   "Create a json file from the program tree"
