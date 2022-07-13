@@ -16,22 +16,29 @@
 (defun geo-prolog-to-predicates (geo-prolog-string)
   (loop with curr-predicate = nil
         with result = nil
-        with const-id = nil
+        with const-found = nil
+        with const-term = nil
         for el in (remove "" (cl-ppcre::split "[,\(\)]" geo-prolog-string) :test #'equal)
-        do (cond (const-id
+        do (cond (const-term
                   (setf curr-predicate (append curr-predicate (list (intern (string-upcase (string-append
                                                                                             "+"
-                                                                                            const-id
+                                                                                            const-term
                                                                                             "-"
-                                                                                            (string-replace el " " "-")
+                                                                                            (string-replace (string-replace el " " "-") #\' "")
+                                                                                                            
                                                                                             "+"
                                                                                             )) :GL-DATA))))
-                  (setf const-id nil))
-
-                 ((member (string-downcase el) '("stateid" "countryid" "cityid") :test #'string=)
-                  (setf const-id (string-downcase el)))
+                  (setf const-term nil))
                   
+
+                 ((and const-found
+                       (lower-case-p (first (coerce el 'list))))
+                  (setf const-found nil)
+                  (setf const-term (string-downcase el)))
+
                  ((lower-case-p (first (coerce el 'list)))
+                  (when (string= el "const")
+                    (setf const-found t))
                   (when curr-predicate
                     (setf result (append result (list curr-predicate))))
                   (setf curr-predicate (list (intern (string-upcase el) :GL-DATA))))
@@ -49,7 +56,7 @@
 
 
 
-(geo-prolog-to-predicates "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid(mississippi))))")
+(geo-prolog-to-predicates "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid('mississippi'))))")
 
 #|
  ((answer ?a)
