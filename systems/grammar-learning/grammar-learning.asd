@@ -40,7 +40,7 @@
                                              (:file "lisp-monitors")
                                              (:file "csv-monitors")
                                              ))))
-               (:module tests
+               #|(:module tests
                 :serial t
                 :components ((:file "utils")
                              (:file "test-utils")
@@ -50,7 +50,8 @@
                              (:file "test-deletion-repair")
                              (:file "test-item-based-to-holistic-repair")
                              (:file "test-holistic-to-item-based-repair")
-                             (:file "test-add-categorial-links-repair"))))
+                             (:file "test-add-categorial-links-repair")))|#
+)
                              
 
   :description "A Common Lisp package for learning construction grammars.")

@@ -45,23 +45,29 @@
          (gold-standard-meaning (cdr interaction-data)))
     (values utterance gold-standard-meaning)))
 
+
+(defun gold-standard-consulted-p (cipn)
+  "the highest ranked cipn was disqualified by the gold-standard-meaning goal test"
+  (not (get-data (goal-test-data (first (rank-cipns
+                                             (loop for current-node in (traverse-depth-first (top-node (cip cipn)) :collect-fn #'identity)
+                                                   when (field? (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning) ;; you have arrived at the gold-standard-meaning-goal-test
+                                                   collect current-node))))
+                     :result-goal-test-non-gold-standard-meaning)))
+
+
 (defun determine-communicative-success (cipn)
   (assert (find 'SUCCEEDED (statuses cipn) :test #'string=))
   (let ((node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
-    (cond ((and (find 'add-categorial-links node-statuses :test #'string=)
-                (not (loop for current-node in (traverse-depth-first (top-node (cip cipn)) :collect-fn #'identity)
-                           if (and (field? (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)
-                                   (not (get-data (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)))
-                           do (return t))))
-           t)
-                
-     ((find 'ADDED-BY-REPAIR node-statuses :test #'string=)
+    (cond  ;; A repair was used that consulted the gold standard. handle-fix sets this status for all repairs = nil
+          ((find 'gold-standard-consulted node-statuses :test #'string=)
            nil)
-          ((loop for current-node in (traverse-depth-first (top-node (cip cipn)) :collect-fn #'identity)
-                 if (and (field? (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)
-                        (not (get-data (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)))
-                 do (return t))
+
+          ;; the highest ranked cipn was disqualified by the gold-standard-meaning goal test = nil
+          ((gold-standard-consulted-p cipn)
+           (gold-standard-consulted-p cipn)
            nil)
+
+          ;; Else: no repair was used and no gold standard was consulted = t
           (t
            t))))
 

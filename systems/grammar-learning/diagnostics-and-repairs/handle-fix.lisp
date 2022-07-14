@@ -19,6 +19,7 @@
            (categorial-links (second (restart-data fix)))
            (original-cxns-to-consolidate (third (restart-data fix)))
            (categories-to-add (fourth (restart-data fix)))
+           (gold-standard-consulted-p (sixth (restart-data fix)))
            ;; temporarily store the original type hierarchy, copy it and add the links, and set it to the cxn-inventory
            (orig-categorial-network (categorial-network (construction-inventory node)))
            (temp-categorial-network (copy-object (categorial-network (construction-inventory node))))
@@ -46,6 +47,8 @@
       ;; set cxn-supplier to second new node
       (setf (cxn-supplier solution-node) (cxn-supplier node))
       ;; set statuses (colors in web interface)
+      (when gold-standard-consulted-p
+       (push 'gold-standard-consulted (statuses solution-node)))
       (push (type-of repair) (statuses solution-node))
       (push 'added-by-repair (statuses solution-node))
       ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block

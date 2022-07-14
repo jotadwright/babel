@@ -10,8 +10,6 @@
   "rank cipns by average applied cxn score"
   (sort (copy-seq cipns) #'> :key #'(lambda (cipn)
                            (average (mapcar #'(lambda (cxn) (attr-val cxn :score)) (applied-constructions cipn))))))
-  
-
 
 (defmethod run-learner-comprehension-task (agent)
   ;(set-data (blackboard (grammar agent)) :add-th-links-repair-failed nil)
