@@ -21,23 +21,26 @@
            for values in bind-values
            do (let ((objects-with-attn
                      (loop for attn in (getf values 'segmented-scene)
-                           for attention = (make-instance 'attention :id (intern attn :visual-dialog))
+                           ;for score in (getf scores 'segmented-scene)
+                             for score = 1.0
+                           for attention = (make-instance 'attention :id (intern attn :visual-dialog) :scores score)
                            do (when (not (get-data ontology 'silent))
                                 (request-attn (get-data ontology 'server-address) (get-data ontology 'cookie-jar) attention))
                            collect (make-instance 'object
                                                   :id (intern attn :visual-dialog)
                                                   :attention attention))))
-                (bind (segmented-scene (getf scores 'segmented-scene)
-                                       (make-instance 'world-model
-                                                      :id 'context
-                                                      :path scene-pathname
-                                                      :set-items
-                                                      (list
-                                                       (make-instance 'turn
-                                                                      :timestamp 'permanent
-                                                                      :object-set
-                                                                      (make-instance 'object-set
-                                                                                     :objects objects-with-attn))))))))))
+                (bind (segmented-scene ;(getf scores 'segmented-scene)
+                       1.0
+                       (make-instance 'world-model
+                                      :id 'context
+                                      :path scene-pathname
+                                      :set-items
+                                      (list
+                                       (make-instance 'turn
+                                                      :timestamp 'permanent
+                                                      :object-set
+                                                      (make-instance 'object-set
+                                                                     :objects objects-with-attn))))))))))
   
   ;; second case; given segmented-scene compute scene-pathname
   ((segmented-scene => scene-pathname)

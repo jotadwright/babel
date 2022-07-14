@@ -45,7 +45,7 @@
                                       (scene '?scene)
                                       (memory '?memory)
                                       silent)
-  "Comprehends an utternace given an image and memory."
+  "Comprehends an utterance given an image and memory."
   (let* ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode)
                                  :scene scene
                                  :memory memory)))

@@ -10,6 +10,7 @@
       (http-request (mkstr server-address endpoint)
                     :method :post :content-type "application/json"
                     :content (replace-char (downcase (to-json data)) #\- #\_)
+                    ;:keep-alive t
                     :connection-timeout 10
                     :cookie-jar cookie-jar)
     (declare (ignorable headers uri stream must-close reason-phrase))
@@ -152,19 +153,18 @@
            :before ((monitor monitors::monitor)
                     (monitor-id (eql 'irl::trace-irl))
                     (event-id (eql 'irl::evaluate-irl-program-finished))
-                    solutions solution-nodes
-                    processor primitive-inventory)
+                    solution-nodes pip)
   ;; when the monitor is active
   ;; download all attention images
   ;; also check if the slot is bound
   ;; such that the same attention is not downloaded twice
   (when (monitors::active monitor)
-    (loop for solution in solutions
-          do (loop for binding in solution
+    (loop for pipn in solution-nodes
+          do (loop for binding in (irl::bindings pipn)
                    when (and (eql (type-of (value binding)) 'attention)
                              (null (img-path (value binding))))
-                   do (request-attn (get-data (ontology processor) 'visual-dialog::server-address)
-                                    (get-data (ontology processor) 'visual-dialog::cookie-jar)
+                   do (request-attn (get-data (ontology pip) 'visual-dialog::server-address)
+                                    (get-data (ontology pip) 'visual-dialog::cookie-jar)
                                     (value binding))))))
 
 

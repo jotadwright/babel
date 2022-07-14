@@ -30,12 +30,16 @@
            for values in bind-values
            do (let ((objects-with-attn
                      (loop for attn in (getf values 'target)
-                                      for attn-id = (intern attn :visual-dialog)
-                                      for object = (copy-object (find attn-id scene-object-list :key #'id))
-                                      collect object)))
-                (bind (target (getf scores 'target)
-                              (make-instance 'world-model
-                                             :set-items (list (make-instance 'turn
-                                                                             :object-set (make-instance 'object-set :objects objects-with-attn)))))))))))
+                          ; for score in (getf scores 'target)
+                             for score = 1.0
+                           for attn-id = (intern attn :visual-dialog)
+                           for object = (copy-object (find attn-id scene-object-list :key #'id))
+                           do (setf (scores (attention object)) score)
+                           collect object)))
+                (bind (target ;(getf scores 'target)
+                       1.0
+                       (make-instance 'world-model
+                                      :set-items (list (make-instance 'turn
+                                                                      :object-set (make-instance 'object-set :objects objects-with-attn)))))))))))
   
   :primitive-inventory *subsymbolic-primitives*)

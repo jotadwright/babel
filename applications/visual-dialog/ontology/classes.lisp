@@ -226,5 +226,7 @@
 
 (defclass attention (object-or-set)
   ((img-path :type (or null pathname) :initarg :img-path
-             :accessor img-path :initform nil))
+             :accessor img-path :initform nil)
+   (scores :type (or null list) :initarg :scores
+           :accessor scores :initform nil))
   (:documentation "A symbolic representation of an intermediate attention"))
