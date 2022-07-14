@@ -240,7 +240,6 @@
         return (list (second (first boundaries)) (second (second boundaries)))
   ))
 
-
 (defun transient-structure-form-constraints (transient-structure)
   (remove-if-not #'(lambda (fc)
                      (equal 'string (first fc)))
@@ -271,7 +270,6 @@
 (defun extract-args-from-holistic-cxn-apply-last (cxn)
   (second (find 'args (formulation-lock (first (conditional-part cxn))) :key #'feature-name)))
 
-
 (defun extract-args-apply-first (cxn)
   (let* ((contributing-units (contributing-part cxn))
          (top-unit (cond ((eql 'holistic (attr-val cxn :cxn-type))
@@ -282,9 +280,6 @@
                                   do (return unit))))))
     (assert top-unit)
     (second (find 'args (fcg::unit-structure top-unit) :key #'first))))
-
-    
-
 
 (defun lex-class-apply-last-cxn (cxn)
   "return the lex-class of a cxn"
@@ -368,8 +363,6 @@
               
               )
         return cxn))
-
-
 
 (defun initial-node-p (node)
   "return t if node is initial node"
@@ -521,7 +514,7 @@
   (let ((placeholder (third (find slot-var placeholder-var-string-predicates :key #'second))))
     (unless placeholder
       (+ 1 1))
-    ;(assert (not (equal nil placeholder)))
+    (assert (not (equal nil placeholder)))
     (make-lex-class (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-(" placeholder ")"))))
 
 
@@ -591,8 +584,6 @@
         do (setf item-based-fc (loop for fc in (copy-object item-based-fc)
                                      collect (replace-chunk-variables fc left-boundary right-boundary left-boundary)))
         finally (return item-based-fc)))
-
-
 
 (defgeneric meaning-predicates-with-variables (meaning mode))
 
@@ -772,6 +763,7 @@
                           overlapping-form-observation
                           overlapping-meaning-observation       
                           )))))))
+
 (defun find-superset-holistic-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         do (when (and (eql (attr-val cxn :cxn-type) 'holistic)
@@ -807,6 +799,7 @@
                           overlapping-form-observation
                           overlapping-meaning-observation       
                           )))))))
+
 (defun find-superset-holophrase-cxn (cxn-inventory gold-standard-meaning utterance meaning-representation-formalism)
   ;; todo: check only routine cxns, do all processing after the when!
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
@@ -837,7 +830,6 @@
                        overlapping-meaning
                        args-holistic-cxn
                        )))
-
 
 (defun find-meets-constraints (superset-with-meets subset-without-meets)
   (loop for fc in subset-without-meets
@@ -897,7 +889,6 @@
   (loop for args in args-list
         collect (list 'dummy (second args) (first args))))
   
-
 (defun select-item-based-cxn-for-making-item-based-cxn (cxn-inventory intermediary-item-based-cxn meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         do (when (and
@@ -1029,7 +1020,6 @@
           do (setf string-predicates-in-root (set-difference string-predicates-in-root lex-form :test #'irl:unify-irl-programs)))
     string-predicates-in-root)
 
-
 ; todo: replace the below with a fn that returns the open variables:
 
 (defgeneric equivalent-meaning-networks (m1 m2 mode))
@@ -1040,12 +1030,9 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :amr)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
-
-
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :amr)))
   (multiple-value-bind (n1-diff n2-diff bindings) (amr::diff-amr-networks network-1 network-2)
     (values n1-diff n2-diff)))
-
 
 (defun substitute-predicate-bindings (predicate bindings)
   (loop with frame-bindings = (irl::map-frame-bindings bindings)
@@ -1072,12 +1059,7 @@
          (non-overlapping-predicates (set-difference longest-network overlapping-predicates :test #'equal)))
     (values non-overlapping-predicates overlapping-predicates)))
 
-
-
 ;(extract-args-from-meaning-networks '((eh ?e)  (:mode ?e expressive)) '((:polarity ?e ?a) (amr-unknown ?a)) :amr)
-
-
-
 
 (defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
 
@@ -1160,7 +1142,6 @@
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
-
 (defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   
@@ -1185,8 +1166,6 @@
          cipn-1)
         (t
          cipn-2)))
-
-
 
 (defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes

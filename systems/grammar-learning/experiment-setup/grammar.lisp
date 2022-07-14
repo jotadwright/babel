@@ -97,7 +97,7 @@
                              item-based->holistic
                              holistic->item-based--substitution
                              ;holistic->item-based--addition
-                             ;holistic->item-based--deletion
+                             holistic->item-based--deletion
                              holistic->item-based
                              nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
@@ -109,14 +109,14 @@
          (do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory))))
         ((when (member 'item-based->item-based--substitution (repairs cxn-inventory) :key #'type-of)
          (do-create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution form meaning (processing-cxn-inventory cxn-inventory))))
-        ((when (member 'holistic->item-based--substitution (repairs cxn-inventory) :key #'type-of)
-         (do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory))))
-        ((when (member 'holistic->item-based (repairs cxn-inventory) :key #'type-of)
-         (do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory))))
-        ((when (member 'holistic->item-based--addition (repairs cxn-inventory) :key #'type-of)
-         (do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory))))
         ((when (member 'item-based->holistic (repairs cxn-inventory) :key #'type-of)
          (do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'holistic->item-based--substitution (repairs cxn-inventory) :key #'type-of)
+         (do-repair-holophrase->item-based+holistic+holistic--substitution form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'holistic->item-based--addition (repairs cxn-inventory) :key #'type-of)
+         (do-repair-holophrase->item-based+holistic--addition form meaning (processing-cxn-inventory cxn-inventory))))
+        ((when (member 'holistic->item-based (repairs cxn-inventory) :key #'type-of)
+         (do-create-item-based-cxn-from-partial-holistic-analysis form meaning (processing-cxn-inventory cxn-inventory))))
         (t
          (do-create-holistic-cxn form meaning (processing-cxn-inventory cxn-inventory)))))
 

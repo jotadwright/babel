@@ -6,24 +6,32 @@
 (defgeneric run-learner-comprehension-task (agent)
   (:documentation "Entry point for the learner's comprehension task"))
 
+(defun rank-cipns (cipns)
+  "rank cipns by average applied cxn score"
+  (sort (copy-seq cipns) #'> :key #'(lambda (cipn)
+                           (average (mapcar #'(lambda (cxn) (attr-val cxn :score)) (applied-constructions cipn))))))
+  
+
+
 (defmethod run-learner-comprehension-task (agent)
   ;(set-data (blackboard (grammar agent)) :add-th-links-repair-failed nil)
-    (multiple-value-bind (comprehended-meaning cipn)
-      (comprehend (utterance agent) :cxn-inventory (grammar agent) :gold-standard-meaning (meaning agent))
-    (let* ((applied-cxns (all-applied-cxns cipn)))
+    (multiple-value-bind (comprehended-meanings cipns)
+      (comprehend-all (utterance agent) :cxn-inventory (grammar agent) :gold-standard-meaning (meaning agent))
+    (let* ((solution-cipn (first (rank-cipns cipns)))
+           (applied-cxns (all-applied-cxns solution-cipn)))
       ;; notify the logging monitor
       ;; notify which cxns will be used
       (notify constructions-chosen applied-cxns)
-      (notify cipn-statuses (statuses cipn))
+      (notify cipn-statuses (statuses solution-cipn))
 
       ;; do alignment
-      (run-alignment agent cipn (get-configuration (experiment agent) :alignment-strategy))
+      (run-alignment agent solution-cipn (get-configuration (experiment agent) :alignment-strategy))
       ;(notify-learning process-result :trigger 'alignment-finished)
       
       ;; update the :last-used property of the cxns
       (loop for cxn in applied-cxns
             do (set-cxn-last-used agent cxn))
-    (values comprehended-meaning cipn))))
+    (values comprehended-meanings solution-cipn))))
 
 (defun all-applied-cxns (cipn)
   (cond (;initial node
