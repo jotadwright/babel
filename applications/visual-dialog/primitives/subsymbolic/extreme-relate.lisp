@@ -22,23 +22,27 @@
           :scene ,(namestring (path scene))
           :spatial-relation ,(spatial-relation spatial-relation)))
        (loop for scores in bind-scores
-           for values in bind-values
+             for values in bind-values
              do (let ((objects-with-attn
                        (loop for attn in (getf values 'target)
+                           ;  for score in (getf scores 'target)
+                               for score = 1.0
                              for attn-id = (intern attn :visual-dialog)
                              for object = (copy-object (find attn-id source-object-list :key #'id))
-                                      collect object)))
-                  (bind (target (getf scores 'target)
-                                (make-instance 'world-model
-                                               :id 'context
-                                               :path scene
-                                               :set-items
-                                               (list
-                                                (make-instance 'turn
-                                                               :timestamp 'permanent
-                                                               :object-set
-                                                               (make-instance 'object-set
-                                                                              :objects objects-with-attn)))))))))))
+                             do (setf (scores (attention object)) score)
+                             collect object)))
+                  (bind (target ;(getf scores 'target)
+                         1.0
+                         (make-instance 'world-model
+                                        :id 'context
+                                        :path scene
+                                        :set-items
+                                        (list
+                                         (make-instance 'turn
+                                                        :timestamp 'permanent
+                                                        :object-set
+                                                        (make-instance 'object-set
+                                                                       :objects objects-with-attn)))))))))))
   
   ;; second case; given source-object and target set, compute the spatial relation
   ((source target scene => spatial-relation)
