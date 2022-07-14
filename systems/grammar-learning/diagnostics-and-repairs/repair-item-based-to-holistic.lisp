@@ -82,6 +82,7 @@
                cxns-to-consolidate
                cats-to-add
                (extract-contributing-lex-class (last-elt cxns-to-apply))
+               t
                )))))))
             
           

@@ -60,23 +60,23 @@
 
 (defun do-create-categorial-links (form-constraints meaning cxn-inventory)
   "Return the categorial links and applied cxns from a comprehend with :category-linking-mode :path-exists instead of :neighbours"
-    (disable-meta-layer-configuration cxn-inventory) 
-    (with-disabled-monitor-notifications
-      (multiple-value-bind (parsed-meaning cip-node)
-          (comprehend form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning)
-        (enable-meta-layer-configuration cxn-inventory)
-        (when (and
-               (member 'succeeded (statuses cip-node) :test #'string=)
-               (equivalent-meaning-networks parsed-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
-               
-          (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
-                 (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply))))
-            (list
-             cxns-to-apply
-             (extract-used-categorial-links cip-node)
-             nil
-             nil
-             top-level-category))))))
+  (disable-meta-layer-configuration cxn-inventory) 
+  (with-disabled-monitor-notifications
+    (multiple-value-bind (parsed-meanings cipns)
+        (comprehend-all form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning)
+      (enable-meta-layer-configuration cxn-inventory)
+      (let ((cip-node (first (rank-cipns cipns))))
+        (when (member 'succeeded (statuses cip-node) :test #'string=)
+                      (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
+                             (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply))))
+                        (list
+                         cxns-to-apply
+                         (extract-used-categorial-links cip-node)
+                         nil
+                         nil
+                         top-level-category
+                         (gold-standard-consulted-p cip-node)
+                         )))))))
 
 
 (defun extract-used-categorial-links (solution-cipn)

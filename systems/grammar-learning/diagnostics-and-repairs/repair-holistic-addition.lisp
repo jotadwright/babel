@@ -74,5 +74,6 @@
            cxns-to-consolidate
            cats-to-add
            lex-class-item-based-cxn
+           t
            ))))))
 

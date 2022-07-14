@@ -121,5 +121,6 @@
            nil
            cxns-to-consolidate
            cats-to-add
-           lex-class-holistic-cxn)
+           lex-class-holistic-cxn
+           t)
          ))

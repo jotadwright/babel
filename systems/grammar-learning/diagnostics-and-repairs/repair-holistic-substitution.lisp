@@ -89,6 +89,7 @@ based on existing construction with sufficient overlap."
            cxns-to-consolidate
            cats-to-add
            lex-class-item-based-cxn
+           t
            ))))))
 
 

@@ -715,6 +715,7 @@ solution."
   (when notify (notify cip-started cip))
   (loop 
    with solution = nil
+   with non-succeeded-solution-p = nil
    with queue-mode = (get-configuration cip :queue-mode)
    for node = (pop (queue cip))
    when node
@@ -773,6 +774,7 @@ solution."
    (unless (or solution
                (succeeded-nodes cip))
      (setf solution (get-last-cip-node cip))
+     (setf non-succeeded-solution-p t)
      ;; make-sure goal-tests are run!
      (progn
        (cip-run-goal-tests solution cip)
@@ -784,7 +786,7 @@ solution."
      (inform-search-heuristics solution (direction (cip solution))))
    
    (when notify (notify cip-finished solution cip))
-   (return (values solution cip))))
+   (return (values solution cip non-succeeded-solution-p))))
 
 (defun lex-class (unit)
   (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
@@ -901,9 +903,9 @@ links between applied constructions for priming effects."
                  (when solution (push solution solutions))
                  (setf cip new-cip))
      for i from 2 to (or n 32000) ;; from 2 because we already did one in the initially
-     for (solution new-cip) = (multiple-value-list (next-cip-solution cip :notify nil))
+     for (solution new-cip non-succeeded-solution-p) = (multiple-value-list (next-cip-solution cip :notify nil))
      do (setf cip new-cip) ; potentially a new cip if there was a restart
-     while solution do (setf solutions (append solutions (list solution)))
+     while (and solution (not non-succeeded-solution-p)) do (setf solutions (append solutions (list solution)))
      finally
        (when notify (notify fcg-apply-w-n-solutions-finished solutions cip))
      (return (values solutions cip))))

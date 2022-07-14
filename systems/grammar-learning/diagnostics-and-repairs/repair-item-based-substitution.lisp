@@ -89,6 +89,7 @@
                cxns-to-consolidate
                cats-to-add
                (fifth item-based-cxn-and-links)
+               t
                ))))))))
                    
                    
