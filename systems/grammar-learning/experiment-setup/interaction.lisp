@@ -64,7 +64,6 @@
 
           ;; the highest ranked cipn was disqualified by the gold-standard-meaning goal test = nil
           ((gold-standard-consulted-p cipn)
-           (gold-standard-consulted-p cipn)
            nil)
 
           ;; Else: no repair was used and no gold standard was consulted = t
