@@ -7,7 +7,7 @@
     (let* ((scene-var (extract-scene-unit-variable cipn))
            (scene-var-bind-statement `(bind pathname-entity ,scene-var ,(make-instance 'pathname-entity :path scene-pathname)))
            (irl-program (append (list scene-var-bind-statement) irl-program))
-           (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
+           (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :n 1 :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
       (if solutions
         (let* ((list-of-bindings (first solutions))
                memory)
@@ -37,7 +37,7 @@
   (let* ((scene-var (extract-scene-unit-variable cipn))
          (scene-var-bind-statement `(bind pathname-entity ,scene-var ,(make-instance 'pathname-entity :path scene-pathname)))
          (irl-program (push scene-var-bind-statement irl-program))
-         (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
+         (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :n 1 :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
     (if solutions
       (let* ((target-value (get-target-value irl-program (first solutions)))
              (source-value (get-third-value-target-primitive irl-program (first solutions)))
@@ -83,7 +83,7 @@
                  (memory-var (extract-memory-unit-variable cipn))
                  (memory-var-bind-statement `(bind world-model ,memory-var ,memory))
                  (irl-program (push memory-var-bind-statement irl-program))
-                 (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
+                 (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :n 1 :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
             (if solutions
               (let* ((target-value (get-target-value irl-program (first solutions)))
                      (source-value (get-third-value-target-primitive irl-program (first solutions)))
