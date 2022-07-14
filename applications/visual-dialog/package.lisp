@@ -3,9 +3,7 @@
 (defpackage :visual-dialog
   (:documentation "Visual Dialog")
   (:use :common-lisp :utils :web-interface :irl :fcg
-    :clevr-dialog-grammar )
-  (:import-from :monitors
-                :activate-monitor)
+    :clevr-dialog-grammar :monitors)
   (:import-from :cl-json
    :decode-json-from-source
    :encode-json)
