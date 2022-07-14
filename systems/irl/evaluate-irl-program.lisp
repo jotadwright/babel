@@ -50,48 +50,66 @@
                                (processor irl-program-processor)
                                (mode (eql :best-first)))
   "Best first. The nodes with the best score for all bindings
-   will be in front of the queue."
-  (sorted-insert (queue processor) list-of-nodes :test #'>
-                 :key #'(lambda (node)
-                          (loop for b in (bindings node)
-                                when (value b) sum (score b)))))
+will be in front of the queue.
+This is a special kind of best first where the score of the node is actually the score of the previous node,
+use at your own risk."
+  (loop for node in list-of-nodes
+        do (setf (queue processor) 
+                 (sorted-insert (queue processor) node :test #'>
+                                :key #'(lambda (node)
+                                         (loop for b in (bindings node)
+                                               when (value b) sum (score b)))))))
 
 (defmethod enqueue-ippn-nodes ((list-of-nodes list)
                                (processor irl-program-processor)
                                (mode (eql :best-first-sum-new-bindings)))
   "Best first. The nodes with the best score for the new bindings
-   will be in front of the queue. Scores of new bindings are summed."
-  (labels ((sum-new-bindings-scores (node)
-             (let* ((node-bindings (bindings node))
-                    (parent-bindings (bindings (parent node)))
-                    (new-bindings-scores
-                     (loop for nb in node-bindings
-                           for pb in parent-bindings
-                           when (and (null (value pb))
-                                     (not (null (value nb))))
-                           collect (score nb))))
-               (apply #'+ new-bindings-scores))))
-    (sorted-insert (queue processor) list-of-nodes
-                   :key #'sum-new-bindings-scores :test #'>)))
+   will be in front of the queue. Scores of new bindings are summed.
+This is a special kind of best first where the score of the node is actually the score of the previous node,
+use at your own risk."
+  (loop for node in list-of-nodes
+        do (labels ((sum-new-bindings-scores (node)
+                      (let* ((node-bindings (if (parent node)
+                                              (bindings (parent node))))
+                             (parent-bindings (if (and (parent node)
+                                                       (parent (parent node)))
+                                                (bindings (parent (parent node)))))
+                             (new-bindings-scores
+                              (loop for nb in node-bindings
+                                    for pb in parent-bindings
+                                    when (and (null (value pb))
+                                              (not (null (value nb))))
+                                      collect (score nb))))
+                        (apply #'+ new-bindings-scores))))
+             (setf (queue processor)
+                   (sorted-insert (queue processor) node
+                                  :key #'sum-new-bindings-scores :test #'>)))))
 
 (defmethod enqueue-ippn-nodes ((list-of-nodes list)
                                (processor irl-program-processor)
                                (mode (eql :best-first-avg-new-bindings)))
   "Best first. The nodes with the best score for the new bindings
-   will be in front of the queue. Scores of new bindings are averaged."
-  (labels ((avg-new-bindings-scores (node)
-             (let* ((node-bindings (bindings node))
-                    (parent-bindings (bindings (parent node)))
-                    (new-bindings-scores
-                     (loop for nb in node-bindings
-                           for pb in parent-bindings
-                           when (and (null (value pb))
-                                     (not (null (value nb))))
-                           collect (score nb))))
-               (average new-bindings-scores))))
-    (sorted-insert (queue processor) list-of-nodes
-                   :key #'avg-new-bindings-scores :test #'>)))
-
+   will be in front of the queue. Scores of new bindings are averaged.
+   This is a special kind of best first where the score of the node is actually the score of the previous node,
+   use at your own risk."
+    (loop for node in list-of-nodes
+        do (labels ((avg-new-bindings-scores (node)
+                      (let* ((node-bindings (if (parent node)
+                                              (bindings (parent node))))
+                             (parent-bindings (if (and (parent node)
+                                                       (parent (parent node)))
+                                                (bindings (parent (parent node)))))
+                             (new-bindings-scores
+                              (loop for nb in node-bindings
+                                    for pb in parent-bindings
+                                    when (and (null (value pb))
+                                              (not (null (value nb))))
+                                      collect (score nb))))
+                        (average new-bindings-scores))))
+             (setf (queue processor)
+                   (sorted-insert (queue processor) node
+                                  :key #'avg-new-bindings-scores :test #'>)))))
+           
 (defmethod enqueue-ippn-nodes ((list-of-nodes list)
                                (processor irl-program-processor)
                                (mode (eql :depth-first)))
