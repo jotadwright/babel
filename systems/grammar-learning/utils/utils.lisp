@@ -598,6 +598,12 @@
                     (cons (first predicate)
                           (mapcar #'variablify (rest predicate))))))
 
+(defmethod meaning-predicates-with-variables (meaning (mode (eql :geo)))
+  "Transform meaning network with constants to meaning network with variables."
+    (loop for predicate in meaning
+          collect (cons (first predicate)
+                          (mapcar #'variablify (rest predicate)))))
+
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :amr)))
     "Transform meaning network with constants to meaning network with variables."
     (amr:variablify-amr-network meaning))
@@ -873,9 +879,11 @@
                       cxn
                       (check-meets-continuity non-overlapping-form-cxn)
                       (check-meets-continuity non-overlapping-form-observation)
-                      (equivalent-irl-programs?
+                      (equivalent-meaning-networks
                        (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation)
-                       (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)))
+                       (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)
+                       meaning-representation-formalism
+                       ))
                  (return (values non-overlapping-meaning-observation
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation
@@ -1030,8 +1038,15 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :amr)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
+(defmethod equivalent-meaning-networks (m1 m2  (mode (eql :geo)))
+  (amr::equivalent-amr-predicate-networks m1 m2))
+
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :amr)))
-  (multiple-value-bind (n1-diff n2-diff bindings) (amr::diff-amr-networks network-1 network-2)
+  (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-1 network-2)
+    (values n1-diff n2-diff)))
+
+(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :geo)))
+  (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-1 network-2)
     (values n1-diff n2-diff)))
 
 (defun substitute-predicate-bindings (predicate bindings)
@@ -1067,6 +1082,9 @@
   (extract-args-from-irl-network child-meaning))
 
 ;(extract-args-from-meaning-network '((i ?i) (:mod ?j ?k)) :amr)
+
+(defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :geo)))
+  (extract-args-from-meaning-networks child-meaning parent-meaning :amr))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :amr)))
   "look up the vars from the child network in the parent network, if found, it's an arg that connects"

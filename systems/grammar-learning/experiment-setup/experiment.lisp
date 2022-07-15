@@ -85,6 +85,9 @@
 
 (defgeneric pre-process-meaning-data (meaning mode))
 
+(defmethod pre-process-meaning-data (meaning (mode (eql :geo)))
+  (read-from-string meaning))
+
 (defmethod pre-process-meaning-data (meaning (mode (eql :irl)))
   (remove-duplicates (read-from-string meaning) :test #'equal))
 

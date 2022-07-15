@@ -31,6 +31,14 @@
 
   
 
+
+
+;; sparse logging, no trace-fcg
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions))
+
 ;; full logging
 (progn
   (deactivate-all-monitors)
@@ -43,12 +51,6 @@
 
 
 
-;; sparse logging, no trace-fcg
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions))
-
 (defun create-experiment ()
   (wi::reset)
   (notify reset-monitors)
@@ -56,7 +58,7 @@
     (eval `(make-instance 'grammar-learning-experiment
                    :entries '((:determine-interacting-agents-mode . :corpus-learner)
                          (:observation-sample-mode . :debug)
-                         (:meaning-representation . :irl)
+                         (:meaning-representation . :geo)
                          (:de-render-mode . :de-render-string-meets-no-punct)
                          (:corpus-files-root . ,(merge-pathnames
                                      (make-pathname :directory '(:relative "geoquery"))

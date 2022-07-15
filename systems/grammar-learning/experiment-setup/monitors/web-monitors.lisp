@@ -25,7 +25,7 @@
 (define-event-handler (trace-interactions-in-wi interaction-before-finished)
     (add-element `((h3) ,(format nil "Utterance: ") ,(format nil "\"~a\"" utterance)))
     (add-element `((h3) ,(format nil "Meaning: ")))
-    (add-element (make-html gold-standard-meaning)))
+    (add-element (predicate-network->svg gold-standard-meaning)))
 
 (define-event-handler (trace-interactions-in-wi cipn-statuses)
   (add-element '((h3) "CIPN statuses:"))
