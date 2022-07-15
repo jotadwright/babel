@@ -47,74 +47,114 @@
                                               :if-does-not-exist :create)
                              (dolist (entry (reverse data))
                                (write-line entry f)))))))
-;(format t "~a => ~a~%" lang data)))))
-          
-      
-                        
+
+
+(defun get-all-vars (geo-prolog-string)
+  (loop for raw-el in (remove "" (cl-ppcre::split "[,\(\)]" geo-prolog-string) :test #'equal)
+        for el = (string-trim " " raw-el)
+        when (upper-case-p (first (coerce el 'list)))
+        collect (variablify el)))
+  
+
                    
 (defun geo-prolog-to-predicates (geo-prolog-string)
   (loop with curr-predicate = nil
         with result = nil
         with const-found = nil
         with const-term = nil
-        for raw-el in (remove "" (cl-ppcre::split "[,\(\)]" (string-replace geo-prolog-string ",_" "")) :test #'equal)
-        for el = (string-trim " " raw-el)
-        do (cond (const-term
-                  (setf curr-predicate (append curr-predicate (list (intern (string-upcase (string-append
-                                                                                           
-                                                                                            const-term
-                                                                                            "-"
-                                                                                            (string-replace (string-replace el " " "-") #\' "")
-                                                                                                            
-                                                                                            
-                                                                                            )) :GL-DATA))))
+        with const-var = nil
+        with vars = (get-all-vars geo-prolog-string)
+        with second-city-id-el = nil
+        with city-id-found = nil
+        for raw-el in (remove "" (cl-ppcre::split "[,\(\)]" geo-prolog-string) :test #'equal)
+        for el = (replace-all (string-trim " " (replace-all raw-el "'" "")) " " "-")
+        do (cond (;; we know the const term, skolemnise the city/country name as a new predicate
+                  ;; (stateid ?b ?c)(arkansas ?c)
+                  (and const-term (not second-city-id-el))
+                  (if (equal const-term "cityid")
+                    (progn
+                      (setf city-id-found t)
+                      (setf result (append result (list (list (intern (string-upcase const-term) :GL-DATA)
+                                                            const-var
+                                                            (get-next-var-from-var-list vars)
+                                                            (get-next-var (get-next-var-from-var-list vars))
+                                                            )
+                                                        (list (intern (string-upcase el) :GL-DATA)
+                                                              (get-next-var-from-var-list vars))
+                                                             ))) 
+                      )
+                    (progn (setf result (append result (list (list (intern (string-upcase const-term) :GL-DATA)
+                                                            const-var
+                                                            (get-next-var-from-var-list vars)
+                                                            ))))
+                      (setf curr-predicate (list (intern (string-upcase el) :GL-DATA)
+                                                 (get-next-var-from-var-list vars)))
+                      ))
                   (setf const-term nil))
-                  
-
+                 
+                 ;; append the last city identifier
+                 (city-id-found
+                  (setf curr-predicate (list (intern (string-upcase el) :GL-DATA)
+                                             (get-next-var (get-next-var-from-var-list vars))))
+                   (setf city-id-found nil)
+                   )
+                 
+                 ;; we've passed a const term, save the next term
                  ((and const-found
                        (lower-case-p (first (coerce el 'list))))
                   (setf const-found nil)
                   (setf const-term (string-downcase el)))
 
+                 ;; we found the const var
+                 ((and const-found
+                       (upper-case-p (first (coerce el 'list))))
+                  (setf const-var (variablify el)))
+                 
+                 ;; it's a term, append the last term to result, start a new one
                  ((lower-case-p (first (coerce el 'list)))
-                  (when (string= el "const")
-                    (setf const-found t))
                   (when curr-predicate
                     (setf result (append result (list curr-predicate))))
-                  (setf curr-predicate (list (intern (string-upcase el) :GL-DATA))))
+                  (if (string= el "const")
+                    (setf const-found t)
+                    (setf curr-predicate (list (intern (string-upcase el) :GL-DATA)))))
                  
+                 ;; it's a number
+                 ((numberp (read-from-string el))
+                  
+                  (setf curr-predicate (append curr-predicate (list (read-from-string el))))
+                  )
+                 ;; it's a variable
                  (t
-                  (setf curr-predicate (append curr-predicate (list (variablify el))))))
+                  (setf curr-predicate (append curr-predicate (list (variablify el))))
+                  (push (variablify el) vars)))
         finally (return (append result (list curr-predicate)))))
+        
 
-
+(numberp (read-from-string "0"))
 ;(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
+(defun get-next-var-from-var-list (var-list)
+  (get-next-var (first (sort var-list #'> :key #'(lambda (x) (position (symbol-name x) gl::+placeholder-vars+ :test #'equal))))))
 
+(defun get-next-var (last-var)
+  (intern (nth (+ 1 (position (symbol-name last-var) gl::+placeholder-vars+ :test #'equal)) gl::+placeholder-vars+)))
 
+;(geo-prolog-to-predicates "answer(A,(size(B,A),const(B,cityid('new york',_))))")
 
-
-
-
-
-;(geo-prolog-to-predicates "answer(A,(population(B,A),const(B,cityid(springfield,sd))))")
+;(geo-prolog-to-predicates "answer(A,(population(B,A),const(B,cityid(springfield,_))))")
 
 #|
+(answer ?a)
+(river ?a)
+(loc ?a ?b)
+(stateid ?b ?c)
+(arkansas ?c)
+ 
+ 
 (answer ?a)
 (population ?b ?a)
 (cityid ?b ?c ?d)
 (springfield ?c)
 (sd ?d))
-
-
- 
- ((answer ?a)
-  (high-point ?b ?a)
-  (state ?b)
-  (next-to ?b ?c)
-  (const ?c +stateid-mississippi+))
-  
     
 |#
 
-
-;; split term, if var, add var, if term recurse
