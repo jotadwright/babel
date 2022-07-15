@@ -21,8 +21,8 @@
            for values in bind-values
            do (let ((objects-with-attn
                      (loop for attn in (getf values 'segmented-scene)
-                           ;for score in (getf scores 'segmented-scene)
-                             for score = 1.0
+                           for score in (getf scores 'segmented-scene)
+                           ;for score = 1.0
                            for attention = (make-instance 'attention :id (intern attn :visual-dialog) :scores score)
                            do (when (not (get-data ontology 'silent))
                                 (request-attn (get-data ontology 'server-address) (get-data ontology 'cookie-jar) attention))
