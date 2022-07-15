@@ -2,25 +2,12 @@
 
 (in-package :fcg)
 
-(defun detach-punctuation (word)
-  "This function will check if the input string (word)
-   has a punctuation at the end of it (e.g. it?)
-   and return a list of the word + the punctuation mark
-   (e.g. '('it' '?')"
-  (let ((last-char (char word (1- (length word)))))
-    (if (punctuation-p last-char)
-      (if (eq last-char #\?)
-        (list (subseq word 0 (1- (length word))))
-        (list (subseq word 0 (1- (length word)))
-              (subseq word (1- (length word)))))
-      (list word))))
+
 
 (defun tokenize (utterance)
-  "Split the utterance in words, downcase every word,
-    the punctuation from the word"
-  (let ((words (split (remove-spurious-spaces utterance) #\space)))
-    (loop for word in words
-          append (detach-punctuation (downcase word)))))
+  "Remove the punctuation from the sentence. Split the utterance in words, downcase every word"
+  (let ((words (split (remove-spurious-spaces (remove-punctuation utterance)) #\space)))
+    (mapcar #'downcase words)))
 
 (defmethod de-render ((utterance string) (mode (eql :de-render-string-meets-no-punct))
                       &key &allow-other-keys)
@@ -61,6 +48,9 @@
 
 (in-package :grammar-learning)
 
+
+;(fcg::tokenize "De quelle forme est le grand truc rouge en métal ?")
+;(defparameter *test* (de-render "De quelle forme est le grand truc rouge en métal ?" :de-render-string-meets-fr))
 
 (defun empty-cxn-set (experiment)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
