@@ -889,6 +889,7 @@
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
                                  overlapping-meaning-observation
+                                 overlapping-meaning-cxn
                                  overlapping-form-observation
                                  cxn
                                  )))))))
@@ -942,6 +943,8 @@
                        (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)))
                  (return (values non-overlapping-meaning-observation
                                  non-overlapping-meaning-cxn
+                                 overlapping-meaning-observation
+                                 overlapping-meaning-cxn
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
                                  cxn
@@ -1095,7 +1098,7 @@
 
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
-  (sort irl-network #'string-lessp :key (lambda (predicate) ;; TODO: get rid of sort, do search until connected meaning goal test succeeds instead
+  (sort irl-network #'string-lessp :key (lambda (predicate)
                                           (if (equal (first predicate) 'bind)
                                           (symbol-name (third predicate))
                                           (symbol-name (second predicate)))))
@@ -1210,6 +1213,7 @@
                               overlapping-meaning
                               non-overlapping-meaning
                               meaning
+                              parent-meaning
                               meaning-representation-formalism
                               repair-name)             
   (let* (;; cxn names
@@ -1229,7 +1233,7 @@
          ;; args
          (slot-args (extract-args-from-meaning-networks non-overlapping-meaning meaning meaning-representation-formalism))
          ;(alt-slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part)))) ; this should work too!
-         (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+         (item-based-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
          (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
                                               overlapping-form-with-rewritten-boundaries
                                               overlapping-meaning

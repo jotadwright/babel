@@ -24,10 +24,11 @@
    (meaning-predicates-with-variables
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   nil
    (construction-inventory node)))
 
 
-(defun do-repair-holophrase->item-based+holistic--addition (form-constraints meaning cxn-inventory) 
+(defun do-repair-holophrase->item-based+holistic--addition (form-constraints meaning parent-meaning cxn-inventory) 
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism)))
     (multiple-value-bind (cxn
@@ -49,6 +50,7 @@
                                                                                     overlapping-meaning
                                                                                     non-overlapping-meaning
                                                                                     meaning
+                                                                                    parent-meaning
                                                                                     meaning-representation-formalism
                                                                                     'holistic->item-based--addition)))
                (new-item-based-cxn-apply-first (first item-based-cxn-variants))

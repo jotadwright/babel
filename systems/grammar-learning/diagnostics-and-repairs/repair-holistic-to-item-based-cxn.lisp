@@ -28,6 +28,7 @@
    (meaning-predicates-with-variables
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   nil
    (construction-inventory node)))
 
 
@@ -44,7 +45,7 @@
         unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
         collect unit))
                
-(defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning cxn-inventory)
+(defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning parent-meaning cxn-inventory)
   "Creates item-based construction around matching holistic constructions"
   (let* ((original-cxn-set (original-cxn-set cxn-inventory))
          
@@ -122,7 +123,7 @@
              (holistic-subunit-names
               (third holistic-cxn-subunit-blocks))
              (subtracted-meanings (fourth holistic-cxn-subunit-blocks))
-             (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+             (item-based-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
              (slot-args-list (fifth holistic-cxn-subunit-blocks))
              )
         (when (and slot-args-list

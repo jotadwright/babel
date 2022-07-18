@@ -33,28 +33,31 @@
    (meaning-predicates-with-variables
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   nil
    (construction-inventory node)))
   
-(defun do-create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution (form-constraints meaning cxn-inventory)
+(defun do-create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution (form-constraints meaning parent-meaning cxn-inventory)
   "Creates item-based construction around matching holistic constructions"
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          ;; temp item-based cxn to diff with an existing one
-         (cxns-and-links (do-create-item-based-cxn-from-partial-holistic-analysis form-constraints meaning (processing-cxn-inventory cxn-inventory))))
+         (cxns-and-links (do-create-item-based-cxn-from-partial-holistic-analysis form-constraints meaning parent-meaning (processing-cxn-inventory cxn-inventory))))
     (when cxns-and-links
       (let* ((cxns-to-apply (first cxns-and-links))
              (intermediary-item-based-cxn (last-elt cxns-to-apply))
              (applied-holistic-cxns (remove intermediary-item-based-cxn cxns-to-apply)))
         (multiple-value-bind (non-overlapping-meaning-observation
                               non-overlapping-meaning-cxn
+                              overlapping-meaning-observation
+                              overlapping-meaning-cxn
                               non-overlapping-form-observation
                               non-overlapping-form-cxn
                               cxn)
             (select-item-based-cxn-for-making-item-based-cxn cxn-inventory intermediary-item-based-cxn meaning-representation-formalism)
           (when cxn
             ;; new holistic cxns based on substitution
-            (let* ((cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
-                   (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
+            (let* ((cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation overlapping-meaning-observation cxn-inventory))
+                   (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn overlapping-meaning-cxn cxn-inventory))
                    (temp-cxns-to-add (append
                                       (first cxns-and-links-holistic-part-observation)
                                       applied-holistic-cxns))
@@ -62,7 +65,7 @@
                                              (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-add)))
                    (temp-cxn-inventory (create-temp-cxn-inventory cxn-inventory :cxns-to-add temp-cxns-to-add :categories-to-add temp-cats-to-add))
                    ;; new item-based cxn
-                   (item-based-cxn-and-links (do-create-item-based-cxn-from-partial-holistic-analysis form-constraints meaning (processing-cxn-inventory temp-cxn-inventory)))
+                   (item-based-cxn-and-links (do-create-item-based-cxn-from-partial-holistic-analysis form-constraints meaning parent-meaning (processing-cxn-inventory temp-cxn-inventory)))
                    ;; build result
                    (cxns-to-apply (first item-based-cxn-and-links))
                    (cat-links-to-add (append (second item-based-cxn-and-links)

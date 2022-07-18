@@ -55,7 +55,7 @@
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root
                    (irl::embedding remaining-meaning meaning)) ;; the subtracted meaning must not be nil
           (let* (;; cxns and links from iterating over all repairs
-                 (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn remaining-form-constraints remaining-meaning original-cxn-inventory))
+                 (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn remaining-form-constraints remaining-meaning (first inverted-cxn-meanings) original-cxn-inventory))
                  
                  (temp-cxns-to-add (append
                                       (first cxns-and-links-holistic-part-observation)
