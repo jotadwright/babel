@@ -267,6 +267,9 @@
                      collect arg-list)))
     args))
 
+(defun extract-contributing-args (cxn)
+  (second (find 'args (fcg::unit-structure (first (contributing-part cxn))) :key #'first)))
+
 (defun extract-args-from-holistic-cxn-apply-last (cxn)
   (second (find 'args (formulation-lock (first (conditional-part cxn))) :key #'feature-name)))
 
@@ -339,7 +342,7 @@
             (find arg-var (remove-bind-statements meaning) :key #'third))
     t))
 
-(defun find-cxn-by-form-and-meaning (form meaning args-list cxn-inventory &key cxn-type cxn-set)
+(defun find-cxn-by-form-and-meaning (form meaning args-list item-based-args-list cxn-inventory &key cxn-type cxn-set)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-type-cxn = (attr-val cxn :cxn-type)
@@ -358,6 +361,13 @@
                              for left-res = (arg-is-part-of-meaning-p (first args) (extract-meaning-predicates cxn))
                              for right-res = (arg-is-part-of-meaning-p (second args) (extract-meaning-predicates cxn))
                              append (list left-res right-res)))                           
+                t)
+              (if item-based-args-list
+                (and (equal (length item-based-args-list) (length (extract-contributing-args-apply-last cxn)))
+                     (equal (loop for arg in item-based-args-list
+                                  collect (arg-is-part-of-meaning-p arg meaning))
+                            (loop for arg in (extract-contributing-args-apply-last cxn)
+                                  collect (arg-is-part-of-meaning-p arg (extract-meaning-predicates cxn)))))                         
                 t)
               ;; check args: look up if the first arg is in the meaning representation, or if the second arg is in the meaning representation - this order should match!
               
@@ -1230,10 +1240,6 @@
          (rewritten-boundaries (second overlapping-form-and-rewritten-boundaries))
          (dummy-slot-fc (list (list 'fcg::meets (first rewritten-boundaries) (second rewritten-boundaries))))
          (rewritten-item-based-boundaries (get-boundary-units (append dummy-slot-fc overlapping-form-with-rewritten-boundaries)))
-
-         ;;
-         (dbg (when parent-meaning
-                (+ 1)))
          ;; args
          ;(slot-args (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism))
          (item-based-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
@@ -1241,6 +1247,7 @@
                                               overlapping-form-with-rewritten-boundaries
                                               overlapping-meaning
                                               (list slot-args)
+                                              item-based-args
                                               cxn-inventory
                                               :cxn-type 'item-based
                                               :cxn-set 'fcg::routine))
