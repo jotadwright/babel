@@ -29,9 +29,9 @@
          (unit-name-ids (loop for node in spacy-benepar-analysis
                               for node-id = (node-id node)
                               for node-type = (node-type node)
-                              if (equal node-type 'phrase)
+                              if (equal node-type 'fcg-server::phrase)
                               collect (cons node-id (make-const (format nil "~{~a-~}" (node-phrase-types node))))
-                              else
+                              else 
                               collect (cons node-id (make-const (node-string node)))))
          ;; Make units
          (units (loop for node in spacy-benepar-analysis

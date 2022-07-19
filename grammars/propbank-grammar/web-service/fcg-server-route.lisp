@@ -1,9 +1,9 @@
 (in-package :fcg-server)
-(use-package :propbank-grammar)
+;(use-package :propbank-grammar)
 
 (setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
 
-(defroute comprehend-and-extract-frames (:post :application/json)
+(defroute extract-frames (:post :application/json)
   (fcg-server-comprehend-and-extract-frames
    (handler-case
        (decode-json-from-string
@@ -25,34 +25,38 @@
   (let* (;; Retrieve the utterance and assert that it is a string
          (utterance-raw (cdr (assoc :utterance json-input)))
          (utterance (if (stringp utterance-raw)
-                      utterance-raw
-                      (http-condition 400 (format nil "Utterance should be of type string. Received a ~a." (type-of utterance-raw)))))
+                        utterance-raw
+                        (http-condition 400 (format nil "Utterance should be of type string. Received a ~a." (type-of utterance-raw)))))
          ;; Retrieve the package and assert that is found
          (package-raw (cdr (assoc :package json-input)))
          (package (if (find-package (utils:make-kw package-raw))
-                    (find-package (utils:make-kw package-raw))
-                    (http-condition 400 (format nil "Package '~a' not found." package-raw))))
+                      (find-package (utils:make-kw package-raw))
+                      (http-condition 400 (format nil "Package '~a' not found." package-raw))))
          ;; Retrieve the grammar and assert that it is found
          (grammar-raw (cdr (assoc :grammar json-input)))
          (grammar (if (find-symbol (utils:upcase grammar-raw) package)
-                    (symbol-value (find-symbol (utils:upcase grammar-raw) package))
-                    (http-condition 400 (format nil "Grammar '~a' not found in package '~a'." grammar-raw package-raw))))
+                      (symbol-value (find-symbol (utils:upcase grammar-raw) package))
+                      (http-condition 400 (format nil "Grammar '~a' not found in package '~a'." grammar-raw package-raw))))
          ;; Retrieve the timeout and check if it is a number
          (timeout-raw (cdr (assoc :timeout json-input)))
          (timeout (if (numberp timeout-raw)
-                    timeout-raw
-                    (http-condition 400 (format nil "Timeout should be of type number. Received '~a'." (type-of timeout-raw))))))
+                      timeout-raw
+                      (http-condition 400 (format nil "Timeout should be of type number. Received '~a'." (type-of timeout-raw))))))
 
     ;; 3. Perform the actual comprehension process
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+    
     (handler-case
         (trivial-timeout:with-timeout (timeout)
           (multiple-value-bind (solution cipn frame-set)
               (handler-case (monitors:with-disabled-monitor-notifications
-                              (propbank-grammar::comprehend-and-extract-frames utterance :cxn-inventory grammar :silent t))
+                              (utils::with-package (package-name package)
+                                (propbank-grammar::comprehend-and-extract-frames utterance :cxn-inventory grammar :silent t)))
+                
                 (error (e)
                   (http-condition 400 (format nil "Error during the comprehension process: ~a" e))))
+
+                                        ;(pprint (fcg::name (fcg::construction-inventory cipn)))
             (declare (ignore solution cipn))
             ;;  4. Return the result as a json object
             (cl-json:encode-json-alist-to-string
