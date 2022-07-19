@@ -83,12 +83,12 @@
                                         (:hash-mode . :hash-string-meaning-lex-id))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs (add-categorial-links
-                             item-based->item-based--substitution
-                             item-based->holistic
+                             ;item-based->item-based--substitution
+                             ;item-based->holistic
                              holistic->item-based--substitution
                              ;holistic->item-based--addition
-                             holistic->item-based--deletion
-                             holistic->item-based
+                             ;holistic->item-based--deletion
+                             ;holistic->item-based
                              nothing->holistic)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . t))))))

@@ -48,11 +48,12 @@ based on existing construction with sufficient overlap."
                           cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory form-constraints meaning meaning-representation-formalism)
       
-      (when cxn
+      (when (and cxn
+                 (extract-args-from-meaning-networks non-overlapping-meaning-observation (append parent-meaning overlapping-meaning-observation) meaning-representation-formalism))
         
         (let* (;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation overlapping-meaning-observation cxn-inventory))
-               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn overlapping-meaning-cxn cxn-inventory))
+               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation (append parent-meaning overlapping-meaning-observation) cxn-inventory))
+               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn (append parent-meaning overlapping-meaning-cxn) cxn-inventory))
                ;; surrounding item-based cxn
                (item-based-cxn-variants (multiple-value-list (create-item-based-cxn cxn-inventory
                                                                                     overlapping-form-observation
@@ -61,6 +62,7 @@ based on existing construction with sufficient overlap."
                                                                                     non-overlapping-meaning-observation
                                                                                     meaning
                                                                                     parent-meaning
+                                                                                    (extract-args-from-meaning-networks non-overlapping-meaning-observation (append parent-meaning overlapping-meaning-observation) meaning-representation-formalism)
                                                                                     meaning-representation-formalism
                                                                                     'holistic->item-based--substitution)))
                (new-item-based-cxn-apply-first (first item-based-cxn-variants))

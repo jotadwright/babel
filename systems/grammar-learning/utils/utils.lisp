@@ -1214,6 +1214,7 @@
                               non-overlapping-meaning
                               meaning
                               parent-meaning
+                              slot-args
                               meaning-representation-formalism
                               repair-name)             
   (let* (;; cxn names
@@ -1229,10 +1230,12 @@
          (rewritten-boundaries (second overlapping-form-and-rewritten-boundaries))
          (dummy-slot-fc (list (list 'fcg::meets (first rewritten-boundaries) (second rewritten-boundaries))))
          (rewritten-item-based-boundaries (get-boundary-units (append dummy-slot-fc overlapping-form-with-rewritten-boundaries)))
-         
+
+         ;;
+         (dbg (when parent-meaning
+                (+ 1)))
          ;; args
-         (slot-args (extract-args-from-meaning-networks non-overlapping-meaning meaning meaning-representation-formalism))
-         ;(alt-slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part)))) ; this should work too!
+         ;(slot-args (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism))
          (item-based-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
          (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
                                               overlapping-form-with-rewritten-boundaries

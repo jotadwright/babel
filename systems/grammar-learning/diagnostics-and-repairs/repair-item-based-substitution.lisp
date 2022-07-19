@@ -85,14 +85,16 @@
                                         (fourth cxns-and-links-holistic-part-observation)
                                         (fourth cxns-and-links-holistic-part-cxn))))
               ;; overwrite repair status attribute
-              (setf (attr-val (last-elt cxns-to-apply) :repair) 'item-based->item-based--substitution)
-              (list
-               cxns-to-apply
-               cat-links-to-add
-               cxns-to-consolidate
-               cats-to-add
-               (fifth item-based-cxn-and-links)
-               t
-               ))))))))
+
+              (when item-based-cxn-and-links
+                (setf (attr-val (last-elt cxns-to-apply) :repair) 'item-based->item-based--substitution)
+                (list
+                 cxns-to-apply
+                 cat-links-to-add
+                 cxns-to-consolidate
+                 cats-to-add
+                 (fifth item-based-cxn-and-links)
+                 t
+                 ))))))))) ;todo, debug the else case!
                    
                    
