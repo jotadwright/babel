@@ -131,9 +131,6 @@
         finally (return (append result (list curr-predicate)))))
         
 
-;(parse-geoquery "/Users/jonas/Downloads/wasp-2.0alpha/data/geo-funql/corpus.xml")
-
-
 (defun get-next-var-from-var-list (var-list)
   (get-next-var (first (sort var-list #'> :key #'(lambda (x) (position (symbol-name x) gl::+placeholder-vars+ :test #'equal))))))
 
@@ -143,7 +140,8 @@
 
 ;; How many rivers do not traverse the state with the capital Albany ?
 ;(geo-prolog-to-predicates "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))")
-(skolemnize-embedded-predicates
+
+(serialize-embedded-predicates
  (geo-prolog-to-polish-notation "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))"))
 
 (serialize-embedded-predicates
@@ -189,6 +187,8 @@
 
 ;(geo-prolog-to-predicates "answer(A,(population(B,A),const(B,cityid(springfield,_))))")
 
+;(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
+
 #|
 (answer ?a)
 (count ?b ?a)
@@ -217,4 +217,3 @@
 (sd ?d))
     
 |#
-
