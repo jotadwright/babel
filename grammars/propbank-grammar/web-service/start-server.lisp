@@ -2,7 +2,7 @@
 (ql:quickload :propbank-grammar)
 (in-package :fcg)
 
-(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
+;(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
 
 (defparameter *restored-grammar*
   (cl-store:restore
