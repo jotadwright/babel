@@ -137,50 +137,82 @@
 (defun get-next-var (last-var)
   (intern (nth (+ 1 (position (symbol-name last-var) gl::+placeholder-vars+ :test #'equal)) gl::+placeholder-vars+)))
 
-
-;; How many rivers do not traverse the state with the capital Albany ?
-;(geo-prolog-to-predicates "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))")
-
-(serialize-embedded-predicates
- (geo-prolog-to-polish-notation "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))"))
-
-(serialize-embedded-predicates
- (geo-prolog-to-polish-notation "answer(A,(size(B,A),const(B,cityid('new york',_))))"))
-
 (defun geo-prolog-to-polish-notation (geo-prolog-string)
   (let* ((geo-prolog-string (cl-ppcre:regex-replace-all "([a-z]+)[\(]" geo-prolog-string "\(\\1 "))
-         (geo-prolog-string (cl-ppcre:regex-replace-all "([A-Z])" geo-prolog-string "?\\1"))
+         (geo-prolog-string (cl-ppcre:regex-replace-all "([A-Z_])" geo-prolog-string "?\\1"))
          (geo-prolog-string (cl-ppcre:regex-replace-all "'([a-z]+) ([a-z]+)'" geo-prolog-string "\\1_\\2"))
          (geo-prolog-string (replace-all geo-prolog-string "," " "))
          (geo-prolog-string (string-append "("geo-prolog-string ")")))
     (read-from-string geo-prolog-string)))
 
-(defun serialize-embedded-predicates (embedded-predicates)
-    (remove nil (loop with emb-preds = embedded-predicates
-          while emb-preds
-          append (loop 
-                   for predicate in emb-preds
-                   for term = (first predicate)
-                   for args = (rest predicate)
-                   for vars = (loop for el in args
-                                    when (variable-p el)
-                                    collect el)
-                   for cand-emb-preds = (loop for el in args
-                                              unless (variable-p el)
-                                              collect el)
-                   for accum-val = (append (list term) vars)
-                   do (cond ((equal (type-of term) 'cons)
-                             (setf accum-val nil)
-                             (setf emb-preds (append (list term) cand-emb-preds)))
-                            ((string= term 'CONST)
-                             (setf accum-val predicate))
-                            (t
-                             (setf emb-preds cand-emb-preds)))
-                   collect accum-val))))
+(defun serialize-embedded-predicates (geo-prolog-string)
+  (remove nil (loop with emb-preds = (geo-prolog-to-polish-notation geo-prolog-string)
+                    with var-list = (get-all-vars geo-prolog-string)
+                    with program-level = (first (push (get-next-var-from-var-list var-list) var-list))
+                    while emb-preds
+                    append (loop
+                            with next-level = (get-next-var-from-var-list var-list)
+                            for predicate in emb-preds
+                            for term = (when (equal (type-of predicate) 'cons)
+                                         (first predicate))
+                            for args = (when (equal (type-of predicate) 'cons)
+                                         (rest predicate))
+                            for vars = (append (list program-level)
+                                               (loop for el in args
+                                                     if (variable-p el)
+                                                     collect el
+                                                     else
+                                                     collect next-level))
+                            for cand-emb-preds = (loop for el in args
+                                                       unless (variable-p el)
+                                                       collect el)
+                            for accum-val = (append (list term) vars)
+                            do (cond (;; predicate is a constant e.g. 'new_york
+                                      (equal (type-of predicate) 'symbol)
+                                      (setf accum-val (list program-level predicate))
+                                      (setf emb-preds nil))
+                                      ;; term is actually a list, continue with the list in next iteration   
+                                     ((equal (type-of term) 'cons)
+                                      (setf accum-val nil)
+                                      (setf emb-preds (append (list term) cand-emb-preds)))
+                                     ;; term is an actual term, collect the result and continue with the embedded predicates
+                                     (t
+                                      (setf emb-preds cand-emb-preds)
+                                      ))
+                            when accum-val
+                            collect accum-val
+                            ;; update the program-level
+                            finally (when accum-val (setf program-level (first (push (get-next-var-from-var-list var-list) var-list))))))))
   
           
           
-  
+
+;; How many rivers do not traverse the state with the capital Albany ?
+;(geo-prolog-to-predicates "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))")
+
+(serialize-embedded-predicates "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))")
+
+(serialize-embedded-predicates "answer(A,(size(B,A),const(B,cityid('new york',_))))")
+#|
+(answer ?x ?a ?y)
+(size ?y ?b ?a)
+(const ?y ?b ?z)
+(cityid ?z 'new_york ?_)
+
+|#
+
+
+(serialize-embedded-predicates "answer(A,count(B,(state(B),not((loc(C,B),river(C)))),A))")
+ #|
+(answer ?d ?a ?e)
+(count ?e ?b ?f ?a)
+(state ?f ?b)
+(not ?f ?g)
+(loc ?g ?c ?b)
+(river ?g ?c)
+
+    
+|# 
 
  
 ;(geo-prolog-to-predicates "answer(A,(size(B,A),const(B,cityid('new york',_))))")
@@ -189,31 +221,4 @@
 
 ;(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
 
-#|
-(answer ?a)
-(count ?b ?a)
-(river ?b)
-(traverse ?b ?c)
-(state ?c)
-(loc ?d ?c)
-(capital ?d)
-(cityid ?d ?e ?f)
-(albany ?e)
-(_ ?f)
 
-
- 
-(answer ?a)
-(river ?a)
-(loc ?a ?b)
-(stateid ?b ?c)
-(arkansas ?c)
- 
- 
-(answer ?a)
-(population ?b ?a)
-(cityid ?b ?c ?d)
-(springfield ?c)
-(sd ?d))
-    
-|#
