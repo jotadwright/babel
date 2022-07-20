@@ -70,17 +70,22 @@
                                   (rest predicate))
                      for vars = (append (list program-level)
                                         (loop for el in args
-                                              if (variable-p el)
+                                              if (or (numberp el)
+                                                     (variable-p el))
                                               collect el
                                               else
                                               collect next-level))
                      for cand-emb-preds = (loop for el in args
-                                                unless (variable-p el)
+                                                unless (or (numberp el)
+                                                     (variable-p el))
                                                 collect el)
                      for accum-val = (append (list term) vars)
-                     do (cond (;; predicate is a constant e.g. 'new_york
+                     do (when cand-emb-preds
+                          (setf next-level (get-next-var next-level)))
+                     (cond (;; predicate is a constant e.g. 'new_york
                                (equal (type-of predicate) 'symbol)
                                (setf accum-val (list predicate program-level)))
+                              
                               ;; term is actually a list, continue with the list in next iteration   
                               ((equal (type-of term) 'cons)
                                (setf accum-val nil)
@@ -126,10 +131,10 @@
 (answer ?c ?a ?d)
 (state ?d ?a)
 (const ?d ?b ?e)
-(riverid ?e ?f)
-(chattahoochee ?f)
 (river ?d ?b)
 (traverse ?d ?b ?a)
+(riverid ?e ?f)
+(chattahoochee ?f)
 |#
 
 
@@ -185,6 +190,24 @@
 |#
 
 
+;; "What is the highest point in each state whose lowest point is sea level ?"
+;; (geo-prolog-to-predicates "answer(A,(highest(A,(place(A),loc(A,B),state(B))),lowest(C,(loc(C,B),place(C))),elevation(C,0)))")
+
+
+#|
+(answer ?d ?a ?e)
+(highest ?e ?a ?f)
+(lowest ?e ?c ?f) => ?f must be ?g
+(elevation ?e ?c 0)
+(place ?f ?a)
+(loc ?f ?a ?b)
+(state ?f ?b)
+(loc ?g ?c ?b)
+(place ?g ?c)
+
+
+=> ((FCG::ANSWER FCG::?D FCG::?A FCG::?E) (FCG::HIGHEST FCG::?E FCG::?A FCG::?F) (FCG::LOWEST FCG::?E FCG::?C FCG::?F) (FCG::ELEVATION FCG::?E FCG::?C 0) (FCG::PLACE FCG::?F FCG::?A) (FCG::LOC FCG::?F FCG::?A FCG::?B) (FCG::STATE FCG::?F FCG::?B) (FCG::LOC FCG::?G FCG::?C FCG::?B) (FCG::PLACE FCG::?G FCG::?C))
+|#
  
 ;(geo-prolog-to-predicates "answer(A,(size(B,A),const(B,cityid('new york',_))))")
 
