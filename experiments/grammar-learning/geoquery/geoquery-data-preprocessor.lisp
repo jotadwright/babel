@@ -125,93 +125,46 @@
     (read-from-string geo-prolog-string)))
 
 
-(geo-prolog-to-polish-notation "answer(A,(state(A),const(B,riverid(chattahoochee)),river(B),traverse(B,A)))")
-(geo-prolog-to-predicates "answer(A,(state(A),const(B,riverid(chattahoochee)),river(B),traverse(B,A)))")
-#|
-(answer ?c ?a ?d)
-(state ?d ?a)
-(const ?d ?b ?e)
-(river ?d ?b)
-(traverse ?d ?b ?a)
-(riverid ?e ?f)
-(chattahoochee ?f)
-|#
+(defun predicates-to-geo-prolog (predicates)
+  "go through all predicates in reverse, and keep substituting subprograms until no levels are left"
+  (loop with stack = (reverse (copy-list predicates))      
+        while stack     
+        for predicate = (pop stack)
+        for term = (first predicate)
+        for nxt-lvl-var = (cond ((equal term 'count)
+                                 (fourth predicate))
+                                ((equal term 'cityid)
+                                 (third predicate))
+                                (t
+                                 (last-elt predicate)))
+        for embedded-preds = (find-all nxt-lvl-var (remove predicate predicates) :key #'second :test #'equal)
+        for stripped-embedded-preds = (mapcar #'(lambda (predicate) (remove nxt-lvl-var predicate)) embedded-preds)
+        for delisted-embedded-preds = (cond ((and
+                                              (= (length stripped-embedded-preds) 1)
+                                              (= (length (first stripped-embedded-preds)) 1))
+                                             (first (first stripped-embedded-preds)))
+                                            ((= (length stripped-embedded-preds) 1)
+                                             (first stripped-embedded-preds))
+                                            (t
+                                             stripped-embedded-preds))
+        for remaining-preds = (loop for pred in predicates
+                                    unless (member pred embedded-preds)
+                                    collect pred)
+        when embedded-preds
+        do (setf predicates (substitute (substitute delisted-embedded-preds nxt-lvl-var predicate) predicate remaining-preds))
+        finally (return (remove (second (first predicates)) (first predicates)))))
+        
+(defun test_pl_to_preds (geo-prolog-string)
+  (equal (geo-prolog-to-polish-notation geo-prolog-string)
+       (list (predicates-to-geo-prolog (geo-prolog-to-predicates geo-prolog-string)))))
 
-
-;; How many rivers do not traverse the state with the capital Albany ?
-;; (geo-prolog-to-predicates "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))")
-#|
-(answer ?e ?a ?f)
-(count ?f ?b ?g ?a)
-(river ?g ?b)
-(not ?g ?h)
-(traverse ?h ?b ?c)
-(state ?h ?c)
-(loc ?h ?d ?c)
-(capital ?h ?d)
-(const ?h ?d ?i)
-(cityid ?i ?j ?_)
-(albany ?j)
-|#
-
-(geo-prolog-to-predicates "answer(A,(size(B,A),const(B,cityid('new york',_))))")
-#|
-(answer ?c ?a ?d)
-(size ?d ?b ?a)
-(const ?d ?b ?e)
-(cityid ?e ?f ?_)
-(new_york ?f)
-
-|#
-
-
-(geo-prolog-to-predicates "answer(A,count(B,(state(B),not((loc(C,B),river(C)))),A))")
- #|
-(answer ?d ?a ?e)
-(count ?e ?b ?f ?a)
-(state ?f ?b)
-(not ?f ?g)
-(loc ?g ?c ?b)
-(river ?g ?c)
-
-    
-|#
-
-(geo-prolog-to-predicates "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid(mississippi))))")
-#|
-(answer ?d ?a ?e)
-(high_point ?e ?b ?a)
-(state ?e ?b)
-(next_to ?e ?b ?c)
-(const ?e ?c ?f)
-(stateid ?f ?g)
-(mississippi ?g)
-"answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,(stateid(mississippi)))))"
-|#
-
-
-;; "What is the highest point in each state whose lowest point is sea level ?"
-;; (geo-prolog-to-predicates "answer(A,(highest(A,(place(A),loc(A,B),state(B))),lowest(C,(loc(C,B),place(C))),elevation(C,0)))")
-
-
-#|
-(answer ?d ?a ?e)
-(highest ?e ?a ?f)
-(lowest ?e ?c ?f) => ?f must be ?g
-(elevation ?e ?c 0)
-(place ?f ?a)
-(loc ?f ?a ?b)
-(state ?f ?b)
-(loc ?g ?c ?b)
-(place ?g ?c)
-
-
-=> ((FCG::ANSWER FCG::?D FCG::?A FCG::?E) (FCG::HIGHEST FCG::?E FCG::?A FCG::?F) (FCG::LOWEST FCG::?E FCG::?C FCG::?F) (FCG::ELEVATION FCG::?E FCG::?C 0) (FCG::PLACE FCG::?F FCG::?A) (FCG::LOC FCG::?F FCG::?A FCG::?B) (FCG::STATE FCG::?F FCG::?B) (FCG::LOC FCG::?G FCG::?C FCG::?B) (FCG::PLACE FCG::?G FCG::?C))
-|#
- 
-;(geo-prolog-to-predicates "answer(A,(size(B,A),const(B,cityid('new york',_))))")
-
-;(geo-prolog-to-predicates "answer(A,(population(B,A),const(B,cityid(springfield,_))))")
+(test_pl_to_preds "answer(A,(size(B,A),const(B,cityid('new york',_))))")
+(test_pl_to_preds "answer(A,(state(A),const(B,riverid(chattahoochee)),river(B),traverse(B,A)))")
+(test_pl_to_preds "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))")
+(test_pl_to_preds "answer(A,count(B,(state(B),not((loc(C,B),river(C)))),A))")
+(test_pl_to_preds "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid(mississippi))))")
+(test_pl_to_preds "answer(A,(highest(A,(place(A),loc(A,B),state(B))),lowest(C,(loc(C,B),place(C))),elevation(C,0)))")
+(test_pl_to_preds "answer(A,(population(B,A),const(B,cityid(springfield,_))))")
 
 ;(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
 
