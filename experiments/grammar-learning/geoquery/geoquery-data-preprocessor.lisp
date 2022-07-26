@@ -67,7 +67,7 @@
         
         while stack     
         for part = (pop stack)
-        append (loop with next-level = (get-next-var-from-var-list var-list)
+        append (loop with next-level = program-level
                      for predicate in part
                      for term = (when (equal (type-of predicate) 'cons)
                                   (first predicate))
@@ -79,17 +79,18 @@
                                                      (variable-p el))
                                               collect el
                                               else
-                                              collect next-level))
+                                              collect (setf next-level (get-next-var next-level)))) ;; increment level here
                      for cand-emb-preds = (loop for el in args
                                                 unless (or (numberp el)
                                                      (variable-p el))
                                                 collect el)
                      for accum-val = (append (list term) vars)
-                     do (when cand-emb-preds
-                          (setf next-level (get-next-var next-level)))
+                     do ;(when cand-emb-preds
+                        ;  (setf next-level (get-next-var next-level)))
                      (cond (;; predicate is a constant e.g. 'new_york
                                (equal (type-of predicate) 'symbol)
-                               (setf accum-val (list predicate program-level)))
+                               (setf accum-val (list predicate program-level))
+                               (setf program-level (first (push (get-next-var-from-var-list var-list) var-list))))
                               
                               ;; term is actually a list, continue with the list in next iteration   
                               ((equal (type-of term) 'cons)
@@ -109,7 +110,9 @@
 
                      when accum-val
                      collect accum-val
-                     finally (when accum-val (setf program-level (first (push (get-next-var-from-var-list var-list) var-list)))))))
+                     finally (when (and accum-val
+                                        (not (equal (type-of predicate) 'symbol)))
+                               (setf program-level (first (push (get-next-var-from-var-list var-list) var-list)))))))
         
 
         
@@ -171,7 +174,7 @@
 (test-pl-to-preds "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid(mississippi))))")
 (test-pl-to-preds "answer(A,(highest(A,(place(A),loc(A,B),state(B))),lowest(C,(loc(C,B),place(C))),elevation(C,0)))")
 (test-pl-to-preds "answer(A,(population(B,A),const(B,cityid(springfield,_))))")
-
+(test-pl-to-preds "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
 
 ;;;;;;;;;;;;;; ERRORS in predicates-to-geo-prolog ;;;;;;;;;;;;;;
 ; "What is the total length of all rivers in the USA ?"
@@ -191,24 +194,22 @@
 
 (test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
 
+; "What is the population of Washington DC ?"
+(geo-prolog-to-predicates "answer(A,(population(B,A),const(B,cityid(washington,dc))))")
+(test-pl-to-preds "answer(A,(population(B,A),const(B,cityid(washington,dc))))")
+
+; "What rivers run through Austin Texas ?"
+(geo-prolog-to-predicates "answer(A,(river(A),traverse(A,B),const(B,cityid(austin,tx))))")
+(test-pl-to-preds "answer(A,(river(A),traverse(A,B),const(B,cityid(austin,tx))))")
+
 ;;;;;;;;;;;;;; ERRORS in geo-prolog-to-predicates ;;;;;;;;;;;;;;
+;; they are all incremented too much when there are two ids
 
 ; "What states in the United States have a city of Springfield ?"
 (geo-prolog-to-predicates "answer(A,(state(A),loc(A,B),const(B,countryid(usa)),loc(C,A),const(C,cityid(springfield,_))))")
 
-; "What states have cities named Salt Lake City ?"
-(geo-prolog-to-predicates "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
-(geo-prolog-to-polish-notation "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
-(test-pl-to-preds "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
-
 ; "What state borders the least states excluding Alaska and excluding Hawaii ?"
 (geo-prolog-to-predicates "answer(A,fewest(A,B,(state(A),next_to(A,B),state(B),not((const(A,stateid(alaska)))),not((const(A,stateid(hawaii)))))))")
-
-; "What rivers run through Austin Texas ?"
-(geo-prolog-to-predicates "answer(A,(river(A),traverse(A,B),const(B,cityid(austin,tx))))")
-
-; "What is the population of Washington DC ?"
-(geo-prolog-to-predicates "answer(A,(population(B,A),const(B,cityid(washington,dc))))")
 
 ; "What is the length of the Colorado river in Texas ?"
 (geo-prolog-to-predicates "answer(A,(len(B,A),const(B,riverid(colorado)),river(B),loc(B,C),const(C,stateid(texas))))")
