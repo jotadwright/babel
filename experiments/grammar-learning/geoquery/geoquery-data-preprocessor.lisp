@@ -29,7 +29,7 @@
           for nl = (find-all "nl" (subseq example 1) :key #'first :test #'equal)
           for mr = (third (find "geo-prolog" (subseq example 1) :key #'(lambda (el) (second (first (second el)))) :test #'equal))
           for pred-mr = (geo-prolog-to-predicates mr)
-          for test-res = (test_pl_to_preds mr)
+          for test-res = (test-pl-to-preds mr)
           unless test-res
           do (loop for lang-entry in nl
                    for lang = (second (first (second lang-entry)))
@@ -121,10 +121,11 @@
   (intern (nth (+ 1 (position (symbol-name last-var) gl::+placeholder-vars+ :test #'equal)) gl::+placeholder-vars+)))
 
 (defun geo-prolog-to-polish-notation (geo-prolog-string)
-  (let* ((geo-prolog-string (cl-ppcre:regex-replace-all "([a-z]+_?[a-z]+)[\(]" geo-prolog-string "\(\\1 "))
+  (let* ((geo-prolog-string (cl-ppcre:regex-replace-all " " geo-prolog-string "_"))
+         (geo-prolog-string (cl-ppcre:regex-replace-all "([a-z]+_?[a-z]+)[\(]" geo-prolog-string "\(\\1 "))
          (geo-prolog-string (cl-ppcre:regex-replace-all "([A-Z])" geo-prolog-string "?\\1"))
          (geo-prolog-string (cl-ppcre:regex-replace-all ",(_)" geo-prolog-string ",?\\1"))
-         (geo-prolog-string (cl-ppcre:regex-replace-all "'([a-z]+) ([a-z]+)'" geo-prolog-string "\\1_\\2"))
+         (geo-prolog-string (cl-ppcre:regex-replace-all "'(.*?)'" geo-prolog-string "\\1"))
          (geo-prolog-string (replace-all geo-prolog-string "," " "))
          (geo-prolog-string (string-append "("geo-prolog-string ")")))
     (read-from-string geo-prolog-string)))
@@ -197,6 +198,8 @@
 
 ; "What states have cities named Salt Lake City ?"
 (geo-prolog-to-predicates "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
+(geo-prolog-to-polish-notation "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
+(test-pl-to-preds "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
 
 ; "What state borders the least states excluding Alaska and excluding Hawaii ?"
 (geo-prolog-to-predicates "answer(A,fewest(A,B,(state(A),next_to(A,B),state(B),not((const(A,stateid(alaska)))),not((const(A,stateid(hawaii)))))))")
