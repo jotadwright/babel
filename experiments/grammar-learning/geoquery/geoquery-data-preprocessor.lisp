@@ -29,10 +29,15 @@
           for nl = (find-all "nl" (subseq example 1) :key #'first :test #'equal)
           for mr = (third (find "geo-prolog" (subseq example 1) :key #'(lambda (el) (second (first (second el)))) :test #'equal))
           for pred-mr = (geo-prolog-to-predicates mr)
+          for test-res = (test_pl_to_preds mr)
+          unless test-res
           do (loop for lang-entry in nl
                    for lang = (second (first (second lang-entry)))
                    for value = (cl-json:encode-json-to-string (list (cons "utterance" (third lang-entry))
                                                                              (cons "meaning" (string-replace (format nil "~S" pred-mr) "GL-DATA::" ""))
+                                                                             (cons "geo-prolog" mr)
+                                                                             (cons "pred-to-pl" (format nil "~S" (predicates-to-geo-prolog pred-mr)))
+                                                                             (cons "geo-to-polish" (format nil "~S" (geo-prolog-to-polish-notation mr)))
                                                                              (cons "id" id)
                                                                              (cons "lang" lang)))
                    do (push value (gethash lang lang-hash nil)))
@@ -154,17 +159,68 @@
         do (setf predicates (substitute (substitute delisted-embedded-preds nxt-lvl-var predicate) predicate remaining-preds))
         finally (return (remove (second (first predicates)) (first predicates)))))
         
-(defun test_pl_to_preds (geo-prolog-string)
+(defun test-pl-to-preds (geo-prolog-string)
   (equal (geo-prolog-to-polish-notation geo-prolog-string)
        (list (predicates-to-geo-prolog (geo-prolog-to-predicates geo-prolog-string)))))
 
-(test_pl_to_preds "answer(A,(size(B,A),const(B,cityid('new york',_))))")
-(test_pl_to_preds "answer(A,(state(A),const(B,riverid(chattahoochee)),river(B),traverse(B,A)))")
-(test_pl_to_preds "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))")
-(test_pl_to_preds "answer(A,count(B,(state(B),not((loc(C,B),river(C)))),A))")
-(test_pl_to_preds "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid(mississippi))))")
-(test_pl_to_preds "answer(A,(highest(A,(place(A),loc(A,B),state(B))),lowest(C,(loc(C,B),place(C))),elevation(C,0)))")
-(test_pl_to_preds "answer(A,(population(B,A),const(B,cityid(springfield,_))))")
+(test-pl-to-preds "answer(A,(size(B,A),const(B,cityid('new york',_))))")
+(test-pl-to-preds "answer(A,(state(A),const(B,riverid(chattahoochee)),river(B),traverse(B,A)))")
+(test-pl-to-preds "answer(A,count(B,(river(B),not((traverse(B,C),state(C),loc(D,C),capital(D),const(D,cityid(albany,_))))),A))")
+(test-pl-to-preds "answer(A,count(B,(state(B),not((loc(C,B),river(C)))),A))")
+(test-pl-to-preds "answer(A,(high_point(B,A),state(B),next_to(B,C),const(C,stateid(mississippi))))")
+(test-pl-to-preds "answer(A,(highest(A,(place(A),loc(A,B),state(B))),lowest(C,(loc(C,B),place(C))),elevation(C,0)))")
+(test-pl-to-preds "answer(A,(population(B,A),const(B,cityid(springfield,_))))")
+
+
+;;;;;;;;;;;;;; ERRORS in predicates-to-geo-prolog ;;;;;;;;;;;;;;
+; "What is the total length of all rivers in the USA ?"
+(test-pl-to-preds "answer(A,sum(B,(len(C,B),river(C)),A))")
+
+; "What is the total population of the states that border Texas ?"
+(test-pl-to-preds "answer(A,sum(B,(population(C,B),state(C),next_to(D,C),const(D,stateid(texas))),A))")
+
+; "What is the combined population of all 50 states ?"
+(test-pl-to-preds "answer(A,sum(B,(population(C,B),state(C)),A))")
+
+; "What is the combined area of all 50 states ?"
+(test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
+
+; "What is the area of all the states combined ?"
+(test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
+
+(test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
+
+;;;;;;;;;;;;;; ERRORS in geo-prolog-to-predicates ;;;;;;;;;;;;;;
+
+; "What states in the United States have a city of Springfield ?"
+(geo-prolog-to-predicates "answer(A,(state(A),loc(A,B),const(B,countryid(usa)),loc(C,A),const(C,cityid(springfield,_))))")
+
+; "What states have cities named Salt Lake City ?"
+(geo-prolog-to-predicates "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
+
+; "What state borders the least states excluding Alaska and excluding Hawaii ?"
+(geo-prolog-to-predicates "answer(A,fewest(A,B,(state(A),next_to(A,B),state(B),not((const(A,stateid(alaska)))),not((const(A,stateid(hawaii)))))))")
+
+; "What rivers run through Austin Texas ?"
+(geo-prolog-to-predicates "answer(A,(river(A),traverse(A,B),const(B,cityid(austin,tx))))")
+
+; "What is the population of Washington DC ?"
+(geo-prolog-to-predicates "answer(A,(population(B,A),const(B,cityid(washington,dc))))")
+
+; "What is the length of the Colorado river in Texas ?"
+(geo-prolog-to-predicates "answer(A,(len(B,A),const(B,riverid(colorado)),river(B),loc(B,C),const(C,stateid(texas))))")
+
+; "How many states in the US does the shortest river run through ?"
+(geo-prolog-to-predicates "answer(A,count(B,(state(B),loc(B,C),const(C,countryid(usa)),shortest(D,river(D)),traverse(D,B)),A))")
+
+; "How many states border Colorado and border New Mexico ?"
+(geo-prolog-to-predicates "answer(A,count(B,(state(B),next_to(B,C),const(C,stateid(colorado)),next_to(B,D),const(D,stateid('new mexico'))),A))")
+
+; "How many rivers in Texas are longer than the Red ?"
+(geo-prolog-to-predicates "answer(A,count(B,(river(B),loc(B,C),const(C,stateid(texas)),longer(B,D),const(D,riverid(red))),A))")
+
+; "How many cities named Austin are there in the USA ?"
+(geo-prolog-to-predicates "answer(A,count(B,(city(B),const(B,cityid(austin,_)),loc(B,C),const(C,countryid(usa))),A))")
 
 ;(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
 
