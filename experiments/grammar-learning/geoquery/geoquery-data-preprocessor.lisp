@@ -124,7 +124,8 @@
   (intern (nth (+ 1 (position (symbol-name last-var) gl::+placeholder-vars+ :test #'equal)) gl::+placeholder-vars+)))
 
 (defun geo-prolog-to-polish-notation (geo-prolog-string)
-  (let* ((geo-prolog-string (cl-ppcre:regex-replace-all " " geo-prolog-string "_"))
+  (let* ((geo-prolog-string (cl-ppcre:regex-replace-all ", " geo-prolog-string ","))
+         (geo-prolog-string (cl-ppcre:regex-replace-all " " geo-prolog-string "_"))
          (geo-prolog-string (cl-ppcre:regex-replace-all "([a-z]+_?[a-z]+)[\(]" geo-prolog-string "\(\\1 "))
          (geo-prolog-string (cl-ppcre:regex-replace-all "([A-Z])" geo-prolog-string "?\\1"))
          (geo-prolog-string (cl-ppcre:regex-replace-all ",(_)" geo-prolog-string ",?\\1"))
@@ -133,6 +134,16 @@
          (geo-prolog-string (string-append "("geo-prolog-string ")")))
     (read-from-string geo-prolog-string)))
 
+(defun strip-superfluous-brackets (predicates)
+  (cond ((and
+          (= (length predicates) 1)
+          (equal (type-of (first predicates)) 'list)
+          (= (length (first predicates)) 1))
+         (first (first predicates)))
+        ((= (length predicates) 1)
+         (first predicates))
+        (t
+         predicates)))
 
 (defun predicates-to-geo-prolog (predicates)
   "go through all predicates in reverse, and keep substituting subprograms until no levels are left"
@@ -140,32 +151,57 @@
         while stack     
         for predicate = (pop stack)
         for term = (first predicate)
-        for nxt-lvl-var = (cond ((equal term 'count)
-                                 (fourth predicate))
-                                ((equal term 'cityid)
-                                 (third predicate))
-                                (t
-                                 (last-elt predicate)))
-        for embedded-preds = (find-all nxt-lvl-var (remove predicate predicates) :key #'second :test #'equal)
-        for stripped-embedded-preds = (mapcar #'(lambda (predicate) (remove nxt-lvl-var predicate)) embedded-preds)
-        for delisted-embedded-preds = (cond ((and
-                                              (= (length stripped-embedded-preds) 1)
-                                              (= (length (first stripped-embedded-preds)) 1))
-                                             (first (first stripped-embedded-preds)))
-                                            ((= (length stripped-embedded-preds) 1)
-                                             (first stripped-embedded-preds))
-                                            (t
-                                             stripped-embedded-preds))
+        for nxt-lvl-vars = (cond ((member term '(count sum))
+                                  (list (fourth predicate)))
+                                 ((and (equal term 'cityid)
+                                       (equal (fourth predicate) '?_))
+                                  (list (third predicate)))
+                                 ((equal term 'cityid)
+                                  (list (third predicate) (fourth predicate)))
+                                 (t
+                                  (last predicate)))
+        ;; find all embeddable predicates for a certain level
+        for embedded-preds = (loop for nxt-lvl-var in nxt-lvl-vars
+                                   for em-pred = (find-all nxt-lvl-var (remove predicate predicates) :key #'second :test #'equal)
+                                   when em-pred
+                                   append em-pred)
+        ;; remove the lvl variable from the predicates
+        for stripped-embedded-preds-list = (if (= (length nxt-lvl-vars) 1)
+                                             ;; there is only one var, but maybe multiple predicates
+                                             (mapcar #'(lambda (predicate) (strip-superfluous-brackets (remove (first nxt-lvl-vars) predicate))) embedded-preds)
+                                             ;; there is a corresponding var for each predicate (cityid ?x ?y) (new_york ?x) (ny ?y)
+                                             (loop for rem-preds in (copy-object embedded-preds)
+                                                   for nxt-lvl-var in nxt-lvl-vars
+                                                   do (delete nxt-lvl-var rem-preds)
+                                                   collect (strip-superfluous-brackets (list rem-preds))))
+        ;; throw out the embedded predicates from remaining predicates
         for remaining-preds = (loop for pred in predicates
                                     unless (member pred embedded-preds)
                                     collect pred)
         when embedded-preds
-        do (setf predicates (substitute (substitute delisted-embedded-preds nxt-lvl-var predicate) predicate remaining-preds))
+        ;; substitute the level var with the embedded predicates
+        do (if (= (length nxt-lvl-vars) 1)
+             ;; there is only one var
+             (nsubstitute (if (= 1 (length stripped-embedded-preds-list))
+                            ;; there is only one predicate, remove its surrounding brackets
+                            (first stripped-embedded-preds-list)
+                            ;; there are multiple embedded predicates, pass the full list
+                            stripped-embedded-preds-list)
+                            (first nxt-lvl-vars) predicate)
+             ;; there are multiple vars and corresponding predicates, pair them
+             (loop for nxt-lvl-var in nxt-lvl-vars
+                 for stripped-embedded-preds in stripped-embedded-preds-list
+                 do (nsubstitute stripped-embedded-preds nxt-lvl-var predicate)))
+        (setf predicates remaining-preds)
+        ;; remove the level var for answer
         finally (return (remove (second (first predicates)) (first predicates)))))
-        
+
+
 (defun test-pl-to-preds (geo-prolog-string)
-  (equal (geo-prolog-to-polish-notation geo-prolog-string)
-       (list (predicates-to-geo-prolog (geo-prolog-to-predicates geo-prolog-string)))))
+  (let ((geo-prolog (predicates-to-geo-prolog (geo-prolog-to-predicates geo-prolog-string))))
+    (string= (cl-ppcre:regex-replace-all "[\(\)]" (format nil "~S" (geo-prolog-to-polish-notation geo-prolog-string)) "")
+             (cl-ppcre:regex-replace-all "[\(\)]" (format nil "~S" (list geo-prolog)) ""))
+  geo-prolog))
 
 (test-pl-to-preds "answer(A,(size(B,A),const(B,cityid('new york',_))))")
 (test-pl-to-preds "answer(A,(state(A),const(B,riverid(chattahoochee)),river(B),traverse(B,A)))")
@@ -175,32 +211,11 @@
 (test-pl-to-preds "answer(A,(highest(A,(place(A),loc(A,B),state(B))),lowest(C,(loc(C,B),place(C))),elevation(C,0)))")
 (test-pl-to-preds "answer(A,(population(B,A),const(B,cityid(springfield,_))))")
 (test-pl-to-preds "answer(A,(state(A),loc(B,A),city(B),const(B,cityid('salt lake city',_))))")
-
-;;;;;;;;;;;;;; ERRORS in predicates-to-geo-prolog ;;;;;;;;;;;;;;
-; "What is the total length of all rivers in the USA ?"
-(test-pl-to-preds "answer(A,sum(B,(len(C,B),river(C)),A))")
-
-; "What is the total population of the states that border Texas ?"
-(test-pl-to-preds "answer(A,sum(B,(population(C,B),state(C),next_to(D,C),const(D,stateid(texas))),A))")
-
-; "What is the combined population of all 50 states ?"
-(test-pl-to-preds "answer(A,sum(B,(population(C,B),state(C)),A))")
-
-; "What is the combined area of all 50 states ?"
-(test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
-
-; "What is the area of all the states combined ?"
-(test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
-
-(test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
-
-; "What is the population of Washington DC ?"
-(geo-prolog-to-predicates "answer(A,(population(B,A),const(B,cityid(washington,dc))))")
-(test-pl-to-preds "answer(A,(population(B,A),const(B,cityid(washington,dc))))")
-
-; "What rivers run through Austin Texas ?"
-(geo-prolog-to-predicates "answer(A,(river(A),traverse(A,B),const(B,cityid(austin,tx))))")
+(test-pl-to-preds "answer(C,(state(C),loc(B,C), largest(B,(capital(A,B),city(B),state(A)))))")
 (test-pl-to-preds "answer(A,(river(A),traverse(A,B),const(B,cityid(austin,tx))))")
+(test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
+
+
 
 ;;;;;;;;;;;;;; ERRORS in geo-prolog-to-predicates ;;;;;;;;;;;;;;
 ;; they are all incremented too much when there are two ids
@@ -225,6 +240,8 @@
 
 ; "How many cities named Austin are there in the USA ?"
 (geo-prolog-to-predicates "answer(A,count(B,(city(B),const(B,cityid(austin,_)),loc(B,C),const(C,countryid(usa))),A))")
+
+
 
 ;(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
 
