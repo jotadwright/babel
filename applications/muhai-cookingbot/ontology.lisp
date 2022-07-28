@@ -78,6 +78,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod kitchen-cabinet ((kitchen-state kitchen-state))
   (find-in-kitchen-state-contents kitchen-state 'kitchen-cabinet))
 
+(defmethod stove ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'stove))
+
 ;; Abstract classes for properties ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -460,7 +463,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A tool to be used in the kitchen."))
 
-(defclass counter-top (container)
+(defclass counter-top (container conceptualizable)
   ((arrangement :initform (make-instance 'side-to-side)))
   (:documentation "The counter-top. It's a container."))
 
@@ -1024,6 +1027,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A pattern for cutting objects into 3/4 inch cubes "))
 
+(defclass on-angle (arrangement-pattern)
+  ()
+  (:documentation "A pattern in which one object is placed in a certain angle compared to a second object."))
+
 (defclass peasized-cubes (cutting-pattern)
   ()
   (:documentation "A pattern for cutting objects into peasized cubes "))
@@ -1031,6 +1038,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass two-inch (arrangement-pattern)
   ()
   (:documentation "A pattern in which objects are arranged with a distance of 2 inch."))
+
+(defclass cover-pattern (pattern)
+  () 
+  (:documentation "A pattern in which something is covered"))
+
+(defclass lid-on-angle (cover-pattern)
+  ()
+  (:documentation "A pattern in which a container is partially covered by putting its lid on an angle."))
 
 (defclass shape (conceptualizable)
   ((is-concept :initform T))
@@ -1113,6 +1128,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass handful (unit)
   ()
   (:documentation "Unit: handful"))
+
+(defclass low-heat (unit)
+  ()
+  (:documentation "Unit: low heat"))
+
+(defclass very-low-heat (unit)
+  ()
+  (:documentation "Unit: very low heat"))
 
 (defclass tablespoon (unit)
   ()
