@@ -51,16 +51,19 @@
 
 (defun process-uterances (list-of-utterances personal-dynamic-memory &key silent)
   (loop with cxn-inventory = (grammar personal-dynamic-memory)
+        with meaning-network = nil 
         for utterance in list-of-utterances
         for current-world-state = (first (world-states personal-dynamic-memory))
-        do
-        (loop for bindings-list in (understand-and-execute utterance cxn-inventory current-world-state :silent silent)
-              when bindings-list
-              do (push (make-instance 'world-state
-                                      :accessible-entities bindings-list
-                                      :personal-dynamic-memory personal-dynamic-memory)
-                       (world-states personal-dynamic-memory))
-              finally (return bindings-list))))
+        do (multiple-value-bind (bindings-lists parsed-meaning)
+               (understand-and-execute utterance cxn-inventory current-world-state :silent silent)
+             (loop for bindings-list in bindings-lists
+                   when bindings-list
+                     do (push (make-instance 'world-state
+                                             :accessible-entities bindings-list
+                                             :personal-dynamic-memory personal-dynamic-memory)
+                              (world-states personal-dynamic-memory))
+                        (push parsed-meaning meaning-network)))
+        finally (return meaning-network)))
         
 (defun understand-and-execute (utterance
                                cxn-inventory
@@ -79,7 +82,7 @@
                                                                              (available-at (find v bindings-list :key #'var)))
                                                                    collect (find v bindings-list :key #'var)))
                                                          resulting-bindings-lists)))
-    resulting-bindings-with-open-variables))
+    (values resulting-bindings-with-open-variables parsed-meaning )))
 
 
 

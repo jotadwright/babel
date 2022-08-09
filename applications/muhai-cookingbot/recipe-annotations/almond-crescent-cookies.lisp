@@ -1,5 +1,4 @@
-(ql:quickload :aipp-cookingbot)
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 ;; The 'trace-irl' monitor will make sure that
 ;; the IRL evaluation process is shown on the web
@@ -16,7 +15,6 @@
 (defparameter *initial-kitchen-state* 
   (make-instance 
    'kitchen-state
-   :id 'kitchen-state
    :contents
    (list (make-instance 'fridge
                         :contents (list (make-instance 'medium-bowl
@@ -55,6 +53,7 @@
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 100)))))
                                         (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'all-purpose-flour :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
@@ -77,7 +76,7 @@
          (make-instance 'kitchen-cabinet
                         :contents (list
                                    ;; bowls
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)

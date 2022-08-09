@@ -1,5 +1,5 @@
-(ql:quickload :aipp-cookingbot)
-(in-package :aipp-cookingbot)
+
+(in-package :muhai-cookingbot)
 
 (activate-monitor trace-irl)
 

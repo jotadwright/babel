@@ -2,7 +2,6 @@
 
 (in-package :muhai-cookingbot)
 
-
 (defparameter *initial-kitchen-state* 
   (make-instance 
    'kitchen-state
@@ -81,6 +80,7 @@
                                    (make-instance 'baking-tray)
                                    (make-instance 'baking-paper))))))
 
+
 (def-fcg-constructions almond-cookies-grammar
   :feature-types ((form set-of-predicates)
                   (meaning set-of-predicates)
@@ -95,6 +95,7 @@
                   (footprints set)
                   (items set-of-feature-value-pairs))
   :fcg-configurations ((:de-render-mode . :de-render-recipe-utterance)
+                       (:node-tests :restrict-nr-of-nodes :restrict-search-depth)
                        (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-structure)
                        (:construction-inventory-processor-mode . :heuristic-search)
                        (:node-expansion-mode . :full-expansion)

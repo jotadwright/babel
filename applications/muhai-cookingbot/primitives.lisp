@@ -779,10 +779,7 @@
    (bind (amount 1.0 (make-instance 'amount :unit unit :quantity quantity)))))
 
 ;; FETCH/TRANSFER
-(defprimitive to-fetch ((fetched-object fetchable)
-                        (kitchen-output-state kitchen-state)
-                        (kitchen-input-state kitchen-state)
-                        (object fetchable))
+(defprimitive to-fetch (
   ((kitchen-input-state object => fetched-object kitchen-output-state)
    (let ((object-location (cond ((find-fetchable-in-container object (fridge kitchen-input-state))
                                   'fridge)

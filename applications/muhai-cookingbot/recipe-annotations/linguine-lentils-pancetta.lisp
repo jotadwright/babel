@@ -72,7 +72,7 @@
 ;; Combine oil and pancetta in a large, deep frying pan and cook over moderate heat for about 5 minutes, or until pancetta is crisp and golden.
 (fetch ?frying-pan ?ks-with-frying-pan ?ks-with-cooked-lentils-on-countertop frying-pan)
 (transfer-contents ?frying-pan-with-oil ?empty-oil-bowl ?ks-with-oil-in-pan ?ks-with-frying-pan ?frying-pan ?olive-oil ?all ?ml)
-
+(transfer-contents ?frying-pan-with-oil ?empty-oil-bowl ?ks-with-oil-in-pan ?ks-with-frying-pan ?frying-pan ?pancetta ?all ?g)
 )
 ;; Remove pancetta with a slotted spoon to a plate lined with paper towels.
 
