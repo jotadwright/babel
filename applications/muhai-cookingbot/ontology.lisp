@@ -17,7 +17,8 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod initialize-instance :after ((kitchen-entity kitchen-entity) &key)
   (let ((persistent-id  (make-id (type-of kitchen-entity))))
     (setf (persistent-id kitchen-entity) persistent-id)
-    (setf (id kitchen-entity) (make-id persistent-id))))
+    (setf (id kitchen-entity) (make-id persistent-id))
+    ))
 
 (defmethod copy-object-content ((kitchen-entity kitchen-entity) (copy kitchen-entity))
   (setf (persistent-id copy) (persistent-id kitchen-entity))
@@ -204,15 +205,15 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A tool that can be used for beating."))
 
-(defclass can-peel(cooking-utensil)
+(defclass can-peel (cooking-utensil)
   ()
   (:documentation "A tool that can be used for peeling."))
 
-(defclass can-seed(cooking-utensil)
+(defclass can-seed (cooking-utensil)
   ()
   (:documentation "A tool that can be used for seeding."))
 
-(defclass can-sift(cooking-utensil)
+(defclass can-sift (cooking-utensil)
   ()
   (:documentation "A tool that can be used for sifting."))
 
@@ -234,7 +235,8 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defmethod copy-object-content ((container container) (copy container))
   "Copying containers."
-  (setf (contents copy) (copy-object (contents container))))
+  (setf (contents copy) (loop for item in (contents container)
+                              collect (copy-object item))))
 
 (defclass coverable-container (container)
   ((cover :initarg :cover :accessor cover :initform nil))
@@ -378,6 +380,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass reusable (kitchen-entity)
   ((used :type boolean :initarg :used :accessor used :initform nil))
   (:documentation "For objects that can be reused (and might not cleaning first)."))
+
 
 (defmethod copy-object-content ((reusable reusable) (copy reusable))
   "Copying reusable objects."
@@ -604,6 +607,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying transferable-containers."
   (setf (arrangement copy) (copy-object (arrangement transferable-container))))
 
+(defmethod initialize-instance :after ((transferable-container transferable-container) &key)
+  (when (contents transferable-container)
+    (setf (used transferable-container) t)))
+
 (defclass whisk (can-mix can-beat reusable)
   ()
   (:documentation "A whisk. It's a tool for mixing or beating."))
@@ -710,7 +717,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Walnut."))
 
-(defclass cocoa-powder (ingredient)
+(defclass cocoa-powder (ingredient siftable)
   ()
   (:documentation "Cocoa powder."))
 
@@ -751,7 +758,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Abstract class for all flavoring extracts."))
 
-(defclass flour (ingredient)
+(defclass flour (ingredient siftable)
   ()
   (:documentation "Abstract class for all flour."))
 

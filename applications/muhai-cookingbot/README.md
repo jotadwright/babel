@@ -134,6 +134,7 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - ks-in
   - target-container
   - container-with-ingredients-to-be-sifted
+  - tool
 
 #### **flatten** (5)
   - flattened-dough

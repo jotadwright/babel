@@ -105,11 +105,11 @@
 
 
 (defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
-                                       (kitchen-state-out kitchen-state)
-                                       (kitchen-state-in kitchen-state)
-                                       (container-with-ingredients transferable-container)
-                                       (temperature-quantity quantity)
-                                       (temperature-unit unit))
+                                    (kitchen-state-out kitchen-state)
+                                    (kitchen-state-in kitchen-state)
+                                    (container-with-ingredients transferable-container)
+                                    (temperature-quantity quantity)
+                                    (temperature-unit unit))
   ;;to do add default temperature = room temperature
   ((kitchen-state-in container-with-ingredients temperature-quantity temperature-unit
                      => kitchen-state-out container-with-ingredients-at-temperature)
@@ -148,10 +148,15 @@
      (multiple-value-bind (target-container-instance-old-ks target-container-original-location)
          (find-unused-kitchen-entity 'medium-bowl kitchen-state-in)
 
+       (unless target-container-instance-old-ks
+         (error "No more empty medium bowls found in kitchen state!!!"))
+
        (let ((target-container-instance-new-ks
               (find-object-by-persistent-id target-container-instance-old-ks
                                             (funcall (type-of target-container-original-location) new-kitchen-state))))
-       
+
+         (assert target-container-instance-new-ks)
+         
          (change-kitchen-entity-location target-container-instance-new-ks
                                          (funcall (type-of target-container-original-location) new-kitchen-state)
                                          (counter-top new-kitchen-state))
@@ -159,7 +164,10 @@
        
          ;; 2) find ingredient and place it on the countertop
          (multiple-value-bind (ingredient-instance ingredient-original-location)
-             (find-ingredient (type-of ingredient-concept) new-kitchen-state)
+             (find-ingredient (type-of ingredient-concept) new-kitchen-state )
+
+           (unless ingredient-instance
+             (error (format nil "No more ~a found in current kitchen state!!!" (type-of ingredient-concept))))
 
            (change-kitchen-entity-location ingredient-instance
                                            (funcall (type-of ingredient-original-location) new-kitchen-state)
@@ -169,9 +177,13 @@
            ;;3) weigh ingredient
            (multiple-value-bind (weighed-ingredient-container rest-ingredient-container)
                (weigh-ingredient ingredient-instance amount target-container-instance-new-ks)
-             (change-kitchen-entity-location rest-ingredient-container (counter-top new-kitchen-state)
-                                             (funcall (type-of ingredient-original-location)
-                                                      new-kitchen-state))
+             
+             ;;put the rest back 
+             (when (and (contents rest-ingredient-container)
+                        (not (typep ingredient-original-location 'counter-top)))
+               (change-kitchen-entity-location rest-ingredient-container
+                                               (counter-top new-kitchen-state)
+                                               (funcall (type-of ingredient-original-location) new-kitchen-state)))
 
              ;;4) set kitchen time
              (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
@@ -564,11 +576,12 @@
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)
                     (target-container transferable-container) 
-                    (container-with-ingredients-to-be-sifted transferable-container))
+                    (container-with-ingredients-to-be-sifted transferable-container)
+                    (sifting-tool sift))
   
-  ;; Case 1: target-container not given
+  ;; Case 1: target container not given, sift not given
   ((container-with-ingredients-to-be-sifted kitchen-state-in
-                                         => target-container kitchen-state-out container-with-sifted-contents)
+                                         => target-container kitchen-state-out container-with-sifted-contents sifting-tool)
 
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-sifted new-kitchen-state))
@@ -590,23 +603,68 @@
          (change-kitchen-entity-location new-target-container
                                          (funcall (type-of target-container-original-location) new-kitchen-state)
                                          (counter-top new-kitchen-state))
-         
 
-         ;; 2) transfer contents from source-container to empty target-container
-         (setf (contents new-target-container) (contents new-source-container))
-         (setf (used new-target-container) t)
-         
-         (loop for item in (contents new-target-container)
-               when (typep item 'siftable)
-                 do (setf (sifted item) t))
-         
-         (setf (contents new-source-container) nil)
+          ;; 2) find sift and place it on the countertop
+          (multiple-value-bind (sift-in-kitchen-input-state sift-original-location)
+              (find-unused-kitchen-entity 'sift kitchen-state-in)
 
-         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+            (let ((new-sift (find-object-by-persistent-id sift-in-kitchen-input-state
+                                                          (funcall (type-of sift-original-location) new-kitchen-state))))
+       
+              (change-kitchen-entity-location new-sift
+                                              (funcall (type-of sift-original-location) new-kitchen-state)
+                                              (counter-top new-kitchen-state))
+
+              ;; 3) transfer contents from source-container to empty target-container
+              (setf (contents new-target-container) (contents new-source-container))
+              (setf (used new-target-container) t)
+              (setf (used new-sift) t)
          
-         (bind (container-with-sifted-contents 1.0 new-target-container container-available-at )
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-               (target-container 0.0 target-container-in-kitchen-input-state nil)))))))
+              (loop for item in (contents new-target-container)
+                    when (typep item 'siftable)
+                      do (setf (sifted item) t))
+         
+              (setf (contents new-source-container) nil)
+
+              (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         
+              (bind (container-with-sifted-contents 1.0 new-target-container container-available-at )
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (target-container 0.0 target-container-in-kitchen-input-state nil)
+                    (sifting-tool 1.0 new-sift kitchen-state-available-at))))))))
+
+  ;; Case 2: target container is given, sift is given
+  ((container-with-ingredients-to-be-sifted target-container kitchen-state-in sifting-tool
+                                            => kitchen-state-out container-with-sifted-contents)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-sifted new-kitchen-state))
+          (new-target-container (find-object-by-persistent-id target-container new-kitchen-state))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-ingredients-to-be-sifted) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (assert new-source-container)
+     (assert new-target-container)
+
+     ;; transfer contents from source-container to target-container
+     (setf (contents new-target-container) (contents new-source-container))
+     (setf (used new-target-container) t)
+       
+     (loop for item in (contents new-target-container)
+           when (typep item 'siftable)
+             do (setf (sifted item) t))
+       
+     (setf (contents new-source-container) nil)
+       
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+       
+     (bind (container-with-sifted-contents 1.0 new-target-container container-available-at )
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))) 
+  )
 
 (defprimitive spread ((container-with-objects-that-have-been-spread transferable-container)
                       (kitchen-state-out kitchen-state)
@@ -775,15 +833,18 @@
 
 (defun find-ingredient (ingredient-type place &optional mother-place) ;;place can be bowl!!
   (cond ((loop for el in (contents place)
+               unless (typep el 'counter-top)
                if (or (eql ingredient-type (type-of el))
                       (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
                do (return t))
          (loop for el in (contents place)
+               unless (typep el 'counter-top)
                if (or (eql ingredient-type (type-of el))
                       (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
                do (return (values el place mother-place))))
         (t
          (loop for el in (contents place)
+               unless (typep el 'counter-top)
                if (subtypep (type-of el) 'container)
                do (multiple-value-bind (found-ingredient found-place found-mother-place)
                       (find-ingredient ingredient-type el place)

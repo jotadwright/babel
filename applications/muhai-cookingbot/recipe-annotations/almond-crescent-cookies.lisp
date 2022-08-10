@@ -18,7 +18,6 @@
    :contents
    (list (make-instance 'fridge
                         :contents (list (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'butter
                                                                                       :temperature
                                                                                       (make-instance 'amount
@@ -32,42 +31,36 @@
                                                                                                                               :value 500)))))))
          (make-instance 'pantry
                         :contents (list (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'white-sugar :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'vanilla-extract :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 100)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'almond-extract :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 100)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'all-purpose-flour :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'almond-flour :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'powdered-white-sugar :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
@@ -142,9 +135,6 @@
 
     ;; "Dust with powdered sugar"
     (sprinkle ?sprinkled-object-1019 ?kitchen-state-out-6112 ?kitchen-state-out-6096 ?thing-baked-1016 ?ingredient-out-932)))
-
-  
-
 
 ;; ======================
 ;; Append bindings to the recipe

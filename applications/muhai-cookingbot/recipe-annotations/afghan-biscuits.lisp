@@ -42,7 +42,7 @@
                                                                                         (make-instance 'amount
                                                                                                        :unit (make-instance 'g)
                                                                                                        :quantity (make-instance 'quantity
-                                                                                                                                :value 250)))))
+                                                                                                                                :value 500)))))
                                           (make-instance 'medium-bowl
                                                          :contents (list (make-instance 'corn-flakes :amount
                                                                                         (make-instance 'amount
@@ -76,6 +76,9 @@
                                                    (make-instance 'sift)
                                                    (make-instance 'wooden-spoon)
                                                    (make-instance 'table-spoon)
+                                                   (make-instance 'table-spoon)
+                                                   (make-instance 'table-spoon)
+                                                   (make-instance 'rolling-pin)
                                                    (make-instance 'wire-rack)
                                                    (make-instance 'medium-bowl)
                                                    (make-instance 'medium-bowl)
@@ -89,22 +92,30 @@
                                                    (make-instance 'medium-bowl)
                                                    (make-instance 'medium-bowl)
 						   (make-instance 'medium-bowl)
-						   (make-instance 'medium-bowl))))))
+						   (make-instance 'medium-bowl)
+                                                   (make-instance 'medium-bowl)
+                                                   (make-instance 'medium-bowl)
+                                                   (make-instance 'medium-bowl)
+                                                   (make-instance 'medium-bowl)
+                                                   (make-instance 'medium-bowl)
+                                                   (make-instance 'medium-bowl)
+                                                   (make-instance 'large-bowl)
+                                                   (make-instance 'large-bowl)
+                                                   (make-instance 'large-bowl)
+                                                   (make-instance 'large-bowl)
+                                                   (make-instance 'large-bowl)
+                                                   )))))
 
 ;(add-element (make-html *initial-kitchen-state* :expand-initially t))
 
 (defparameter *afghan-cookie-recipe* 
-  `(;; Initial Kitchen State
-    (get-kitchen ?kitchen-state)
-
-    ;;Ingredients
-
-    ;; For biscuits
-
+  `((get-kitchen ?kitchen-state)
+    
     ;; "200 grams butter (at room temperature)"
     (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter
                           ?kitchen-state ?target-container-1 butter 200 g)
-    (bring-to-temperature ?butter-at-room-temp ?kitchen-state-with-butter-at-room-temp ?kitchen-state-with-butter ?proportioned-butter 18 degrees-celsius)
+    (bring-to-temperature ?butter-at-room-temp ?kitchen-state-with-butter-at-room-temp
+                          ?kitchen-state-with-butter ?proportioned-butter 18 degrees-celsius)
     
     ;; "1/2 cup caster sugar"
     (fetch-and-proportion ?proportioned-caster-sugar ?kitchen-state-with-caster-sugar
@@ -122,13 +133,11 @@
     (fetch-and-proportion ?proportioned-corn-flakes ?kitchen-state-with-corn-flakes
                           ?kitchen-state-with-cocoa-powder ?target-container-5 corn-flakes 301 g)
 
-    ;; For icing
-
     ;; "1 cup icing sugar"
     (fetch-and-proportion ?proportioned-icing-sugar ?kitchen-state-with-icing-sugar
                           ?kitchen-state-with-corn-flakes ?target-container-6 icing-sugar 201 g)
 
-    ;; "2 tablespoons unsweetened cocao powder"
+    ;; "2 tablespoons unsweetened cocao powder" ;;PROBLEM WITH FINDING COCOA POWDER A SECOND TIME
     (fetch-and-proportion ?proportioned-icing-cocoa-powder ?kitchen-state-with-icing-cocoa-powder
                           ?kitchen-state-with-icing-sugar ?target-container-7 cocoa-powder 26 g)
 
@@ -140,13 +149,11 @@
     (fetch-and-proportion ?proportioned-almonds ?kitchen-state-with-almonds
                           ?kitchen-state-with-water ?target-container-9 almond-flakes 50 g)
 
-    ;; Instructions
-
     ;; "Preheat oven to 350 degrees Fahrenheit (175 centigrade)"
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-almonds 175 degrees-celsius)
+    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-almonds 175 degrees-celsius) 
 
     ;; "Line a baking sheet with baking paper."
-    (line ?lined-baking-tray ?kitchen-state-with-lined-baking-tray ?kitchen-state-with-baking-paper baking-tray baking-paper)
+    (line ?lined-baking-tray ?kitchen-state-with-lined-baking-tray ?kitchen-state-with-preheated-oven baking-tray baking-paper)
                 
     ;; "Cream the butter and sugar until light and fluffy."
     (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-lined-baking-tray ?target-container-10 ?butter-at-room-temp ?quantity-x ?unit-x)
@@ -154,11 +161,14 @@
     (beat ?container-with-creamed-butter ?kitchen-state-with-creamed-butter ?output-kitchen-state-y ?output-container-y ?beating-tool)
 
     ;; "Sift together the flour and cocoa powder and mix into butter mixture with a wooden spoon."
-    (sift ?container-with-sifted-flour ?kitchen-state-with-sifted-flour ?kitchen-state-with-creamed-butter ?target-container-11 ?proportioned-all-purpose-flour)
-    (sift ?container-with-sifted-ingredients ?kitchen-state-with-sifted-ingredients ?kitchen-state-with-sifted-flour ?container-with-sifted-flour ?proportioned-cocoa-powder)
+    (sift ?container-with-sifted-flour ?kitchen-state-with-sifted-flour ?kitchen-state-with-creamed-butter
+          ?target-container-11 ?proportioned-all-purpose-flour ?sifting-tool)
+    (sift ?container-with-sifted-ingredients ?kitchen-state-with-sifted-ingredients ?kitchen-state-with-sifted-flour
+          ?container-with-sifted-flour ?proportioned-cocoa-powder ?sifting-tool)
     (transfer-contents ?container-with-flour-cocoa-and-butter ?rest-z ?kitchen-state-with-flour-cocoa-and-butter-in-bowl
                        ?kitchen-state-with-sifted-ingredients ?container-with-creamed-butter ?container-with-sifted-ingredients ?quantity-z ?unit-z)
-    (mix ?flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-and-butter-in-bowl ?container-with-flour-cocoa-and-butter wooden-spoon)
+
+    #|(mix ?flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-and-butter-in-bowl ?container-with-flour-cocoa-and-butter wooden-spoon)
     
     ;; "Fold in cornflakes and don't worry if they crumble"
     (transfer-contents ?container-with-cornflakes-added ?rest-a ?kitchen-state-with-cornflakes-in-bowl ?kitchen-state-with-flour-cocoa-butter-mixture ?flour-cocoa-butter-mixture ?proportioned-corn-flakes ?quantity-a ?unit-a)
@@ -171,7 +181,6 @@
     
     ;; "Place them about 2 inches apart on the baking sheet."
     (transfer-items ?cookies-on-tray ?kitchen-state-with-cookies-on-tray ?kitchen-state-with-flattened-doughballs ?flattened-dough-balls ?lined-baking-tray)
-    
    
     ;; "Bake in the oven for 10 to 15 minutes."
     (bake ?baked-cookies ?kitchen-state-with-baking-cookies ?kitchen-state-with-cookies-on-tray ?cookies-on-tray ?preheated-oven 15 minute ?temp-quantity ?temp-unit) ;; irrelevant temperature quantity and unit here since oven is preheated
@@ -190,7 +199,7 @@
 
     ;; "Spoon a little icing on each cookie, and decorate with flaked almonds"
     (spread ?iced-cookies ?kitchen-state-with-iced-cookies ?kitchen-with-icing-ready  ?cooled-cookies ?icing table-spoon)
-    (sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies ?kitchen-state-with-iced-cookies ?iced-cookies ?proportioned-almonds)
+    (sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies ?kitchen-state-with-iced-cookies ?iced-cookies ?proportioned-almonds) |#
     ))
 
 
@@ -205,6 +214,7 @@
 ;; Evaluate the recipe
 ;; ======================
 
+;(activate-monitor trace-irl)
 ;(evaluate-irl-program *extended-recipe* nil)
 
 
