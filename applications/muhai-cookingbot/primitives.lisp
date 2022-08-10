@@ -207,7 +207,8 @@
            do (setf (flattened item) t))
 
      (setf (used new-flatten-tool) t)
-
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
      (bind (container-with-flattened-items 1.0 new-container container-available-at )
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (can-flatten-tool 0.0 new-flatten-tool nil))))
@@ -425,10 +426,26 @@
              (arrangement-pattern 0.0 default-arrangement-pattern)
              (destination 0.0 source-destination))))))
 
+(defprimitive preheat-oven ((preheated-oven oven)
+                            (kitchen-state-out kitchen-state)
+                            (kitchen-state-in kitchen-state)
+                            (quantity quantity)
+                            (unit unit))
+  
+  ((kitchen-state-in quantity unit => preheated-oven kitchen-state-out)
+   
+    (let* ((new-kitchen-state (copy-object kitchen-state-in))
+           (kitchen-state-available-at (+ 15  (kitchen-time kitchen-state-in)))
+           (oven-available-at (+ 615 (kitchen-time kitchen-state-in)))
+           (target-temperature (make-instance 'amount :quantity quantity :unit unit))
+           (oven-in-new-kitchen-state (oven new-kitchen-state)))
 
+      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
+      (setf (temperature oven-in-new-kitchen-state) target-temperature)
 
-
+      (bind (preheated-oven 1.0 oven-in-new-kitchen-state oven-available-at)
+            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 
@@ -518,9 +535,6 @@
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
-
-
-
 (defprimitive shape ((shaped-portions list-of-kitchen-entities)
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
@@ -546,6 +560,53 @@
             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
+(defprimitive sift ((container-with-sifted-contents transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (target-container transferable-container) 
+                    (container-with-ingredients-to-be-sifted transferable-container))
+  
+  ;; Case 1: target-container not given
+  ((container-with-ingredients-to-be-sifted kitchen-state-in
+                                         => target-container kitchen-state-out container-with-sifted-contents)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-sifted new-kitchen-state))
+          (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-ingredients-to-be-sifted) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     ;; 1) find target container and place it on the countertop
+     (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
+         (find-unused-kitchen-entity 'large-bowl kitchen-state-in)
+
+       (let ((new-target-container
+              (find-object-by-persistent-id target-container-in-kitchen-input-state
+                                            (funcall (type-of target-container-original-location) new-kitchen-state)))) 
+       
+         (change-kitchen-entity-location new-target-container
+                                         (funcall (type-of target-container-original-location) new-kitchen-state)
+                                         (counter-top new-kitchen-state))
+         
+
+         ;; 2) transfer contents from source-container to empty target-container
+         (setf (contents new-target-container) (contents new-source-container))
+         (setf (used new-target-container) t)
+         
+         (loop for item in (contents new-target-container)
+               when (typep item 'siftable)
+                 do (setf (sifted item) t))
+         
+         (setf (contents new-source-container) nil)
+
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         
+         (bind (container-with-sifted-contents 1.0 new-target-container container-available-at )
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+               (target-container 0.0 target-container-in-kitchen-input-state nil)))))))
 
 (defprimitive spread ((container-with-objects-that-have-been-spread transferable-container)
                       (kitchen-state-out kitchen-state)
@@ -593,7 +654,8 @@
 
      (setf (contents new-spread-container) nil)
      (setf (used new-spreading-tool) t)
-
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
      (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
