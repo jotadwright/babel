@@ -51,7 +51,8 @@
 
 (defun process-uterances (list-of-utterances personal-dynamic-memory &key silent)
   (loop with cxn-inventory = (grammar personal-dynamic-memory)
-        with meaning-network = nil 
+        with meaning-network = nil
+        with final-set-of-bindings = nil
         for utterance in list-of-utterances
         for current-world-state = (first (world-states personal-dynamic-memory))
         do (multiple-value-bind (bindings-lists parsed-meaning)
@@ -59,11 +60,13 @@
              (loop for bindings-list in bindings-lists
                    when bindings-list
                      do (push (make-instance 'world-state
-                                             :accessible-entities bindings-list
+                                           :accessible-entities bindings-list
                                              :personal-dynamic-memory personal-dynamic-memory)
-                              (world-states personal-dynamic-memory))
-                        (push parsed-meaning meaning-network)))
-        finally (return meaning-network)))
+                            (world-states personal-dynamic-memory))
+                        (setf meaning-network (append meaning-network (reverse parsed-meaning)))
+                        (setf final-set-of-bindings bindings-list)))
+        finally (return (values final-set-of-bindings meaning-network))))
+
         
 (defun understand-and-execute (utterance
                                cxn-inventory

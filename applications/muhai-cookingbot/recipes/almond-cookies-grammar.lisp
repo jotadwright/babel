@@ -867,7 +867,7 @@
                  --
                  (HASH form ((string ?temperature-string-unit "temperature"))))
                 (?x-room-temperature-unit
-                 (HASH meaning ((bring-up-to-temperature ?ingredient-at-room-temperature ?output-kitchen-state
+                 (HASH meaning ((bring-to-temperature ?ingredient-at-room-temperature ?output-kitchen-state
                                                               ?input-kitchen-state ?container-with-ingredients 18 degrees-celsius)))
                  --
                  (HASH form ((meets ?x-unit-in-utterance-right ?comma-unit)

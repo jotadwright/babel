@@ -74,7 +74,7 @@
                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
 
 
-(defprimitive bring-up-to-temperature ((container-with-ingredients-at-temperature transferable-container)
+(defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
                                        (kitchen-state-out kitchen-state)
                                        (kitchen-state-in kitchen-state)
                                        (container-with-ingredients transferable-container)
