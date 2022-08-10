@@ -101,11 +101,12 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - items-at-source
   - destination
 
-#### **bake** (8)
+#### **bake** (9)
   - thing-baked
   - ks-out
   - ks-in
   - thing-to-bake
+  - oven-to-bake-in
   - time-to-bake-quantity
   - time-to-bake-unit
   - target-temperature-quantity
@@ -117,3 +118,29 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - ks-in
   - thing-to-sprinkle
   - container-with-topping
+
+*(end of recipe 1)*
+
+#### **preheat-oven** (5)
+  - preheated-oven
+  - ks-out
+  - ks-in
+  - temperature-quantity
+  - temperature-unit
+
+#### **flatten** (5)
+  - flattened-dough
+  - ks-out
+  - ks-in
+  - dough-to-flatten (can be set of items)
+  - tool
+
+#### **spread** (6)
+  - thing-with-spread-on-top
+  - ks-out
+  - ks-in
+  - spread
+  - thing-to-be-spread
+  - tool
+
+*(end of recipe 2)*

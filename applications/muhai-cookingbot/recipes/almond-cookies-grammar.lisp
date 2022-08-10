@@ -1276,6 +1276,7 @@
                                ?kitchen-state-out
                                ?kitchen-state-in
                                ?thing-to-bake
+                               ?oven-to-bake-in
                                ?time-to-bake-quantity
                                minute
                                ?target-temperature-quantity
