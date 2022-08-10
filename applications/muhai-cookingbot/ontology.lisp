@@ -192,6 +192,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A tool that can drain"))
 
+(defclass can-flatten (cooking-utensil)
+  ()
+  (:documentation "A tool that can be used to flatten dough"))
+
 (defclass can-mash (cooking-utensil)
   ()
   (:documentation "A tool that can be used for mashing."))
@@ -265,7 +269,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying dippable objects."
   (setf (dipped-in copy) (copy-object (dipped-in dippable))))
 
-(defclass dough (homogeneous-mixture)
+(defclass dough (homogeneous-mixture flattenable)
   ()
   (:documentation "Dough. Type of homogenous mixture."))
 
@@ -402,6 +406,13 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((shapeable shapeable) (copy shapeable))
   "Copying shapeable objects."
   (setf (current-shape copy) (copy-object (current-shape shapeable))))
+
+(defclass flattenable (shapeable)
+  ((flattened :type boolean :initarg :flattened :accessor flattened :initform nil)))
+
+(defmethod copy-object-content ((flattenable flattenable) (copy flattenable))
+  "Copying flattenable objects."
+  (setf (flattened copy) (copy-object (flattened flattenable))))
 
 (defclass siftable (kitchen-entity)
   ((sifted :type boolean :initarg :sifted :accessor sifted :initform nil))
@@ -548,6 +559,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying pantries."
   (setf (arrangement copy) (copy-object (arrangement pantry))))
 
+
+(defclass rolling-pin (can-flatten reusable)
+  ()
+  (:documentation "A rolling pin is typically used for flattening dough."))
 
 (defclass saucepan (transferable-container reusable)
   ()
@@ -833,7 +848,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying milk objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated milk))))
 
-(defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable sprinkable bakeable shapeable dippable spreadable can-be-sprinkled-on can-be-spread-upon  has-temperature shakeable)
+(defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable
+                              sprinkable bakeable shapeable dippable spreadable
+                              can-be-sprinkled-on can-be-spread-upon  has-temperature shakeable)
   ()
   (:documentation "An abstract class for a mixture of ingredients."))
 

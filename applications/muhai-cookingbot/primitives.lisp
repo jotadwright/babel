@@ -61,96 +61,6 @@
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at)))))
 
-
-
-
-(defprimitive get-kitchen ((kitchen kitchen-state))
-  ((=> kitchen)
-   (bind (kitchen 1.0 *initial-kitchen-state* 0.0))))
-
-
-
-(defprimitive fetch-and-proportion ((container-with-ingredient container)
-                                    (kitchen-state-out kitchen-state)
-                                    (kitchen-state-in kitchen-state)
-                                    (target-container container)
-                                    (ingredient-concept conceptualizable)
-                                    (quantity quantity)
-                                    (unit unit))
-  ;; Takes a specified amount of an ingredient from somewhere in the kitchen and places it in
-  ((kitchen-state-in ingredient-concept quantity unit =>  kitchen-state-out container-with-ingredient target-container)
-
-   (let ((new-kitchen-state (copy-object kitchen-state-in))
-         (amount (make-instance 'amount :quantity quantity :unit unit))
-         (container-available-at (+ 30 (kitchen-time kitchen-state-in)))
-         (kitchen-state-available-at (+ 30 (kitchen-time kitchen-state-in))))
-     
-     ;; 1) find target container and place it on the countertop
-     (multiple-value-bind (target-container-instance-old-ks target-container-original-location)
-         (find-unused-kitchen-entity 'medium-bowl kitchen-state-in)
-
-       (let ((target-container-instance-new-ks
-              (find-object-by-persistent-id target-container-instance-old-ks
-                                            (funcall (type-of target-container-original-location) new-kitchen-state))))
-       
-         (change-kitchen-entity-location target-container-instance-new-ks
-                                         (funcall (type-of target-container-original-location) new-kitchen-state)
-                                         (counter-top new-kitchen-state))
-       
-       
-         ;; 2) find ingredient and place it on the countertop
-         (multiple-value-bind (ingredient-instance ingredient-original-location)
-             (find-ingredient (type-of ingredient-concept) new-kitchen-state)
-
-           (change-kitchen-entity-location ingredient-instance
-                                           (funcall (type-of ingredient-original-location) new-kitchen-state)
-                                           (counter-top new-kitchen-state))
-
-
-           ;;3) weigh ingredient
-           (multiple-value-bind (weighed-ingredient-container rest-ingredient-container)
-               (weigh-ingredient ingredient-instance amount target-container-instance-new-ks)
-             (change-kitchen-entity-location rest-ingredient-container (counter-top new-kitchen-state)
-                                             (funcall (type-of ingredient-original-location)
-                                                      new-kitchen-state))
-
-             ;;4) set kitchen time
-             (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-             (bind (target-container 0.0 target-container-instance-old-ks nil)
-                   (container-with-ingredient 1.0 weighed-ingredient-container container-available-at)
-                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
-
-
-(defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
-                                       (kitchen-state-out kitchen-state)
-                                       (kitchen-state-in kitchen-state)
-                                       (container-with-ingredients transferable-container)
-                                       (temperature-quantity quantity)
-                                       (temperature-unit unit))
-  ;;to do add default temperature = room temperature
-  ((kitchen-state-in container-with-ingredients temperature-quantity temperature-unit
-                     => kitchen-state-out container-with-ingredients-at-temperature)
-   
-   (let* ((temperature (make-instance 'amount :quantity temperature-quantity :unit temperature-unit))
-          (new-kitchen-state (copy-object kitchen-state-in))
-          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-          (container-available-at (+ 800 (kitchen-time kitchen-state-in)))
-          (kitchen-state-available-at (kitchen-time kitchen-state-in)))
-     
-     (change-temperature new-container temperature)
-
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
-                
-     (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
-
-
-(defun change-temperature (container temperature)
-  (loop for el in (contents container)
-        do (setf (temperature el) temperature)))
-
-
 (defprimitive beat ((container-with-ingredients-beaten transferable-container)
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)
@@ -192,6 +102,126 @@
            (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                  (tool 0.0 target-tool-instance-old-ks nil))))))))
+
+
+(defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
+                                       (kitchen-state-out kitchen-state)
+                                       (kitchen-state-in kitchen-state)
+                                       (container-with-ingredients transferable-container)
+                                       (temperature-quantity quantity)
+                                       (temperature-unit unit))
+  ;;to do add default temperature = room temperature
+  ((kitchen-state-in container-with-ingredients temperature-quantity temperature-unit
+                     => kitchen-state-out container-with-ingredients-at-temperature)
+   
+   (let* ((temperature (make-instance 'amount :quantity temperature-quantity :unit temperature-unit))
+          (new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 800 (kitchen-time kitchen-state-in)))
+          (kitchen-state-available-at (kitchen-time kitchen-state-in)))
+     
+     (change-temperature new-container temperature)
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+                
+     (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+
+
+
+(defprimitive fetch-and-proportion ((container-with-ingredient container)
+                                    (kitchen-state-out kitchen-state)
+                                    (kitchen-state-in kitchen-state)
+                                    (target-container container)
+                                    (ingredient-concept conceptualizable)
+                                    (quantity quantity)
+                                    (unit unit))
+  ;; Takes a specified amount of an ingredient from somewhere in the kitchen and places it in
+  ((kitchen-state-in ingredient-concept quantity unit =>  kitchen-state-out container-with-ingredient target-container)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (amount (make-instance 'amount :quantity quantity :unit unit))
+          (container-available-at (+ 30 (kitchen-time kitchen-state-in)))
+          (kitchen-state-available-at container-available-at))
+     
+     ;; 1) find target container and place it on the countertop
+     (multiple-value-bind (target-container-instance-old-ks target-container-original-location)
+         (find-unused-kitchen-entity 'medium-bowl kitchen-state-in)
+
+       (let ((target-container-instance-new-ks
+              (find-object-by-persistent-id target-container-instance-old-ks
+                                            (funcall (type-of target-container-original-location) new-kitchen-state))))
+       
+         (change-kitchen-entity-location target-container-instance-new-ks
+                                         (funcall (type-of target-container-original-location) new-kitchen-state)
+                                         (counter-top new-kitchen-state))
+       
+       
+         ;; 2) find ingredient and place it on the countertop
+         (multiple-value-bind (ingredient-instance ingredient-original-location)
+             (find-ingredient (type-of ingredient-concept) new-kitchen-state)
+
+           (change-kitchen-entity-location ingredient-instance
+                                           (funcall (type-of ingredient-original-location) new-kitchen-state)
+                                           (counter-top new-kitchen-state))
+
+
+           ;;3) weigh ingredient
+           (multiple-value-bind (weighed-ingredient-container rest-ingredient-container)
+               (weigh-ingredient ingredient-instance amount target-container-instance-new-ks)
+             (change-kitchen-entity-location rest-ingredient-container (counter-top new-kitchen-state)
+                                             (funcall (type-of ingredient-original-location)
+                                                      new-kitchen-state))
+
+             ;;4) set kitchen time
+             (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+             (bind (target-container 0.0 target-container-instance-old-ks nil)
+                   (container-with-ingredient 1.0 weighed-ingredient-container container-available-at)
+                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
+
+(defprimitive flatten ((container-with-flattened-items transferable-container)
+                       (kitchen-state-out kitchen-state)
+                       (kitchen-state-in kitchen-state)
+                       (container-with-items-to-be-flattened transferable-container) ; E.g. toast on a plate
+                       (can-flatten-tool can-flatten))
+  
+  ;; Case 1: tool to flatten with not given
+  ((container-with-items-to-be-flattened kitchen-state-in
+                                         => can-flatten-tool kitchen-state-out container-with-flattened-items)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-items-to-be-flattened new-kitchen-state))
+          (new-flatten-tool (if (is-concept can-flatten-tool)
+                              (retrieve-concept-instance-and-bring-to-countertop can-flatten-tool new-kitchen-state)
+                              (find-object-by-persistent-id can-flatten-tool new-kitchen-state)))
+          (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-items-to-be-flattened) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (loop for item in (contents new-container)
+           when (typep item 'flattenable)
+           do (setf (flattened item) t))
+
+     (setf (used new-flatten-tool) t)
+
+     (bind (container-with-flattened-items 1.0 new-container container-available-at )
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (can-flatten-tool 0.0 new-flatten-tool nil))))
+     
+
+  )
+
+(defprimitive get-kitchen ((kitchen kitchen-state))
+  ((=> kitchen)
+   (bind (kitchen 1.0 *initial-kitchen-state* 0.0))))
+
+
+
+
 
 
 (defprimitive transfer-contents ((container-with-all-ingredients transferable-container)
@@ -397,29 +427,7 @@
 
 
 
-(defprimitive shape ((shaped-portions list-of-kitchen-entities)
-                     (kitchen-state-out kitchen-state)
-                     (kitchen-state-in kitchen-state)
-                     (portions list-of-kitchen-entities)
-                     (shape shape))
-  
-  ((kitchen-state-in portions shape => shaped-portions kitchen-state-out)
-   
-    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-           (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
-                                             (available-at (find (id portions) binding-objects
-                                                                :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
-                                                                              (id (value binding-object)))))))))
-           (kitchen-state-available-at portions-available-at))
 
-      (loop for item in (items portions)
-            do (setf (current-shape item) shape))
-
-      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-      (bind (shaped-portions 1.0 portions portions-available-at)
-            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 
@@ -510,22 +518,35 @@
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
-(defun retrieve-concept-instance-and-bring-to-countertop (kitchen-concept kitchen-state)
-  "Returns an instance of the given concept that has been put on the countertop."
+
+
+
+(defprimitive shape ((shaped-portions list-of-kitchen-entities)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (portions list-of-kitchen-entities)
+                     (shape shape))
   
-  (multiple-value-bind (target-object-in-kitchen-input-state target-object-original-location)
-      (find-unused-kitchen-entity kitchen-concept kitchen-state)
+  ((kitchen-state-in portions shape => shaped-portions kitchen-state-out)
+   
+    (let* ((new-kitchen-state (copy-object kitchen-state-in))
+           (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id portions) binding-objects
+                                                                :key #'(lambda (binding-object)
+                                                                         (and (value binding-object)
+                                                                              (id (value binding-object)))))))))
+           (kitchen-state-available-at portions-available-at))
 
-    (let ((concept-instance
-           (find-object-by-persistent-id target-object-in-kitchen-input-state
-                                         (funcall (type-of target-object-original-location) kitchen-state))))
+      (loop for item in (items portions)
+            do (setf (current-shape item) shape))
 
-      (change-kitchen-entity-location concept-instance ;;bring the retrieved instance to the countertop
-                                      (funcall (type-of target-object-original-location) kitchen-state)
-                                      (counter-top kitchen-state))
+      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-      concept-instance)))
-       
+      (bind (shaped-portions 1.0 portions portions-available-at)
+            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+
+
+
 (defprimitive spread ((container-with-objects-that-have-been-spread transferable-container)
                       (kitchen-state-out kitchen-state)
                       (kitchen-state-in kitchen-state)
@@ -553,7 +574,7 @@
                                      (find-object-by-persistent-id can-spread-kitchen-tool new-kitchen-state)))
           ;; time calculation of the spread object depends
           (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
-                                              (available-at (find (id new-container-with-things-spread) binding-objects
+                                              (available-at (find (id object-to-be-spread) binding-objects
                                                                   :key #'(lambda (binding-object)
                                                                            (and (value binding-object)
                                                                                 (id (value binding-object)))))))))
@@ -620,6 +641,21 @@
 ;; Helper functions
 ;;--------------------------------------------------------------------------
 
+(defun retrieve-concept-instance-and-bring-to-countertop (kitchen-concept kitchen-state)
+  "Returns an instance of the given concept that has been put on the countertop."
+  
+  (multiple-value-bind (target-object-in-kitchen-input-state target-object-original-location)
+      (find-unused-kitchen-entity kitchen-concept kitchen-state)
+
+    (let ((concept-instance
+           (find-object-by-persistent-id target-object-in-kitchen-input-state
+                                         (funcall (type-of target-object-original-location) kitchen-state))))
+
+      (change-kitchen-entity-location concept-instance ;;bring the retrieved instance to the countertop
+                                      (funcall (type-of target-object-original-location) kitchen-state)
+                                      (counter-top kitchen-state))
+
+      concept-instance)))
 
 (defun change-kitchen-entity-location (kitchen-entity old-location new-location)
   "Adds the kitchen entity to the contents of the new-location and removes it from the contents of the old location "
@@ -630,6 +666,10 @@
   (setf (contents old-location)
         (remove kitchen-entity (contents old-location) :test #'equal)))
 
+
+(defun change-temperature (container temperature)
+  (loop for el in (contents container)
+        do (setf (temperature el) temperature)))
 
 
 (defun weigh-ingredient (container-w-ingredient amount target-container)
