@@ -117,22 +117,22 @@
     (beat ?output-container-5607 ?output-kitchen-state-6541 ?input-kitchen-state-5606 ?input-container-4672 ?tool-2803)
 
     ;; "Add the vanilla and almond extracts and mix"
-    (transfer-contents ?output-container-after-adding-x-981 ?rest-x-1962 ?intermediate-ks-981 ?output-kitchen-state-6541 ?output-container-5607 ?ingredient-out-914 ?quantity-x-1962 ?unit-x-1962)
+    (transfer-contents ?output-container-after-adding-x-981 ?rest-x-1962 ?intermediate-ks-981 ?output-kitchen-state-6541 ?output-container-5607 ?ingredient-out-914 ?quantity-x-1962 ?unit-x-1962) ;almond extract
     (transfer-contents ?input-container-4711 ?rest-y-1962 ?input-kitchen-state-5653 ?intermediate-ks-981 ?output-container-after-adding-x-981 ?ingredient-out-907 ?quantity-y-1962 ?unit-y-1962)
     (mix ?output-container-5653 ?output-kitchen-state-6595 ?input-kitchen-state-5653 ?input-container-4711 ?tool-2827)
 
     ;; "Add the flour and almond flour"
-    (transfer-contents ?output-container-after-adding-x-992 ?rest-x-1983 ?intermediate-ks-992 ?output-kitchen-state-6595 ?output-container-5653 ?ingredient-out-926 ?quantity-x-1983 ?unit-x-1983)
+    (transfer-contents ?output-container-after-adding-x-992 ?rest-x-1983 ?intermediate-ks-992 ?output-kitchen-state-6595 ?output-container-5653 ?ingredient-out-926 ?quantity-x-1983 ?unit-x-1983) ;almond flour
     (transfer-contents ?output-container-5948 ?rest-y-1983 ?output-kitchen-state-6939 ?intermediate-ks-992 ?output-container-after-adding-x-992 ?ingredient-out-920 ?quantity-y-1983 ?unit-y-1983)
 
     ;; "Mix thoroughly"
     (mix ?output-container-5963 ?output-kitchen-state-6956 ?output-kitchen-state-6939 ?output-container-5948 ?tool-2981)
 
     ;; "Take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
-    (shape ?shaped-bakeables-1999 ?kitchen-state-out-5999 ?kitchen-state-out-5992 ?shaped-bakeables-1998 crescent-shape)
     (portion-and-arrange ?portioned-dough-998 ?kitchen-state-with-portions-on-tray-998 ?output-kitchen-state-6956 ?output-container-5963 25 g ?pattern-998 ?lined-baking-tray-1995)
     (shape ?shaped-bakeables-1998 ?kitchen-state-out-5992 ?kitchen-state-with-portions-on-tray-998 ?portioned-dough-998 ball-shape)
-
+    (shape ?shaped-bakeables-1999 ?kitchen-state-out-5999 ?kitchen-state-out-5992 ?shaped-bakeables-1998 crescent-shape)
+    
     ;; "Place onto a parchment paper lined baking sheet"
     (line ?lined-baking-tray-2005 ?kitchen-state-out-6014 ?kitchen-state-out-5999 baking-tray baking-paper)
     (transfer-items ?things-placed-1004 ?kitchen-out-1004 ?kitchen-state-out-6014 ?shaped-bakeables-1999 ?lined-baking-tray-2005)

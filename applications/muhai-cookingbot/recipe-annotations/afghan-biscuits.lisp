@@ -1,7 +1,12 @@
 
 (in-package :muhai-cookingbot)
 
+;; The 'trace-irl' monitor will make sure that
+;; the IRL evaluation process is shown on the web
+;; interface (which can be found at localhost:8000).
+;; We need to activate it:
 (activate-monitor trace-irl)
+
 
 ;; ##################################################################
 ;; New Zealand Afghan Biscuit/Cookie
@@ -11,15 +16,15 @@
 (defparameter *initial-kitchen-state* 
   (make-instance 
    'kitchen-state
-   :id 'kitchen-state
-   :fridge (make-instance 'fridge
-                          :contents (list (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'butter :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity
+    :contents
+    (list (make-instance 'fridge
+                         :contents (list (make-instance 'medium-bowl
+                                                        :contents (list (make-instance 'butter :amount
+                                                                                       (make-instance 'amount
+                                                                                                      :unit (make-instance 'g)
+                                                                                                      :quantity (make-instance 'quantity
                                                                                                                                 :value 250)))))))
-   :pantry (make-instance 'pantry
+          (make-instance 'pantry
                           :contents (list (make-instance 'medium-bowl
                                                          :contents (list (make-instance 'caster-sugar :amount
                                                                                         (make-instance 'amount
@@ -60,7 +65,7 @@
                                                                                         (make-instance 'amount
                                                                                                        :unit (make-instance 'g)
                                                                                                        :quantity (make-instance 'quantity :value 250)))))))
-   :kitchen-cabinet (make-instance 'kitchen-cabinet
+          (make-instance 'kitchen-cabinet
 				   :contents (list (make-instance 'baking-tray)
 						   (make-instance 'baking-paper)
                                                    (make-instance 'whisk)
@@ -84,13 +89,13 @@
                                                    (make-instance 'medium-bowl)
                                                    (make-instance 'medium-bowl)
 						   (make-instance 'medium-bowl)
-						   (make-instance 'medium-bowl)))))
+						   (make-instance 'medium-bowl))))))
 
-(add-element (make-html *initial-kitchen-state* :expand-initially t))
+;(add-element (make-html *initial-kitchen-state* :expand-initially t))
 
 (defparameter *afghan-cookie-recipe* 
   `(;; Initial Kitchen State
-    (to-get-kitchen ?kitchen-state)
+    (get-kitchen ?kitchen-state)
 
     ;;Ingredients
 
