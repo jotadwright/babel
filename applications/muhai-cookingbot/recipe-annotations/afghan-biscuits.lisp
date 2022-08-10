@@ -189,9 +189,28 @@
     (mix ?icing ?kitchen-with-icing-ready ?kitchen-state-with-container-for-icing-with-sugar-cocoa-and-water ?container-for-icing-with-sugar-cocoa-and-water ?mixing-tool-2)
 
     ;; "Spoon a little icing on each cookie, and decorate with flaked almonds"
-    (spread ?iced-cookies ?kitchen-state-with-iced-cookies ?kitchen-with-icing-ready ?icing ?cooled-cookies table-spoon)
+    (spread ?iced-cookies ?kitchen-state-with-iced-cookies ?kitchen-with-icing-ready  ?cooled-cookies ?icing table-spoon)
     (sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies ?kitchen-state-with-iced-cookies ?iced-cookies ?proportioned-almonds)
     ))
 
-(defparameter *o*
-  (evaluate-irl-program (expand-macros *afghan-cookie-recipe*) nil))
+
+;; ======================
+;; Append bindings to the recipe
+;; ======================
+
+(defparameter *extended-recipe*
+  (append-meaning-and-irl-bindings *afghan-cookie-recipe* nil))
+
+;; ======================
+;; Evaluate the recipe
+;; ======================
+
+;(evaluate-irl-program *extended-recipe* nil)
+
+
+;; ======================
+;; Visualise the recipe
+;; ======================
+
+(draw-recipe *afghan-cookie-recipe*)
+(draw-recipe *extended-recipe*)

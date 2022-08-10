@@ -128,6 +128,13 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - temperature-quantity
   - temperature-unit
 
+#### **sift** (5)
+  - container-with-sifted-contents
+  - ks-out
+  - ks-in
+  - target-container
+  - container-with-ingredients-to-be-sifted
+
 #### **flatten** (5)
   - flattened-dough
   - ks-out
@@ -139,8 +146,8 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - thing-with-spread-on-top
   - ks-out
   - ks-in
-  - spread
   - thing-to-be-spread
+  - spread
   - tool
 
 *(end of recipe 2)*

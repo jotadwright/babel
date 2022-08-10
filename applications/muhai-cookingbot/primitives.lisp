@@ -510,8 +510,71 @@
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
+(defun retrieve-concept-instance-and-bring-to-countertop (kitchen-concept kitchen-state)
+  "Returns an instance of the given concept that has been put on the countertop."
+  
+  (multiple-value-bind (target-object-in-kitchen-input-state target-object-original-location)
+      (find-unused-kitchen-entity kitchen-concept kitchen-state)
 
+    (let ((concept-instance
+           (find-object-by-persistent-id target-object-in-kitchen-input-state
+                                         (funcall (type-of target-object-original-location) kitchen-state))))
 
+      (change-kitchen-entity-location concept-instance ;;bring the retrieved instance to the countertop
+                                      (funcall (type-of target-object-original-location) kitchen-state)
+                                      (counter-top kitchen-state))
+
+      concept-instance)))
+       
+(defprimitive spread ((container-with-objects-that-have-been-spread transferable-container)
+                      (kitchen-state-out kitchen-state)
+                      (kitchen-state-in kitchen-state)
+                      (object-to-be-spread transferable-container) ; E.g. toast on a plate
+                      (container-with-spread transferable-container) ; E.g. butter in a bowl
+                      (can-spread-kitchen-tool can-spread)) ;E.g. a butter knife
+  
+  ;;Case 1: spreading tool given, either its concept or an actual tool
+  ((kitchen-state-in object-to-be-spread container-with-spread can-spread-kitchen-tool
+                        => container-with-objects-that-have-been-spread kitchen-state-out)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container-with-things-spread (find-object-by-persistent-id object-to-be-spread new-kitchen-state))
+          (number-of-spreadable-items (loop for item in (contents new-container-with-things-spread)
+                                            counting (typep item 'spreadable) into spreadables
+                                            finally (return spreadables)))
+          (actual-spread-in-bowl (first (contents container-with-spread)))
+          (quantity-per-item (/ (value (quantity (amount actual-spread-in-bowl)))
+                                number-of-spreadable-items))
+          (spread-unit (type-of (unit (amount actual-spread-in-bowl))))
+          (type-of-spread (type-of (first (contents container-with-spread))))
+          (new-spread-container (find-object-by-persistent-id container-with-spread new-kitchen-state))
+          (new-spreading-tool (if (is-concept can-spread-kitchen-tool)
+                                     (retrieve-concept-instance-and-bring-to-countertop can-spread-kitchen-tool new-kitchen-state)
+                                     (find-object-by-persistent-id can-spread-kitchen-tool new-kitchen-state)))
+          ;; time calculation of the spread object depends
+          (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
+                                              (available-at (find (id new-container-with-things-spread) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+     
+         
+     (loop for item in (contents new-container-with-things-spread)
+           for portioned-spread = (make-instance type-of-spread
+                                                 :amount (make-instance 'amount
+                                                                        :quantity (make-instance 'quantity
+                                                                                                 :value quantity-per-item)
+                                                                        :unit (make-instance spread-unit)))
+           when (typep item 'spreadable)
+           do (setf (spread item) t)
+              (setf (spread-with item) portioned-spread))
+
+     (setf (contents new-spread-container) nil)
+     (setf (used new-spreading-tool) t)
+
+     (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 (defprimitive sprinkle ((sprinkled-object transferable-container)
@@ -575,8 +638,7 @@
 
     ;;TO DO: eerst alles omzetten naar gram??
     
-    ;;weigh ingredient + separate rest
-    (setf (value (quantity (amount ingredient-copy))) (value (quantity amount)))
+    ;;weigh ingredient + separate rest    (setf (value (quantity (amount ingredient-copy))) (value (quantity amount)))
     (setf (value (quantity (amount (first (contents container-w-ingredient)))))
           (- (value (quantity (amount (first (contents container-w-ingredient)))))
              (value (quantity amount))))
@@ -700,9 +762,6 @@
     mixture))
 
 
-;; CONVERSION TABLE
-;; create a conversion table for converting to g
-;; the table will be hash-table with association lists as entries, e.g. for the value 'egg (('piece . 50)) could be found
 (defun create-conversion-table-for-g ()
   (let ((conversion-table (make-hash-table)))
     (setf (gethash 'banana conversion-table)
@@ -756,19 +815,41 @@
     copied-ingredient))
 
 
-
-;;(evaluate-irl-program (instantiate-non-variables-in-irl-program `((get-kitchen ?kitchen-state-in)
-                                       ;;                         (fetch-and-proportion ?container-with-ingredient
-                                        ;;                                                ?kitchen-state-out
-                                         ;;                                               ?kitchen-state-in
-                                          ;;                                              ?target-container
-                                           ;;                                             sugar
-                                            ;;                                            2/3
-                                             ;;                                           cup))) nil)
-
-
 #|
 
+;; CONVERSION TABLE
+;; create a conversion table for converting to g
+;; the table will be hash-table with association lists as entries, e.g. for the value 'egg (('piece . 50)) could be found
+(defun create-conversion-table-for-g ()
+  (let ((conversion-table (make-hash-table)))
+    (setf (gethash 'banana conversion-table)
+	  (acons 'piece 118 '()))
+    (setf (gethash 'cucumber conversion-table)
+          (acons 'piece 250 '()))
+    (setf (gethash 'egg conversion-table)
+          (acons 'piece 50 '()))
+    (setf (gethash 'jalapeno conversion-table)
+          (acons 'piece 20 '()))
+    (setf (gethash 'milk conversion-table)
+	  (acons 'l 1032 '()))
+    (setf (gethash 'onion conversion-table)
+          (acons 'piece 100 '()))
+    (setf (gethash 'red-onion conversion-table)
+          (acons 'piece 50 '()))
+    (setf (gethash 'shallot conversion-table)
+          (acons 'piece 50 '()))
+    (setf (gethash 'vanilla-extract conversion-table)
+	  (acons 'l 879.16 '()))
+    (setf (gethash 'water conversion-table)
+	  (acons 'l 1000 '()))
+    (setf (gethash 'whole-egg conversion-table)
+	  (acons 'piece 50 '())) 
+    (setf (gethash 'vegetable-oil conversion-table)
+    (acons 'l 944 '()))
+    conversion-table))
+
+;; define conversion table as a global parameter
+(defparameter *conversion-table-for-g* (create-conversion-table-for-g))
 
 
 (defprimitive to-get-oven ((available-oven oven) (kitchen kitchen-state))
@@ -790,54 +871,6 @@
 (defprimitive to-define-quantity ((amount amount) (quantity quantity) (unit unit))
   ((quantity unit => amount)
    (bind (amount 1.0 (make-instance 'amount :unit unit :quantity quantity)))))
-
-;; FETCH/TRANSFER
-(defprimitive to-fetch (
-  ((kitchen-input-state object => fetched-object kitchen-output-state)
-   (let ((object-location (cond ((find-fetchable-in-container object (fridge kitchen-input-state))
-                                  'fridge)
-                                 ((find-fetchable-in-container object (pantry kitchen-input-state))
-                                  'pantry)
-                                 ((find-fetchable-in-container object (freezer kitchen-input-state))
-                                  'freezer)
-                                 ((find-fetchable-in-container object (kitchen-cabinet kitchen-input-state))
-                                  'kitchen-cabinet)
-                                 ((find-fetchable-in-container object (oven kitchen-input-state))
-                                  'oven))))
-
-     (when object-location
-       (let* ((new-kitchen-state (copy-object kitchen-input-state))
-              (object-in-kitchen-input-state (find-fetchable-in-container object (funcall object-location kitchen-input-state)))
-              (new-object (copy-object object-in-kitchen-input-state)))
-
-         (setf (contents (counter-top new-kitchen-state))
-               (cons new-object (contents (counter-top new-kitchen-state))))
-         (setf (contents (funcall object-location new-kitchen-state))
-               (copy-object (remove object-in-kitchen-input-state
-                                    (contents (funcall object-location kitchen-input-state)))))
-
-         (bind (fetched-object 1.0 new-object)
-               (kitchen-output-state 1.0 new-kitchen-state)))))))
-
-(defprimitive to-transfer ((outer-container container)
-                           (inner-container transferable-container)
-                           (kitchen-output-state kitchen-state)
-                           (kitchen-input-state kitchen-state)
-                           (input transferable-container)
-                           (container container))
-  ((kitchen-input-state input container => outer-container inner-container kitchen-output-state)
-   (let* ((new-kitchen-state (copy-object kitchen-input-state))
-          (new-counter-top (counter-top new-kitchen-state))
-          (new-outer-container (find-object-by-id container new-kitchen-state))
-          (new-inner-container (find-object-by-id input new-counter-top)))
-     (setf (contents new-outer-container)
-           (cons new-inner-container (contents new-outer-container)))
-     (setf (contents new-counter-top) (remove new-inner-container
-                                              (contents new-counter-top)))  
-     (bind (outer-container 1.0 new-outer-container)
-           (inner-container 1.0 new-inner-container)
-           (kitchen-output-state 1.0 new-kitchen-state)))))
-
 
 
 
@@ -875,41 +908,6 @@
                  (bind (heated-oven 1.0 new-oven)
                        (kitchen-output-state 1.0 new-kitchen-state)))))
 
-;; CONTAINER MANIPULATION
-
-(defprimitive to-line-with ((lined-baking-tray lineable)
-                            (kitchen-output-state kitchen-state)
-                            (kitchen-input-state kitchen-state)
-                            (baking-tray lineable)
-                            (baking-paper can-be-lined-with))
-              ((kitchen-input-state baking-tray baking-paper => kitchen-output-state lined-baking-tray)
-               (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                      (new-counter-top (counter-top new-kitchen-state))
-                      (new-baking-tray (find-object-by-id baking-tray new-counter-top))
-                      (new-baking-paper (find-object-by-id baking-paper new-counter-top)))
-                 (setf (is-lining new-baking-paper) T)           
-                 (setf (lined-with new-baking-tray) new-baking-paper)
-                 (setf (contents new-counter-top)
-                       (remove new-baking-paper (contents new-counter-top)))    
-                 (bind (lined-baking-tray 1.0 new-baking-tray)
-                       (kitchen-output-state 1.0 new-kitchen-state)))))
-
-;; CONTAINER CONTENT MANIPULATION
-(defprimitive to-bake ((baked-object transferable-container)
-                       (kitchen-output-state kitchen-state)
-                       (kitchen-input-state kitchen-state)
-                       (object transferable-container)
-                       (time-to-bake amount))
-              ((kitchen-input-state object time-to-bake => kitchen-output-state baked-object)               
-               (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                      (new-oven (oven new-kitchen-state))
-                      (new-container (find-object-by-id object new-oven))
-                      (bake (lambda (bakeable)
-                              (setf (temperature bakeable) (copy-object (temperature new-oven)))
-                              (setf (baked bakeable) T))))
-                 (execute-for-all-ingredients new-container bake)       
-                 (bind (baked-object 1.0 new-container)
-                       (kitchen-output-state 1.0 new-kitchen-state)))))
 
 
 
@@ -931,25 +929,7 @@
                  (bind (brushed-object 1.0 new-object)
                        (kitchen-output-state 1.0 new-kitchen-state)))))
 
-(defprimitive to-cool ((output transferable-container)
-                       (kitchen-output-state kitchen-state)
-                       (kitchen-input-state kitchen-state)
-                       (input transferable-container)
-                       (amount-to-cool amount))
-              ((kitchen-input-state input amount-to-cool => kitchen-output-state output)             
-               (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                      (new-container (find-object-by-id input new-kitchen-state))
-                      (new-temperature (if (eq (type-of (unit amount-to-cool)) 'degrees-celsius)
-                                         (copy-object amount-to-cool)
-                                         (make-instance 'amount ;; cool down to a fixed temperature in case of a time amount
-                                                        :quantity (make-instance 'quantity :value 18)
-                                                        :unit (make-instance 'degrees-celsius))))
-                      (lower-temperature (lambda (has-temperature)
-                                           (setf (temperature has-temperature) new-temperature))))
-                 
-                 (execute-for-all-contents new-container lower-temperature)              
-                 (bind (output 1.0 new-container)
-                       (kitchen-output-state 1.0 new-kitchen-state)))))
+
 
 (defprimitive to-crack ((container-with-whole-eggs transferable-container)
                         (kitchen-output-state kitchen-state)
@@ -1046,37 +1026,7 @@
                  (bind (melted-ingredient 1.0 new-ingredient)
                        (kitchen-output-state 1.0 new-kitchen-state)))))
 
-(defprimitive to-portion-and-arrange ((output-container transferable-container)
-                                      (kitchen-output-state kitchen-state)
-                                      (kitchen-input-state kitchen-state)
-                                      (input-container transferable-container)
-                                      (amount amount)
-                                      (arrangement-pattern arrangement-pattern)
-                                      (new-container container))
-              ((kitchen-input-state input-container amount arrangement-pattern new-container => output-container kitchen-output-state)
-               (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                      (new-counter-top (counter-top new-kitchen-state))
-                      (new-input-container (find-object-by-id input-container new-counter-top))
-                      (new-output-container (find-object-by-id new-container new-counter-top))
-                      (ingredient-to-portion (first (contents new-input-container)))
-                      (absolute-amount-to-transfer (if (relative-amount-p amount)
-                                                     (convert-relative-to-absolute amount (amount ingredient-to-portion))
-                                                     (copy-object amount)))
-                      (value-to-transfer (value (quantity absolute-amount-to-transfer)))
-                      (left-to-transfer (value (quantity (amount ingredient-to-portion)))))
-                 (loop while (> left-to-transfer 0)
-                       do (let ((new-portion (copy-object ingredient-to-portion))
-                                (portion-amount (copy-object absolute-amount-to-transfer)))
-                            (when (< left-to-transfer value-to-transfer) ;; last portion could be smaller than the others (left-over portion)
-                              (setf (value (quantity portion-amount)) left-to-transfer))
-                            (setf (amount new-portion) portion-amount)
-                            (setf (contents new-output-container) (cons new-portion (contents new-output-container)))
-                            (setf left-to-transfer (- left-to-transfer value-to-transfer))))
-                 (setf (contents new-input-container) nil) ;; everything has been transferred so should be empty
-                 (use-container new-output-container)
-                 (setf (arrangement new-output-container) arrangement-pattern)
-                 (bind (output-container 1.0 new-output-container)
-                       (kitchen-output-state 1.0 new-kitchen-state)))))
+
 
 (defprimitive to-shake ((output-container transferable-container)
                         (kitchen-output-state kitchen-state)
@@ -1092,21 +1042,7 @@
      (bind (output-container 1.0 new-input-container)
            (kitchen-output-state 1.0 new-kitchen-state)))))
 
-(defprimitive to-shape ((output-container transferable-container)
-                        (kitchen-output-state kitchen-state)
-                        (kitchen-input-state kitchen-state)
-                        (input-container transferable-container)
-                        (object-shape shape))
-              ((kitchen-input-state input-container object-shape => output-container kitchen-output-state)      
-               (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                      (new-counter-top (counter-top new-kitchen-state))
-                      (new-input-container (find-object-by-id input-container new-counter-top))
-                      (new-shape (copy-object object-shape))
-                      (modify-shape (lambda (shapeable)
-                                      (setf (current-shape shapeable) new-shape))))
-                 (execute-for-all-ingredients new-input-container modify-shape)   
-                   (bind (output-container 1.0 new-input-container)
-                         (kitchen-output-state 1.0 new-kitchen-state)))))
+
 
 (defprimitive to-sift ((sifted-object transferable-container)
                        (kitchen-output-state kitchen-state)
@@ -1125,57 +1061,9 @@
                  (bind (sifted-object 1.0 new-container)
                        (kitchen-output-state 1.0 new-kitchen-state)))))
 
-(defprimitive to-spread ((spread-object transferable-container)
-                         (kitchen-output-state kitchen-state)
-                         (kitchen-input-state kitchen-state)
-                         (object-to-spread-upon transferable-container) ; Eg. toast, for now assumed to be 1 ingredient
-			 (object-to-spread transferable-container) ; Eg. butter, for now assumed to be 1 ingredient
-                         (can-spread-kitchen-tool can-spread))
-              ((kitchen-input-state object-to-spread-upon object-to-spread can-spread-kitchen-tool => spread-object kitchen-output-state)
-              (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                     (new-counter-top (counter-top new-kitchen-state))
-                     (new-object-to-spread-upon (find-object-by-id  object-to-spread-upon new-counter-top))
-		     (new-object-to-spread (find-object-by-id object-to-spread new-counter-top)))
-		(mapcar (lambda (ingredient) (when (typep ingredient 'spreadable)
-                                        	(setf (spread ingredient) T)))
-                        	(contents new-object-to-spread))
-		(if (contents new-object-to-spread-upon)
-                  (let ((new-amount (/ (value (quantity (amount (car (contents new-object-to-spread))))) (length (contents new-object-to-spread-upon)))))
-                    
-                    (mapcar (lambda (ingredient)
-                              (let ((portioned-object-to-spread (copy-object new-object-to-spread)))
-                                (increment-id (car (contents portioned-object-to-spread)))
-                                (setf (value (quantity (amount (car (contents portioned-object-to-spread))))) new-amount)
-                                (setf (spread-with ingredient) (contents portioned-object-to-spread))))
-                              (contents new-object-to-spread-upon)))
-                  (progn
-                    (use-container new-object-to-spread-upon)
-                    (setf (contents new-object-to-spread-upon) (contents new-object-to-spread))))
-		(setf (contents new-object-to-spread) nil)
-                (bind (spread-object 1.0 new-object-to-spread-upon)
-                      (kitchen-output-state 1.0 new-kitchen-state)))))
 
-(defprimitive to-sprinkle ((sprinkled-object transferable-container)
-                           (kitchen-output-state kitchen-state)
-                           (kitchen-input-state kitchen-state)
-                           (object transferable-container)
-                           (topping-container transferable-container))
-              ((kitchen-input-state object topping-container => kitchen-output-state sprinkled-object)
-               (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                      (new-counter-top (counter-top new-kitchen-state))
-                      (new-input-container (find-object-by-id object new-counter-top))
-                      (new-topping-container (find-object-by-id topping-container new-counter-top))
-                      (new-topping (convert-to-g (first (contents new-topping-container))))) ;; assumed there is only one topping
-                 (setf (value (quantity (amount new-topping)))
-                       (/ (value (quantity (amount new-topping)))
-                          (length (contents new-input-container))))
-                 (execute-for-all-contents new-input-container
-                                           (lambda (can-be-sprinkled-on)
-                                             (setf (sprinkled-with can-be-sprinkled-on)
-                                                   (copy-object new-topping))))
-                 (setf (contents new-topping-container) nil) ;; we can assume all the sprinkles are used up
-                 (bind (sprinkled-object 1.0 new-input-container)
-                       (kitchen-output-state 1.0 new-kitchen-state)))))
+
+
 
 (defprimitive to-flour ((floured-object transferable-container)
                         (kitchen-output-state kitchen-state)
@@ -1197,39 +1085,9 @@
                        (kitchen-output-state 1.0 new-kitchen-state)))))
 
 ;; MIXING VARIANTS
-(defprimitive to-beat ((mixture transferable-container)
-                       (kitchen-output-state kitchen-state)
-                       (kitchen-input-state kitchen-state)
-                       (input transferable-container)
-                       (tool cooking-utensil))
-               ((kitchen-input-state input tool => kitchen-output-state mixture)
-                (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                       (new-tool (find-object-by-id tool new-kitchen-state))
-                       (new-counter-top (counter-top new-kitchen-state))
-                       (new-container (find-object-by-id input new-counter-top))
-                       (new-mixture (create-homogeneous-mixture-in-container new-container)))
-                  (use-cooking-utensil new-tool)
-                  (setf (beaten new-mixture) T)
-                  (setf (contents new-container) (list new-mixture))
-                  (bind (mixture 1.0 new-container)
-                        (kitchen-output-state 1.0 new-kitchen-state)))))
 
-(defprimitive to-mix ((mixture transferable-container)
-                      (kitchen-output-state kitchen-state)
-                      (kitchen-input-state kitchen-state)
-                      (input transferable-container)
-                      (tool cooking-utensil))
-              ((kitchen-input-state input tool => kitchen-output-state mixture)
-               (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                      (new-tool (find-object-by-id tool new-kitchen-state))
-                      (new-counter-top (counter-top new-kitchen-state))
-                      (new-container (find-object-by-id input new-counter-top))
-                      (new-mixture (create-homogeneous-mixture-in-container new-container)))
-                 (use-cooking-utensil new-tool)
-                 (setf (mixed new-mixture) T)
-                 (setf (contents new-container) (list new-mixture))
-                 (bind (mixture 1.0 new-container)
-                       (kitchen-output-state 1.0 new-kitchen-state)))))
+
+
 
 (defprimitive to-mingle ((mixture transferable-container)
                       (kitchen-output-state kitchen-state)
@@ -1333,84 +1191,6 @@
 ;; Helper Functions ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-;; CONVERSION TABLE
-;; create a conversion table for converting to g
-;; the table will be hash-table with association lists as entries, e.g. for the value 'egg (('piece . 50)) could be found
-(defun create-conversion-table-for-g ()
-  (let ((conversion-table (make-hash-table)))
-    (setf (gethash 'banana conversion-table)
-	  (acons 'piece 118 '()))
-    (setf (gethash 'cucumber conversion-table)
-          (acons 'piece 250 '()))
-    (setf (gethash 'egg conversion-table)
-          (acons 'piece 50 '()))
-    (setf (gethash 'jalapeno conversion-table)
-          (acons 'piece 20 '()))
-    (setf (gethash 'milk conversion-table)
-	  (acons 'l 1032 '()))
-    (setf (gethash 'onion conversion-table)
-          (acons 'piece 100 '()))
-    (setf (gethash 'red-onion conversion-table)
-          (acons 'piece 50 '()))
-    (setf (gethash 'shallot conversion-table)
-          (acons 'piece 50 '()))
-    (setf (gethash 'vanilla-extract conversion-table)
-	  (acons 'l 879.16 '()))
-    (setf (gethash 'water conversion-table)
-	  (acons 'l 1000 '()))
-    (setf (gethash 'whole-egg conversion-table)
-	  (acons 'piece 50 '())) 
-    (setf (gethash 'vegetable-oil conversion-table)
-    (acons 'l 944 '()))
-    conversion-table))
-
-;; define conversion table as a global parameter
-(defparameter *conversion-table-for-g* (create-conversion-table-for-g))
-
-;; create a copy of the ingredient with g as its unit
-(defmethod convert-to-g ((ingredient ingredient) &key &allow-other-keys)
-  (let ((copied-ingredient (copy-object ingredient)))
-    (when (not (eq (type-of (unit (amount copied-ingredient))) 'g))
-      (let ((ingredient-type (type-of copied-ingredient))
-            (source-unit-type (type-of (unit (amount copied-ingredient)))))
-        (multiple-value-bind (conversion-rates found) (gethash ingredient-type *conversion-table-for-g*)
-          (when (null found)
-            (error "The ingredient ~S has no entry in the conversion table!" ingredient-type))
-          (let* ((conversion-rate (assoc source-unit-type conversion-rates))
-                 (converted-value (if (null conversion-rate)
-                                    (error "The ingredient ~S has no entry in the conversion table for unit ~S!" ingredient-type source-unit-type)
-                                    (* (value (quantity (amount copied-ingredient)))
-                                       (rest conversion-rate)))))
-            (setf (amount copied-ingredient)
-                  (make-instance 'amount
-                                 :unit (make-instance 'g)
-                                 :quantity (make-instance 'quantity
-                                                          :value converted-value)))))))
-    copied-ingredient))
-
-;; CREATION
-;; updates the container contents and returns a reference to the inner mixture
-(defmethod create-homogeneous-mixture-in-container ((container transferable-container) &key &allow-other-keys)
-  (let* ((total-value (loop for ingredient in (contents container)
-                            for current-value = (value (quantity (amount (convert-to-g ingredient))))
-                            sum current-value))
-         (mixture (make-instance 'homogeneous-mixture :amount (make-instance 'amount
-                                                                :unit (make-instance 'g)
-                                                                :quantity (make-instance 'quantity :value total-value)))))
-      (setf (contents container) (list mixture))
-      (setf (mixed (first (contents container))) t)
-      mixture))
-
-(defmethod create-heterogeneous-mixture-in-container ((container transferable-container) &key &allow-other-keys)
-  (let* ((total-value (loop for ingredient in (contents container)
-                            for current-value = (value (quantity (amount (convert-to-g ingredient))))
-                            sum current-value))
-         (mixture (make-instance 'heterogeneous-mixture :amount (make-instance 'amount
-                                                                :unit (make-instance 'g)
-                                                                :quantity (make-instance 'quantity :value total-value))
-                                 :components (contents container))))
-    (setf (contents container) mixture)
-    mixture))
 
 (defmethod create-concept-for ((conceptualizable conceptualizable) &key &allow-other-keys)
   (create-concept-for (type-of conceptualizable)))
@@ -1425,92 +1205,5 @@
   (let ((new-amount (copy-object (amount shell-egg))))
     (make-instance 'whole-egg :amount new-amount)))
 
-;; SEARCH
 
-
-(defmethod find-object-by-type ((object kitchen-entity) (container container))
-  (loop for item in (contents container)
-        when (eq (type-of item) (type-of object))
-        return item))
-
-;; method to find the fetchable inside a container
-;; in case of an ingredient the container with the ingredient is fetched, not the ingredient itself
-(defmethod find-fetchable-in-container((fetchable fetchable) (container container) &key &allow-other-keys)
-  (if (concept-p fetchable)
-    (cond ((subtypep (type-of fetchable) 'ingredient)
-           (find-container-with-ingredient fetchable container))
-          ((subtypep (type-of fetchable) 'container)
-           (find-empty-container fetchable container))
-          (T (find-object-by-type fetchable container)))
-    (find-object-by-id fetchable container)))
-
-;; method to find the first, empty container
-(defmethod find-empty-container((inner-container container) (container container) &key &allow-other-keys)
-  (loop for item in (contents container)
-                 when (and (eq (type-of item) (type-of inner-container))
-                           (eq (contents item) nil))
-                 return item))    
-
-;; helper method to find the first, innermost container with the specified ingredient
-(defmethod find-container-with-ingredient((ingredient ingredient) (container container) &key &allow-other-keys)
-  (loop for item in (contents container)
-        do (let ((item (cond ((eq (type-of item) (type-of ingredient)) container)
-                             ((subtypep (type-of item) 'container) (find-container-with-ingredient ingredient item)))))
-            (when item (return item)))))
-
-;; CONTAINER MANIPULATION
-;; helper function that sets the container to used if it is reusable
-(defmethod use-container ((container container) &key &allow-other-keys)
-  (when (subtypep (type-of container) 'reusable)
-    (setf (used container) T)))
-
-;; CONTAINER CONTENT MANIPULATION
-(defmethod execute-for-all-contents ((container container) (function-to-execute function) &key &allow-other-keys)
-  (loop for item in (contents container)
-        do (funcall function-to-execute item)))
-
-(defmethod execute-for-all-ingredients ((container container) (function-to-execute function) &key &allow-other-keys)
-  (loop for item in (contents container)
-        do (cond ((subtypep (type-of item) 'ingredient)
-                  (funcall function-to-execute item)) 
-                 ((and (subtypep (type-of item) 'container) (contents item))
-                  (execute-for-all-ingredients item function-to-execute)))))
-
-;; TOOL MANIPULATION
-;; helper function that sets the cooking-utensil to used if it is reusable
-(defmethod use-cooking-utensil ((cooking-utensil cooking-utensil) &key &allow-other-keys)
-  (when (subtypep (type-of cooking-utensil) 'reusable)
-    (setf (used cooking-utensil) T)))
-
-;; AMOUNT MANIPULATION
-;; expects absolute amount
-(defmethod add-amount-to-ingredient ((ingredient ingredient) (absolute-amount amount))
-  (setf (value (quantity (amount ingredient))) (+ (value (quantity (amount ingredient)))
-                                                  (value (quantity absolute-amount)))))
-
-(defmethod remove-amount-from-ingredient ((ingredient ingredient) (absolute-amount amount))
-  (let ((new-amount (copy-object absolute-amount)))
-    (setf (value (quantity new-amount)) (- (value (quantity new-amount))))
-    (add-amount-to-ingredient ingredient new-amount)))
-  
-(defmethod convert-relative-to-absolute ((relative-amount amount) (absolute-amount amount))
-  (let ((new-amount (copy-object absolute-amount)))
-    (setf (value (quantity new-amount)) (/ (* (value (quantity relative-amount)) (value (quantity absolute-amount))) 100))
-    new-amount))
-
-;; TESTING
-(defmethod concept-p ((kitchen-entity kitchen-entity))
-  (and (subtypep (type-of kitchen-entity) 'conceptualizable)
-       (is-concept kitchen-entity)))
-
-(defmethod relative-amount-p ((amount-to-check amount))
-  (eq (type-of (unit amount-to-check)) 'percent))
-
-;; ID MANIPULATION
-;; only useful for testing purposes,
-;; a more general approach for id incrementing should be added to copy-object
-(defmethod increment-id ((object kitchen-entity))
-  (let* ((object-type (type-of object))
-         (new-id (utils:make-id object-type)))
-    (setf (id object) new-id)))
 |#
