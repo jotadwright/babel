@@ -20,6 +20,18 @@
 (define-configuration-default-value :number-of-epochs 1) ; how many times the training data is concatenated in random variations
 (define-configuration-default-value :de-render-mode :de-render-string-meets)
 
+;; Learning Operators
+(define-configuration-default-value :repairs 
+                                    '(add-categorial-links
+                                     item-based->item-based--substitution
+                                     item-based->holistic
+                                     holistic->item-based--substitution
+                                     ;holistic->item-based--addition
+                                     ;holistic->item-based--deletion
+                                     holistic->item-based
+                                     nothing->holistic))
+
+
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
 

@@ -56,15 +56,22 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
-                   :entries '((:determine-interacting-agents-mode . :corpus-learner)
-                         (:observation-sample-mode . :debug)
-                         (:meaning-representation . :geo)
-                         (:de-render-mode . :de-render-string-meets-no-punct)
-                         (:corpus-files-root . ,(merge-pathnames
-                                     (make-pathname :directory '(:relative "geoquery"))
-                                     cl-user:*babel-corpora*))
-                         (:corpus-data-file . ,(make-pathname
-                                                   :name "geoquery_en" :type "jsonl")))))))
+                          :entries '((:repairs . (add-categorial-links
+                                                  ;item-based->item-based--substitution
+                                                  ;item-based->holistic
+                                                  holistic->item-based--substitution
+                                                  ;holistic->item-based--addition
+                                                  ;holistic->item-based--deletion
+                                                  holistic->item-based
+                                                  nothing->holistic))
+                                     (:observation-sample-mode . :debug)
+                                     (:meaning-representation . :geo)
+                                     (:de-render-mode . :de-render-string-meets-no-punct)
+                                     (:corpus-files-root . ,(merge-pathnames
+                                                             (make-pathname :directory '(:relative "geoquery"))
+                                                             cl-user:*babel-corpora*))
+                                     (:corpus-data-file . ,(make-pathname
+                                                            :name "geoquery_en" :type "jsonl")))))))
 
 
                               
@@ -87,7 +94,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 100)   ;  
+;(run-series *experiment* 43)   ;  74 crashes cxn not found
 
 ;(run-series *experiment* 2000) ;
 

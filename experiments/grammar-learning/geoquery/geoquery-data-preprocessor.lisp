@@ -29,15 +29,11 @@
           for nl = (find-all "nl" (subseq example 1) :key #'first :test #'equal)
           for mr = (third (find "geo-prolog" (subseq example 1) :key #'(lambda (el) (second (first (second el)))) :test #'equal))
           for pred-mr = (geo-prolog-to-predicates mr)
-          for test-res = (test-pl-to-preds mr)
-          unless test-res
           do (loop for lang-entry in nl
                    for lang = (second (first (second lang-entry)))
                    for value = (cl-json:encode-json-to-string (list (cons "utterance" (third lang-entry))
-                                                                             (cons "meaning" (string-replace (format nil "~S" pred-mr) "GL-DATA::" ""))
+                                                                             (cons "meaning" (format nil "~S" pred-mr))
                                                                              (cons "geo-prolog" mr)
-                                                                             (cons "pred-to-pl" (format nil "~S" (predicates-to-geo-prolog pred-mr)))
-                                                                             (cons "geo-to-polish" (format nil "~S" (geo-prolog-to-polish-notation mr)))
                                                                              (cons "id" id)
                                                                              (cons "lang" lang)))
                    do (push value (gethash lang lang-hash nil)))
@@ -51,15 +47,80 @@
                              (dolist (entry (reverse data))
                                (write-line entry f)))))))
 
+(defun test-geoquery (file-string)
+  (with-open-file (stream file-string :direction :input)
+    (loop with lang-hash = (make-hash-table :test #'equal)
+          for example in (subseq (xmls:parse-to-list stream) 2)
+          for id = (second (first (second example)))
+          for nl = (find-all "nl" (subseq example 1) :key #'first :test #'equal)
+          for mr = (third (find "geo-prolog" (subseq example 1) :key #'(lambda (el) (second (first (second el)))) :test #'equal))
+          for pred-mr = (geo-prolog-to-predicates mr)
+          for test-res = (test-pl-to-preds mr)
+          unless test-res
+          do (loop for lang-entry in nl
+                   for lang = (second (first (second lang-entry)))
+                   for value = (cl-json:encode-json-to-string (list (cons "utterance" (third lang-entry))
+                                                                             (cons "meaning" (format nil "~S" pred-mr))
+                                                                             (cons "geo-prolog" mr)
+                                                                             (cons "pred-to-pl" (format nil "~S" (predicates-to-geo-prolog pred-mr)))
+                                                                             (cons "geo-to-polish" (format nil "~S" (geo-prolog-to-polish-notation mr)))
+                                                                             (cons "id" id)
+                                                                             (cons "lang" lang)))
+                   do (push value (gethash lang lang-hash nil)))
+          finally do (loop for lang being the hash-keys in lang-hash using (hash-value data)
+                        for data-file = (eval `(babel-corpora-pathname '("geoquery")
+                                                                       :file-name ,(string-append "test_geoquery_" lang) 
+                          :file-extension "jsonl"))
+                        do (with-open-file (f data-file :direction :output
+                                              :if-exists :supersede
+                                              :if-does-not-exist :create)
+                             (dolist (entry (reverse data))
+                               (write-line entry f)))))))
+
 
 (defun get-all-vars (geo-prolog-string)
   (loop for raw-el in (remove "" (cl-ppcre::split "[,\(\)]" geo-prolog-string) :test #'equal)
         for el = (string-trim " " raw-el)
         when (upper-case-p (first (coerce el 'list)))
-        collect (variablify el)))
-  
+        collect (variablify el)))      
 
-                   
+#|(defun atomic-predicate-p (predicate)
+  (equal (type-of (car predicate)) 'symbol))
+
+(defun serialise-predicates (predicates next-level)
+  (loop with de-listed-predicates = (if (equal (type-of (caar predicates)) 'cons)
+                                      (first predicates)
+                                      predicates)
+        for predicate in de-listed-predicates
+        for term = (list (first predicate) next-level)
+        for deserialised-predicate = (append term (loop for el in (rest predicate)
+                                                        if (or (numberp el)
+                                                               (variable-p el))
+                                                        collect el
+                                                        else
+                                                        collect (setf next-level (get-next-var next-level))))
+        for embedded-predicates = (loop for el in (rest predicate)
+                                        unless (or (numberp el)
+                                                   (variable-p el))
+                                        collect el)
+        if (atomic-predicate-p embedded-predicates)
+        append (append (list deserialised-predicate) (loop for var in (rest (rest deserialised-predicate))
+                                                               for symb in (remove-if #'variable-p embedded-predicates)
+                                                               collect (list symb var)))
+        else
+        append (append (list deserialised-predicate) (serialise-predicates embedded-predicates next-level))
+        ))
+
+
+(defun geo-prolog-to-predicates (geo-prolog-string)
+  "convert geo-prolog to predicate notation, see https://www.cs.utexas.edu/~ml/wasp/geo-funql.html for specification"
+ (let* ((polish-predicates (geo-prolog-to-polish-notation geo-prolog-string))
+        (var-list (get-all-vars geo-prolog-string))
+        (program-level (first (push (get-next-var-from-var-list var-list) var-list))))
+   (serialise-predicates polish-predicates program-level)
+  ))
+|#
+
 (defun geo-prolog-to-predicates (geo-prolog-string)
   "convert geo-prolog to predicate notation, see https://www.cs.utexas.edu/~ml/wasp/geo-funql.html for specification"
   (loop with stack = (list (geo-prolog-to-polish-notation geo-prolog-string))
@@ -86,10 +147,27 @@
                                                            (variable-p el))
                                                 collect el)
                      for accum-val = (list (append (list term) vars))
-                     do (cond (;; handle cityid, stateid, countryid, placeid, riverid
-                               (and (equal (type-of (car cand-emb-preds)) 'cons)
-                                    (equal (type-of (caar cand-emb-preds)) 'symbol)
-                                    (member (caar cand-emb-preds) '(cityid stateid countryid placeid riverid)))
+                     do (cond (;; handle double embedding in list
+                               (and (equal term '_not)
+                                    (equal (type-of (car cand-emb-preds)) 'cons)
+                                    (equal (type-of (caar cand-emb-preds)) 'cons)
+                                    (equal (type-of (caaar cand-emb-preds)) 'symbol)
+                                    (member (caaar cand-emb-preds) '(const)))
+                               ;; todo: handle recursively by pushing to front of stack instead - requires solution for level vars which are now correct because of BF queuing
+                               
+                               
+                               ;; create vars for all embedded predicates
+                               (setf accum-val (append accum-val (list (append (list (caaar cand-emb-preds)
+                                                                                     (last-elt (last-elt accum-val)))
+                                                                               (loop for el in (cdaar cand-emb-preds)
+                                                                                     if (or (numberp el)
+                                                                                            (variable-p el))
+                                                                                     collect el
+                                                                                     else
+                                                                                     collect (setf next-level (get-next-var next-level)))))))
+                               ;; todo: make a function out of the above to avoid duplication, loop until atom is reached
+                               (setf cand-emb-preds (cddaar cand-emb-preds))
+                                                         
                                (setf accum-val (append accum-val (list (append (list (caar cand-emb-preds)
                                                                                      (last-elt (last-elt accum-val)))
                                                                                (loop for el in (cdar cand-emb-preds)
@@ -100,12 +178,30 @@
                                                                                      collect (setf next-level (get-next-var next-level)))))))
                                                                        
                                                          
-                                                       
+                               ;; link all embedded predicates with their new level vars                
                                (setf accum-val (append accum-val (loop for var in (rest (rest (last-elt accum-val)))
                                                        for symb in (remove-if #'variable-p (cdar cand-emb-preds))
                                                        collect (list symb var)))))
-                                     
-                               
+
+                         (;; handle cityid, stateid, countryid, placeid, riverid, river
+                               (and (equal (type-of (car cand-emb-preds)) 'cons)
+                                    (equal (type-of (caar cand-emb-preds)) 'symbol)
+                                    (member (caar cand-emb-preds) '(cityid stateid countryid placeid riverid river const)))
+                               ;; create vars for all embedded predicates
+                               (setf accum-val (append accum-val (list (append (list (caar cand-emb-preds)
+                                                                                     (last-elt (last-elt accum-val)))
+                                                                               (loop for el in (cdar cand-emb-preds)
+                                                                                     if (or (numberp el)
+                                                                                            (variable-p el))
+                                                                                     collect el
+                                                                                     else
+                                                                                     collect (setf next-level (get-next-var next-level)))))))
+                                                                       
+                                                         
+                               ;; link all embedded predicates with their new level vars                
+                               (setf accum-val (append accum-val (loop for var in (rest (rest (last-elt accum-val)))
+                                                       for symb in (remove-if #'variable-p (cdar cand-emb-preds))
+                                                       collect (list symb var)))))                               
                               (;; predicate is a constant e.g. 'new_york
                                (equal (type-of predicate) 'symbol)
                                (setf accum-val (list (list predicate program-level)))
@@ -120,7 +216,7 @@
                               ((and cand-emb-preds
                                     (or
                                      (equal (type-of (car cand-emb-preds)) 'symbol) ;(new_york)
-                                     (equal (type-of (caar cand-emb-preds)) 'symbol))) ;((cityid
+                                     (equal (type-of (caar cand-emb-preds)) 'symbol))) ;((cityid or ((fewest
                                (setf stack (append stack (list cand-emb-preds))))
                               
                               ;; term is an actual term, collect the result and continue with the embedded predicates
@@ -132,23 +228,6 @@
                      finally (when (and accum-val
                                         (not (equal (type-of predicate) 'symbol)))
                                (setf program-level (first (push (get-next-var-from-var-list var-list) var-list)))))))
-
-; "What states in the United States have a city of Springfield ?"
-(geo-prolog-to-predicates "answer(A,(state(A),loc(A,B),const(B,countryid(usa)),loc(C,A),const(C,cityid(springfield,_))))")
-#|
-((FCG::ANSWER FCG::?D FCG::?A FCG::?E)
- (FCG::STATE FCG::?E FCG::?A)
- (FCG::LOC FCG::?E FCG::?A FCG::?B)
- (FCG::CONST FCG::?E FCG::?B FCG::?F)
- (FCG::LOC FCG::?E FCG::?C FCG::?A)
- (FCG::CONST FCG::?E FCG::?C FCG::?G)
- (FCG::COUNTRYID FCG::?F FCG::?G)
- (FCG::CITYID FCG::?G FCG::?H FCG::?_) ;; should be ?H ?I => handle these directly in place, don't append!
- (FCG::USA FCG::?H) ;; should be ?G
- (FCG::SPRINGFIELD FCG::?I))
-|#        
-
-        
 
 (defun get-next-var-from-var-list (var-list)
   (get-next-var (first (sort var-list #'> :key #'(lambda (x) (position (symbol-name x) gl::+placeholder-vars+ :test #'equal))))))
@@ -164,6 +243,7 @@
          (geo-prolog-string (cl-ppcre:regex-replace-all ",(_)" geo-prolog-string ",?\\1"))
          (geo-prolog-string (cl-ppcre:regex-replace-all "'(.*?)'" geo-prolog-string "\\1"))
          (geo-prolog-string (replace-all geo-prolog-string "," " "))
+         (geo-prolog-string (replace-all geo-prolog-string "(not" "(_not"))
          (geo-prolog-string (string-append "("geo-prolog-string ")")))
     (read-from-string geo-prolog-string)))
 
@@ -249,21 +329,19 @@
 (test-pl-to-preds "answer(C,(state(C),loc(B,C), largest(B,(capital(A,B),city(B),state(A)))))")
 (test-pl-to-preds "answer(A,(river(A),traverse(A,B),const(B,cityid(austin,tx))))")
 (test-pl-to-preds "answer(A,sum(B,(area(C,B),state(C)),A))")
-(test-pl-to-preds "answer(A,(len(B,A),const(B,riverid(colorado)),river(B),loc(B,C),const(C,stateid(texas))))")
+(test-pl-to-preds "answer(A,(len(B,A),const(B,riverid(colorado)),river(B),loc(B,C),const(C,stateid(texas))))") 
 (test-pl-to-preds "answer(A,(state(A),loc(A,B),const(B,countryid(usa)),loc(C,A),const(C,cityid(springfield,_))))")
 (test-pl-to-preds "answer(A,count(B,(state(B),next_to(B,C),const(C,stateid(colorado)),next_to(B,D),const(D,stateid('new mexico'))),A))")
 (test-pl-to-preds "answer(A,count(B,(river(B),loc(B,C),const(C,stateid(texas)),longer(B,D),const(D,riverid(red))),A))")
 (test-pl-to-preds "answer(A,count(B,(city(B),const(B,cityid(austin,_)),loc(B,C),const(C,countryid(usa))),A))")
 (test-pl-to-preds "answer(A,sum(B,(population(C,B),state(C),next_to(D,C),const(D,stateid(texas))),A))")
+(test-pl-to-preds "answer(A,count(B,(state(B),loc(B,C),const(C,countryid(usa)),shortest(D,river(D)),traverse(D,B)),A))")
+(test-pl-to-preds "answer(A,fewest(A,B,(state(A),next_to(A,B),state(B),not((const(A,stateid(alaska)))),not((const(A,stateid(hawaii)))))))")
+(test-pl-to-preds "answer(A,count(B,(const(B,riverid(colorado)),river(B)),A))")
 
-;;;;;;;;;;;;;; ERRORS in geo-prolog-to-predicates ;;;;;;;;;;;;;;
 
-; "What state borders the least states excluding Alaska and excluding Hawaii ?"
-(geo-prolog-to-predicates "answer(A,fewest(A,B,(state(A),next_to(A,B),state(B),not((const(A,stateid(alaska)))),not((const(A,stateid(hawaii)))))))") ;= ok!
 
-; "How many states in the US does the shortest river run through ?"
-(geo-prolog-to-predicates "answer(A,count(B,(state(B),loc(B,C),const(C,countryid(usa)),shortest(D,river(D)),traverse(D,B)),A))")
-
+;(test-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
 
 ;(parse-geoquery "/Users/u0077062/Projects/babel-corpora/geoquery/geoquery.xml")
 
