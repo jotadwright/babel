@@ -189,10 +189,10 @@
     
     ;; "Remove from oven, and cool on a wire rack" 
     (transfer-items ?cookies-on-wire-rack ?kitchen-state-with-cookies-on-wire-rack ?kitchen-state-with-baking-cookies ?baked-cookies wire-rack) ;;remove from oven is ignored now!
-     #| (bring-to-temperature ?cooled-cookies ?kitchen-state-with-cooling-cookies ?kitchen-state-with-cookies-on-wire-rack ?cookies-on-wire-rack 18 degrees-celsius)
+     (bring-to-temperature ?cooled-cookies ?kitchen-state-with-cooling-cookies ?kitchen-state-with-cookies-on-wire-rack ?cookies-on-wire-rack 18 degrees-celsius)
 
     ;; "Prepare the icing by combining the icing sugar, unsweetened cocoa powder, and water in a bowl."
-      (transfer-contents ?container-for-icing-with-sugar ?rest-b ?kitchen-state-with-container-for-icing-with-sugar ?kitchen-state-with-cooling-cookies bowl ?proportioned-icing-sugar ?quantity-b ?unit-b)
+    (transfer-contents ?container-for-icing-with-sugar ?rest-b ?kitchen-state-with-container-for-icing-with-sugar ?kitchen-state-with-cooling-cookies medium-bowl ?proportioned-icing-sugar ?quantity-b ?unit-b)
     (transfer-contents ?container-for-icing-with-sugar-and-cocoa ?rest-c ?kitchen-state-with-container-for-icing-with-sugar-and-cocoa ?kitchen-state-with-container-for-icing-with-sugar ?container-for-icing-with-sugar ?proportioned-icing-cocoa-powder ?quantity-c ?unit-c)
     (transfer-contents ?container-for-icing-with-sugar-cocoa-and-water ?rest-d ?kitchen-state-with-container-for-icing-with-sugar-cocoa-and-water ?kitchen-state-with-container-for-icing-with-sugar-and-cocoa ?container-for-icing-with-sugar ?proportioned-water ?quantity-d ?unit-d)
     
@@ -201,7 +201,7 @@
 
     ;; "Spoon a little icing on each cookie, and decorate with flaked almonds"
     (spread ?iced-cookies ?kitchen-state-with-iced-cookies ?kitchen-with-icing-ready  ?cooled-cookies ?icing table-spoon)
-    (sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies ?kitchen-state-with-iced-cookies ?iced-cookies ?proportioned-almonds) |#
+    (sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies ?kitchen-state-with-iced-cookies ?iced-cookies ?proportioned-almonds) 
     ))
 
 

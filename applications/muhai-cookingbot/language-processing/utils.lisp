@@ -24,8 +24,15 @@ class itself, optionally with an upper bound."
         (set-difference collected-superclasses (all-superclasses until))
         collected-superclasses))))
 
+(defun immediate-subclasses (class)
+  "Returns all immediate subclasses of a class"
+  (if (not (closer-mop:class-direct-subclasses class))
+    nil
+    (loop for subclass in (closer-mop:class-direct-subclasses class)
+          collect subclass)))
+
 ;(all-superclasses (find-class 'sugar) nil :until (find-class 'kitchen-entity))
-                      
+;(immediate-subclasses (find-class 'bowl))
 
 (defun make-ontology-vectors ()
   (let ((ontology-hash-table (make-hash-table))
