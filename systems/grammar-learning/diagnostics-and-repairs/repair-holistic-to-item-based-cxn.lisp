@@ -30,21 +30,7 @@
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
    (construction-inventory node)))
-
-
-(defun extract-meaning-from-tree (top-unit-name transient-structure)
-  (let ((top-unit (find top-unit-name (left-pole-structure transient-structure) :key #'first :test #'string=)))
-    (extract-meanings
-     (cons top-unit
-           (all-subunits
-            top-unit
-            (left-pole-structure transient-structure))))))
-
-(defun remove-child-units (units)
-  (loop for unit in units
-        unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
-        collect unit))
-               
+              
 (defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning parent-meaning cxn-inventory)
   "Creates item-based construction around matching holistic constructions"
   (let* ((original-cxn-set (original-cxn-set cxn-inventory))
@@ -132,7 +118,7 @@
           (let* ((contributing-footprints (sixth holistic-cxn-subunit-blocks))
                  (dummy-slot-fcs (seventh holistic-cxn-subunit-blocks))
                  (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))
-                 (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning ; (form meaning args-list item-based-args-list cxn-inventory &key cxn-type cxn-set)
+                 (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning 
                                                        item-based-cxn-form-constraints
                                                        item-based-cxn-meaning
                                                        slot-args-list

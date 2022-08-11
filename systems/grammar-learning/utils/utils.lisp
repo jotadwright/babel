@@ -1112,6 +1112,9 @@
                   (find el (apply 'concatenate 'list parent-meaning)))
                  collect el))
 
+(defun extract-args-from-resulting-unit (unit)
+  (second (find 'args (rest unit) :key #'first)))
+
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
   (sort irl-network #'string-lessp :key (lambda (predicate)
@@ -1175,7 +1178,7 @@
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
@@ -1184,12 +1187,25 @@
   
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
 (defun get-root-form-predicates (cipn)
   (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
+
+(defun extract-meaning-from-tree (top-unit-name transient-structure)
+  (let ((top-unit (find top-unit-name (left-pole-structure transient-structure) :key #'first :test #'string=)))
+    (extract-meanings
+     (cons top-unit
+           (all-subunits
+            top-unit
+            (left-pole-structure transient-structure))))))
+
+(defun remove-child-units (units)
+  (loop for unit in units
+        unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
+        collect unit))
 
 (defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
   (cond ((< (length (get-root-form-predicates cipn-1))
@@ -1204,10 +1220,15 @@
         (t
          cipn-2)))
 
-(defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
+(defun discard-cipns-with-incompatible-meanings-and-args (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes
         for candidate-meaning in candidate-meanings
-        when (irl::embedding candidate-meaning gold-standard-meaning)
+        for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
+        for resulting-root = (get-root resulting-left-pole-structure)
+        for units = (remove-child-units (remove resulting-root resulting-left-pole-structure))
+        when (and (irl::embedding candidate-meaning gold-standard-meaning)
+                  (loop for unit in units
+                        always (extract-args-from-resulting-unit unit)))
         collect cipn))
 
 (defun remove-nodes-containing-applied-cxns-with-type (type nodes)

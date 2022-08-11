@@ -94,7 +94,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 10)   ;  74 crashes cxn not found
+;(run-series *experiment* 43)   ;  74 crashes cxn not found
 
 ;(run-series *experiment* 2000) ;
 
