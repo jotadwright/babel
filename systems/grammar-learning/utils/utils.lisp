@@ -273,6 +273,9 @@
 (defun extract-args-from-holistic-cxn-apply-last (cxn)
   (second (find 'args (formulation-lock (first (conditional-part cxn))) :key #'feature-name)))
 
+
+
+
 (defun extract-args-apply-first (cxn)
   (let* ((contributing-units (contributing-part cxn))
          (top-unit (cond ((eql 'holistic (attr-val cxn :cxn-type))
@@ -363,10 +366,10 @@
                              append (list left-res right-res)))                           
                 t)
               (if item-based-args-list
-                (and (equal (length item-based-args-list) (length (extract-contributing-args-apply-last cxn)))
+                (and (equal (length item-based-args-list) (length (extract-contributing-args cxn)))
                      (equal (loop for arg in item-based-args-list
                                   collect (arg-is-part-of-meaning-p arg meaning))
-                            (loop for arg in (extract-contributing-args-apply-last cxn)
+                            (loop for arg in (extract-contributing-args cxn)
                                   collect (arg-is-part-of-meaning-p arg (extract-meaning-predicates cxn)))))                         
                 t)
               ;; check args: look up if the first arg is in the meaning representation, or if the second arg is in the meaning representation - this order should match!
@@ -855,6 +858,8 @@
                        (find var superset-meets-constraints :key #'third))
         collect meet))
 
+
+
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         do (when (and (eql (attr-val cxn :cxn-type) 'holistic)
@@ -871,10 +876,11 @@
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
                     (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal))
                     ;; args
-                    (args-holistic-cxn-1
-                     (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
-                    (args-holistic-cxn-2
-                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+                    ;(args-holistic-cxn-1
+                    ; (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
+                    ;(args-holistic-cxn-2
+                    ; (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
+                    )
                (when (and
                       (> (length overlapping-meaning-observation) 0)
                       (> (length overlapping-meaning-cxn) 0)
@@ -883,8 +889,8 @@
                       (> (length non-overlapping-form-observation) 0)
                       (> (length non-overlapping-form-cxn) 0)
                       (> (length overlapping-form-observation) 0)
-                      (<= (length args-holistic-cxn-1) 2) ; check if the meaning network is continuous
-                      (<= (length args-holistic-cxn-2) 2) ; check if the meaning network is continuous
+                      (connected-semantic-network non-overlapping-meaning-observation)
+                      (connected-semantic-network non-overlapping-meaning-cxn)
                       overlapping-form-cxn
                       cxn
                       (check-meets-continuity non-overlapping-form-cxn)
