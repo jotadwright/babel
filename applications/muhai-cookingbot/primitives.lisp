@@ -192,39 +192,73 @@
                    (container-with-ingredient 1.0 weighed-ingredient-container container-available-at)
                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
 
-(defprimitive flatten ((container-with-flattened-items transferable-container)
+(defprimitive flatten ((container-with-flattened-items list-of-kitchen-entities)
                        (kitchen-state-out kitchen-state)
                        (kitchen-state-in kitchen-state)
-                       (container-with-items-to-be-flattened transferable-container) ; E.g. toast on a plate
+                       (portions list-of-kitchen-entities) ; E.g. dough or dough balls directly present on the countertop
                        (can-flatten-tool can-flatten))
   
-  ;; Case 1: tool to flatten with not given
-  ((container-with-items-to-be-flattened kitchen-state-in
-                                         => can-flatten-tool kitchen-state-out container-with-flattened-items)
+  ;; Case 1: tool to flatten with not given, default is rolling pin
+  ((portions kitchen-state-in => can-flatten-tool kitchen-state-out container-with-flattened-items)
 
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (new-container (find-object-by-persistent-id container-with-items-to-be-flattened new-kitchen-state))
-          (new-flatten-tool (if (is-concept can-flatten-tool)
-                              (retrieve-concept-instance-and-bring-to-countertop can-flatten-tool new-kitchen-state)
-                              (find-object-by-persistent-id can-flatten-tool new-kitchen-state)))
-          (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
-                                             (available-at (find (id container-with-items-to-be-flattened) binding-objects
+          (new-portions (find-kitchen-entities portions (counter-top new-kitchen-state))) 
+          (portions-available-at (+ 90 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id portions) binding-objects
                                                                  :key #'(lambda (binding-object)
                                                                           (and (value binding-object)
                                                                                (id (value binding-object)))))))))
-          (kitchen-state-available-at container-available-at))
+          (kitchen-state-available-at portions-available-at))
 
-     (loop for item in (contents new-container)
-           when (typep item 'flattenable)
+      ;; 1) find rolling pin and place it on the countertop
+     (multiple-value-bind (original-can-flatten-tool can-flatten-tool-original-location)
+         (find-unused-kitchen-entity 'rolling-pin kitchen-state-in)
+
+       (unless original-can-flatten-tool
+         (error "No more unused rolling pins found in kitchen!!!"))
+
+       (let ((new-flatten-tool
+              (find-object-by-persistent-id original-can-flatten-tool
+                                            (funcall (type-of can-flatten-tool-original-location) new-kitchen-state))))
+         
+         (change-kitchen-entity-location new-flatten-tool
+                                         (funcall (type-of can-flatten-tool-original-location) new-kitchen-state)
+                                         (counter-top new-kitchen-state))
+         
+         (loop for item in (items new-portions)
+               do (setf (flattened item) t))
+
+         (setf (used new-flatten-tool) t)
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+         (bind (container-with-flattened-items 1.0 new-portions portions-available-at )
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+               (can-flatten-tool 0.0 new-flatten-tool nil))))))
+
+  ;; Case 2: tool to flatten given
+  ((portions kitchen-state-in can-flatten-tool
+                          =>  kitchen-state-out container-with-flattened-items)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-portions (find-kitchen-entities portions (counter-top new-kitchen-state)))
+          (new-flatten-tool (if (is-concept can-flatten-tool)
+                              (retrieve-concept-instance-and-bring-to-countertop (type-of can-flatten-tool) new-kitchen-state)
+                              (find-object-by-persistent-id can-flatten-tool new-kitchen-state)))
+          (portions-available-at (+ 90 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id portions) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at portions-available-at))
+
+     (loop for item in (items new-portions)
            do (setf (flattened item) t))
 
      (setf (used new-flatten-tool) t)
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (container-with-flattened-items 1.0 new-container container-available-at )
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (can-flatten-tool 0.0 new-flatten-tool nil))))
-     
+     (bind (container-with-flattened-items 1.0 new-portions portions-available-at )
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
 
   )
 
@@ -234,7 +268,77 @@
 
 
 
+(defprimitive mix ((container-with-mixture transferable-container)
+                   (kitchen-state-out kitchen-state)
+                   (kitchen-state-in kitchen-state)
+                   (container-with-input-ingredients transferable-container)
+                   (mixing-tool can-mix))
+  
+  ;;Case 1: Mixing tool not specified, use a whisk
+  ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-mixture mixing-tool)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                                   (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
 
+     ;; 1) find whisk and bring it to the countertop
+     (multiple-value-bind (target-whisk-in-kitchen-input-state target-whisk-original-location)
+         (find-unused-kitchen-entity 'whisk kitchen-state-in)
+
+       (let ((target-whisk-instance
+              (find-object-by-persistent-id target-whisk-in-kitchen-input-state
+                                            (funcall (type-of target-whisk-original-location) new-kitchen-state)))
+             (container-with-input-ingredients-instance
+              (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state))))
+       
+         (change-kitchen-entity-location target-whisk-instance ;;bring the whisk to the countertop
+                                         (funcall (type-of target-whisk-original-location) new-kitchen-state)
+                                         (counter-top new-kitchen-state))
+
+          ;; 2) mix contents in container with ingredients
+          (let ((mixture (create-homogeneous-mixture-in-container container-with-input-ingredients-instance)))
+            
+            (setf (used target-whisk-instance) t)
+            (setf (mixed mixture) t)
+            (setf (contents container-with-input-ingredients-instance) (list mixture)))
+
+          (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         
+          (bind (mixing-tool 0.0 target-whisk-instance)
+                (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+
+  ;;Case 2: Mixing tool specified
+  ((kitchen-state-in container-with-input-ingredients mixing-tool => kitchen-state-out container-with-mixture )
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container-with-ingredients-to-mix (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
+          (new-mixing-tool (if (is-concept mixing-tool)
+                              (retrieve-concept-instance-and-bring-to-countertop (type-of mixing-tool) new-kitchen-state)
+                              (find-object-by-persistent-id mixing-tool new-kitchen-state)))
+          (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                                   (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+          ;; mix contents in container with ingredients
+          (let ((mixture (create-homogeneous-mixture-in-container new-container-with-ingredients-to-mix)))
+            
+            (setf (used new-mixing-tool) t)
+            (setf (mixed mixture) t)
+            (setf (contents new-container-with-ingredients-to-mix) (list mixture)))
+
+          (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         
+          (bind (container-with-mixture 1.0 new-container-with-ingredients-to-mix container-available-at)
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+  
 
 
 (defprimitive transfer-contents ((container-with-all-ingredients transferable-container)
@@ -335,49 +439,7 @@
 
 
 
-(defprimitive mix ((container-with-mixture transferable-container)
-                   (kitchen-state-out kitchen-state)
-                   (kitchen-state-in kitchen-state)
-                   (container-with-input-ingredients transferable-container)
-                   (mixing-tool cooking-utensil))
-  
-  ;;Case 1: Mixing tool not specified, use a whisk
-  ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-mixture mixing-tool)
-   
-   (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
-                                             (available-at (find (id container-with-input-ingredients) binding-objects
-                                                                 :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
-                                                                                   (id (value binding-object)))))))))
-          (kitchen-state-available-at container-available-at))
 
-     ;; 1) find whisk and bring it to the countertop
-     (multiple-value-bind (target-whisk-in-kitchen-input-state target-whisk-original-location)
-         (find-unused-kitchen-entity 'whisk kitchen-state-in)
-
-       (let ((target-whisk-instance
-              (find-object-by-persistent-id target-whisk-in-kitchen-input-state
-                                            (funcall (type-of target-whisk-original-location) new-kitchen-state)))
-             (container-with-input-ingredients-instance
-              (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state))))
-       
-         (change-kitchen-entity-location target-whisk-instance ;;bring the whisk to the countertop
-                                         (funcall (type-of target-whisk-original-location) new-kitchen-state)
-                                         (counter-top new-kitchen-state))
-
-          ;; 2) mix contents in container with ingredients
-          (let ((mixture (create-homogeneous-mixture-in-container container-with-input-ingredients-instance)))
-            
-            (setf (used target-whisk-instance) t)
-            (setf (mixed mixture) t)
-            (setf (contents container-with-input-ingredients-instance) (list mixture)))
-
-          (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-         
-          (bind (mixing-tool 0.0 target-whisk-instance)
-                (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
-                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 
 (defprimitive portion-and-arrange ((portions list-of-kitchen-entities)
@@ -525,8 +587,10 @@
   ((kitchen-state-in items-to-transfer destination => kitchen-state-out transferred)
 
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-         ; (new-items-to-transfer (find-object-by-persistent-id to-transfer new-kitchen-state))
-          (new-destination (find-object-by-persistent-id destination new-kitchen-state))
+          (new-items-to-transfer (find-kitchen-entities items-to-transfer (counter-top new-kitchen-state)))
+          (new-destination (if (is-concept destination)
+                              (retrieve-concept-instance-and-bring-to-countertop (type-of destination) new-kitchen-state)
+                              (find-object-by-persistent-id destination new-kitchen-state)))
           (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
                                               (available-at (find (id destination) binding-objects
                                                                   :key #'(lambda (binding-object)
@@ -535,10 +599,11 @@
           (kitchen-state-available-at container-available-at))
      
      (setf (used new-destination) t)
-     (setf (contents new-destination) (items items-to-transfer))
+     (setf (contents new-destination) (items new-items-to-transfer))
+     (setf (arrangement new-destination) 'side-to-side)
      (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
            (remove-if #'(lambda (el)
-                          (find (persistent-id el) (items items-to-transfer) :test #'eql :key #'persistent-id))
+                          (find (persistent-id el) (items new-items-to-transfer) :test #'eql :key #'persistent-id))
                       (contents (counter-top new-kitchen-state))))
      
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
@@ -546,6 +611,14 @@
      (bind (transferred 1.0 new-destination container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
+(defun find-kitchen-entities (list-of-kitchen-entities countertop)
+  (let ((new-list-of-kitchen-entities (copy-object list-of-kitchen-entities)))
+    (setf (items new-list-of-kitchen-entities) nil)
+    (loop for item in (items list-of-kitchen-entities)
+          for thing in (contents countertop)
+          when (eq (persistent-id item) (persistent-id thing))
+          do (push thing (items new-list-of-kitchen-entities))
+          finally (return new-list-of-kitchen-entities))))
 
 (defprimitive shape ((shaped-portions list-of-kitchen-entities)
                      (kitchen-state-out kitchen-state)
@@ -556,6 +629,7 @@
   ((kitchen-state-in portions shape => shaped-portions kitchen-state-out)
    
     (let* ((new-kitchen-state (copy-object kitchen-state-in))
+           (new-portions (find-kitchen-entities portions (counter-top new-kitchen-state)))
            (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id portions) binding-objects
                                                                 :key #'(lambda (binding-object)
@@ -563,12 +637,12 @@
                                                                               (id (value binding-object)))))))))
            (kitchen-state-available-at portions-available-at))
 
-      (loop for item in (items portions)
+      (loop for item in (items new-portions)
             do (setf (current-shape item) shape))
 
       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-      (bind (shaped-portions 1.0 portions portions-available-at)
+      (bind (shaped-portions 1.0 new-portions portions-available-at)
             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
@@ -651,7 +725,8 @@
      (assert new-target-container)
 
      ;; transfer contents from source-container to target-container
-     (setf (contents new-target-container) (contents new-source-container))
+     (setf (contents new-target-container) (append (contents new-target-container)
+                                                   (contents new-source-container)))
      (setf (used new-target-container) t)
        
      (loop for item in (contents new-target-container)
@@ -829,8 +904,6 @@
                         (return (values found-entity found-place))))))))
 
 
-
-
 (defun find-ingredient (ingredient-type place &optional mother-place) ;;place can be bowl!!
   (cond ((loop for el in (contents place)
                unless (typep el 'counter-top)
@@ -862,6 +935,12 @@
 ;; (find-ingredient 'almond-extract (pantry *initial-kitchen-state*))
 ;; (find-ingredient 'almond *initial-kitchen-state*)
 
+
+;; find an object with the same id as the specified object inside the container
+(defmethod find-object-by-persistent-id ((object list-of-kitchen-entities) (container counter-top))
+  (loop for item in (contents container)
+        when (eq (persistent-id item) (persistent-id object))
+          do (return item)))
 
 ;; find an object with the same id as the specified object inside the container
 (defmethod find-object-by-persistent-id ((object kitchen-entity) (container container))

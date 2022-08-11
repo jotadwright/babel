@@ -75,6 +75,8 @@
                                                    (make-instance 'whisk)
                                                    (make-instance 'sift)
                                                    (make-instance 'wooden-spoon)
+                                                   (make-instance 'wooden-spoon)
+                                                   (make-instance 'wooden-spoon)
                                                    (make-instance 'table-spoon)
                                                    (make-instance 'table-spoon)
                                                    (make-instance 'table-spoon)
@@ -168,7 +170,7 @@
     (transfer-contents ?container-with-flour-cocoa-and-butter ?rest-z ?kitchen-state-with-flour-cocoa-and-butter-in-bowl
                        ?kitchen-state-with-sifted-ingredients ?container-with-creamed-butter ?container-with-sifted-ingredients ?quantity-z ?unit-z)
 
-    #|(mix ?flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-and-butter-in-bowl ?container-with-flour-cocoa-and-butter wooden-spoon)
+    (mix ?flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-and-butter-in-bowl ?container-with-flour-cocoa-and-butter wooden-spoon)
     
     ;; "Fold in cornflakes and don't worry if they crumble"
     (transfer-contents ?container-with-cornflakes-added ?rest-a ?kitchen-state-with-cornflakes-in-bowl ?kitchen-state-with-flour-cocoa-butter-mixture ?flour-cocoa-butter-mixture ?proportioned-corn-flakes ?quantity-a ?unit-a)
@@ -180,10 +182,10 @@
     (flatten ?flattened-dough-balls ?kitchen-state-with-flattened-doughballs ?kitchen-state-with-doughballs ?dough-balls ?rolling-pin)
     
     ;; "Place them about 2 inches apart on the baking sheet."
-    (transfer-items ?cookies-on-tray ?kitchen-state-with-cookies-on-tray ?kitchen-state-with-flattened-doughballs ?flattened-dough-balls ?lined-baking-tray)
+   (transfer-items ?cookies-on-tray ?kitchen-state-with-cookies-on-tray ?kitchen-state-with-flattened-doughballs ?flattened-dough-balls ?lined-baking-tray)
    
     ;; "Bake in the oven for 10 to 15 minutes."
-    (bake ?baked-cookies ?kitchen-state-with-baking-cookies ?kitchen-state-with-cookies-on-tray ?cookies-on-tray ?preheated-oven 15 minute ?temp-quantity ?temp-unit) ;; irrelevant temperature quantity and unit here since oven is preheated
+ #|     (bake ?baked-cookies ?kitchen-state-with-baking-cookies ?kitchen-state-with-cookies-on-tray ?cookies-on-tray ?preheated-oven 15 minute ?temp-quantity ?temp-unit) ;; irrelevant temperature quantity and unit here since oven is preheated
     
     ;; "Remove from oven, and cool on a wire rack" 
     (transfer-items ?cookies-on-wire-rack ?kitchen-state-with-cookies-on-wire-rack ?kitchen-state-with-baked-cookies ?baked-cookies wire-rack) ;;remove from oven is ignored now!
@@ -195,7 +197,7 @@
     (transfer-contents ?container-for-icing-with-sugar-cocoa-and-water ?rest-d ?kitchen-state-with-container-for-icing-with-sugar-cocoa-and-water ?kitchen-state-with-container-for-icing-with-sugar-and-cocoa ?container-for-icing-with-sugar ?proportioned-water ?quantity-d ?unit-d)
     
     ;; "Mix well until mixture is free of lumps and of a creamy consistency"
-    (mix ?icing ?kitchen-with-icing-ready ?kitchen-state-with-container-for-icing-with-sugar-cocoa-and-water ?container-for-icing-with-sugar-cocoa-and-water ?mixing-tool-2)
+    (mix ?icing ?kitchen-with-icing-ready ?kitchen-state-with-container-for-icing-with-sugar-cocoa-and-water ?container-for-icing-with-sugar-cocoa-and-water ?mixing-tool)
 
     ;; "Spoon a little icing on each cookie, and decorate with flaked almonds"
     (spread ?iced-cookies ?kitchen-state-with-iced-cookies ?kitchen-with-icing-ready  ?cooled-cookies ?icing table-spoon)

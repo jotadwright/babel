@@ -861,7 +861,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "An abstract class for a mixture of ingredients."))
 
-(defclass homogeneous-mixture (mixture)
+(defclass homogeneous-mixture (mixture flattenable)
   ()
   (:documentation "A homogeneous mixture. Components are indistinguishable from the whole."))
 
