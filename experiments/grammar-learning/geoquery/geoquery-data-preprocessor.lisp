@@ -32,7 +32,7 @@
           do (loop for lang-entry in nl
                    for lang = (second (first (second lang-entry)))
                    for value = (cl-json:encode-json-to-string (list (cons "utterance" (third lang-entry))
-                                                                             (cons "meaning" (string-replace (format nil "~S" pred-mr) "GL-DATA::" ""))
+                                                                             (cons "meaning" (format nil "~S" pred-mr))
                                                                              (cons "geo-prolog" mr)
                                                                              (cons "id" id)
                                                                              (cons "lang" lang)))
@@ -60,7 +60,7 @@
           do (loop for lang-entry in nl
                    for lang = (second (first (second lang-entry)))
                    for value = (cl-json:encode-json-to-string (list (cons "utterance" (third lang-entry))
-                                                                             (cons "meaning" (string-replace (format nil "~S" pred-mr) "GL-DATA::" ""))
+                                                                             (cons "meaning" (format nil "~S" pred-mr))
                                                                              (cons "geo-prolog" mr)
                                                                              (cons "pred-to-pl" (format nil "~S" (predicates-to-geo-prolog pred-mr)))
                                                                              (cons "geo-to-polish" (format nil "~S" (geo-prolog-to-polish-notation mr)))
@@ -148,7 +148,7 @@
                                                 collect el)
                      for accum-val = (list (append (list term) vars))
                      do (cond (;; handle double embedding in list
-                               (and (equal term 'not)
+                               (and (equal term '_not)
                                     (equal (type-of (car cand-emb-preds)) 'cons)
                                     (equal (type-of (caar cand-emb-preds)) 'cons)
                                     (equal (type-of (caaar cand-emb-preds)) 'symbol)
@@ -243,6 +243,7 @@
          (geo-prolog-string (cl-ppcre:regex-replace-all ",(_)" geo-prolog-string ",?\\1"))
          (geo-prolog-string (cl-ppcre:regex-replace-all "'(.*?)'" geo-prolog-string "\\1"))
          (geo-prolog-string (replace-all geo-prolog-string "," " "))
+         (geo-prolog-string (replace-all geo-prolog-string "(not" "(_not"))
          (geo-prolog-string (string-append "("geo-prolog-string ")")))
     (read-from-string geo-prolog-string)))
 
