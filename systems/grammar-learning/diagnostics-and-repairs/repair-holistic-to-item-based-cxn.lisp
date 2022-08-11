@@ -132,10 +132,11 @@
           (let* ((contributing-footprints (sixth holistic-cxn-subunit-blocks))
                  (dummy-slot-fcs (seventh holistic-cxn-subunit-blocks))
                  (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))
-                 (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
+                 (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning ; (form meaning args-list item-based-args-list cxn-inventory &key cxn-type cxn-set)
                                                        item-based-cxn-form-constraints
                                                        item-based-cxn-meaning
                                                        slot-args-list
+                                                       item-based-args
                                                        original-cxn-set
                                                        :cxn-type 'item-based
                                                        :cxn-set 'fcg::meta-only))
