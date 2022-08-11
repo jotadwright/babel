@@ -306,6 +306,31 @@
    (bind (kitchen 1.0 *initial-kitchen-state* 0.0))))
 
 
+(defprimitive melt ((container-with-melted-ingredients transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (container-with-input-ingredients transferable-container))
+
+  ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-melted-ingredients)
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) ;;duration of melting depends on manner
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (loop for ingredient in (contents new-container)
+           when (typep ingredient 'meltable)
+           do (setf (melted ingredient) t)) ;;also change the temperature
+
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (container-with-melted-ingredients 1.0 new-container container-available-at)))))
 
 (defprimitive mix ((container-with-mixture transferable-container)
                    (kitchen-state-out kitchen-state)

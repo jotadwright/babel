@@ -746,7 +746,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Dry white wine"))
 
-(defclass egg (ingredient)
+(defclass egg (ingredient has-temperature)
   ((keep-refrigerated :initform T))
   (:documentation "Eggs."))
 

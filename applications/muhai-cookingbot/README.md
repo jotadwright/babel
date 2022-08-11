@@ -152,3 +152,17 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - tool
 
 *(end of recipe 2)*
+
+#### **melt** (4)
+  - ingredient-melted
+  - ks-out
+  - ks-in
+  - ingredient-to-melt
+
+#### **grease**
+
+#### **flour**
+
+#### **crack**
+
+*(end of recipe 3)*
