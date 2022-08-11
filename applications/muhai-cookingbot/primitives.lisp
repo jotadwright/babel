@@ -59,7 +59,46 @@
      
      (bind (thing-baked 1.0 new-thing-to-bake thing-baked-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at)))))
+           (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at))))
+
+  ;; Case 2: Preheated oven is available, temperature not mentioned
+  ((kitchen-state-in thing-to-bake time-to-bake-quantity time-to-bake-unit oven-to-bake-in
+                     => kitchen-state-out thing-baked target-temperature-quantity target-temperature-unit)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-oven-to-bake-in (find-object-by-persistent-id oven-to-bake-in new-kitchen-state))
+          (new-thing-to-bake (find-object-by-persistent-id thing-to-bake new-kitchen-state))
+          (oven-temperature (temperature new-oven-to-bake-in))
+          (thing-baked-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-bake) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object))))))
+                                            (available-at (find (id oven-to-bake-in) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                       (* (value time-to-bake-quantity) 60)))
+          (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
+                                              (available-at (find (id thing-to-bake) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                         30)))
+                                       
+
+     ;; baked things never actually enter the oven!
+     (loop for bakeable in (contents new-thing-to-bake)
+           do (setf (temperature bakeable) oven-temperature)
+              (setf (baked bakeable) t))
+
+     (setf (kitchen-time new-kitchen-state)  kitchen-state-available-at)
+     
+     (bind (thing-baked 1.0 new-thing-to-bake thing-baked-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
+           (target-temperature-unit 0.0 (unit oven-temperature) nil))))
+   )
 
 (defprimitive beat ((container-with-ingredients-beaten transferable-container)
                     (kitchen-state-out kitchen-state)
