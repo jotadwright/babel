@@ -1,5 +1,4 @@
-(ql:quickload :aipp-cookingbot)
-(in-package :aipp-cookingbot)
+(in-package :muhai-cookingbot)
 
 ;; The 'trace-irl' monitor will make sure that
 ;; the IRL evaluation process is shown on the web
@@ -16,11 +15,9 @@
 (defparameter *initial-kitchen-state* 
   (make-instance 
    'kitchen-state
-   :id 'kitchen-state
    :contents
    (list (make-instance 'fridge
                         :contents (list (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'butter
                                                                                       :temperature
                                                                                       (make-instance 'amount
@@ -34,21 +31,18 @@
                                                                                                                               :value 500)))))))
          (make-instance 'pantry
                         :contents (list (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'white-sugar :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'vanilla-extract :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 100)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'almond-extract :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
@@ -61,14 +55,12 @@
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'almond-flour :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'powdered-white-sugar :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
@@ -77,7 +69,7 @@
          (make-instance 'kitchen-cabinet
                         :contents (list
                                    ;; bowls
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
@@ -92,95 +84,75 @@
                                    (make-instance 'baking-paper))))))
 
 (defparameter *almond-cookies-recipe*
-   `((to-get-kitchen ?kitchen)
 
-     ;; "1 cup butter, room temperature"
-     (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen butter 226 g)
-     (bring-up-to-room-temperature ?room-temp-butter ?kitchen-state-with-room-temp-butter ?kitchen-state-with-butter ?proportioned-butter)
-
+  '((get-kitchen ?kitchen-state-1785)
+    
+    ;; "1 cup butter, room temperature"
+    (fetch-and-proportion ?ingredient-out-891 ?kitchen-state-out-5343 ?kitchen-state-1785 ?target-container-891 butter 226 g)
+    (bring-to-temperature ?ingredient-at-room-temperature-892 ?output-kitchen-state-6240 ?kitchen-state-out-5343 ?ingredient-out-891 18 degrees-celsius)
      ;; "2/3 cup sugar"
-     (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-room-temp-butter white-sugar 134 g)
+    (fetch-and-proportion ?ingredient-out-898 ?kitchen-state-out-5385 ?output-kitchen-state-6240 ?target-container-898 white-sugar 116 g)
+    ;; "1 teaspoon vanilla extract"
+    (fetch-and-proportion ?ingredient-out-907 ?kitchen-state-out-5442 ?kitchen-state-out-5385 ?target-container-907 vanilla-extract 4 g)
+    ;; "1 teaspoon almond extract"
+    (fetch-and-proportion ?ingredient-out-914 ?kitchen-state-out-5483 ?kitchen-state-out-5442 ?target-container-914 almond-extract 4 g)
+    ;; "2 1/2 cups flour"
+    (fetch-and-proportion ?ingredient-out-920 ?kitchen-state-out-5518 ?kitchen-state-out-5483 ?target-container-920 all-purpose-flour 340 g)
+    ;; "1 cup almond flour"
+    (fetch-and-proportion ?ingredient-out-926 ?kitchen-state-out-5554 ?kitchen-state-out-5518 ?target-container-926 almond-flour 112 g)
+    ;; "1/4 cup powdered sugar"
+    (fetch-and-proportion ?ingredient-out-932 ?kitchen-state-out-5590 ?kitchen-state-out-5554 ?target-container-932 powdered-white-sugar 29 g)
 
-     ;; "1 teaspoon vanilla extract"
-     (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-sugar vanilla-extract 4 g)
+    
+    ;; "Beat the butter and the sugar together until light and fluffy"
+    (transfer-contents ?output-container-?x-940 ?rest-x-1879 ?output-kitchen-state-x-940 ?kitchen-state-out-5590 ?empty-container-940 ?ingredient-at-room-temperature-892 ?quantity-x-1879 ?unit-x-1879)
+    (transfer-contents ?input-container-4672 ?rest-y-1879 ?input-kitchen-state-5606 ?output-kitchen-state-x-940 ?output-container-?x-940 ?ingredient-out-898 ?quantity-y-1879 ?unit-y-1879)
+    (beat ?output-container-5607 ?output-kitchen-state-6541 ?input-kitchen-state-5606 ?input-container-4672 ?tool-2803)
 
-     ;; "1 teaspoon almond extract"
-     (fetch-and-proportion ?proportioned-almond-extract ?kitchen-state-with-almond-extract ?kitchen-state-with-vanilla almond-extract 4 g)
+    ;; "Add the vanilla and almond extracts and mix"
+    (transfer-contents ?output-container-after-adding-x-981 ?rest-x-1962 ?intermediate-ks-981 ?output-kitchen-state-6541 ?output-container-5607 ?ingredient-out-914 ?quantity-x-1962 ?unit-x-1962) ;almond extract
+    (transfer-contents ?input-container-4711 ?rest-y-1962 ?input-kitchen-state-5653 ?intermediate-ks-981 ?output-container-after-adding-x-981 ?ingredient-out-907 ?quantity-y-1962 ?unit-y-1962)
+    (mix ?output-container-5653 ?output-kitchen-state-6595 ?input-kitchen-state-5653 ?input-container-4711 ?tool-2827)
 
-     ;; "2 1/2 cups flour"
-     (fetch-and-proportion ?proportioned-flour ?kitchen-state-with-flour ?kitchen-state-with-almond-extract all-purpose-flour 340 g)
+    ;; "Add the flour and almond flour"
+    (transfer-contents ?output-container-after-adding-x-992 ?rest-x-1983 ?intermediate-ks-992 ?output-kitchen-state-6595 ?output-container-5653 ?ingredient-out-926 ?quantity-x-1983 ?unit-x-1983) ;almond flour
+    (transfer-contents ?output-container-5948 ?rest-y-1983 ?output-kitchen-state-6939 ?intermediate-ks-992 ?output-container-after-adding-x-992 ?ingredient-out-920 ?quantity-y-1983 ?unit-y-1983)
 
-     ;; "1 cup almond flour"
-     (fetch-and-proportion ?proportioned-almond-flour ?kitchen-state-with-almond-flour ?kitchen-state-with-flour almond-flour 112 g)
+    ;; "Mix thoroughly"
+    (mix ?output-container-5963 ?output-kitchen-state-6956 ?output-kitchen-state-6939 ?output-container-5948 ?tool-2981)
 
-     ;; "1/4 cup powdered sugar"
-     (fetch-and-proportion ?proportioned-powdered-sugar ?kitchen-state-with-powd-sugar ?kitchen-state-with-almond-flour powdered-white-sugar 29 g)
-
-     ;; "Beat the butter and the sugar together until light and fluffy"
-     (bind-and-fetch ?fetched-bowl ?kitchen-state-with-bowl ?kitchen-state-with-powd-sugar medium-bowl)
-     (transfer-all-contents ?sugar-mixture-bowl ?kitchen-state-with-sugar-mixture ?kitchen-state-with-bowl ?fetched-bowl ?proportioned-sugar ?room-temp-butter)
-
-     (beat ?beaten-mixture-bowl ?kitchen-state-with-beaten-mixture ?kitchen-state-with-sugar-mixture ?sugar-mixture-bowl)
-
-     ;; "Add the vanilla and almond extracts and mix"
-     (transfer-all-contents ?extracts-sugar-bowl ?kitchen-state-with-extracts-sugar-bowl ?kitchen-state-with-beaten-mixture ?beaten-mixture-bowl ?proportioned-vanilla ?proportioned-almond-extract)
-     (mix ?sugar-extract-mixture-bowl ?kitchen-state-with-sugar-extract-mixture ?kitchen-state-with-extracts-sugar-bowl ?extracts-sugar-bowl)
-     ;(combine-homogeneous ?sugar-extract-mixture-bowl ?kitchen-state-with-sugar-extract-mixture ?kitchen-state-with-beaten-mixture
-     ;         ?beaten-mixture-bowl ?proportioned-vanilla ?proportioned-almond-extract)
-
-     ;; "Add the flour and almond flour"
-     (transfer-all-contents ?flour-and-sugar-bowl ?kitchen-state-with-flour-and-sugar-bowl ?kitchen-state-with-sugar-extract-mixture ?sugar-extract-mixture-bowl ?proportioned-flour ?proportioned-almond-flour)
-     ;(combine-homogeneous ?dough ?kitchen-state-with-dough ?kitchen-state-with-sugar-extract-mixture
-     ;         ?sugar-extract-mixture-bowl ?proportioned-flour ?proportioned-almond-flour)
-
-     ;; "Mix thoroughly"
-     (mix ?dough ?kitchen-state-with-dough ?kitchen-state-with-flour-and-sugar-bowl ?flour-and-sugar-bowl)
-
-    ;; line baking tray
-    (bind-and-fetch ?fetched-baking-tray ?kitchen-state-with-tray ?kitchen-state-with-dough baking-tray)
-    (line-with-baking-paper ?lined-baking-tray ?kitchen-state-with-lined-baking-tray ?kitchen-state-with-tray ?fetched-baking-tray)
-
-    ;; "Take generous tablespoons of the dough and roll it into a small ball, about an inch in diameter, 
-    ;;  and then shape into a crescent shape"
-    (define-amount ?tablespoon-portion 25 g)
-    (portion ?tray-with-portioned-dough ?kitchen-state-with-portions-on-tray ?kitchen-state-with-lined-baking-tray
-             ?dough ?tablespoon-portion ?lined-baking-tray)
-
-    (shape ?tray-with-crescent-dough ?kitchen-state-with-crescent-dough-on-tray ?kitchen-state-with-portions-on-tray ?tray-with-portioned-dough crescent)
-
+    ;; "Take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
+    (portion-and-arrange ?portioned-dough-998 ?kitchen-state-with-portions-on-tray-998 ?output-kitchen-state-6956 ?output-container-5963 25 g ?pattern-998 ?countertop)
+    (shape ?shaped-bakeables-1998 ?kitchen-state-out-5992 ?kitchen-state-with-portions-on-tray-998 ?portioned-dough-998 ball-shape)
+    (shape ?shaped-bakeables-1999 ?kitchen-state-out-5999 ?kitchen-state-out-5992 ?shaped-bakeables-1998 crescent-shape)
+    
     ;; "Place onto a parchment paper lined baking sheet"
-    ;; this step is actually intertwined with the previous step
+    (line ?lined-baking-tray-2005 ?kitchen-state-out-6014 ?kitchen-state-out-5999 baking-tray baking-paper)
+    (transfer-items ?things-placed-1004 ?kitchen-out-1004 ?kitchen-state-out-6014 ?shaped-bakeables-1999 ?lined-baking-tray-2005)
 
-    ;; "Bake at 350°F (175°C) for 15-20 minutes or until a light golden brown"
-    ;; preheating of the oven is (implicitly) inferred
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-crescent-dough-on-tray 175 degrees-celsius)
-
-    (to-transfer ?oven-with-tray ?tray-in-oven ?kitchen-state-with-tray-in-oven ?kitchen-state-with-preheated-oven ?tray-with-crescent-dough ?preheated-oven)
-    (define-amount ?time-to-bake 25 minute)
-    (to-bake ?tray-with-cookies ?kitchen-state-with-cookies-in-oven ?kitchen-state-with-tray-in-oven ?tray-in-oven ?time-to-bake)
-    (to-fetch ?fetched-tray-with-cookies ?kitchen-state-with-cookies-on-counter ?kitchen-state-with-cookies-in-oven ?tray-with-cookies)   
+    ;; "Bake at 175 °C for 15 - 20 minutes"
+    (bake ?thing-baked-1016 ?kitchen-state-out-6096 ?kitchen-out-1004 ?things-placed-1004 ?oven 15 minute 175 degrees-celsius)
 
     ;; "Dust with powdered sugar"
-    (to-sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies
-                 ?kitchen-state-with-cookies-on-counter ?fetched-tray-with-cookies ?proportioned-powdered-sugar)))
-
-(evaluate-irl-program (expand-macros *almond-cookies-recipe*) nil)
-
+    (sprinkle ?sprinkled-object-1019 ?kitchen-state-out-6112 ?kitchen-state-out-6096 ?thing-baked-1016 ?ingredient-out-932)))
 
 ;; ======================
-;; Macro definitions
+;; Append bindings to the recipe
 ;; ======================
 
+(defparameter *extended-recipe*
+  (append-meaning-and-irl-bindings *almond-cookies-recipe* nil))
 
-;;  (pprint `( ,@(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen butter 226 g)))
+;; ======================
+;; Evaluate the recipe
+;; ======================
+
+;(evaluate-irl-program *extended-recipe* nil)
 
 
 ;; ======================
 ;; Visualise the recipe
 ;; ======================
 
-;; High-level recipe notation:
-(draw-recipe *almond-cookies-recipe* :expand nil)
-
-;; All primitives expanded:
-(draw-recipe *almond-cookies-recipe* :expand t)
+(draw-recipe *almond-cookies-recipe*)
+(draw-recipe *extended-recipe*)
