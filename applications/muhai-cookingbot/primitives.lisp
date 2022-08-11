@@ -619,36 +619,60 @@
 (defprimitive transfer-items ((transferred container)
                               (kitchen-state-out kitchen-state)
                               (kitchen-state-in kitchen-state)
-                              (items-to-transfer list-of-kitchen-entities)
+                              (items-to-transfer t) ;;transferable container or list of kitchen entities
                               (destination container))
 
   ;; Case 1 : transfer a number of items to a given destination
   ((kitchen-state-in items-to-transfer destination => kitchen-state-out transferred)
 
-   (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (new-items-to-transfer (find-kitchen-entities items-to-transfer (counter-top new-kitchen-state)))
-          (new-destination (if (is-concept destination)
-                              (retrieve-concept-instance-and-bring-to-countertop (type-of destination) new-kitchen-state)
-                              (find-object-by-persistent-id destination new-kitchen-state)))
-          (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
-                                              (available-at (find (id destination) binding-objects
-                                                                  :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
-                                                                                (id (value binding-object)))))))))
-          (kitchen-state-available-at container-available-at))
+   (case (type-of items-to-transfer)
+     ;; items are grouped as a list of kitchen entities, lying on the countertop
+     (list-of-kitchen-entities
+      (let* ((new-kitchen-state (copy-object kitchen-state-in))
+             (new-items-to-transfer (find-kitchen-entities items-to-transfer (counter-top new-kitchen-state)))
+             (new-destination (if (is-concept destination)
+                                (retrieve-concept-instance-and-bring-to-countertop (type-of destination) new-kitchen-state)
+                                (find-object-by-persistent-id destination new-kitchen-state)))
+             (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
+                                                 (available-at (find (id destination) binding-objects
+                                                                     :key #'(lambda (binding-object)
+                                                                              (and (value binding-object)
+                                                                                   (id (value binding-object)))))))))
+             (kitchen-state-available-at container-available-at))
      
-     (setf (used new-destination) t)
-     (setf (contents new-destination) (items new-items-to-transfer))
-     (setf (arrangement new-destination) 'side-to-side)
-     (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
-           (remove-if #'(lambda (el)
-                          (find (persistent-id el) (items new-items-to-transfer) :test #'eql :key #'persistent-id))
-                      (contents (counter-top new-kitchen-state))))
+        (setf (used new-destination) t)
+        (setf (contents new-destination) (items new-items-to-transfer))
+        (setf (arrangement new-destination) 'side-to-side)
+        (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
+              (remove-if #'(lambda (el)
+                             (find (persistent-id el) (items new-items-to-transfer) :test #'eql :key #'persistent-id))
+                         (contents (counter-top new-kitchen-state))))
      
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (transferred 1.0 new-destination container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+        (bind (transferred 1.0 new-destination container-available-at)
+              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+     
+     ;; items are placed on a transferable container, such as a baking tray
+     (baking-tray
+      (let* ((new-kitchen-state (copy-object kitchen-state-in))
+             (new-container (find-object-by-persistent-id items-to-transfer new-kitchen-state))
+             (new-destination (if (is-concept destination)
+                                (retrieve-concept-instance-and-bring-to-countertop (type-of destination) new-kitchen-state)
+                                (find-object-by-persistent-id destination new-kitchen-state)))
+             (container-available-at (+ 120 (kitchen-time kitchen-state-in)))
+             (kitchen-state-available-at container-available-at))
+     
+        (setf (used new-destination) t)
+        (setf (contents new-destination) (contents new-container))
+        (setf (contents new-container) nil)
+        (setf (used new-destination) t)
+        (setf (arrangement new-destination) 'side-to-side)
+     
+        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+        (bind (transferred 1.0 new-destination container-available-at)
+              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defun find-kitchen-entities (list-of-kitchen-entities countertop)
   (let ((new-list-of-kitchen-entities (copy-object list-of-kitchen-entities)))
