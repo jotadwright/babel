@@ -159,10 +159,23 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - ks-in
   - ingredient-to-melt
 
-#### **grease**
+#### **grease** (5)
+  - greased-container
+  - ks-out
+  - ks-in
+  - container-to-grease
+  - grease
 
-#### **flour**
+#### **flour** (5)
+  - floured-container
+  - ks-out
+  - ks-in
+  - container-to-flour
+  - flour
 
 #### **crack**
+
+#### **cut**
+
 
 *(end of recipe 3)*

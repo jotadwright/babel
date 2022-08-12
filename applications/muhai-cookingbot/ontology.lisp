@@ -550,7 +550,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying ovens."
   (setf (arrangement copy) (copy-object (arrangement oven))))
 
-(defclass pan (transferable-container brushable can-be-spread-upon reusable)
+(defclass pan (transferable-container brushable can-be-sprinkled-on reusable)
   ()
   (:documentation "A pan. It's a transferable container."))
 
@@ -758,7 +758,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Abstract class for all flavoring extracts."))
 
-(defclass flour (ingredient siftable)
+(defclass flour (ingredient siftable can-be-sprinkled-on)
   ()
   (:documentation "Abstract class for all flour."))
 

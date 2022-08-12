@@ -88,6 +88,7 @@
 
                                    ;; baking equipment
                                    (make-instance 'baking-tray)
+                                   (make-instance 'pan)
                                    (make-instance 'baking-paper))))))
 
 ;; 'make-html' makes an HTML representation of the kitchen state
@@ -136,12 +137,10 @@
     (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-walnuts 175 degrees-celsius)
                           
     ;; "Grease and flour an 8x8 or 9x9 inch baking pan"
- #|   (to-bind ?pan *baking-pan-1*)
-    (to-fetch ?kitchen-state-with-pan ?kitchen-state-with-preheated-oven ?pan)
-
-    (grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-pan ?pan *butter-1* )
+    (grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-preheated-oven pan ?grease)
+    (flour ?floured-pan ?kitchen-state-with-floured-pan ?kitchen-state-with-greased-pan ?greased-pan ?all-purpose-flour)
                           
-    (flour ?floured-pan ?kitchen-state-with-floured-pan ?kitchen-state-with-greased-pan ?greased-pan *flour-1* )
+ #|    
 
     ;;  "In a medium bowl, beat together the butter and sugar."
     (to-bind ?medium-bowl *medium-bowl-3*)
