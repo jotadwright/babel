@@ -97,8 +97,7 @@
      (bind (thing-baked 1.0 new-thing-to-bake thing-baked-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
-           (target-temperature-unit 0.0 (unit oven-temperature) nil))))
-   )
+           (target-temperature-unit 0.0 (unit oven-temperature) nil)))))
 
 (defprimitive beat ((container-with-ingredients-beaten transferable-container)
                     (kitchen-state-out kitchen-state)
@@ -135,12 +134,13 @@
            (setf (used target-tool-instance-new-ks) t)
            (setf (beaten new-mixture) t)
            (setf (contents new-container) (list new-mixture))
+           
 
            (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
            (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                 (tool 0.0 target-tool-instance-old-ks nil))))))))
+                 (tool 0.0 target-tool-instance-new-ks nil))))))))
 
 
 (defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
@@ -164,6 +164,36 @@
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
                 
      (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+
+
+(defprimitive crack ((container-with-cracked-eggs transferable-container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (eggs transferable-container) ;;eggs in bowl
+                     (target-container transferable-container))
+
+  ((kitchen-state-in eggs target-container => kitchen-state-out container-with-cracked-eggs)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-eggs-with-shell (find-object-by-persistent-id eggs new-kitchen-state))
+          (new-target-container (find-object-by-persistent-id target-container new-kitchen-state))
+          (container-available-at (+ (kitchen-time kitchen-state-in)
+                                     (* 5 (length (contents eggs)))))
+          (kitchen-state-available-at container-available-at))
+
+     (loop for egg for i from 1 to (value (quantity (amount (first (contents new-eggs-with-shell)))))
+           for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
+           for whole-egg = (make-instance 'whole-egg :amount egg-amount)
+           for egg-shell = (make-instance 'egg-shell :cracked t)
+           do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
+              
+              (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
+           finally (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell)))
+     
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+                
+     (bind (container-with-cracked-eggs 1.0 new-target-container container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 

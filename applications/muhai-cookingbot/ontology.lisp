@@ -746,13 +746,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Dry white wine"))
 
-(defclass egg (ingredient has-temperature)
+(defclass egg (ingredient has-temperature crackable)
   ((keep-refrigerated :initform T))
   (:documentation "Eggs."))
 
 (defmethod copy-object-content ((egg egg) (copy egg))
   "Copying egg objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated egg))))
+
+(defclass egg-shell (ingredient crackable)
+  ()
+  (:documentation "Egg shell"))
 
 (defclass flavoring-extract (ingredient)
   ()

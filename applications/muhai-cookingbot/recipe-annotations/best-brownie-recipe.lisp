@@ -98,8 +98,6 @@
 
 
 
-
-
 ;; ##################################################################
 ;; Best brownie recipe
 ;; https://www.allrecipes.com/recipe/25010/absolutely-best-brownies/
@@ -139,19 +137,15 @@
     ;; "Grease and flour an 8x8 or 9x9 inch baking pan"
     (grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-preheated-oven pan ?grease)
     (flour ?floured-pan ?kitchen-state-with-floured-pan ?kitchen-state-with-greased-pan ?greased-pan ?all-purpose-flour)
-                          
- #|    
 
     ;;  "In a medium bowl, beat together the butter and sugar."
-    (to-bind ?medium-bowl *medium-bowl-3*)
-    (to-fetch ?kitchen-state-with-bowl ?kitchen-state-with-floured-pan ?medium-bowl)
-    ;(combine ?sugar-mixture-bowl ?kitchen-state-with-sugar-mixture ?kitchen-state-with-bowl ?medium-bowl ?melted-butter ?proportioned-sugar)
-    (transfer-all-contents ?sugar-mixture-bowl ?kitchen-state-with-sugar-mixture ?kitchen-state-with-bowl ?medium-bowl ?melted-butter ?proportioned-sugar)
-    (beat ?beaten-mixture-bowl ?kitchen-state-with-beaten-mixture ?kitchen-state-with-sugar-mixture ?sugar-mixture-bowl)    
+    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-floured-pan medium-bowl ?melted-butter ?quantity-x ?unit-x)
+    (transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-sugar ?quantity-y ?unit-y)
+    (beat ?beaten-mixture-bowl ?kitchen-state-with-beaten-mixture ?output-kitchen-state-y ?output-container-y ?beating-tool)
 
-    ;; "Add eggs, and mix well."
-    (crack ?cracked-eggs ?kitchen-state-with-cracked-eggs ?kitchen-state-with-beaten-mixture ?proportioned-eggs ?container-for-eggs)
-    (combine ?egg-sugar-mixture-bowl ?kitchen-state-with-eggs-sugar-mixture ?kitchen-state-with-cracked-eggs ?beaten-mixture-bowl ?cracked-eggs)
+      ;; "Add eggs, and mix well."
+    (crack ?mixture-with-cracked-eggs ?kitchen-state-with-cracked-eggs ?kitchen-state-with-beaten-mixture ?proportioned-eggs ?beaten-mixture-bowl)
+   #|   (combine ?egg-sugar-mixture-bowl ?kitchen-state-with-eggs-sugar-mixture ?kitchen-state-with-cracked-eggs ?beaten-mixture-bowl ?cracked-eggs)
 
     ;; "Combine the flour, cocoa and salt; stir into the sugar mixture."
     (to-bind ?bowl-for-mixture *bowl-45*)

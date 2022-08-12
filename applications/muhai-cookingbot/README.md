@@ -173,7 +173,12 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - container-to-flour
   - flour
 
-#### **crack**
+#### **crack** (5)
+  - container-with-cracked-eggs
+  - ks-out
+  - ks-in
+  - container-with-eggs
+  - destination-container
 
 #### **cut**
 
