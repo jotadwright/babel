@@ -246,7 +246,8 @@
            ;;3) weigh ingredient
            (multiple-value-bind (weighed-ingredient-container rest-ingredient-container)
                (weigh-ingredient ingredient-instance amount target-container-instance-new-ks)
-             
+
+             (setf (used weighed-ingredient-container) t)
              ;;put the rest back 
              (when (and (contents rest-ingredient-container)
                         (not (typep ingredient-original-location 'counter-top)))
@@ -1114,23 +1115,27 @@
         do (setf (temperature el) temperature)))
 
 
-(defun weigh-ingredient (container-w-ingredient amount target-container)
+(defun weigh-ingredient (source-container target-amount target-container)
 
-  (let ((ingredient-copy (first (contents (copy-object container-w-ingredient)))))
+  (assert (= (length (contents source-container)) 1))
+  
+  (let* ((source-ingredient (first (contents source-container)))
+         (new-amount-source (make-instance 'amount
+                                          :unit (unit target-amount)
+                                          :quantity (make-instance 'quantity
+                                                                   :value (- (value (quantity (amount source-ingredient)))
+                                                                             (value (quantity target-amount))))))
+         (target-ingredient (copy-object source-ingredient)))
 
-    ;;TO DO: eerst alles omzetten naar gram??
+    ;;adjust amounts of target and source ingredients
+    (setf (amount target-ingredient) target-amount)
+    (setf (amount source-ingredient) new-amount-source)
     
-    ;;weigh ingredient + separate rest    (setf (value (quantity (amount ingredient-copy))) (value (quantity amount)))
-    (setf (value (quantity (amount (first (contents container-w-ingredient)))))
-          (- (value (quantity (amount (first (contents container-w-ingredient)))))
-             (value (quantity amount))))
-
     ;;add weighed ingredient to contents of target-container
     (setf (contents target-container)
-          (cons ingredient-copy (contents target-container)))
-    (setf (used target-container) t)
-
-    (values target-container container-w-ingredient)))
+          (cons target-ingredient (contents target-container)))
+    
+  (values target-container source-container)))
 
 
 (defun find-unused-kitchen-entity (reusable-type place)
