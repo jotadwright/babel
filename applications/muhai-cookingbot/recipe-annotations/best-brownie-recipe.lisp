@@ -136,11 +136,13 @@
     (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-walnuts 175 degrees-celsius)
                           
     ;; "Grease and flour an 8x8 or 9x9 inch baking pan"
-    (grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-preheated-oven pan ?grease)
+    (fetch ?pan ?kitchen-state-with-pan ?kitchen-state-with-preheated-oven pan 1)
+    (grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-pan ?pan ?grease)
     (flour ?floured-pan ?kitchen-state-with-floured-pan ?kitchen-state-with-greased-pan ?greased-pan ?all-purpose-flour)
 
     ;;  "In a medium bowl, beat together the butter and sugar."
-    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-floured-pan medium-bowl ?melted-butter ?quantity-x ?unit-x)
+    (fetch ?medium-bowl-1 ?kitchen-state-with-medium-bowl ?kitchen-state-with-floured-pan medium-bowl 1)
+    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-medium-bowl ?medium-bowl-1 ?melted-butter ?quantity-x ?unit-x)
     (transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-sugar ?quantity-y ?unit-y)
     (beat ?beaten-mixture-bowl ?kitchen-state-with-beaten-mixture ?output-kitchen-state-y ?output-container-y ?beating-tool)
 

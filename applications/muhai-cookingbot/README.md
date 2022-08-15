@@ -11,7 +11,7 @@ The example recipes that are provided as examples for the recipe execution bench
 
 1. Almond crescent cookies (annotation + grammar)
 2. Afghan biscuits (annotation)
-3. Best brownies
+3. Best brownies (annotation)
 4. Chocolate fudge cookies
 5. Cucumber slices with dill
 6. Easy banana bread

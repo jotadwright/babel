@@ -127,7 +127,9 @@
     (shape ?shaped-bakeables-1999 ?kitchen-state-out-5999 ?kitchen-state-out-5992 ?shaped-bakeables-1998 crescent-shape)
     
     ;; "Place onto a parchment paper lined baking sheet"
-    (line ?lined-baking-tray-2005 ?kitchen-state-out-6014 ?kitchen-state-out-5999 baking-tray baking-paper)
+    (fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen-state-out-5999 baking-tray 1)
+    (fetch ?baking-paper ?kitchen-state-with-baking-paper ?kitchen-state-with-baking-tray baking-paper 1)
+    (line ?lined-baking-tray-2005 ?kitchen-state-out-6014 ?kitchen-state-with-baking-paper ?baking-tray ?baking-paper)
     (transfer-items ?things-placed-1004 ?kitchen-out-1004 ?kitchen-state-out-6014 ?shaped-bakeables-1999 ?lined-baking-tray-2005)
 
     ;; "Bake at 175 °C for 15 - 20 minutes"
