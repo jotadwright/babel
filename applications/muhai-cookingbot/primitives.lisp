@@ -586,6 +586,34 @@
                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 
+(defprimitive mash ((mashed-ingredient transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (input-ingredient transferable-container)
+                    (mashing-tool can-mash))
+  
+  ;; Case 1: mashing tool not given
+  ((kitchen-state-in input-ingredient  => mashed-ingredient kitchen-state-out mashing-tool)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-ingredient (copy-object input-ingredient))
+          (mashing-tool (retrieve-concept-instance-and-bring-to-countertop 'fork new-kitchen-state))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id input-ingredient) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (loop for item in (contents new-ingredient)
+           do (setf (mashed item) t))
+
+     (setf (used mashing-tool) t)
+     
+     (bind (mashed-ingredient 1.0 new-ingredient container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (mashing-tool 0.0 mashing-tool container-available-at)))))
+
 (defprimitive melt ((container-with-melted-ingredients transferable-container)
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)

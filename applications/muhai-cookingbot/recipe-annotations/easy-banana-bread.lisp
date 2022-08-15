@@ -105,40 +105,29 @@
     (melt ?melted-butter ?kitchen-state-with-melted-butter ?kitchen-state-with-butter ?proportioned-butter)
 
     ;; 2 eggs
-    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs
-			  ?kitchen-state-with-melted-butter egg 2 piece)
+    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-melted-butter egg 2 piece)
 
     ;; 1 cup sugar
-    (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar
-			  ?kitchen-state-with-eggs sugar 201 g)
+    (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-eggs sugar 201 g)
 
     ;; 3 bananas, mashed
-    (fetch-and-proportion ?proportioned-bananas ?kitchen-state-with-bananas 
-			  ?kitchen-state-with-sugar banana 3 piece)
-    (bind-and-fetch ?fork ?kitchen-state-with-fork-for-mashing 
-		    ?kitchen-state-with-bananas fork)
-    (to-mash ?mashed-bananas ?kitchen-state-with-mashed-bananas 
-	     ?kitchen-state-with-fork-for-mashing ?proportioned-bananas ?fork)
+    (fetch-and-proportion ?proportioned-bananas ?kitchen-state-with-bananas ?kitchen-state-with-sugar banana 3 piece)
+    (mash ?mashed-bananas ?kitchen-state-with-mashed-bananas ?kitchen-state-with-fork-for-mashing ?proportioned-bananas ?fork)
 
     ;; 1 tsp. vanilla
-    (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla
-			  ?kitchen-state-with-mashed-bananas vanilla-extract 0.004 l)
+    (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-mashed-bananas vanilla-extract 0.004 l)
 
     ;; 1 1/2 cups self-rising flour
-    (fetch-and-proportion ?proportioned-self-rising-flour ?kitchen-state-with-self-rising-flour 
-			  ?kitchen-state-with-vanilla self-rising-flour 204 g)
+    (fetch-and-proportion ?proportioned-self-rising-flour ?kitchen-state-with-self-rising-flour ?kitchen-state-with-vanilla self-rising-flour 204 g)
 
     ;; Directions
 
     ;; IMPLICIT: "Crack eggs."
-    (bind-and-fetch ?bowl-for-cracking ?kitchen-state-with-bowl-for-cracking 
-		    ?kitchen-state-with-self-rising-flour medium-bowl)
     (to-crack ?cracked-eggs ?kitchen-state-with-cracked-eggs 
 	      ?kitchen-state-with-bowl-for-cracking ?proportioned-eggs ?bowl-for-cracking)
     
     ;; "Cream together butter, eggs and sugar until smooth."
-    (bind-and-fetch ?bowl-for-batter ?kitchen-state-with-bowl-for-batter 
-		    ?kitchen-state-with-cracked-eggs medium-bowl)
+    (bind-and-fetch ?bowl-for-batter ?kitchen-state-with-bowl-for-batter ?kitchen-state-with-cracked-eggs medium-bowl)
     (combine-homogeneous ?butter-eggs-sugar-mixture ?kitchen-state-with-butter-eggs-sugar-mixture
 	     ?kitchen-state-with-bowl-for-batter ?bowl-for-batter ?melted-butter ?cracked-eggs ?proportioned-sugar)
     (beat ?creamed-mixture ?kitchen-state-with-creamed-mixture 
