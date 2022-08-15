@@ -85,6 +85,7 @@
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'spatula) (make-instance 'knife)
 
                                    ;; baking equipment
                                    (make-instance 'baking-tray)
@@ -145,31 +146,29 @@
 
       ;; "Add eggs, and mix well."
     (crack ?mixture-with-cracked-eggs ?kitchen-state-with-cracked-eggs ?kitchen-state-with-beaten-mixture ?proportioned-eggs ?beaten-mixture-bowl)
-   #|   (combine ?egg-sugar-mixture-bowl ?kitchen-state-with-eggs-sugar-mixture ?kitchen-state-with-cracked-eggs ?beaten-mixture-bowl ?cracked-eggs)
+    (mix ?egg-sugar-mixture ?kitchen-state-with-egg-sugar-mixture ?kitchen-state-with-cracked-eggs ?mixture-with-cracked-eggs ?beating-tool) ;; use the same whisk
 
     ;; "Combine the flour, cocoa and salt; stir into the sugar mixture."
-    (to-bind ?bowl-for-mixture *bowl-45*)
-    (to-fetch ?kitchen-state-with-bowl-for-mixture ?kitchen-state-with-eggs-sugar-mixture ?bowl-for-mixture )
-    (combine ?flour-cocoa-salt-mixture ?kitchen-state-with-flour-cocoa-and-salt-combined ?kitchen-state-with-bowl-for-mixture ?bowl-for-mixture ?proportioned-flour ?proportioned-cocoa ?proportioned-salt)
-    (combine ?flour-sugar-mixture-bowl ?kitchen-state-with-flour-sugar-mixture ?kitchen-state-with-flour-cocoa-and-salt-combined ?egg-sugar-mixture-bowl ?flour-cocoa-salt-mixture)
-
-    ;; "Mix in the vanilla and stir in the walnuts if desired."
-    (combine ?dough ?kitchen-state-with-dough ?kitchen-state-with-flour-sugar-mixture ?flour-sugar-mixture-bowl ?proportioned-vanilla ?proportioned-walnuts)
+    (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?kitchen-state-with-egg-sugar-mixture ?egg-sugar-mixture ?proportioned-flour ?quantity-z ?unit-z)
+    (transfer-contents ?output-container-a ?rest-a ?output-kitchen-state-a ?output-kitchen-state-z ?output-container-z ?proportioned-cocoa ?quantity-a ?unit-a)
+    (transfer-contents ?output-container-b ?rest-b ?output-kitchen-state-b ?output-kitchen-state-a ?output-container-a ?proportioned-salt ?quantity-b ?unit-b)
+    (mix ?flour-sugar-mixture-bowl ?kitchen-state-with-flour-sugar-mixture ?output-kitchen-state-b ?output-container-b ?beating-tool)
+    
+    ;; "Mix in the vanilla and stir in the walnuts if desired." ;;difference between mix and stir!
+    (transfer-contents ?output-container-c ?rest-c ?output-kitchen-state-c ?kitchen-state-with-flour-sugar-mixture ?flour-sugar-mixture-bowl ?proportioned-vanilla ?quantity-c ?unit-c)
+    (transfer-contents ?output-container-d ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?output-container-c ?proportioned-walnuts ?quantity-d ?unit-d)
+    (mix ?dough ?kitchen-state-with-dough ?output-kitchen-state-d ?output-container-d ?beating-tool)
 
     ;;  "Spread evenly into the prepared pan."
-    (to-transfer ?pan-with-dough ?kitchen-state-with-dough-in-pan ?kitchen-state-with-dough ?dough ?floured-pan )
-;; moet dit niet spread zijn
+    (spread ?pan-with-dough ?kitchen-state-with-dough-in-pan ?kitchen-state-with-dough ?floured-pan ?dough ?scraper)
+
 
     ;;  "Bake for 25 to 30 minues in the preheated oven, or until edges are firm."
-    (to-transfer ?oven-with-pan ?kitchen-state-with-pan-in-oven ?kitchen-state-with-dough-in-pan ?preheated-oven ?pan-with-dough )
-    (define-amount ?time-to-bake 25 min)
-    (bake ?pan-with-brownie ?kitchen-state-with-brownie-in-oven ?kitchen-state-with-pan-in-oven ?pan-with-dough ?time-to-bake)
-    (to-fetch ?kitchen-state-with-brownie-on-counter ?kitchen-state-with-brownie-in-oven ?pan-with-brownie ) 
-                           
+    (bake ?baked-brownie ?kitchen-state-with-baked-brownie ?kitchen-state-with-dough-in-pan ?pan-with-dough ?preheated-oven 25 minute ?temp-quantity ?temp-unit)
+                          
     ;;  "Cool before cutting into squares"
-    (cool ?cooled-brownie ?kitchen-state-with-cooled-brownie ?kitchen-state-with-brownie-on-counter ?pan-with-brownie)
-    (divide ?cut-brownie ?kitchen-state-with-cut-brownie ?kitchen-state-with-cooled-brownie ?cooled-brownie square-pattern)) |#
-))
+    (bring-to-temperature ?cooled-brownie ?kitchen-state-with-cooled-brownie ?kitchen-state-with-baked-brownie ?baked-brownie 18 degrees-celsius)
+    (cut ?cut-brownie ?kitchen-state-with-cut-brownie ?kitchen-state-with-cooled-brownie ?cooled-brownie squares ?knife)))
 
 
 
@@ -186,7 +185,6 @@
 
 ;(activate-monitor trace-irl)
 ;(evaluate-irl-program *extended-recipe* nil)
-
 
 ;; ======================
 ;; Visualise the recipe

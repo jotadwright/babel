@@ -167,6 +167,51 @@
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
+(defprimitive cut ((cut-object transferable-container)
+                   (kitchen-state-out kitchen-state)
+                   (kitchen-state-in kitchen-state)
+                   (object transferable-container)
+                   (cut-pattern cutting-pattern)
+                   (cutting-tool can-cut))
+  
+  ;;Case 1: cutting tool not given (use a knife), cut-pattern given
+  ((kitchen-state-in object  cut-pattern => cut-object kitchen-state-out cutting-tool)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id object new-kitchen-state))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id object) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+     
+     ;; 1) find knife and place it on the countertop
+     (multiple-value-bind (knife knife-original-location)
+         (find-unused-kitchen-entity 'knife kitchen-state-in)
+
+       (unless knife
+         (error "No more clean knives found in kitchen state!!!"))
+
+       (let ((new-knife
+              (find-object-by-persistent-id knife
+                                            (funcall (type-of knife-original-location) new-kitchen-state))))
+         
+         (change-kitchen-entity-location new-knife
+                                         (funcall (type-of knife-original-location) new-kitchen-state)
+                                         (counter-top new-kitchen-state))
+
+         ;; 2) cut everything in the container according to the cutting pattern
+
+         (loop for item in (contents new-container)
+               do (setf (is-cut item) cut-pattern))
+         (setf (used new-knife) t)
+         
+         
+         (bind (cut-object 1.0 new-container container-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+               (cutting-tool 0.0 new-knife container-available-at)))))))
+
 (defprimitive crack ((container-with-cracked-eggs transferable-container)
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
@@ -189,7 +234,8 @@
            do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
               
               (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
-           finally (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell)))
+           finally (setf (contents new-eggs-with-shell)
+                         (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell))))
      
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
                 
@@ -1008,7 +1054,6 @@
           (quantity-per-item (float (/ (value (quantity (amount actual-spread-in-bowl)))
                                        number-of-spreadable-items)))
           (spread-unit (type-of (unit (amount actual-spread-in-bowl))))
-        ;  (type-of-spread (type-of (first (contents container-with-spread))))
           (new-spread-container (find-object-by-persistent-id container-with-spread new-kitchen-state))
           (new-spreading-tool (if (is-concept can-spread-kitchen-tool)
                                 (retrieve-concept-instance-and-bring-to-countertop (type-of can-spread-kitchen-tool) new-kitchen-state)
@@ -1020,8 +1065,7 @@
                                                                            (and (value binding-object)
                                                                                 (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
-     
-         
+    
      (loop for item in (contents new-container-with-things-spread)
            for portioned-spread = (copy-object actual-spread-in-bowl)
            do (setf (amount portioned-spread)  (make-instance 'amount
@@ -1036,7 +1080,63 @@
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
      (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+
+
+  
+  ;;Case 2: spreading tool not given => fall back on default
+  ((kitchen-state-in object-to-be-spread container-with-spread 
+                     => container-with-objects-that-have-been-spread kitchen-state-out can-spread-kitchen-tool)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container-with-things-spread (find-object-by-persistent-id object-to-be-spread new-kitchen-state))
+          (new-spread-container (find-object-by-persistent-id container-with-spread new-kitchen-state))
+          (spreading-tool (retrieve-concept-instance-and-bring-to-countertop 'spatula new-kitchen-state))
+          (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id object-to-be-spread) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (if (contents new-container-with-things-spread)
+     
+       (let* ((number-of-spreadable-items (loop for item in (contents new-container-with-things-spread)
+                                                counting (typep item 'spreadable) into spreadables
+                                                finally (return spreadables)))
+              (actual-spread-in-bowl (first (contents container-with-spread)))
+              (quantity-per-item (float (/ (value (quantity (amount actual-spread-in-bowl)))
+                                           number-of-spreadable-items)))
+              (spread-unit (type-of (unit (amount actual-spread-in-bowl)))))
+     
+         (loop for item in (contents new-container-with-things-spread)
+               for portioned-spread = (copy-object actual-spread-in-bowl)
+               do (setf (amount portioned-spread)  (make-instance 'amount
+                                                                  :quantity (make-instance 'quantity
+                                                                                           :value quantity-per-item)
+                                                                  :unit (make-instance spread-unit)))
+                  (setf (spread item) t)
+                  (setf (spread-with item) portioned-spread))
+
+         (setf (contents new-spread-container) nil)
+         (setf (used spreading-tool) t)
+       
+         (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+               (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))
+
+       (progn
+         (setf (contents new-container-with-things-spread) (contents container-with-spread))
+
+         (setf (contents new-spread-container) nil)
+         (setf (used spreading-tool) t)
+       
+         (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+               (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))))))
+
 
 
 (defprimitive sprinkle ((sprinkled-object transferable-container)
@@ -1423,26 +1523,6 @@
                  (bind (brushed-object 1.0 new-object)
                        (kitchen-output-state 1.0 new-kitchen-state)))))
 
-
-
-(defprimitive to-crack ((container-with-whole-eggs transferable-container)
-                        (kitchen-output-state kitchen-state)
-                        (kitchen-input-state kitchen-state)
-                        (container-with-shell-eggs transferable-container)
-                        (container-for-whole-eggs transferable-container))
-              ((kitchen-input-state container-with-shell-eggs container-for-whole-eggs => kitchen-output-state container-with-whole-eggs)         
-               (let* ((new-kitchen-state (copy-object kitchen-input-state))
-                      (new-counter-top (counter-top new-kitchen-state))
-                      (new-container-with-shell-eggs (find-object-by-id container-with-shell-eggs new-counter-top))
-                      (new-container-for-whole-eggs (find-object-by-id container-for-whole-eggs new-counter-top))
-                      (whole-eggs (mapcar
-                                   (lambda (shell-egg) (create-whole-egg shell-egg))
-                                   (contents new-container-with-shell-eggs))))
-                 (setf (contents new-container-for-whole-eggs) whole-eggs)
-                 (use-container new-container-for-whole-eggs)
-                 (setf (contents new-container-with-shell-eggs) nil) ;; all eggs are cracked and removed
-                 (bind (container-with-whole-eggs 1.0 new-container-for-whole-eggs)
-                       (kitchen-output-state 1.0 new-kitchen-state)))))
 
 (defprimitive to-dip ((dipped-object transferable-container)
                       (kitchen-output-state kitchen-state)

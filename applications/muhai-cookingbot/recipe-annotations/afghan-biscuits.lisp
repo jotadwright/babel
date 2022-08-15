@@ -189,7 +189,7 @@
     
     ;; "Remove from oven, and cool on a wire rack" 
     (transfer-items ?cookies-on-wire-rack ?kitchen-state-with-cookies-on-wire-rack ?kitchen-state-with-baking-cookies ?baked-cookies wire-rack) ;;remove from oven is ignored now!
-     (bring-to-temperature ?cooled-cookies ?kitchen-state-with-cooling-cookies ?kitchen-state-with-cookies-on-wire-rack ?cookies-on-wire-rack 18 degrees-celsius)
+    (bring-to-temperature ?cooled-cookies ?kitchen-state-with-cooling-cookies ?kitchen-state-with-cookies-on-wire-rack ?cookies-on-wire-rack 18 degrees-celsius)
 
     ;; "Prepare the icing by combining the icing sugar, unsweetened cocoa powder, and water in a bowl."
     (transfer-contents ?container-for-icing-with-sugar ?rest-b ?kitchen-state-with-container-for-icing-with-sugar ?kitchen-state-with-cooling-cookies medium-bowl ?proportioned-icing-sugar ?quantity-b ?unit-b)
