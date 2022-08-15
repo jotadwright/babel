@@ -1,5 +1,5 @@
-(ql:quickload :aipp-cookingbot)
-(in-package :aipp-cookingbot)
+;(ql:quickload :muhai-cookingbot)
+(in-package :muhai-cookingbot)
 
 (activate-monitor trace-irl)
 
@@ -11,77 +11,98 @@
 (defparameter *initial-kitchen-state* 
   (make-instance 
    'kitchen-state
-   :id 'kitchen-state
-   :fridge (make-instance 'fridge
-                          :contents (list (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'butter :amount
-                                                         (make-instance 'amount
-                                                                        :unit (make-instance 'g)
-                                                                        :quantity (make-instance 'quantity
-                                                                                                 :value 250)))))
-                                         (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'egg :amount
-							 (make-instance 'amount
-									:unit (make-instance 'piece)
-									:quantity (make-instance 'quantity
-												 :value 12)))))))
-   :pantry (make-instance 'pantry
-			  :contents (list (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'sugar :amount
-							 (make-instance 'amount
-									:unit (make-instance 'g)
-									:quantity (make-instance 'quantity
-												 :value 1000)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'banana :amount
-							 (make-instance 'amount
-									:unit (make-instance 'piece)
-									:quantity (make-instance 'quantity
-												 :value 6)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'vanilla-extract :amount
-							 (make-instance 'amount
-									:unit (make-instance 'l)
-									:quantity (make-instance 'quantity
-												 :value 1)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'self-rising-flour :amount
-							 (make-instance 'amount
-									:unit (make-instance 'g)
-									:quantity (make-instance 'quantity
-												 :value 1000)))))))
-   :kitchen-cabinet (make-instance 'kitchen-cabinet
-				   :contents (list (make-instance 'fork)
-						   (make-instance 'spatula)		
-						   (make-instance 'pan)
-                                                   (make-instance 'brush)
-                                                   (make-instance 'whisk)
-                                                   (make-instance 'whisk)
-                                                   (make-instance 'whisk)
-                                                   (make-instance 'whisk)
-						   (make-instance 'whisk)
-						   (make-instance 'medium-bowl)
-						   (make-instance 'medium-bowl)
-                                                   (make-instance 'medium-bowl)
-						   (make-instance 'medium-bowl)
-						   (make-instance 'medium-bowl)
-                                                   (make-instance 'medium-bowl)
-                                                   (make-instance 'medium-bowl)
-						   (make-instance 'medium-bowl)
-						   (make-instance 'medium-bowl)))))
+   :contents
+   (list (make-instance 'fridge
+                        :contents (list (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'butter
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'egg
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'piece)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 12)))))))
+         (make-instance 'pantry
+                        :contents (list (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'white-sugar :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'vanilla-extract :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 100)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'chopped-walnut :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 100)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'all-purpose-flour :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                         :contents (list (make-instance 'cocoa-powder :amount
+                                                                                        (make-instance 'amount
+                                                                                                       :unit (make-instance 'g)
+                                                                                                       :quantity (make-instance 'quantity
+                                                                                                                                :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'salt :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))))
+         (make-instance 'kitchen-cabinet
+                        :contents (list
+                                   ;; bowls
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+
+                                   ;; tools
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'spatula) (make-instance 'knife)
+
+                                   ;; baking equipment
+                                   (make-instance 'baking-tray)
+                                   (make-instance 'pan)
+                                   (make-instance 'baking-paper))))))
 
 (add-element (make-html *initial-kitchen-state* :expand-initially t))
 
 (defparameter *easy-banana-bread-recipe*
-  '((to-get-kitchen ?kitchen-state)
+  '((get-kitchen ?kitchen-state)
 
     ;; Ingredients
 
     ;; 1/4 cup (1/2 stick butter)
-    (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter 
-			  ?kitchen-state butter 57 g)
-    (to-melt ?melted-butter ?kitchen-state-with-melted-butter 
-	     ?kitchen-state-with-butter ?proportioned-butter)
+    (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state butter 57 g)
+    (melt ?melted-butter ?kitchen-state-with-melted-butter ?kitchen-state-with-butter ?proportioned-butter)
 
     ;; 2 eggs
     (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs
