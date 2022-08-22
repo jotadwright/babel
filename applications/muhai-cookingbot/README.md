@@ -11,15 +11,15 @@ The example recipes that are provided as examples for the recipe execution bench
 
 1. Almond crescent cookies (annotation + grammar)
 2. Afghan biscuits (annotation)
-3. Best brownies
-4. Chocolate fudge cookies
-5. Cucumber slices with dill
-6. Easy banana bread
-7. Easy bread pudding
-8. Easy cherry tomato corn salad
-9. Easy oatmeal cookies
-10. Vegan black bean and sweet potato salad
-11. Whole wheat ginger snaps
+3. Best brownies (annotation)
+4. Chocolate fudge cookies (annotation)
+5. Easy banana bread
+6. Easy bread pudding
+7. Easy oatmeal cookies
+8. Whole wheat ginger snaps
+9. Cucumber slices with dill
+10. Easy cherry tomato corn salad
+11. Vegan black bean and sweet potato salad
 
 
 ## Primitives
@@ -37,6 +37,13 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - concept
   - amount
   - unit
+
+#### **fetch** (5)
+  - fetched-thing
+  - ks-out
+  - ks-in
+  - concept-to-fetch-instance-of
+  - quantity
 
 #### **bring-to-temperature** (6)
   - ingredient-out
@@ -152,3 +159,35 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - tool
 
 *(end of recipe 2)*
+
+#### **melt** (4)
+  - ingredient-melted
+  - ks-out
+  - ks-in
+  - ingredient-to-melt
+
+#### **grease** (5)
+  - greased-container
+  - ks-out
+  - ks-in
+  - container-to-grease
+  - grease
+
+#### **flour** (5)
+  - floured-container
+  - ks-out
+  - ks-in
+  - container-to-flour
+  - flour
+
+#### **crack** (5)
+  - container-with-cracked-eggs
+  - ks-out
+  - ks-in
+  - container-with-eggs
+  - destination-container
+
+#### **cut**
+
+
+*(end of recipe 3)*

@@ -550,7 +550,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying ovens."
   (setf (arrangement copy) (copy-object (arrangement oven))))
 
-(defclass pan (transferable-container brushable can-be-spread-upon reusable)
+(defclass pan (transferable-container brushable can-be-sprinkled-on reusable spreadable)
   ()
   (:documentation "A pan. It's a transferable container."))
 
@@ -746,7 +746,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Dry white wine"))
 
-(defclass egg (ingredient)
+(defclass egg (ingredient has-temperature crackable)
   ((keep-refrigerated :initform T))
   (:documentation "Eggs."))
 
@@ -754,11 +754,15 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying egg objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated egg))))
 
+(defclass egg-shell (ingredient crackable)
+  ()
+  (:documentation "Egg shell"))
+
 (defclass flavoring-extract (ingredient)
   ()
   (:documentation "Abstract class for all flavoring extracts."))
 
-(defclass flour (ingredient siftable)
+(defclass flour (ingredient siftable can-be-sprinkled-on)
   ()
   (:documentation "Abstract class for all flour."))
 
@@ -1034,6 +1038,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass slices (cutting-pattern)
   ()
   (:documentation "A sliced pattern."))
+
+(defclass squares (cutting-pattern)
+  ()
+  (:documentation "A squares pattern."))
 
 (defclass minced (cutting-pattern)
   ()
