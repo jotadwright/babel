@@ -106,7 +106,8 @@
                     (kitchen-state-in kitchen-state)
                     (container-with-ingredients transferable-container)
                     (tool cooking-utensil))
-  
+
+  ;; Case 1: Fetch a new whisk for beating
   ((kitchen-state-in container-with-ingredients => kitchen-state-out container-with-ingredients-beaten tool)
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
@@ -144,7 +145,30 @@
      
            (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                 (tool 0.0 target-tool-instance-new-ks nil))))))))
+                 (tool 0.0 target-tool-instance-new-ks nil)))))))
+
+  ;; Case 2: Reuse existing whisk for beating
+  ((kitchen-state-in container-with-ingredients tool => kitchen-state-out container-with-ingredients-beaten )
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-tool (find-object-by-persistent-id tool (counter-top new-kitchen-state)))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (new-mixture (create-homogeneous-mixture-in-container new-container))
+          (kitchen-state-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                                (available-at (find (id container-with-ingredients) binding-objects
+                                                                     :key #'(lambda (binding-object)
+                                                                              (and (value binding-object)
+                                                                                   (id (value binding-object)))))))))
+          (container-available-at kitchen-state-available-at))
+
+     (setf (beaten new-mixture) t)
+     (setf (contents new-container) (list new-mixture))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+  
 
 
 (defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
@@ -223,7 +247,8 @@
                      (kitchen-state-in kitchen-state)
                      (eggs transferable-container) ;;eggs in bowl
                      (target-container transferable-container))
-
+  
+  ;;target container given
   ((kitchen-state-in eggs target-container => kitchen-state-out container-with-cracked-eggs)
 
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
@@ -246,7 +271,51 @@
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
                 
      (bind (container-with-cracked-eggs 1.0 new-target-container container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+
+  ;; Case 2: use a medium bowl as target container
+  ((kitchen-state-in eggs  => kitchen-state-out container-with-cracked-eggs target-container)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-eggs-with-shell (find-object-by-persistent-id eggs new-kitchen-state))
+          (container-available-at (+ (kitchen-time kitchen-state-in)
+                                     (* 5 (length (contents eggs)))))
+          (kitchen-state-available-at container-available-at))
+
+     ;; 1) find target container and place it on the countertop
+     (multiple-value-bind (target-container-instance-old-ks target-container-original-location)
+         (find-unused-kitchen-entity 'medium-bowl kitchen-state-in)
+
+       (unless target-container-instance-old-ks
+         (error "No more empty medium bowls found in kitchen state!!!"))
+
+       (let ((new-target-container
+              (find-object-by-persistent-id target-container-instance-old-ks
+                                            (funcall (type-of target-container-original-location) new-kitchen-state))))
+         
+         (change-kitchen-entity-location new-target-container
+                                         (funcall (type-of target-container-original-location) new-kitchen-state)
+                                         (counter-top new-kitchen-state))
+
+         
+         
+         (loop for egg for i from 1 to (value (quantity (amount (first (contents new-eggs-with-shell)))))
+               for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
+               for whole-egg = (make-instance 'whole-egg :amount egg-amount)
+               for egg-shell = (make-instance 'egg-shell :cracked t)
+               do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
+              
+                  (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
+               finally (setf (contents new-eggs-with-shell)
+                             (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell))))
+     
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         (setf (used new-target-container) t)
+                
+         (bind (container-with-cracked-eggs 1.0 new-target-container container-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+               (target-container 0.0 target-container-instance-old-ks nil))))))
+  )
 
 (defprimitive fetch ((thing-fetched kitchen-entity)
                      (kitchen-state-out kitchen-state)
@@ -875,6 +944,7 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
+     (assert (contents source-container-instance))
      ;; 1) all contents from source container to target container
      (loop with container-amount = (make-instance 'amount)
            for ingredient in (contents source-container-instance)

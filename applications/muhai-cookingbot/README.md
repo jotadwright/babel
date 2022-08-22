@@ -187,7 +187,21 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - container-with-eggs
   - destination-container
 
-#### **cut**
-
+#### **cut** (6)
+  - container-w-cut-object
+  - ks-out
+  - ks-in
+  - container-w-object-to-cut
+  - pattern
+  - tool
 
 *(end of recipe 3)*
+
+#### **mash** (5)
+  - container-w-mashed-ingredient
+  - ks-out
+  - ks-in
+  - container-w-ingredient-to-mash
+  - tool
+
+*(end of recipe 4)*
