@@ -41,7 +41,7 @@
 (define-configuration-default-value :evaluation-grammar nil)
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound t)
-(define-configuration-default-value :categorial-network-export-interval 1)
+(define-configuration-default-value :categorial-network-export-interval 1000)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
@@ -100,8 +100,25 @@
 (defmethod pre-process-meaning-data (meaning (mode (eql :geo)))
   (read-from-string meaning))
 
+(defun inc-var-id (var)
+  (let ((name (format nil "~a" (get-base-name var)))
+        (id (parse-integer (last-elt (split-string (format nil "~a" var) "-")))))
+    (if (gethash name  utils::*nid-table*)
+      (when (>= id (gethash name utils::*nid-table*))
+        (incf (gethash name utils::*nid-table*)))
+      (setf (gethash name  utils::*nid-table*) id))))
+    
+
+(defun inc-var-ids (meaning-network)
+  (loop for predicate in meaning-network
+        do (loop for el in predicate
+                      do (when (variable-p el)
+                                (inc-var-id el))))
+  meaning-network)
+                                
+
 (defmethod pre-process-meaning-data (meaning (mode (eql :irl)))
-  (remove-duplicates (read-from-string meaning) :test #'equal))
+  (inc-var-ids (remove-duplicates (read-from-string meaning) :test #'equal)))
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :amr)))
   (let ((*package* (find-package "GL-DATA")))
