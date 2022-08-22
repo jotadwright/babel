@@ -49,8 +49,8 @@
     (add-element `((h3) ,(format nil  "Windowed accuracy: ~a%" windowed-success)))
     (add-element `((h3) ,(format nil  "Overall accuracy: ~a" accuracy)))
     (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
-    (add-element `((h3) ,(format nil  "Type hierarchy nodes: ~a" num-th-nodes)))
-    (add-element `((h3) ,(format nil  "Type hierarchy edges: ~a" num-th-edges)))
+    (add-element `((h3) ,(format nil  "Categories: ~a" num-th-nodes)))
+    (add-element `((h3) ,(format nil  "Categorial links: ~a" num-th-edges)))
     (add-element `((h3) "Communicative success: "
                    ,(if (communicated-successfully interaction)
                       `((b :style "color:green") "yes")
@@ -86,8 +86,8 @@
       (add-element `((h3) ,(format nil  "Windowed accuracy: ~a%" windowed-success)))
       (add-element `((h3) ,(format nil  "Overall accuracy: ~$%" accuracy)))
       (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
-      (add-element `((h3) ,(format nil  "Type hierarchy nodes: ~a" num-th-nodes)))
-      (add-element `((h3) ,(format nil  "Type hierarchy edges: ~a" num-th-edges)))
+      (add-element `((h3) ,(format nil  "Categories: ~a" num-th-nodes)))
+      (add-element `((h3) ,(format nil  "Categorial links: ~a" num-th-edges)))
       (add-element (make-html (grammar (first (interacting-agents experiment))) :sort-by-type-and-score t :hide-zero-scored-cxns nil :routine-only t))
       (add-element '((hr))))))
 
