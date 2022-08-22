@@ -345,6 +345,12 @@
             (find arg-var (remove-bind-statements meaning) :key #'third))
     t))
 
+(defun equivalent-networks-and-args? (n1 n2 args1 args2)
+  (equivalent-irl-programs? (append (list (append (list 'args) args1)) n1)
+                            (append (list (append (list 'args) args2)) n2)))
+                                               
+  
+
 (defun find-cxn-by-form-and-meaning (form meaning args-list item-based-args-list cxn-inventory &key cxn-type cxn-set)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
@@ -353,27 +359,20 @@
         when (and
               (if cxn-type (equal cxn-type cxn-type-cxn) t)
               (if cxn-set (equal cxn-set (attr-val cxn :label)) t)
-              (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
-              (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+              (equivalent-irl-programs? form (extract-form-predicates cxn))
+              (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
               (if args-list
-                (equal (loop for args in args-list
-                             for left-res = (arg-is-part-of-meaning-p (first args) meaning)
-                             for right-res = (arg-is-part-of-meaning-p (second args) meaning)
-                             append (list left-res right-res))
-                       (loop for args in cxn-args
-                             for left-res = (arg-is-part-of-meaning-p (first args) (extract-meaning-predicates cxn))
-                             for right-res = (arg-is-part-of-meaning-p (second args) (extract-meaning-predicates cxn))
-                             append (list left-res right-res)))                           
+                (loop for args in args-list
+                           for cxn-args-args in cxn-args
+                           always (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) args cxn-args-args))
                 t)
               (if item-based-args-list
                 (and (equal (length item-based-args-list) (length (extract-contributing-args cxn)))
-                     (equal (loop for arg in item-based-args-list
-                                  collect (arg-is-part-of-meaning-p arg meaning))
-                            (loop for arg in (extract-contributing-args cxn)
-                                  collect (arg-is-part-of-meaning-p arg (extract-meaning-predicates cxn)))))                         
+                     (equivalent-networks-and-args? meaning
+                                                    (extract-meaning-predicates cxn)
+                                                    item-based-args-list
+                                                    (extract-contributing-args cxn)))                               
                 t)
-              ;; check args: look up if the first arg is in the meaning representation, or if the second arg is in the meaning representation - this order should match!
-              
               )
         return cxn))
 
