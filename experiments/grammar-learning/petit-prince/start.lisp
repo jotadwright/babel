@@ -20,9 +20,22 @@
                    :entries '((:observation-sample-mode . :sort-length-ascending)
                               (:de-render-mode . :de-render-string-meets-ignore-quotes+full-stops)
                               (:meaning-representation . :amr)))))
-
+;(test)
 ;(run-interaction *experiment*)
 ;(run-series *experiment* 100)
+
+#|
+(progn
+  (deactivate-all-monitors)
+  (run-series *experiment* 135) ;135
+  (activate-monitor trace-fcg)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor trace-interactions-in-wi)
+  )
+ (run-interaction *experiment*)
+ |#
+
 
 
 ;(add-element (make-html (grammar (first (agents *experiment*)))))
@@ -58,7 +71,19 @@
 
 #|
 
- ISSUES
+ TODO:
 
+ - duplicate cxns in all repairs
+
+ todo: dupliceer alle item-based cxns, met dezelfde categorie, geef ze een naam zodat je ze weer kan terugvinden bij de alignment en dat ze samen gepunisht worden
+ maak beide boundaries variabel, gebruik de volledige unit namen
+
+
+ - dupliceer alle constructies, maak een cxn set voor item-based first, default is lex first
+ - steek de dubbels in item-based first
+ - verander de cxn supplier zodat die enkel cxns uit de lex first cxn set neemt, en dus altijd werkt in processing
+ - zorg ook in de check voor existing cxns ervoor dat de juiste set gebruikt wordt!
+ - in de item-based to lex repair, gebruik dan de andere cxn set (manueel)
+ - fix de punishment en rewards zodat beide altijd samen gestraft worden
  
 |#

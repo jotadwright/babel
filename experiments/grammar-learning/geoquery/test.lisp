@@ -62,7 +62,7 @@
                                                   holistic->item-based--substitution
                                                   ;holistic->item-based--addition
                                                   ;holistic->item-based--deletion
-                                                  holistic->item-based
+                                                  ;holistic->item-based
                                                   nothing->holistic))
                                      (:observation-sample-mode . :debug)
                                      (:meaning-representation . :geo)
@@ -94,10 +94,9 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 43)   ;  74 crashes cxn not found
+;(run-series *experiment* 225)   ;  226 crashes
 
-;(run-series *experiment* 2000) ;
-
+;(run-series *experiment* 880) ;
 
 
 #|

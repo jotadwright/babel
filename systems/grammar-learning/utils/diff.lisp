@@ -49,10 +49,12 @@
                                          (t 0)))
                       (end-pos-1 (position (last-elt non-overlapping-predicates-1) sorted-network-1))
                       (non-overlapping-continuous-predicates-1
-                       (when non-overlapping-predicates-1
+                       (if (and non-overlapping-predicates-1
+                                end-pos-1)
                          (funcall add-atoms-fn
                                 (subseq sorted-network-1 start-pos-1 (+ 1 end-pos-1))
-                                network-1)))
+                                network-1)
+                         network-1))
                       (start-pos-2 (position (first non-overlapping-predicates-2) sorted-network-2))
                       (end-pos-2 (position (last-elt non-overlapping-predicates-2) sorted-network-2))
                       (non-overlapping-continuous-predicates-2

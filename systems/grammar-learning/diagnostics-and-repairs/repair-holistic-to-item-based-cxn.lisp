@@ -114,7 +114,12 @@
              )
         (when (and slot-args-list
                    (loop for args in slot-args-list
-                         always args))
+                         always (and
+                                 args
+                                 (if (equal meaning-representation-formalism :irl)
+                                   (= (length args) 2)
+                                   t))))
+                         
           (let* ((contributing-footprints (sixth holistic-cxn-subunit-blocks))
                  (dummy-slot-fcs (seventh holistic-cxn-subunit-blocks))
                  (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))

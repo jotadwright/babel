@@ -43,6 +43,21 @@
 
 
 
+
+
+
+;; full logging
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor display-metrics)
+  (activate-monitor trace-fcg)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
+  (activate-monitor trace-interactions-in-wi))
+
+
+
 ;; sparse logging, no trace-fcg
 (progn
   (deactivate-all-monitors)
@@ -54,15 +69,23 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
-                   :entries '((:determine-interacting-agents-mode . :corpus-learner)
-                         (:observation-sample-mode . :debug)
-                         (:meaning-representation . :irl)
-                         (:de-render-mode . :de-render-string-meets-no-punct)
-                         (:corpus-files-root . ,(merge-pathnames
-                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
-                                     cl-user:*babel-corpora*))
-                         (:corpus-data-file . ,(make-pathname :directory '(:relative "clevr-french" "train")
-                                                   :name "stage-1" :type "jsonl")))))))
+                          :entries '((:repairs . (add-categorial-links
+                                                  ;item-based->item-based--substitution
+                                                  item-based->holistic
+                                                  holistic->item-based--substitution
+                                           ;holistic->item-based--addition
+                                           ;holistic->item-based--deletion
+                                                  holistic->item-based
+                                                  nothing->holistic))
+                                     (:determine-interacting-agents-mode . :corpus-learner)
+                                     (:observation-sample-mode . :debug)
+                                     (:meaning-representation . :irl)
+                                     (:de-render-mode . :de-render-string-meets-no-punct)
+                                     (:corpus-files-root . ,(merge-pathnames
+                                                             (make-pathname :directory '(:relative "clevr-grammar-learning"))
+                                                             cl-user:*babel-corpora*))
+                                     (:corpus-data-file . ,(make-pathname :directory '(:relative "clevr-french" "val")
+                                                                          :name "stage-1" :type "jsonl")))))))
 
 
                               
@@ -82,16 +105,20 @@
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
+
+
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 20)   ;  
+;(run-series *experiment* 616) ;617   ;17x stack overflow 
 
-;(run-series *experiment* 2000) ;
+;(run-series *experiment* 4700) ;
 
 
 
 #|
+- test repairs separately, subst first, then add one by one
+ 
 ISSUES:
 observation 34 holistic -> item-based
 

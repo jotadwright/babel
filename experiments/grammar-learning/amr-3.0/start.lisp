@@ -30,7 +30,7 @@
                                                                     :name "amr3" :type "json") cl-user:*babel-corpora*))))))
 
 ;(run-interaction *experiment*)
-;(run-series *experiment* 5000)
+;(run-series *experiment* 2780) ; 2781 fails in holistic-to-item-based, a holistic cxn applied in 
 
 (define-configuration-default-value :corpus-files-root
                                     (merge-pathnames

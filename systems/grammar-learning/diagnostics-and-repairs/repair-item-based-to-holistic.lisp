@@ -47,11 +47,15 @@
     (when (filter-by-phrase-type 'item-based applied-cxns) ;; at least one item-based cxn applied
       (let* ((remaining-form-constraints (form-predicates-with-variables (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car best-partial-analysis-node)))) 'form)))
              (inverted-cxn-meanings (get-inverted-cxn-meanings applied-cxns meaning))
+             
              (remaining-meaning (subtract-cxn-meanings-from-gold-standard-meaning inverted-cxn-meanings meaning))
-             (args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism))) ;take args from item-based; filling in the bindings
+             (args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism)))
+             
         (when (and inverted-cxn-meanings
+                   (if (equal meaning-representation-formalism :irl)
+                        (<= (length args-holistic-cxn) 2))
                    remaining-meaning
-                   (<= (length args-holistic-cxn) 2)
+                   (connected-semantic-network remaining-meaning)
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root
                    (irl::embedding remaining-meaning meaning)) ;; the subtracted meaning must not be nil
           (let* (;; cxns and links from iterating over all repairs
