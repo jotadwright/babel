@@ -84,7 +84,7 @@
                                      (:corpus-files-root . ,(merge-pathnames
                                                              (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                                              cl-user:*babel-corpora*))
-                                     (:corpus-data-file . ,(make-pathname :directory '(:relative "clevr-french")
+                                     (:corpus-data-file . ,(make-pathname :directory '(:relative "clevr-french" "train")
                                                                           :name "stage-1" :type "jsonl")))))))
 
 
