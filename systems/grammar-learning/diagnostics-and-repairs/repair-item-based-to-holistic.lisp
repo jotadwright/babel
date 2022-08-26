@@ -51,10 +51,11 @@
              
              (remaining-meaning (subtract-cxn-meanings-from-gold-standard-meaning inverted-cxn-meanings meaning))
              (args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism)))
+             ;(args-holistic-cxn (extract-args-from-meaning-networks remaining-meaning (append parent-meaning (first inverted-cxn-meanings)) meaning-representation-formalism)))
              
         (when (and inverted-cxn-meanings
                    (if (equal meaning-representation-formalism :irl)
-                        (<= (length args-holistic-cxn) 2))
+                        (= (length args-holistic-cxn) 2))
                    remaining-meaning
                    (connected-semantic-network remaining-meaning)
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root

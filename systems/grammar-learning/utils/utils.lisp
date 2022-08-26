@@ -1252,6 +1252,7 @@
          cipn-2)))
 
 (defun discard-cipns-with-incompatible-meanings-and-args (candidate-cip-nodes candidate-meanings gold-standard-meaning)
+  ;; todo: reject a hypothesis where two filters are disconnected in the cxn, but directly connected in the gold std!
   (loop for cipn in candidate-cip-nodes
         for candidate-meaning in candidate-meanings
         for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))

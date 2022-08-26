@@ -71,7 +71,7 @@
     (eval `(make-instance 'grammar-learning-experiment
                           :entries '((:repairs . (add-categorial-links
                                                   ;item-based->item-based--substitution
-                                                  ;item-based->holistic
+                                                  item-based->holistic
                                                   holistic->item-based--substitution
                                                   ;holistic->item-based--addition
                                                   ;holistic->item-based--deletion
@@ -110,7 +110,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 100) ;175   ;176 fails
+;(run-series *experiment* 108) ;175   ;176 fails
 
 ;(run-series *experiment* 47040) ;
 
@@ -120,7 +120,9 @@
 - test repairs separately, subst first, then add one by one
  
 ISSUES:
-; args depend on sorting of the meaning network!
+133: existing item-based cxn x-en-metal has wrong args
+?x en metal meaning -> metal ?X thing
+expected metal thing big, got metal big thing, so x-en-metal shouldn't have been used
 
 
  
