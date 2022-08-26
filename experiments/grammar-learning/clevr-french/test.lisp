@@ -71,7 +71,7 @@
     (eval `(make-instance 'grammar-learning-experiment
                           :entries '((:repairs . (add-categorial-links
                                                   ;item-based->item-based--substitution
-                                                  item-based->holistic
+                                                  ;item-based->holistic
                                                   holistic->item-based--substitution
                                            ;holistic->item-based--addition
                                            ;holistic->item-based--deletion
@@ -84,7 +84,7 @@
                                      (:corpus-files-root . ,(merge-pathnames
                                                              (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                                              cl-user:*babel-corpora*))
-                                     (:corpus-data-file . ,(make-pathname :directory '(:relative "clevr-french" "val")
+                                     (:corpus-data-file . ,(make-pathname :directory '(:relative "clevr-french")
                                                                           :name "stage-1" :type "jsonl")))))))
 
 
@@ -110,9 +110,9 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 616) ;617   ;17x stack overflow 
+;(run-series *experiment* 175) ;175   ;176 stack overflow 
 
-;(run-series *experiment* 4700) ;
+(run-series *experiment* 47040) ;
 
 
 
