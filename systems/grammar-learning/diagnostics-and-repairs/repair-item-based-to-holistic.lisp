@@ -28,9 +28,10 @@
    (meaning-predicates-with-variables
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   nil
    (construction-inventory node)))
 
-(defun do-create-holistic-cxn-from-partial-analysis (form-constraints meaning cxn-inventory)
+(defun do-create-holistic-cxn-from-partial-analysis (form-constraints meaning parent-meaning cxn-inventory)
   
   (let* ((original-cxn-inventory (original-cxn-set cxn-inventory))
          
@@ -59,7 +60,7 @@
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root
                    (irl::embedding remaining-meaning meaning)) ;; the subtracted meaning must not be nil
           (let* (;; cxns and links from iterating over all repairs
-                 (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn remaining-form-constraints remaining-meaning (first inverted-cxn-meanings) original-cxn-inventory))
+                 (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn remaining-form-constraints remaining-meaning (append parent-meaning (first inverted-cxn-meanings)) original-cxn-inventory))
                  
                  (temp-cxns-to-add (append
                                       (first cxns-and-links-holistic-part-observation)

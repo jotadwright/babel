@@ -93,7 +93,7 @@
         ((when (member 'item-based->item-based--substitution (repairs cxn-inventory) :key #'type-of)
          (do-create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution form meaning parent-meaning (processing-cxn-inventory cxn-inventory))))
         ((when (member 'item-based->holistic (repairs cxn-inventory) :key #'type-of)
-         (do-create-holistic-cxn-from-partial-analysis form meaning (processing-cxn-inventory cxn-inventory))))
+         (do-create-holistic-cxn-from-partial-analysis form meaning parent-meaning (processing-cxn-inventory cxn-inventory))))
         ((when (member 'holistic->item-based--substitution (repairs cxn-inventory) :key #'type-of)
          (do-repair-holophrase->item-based+holistic+holistic--substitution form meaning parent-meaning (processing-cxn-inventory cxn-inventory))))
         ((when (member 'holistic->item-based--addition (repairs cxn-inventory) :key #'type-of)
