@@ -21,7 +21,7 @@
 
 (defparameter *train-file*
   (babel-corpora-pathname '("clevr-grammar-learning" "clevr-french")
-                          :file-name "CLEVR_val_questions_rpn_with_irl_program_all"
+                          :file-name "CLEVR_train_questions_rpn_with_irl_program"
                           :file-extension "json"))
 
 
@@ -74,6 +74,6 @@
                             ;; move to stage-3 file
                             (write-line line s3))))))))))
 
-;(main *train-file* :mode-string "val")
+;(main *train-file* :mode-string "train")
 
 

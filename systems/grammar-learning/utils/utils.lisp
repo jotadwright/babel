@@ -1120,9 +1120,18 @@
 (defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :irl)))
-  (extract-args-from-irl-network child-meaning))
+  ;(extract-args-from-irl-network child-meaning))
 
-;(extract-args-from-meaning-network '((i ?i) (:mod ?j ?k)) :amr)
+
+  (remove nil (append (loop for predicate in child-meaning
+                            when (and (not (equal (first predicate) 'bind))
+                                      (find (third predicate) (apply 'concatenate 'list parent-meaning)))
+                            collect (third predicate))
+                      (loop for predicate in child-meaning
+                            when (and (not (equal (first predicate) 'bind))
+                                      (find (second predicate) (apply 'concatenate 'list parent-meaning)))
+                            collect (second predicate)))))
+
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :geo)))
   (extract-args-from-meaning-networks child-meaning parent-meaning :amr))

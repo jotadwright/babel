@@ -73,8 +73,8 @@
                                                   ;item-based->item-based--substitution
                                                   ;item-based->holistic
                                                   holistic->item-based--substitution
-                                           ;holistic->item-based--addition
-                                           ;holistic->item-based--deletion
+                                                  ;holistic->item-based--addition
+                                                  ;holistic->item-based--deletion
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:determine-interacting-agents-mode . :corpus-learner)
@@ -110,9 +110,9 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 175) ;175   ;176 stack overflow 
+;(run-series *experiment* 100) ;175   ;176 fails
 
-(run-series *experiment* 47040) ;
+;(run-series *experiment* 47040) ;
 
 
 
@@ -120,7 +120,8 @@
 - test repairs separately, subst first, then add one by one
  
 ISSUES:
-observation 34 holistic -> item-based
+; args depend on sorting of the meaning network!
+
 
  
 TODO:
