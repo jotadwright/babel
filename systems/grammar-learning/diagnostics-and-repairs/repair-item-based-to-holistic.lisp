@@ -56,9 +56,6 @@
         (when (and inverted-cxn-meanings
                    (if (equal meaning-representation-formalism :irl)
                         (= (length args-holistic-cxn) 2))
-                   (if (equal meaning-representation-formalism :irl)
-                     (= (length (extract-args-from-meaning-networks remaining-meaning (first inverted-cxn-meanings) meaning-representation-formalism))
-                        2)) ;; the args should both come from the inverted cxn meaning, otherwise it won't recombine
                    remaining-meaning
                    (connected-semantic-network remaining-meaning)
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root

@@ -1251,14 +1251,23 @@
         (t
          cipn-2)))
 
+
+(defun no-duplicate-bindings-p (u-frames)
+  "return nil if two variables collide after renamings"
+  (loop for frame in u-frames
+      for bindings = (irl::map-frame-bindings frame)
+      for tgt-bindings = (mapcar #'cdr bindings)
+      always (equal tgt-bindings (remove-duplicates tgt-bindings))))
+
 (defun discard-cipns-with-incompatible-meanings-and-args (candidate-cip-nodes candidate-meanings gold-standard-meaning)
-  ;; todo: reject a hypothesis where two filters are disconnected in the cxn, but directly connected in the gold std!
   (loop for cipn in candidate-cip-nodes
         for candidate-meaning in candidate-meanings
         for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
         for resulting-root = (get-root resulting-left-pole-structure)
         for units = (remove-child-units (remove resulting-root resulting-left-pole-structure))
-        when (and (irl::embedding candidate-meaning gold-standard-meaning)
+        for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
+        when (and bindings
+                  (no-duplicate-bindings-p bindings)
                   (loop for unit in units
                         always (extract-args-from-resulting-unit unit)))
         collect cipn))
