@@ -111,6 +111,7 @@
              (subtracted-meanings (fourth holistic-cxn-subunit-blocks))
              (item-based-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
              (slot-args-list (fifth holistic-cxn-subunit-blocks))
+             (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))
              )
         (when (and slot-args-list
                    (loop for args in slot-args-list
@@ -118,11 +119,13 @@
                                  args
                                  (if (equal meaning-representation-formalism :irl)
                                    (= (length args) 2)
-                                   t))))
+                                   t)))
+                   (or item-based-cxn-meaning
+                       ;; avoid that item-based cxns with pass-through args emerge as they have no meaning whatsoever
+                       (not (equal (first slot-args-list) item-based-args))))
                          
           (let* ((contributing-footprints (sixth holistic-cxn-subunit-blocks))
                  (dummy-slot-fcs (seventh holistic-cxn-subunit-blocks))
-                 (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))
                  (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning 
                                                        item-based-cxn-form-constraints
                                                        item-based-cxn-meaning
