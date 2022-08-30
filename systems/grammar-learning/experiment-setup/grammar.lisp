@@ -64,7 +64,7 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                   :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth)
                                         (:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
                                         (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
