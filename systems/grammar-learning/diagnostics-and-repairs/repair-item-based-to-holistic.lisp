@@ -85,7 +85,7 @@
                  (cats-to-add (fourth cxns-and-links-holistic-part-observation)))
         
 
-            (when (equivalent-meaning-networks resulting-meaning meaning meaning-representation-formalism)
+            (when (equivalent-meaning-networks resulting-meaning meaning meaning-representation-formalism) ;; todo: make this fail faster so it takes the next hypothesis!
                    (list
                     cxns-to-apply
                     cat-links-to-add
