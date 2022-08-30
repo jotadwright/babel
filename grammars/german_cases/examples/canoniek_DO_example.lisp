@@ -1169,3 +1169,12 @@
 (comprehend "die Lehrerin schenkt dem Direktor die Blume")
 
 (comprehend "die Frau gibt den Mann den Apfel")
+
+
+;;;;html
+
+
+
+(add-element '((img :src "http://localhost/tutorial-call-main/stimuli/pictures/PDC2.jpg")))
+
+(add-element '((img :src "/Users/u0148283/Desktop/tutorial-call-main/stimuli/pictures/PDF2.jpg")))
