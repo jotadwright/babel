@@ -1121,9 +1121,9 @@
 (defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :irl)))
-  ;(extract-args-from-irl-network child-meaning))
+  (extract-args-from-irl-network child-meaning))
 
-
+#|
   (remove nil (append (loop for predicate in child-meaning
                             when (and (not (equal (first predicate) 'bind))
                                       (find (third predicate) (apply 'concatenate 'list parent-meaning)))
@@ -1131,7 +1131,7 @@
                       (loop for predicate in child-meaning
                             when (and (not (equal (first predicate) 'bind))
                                       (find (second predicate) (apply 'concatenate 'list parent-meaning)))
-                            collect (second predicate)))))
+                            collect (second predicate)))))|#
 
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :geo)))
@@ -1149,10 +1149,10 @@
 
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
-  (sort irl-network #'string-lessp :key (lambda (predicate)
+  #|(sort irl-network #'string-lessp :key (lambda (predicate)
                                           (if (equal (first predicate) 'bind)
                                           (symbol-name (third predicate))
-                                          (symbol-name (second predicate)))))
+                                          (symbol-name (second predicate)))))|#
   (let* ((in-vars (loop for predicate in irl-network
                            when (not (equal (first predicate) 'bind))
                            collect (third predicate)))

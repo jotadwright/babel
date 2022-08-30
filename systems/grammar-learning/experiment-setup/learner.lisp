@@ -15,7 +15,9 @@
   ;(set-data (blackboard (grammar agent)) :add-th-links-repair-failed nil)
     (multiple-value-bind (comprehended-meanings cipns)
       (comprehend-all (utterance agent) :cxn-inventory (grammar agent) :gold-standard-meaning (meaning agent))
-    (let* ((solution-cipn (first (rank-cipns cipns)))
+    (let* ((ranked-cipns (rank-cipns cipns))
+           (solution-cipn (first ranked-cipns))
+           (competing-solution-cipns (rest ranked-cipns))
            (applied-cxns (all-applied-cxns solution-cipn)))
       ;; notify the logging monitor
       ;; notify which cxns will be used
@@ -23,7 +25,7 @@
       (notify cipn-statuses (statuses solution-cipn))
 
       ;; do alignment
-      (run-alignment agent solution-cipn (get-configuration (experiment agent) :alignment-strategy))
+      (run-alignment agent solution-cipn competing-solution-cipns (get-configuration (experiment agent) :alignment-strategy))
       ;(notify-learning process-result :trigger 'alignment-finished)
       
       ;; update the :last-used property of the cxns

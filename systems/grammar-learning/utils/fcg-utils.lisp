@@ -263,7 +263,7 @@
            (loop
             for hash in (hash node (get-configuration node :hash-mode))
             append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))))))
+           (gethash nil (constructions-hash-table (construction-inventory node)))) :key #'name)))
     ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setq constructions 
@@ -311,7 +311,7 @@
            (loop
             for hash in (hash node (get-configuration node :hash-mode))
             append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))))))
+           (gethash nil (constructions-hash-table (construction-inventory node)))) :key #'name)))
     ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setq constructions 
