@@ -255,11 +255,13 @@ the production-locks rather than the comprehension-locks."))
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                        ;; cxn sets
                        (:parse-order cxn  mal-cxn)
-                       (:production-order cxn mal-cxn )
+                       (:production-order cxn mal-cxn)
                        ;; goal tests
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root))
+
+
 
 
 (defmethod cip-node-test ((node cip-node) (mode (eql :mal-cxn-applied)))
@@ -592,8 +594,8 @@ the production-locks rather than the comprehension-locks."))
               (?the-word
                (footprints (not article))
                (syn-cat (lex-class article)
-                        (case ((?nom - ?nf - ?np)    ;nom, acc, gen, dat  (nom masculine)
-                               (?acc - ?af - ?ap)        ;masc, fem, neut, plural
+                        (case ((?nom ?nm ?nf - ?np)    ;nom, acc, gen, dat  (nom masculine)
+                               (?acc ?am ?af - ?ap)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
                                (- - - - -)
                                (?s - ?f - ?p))))   ;sing, masc, fem, neut, plural
@@ -602,34 +604,31 @@ the production-locks rather than the comprehension-locks."))
                (HASH form ((string ?the-word "die")))))
              :disable-automatic-footprints t)
 
-(def-fcg-cxn Polizist-fem-cxn
+(def-fcg-cxn Polizist-cxn
              ((?policeman-word                        
                (referent ?p)
                (syn-cat (lex-class noun)
-                        (case ((?nf - ?nf - -)     
-                               (?am - ?af - -)      
+                        (case ((?nm ?nm - -)     
+                               (?am ?am - -)      
                                (- - - - -)       
-                               (?df - ?df - -)
+                               (- - - - -)
                                (+ - + - -))))
-               (sem-cat (animacy animate))
-              (error-cat (error incorrect-determiner)
-                         (reason polizist-is-a-masculine-noun-needs-a-masculine-determiner-not-feminine)))
+               (sem-cat (animacy animate)))
               <-
               (?policeman-word                            
                (HASH meaning ((policeman ?p)))                    
                --
-               (HASH form ((string ?policeman-word  "Polizist")))))
-             :cxn-set mal-cxn)
+               (HASH form ((string ?policeman-word  "Polizist"))))))
 
 
-(def-fcg-cxn noun-phrase-incorrect-det-cxn
-             ((?noun-phrase
+(def-fcg-cxn noun-phrase-incorrect-agreement-cxn
+             ((?incorrect-noun-phrase
                (referent ?x)
                (syn-cat (lex-class noun-phrase)
                         (case ?case))
                (sem-cat (animacy ?animacy))
-               (error-cat (error ?e)
-                          (reason ?r))
+               (error-cat (error incorrect-determiner)
+                         (reason polizist-is-a-masculine-noun-needs-a-masculine-determiner-not-feminine))
                (subunits (?article ?noun))
                (boundaries (leftmost-unit ?article)
                            (rightmost-unit ?noun)))
@@ -643,8 +642,8 @@ the production-locks rather than the comprehension-locks."))
               (?article
                --
                (syn-cat (lex-class article)
-                        (case ((?nf - ?nf - -)     
-                               (?am - ?af - -)      
+                        (case ((?nom ?nm ?nf - -)     
+                               (?acc ?am ?af - -)      
                                (- - - - -)       
                                (- - - - -)
                                (+ - + - -)))))
@@ -658,20 +657,20 @@ the production-locks rather than the comprehension-locks."))
                --
                (footprints (not determined))
                (syn-cat (lex-class noun)
-                        (case ((?nf - ?nf - -)     
-                               (?af - ?af - -)      
+                        (case ((?nm ?nm - -)     
+                               (?am ?am - -)      
                                (- - - - -)       
                                (- - - - -)
-                               (+ - + - -))))
-               (error-cat (error ?e)
-                          (reason ?r)))
-              (?noun-phrase
+                               (+ - + - -)))))
+              (?incorrect-noun-phrase
                --
                (HASH form ((meets ?article ?noun)))
               ))
              :disable-automatic-footprints t
              :cxn-set mal-cxn)
 
+
+(comprehend "die Polizist")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;incorrect receiver
@@ -933,7 +932,7 @@ In this case the topicalized argument is the subject or agent."))
   (add-element '((ul) " <li> <i>formal errors</i> formal errors denoting lack of competence in certain grammatical aspects,</li>
                         <li> <i>meaning errors</i> signaling incorrect understanding of the stimuli or interpretation
 of the argument structure,</li> 
-                         <li> <i>variations</i> with respect to the received stimulus but still formally and semantically correct </li>"))
+                         <li> <i>variations</i> with respect to the received stimulus but still formally and semantically correct. </li>"))
   
   
   (add-element '((p) "When attempting to parse a student response containing one or more of the above variations, the created computational model of German grammar detects differences from the norm. These differences are identified and visually displayed in the FCG web interface"))
@@ -945,7 +944,7 @@ of the argument structure,</li>
 
 (defun display-incorrect-constructions-german-grammar (cxn-inventory)
    (add-element '((p) "1. <i> A construction schema for an incorrect noun-phrase.</i>"))
-  (add-element (make-html (find-cxn 'noun-phrase-incorrect-det-cxn cxn-inventory)))
+  (add-element (make-html (find-cxn 'noun-phrase-incorrect-agreement-cxn cxn-inventory)))
   (add-element '((p) "By observing the application process, we can notice in orange the mal-constructions applied in the case of an incorrect noun-phrase."))
   (add-element '((p) "2. <i> A construction schema for the incorrect argument and information structure of a ditransitive utterance.</i>"))
   (add-element (make-html (find-cxn 'incorrect-receiver-in-ditransitive-argument-structure-cxn cxn-inventory)))

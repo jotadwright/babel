@@ -1046,6 +1046,7 @@
 
 ;INCORRECT SENTENCES
 (comprehend "den Becher")
+(comprehend "die Polizist")
 (comprehend "den Bäcker sucht den Polizist")
 (comprehend "den Becher sucht der Polizist")
 (comprehend "den Bäcker sucht die Polizist")
