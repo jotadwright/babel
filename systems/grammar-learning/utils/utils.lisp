@@ -891,8 +891,9 @@
                (when (and
                       (if (equal meaning-representation-formalism :irl)
                         (and (= (length args-holistic-cxn-1) 2)
-                             (= (length args-holistic-cxn-2) 2)
-                        t))
+                             (= (length args-holistic-cxn-2) 2))
+                        
+                        t)
                       (> (length overlapping-meaning-observation) 0)
                       (> (length overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-meaning-observation) 0)
@@ -960,8 +961,8 @@
                (when (and
                       (if (equal meaning-representation-formalism :irl)
                         (and (= (length args-holistic-cxn-1) 2)
-                             (= (length args-holistic-cxn-2) 2)
-                        t))
+                             (= (length args-holistic-cxn-2) 2))
+                        t)
                       (> (length overlapping-meaning-observation) 0)
                       (> (length overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-meaning-observation) 0)
