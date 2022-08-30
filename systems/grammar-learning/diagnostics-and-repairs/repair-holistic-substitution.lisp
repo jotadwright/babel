@@ -28,9 +28,10 @@
    (meaning-predicates-with-variables
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   nil
    (construction-inventory node)))
 
-(defun do-repair-holophrase->item-based+holistic+holistic--substitution (form-constraints meaning cxn-inventory)
+(defun do-repair-holophrase->item-based+holistic+holistic--substitution (form-constraints meaning parent-meaning cxn-inventory)
   "Creates item-based construction and holistic constructions
 based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
@@ -42,15 +43,17 @@ based on existing construction with sufficient overlap."
                           non-overlapping-form-observation
                           non-overlapping-form-cxn
                           overlapping-meaning-observation
+                          overlapping-meaning-cxn
                           overlapping-form-observation
                           cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory form-constraints meaning meaning-representation-formalism)
       
-      (when cxn
+      (when (and cxn
+                 (extract-args-from-meaning-networks non-overlapping-meaning-observation (append parent-meaning overlapping-meaning-observation) meaning-representation-formalism))
         
         (let* (;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation cxn-inventory))
-               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn cxn-inventory))
+               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation (append parent-meaning overlapping-meaning-observation) cxn-inventory))
+               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn (append parent-meaning overlapping-meaning-cxn) cxn-inventory))
                ;; surrounding item-based cxn
                (item-based-cxn-variants (multiple-value-list (create-item-based-cxn cxn-inventory
                                                                                     overlapping-form-observation
@@ -58,6 +61,8 @@ based on existing construction with sufficient overlap."
                                                                                     overlapping-meaning-observation
                                                                                     non-overlapping-meaning-observation
                                                                                     meaning
+                                                                                    parent-meaning
+                                                                                    (extract-args-from-meaning-networks non-overlapping-meaning-observation (append parent-meaning overlapping-meaning-observation) meaning-representation-formalism)
                                                                                     meaning-representation-formalism
                                                                                     'holistic->item-based--substitution)))
                (new-item-based-cxn-apply-first (first item-based-cxn-variants))

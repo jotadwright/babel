@@ -21,7 +21,7 @@
 
 (defparameter *train-file*
   (babel-corpora-pathname '("clevr-grammar-learning" "clevr-french")
-                          :file-name "CLEVRANCAIS_val_with_irl_program"
+                          :file-name "CLEVR_train_questions_rpn_with_irl_program"
                           :file-extension "json"))
 
 

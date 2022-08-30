@@ -28,23 +28,10 @@
    (meaning-predicates-with-variables
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   nil
    (construction-inventory node)))
-
-
-(defun extract-meaning-from-tree (top-unit-name transient-structure)
-  (let ((top-unit (find top-unit-name (left-pole-structure transient-structure) :key #'first :test #'string=)))
-    (extract-meanings
-     (cons top-unit
-           (all-subunits
-            top-unit
-            (left-pole-structure transient-structure))))))
-
-(defun remove-child-units (units)
-  (loop for unit in units
-        unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
-        collect unit))
-               
-(defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning cxn-inventory)
+              
+(defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning parent-meaning cxn-inventory)
   "Creates item-based construction around matching holistic constructions"
   (let* ((original-cxn-set (original-cxn-set cxn-inventory))
          
@@ -74,9 +61,9 @@
                                                  for boundaries = (unit-feature-value unit 'boundaries)
                                                  for string-var = (variablify (second (first boundaries)))
                                                  for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff meaning (extract-meaning-from-tree (first unit) (car-resulting-cfs (cipn-car best-partial-analysis-node)))))
-                                                 for parent-meaning = (first subtracted-meaning-list) ;necessary for AMR arg calculation
+                                                 for non-overlapping-meaning = (first subtracted-meaning-list) ;necessary for AMR arg calculation
                                                  for subtracted-meaning = (second subtracted-meaning-list)
-                                                 for args = (extract-args-from-meaning-networks subtracted-meaning parent-meaning meaning-representation-formalism)
+                                                 for args = (extract-args-from-meaning-networks subtracted-meaning (append parent-meaning non-overlapping-meaning) meaning-representation-formalism)
                                                  for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
@@ -122,19 +109,28 @@
              (holistic-subunit-names
               (third holistic-cxn-subunit-blocks))
              (subtracted-meanings (fourth holistic-cxn-subunit-blocks))
-             (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+             (item-based-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
              (slot-args-list (fifth holistic-cxn-subunit-blocks))
+             (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))
              )
         (when (and slot-args-list
                    (loop for args in slot-args-list
-                         always args))
+                         always (and
+                                 args
+                                 (if (equal meaning-representation-formalism :irl)
+                                   (= (length args) 2)
+                                   t)))
+                   (or item-based-cxn-meaning
+                       ;; avoid that item-based cxns with pass-through args emerge as they have no meaning whatsoever
+                       (not (equal (first slot-args-list) item-based-args))))
+                         
           (let* ((contributing-footprints (sixth holistic-cxn-subunit-blocks))
                  (dummy-slot-fcs (seventh holistic-cxn-subunit-blocks))
-                 (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))
-                 (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning
+                 (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning 
                                                        item-based-cxn-form-constraints
                                                        item-based-cxn-meaning
                                                        slot-args-list
+                                                       item-based-args
                                                        original-cxn-set
                                                        :cxn-type 'item-based
                                                        :cxn-set 'fcg::meta-only))

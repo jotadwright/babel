@@ -31,31 +31,6 @@
 
   
 
-;; full logging
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor display-metrics)
-  (activate-monitor trace-fcg)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions)
-  (activate-monitor trace-interactions-in-wi))
-
-
-
-
-
-
-;; full logging
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor display-metrics)
-  (activate-monitor trace-fcg)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions)
-  (activate-monitor trace-interactions-in-wi))
-
 
 
 ;; sparse logging, no trace-fcg
@@ -64,6 +39,18 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions))
 
+;; full logging
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor display-metrics)
+  (activate-monitor trace-fcg)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
+  (activate-monitor trace-interactions-in-wi))
+
+
+
 (defun create-experiment ()
   (wi::reset)
   (notify reset-monitors)
@@ -71,21 +58,20 @@
     (eval `(make-instance 'grammar-learning-experiment
                           :entries '((:repairs . (add-categorial-links
                                                   ;item-based->item-based--substitution
-                                                  item-based->holistic
+                                                  ;item-based->holistic
                                                   holistic->item-based--substitution
                                                   ;holistic->item-based--addition
                                                   ;holistic->item-based--deletion
-                                                  holistic->item-based
+                                                  ;holistic->item-based
                                                   nothing->holistic))
-                                     (:determine-interacting-agents-mode . :corpus-learner)
                                      (:observation-sample-mode . :debug)
-                                     (:meaning-representation . :irl)
+                                     (:meaning-representation . :geo)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
                                      (:corpus-files-root . ,(merge-pathnames
-                                                             (make-pathname :directory '(:relative "clevr-grammar-learning"))
+                                                             (make-pathname :directory '(:relative "geoquery"))
                                                              cl-user:*babel-corpora*))
-                                     (:corpus-data-file . ,(make-pathname :directory '(:relative "clevr-french" "train")
-                                                                          :name "stage-1" :type "jsonl")))))))
+                                     (:corpus-data-file . ,(make-pathname
+                                                            :name "geoquery_en" :type "jsonl")))))))
 
 
                               
@@ -105,25 +91,17 @@
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
-
-
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 108) ;175   ;176 fails
+;(run-series *experiment* 225)   ;  226 crashes
 
-;(run-series *experiment* 47040) ;
-
+;(run-series *experiment* 880) ;
 
 
 #|
-- test repairs separately, subst first, then add one by one
- 
 ISSUES:
-133: existing item-based cxn x-en-metal has wrong args
-?x en metal meaning -> metal ?X thing
-expected metal thing big, got metal big thing, so x-en-metal shouldn't have been used
-
+observation 34 holistic -> item-based
 
  
 TODO:

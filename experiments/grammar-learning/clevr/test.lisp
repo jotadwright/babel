@@ -54,8 +54,16 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
-                   :entries '((:determine-interacting-agents-mode . :corpus-learner)
+                   :entries '((:repairs . (add-categorial-links
+                                           item-based->item-based--substitution
+                                           item-based->holistic
+                                           holistic->item-based--substitution
+                                           ;holistic->item-based--addition
+                                           ;holistic->item-based--deletion
+                                           holistic->item-based
+                                           nothing->holistic))
                          (:observation-sample-mode . :debug)
+                         (:categorial-network-export-interval . 1000)
                          (:meaning-representation . :irl)
                          (:de-render-mode . :de-render-string-meets-no-punct)
                          (:corpus-files-root . ,(merge-pathnames
@@ -65,8 +73,6 @@
                                                    :name "stage-1" :type "jsonl")))))))
 
 
-
-                              
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
@@ -78,83 +84,28 @@
 
 ;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
 
-
 (create-experiment)
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
+
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 28) ;  
+;(run-series *experiment* 174)   ;  
 
-;(run-series *experiment* 1500) ;
+;(run-series *experiment* 2000) ;
 
 
 
 #|
 ISSUES:
+observation 34 holistic -> item-based
 
-heel veel duplicates! verwijder deze eens
  
 TODO:
-- add new repairs that don't only start from holophrases, but also from minimally differing combinations of cxns
-
-SUBST
-example:  what is the color of the cube + cube  +  what is the size of the B => what is the X of the Y
-step 1:   apply already existing lex cxns, create temporary item-based cxn what is the color of the X
-step 2:   loop through all item-based cxns that you already have, check if there is one diff in form and meaning with the temp item-based cxn, if so generalise it further
-result:   what is the X of the Y
-
-DELETION
-example:  what is the color of the cube + cube + what is the color of the large Y => what is the color of the X Y
-step 1:   apply already existing lex cxns, create temporary item-based cxn what is the color of the X
-step 2:   loop through all item-based cxns that you already have, check if there is a continuous diff in form and meaning with the temp item-based cxn and that the observation is a subset of the existing cxn
-result:   what is the color of the X Y
-
-ADDITION
-example: what is the color of the large cube + cube + what is the color of the X => what is the color of the X Y
-step 1:   apply already existing lex cxns, create temporary item-based cxn what is the color of the X
-step 2:   loop through all item-based cxns that you already have, check if there is a continuous diff in form and meaning with the temp item-based cxn and that the observation is a superset of the existing cxn
-result:   what is the color of the X Y
-
-building blocks:
-- holistic to item-based repair: gives the temporary item-based cxn (form and meaning is all we need) AVAILABLE
-- function to check for similar cxn with one difference ADAPTABLE from existing SUBST/DEL/ADD functions, but take item-based instead of holophrase
-
-step 1: create test case
-step 2: copy holistic to item-based repair
-
-
-
-
-
-
-pad naar modulariteit:
-what is the color of the cube
-what size has the sphere
-
-what ?x + size has the sphere + is the color of the cube
-
-what is the color of the cylinder
-what ?x applies
-
-"is the color of the large cylinder" : loop through all repairs again!
-1. add cat link (we already have it but it didn't occur in what ?x yet)
-2. item-based to holistic: we already have is the color of the ?x, we learn "large cylinder"
-
-
-"large cylinder": loop through all repairs again!
-1. add cat link (we already have it but it didn't occur in "is the color of the ?x" yet)
-2. item-based to holistic (we already have large ?X), we learn "cylinder"
-
-"cylinder": 
-
-telkens als je een item-based kan toepassen ga je niet gewoon een holistic cxn maken van de rest, maar ga je opnieuw voor dat deel door alle repairs
-
-
-recursief design:
-
-na elke repair: maak een nieuw probleem aan als er nog een holistic cxn geleerd wordt
+- check of onze determine-comm-success fn juist werkt in comprehend-all!
+- meerdere epochs na elkaar, zien of de alignment nog iets verwijdert
+- comprehend-all ipv comprehend en het gemiddelde van het pad doen
 
 |#

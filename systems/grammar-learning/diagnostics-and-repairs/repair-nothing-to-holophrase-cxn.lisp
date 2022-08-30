@@ -41,10 +41,11 @@
    (meaning-predicates-with-variables
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   nil
    (construction-inventory node)))
 
 
-(defun do-create-holistic-cxn (form-constraints meaning cxn-inventory)
+(defun do-create-holistic-cxn (form-constraints meaning parent-meaning cxn-inventory)
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (cxn-name (make-cxn-name form-constraints cxn-inventory :add-numeric-tail t))
@@ -53,7 +54,7 @@
          (boundaries-holistic-cxn (get-boundary-units form-constraints))
          (leftmost-unit-holistic-cxn (first boundaries-holistic-cxn))
          (rightmost-unit-holistic-cxn (second boundaries-holistic-cxn))
-         (args-holistic-cxn (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+         (args-holistic-cxn (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
          (lex-class-holistic-cxn (make-lex-class cxn-name :trim-cxn-suffix t))
          ;; take the last element of the form constraints (the last word) and use it for hashing
          (hash-string (loop for fc in form-constraints

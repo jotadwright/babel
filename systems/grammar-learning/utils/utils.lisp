@@ -267,8 +267,14 @@
                      collect arg-list)))
     args))
 
+(defun extract-contributing-args (cxn)
+  (second (find 'args (fcg::unit-structure (first (contributing-part cxn))) :key #'first)))
+
 (defun extract-args-from-holistic-cxn-apply-last (cxn)
   (second (find 'args (formulation-lock (first (conditional-part cxn))) :key #'feature-name)))
+
+
+
 
 (defun extract-args-apply-first (cxn)
   (let* ((contributing-units (contributing-part cxn))
@@ -339,7 +345,13 @@
             (find arg-var (remove-bind-statements meaning) :key #'third))
     t))
 
-(defun find-cxn-by-form-and-meaning (form meaning args-list cxn-inventory &key cxn-type cxn-set)
+(defun equivalent-networks-and-args? (n1 n2 args1 args2)
+  (equivalent-irl-programs? (append (list (append (list 'args) args1)) n1)
+                            (append (list (append (list 'args) args2)) n2)))
+                                               
+  
+
+(defun find-cxn-by-form-and-meaning (form meaning args-list item-based-args-list cxn-inventory &key cxn-type cxn-set)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         for cxn-type-cxn = (attr-val cxn :cxn-type)
@@ -347,20 +359,20 @@
         when (and
               (if cxn-type (equal cxn-type cxn-type-cxn) t)
               (if cxn-set (equal cxn-set (attr-val cxn :label)) t)
-              (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
-              (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+              (equivalent-irl-programs? form (extract-form-predicates cxn))
+              (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
               (if args-list
-                (equal (loop for args in args-list
-                             for left-res = (arg-is-part-of-meaning-p (first args) meaning)
-                             for right-res = (arg-is-part-of-meaning-p (second args) meaning)
-                             append (list left-res right-res))
-                       (loop for args in cxn-args
-                             for left-res = (arg-is-part-of-meaning-p (first args) (extract-meaning-predicates cxn))
-                             for right-res = (arg-is-part-of-meaning-p (second args) (extract-meaning-predicates cxn))
-                             append (list left-res right-res)))                           
+                (loop for args in args-list
+                           for cxn-args-args in cxn-args
+                           always (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) args cxn-args-args))
                 t)
-              ;; check args: look up if the first arg is in the meaning representation, or if the second arg is in the meaning representation - this order should match!
-              
+              (if item-based-args-list
+                (and (equal (length item-based-args-list) (length (extract-contributing-args cxn)))
+                     (equivalent-networks-and-args? meaning
+                                                    (extract-meaning-predicates cxn)
+                                                    item-based-args-list
+                                                    (extract-contributing-args cxn)))                               
+                t)
               )
         return cxn))
 
@@ -598,6 +610,12 @@
                     (cons (first predicate)
                           (mapcar #'variablify (rest predicate))))))
 
+(defmethod meaning-predicates-with-variables (meaning (mode (eql :geo)))
+  "Transform meaning network with constants to meaning network with variables."
+    (loop for predicate in meaning
+          collect (cons (first predicate)
+                          (mapcar #'variablify (rest predicate)))))
+
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :amr)))
     "Transform meaning network with constants to meaning network with variables."
     (amr:variablify-amr-network meaning))
@@ -741,18 +759,21 @@
                     (nof-obs-and-cxn (multiple-value-list (diff-form-constraints utterance-form-constraints (extract-form-predicates cxn))))
                     (non-overlapping-form-observation (first nof-obs-and-cxn))
                     (non-overlapping-form-cxn (second nof-obs-and-cxn))
-                    (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal))
-                    ;; args
                     (args-holistic-cxn
-                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
+                    (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)))
+                    
                (when (and
+                      (if (equal meaning-representation-formalism :irl)
+                        (= (length args-holistic-cxn) 2)
+                        t)
                       overlapping-meaning-observation
                       non-overlapping-meaning-observation
                       (not non-overlapping-meaning-cxn)
                       non-overlapping-form-observation
                       (not non-overlapping-form-cxn)
                       overlapping-form-observation
-                      (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous
+                      (connected-semantic-network non-overlapping-meaning-observation) ; check if the meaning network is continuous
                       cxn
                       (check-meets-continuity non-overlapping-form-observation)
                       )
@@ -777,18 +798,21 @@
                     (nof-obs-and-cxn (multiple-value-list (diff-form-constraints (extract-form-predicates cxn) utterance-form-constraints)))
                     (non-overlapping-form-observation (first nof-obs-and-cxn))
                     (non-overlapping-form-cxn (second nof-obs-and-cxn))
-                    (overlapping-form-observation (set-difference (extract-form-predicates cxn) non-overlapping-form-observation :test #'equal))
-                    ;; args
                     (args-holistic-cxn
-                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
+                    (overlapping-form-observation (set-difference (extract-form-predicates cxn) non-overlapping-form-observation :test #'equal)))
+                   
                (when (and
+                      (if (equal meaning-representation-formalism :irl)
+                        (= (length args-holistic-cxn) 2)
+                        t)
                       overlapping-meaning-observation
                       non-overlapping-meaning-observation
                       (not non-overlapping-meaning-cxn)
                       non-overlapping-form-observation
                       (not non-overlapping-form-cxn)
                       overlapping-form-observation
-                      (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous
+                      (connected-semantic-network non-overlapping-meaning-observation) ; check if the meaning network is continuous
                       cxn
                       (check-meets-continuity non-overlapping-form-observation)
                       )
@@ -816,9 +840,12 @@
         for overlapping-meaning = (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning :test #'equal)
         for args-holistic-cxn = (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism)   
         when (and (eql cxn-type 'holistic) ; todo: we might want to remove this!
+                  (if (equal meaning-representation-formalism :irl)
+                        (= (length args-holistic-cxn) 2)
+                        t)
                   non-overlapping-form
                   non-overlapping-meaning
-                  (<= (length args-holistic-cxn) 2) ; check if the meaning network is continuous
+                  (connected-semantic-network non-overlapping-meaning)
                   (not non-overlapping-form-inverted) ; the set diff of smaller - larger = nil
                   (not non-overlapping-meaning-inverted)
                   (check-meets-continuity non-overlapping-form))
@@ -839,6 +866,8 @@
                        (find var superset-meets-constraints :key #'third))
         collect meet))
 
+
+
 (defun select-cxn-for-making-item-based-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
         do (when (and (eql (attr-val cxn :cxn-type) 'holistic)
@@ -850,37 +879,44 @@
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
                     (nof-obs-and-cxn (multiple-value-list (diff-form-constraints utterance-form-constraints (extract-form-predicates cxn))))
-                    (non-overlapping-form-observation (first nof-obs-and-cxn))
-                    (non-overlapping-form-cxn (second nof-obs-and-cxn))
-                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
-                    (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal))
-                    ;; args
                     (args-holistic-cxn-1
                      (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
                     (args-holistic-cxn-2
-                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
+
+                    (non-overlapping-form-observation (first nof-obs-and-cxn))
+                    (non-overlapping-form-cxn (second nof-obs-and-cxn))
+                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
+                    (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)))
                (when (and
+                      (if (equal meaning-representation-formalism :irl)
+                        (and (= (length args-holistic-cxn-1) 2)
+                             (= (length args-holistic-cxn-2) 2)
+                        t))
                       (> (length overlapping-meaning-observation) 0)
                       (> (length overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-meaning-observation) 0)
                       (> (length non-overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-form-observation) 0)
                       (> (length non-overlapping-form-cxn) 0)
-                      (> (length overlapping-form-observation) 0)
-                      (<= (length args-holistic-cxn-1) 2) ; check if the meaning network is continuous
-                      (<= (length args-holistic-cxn-2) 2) ; check if the meaning network is continuous
-                      overlapping-form-cxn
+                      (extract-form-predicate-by-type overlapping-form-cxn 'string)
+                      (extract-form-predicate-by-type overlapping-form-observation 'string)
+                      (connected-semantic-network non-overlapping-meaning-observation)
+                      (connected-semantic-network non-overlapping-meaning-cxn)
                       cxn
                       (check-meets-continuity non-overlapping-form-cxn)
                       (check-meets-continuity non-overlapping-form-observation)
-                      (equivalent-irl-programs?
+                      (equivalent-meaning-networks
                        (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation)
-                       (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)))
+                       (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)
+                       meaning-representation-formalism
+                       ))
                  (return (values non-overlapping-meaning-observation
                                  non-overlapping-meaning-cxn
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
                                  overlapping-meaning-observation
+                                 overlapping-meaning-cxn
                                  overlapping-form-observation
                                  cxn
                                  )))))))
@@ -888,6 +924,11 @@
 (defun create-dummy-predicates-for-args (args-list)
   (loop for args in args-list
         collect (list 'dummy (second args) (first args))))
+
+(defun remove-dummy-predicates (meaning)
+  (loop for pred in meaning
+        unless (string= (first pred) 'dummy)
+        collect pred))
   
 (defun select-item-based-cxn-for-making-item-based-cxn (cxn-inventory intermediary-item-based-cxn meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
@@ -910,12 +951,17 @@
                     (non-overlapping-form-cxn (non-overlapping-form intermediary-item-based-form-constraints cxn :nof-cxn t))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
                     (overlapping-form-observation (set-difference intermediary-item-based-form-constraints non-overlapping-form-observation :test #'equal))
-                    ;; args
                     (args-holistic-cxn-1
                      (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
                     (args-holistic-cxn-2
-                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism)))
+                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
+
+                    )
                (when (and
+                      (if (equal meaning-representation-formalism :irl)
+                        (and (= (length args-holistic-cxn-1) 2)
+                             (= (length args-holistic-cxn-2) 2)
+                        t))
                       (> (length overlapping-meaning-observation) 0)
                       (> (length overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-meaning-observation) 0)
@@ -923,17 +969,20 @@
                       (> (length non-overlapping-form-observation) 0)
                       (> (length non-overlapping-form-cxn) 0)
                       (> (length overlapping-form-observation) 0)
-                      (<= (length args-holistic-cxn-1) 2) ; check if the meaning network is continuous
-                      (<= (length args-holistic-cxn-2) 2) ; check if the meaning network is continuous
-                      overlapping-form-cxn
+                      (> (length overlapping-form-cxn) 0)
+                      
+                      (connected-semantic-network non-overlapping-meaning-observation)
+                      (connected-semantic-network non-overlapping-meaning-cxn)
                       cxn
                       (check-meets-continuity non-overlapping-form-cxn)
                       (check-meets-continuity non-overlapping-form-observation)
                       (equivalent-irl-programs?
                        (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation)
                        (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)))
-                 (return (values non-overlapping-meaning-observation
-                                 non-overlapping-meaning-cxn
+                 (return (values (remove-dummy-predicates non-overlapping-meaning-observation)
+                                 (remove-dummy-predicates non-overlapping-meaning-cxn)
+                                 (remove-dummy-predicates overlapping-meaning-observation)
+                                 (remove-dummy-predicates overlapping-meaning-cxn)
                                  non-overlapping-form-observation
                                  non-overlapping-form-cxn
                                  cxn
@@ -1030,8 +1079,15 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :amr)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
+(defmethod equivalent-meaning-networks (m1 m2  (mode (eql :geo)))
+  (amr::equivalent-amr-predicate-networks m1 m2))
+
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :amr)))
-  (multiple-value-bind (n1-diff n2-diff bindings) (amr::diff-amr-networks network-1 network-2)
+  (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-1 network-2)
+    (values n1-diff n2-diff)))
+
+(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :geo)))
+  (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-1 network-2)
     (values n1-diff n2-diff)))
 
 (defun substitute-predicate-bindings (predicate bindings)
@@ -1064,9 +1120,21 @@
 (defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :irl)))
-  (extract-args-from-irl-network child-meaning))
+  ;(extract-args-from-irl-network child-meaning))
 
-;(extract-args-from-meaning-network '((i ?i) (:mod ?j ?k)) :amr)
+
+  (remove nil (append (loop for predicate in child-meaning
+                            when (and (not (equal (first predicate) 'bind))
+                                      (find (third predicate) (apply 'concatenate 'list parent-meaning)))
+                            collect (third predicate))
+                      (loop for predicate in child-meaning
+                            when (and (not (equal (first predicate) 'bind))
+                                      (find (second predicate) (apply 'concatenate 'list parent-meaning)))
+                            collect (second predicate)))))
+
+
+(defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :geo)))
+  (extract-args-from-meaning-networks child-meaning parent-meaning :amr))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :amr)))
   "look up the vars from the child network in the parent network, if found, it's an arg that connects"
@@ -1075,9 +1143,12 @@
                   (find el (apply 'concatenate 'list parent-meaning)))
                  collect el))
 
+(defun extract-args-from-resulting-unit (unit)
+  (second (find 'args (rest unit) :key #'first)))
+
 (defun extract-args-from-irl-network (irl-network)
   "return all unbound variables as list"
-  (sort irl-network #'string-lessp :key (lambda (predicate) ;; TODO: get rid of sort, do search until connected meaning goal test succeeds instead
+  (sort irl-network #'string-lessp :key (lambda (predicate)
                                           (if (equal (first predicate) 'bind)
                                           (symbol-name (third predicate))
                                           (symbol-name (second predicate)))))
@@ -1138,7 +1209,7 @@
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
@@ -1147,12 +1218,25 @@
   
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
         (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
 (defun get-root-form-predicates (cipn)
   (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
+
+(defun extract-meaning-from-tree (top-unit-name transient-structure)
+  (let ((top-unit (find top-unit-name (left-pole-structure transient-structure) :key #'first :test #'string=)))
+    (extract-meanings
+     (cons top-unit
+           (all-subunits
+            top-unit
+            (left-pole-structure transient-structure))))))
+
+(defun remove-child-units (units)
+  (loop for unit in units
+        unless (member 'gl::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
+        collect unit))
 
 (defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
   (cond ((< (length (get-root-form-predicates cipn-1))
@@ -1167,10 +1251,25 @@
         (t
          cipn-2)))
 
-(defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
+
+(defun no-duplicate-bindings-p (u-frames)
+  "return nil if two variables collide after renamings"
+  (loop for frame in u-frames
+      for bindings = (irl::map-frame-bindings frame)
+      for tgt-bindings = (mapcar #'cdr bindings)
+      always (equal tgt-bindings (remove-duplicates tgt-bindings))))
+
+(defun discard-cipns-with-incompatible-meanings-and-args (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes
         for candidate-meaning in candidate-meanings
-        when (irl::embedding candidate-meaning gold-standard-meaning)
+        for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
+        for resulting-root = (get-root resulting-left-pole-structure)
+        for units = (remove-child-units (remove resulting-root resulting-left-pole-structure))
+        for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
+        when (and bindings
+                  (no-duplicate-bindings-p bindings)
+                  (loop for unit in units
+                        always (extract-args-from-resulting-unit unit)))
         collect cipn))
 
 (defun remove-nodes-containing-applied-cxns-with-type (type nodes)
@@ -1192,8 +1291,11 @@
                               overlapping-meaning
                               non-overlapping-meaning
                               meaning
+                              parent-meaning
+                              slot-args
                               meaning-representation-formalism
-                              repair-name)             
+                              repair-name)
+  (declare (ignore non-overlapping-meaning))
   (let* (;; cxn names
          (cxn-name-item-based-cxn
           (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-numeric-tail t))
@@ -1207,15 +1309,14 @@
          (rewritten-boundaries (second overlapping-form-and-rewritten-boundaries))
          (dummy-slot-fc (list (list 'fcg::meets (first rewritten-boundaries) (second rewritten-boundaries))))
          (rewritten-item-based-boundaries (get-boundary-units (append dummy-slot-fc overlapping-form-with-rewritten-boundaries)))
-         
          ;; args
-         (slot-args (extract-args-from-meaning-networks non-overlapping-meaning meaning meaning-representation-formalism))
-         ;(alt-slot-args (extract-args-apply-first (last-elt (first cxns-and-links-holistic-part)))) ; this should work too!
-         (item-based-args (extract-args-from-meaning-networks meaning nil meaning-representation-formalism))
+         ;(slot-args (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism))
+         (item-based-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
          (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
                                               overlapping-form-with-rewritten-boundaries
                                               overlapping-meaning
                                               (list slot-args)
+                                              item-based-args
                                               cxn-inventory
                                               :cxn-type 'item-based
                                               :cxn-set 'fcg::routine))

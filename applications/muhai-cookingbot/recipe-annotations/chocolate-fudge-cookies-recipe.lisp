@@ -1,5 +1,5 @@
-(ql:quickload :aipp-cookingbot)
-(in-package :aipp-cookingbot)
+;(ql:quickload :muhai-cookingbot)
+(in-package :muhai-cookingbot)
 
 ;; The 'trace-irl' monitor will make sure that
 ;; the IRL evaluation process is shown on the web
@@ -14,78 +14,91 @@
 
 ;; Defining the initial kitchen state
 (defparameter *initial-kitchen-state* 
-  (make-instance 
-   'kitchen-state
-   :id 'kitchen-state
-   :fridge (make-instance 'fridge
-                          :contents ())
-
-   :pantry (make-instance 'pantry
-                          :contents (list ;; ingredients
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'egg :amount
+  (list (make-instance 'fridge
+                        :contents (list (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'butter
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'egg
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'piece)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 12)))))))
+         (make-instance 'pantry
+                        :contents (list (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'white-sugar :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'vanilla-extract :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 100)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'chopped-walnut :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 100)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'all-purpose-flour :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                         :contents (list (make-instance 'cocoa-powder :amount
                                                                                         (make-instance 'amount
-                                                                                                       :unit (make-instance 'piece)
+                                                                                                       :unit (make-instance 'g)
                                                                                                        :quantity (make-instance 'quantity
-                                                                                                                                :value 12)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'vegetable-oil :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'l)
-                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                                :value 1)))))
-                                         (make-instance 'medium-bowl
-                                                        :contents (list (make-instance 'devils-food-cake-mix :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 1000)))))
-                                         (make-instance 'medium-bowl
-                                                        :contents (list (make-instance 'semisweet-chocolate-chips :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 500)))))))
-          :kitchen-cabinet (make-instance 'kitchen-cabinet
-                                      :contents (list
-                                                 ;; bowls
-                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                                                                                                                :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :contents (list (make-instance 'salt :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))))
+         (make-instance 'kitchen-cabinet
+                        :contents (list
+                                   ;; bowls
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
 
-                                                 ;; tools
-                                                 (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                                 (make-instance 'brush)
-                                                 
-                                                 ;; baking equipment
-                                                 (make-instance 'baking-tray)
-                                                 (make-instance 'wire-racks)))))
+                                   ;; tools
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'spatula) (make-instance 'knife)
+
+                                   ;; baking equipment
+                                   (make-instance 'baking-tray)
+                                   (make-instance 'pan)
+                                   (make-instance 'baking-paper)))))
 
 
 
-;; 'make-html' makes an HTML representation of the kitchen state
-;; and 'add-element' transfers that to the web interface
-
-;; (add-element (make-html *initial-kitchen-state* :expand-initially t))
-
-;(inspect *initial-kitchen-state*)
-
-;; 'evaluate-irl-program' is used to evaluate an IRL program...
-;; The first argument is the IRL program to evaluate, while the
-;; second argument is the ontology. This is not yet used here.
-
-(defparameter *o*
-  (evaluate-irl-program `(
-                        (to-get-kitchen ?kitchen)
-                        ; ingredients
-                        (bind devils-food-cake-mix ?devils-food-cake-mix ,(make-instance 'devils-food-cake-mix :is-concept T))
-                        (to-fetch ?fetched-devils-food-cake-mix ?kitchen-state-1 ?kitchen ?devils-food-cake-mix)) nil))
-
-
-
-(setf *chocolate-fudge-cookies-recipe* 
-    `((to-get-kitchen ?kitchen)
+(defparameter *chocolate-fudge-cookies-recipe* 
+  '((get-kitchen ?kitchen)
 
     ;; Ingredients
 
@@ -95,24 +108,18 @@
     ;; "2 eggs"
     (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-devils-food-cake-mix egg 2 piece)
 
-
     ;; "1/4 cup (56 g) vegetable oil (for dough) + 1/4 cup (56 g) vegetable oil (to grease the baking tray)"
-    (fetch-and-proportion ?proportioned-all-vegetable-oil ?kitchen-state-with-all-vegetable-oil ?kitchen-state-with-eggs vegetable-oil 112 g)
-    (bind-and-fetch ?bowl-for-vegetable-oil ?kitchen-state-with-bowl-for-vegetable-oil ?kitchen-state-with-all-vegetable-oil medium-bowl)
-    (define-amount ?amount-vegetable-oil-for-dough 56 g)
-    (to-transfer-contents ?proportioned-vegetable-oil ?proportioned-vegetable-oil-grease ?kitchen-state-with-vegetable-oil ?kitchen-state-with-bowl-for-vegetable-oil ?proportioned-all-vegetable-oil ?bowl-for-vegetable-oil ?amount-vegetable-oil-for-dough)
+    (fetch-and-proportion ?vegetable-oil-dough ?kitchen-state-with-vegetable-oil-1 ?kitchen-state-with-eggs vegetable-oil 56 g)
+    (fetch-and-proportion ?vegetable-oil-baking-tray ?kitchen-state-with-vegetable-oil-2 ?kitchen-state-with-vegetable-oil-1 vegetable-oil 56 g)
 
     ;; "1 cup semi-sweet chocolate chips"
-    (fetch-and-proportion ?proportioned-semisweet-chocolate-chips ?kitchen-state-with-semisweet-chocolate-chips ?kitchen-state-with-vegetable-oil semisweet-chocolate-chips 160 g)
-  
+    (fetch-and-proportion ?proportioned-semisweet-chocolate-chips ?kitchen-state-with-semisweet-chocolate-chips ?kitchen-state-with-vegetable-oil-2 semisweet-chocolate-chips 160 g)
 
     ;; Steps
     
     ;; "Grease cookie baking tray"
-    (bind-and-fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen-state-with-semisweet-chocolate-chips baking-tray)
-    (bind-and-fetch ?brush ?kitchen-state-with-brush ?kitchen-state-with-baking-tray brush)
-    (to-brush ?greased-baking-tray ?kitchen-state-with-greased-baking-tray ?kitchen-state-with-brush ?proportioned-vegetable-oil-grease ?baking-tray ?brush)
-    ;(grease ?greased-baking-tray ?kitchen-state-with-greased-baking-tray ?kitchen-state-with-baking-tray ?baking-tray vegetable-oil)
+    (fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen-state-with-semisweet-chocolate-chips baking-tray 1)
+    (grease ?greased-baking-tray ?kitchen-state-with-greased-baking-tray ?kitchen-state-with-baking-tray ?baking-tray ?vegetable-oil-baking-tray)
 
     ;; "In a medium bowl, stir together the cake mix, eggs and oil until well blended"
     (bind-and-fetch ?medium-bowl ?kitchen-state-with-medium-bowl ?kitchen-state-with-greased-baking-tray medium-bowl)
