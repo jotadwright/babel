@@ -174,7 +174,7 @@
                                                                                    :direction '<-))))
         (ordered-fcg-apply (mapcar #'get-processing-cxn cxns-to-add) initial-node '<- (processing-cxn-inventory temp-cxn-inventory)))
       ;; non-sequential normal comprehend
-      (second (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t))))
+      (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t)))
       ))
   
 

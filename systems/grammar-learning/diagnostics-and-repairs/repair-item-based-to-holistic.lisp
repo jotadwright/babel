@@ -69,11 +69,13 @@
                                            
                  (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-add)
                                            (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-add)))
-                 (solution-cipn (comprehend-in-sandbox form-constraints original-cxn-inventory
+                 (meaning-and-solution-cipn (comprehend-in-sandbox form-constraints original-cxn-inventory
                                                        :apply-sequentially nil
                                                        :gold-standard-meaning meaning
                                                        :cxns-to-add temp-cxns-to-add
                                                        :categories-to-add temp-cats-to-add))
+                 (resulting-meaning (first meaning-and-solution-cipn))
+                 (solution-cipn (second meaning-and-solution-cipn))
                    
                  ;; build result
                  (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
@@ -82,14 +84,16 @@
                  (cxns-to-consolidate (third cxns-and-links-holistic-part-observation))
                  (cats-to-add (fourth cxns-and-links-holistic-part-observation)))
         
-              (list
-               cxns-to-apply
-               cat-links-to-add
-               cxns-to-consolidate
-               cats-to-add
-               (extract-contributing-lex-class (last-elt cxns-to-apply))
-               t
-               )))))))
+
+            (when (equivalent-meaning-networks resulting-meaning meaning meaning-representation-formalism)
+                   (list
+                    cxns-to-apply
+                    cat-links-to-add
+                    cxns-to-consolidate
+                    cats-to-add
+                    (extract-contributing-lex-class (last-elt cxns-to-apply))
+                    t
+                    ))))))))
             
           
                  
