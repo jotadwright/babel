@@ -49,9 +49,6 @@
 (in-package :grammar-learning)
 
 
-;(fcg::tokenize "De quelle forme est le grand truc rouge en métal ?")
-;(defparameter *test* (de-render "De quelle forme est le grand truc rouge en métal ?" :de-render-string-meets-fr))
-
 (defun empty-cxn-set (experiment)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (cxn-inventory
@@ -64,7 +61,7 @@
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth)
+                   :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
                                         (:cxn-supplier-mode . ,(get-configuration experiment :learner-cxn-supplier))
                                         (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))

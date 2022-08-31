@@ -14,7 +14,7 @@
 (defmethod run-learner-comprehension-task (agent)
   ;(set-data (blackboard (grammar agent)) :add-th-links-repair-failed nil)
     (multiple-value-bind (comprehended-meanings cipns)
-      (comprehend-all (utterance agent) :cxn-inventory (grammar agent) :gold-standard-meaning (meaning agent))
+      (comprehend-all (utterance agent) :cxn-inventory (grammar agent) :gold-standard-meaning (meaning agent) :n 2)
     (let* ((ranked-cipns (rank-cipns cipns))
            (solution-cipn (first ranked-cipns))
            (competing-solution-cipns (rest ranked-cipns))

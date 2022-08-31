@@ -50,6 +50,7 @@
                                                              :key #'(lambda (node) (name (car-applied-cxn (cipn-car node)))))
                              collect (original-cxn (car-applied-cxn (cipn-car bad-node))))))
          (cxns-to-punish (remove-duplicates (append cxns-to-punish-solutions cxns-to-punish-non-solutions))))
+    
     (dolist (cxn cxns-to-punish)
       (dec-cxn-score agent cxn))))
       
