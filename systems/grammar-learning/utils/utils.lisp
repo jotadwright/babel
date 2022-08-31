@@ -1268,7 +1268,7 @@
         for units = (remove-child-units (remove resulting-root resulting-left-pole-structure))
         for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
         when (and bindings
-                  (no-duplicate-bindings-p bindings)
+                  ;(no-duplicate-bindings-p bindings)
                   (loop for unit in units
                         always (extract-args-from-resulting-unit unit)))
         collect cipn))
