@@ -70,7 +70,7 @@
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
                           :entries '((:repairs . (add-categorial-links
-                                                  ;item-based->item-based--substitution
+                                                  item-based->item-based--substitution
                                                   item-based->holistic
                                                   holistic->item-based--substitution
                                                   ;holistic->item-based--addition
@@ -98,19 +98,21 @@
 
 ;(defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 
-;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
+;(defparameter *cn* (categorial-network (grammar (first (interacting-agents *experiment*)))))
 
 
 (create-experiment)
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
-
+;(fcg::configure-grammar *cxn-inventory*)
 
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 108) ;175   ;176 fails
+(run-series *experiment* 10)
+
+;(run-series *experiment* 5000) ; 
 
 ;(run-series *experiment* 47040) ;
 
@@ -120,9 +122,8 @@
 - test repairs separately, subst first, then add one by one
  
 ISSUES:
-133: existing item-based cxn x-en-metal has wrong args
-?x en metal meaning -> metal ?X thing
-expected metal thing big, got metal big thing, so x-en-metal shouldn't have been used
+
+
 
 
  

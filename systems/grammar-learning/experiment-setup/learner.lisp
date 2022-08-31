@@ -12,7 +12,9 @@
                            (average (mapcar #'(lambda (cxn) (attr-val cxn :score)) (applied-constructions cipn))))))
 
 (defmethod run-learner-comprehension-task (agent)
-  ;(set-data (blackboard (grammar agent)) :add-th-links-repair-failed nil)
+  (set-data (blackboard (grammar agent)) :current-interaction-nr (interaction-number
+                                                                  (current-interaction
+                                                                   (experiment agent))))
     (multiple-value-bind (comprehended-meanings cipns)
       (comprehend-all (utterance agent) :cxn-inventory (grammar agent) :gold-standard-meaning (meaning agent) :n 2)
     (let* ((ranked-cipns (rank-cipns cipns))
@@ -31,6 +33,7 @@
       ;; update the :last-used property of the cxns
       (loop for cxn in applied-cxns
             do (set-cxn-last-used agent cxn))
+      
     (values comprehended-meanings solution-cipn))))
 
 (defun all-applied-cxns (cipn)

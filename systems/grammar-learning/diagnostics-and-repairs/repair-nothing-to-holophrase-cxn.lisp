@@ -62,7 +62,6 @@
                             collect (third fc) into hash-strings
                             finally (return (last-elt hash-strings))))
          (cxn-inventory-copy (copy-object cxn-inventory))
-    
          (holistic-cxn-apply-first (second (multiple-value-list  (eval
                                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-first
                                                                                 ((?holistic-unit
