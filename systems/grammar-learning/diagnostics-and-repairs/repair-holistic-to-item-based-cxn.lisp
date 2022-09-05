@@ -126,17 +126,16 @@
                          
           (let* ((contributing-footprints (sixth holistic-cxn-subunit-blocks))
                  (dummy-slot-fcs (seventh holistic-cxn-subunit-blocks))
-                 (existing-item-based-cxn-apply-first (find-cxn-by-form-and-meaning 
-                                                       item-based-cxn-form-constraints
-                                                       item-based-cxn-meaning
-                                                       slot-args-list
-                                                       item-based-args
-                                                       original-cxn-set
-                                                       :cxn-type 'item-based
-                                                       :cxn-set 'fcg::meta-only))
-                 (existing-item-based-cxn-apply-last (when existing-item-based-cxn-apply-first
-                                                       (alter-ego-cxn existing-item-based-cxn-apply-first original-cxn-set)))
-
+                 (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
+                                              item-based-cxn-form-constraints
+                                              item-based-cxn-meaning
+                                              slot-args-list
+                                              item-based-args
+                                              original-cxn-set
+                                              :cxn-type 'item-based
+                                              :cxn-set 'fcg::routine))
+                 (existing-item-based-cxn-apply-first (when existing-item-based-cxn-apply-last
+                                                (alter-ego-cxn existing-item-based-cxn-apply-last original-cxn-set)))
                  (lex-class-item-based-cxn
                   (if existing-item-based-cxn-apply-first
                     (extract-contributing-lex-class existing-item-based-cxn-apply-first)
