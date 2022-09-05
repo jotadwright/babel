@@ -8,7 +8,7 @@
 ;; various:
 ;; ----------------------------------------------------------------------------
 
-(export '(id let-values safe-setf))
+(export '(id let-values safe-setf eval-when-bound))
 
 ;;; Provided here to be share in both in the FCG & CIS package package
 ;;; hierarchies.
@@ -21,8 +21,15 @@
   `(multiple-value-bind ,vars ,expr . ,body))
 
 (defmacro safe-setf (variable value)
-	"Only setfs the variable when it was nil."
+  "Only setfs the variable when it was nil."
   `(unless ,variable (setf ,variable ,value)))
+
+(defun eval-when-bound (sexp)
+  "Evaluates a sexp, unless it is an unbound atom."
+  (if (and (atom sexp)
+            (not (boundp sexp)))
+    sexp
+    (eval sexp)))
 
 ;; ############################################################################
 ;; Various useful functions:
