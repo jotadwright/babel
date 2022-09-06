@@ -69,13 +69,13 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
-                          :entries '((:repairs . (add-categorial-links
-                                                  item-based->item-based--substitution
-                                                  item-based->holistic
-                                                  holistic->item-based--substitution
+                          :entries '((:repairs . (;add-categorial-links
+                                                  ;item-based->item-based--substitution
+                                                  ;item-based->holistic
+                                                  ;holistic->item-based--substitution
                                                   ;holistic->item-based--addition
                                                   ;holistic->item-based--deletion
-                                                  holistic->item-based
+                                                  ;holistic->item-based
                                                   nothing->holistic))
                                      (:determine-interacting-agents-mode . :corpus-learner)
                                      (:observation-sample-mode . :debug)
@@ -90,7 +90,12 @@
 
                               
 
-;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
+;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "grammar-learning" "clevr-french") :name "cxn-inventory-train-french-ordered" :type "store"))
+
+;(cl-store::store (grammar (first (agents *experiment*))) "/Users/jonasdoumen/Projects/ehai-babel/experiments/grammar-learning/clevr-french/cxn-inventory-train-french-ordered.store")
+
+; (cl-store::store *experiment* "/Users/jonasdoumen/Projects/ehai-babel/experiments/grammar-learning/clevr-french/experiment-train-french-ordered.store")
+
 
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights? t :render-program "circo"))
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t :render-program "fdp"))
@@ -108,11 +113,11 @@
 ;(fcg::configure-grammar *cxn-inventory*)
 
 ;;; test series of interactions
-;(run-series *experiment* (length (question-data *experiment*)))
+(run-series *experiment* (length (question-data *experiment*)))
 
-(run-series *experiment* 10)
+;(run-series *experiment* 119)
 
-;(run-series *experiment* 5000) ; 
+;(run-series *experiment* 15000) ; 
 
 ;(run-series *experiment* 47040) ;
 
@@ -123,7 +128,10 @@
  
 ISSUES:
 
-
+73=121
+116=128
+119=197
+72=120
 
 
  
