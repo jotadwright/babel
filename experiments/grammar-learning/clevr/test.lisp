@@ -1,4 +1,4 @@
-
+(setf cl-user::*automatically-start-web-interface* nil)
 (ql:quickload :grammar-learning)
 (in-package :grammar-learning)
 
@@ -54,13 +54,13 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
-                   :entries '((:repairs . (add-categorial-links
-                                           item-based->item-based--substitution
-                                           item-based->holistic
-                                           holistic->item-based--substitution
+                   :entries '((:repairs . (;add-categorial-links
+                                           ;item-based->item-based--substitution
+                                           ;item-based->holistic
+                                           ;holistic->item-based--substitution
                                            ;holistic->item-based--addition
                                            ;holistic->item-based--deletion
-                                           holistic->item-based
+                                           ;holistic->item-based
                                            nothing->holistic))
                          (:observation-sample-mode . :train) ;:train
                          (:categorial-network-export-interval . 1000)
@@ -95,6 +95,10 @@
 ;(run-series *experiment* 174)   ;  
 
 ;(run-series *experiment* 5000) ;
+
+;(cl-store::store *experiment* "/Users/jonasdoumen/Projects/ehai-babel/experiments/grammar-learning/clevr/experiment-train-english-shuffled.store")
+;(cl-store::store (grammar (first (agents *experiment*))) "/Users/jonasdoumen/Projects/ehai-babel/experiments/grammar-learning/clevr/cxn-inventory-train-english-shuffled.store")
+;; scp mac-pro:/Users/jonasdoumen/Projects/ehai-babel/experiments/grammar-learning/clevr/cxn-inventory-train-english-shuffled.store .
 
 
 
