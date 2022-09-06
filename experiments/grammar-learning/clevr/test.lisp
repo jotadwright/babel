@@ -62,7 +62,7 @@
                                            ;holistic->item-based--deletion
                                            holistic->item-based
                                            nothing->holistic))
-                         (:observation-sample-mode . :debug)
+                         (:observation-sample-mode . :train) ;:train
                          (:categorial-network-export-interval . 1000)
                          (:meaning-representation . :irl)
                          (:de-render-mode . :de-render-string-meets-no-punct)
@@ -90,11 +90,11 @@
 
 
 ;;; test series of interactions
-;(run-series *experiment* (length (question-data *experiment*)))
+(run-series *experiment* (length (question-data *experiment*)))
 
 ;(run-series *experiment* 174)   ;  
 
-;(run-series *experiment* 2000) ;
+;(run-series *experiment* 5000) ;
 
 
 
