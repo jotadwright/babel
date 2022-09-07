@@ -1,4 +1,7 @@
 
+;(with-open-file (stream "/Users/u0077062/Projects/ehai-babel/systems/grammar-learning/utils/random-seed.lisp" :direction :input)
+;  (setf *random-state* (read stream)))
+
 (ql:quickload :grammar-learning)
 (in-package :grammar-learning)
 
@@ -43,7 +46,7 @@
 
 
 
-
+;(activate-monitor trace-fcg-search-process)
 
 
 ;; full logging
@@ -69,17 +72,20 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
-                          :entries '((:repairs . (;add-categorial-links
-                                                  ;item-based->item-based--substitution
-                                                  ;item-based->holistic
-                                                  ;holistic->item-based--substitution
+                          :entries '((:repairs . (add-categorial-links
+                                                  item-based->item-based--substitution
+                                                  item-based->holistic
+                                                  holistic->item-based--substitution
                                                   ;holistic->item-based--addition
                                                   ;holistic->item-based--deletion
-                                                  ;holistic->item-based
+                                                  holistic->item-based
                                                   nothing->holistic))
                                      (:determine-interacting-agents-mode . :corpus-learner)
                                      (:observation-sample-mode . :debug)
                                      (:meaning-representation . :irl)
+                                     (:comprehend-n . 2)
+                                     (:cxn-decf-score . 0.3)
+                                     (:alignment-strategy . :lateral-inhibition-comprehend-all)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
                                      (:corpus-files-root . ,(merge-pathnames
                                                              (make-pathname :directory '(:relative "clevr-grammar-learning"))
@@ -115,29 +121,11 @@
 ;;; test series of interactions
 (run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 119)
-
-;(run-series *experiment* 15000) ; 
 
 ;(run-series *experiment* 47040) ;
 
 
 
 #|
-- test repairs separately, subst first, then add one by one
- 
-ISSUES:
-
-73=121
-116=128
-119=197
-72=120
-
-
- 
-TODO:
-- check of onze determine-comm-success fn juist werkt in comprehend-all!
-- meerdere epochs na elkaar, zien of de alignment nog iets verwijdert
-- comprehend-all ipv comprehend en het gemiddelde van het pad doen
 
 |#
