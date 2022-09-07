@@ -1177,6 +1177,7 @@
         return predicate))
 
 (defun disable-meta-layer-configuration (cxn-inventory)
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning))
   (set-configuration cxn-inventory :category-linking-mode :categories-exist)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
@@ -1417,4 +1418,49 @@
             new-item-based-cxn-apply-last
             lex-class-item-based-cxn
             lex-class-item-based-cxn-slot)))
-        
+
+(defmethod comprehend-w-derenderer (utterance &key
+                                 (cxn-inventory *fcg-constructions*)
+                                 (silent nil))
+  (let ((initial-cfs (de-render utterance :de-render-string-meets-no-punct :cxn-inventory cxn-inventory))
+        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+    ;; Add utterance and meaning to blackboard
+    (set-data initial-cfs :utterances (listify utterance))
+    
+    ;; Notification
+    (unless silent (notify parse-started (listify utterance) initial-cfs))
+    ;; Construction application
+    (multiple-value-bind (solution cip)
+        (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent))
+      (let ((meaning (and solution
+                          (extract-meanings
+                           (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
+        ;; Notification
+        (unless silent (notify parse-finished meaning processing-cxn-inventory))
+        ;; Return value
+        (values meaning solution cip)))))
+
+
+(defun run-validation (cxn-inventory data)
+  ;; reset configurations of inventory
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure))
+  (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-routine-cxn-set-only)
+  (set-configuration cxn-inventory :category-linking-mode :neighbours)
+  (set-configuration cxn-inventory :update-categorial-links nil)
+  (set-configuration cxn-inventory :use-meta-layer nil)
+  (set-configuration cxn-inventory :consolidate-repairs nil)
+  ;; process all data
+  (loop with success-count = 0
+        for interaction from 1
+        for entry in data
+        for utterance = (first entry)
+        for gold-std-meaning = (cdr entry)
+        for comprehended-meaning = (first (multiple-value-list (comprehend-w-derenderer utterance :cxn-inventory cxn-inventory)))
+        for success-p = (irl:equivalent-irl-programs? comprehended-meaning gold-std-meaning)
+        do (if success-p
+             (progn (incf success-count)
+               (format t "~a" "."))
+             (format t "~a" "!"))
+        (when (= 0 (mod interaction 100))
+          (format t " (~a | ~a% overall avg.)~%" interaction (* 100 (float (/ success-count interaction)))))
+        finally (return (* 100 (float (/ success-count (length data)))))))
