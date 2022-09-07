@@ -1,3 +1,6 @@
+(setf cl-user::*automatically-start-web-interface* nil)
+
+
 (ql:quickload :grammar-learning)
 
 (in-package :grammar-learning)
