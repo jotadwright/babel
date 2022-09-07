@@ -36,13 +36,15 @@
 (define-configuration-default-value :initial-cxn-score 0.5)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
-(define-configuration-default-value :cxn-decf-score 0.3)
+(define-configuration-default-value :cxn-decf-score 0.4)
 
 (define-configuration-default-value :evaluation-grammar nil)
-(define-configuration-default-value :alignment-strategy :lateral-inhibition)
+;(define-configuration-default-value :alignment-strategy :lateral-inhibition)
+(define-configuration-default-value :alignment-strategy :lateral-inhibition-comprehend-all)
 (define-configuration-default-value :remove-cxn-on-lower-bound t)
 (define-configuration-default-value :categorial-network-export-interval 1000)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
+(define-configuration-default-value :comprehend-n 2)
 
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored-routine-cxn-set-only)

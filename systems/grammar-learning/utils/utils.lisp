@@ -1177,7 +1177,6 @@
         return predicate))
 
 (defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning))
   (set-configuration cxn-inventory :category-linking-mode :categories-exist)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)

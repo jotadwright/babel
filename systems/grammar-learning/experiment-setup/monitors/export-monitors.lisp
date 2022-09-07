@@ -169,8 +169,8 @@
         (export-categorial-network-evolution-to-jsonl cn :path path :timestep timestep :interaction-number (interaction-number interaction))))))
 
 (defun get-all-export-monitors ()
-  '("export-type-hierarchy-to-image"
-    "export-type-hierarchy-to-json"
+  '(;"export-type-hierarchy-to-image"
+    ;"export-type-hierarchy-to-json"
     ;"export-type-hierarchy-evolution-to-jsonl"
     "export-learner-grammar"))
   
