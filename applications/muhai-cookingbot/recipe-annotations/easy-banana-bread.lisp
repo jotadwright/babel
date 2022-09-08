@@ -127,7 +127,7 @@
    ;; (crack ?cracked-eggs ?kitchen-state-with-cracked-eggs ?kitchen-state-with-self-rising-flour ?proportioned-eggs ?target-container-7)
     
     ;; "Cream together butter, eggs and sugar until smooth."
-    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?proportioned-self-rising-flour ?target-container-8 ?melted-butter ?quantity-x ?unit-x)
+    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-self-rising-flour ?target-container-8 ?melted-butter ?quantity-x ?unit-x)
     (transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-eggs ?quantity-y ?unit-y)
     (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?proportioned-sugar ?quantity-z ?unit-z)
     (beat ?creamed-mixture ?kitchen-state-with-creamed-mixture ?output-kitchen-state-z ?output-container-z ?beating-tool)
@@ -142,16 +142,7 @@
     (mix ?banana-bread-batter ?kitchen-state-with-banana-bread-batter ?output-kitchen-state-c ?output-container-c ?beating-tool) ;;reusing the same whisk
  
     ;; IMPLICIT: "Grease a pan."
- #|  (bind-and-fetch ?pan ?kitchen-state-with-pan 
-		    ?kitchen-state-with-banana-bread-batter pan)
-    (grease ?greased-pan ?kitchen-state-with-greased-pan 
-	    ?kitchen-state-with-pan ?pan butter)
-
     ;; IMPLICIT: "Transfer batter into pan and spread evenly."
-    (bind-and-fetch ?spatula ?kitchen-state-with-spatula 
-		    ?kitchen-state-with-greased-pan spatula)
-    (to-spread ?pan-with-spread-batter ?kitchen-state-with-spread-batter-in-pan
-	       ?kitchen-state-with-spatula ?greased-pan ?banana-bread-batter ?spatula) |#
 
     ;; "Bake at 325 degrees Fahrenheit for about 1 hour or until golden brown."
     (bake ?baked-banana-bread ?kitchen-state-with-baked-banana-bread ?kitchen-state-with-banana-bread-batter ?banana-bread-batter ?oven 60 minute 160 degrees-celsius)
