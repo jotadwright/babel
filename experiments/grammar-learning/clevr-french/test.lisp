@@ -76,8 +76,8 @@
                                                   item-based->item-based--substitution
                                                   item-based->holistic
                                                   holistic->item-based--substitution
-                                                  ;holistic->item-based--addition
-                                                  ;holistic->item-based--deletion
+                                                  holistic->item-based--addition
+                                                  holistic->item-based--deletion
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:determine-interacting-agents-mode . :corpus-learner)
@@ -117,7 +117,7 @@
 ;(run-interaction *experiment*)
 
 ;(fcg::configure-grammar *cxn-inventory*)
-
+;(run-series *experiment* 400)
 ;;; test series of interactions
 (run-series *experiment* (length (question-data *experiment*)))
 
