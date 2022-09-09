@@ -398,7 +398,9 @@
 
            ;;3) weigh ingredient
            (multiple-value-bind (weighed-ingredient-container rest-ingredient-container)
-               (weigh-ingredient ingredient-instance amount target-container-instance-new-ks)
+               (if (eq (type-of (unit (amount (first (contents ingredient-instance))))) 'piece)
+                 (take-n-pieces ingredient-instance amount target-container-instance-new-ks)
+                 (weigh-ingredient ingredient-instance amount target-container-instance-new-ks))
 
              (setf (used weighed-ingredient-container) t)
              ;;put the rest back 
@@ -1219,12 +1221,14 @@
      
      (if (contents new-container-with-things-spread)
      
-       (let* ((number-of-spreadable-items (loop for item in (contents new-container-with-things-spread)
-                                                counting (typep item 'spreadable) into spreadables
-                                                finally (return spreadables)))
+       (let* ((number-of-items-to-spread-upon (loop with count = 0
+                                                    for item in (contents new-container-with-things-spread)
+                                                    if  (typep item 'can-be-spread-upon)
+                                                      do (incf count)
+                                                    finally (return count)))
               (actual-spread-in-bowl (first (contents container-with-spread)))
               (quantity-per-item (float (/ (value (quantity (amount actual-spread-in-bowl)))
-                                           number-of-spreadable-items)))
+                                           number-of-items-to-spread-upon)))
               (spread-unit (type-of (unit (amount actual-spread-in-bowl)))))
      
          (loop for item in (contents new-container-with-things-spread)
@@ -1233,7 +1237,6 @@
                                                                   :quantity (make-instance 'quantity
                                                                                            :value quantity-per-item)
                                                                   :unit (make-instance spread-unit)))
-                  (setf (spread item) t)
                   (setf (spread-with item) portioned-spread))
 
          (setf (contents new-spread-container) nil)
@@ -1330,6 +1333,32 @@
   (loop for el in (contents container)
         do (setf (temperature el) temperature)))
 
+
+
+(defun take-n-pieces (source-container target-amount target-container)
+
+  (assert (= (length (contents source-container)) 1))
+  
+  (let* ((source-ingredient (first (contents source-container)))
+         (new-amount-source (make-instance 'amount
+                                          :unit (unit target-amount)
+                                          :quantity (make-instance 'quantity
+                                                                   :value (- (value (quantity (amount source-ingredient)))
+                                                                             (value (quantity target-amount))))))
+         (target-ingredients (loop for piece from 1 to (value (quantity target-amount))
+                                     collect (make-instance (type-of source-ingredient)
+                                                            :amount (make-instance 'amount
+                                                                                   :unit 'piece
+                                                                                   :quantity 1)))))
+
+    ;;adjust amounts of source ingredient
+    (setf (amount source-ingredient) new-amount-source)
+    
+    ;;add all target ingredients to contents of target-container
+    (setf (contents target-container)
+          (append target-ingredients (contents target-container)))
+    
+  (values target-container source-container)))
 
 (defun weigh-ingredient (source-container target-amount target-container)
 

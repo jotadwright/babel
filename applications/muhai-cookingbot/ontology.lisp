@@ -689,10 +689,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (solid-parts copy) (copy-object (solid-parts conserved-ingredient)))
   (setf (fluid-parts copy) (copy-object (fluid-parts conserved-ingredient))))
 
-(defclass canned-peaches (ingredient drainable bakeable can-have-on-top)
-  ()
-  (:documentation "Canned peaches, this are the peaches in the can without the fluid."))
-
 (defclass caster-sugar (sugar)
   ()
   (:documentation "Caster sugar, granulated sugar with a very fine consistency."))
@@ -894,17 +890,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (:documentation "Pancetta."))
 
 
-(defclass peach-juice (juice)
-  ()
-  (:documentation "Peach-juice."))
 
 (defclass powdered-white-sugar (sugar sprinkable can-be-dipped-in)
   ()
   (:documentation "Powdered white sugar."))
 
-(defclass quick-cooking-oats (ingredient)
+(defclass oats (ingredient)
   ()
-  (:documentation "Quick cooking oats."))
+  (:documentation "Oats."))
 
 (defclass raisin (ingredient)
   ()

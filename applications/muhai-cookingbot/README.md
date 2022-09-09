@@ -13,13 +13,12 @@ The example recipes that are provided as examples for the recipe execution bench
 2. Afghan biscuits (annotation)
 3. Best brownies (annotation)
 4. Chocolate fudge cookies (annotation)
-5. Easy banana bread
-6. Easy bread pudding
-7. Easy oatmeal cookies
-8. Whole wheat ginger snaps
-9. Cucumber slices with dill
-10. Easy cherry tomato corn salad
-11. Vegan black bean and sweet potato salad
+5. Easy banana bread (annotation)
+6. Easy oatmeal cookies
+7. Whole wheat ginger snaps
+8. Cucumber slices with dill
+9. Easy cherry tomato corn salad
+10. Vegan black bean and sweet potato salad
 
 
 ## Primitives
