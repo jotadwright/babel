@@ -46,8 +46,8 @@
       (when cxn
         
         (let* (;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning overlapping-meaning cxn-inventory))
-               (cxns-and-links-holistic-part-observation (do-create-holistic-cxn form-constraints meaning parent-meaning (processing-cxn-inventory cxn-inventory)))
+               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning (append parent-meaning overlapping-meaning) cxn-inventory))
+               (cxns-and-links-holistic-part-observation (do-create-holistic-cxn form-constraints meaning (append parent-meaning overlapping-meaning) (processing-cxn-inventory cxn-inventory)))
                
                
                ;; surrounding item-based cxn
@@ -57,7 +57,8 @@
                                                                                     overlapping-meaning
                                                                                     non-overlapping-meaning
                                                                                     (extract-meaning-predicates cxn)
-                                                                                    parent-meaning;; todo get the parent meaning with substituted variables from bindings! (get-subtracted-meaning-from-cxn cxn gold-standard-meaning) ; we don't have the original gold standard here 
+                                                                                    parent-meaning;; todo get the parent meaning with substituted variables from bindings! (get-subtracted-meaning-from-cxn cxn gold-standard-meaning) ; we don't have the original gold standard here
+                                                                                    (extract-args-from-meaning-networks non-overlapping-meaning (append parent-meaning overlapping-meaning) meaning-representation-formalism)
                                                                                     meaning-representation-formalism
                                                                                     'holistic->item-based--addition)))
                (new-item-based-cxn-apply-first (first item-based-cxn-variants))

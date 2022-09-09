@@ -41,7 +41,7 @@
       (when cxn
         
         (let* (;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning cxn-inventory))
+               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning (append parent-meaning overlapping-meaning) cxn-inventory))
                
                ;; surrounding item-based cxn
                (item-based-cxn-variants (multiple-value-list (create-item-based-cxn cxn-inventory
@@ -51,6 +51,7 @@
                                                                                     non-overlapping-meaning
                                                                                     meaning
                                                                                     parent-meaning
+                                                                                    (extract-args-from-meaning-networks non-overlapping-meaning (append parent-meaning overlapping-meaning) meaning-representation-formalism)
                                                                                     meaning-representation-formalism
                                                                                     'holistic->item-based--addition)))
                (new-item-based-cxn-apply-first (first item-based-cxn-variants))
