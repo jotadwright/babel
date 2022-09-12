@@ -1,4 +1,4 @@
-(setf cl-user::*automatically-start-web-interface* nil)
+(setf cl-user::*automatically-start-web-interface* t)
 (ql:quickload :grammar-learning)
 (in-package :grammar-learning)
 
@@ -54,18 +54,21 @@
   (notify reset-monitors)
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
-                   :entries '((:repairs . (;add-categorial-links
-                                           ;item-based->item-based--substitution
-                                           ;item-based->holistic
+                   :entries '((:repairs . (add-categorial-links
+                                           item-based->item-based--substitution
+                                           item-based->holistic
                                            ;holistic->item-based--substitution
-                                           ;holistic->item-based--addition
-                                           ;holistic->item-based--deletion
-                                           ;holistic->item-based
+                                           holistic->item-based--addition
+                                           holistic->item-based--deletion
+                                           holistic->item-based
                                            nothing->holistic))
                          (:observation-sample-mode . :train) ;:train
                          (:categorial-network-export-interval . 1000)
                          (:meaning-representation . :irl)
+                         (:comprehend-n . 33000)
+                         (:cxn-decf-score . 0.3)
                          (:de-render-mode . :de-render-string-meets-no-punct)
+                         (:alignment-strategy . :lateral-inhibition)
                          (:corpus-files-root . ,(merge-pathnames
                                      (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                      cl-user:*babel-corpora*))
@@ -90,9 +93,9 @@
 
 
 ;;; test series of interactions
-(run-series *experiment* (length (question-data *experiment*)))
+;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 174)   ;  
+;(run-series *experiment* 100)   ;  
 
 ;(run-series *experiment* 5000) ;
 

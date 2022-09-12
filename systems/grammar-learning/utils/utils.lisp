@@ -1121,7 +1121,8 @@
 (defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :irl)))
-  (extract-args-from-irl-network child-meaning))
+  ;(extract-args-from-irl-network child-meaning))
+  (extract-args-from-meaning-networks child-meaning parent-meaning :amr))
 
 #|
   (remove nil (append (loop for predicate in child-meaning
