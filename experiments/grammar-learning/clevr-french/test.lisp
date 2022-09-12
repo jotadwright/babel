@@ -76,16 +76,16 @@
                                                   item-based->item-based--substitution
                                                   item-based->holistic
                                                   holistic->item-based--substitution
-                                                  holistic->item-based--addition
-                                                  holistic->item-based--deletion
+                                                 ; holistic->item-based--addition
+                                                  ;holistic->item-based--deletion
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:determine-interacting-agents-mode . :corpus-learner)
                                      (:observation-sample-mode . :debug)
                                      (:meaning-representation . :irl)
-                                     (:comprehend-n . 2)
+                                     (:cxn-incf-score . 0.6)
                                      (:cxn-decf-score . 0.3)
-                                     (:alignment-strategy . :lateral-inhibition-comprehend-all)
+                                     (:alignment-strategy . :lateral-inhibition)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
                                      (:corpus-files-root . ,(merge-pathnames
                                                              (make-pathname :directory '(:relative "clevr-grammar-learning"))
@@ -117,7 +117,7 @@
 ;(run-interaction *experiment*)
 
 ;(fcg::configure-grammar *cxn-inventory*)
-;(run-series *experiment* 400)
+;(run-series *experiment* 11)
 ;;; test series of interactions
 (run-series *experiment* (length (question-data *experiment*)))
 
