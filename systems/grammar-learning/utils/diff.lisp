@@ -276,9 +276,10 @@
     (nth (+ 1 (position current-predicate network)) network)))
 
 (defun extract-continuous-subnetwork (ordered-predicates sorted-network)
-  (let* ((end (+ 1 (position (first ordered-predicates) sorted-network)))
-         (start (position (last-elt ordered-predicates) sorted-network)))
-    (subseq sorted-network start end)))
+  (when ordered-predicates
+    (let* ((end (+ 1 (position (first ordered-predicates) sorted-network)))
+           (start (position (last-elt ordered-predicates) sorted-network)))
+      (subseq sorted-network start end))))
                                          
                       
 
