@@ -897,8 +897,8 @@
                       (> (length non-overlapping-form-cxn) 0)
                       (extract-form-predicate-by-type overlapping-form-cxn 'string)
                       (extract-form-predicate-by-type overlapping-form-observation 'string)
-                      (connected-semantic-network non-overlapping-meaning-observation)
-                      (connected-semantic-network non-overlapping-meaning-cxn)
+                      ;(connected-semantic-network non-overlapping-meaning-observation)
+                      ;(connected-semantic-network non-overlapping-meaning-cxn)
                       cxn
                       (check-meets-continuity non-overlapping-form-cxn)
                       (check-meets-continuity non-overlapping-form-observation)
