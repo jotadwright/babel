@@ -73,7 +73,7 @@
   (sort network-to-sort #'< :key #'(lambda (x) (cond ((position x sorted-source-network))
                                                      (t 0)))))
 
-(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
+#|(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
   (diff-networks network-1
                  network-2
                  #'get-predicate-with-target-var
@@ -81,6 +81,7 @@
                  #'compare-irl-predicates
                  #'add-bind-statements
                  #'remove-bind-statements))
+|#
 
 (defun add-dummy-end-meets (form-constraints)
   (append form-constraints
@@ -139,7 +140,8 @@
          (left-string-2 (third (find left-var-2 (extract-form-predicate-by-type network-2 'string) :key #'second)))
          )
     (string= left-string-1 left-string-2)))
-         
+
+
 
 (defun compare-irl-predicates (predicate-1 predicate-2 network-1 network-2)
   ; todo: find subnetworks of open vars, then use equivalent-irl-programs? on those! these subnetworks can have a depth larger than 1!
@@ -242,7 +244,178 @@
               (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE)
               (CLEVR-WORLD:COUNT! GRAMMAR-LEARNING::?TARGET-16 GRAMMAR-LEARNING::?TARGET-9641))))
     (diff-meaning-networks m-1 m-2 :irl)
-    (diff-form-constraints fc-1 fc-3)
+    ;(diff-form-constraints fc-1 fc-3)
     )
   )
 ;(compare-irl-networks-with-common-predicate-in-diff)
+
+(defun get-bind-statement (predicate network)
+  (let* ((open-vars (third (multiple-value-list (extract-vars-from-irl-network (list predicate)))))
+        (first-open-var (first open-vars)))
+    (when first-open-var
+      (get-irl-predicate-from-in-var first-open-var network))))
+
+(defun sort-clevr-stage-1-network (network)
+  (loop with current-pred = (get-predicate-with-target-var network)
+        with sorted-network = nil
+        for next-pred = (get-next-irl-predicate current-pred network)
+        for bind-statement = (get-bind-statement current-pred network)
+        while next-pred
+        do (when bind-statement 
+             (push bind-statement sorted-network))
+        (push current-pred sorted-network) 
+        (setf current-pred next-pred)
+        finally 
+        (when bind-statement 
+          (push bind-statement sorted-network))
+        (push current-pred sorted-network)
+        (return sorted-network)))
+
+(defun next-irl-predicate (current-predicate network)
+  (when current-predicate
+    (nth (+ 1 (position current-predicate network)) network)))
+
+(defun extract-continuous-subnetwork (ordered-predicates sorted-network)
+  (when ordered-predicates
+    (let* ((end (+ 1 (position (first ordered-predicates) sorted-network)))
+           (start (position (last-elt ordered-predicates) sorted-network)))
+      (subseq sorted-network start end))))
+                                         
+                      
+
+(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
+  "traverse both networks, return the longest possible sequence of non-overlapping predicates, assumes the network to be linear, and the variables to have a consistent position for traversal"
+  (loop with sorted-network-1 = (sort-clevr-stage-1-network network-1)
+        with sorted-network-2 = (sort-clevr-stage-1-network network-2)
+        with current-predicate-1 = (first sorted-network-1)
+        with current-predicate-2 = (first sorted-network-2)
+        with last-equivalent-predicate-1 = current-predicate-1
+        with overlapping-predicates-1 = nil
+        with overlapping-predicates-2 = nil
+        while (or current-predicate-1 current-predicate-2)
+        for next-predicate-1 = (next-irl-predicate current-predicate-1 sorted-network-1)
+        for next-predicate-2 = (next-irl-predicate current-predicate-2 sorted-network-2)
+        for equivalent-predicates-p = (unify-irl-programs (list current-predicate-1) (list current-predicate-2))
+        do (if equivalent-predicates-p
+             (progn ;; true condition
+               (setf last-equivalent-predicate-1 current-predicate-1) ;; keep track of last successful comparison
+               (push current-predicate-1 overlapping-predicates-1)
+               (push current-predicate-2 overlapping-predicates-2)
+               (setf current-predicate-1 next-predicate-1)
+               (setf current-predicate-2 next-predicate-2))
+             ;; false condition
+             (setf current-predicate-1 next-predicate-1)) ; traverse network 1 while network 2 stays static
+        (when (and (not current-predicate-1) current-predicate-2) ;; stack 1 is empty, stack 2 is not so go back to the last equivalent predicate, and take the next predicate
+          (setf current-predicate-1 (next-irl-predicate last-equivalent-predicate-1 sorted-network-1))
+          (setf current-predicate-2 next-predicate-2))
+               
+        finally (return (values (extract-continuous-subnetwork (set-difference sorted-network-1 overlapping-predicates-1 :test #'equal) sorted-network-1)
+                                
+                                (extract-continuous-subnetwork (set-difference sorted-network-2 overlapping-predicates-2 :test #'equal) sorted-network-2)))))
+
+#|
+(diff-meaning-networks '((CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?VAR-3220 GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3219)
+                         (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?VAR-3219 FCG:SIZE)
+                         (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3217)
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3217 GRAMMAR-LEARNING::?VAR-3215 GRAMMAR-LEARNING::?VAR-3216)
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3215 GRAMMAR-LEARNING::?VAR-3213 GRAMMAR-LEARNING::?VAR-3214)
+                         (UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?VAR-3216 CLEVR-WORLD:CYLINDER)
+                         (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?VAR-3214 CLEVR-WORLD:RUBBER)
+                         (CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?VAR-3213))
+                       '((CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?VAR-3184 GRAMMAR-LEARNING::?VAR-3182 GRAMMAR-LEARNING::?VAR-3183)
+                         (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?VAR-3183 CLEVR-WORLD:COLOR)
+                         (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?VAR-3182 GRAMMAR-LEARNING::?VAR-3181)
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3181 GRAMMAR-LEARNING::?VAR-3179 GRAMMAR-LEARNING::?VAR-3180)
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3179 GRAMMAR-LEARNING::?VAR-3177 GRAMMAR-LEARNING::?VAR-3178)
+                         (UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?VAR-3180 CLEVR-WORLD:CYLINDER)
+                         (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?VAR-3178 CLEVR-WORLD:RUBBER)
+                         (CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?VAR-3177)) :irl)
+
+(set-difference 
+                '((CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?VAR-3220 GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3219)
+                  (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?VAR-3219 FCG:SIZE)
+                  (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3217)
+                  (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3217 GRAMMAR-LEARNING::?VAR-3215 GRAMMAR-LEARNING::?VAR-3216)
+                  (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3215 GRAMMAR-LEARNING::?VAR-3213 GRAMMAR-LEARNING::?VAR-3214)
+                  (UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?VAR-3216 CLEVR-WORLD:CYLINDER)
+                  (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?VAR-3214 CLEVR-WORLD:RUBBER)
+                  (CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?VAR-3213))
+                '((UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?VAR-3219 FCG:SIZE)) :test #'equal)
+
+=> '((CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?VAR-3213)
+     (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?VAR-3214 CLEVR-WORLD:RUBBER)
+     (UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?VAR-3216 CLEVR-WORLD:CYLINDER)
+     (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3215 GRAMMAR-LEARNING::?VAR-3213 GRAMMAR-LEARNING::?VAR-3214)
+     (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3217 GRAMMAR-LEARNING::?VAR-3215 GRAMMAR-LEARNING::?VAR-3216)
+     (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3217)
+     (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?VAR-3220 GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3219))
+
+(diff-meaning-networks '((CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?SOURCE-1) 
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?SOURCE-1 GRAMMAR-LEARNING::?SHAPE-4) 
+                         (UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?SHAPE-4 CLEVR-WORLD:SPHERE) 
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?MATERIAL-4) 
+                         (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?MATERIAL-4 CLEVR-WORLD:METAL) 
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-46777 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?SIZE-4) 
+                         (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE) 
+                         (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?TARGET-46777) 
+                         (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?TARGET-3 GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?ATTRIBUTE-4) 
+                         (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?ATTRIBUTE-4 CLEVR-WORLD:COLOR))
+                       '((CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?SOURCE-1) 
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?SOURCE-1 GRAMMAR-LEARNING::?SHAPE-2) 
+                         (UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?SHAPE-2 CLEVR-WORLD:CUBE) 
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?MATERIAL-4) 
+                         (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?MATERIAL-4 CLEVR-WORLD:METAL) 
+                         (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-114412 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?SIZE-2) 
+                         (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-2 CLEVR-WORLD:SMALL) 
+                         (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?TARGET-114412) 
+                         (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?TARGET-3 GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?ATTRIBUTE-4) 
+                         (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?ATTRIBUTE-4 CLEVR-WORLD:COLOR)) :irl)
+
+
+(extract-args-from-meaning-networks '((UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?SHAPE-4 CLEVR-WORLD:SPHERE)
+                                      (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?MATERIAL-4)
+                                      (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?MATERIAL-4 CLEVR-WORLD:METAL)
+                                      (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-46777 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?SIZE-4)
+                                      (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE))
+                                    '((UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?ATTRIBUTE-4 CLEVR-WORLD:COLOR)
+                                      (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?TARGET-3 GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?ATTRIBUTE-4)
+                                      (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?TARGET-46777)
+                                      (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?SOURCE-1 GRAMMAR-LEARNING::?SHAPE-4)
+                                      (CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?SOURCE-1)) :amr)
+
+(extract-args-from-meaning-networks
+'((UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?VAR-3219 FCG:SIZE))
+ '((CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?VAR-3213)
+     (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?VAR-3214 CLEVR-WORLD:RUBBER)
+     (UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?VAR-3216 CLEVR-WORLD:CYLINDER)
+     (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3215 GRAMMAR-LEARNING::?VAR-3213 GRAMMAR-LEARNING::?VAR-3214)
+     (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?VAR-3217 GRAMMAR-LEARNING::?VAR-3215 GRAMMAR-LEARNING::?VAR-3216)
+     (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3217)
+     (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?VAR-3220 GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3219)) :amr)
+
+=> (GRAMMAR-LEARNING::?VAR-3219)
+
+
+ => (GRAMMAR-LEARNING::?SHAPE-4 GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?TARGET-46777)
+
+(set-difference '((CLEVR-WORLD:GET-CONTEXT GRAMMAR-LEARNING::?SOURCE-1)                                                                                                                
+                  (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?SOURCE-1 GRAMMAR-LEARNING::?SHAPE-4) 
+                  (UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?SHAPE-4 CLEVR-WORLD:SPHERE) 
+                  (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?MATERIAL-4) 
+                  (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?MATERIAL-4 CLEVR-WORLD:METAL) 
+                  (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-46777 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?SIZE-4) 
+                  (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE) 
+                  (CLEVR-WORLD:UNIQUE GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?TARGET-46777) 
+                  (CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?TARGET-3 GRAMMAR-LEARNING::?TARGET-OBJECT-1 GRAMMAR-LEARNING::?ATTRIBUTE-4) 
+                  (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?ATTRIBUTE-4 CLEVR-WORLD:COLOR))
+                '((UTILS:BIND CLEVR-WORLD:SHAPE-CATEGORY GRAMMAR-LEARNING::?SHAPE-4 CLEVR-WORLD:SPHERE)
+                  (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?TARGET-1 GRAMMAR-LEARNING::?MATERIAL-4)
+                  (UTILS:BIND CLEVR-WORLD:MATERIAL-CATEGORY GRAMMAR-LEARNING::?MATERIAL-4 CLEVR-WORLD:METAL)
+                  (CLEVR-WORLD:FILTER GRAMMAR-LEARNING::?TARGET-46777 GRAMMAR-LEARNING::?TARGET-2 GRAMMAR-LEARNING::?SIZE-4)
+                  (UTILS:BIND CLEVR-WORLD:SIZE-CATEGORY GRAMMAR-LEARNING::?SIZE-4 CLEVR-WORLD:LARGE))
+
+                :test #'equal
+
+                )
+
+|#

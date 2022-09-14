@@ -879,21 +879,16 @@
                     (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
                     (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
                     (nof-obs-and-cxn (multiple-value-list (diff-form-constraints utterance-form-constraints (extract-form-predicates cxn))))
-                    (args-holistic-cxn-1
-                     (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
-                    (args-holistic-cxn-2
-                     (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
+                    ;(args-holistic-cxn-1
+                    ; (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
+                    ;(args-holistic-cxn-2
+                    ; (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
 
                     (non-overlapping-form-observation (first nof-obs-and-cxn))
                     (non-overlapping-form-cxn (second nof-obs-and-cxn))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
                     (overlapping-form-observation (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)))
                (when (and
-                      (if (equal meaning-representation-formalism :irl)
-                        (and (= (length args-holistic-cxn-1) 2)
-                             (= (length args-holistic-cxn-2) 2))
-                        
-                        t)
                       (> (length overlapping-meaning-observation) 0)
                       (> (length overlapping-meaning-cxn) 0)
                       (> (length non-overlapping-meaning-observation) 0)
@@ -902,8 +897,8 @@
                       (> (length non-overlapping-form-cxn) 0)
                       (extract-form-predicate-by-type overlapping-form-cxn 'string)
                       (extract-form-predicate-by-type overlapping-form-observation 'string)
-                      (connected-semantic-network non-overlapping-meaning-observation)
-                      (connected-semantic-network non-overlapping-meaning-cxn)
+                      ;(connected-semantic-network non-overlapping-meaning-observation)
+                      ;(connected-semantic-network non-overlapping-meaning-cxn)
                       cxn
                       (check-meets-continuity non-overlapping-form-cxn)
                       (check-meets-continuity non-overlapping-form-observation)
@@ -1121,7 +1116,8 @@
 (defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :irl)))
-  (extract-args-from-irl-network child-meaning))
+  ;(extract-args-from-irl-network child-meaning))
+  (extract-args-from-meaning-networks child-meaning parent-meaning :amr))
 
 #|
   (remove nil (append (loop for predicate in child-meaning
