@@ -5,16 +5,17 @@
 ;;--------------------------;;
 
 (defparameter *simulated-concepts-path*
-  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "learned-concepts"
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "thesis-main-results"
                                "simulated-concepts-history100")))
 
+
 (defparameter *extracted-concepts-path*
-  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "learned-concepts"
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings" "thesis-main-results"
                                "baseline-extracted-default-lexicon")))
 
 (defparameter *extracted-scenes-path*
   (merge-pathnames
-   (make-pathname :directory '(:relative "CLEVR-v1.0" "extracted_scenes" "val"))
+   (make-pathname :directory '(:relative "Frontiers-data" "val-ns-vqa"))
    cl-user:*babel-corpora*))
 
 ;;----------------------------------;;
@@ -76,14 +77,23 @@
    cl-user:*babel-corpora*))
 
 
-(defun test-utterance-in-scene (utterance ontology scene-pathname)
+;; Pass on the utterance you want to see the process for
+(defun test-utterance-in-scene (utterance scene-name scene-type serie)
   (multiple-value-bind (irl-program cipn cip) 
       (understand utterance)
     (declare (ignorable cip))
     (when (find 'fcg::succeeded (fcg::statuses cipn))
-      (let ((scene-var (extract-scene-unit-variable cipn))
+      (let* ((ontology (make-mwm-ontology
+                       (merge-pathnames (make-pathname :directory (list :relative serie))
+                         (case scene-type
+                           (:extracted *extracted-concepts-path*)
+                           (:simulated *simulated-concepts-path*))) scene-type))
+            (scene-var (extract-scene-unit-variable cipn))
             (scene-path (make-instance 'pathname-entity
-                                       :pathname scene-pathname)))
+                                       :pathname (merge-pathnames
+                                                  (make-pathname :directory '(:relative "CLEVR-v1.0" "scenes" "val")
+                                                                 :name scene-name :type "json")
+                                                  cl-user:*babel-corpora*))))
         (evaluate-irl-program
          (cons `(bind pathname-entity ,scene-var ,scene-path)
                (substitute-categories irl-program))
