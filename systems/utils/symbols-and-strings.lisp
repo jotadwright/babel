@@ -406,3 +406,60 @@ string will consist solely of decimal digits and ASCII letters."
            for substring = (string-trim " " (subseq string start-split end-split))
            do (setf start-split (+ end-split (length string-delimiter)))
            collect substring)))
+
+
+;; ############################################################################
+
+
+(export '(string-of-predicates->list-of-predicates
+          list-of-predicates->string-of-predicates))
+
+(defun string-of-predicates->list-of-predicates (string)
+  "Turns a string of meaning predicates into list."
+  (loop with list-of-predicates = nil
+        with current-predicate = nil
+        with reading-args = nil
+        with char-list = nil
+        for char across string
+        do (cond (;;Opening bracket: end of predicate name
+                  (eq char #\() 
+                  (let ((predicate-name (read-from-string (coerce char-list 'string))))
+                    (push (cons predicate-name nil) list-of-predicates)
+                    (setf current-predicate predicate-name)
+                    (setf char-list nil)
+                    (setf reading-args t)))
+                 (;;Reading arguments and comma: end of predicate argument
+                  (and reading-args
+                       (eq char #\,))
+                  (rplacd (assoc current-predicate list-of-predicates)
+                          (append (cdr (assoc current-predicate list-of-predicates))
+                                  (list (read-from-string (coerce char-list 'string)))))
+                  (setf char-list nil))
+                 (;;Closing bracket: end of last predicate argument
+                  (eq char #\))
+                  (rplacd (assoc current-predicate list-of-predicates)
+                          (append (cdr (assoc current-predicate list-of-predicates))
+                                  (list (read-from-string (coerce char-list 'string)))))
+                  (setf current-predicate nil)
+                  (setf char-list nil)
+                  (setf reading-args nil))
+                 (;;Ignore Spaces and Commas (outside of argument list)
+                  (or (eq char #\Space)
+                      (eq char #\,)))
+                 (t
+                  (setf char-list (append char-list (list char)))))
+        finally (return (reverse list-of-predicates))))
+
+                                                        
+;(string-of-predicates->list-of-predicates "mouse(x), unique(x), linguist(y), unique(y), deep-affection(y, x)")
+
+
+
+(defun list-of-predicates->string-of-predicates (list)
+  "Turns a list of meaning predicates into a string of predicates of
+the following form: 'predicate-1(arg-x), predicate-2(arg-y)'."
+  (loop for predicate in list
+        collect (format nil "~(~a~)(~{~(~a~)~^, ~})" (first predicate) (rest predicate)) into predicate-strings
+        finally (return (format nil "~{~a~^, ~}" predicate-strings))))
+
+;(list-of-predicates->string-of-predicates '((mouse x) (unique x) (deep-affection x y)))
